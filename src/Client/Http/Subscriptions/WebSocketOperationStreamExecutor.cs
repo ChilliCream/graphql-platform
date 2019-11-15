@@ -8,28 +8,56 @@ namespace StrawberryShake.Http.Subscriptions
     public class WebSocketOperationStreamExecutor
         : IOperationStreamExecutor
     {
-        private readonly ISocketConnectionPool _connectionPool;
+        Func<Task<ISocketConnection>> _connectionFactory;
         private readonly ISubscriptionManager _subscriptionManager;
-        private readonly string _socketName;
+        private readonly IResultParserResolver _resultParserResolver;
 
         public WebSocketOperationStreamExecutor(
-            ISocketConnectionPool connectionPool,
+            Func<Task<ISocketConnection>> connectionFactory,
             ISubscriptionManager subscriptionManager,
-            string socketName)
+            IResultParserResolver resultParserResolver)
         {
-            _connectionPool = connectionPool
-                ?? throw new ArgumentNullException(nameof(connectionPool));
+            _connectionFactory = connectionFactory
+                ?? throw new ArgumentNullException(nameof(connectionFactory));
             _subscriptionManager = subscriptionManager
                 ?? throw new ArgumentNullException(nameof(subscriptionManager));
-            _socketName = socketName
-                ?? throw new ArgumentNullException(nameof(subscriptionManager));
+            _resultParserResolver = resultParserResolver
+                ?? throw new ArgumentNullException(nameof(resultParserResolver));
         }
 
         public Task<IResponseStream> ExecuteAsync(
             IOperation operation,
             CancellationToken cancellationToken)
         {
+            if (operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
 
+            if (operation.Kind != OperationKind.Subscription)
+            {
+                throw new ArgumentNullException(
+                    "This execution can only execute subscriptions.",
+                    nameof(operation));
+            }
+
+            return ExecuteInternalAsync(operation, cancellationToken);
+        }
+
+        public async Task<IResponseStream> ExecuteInternalAsync(
+            IOperation operation,
+            CancellationToken cancellationToken)
+        {
+            IResultParser resultParser =
+                _resultParserResolver.GetResultParser(operation.ResultType);
+            var subscription = Subscription.New(operation, resultParser);
+
+            ISocketConnection connection = await _connectionFactory()
+                .ConfigureAwait(false);
+            await _subscriptionManager.RegisterAsync(subscription, connection)
+                .ConfigureAwait(false);
+
+            return subscription;
         }
 
         public Task<IResponseStream<T>> ExecuteAsync<T>(
@@ -37,7 +65,36 @@ namespace StrawberryShake.Http.Subscriptions
             CancellationToken cancellationToken)
             where T : class
         {
-            throw new System.NotImplementedException();
+            if (operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (operation.Kind != OperationKind.Subscription)
+            {
+                throw new ArgumentNullException(
+                    "This execution can only execute subscriptions.",
+                    nameof(operation));
+            }
+
+            return ExecuteInternalAsync(operation, cancellationToken);
+        }
+
+        public async Task<IResponseStream<T>> ExecuteInternalAsync<T>(
+            IOperation<T> operation,
+            CancellationToken cancellationToken)
+            where T : class
+        {
+            IResultParser resultParser =
+                _resultParserResolver.GetResultParser(operation.ResultType);
+            var subscription = Subscription.New(operation, resultParser);
+
+            ISocketConnection connection = await _connectionFactory()
+                .ConfigureAwait(false);
+            await _subscriptionManager.RegisterAsync(subscription, connection)
+                .ConfigureAwait(false);
+
+            return subscription;
         }
     }
 }

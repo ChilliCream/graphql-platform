@@ -7,8 +7,8 @@ using StrawberryShake.Http.Subscriptions.Messages;
 namespace StrawberryShake.Http.Subscriptions
 {
     public sealed class Subscription<T>
-        : IResponseStream<T>
-        , ISubscription where T : class
+        : Subscription
+        , IResponseStream<T> where T : class
     {
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _resultSemaphore = new SemaphoreSlim(1, 1);
@@ -23,14 +23,11 @@ namespace StrawberryShake.Http.Subscriptions
             ResultParser = resultParser ?? throw new ArgumentNullException(nameof(resultParser));
         }
 
-        public string Id { get; }
+        public override string Id { get; }
 
-        public IOperation Operation { get; }
+        public override IOperation Operation { get; }
 
-        public IResultParser ResultParser { get; }
-
-        IAsyncEnumerator<IOperationResult> IAsyncEnumerable<IOperationResult>.GetAsyncEnumerator(
-            CancellationToken cancellationToken) => GetAsyncEnumerator(cancellationToken);
+        public override IResultParser ResultParser { get; }
 
         public async IAsyncEnumerator<IOperationResult<T>> GetAsyncEnumerator(
             CancellationToken cancellationToken)
@@ -63,18 +60,25 @@ namespace StrawberryShake.Http.Subscriptions
             {
                 if (!completed)
                 {
-                    _nextResult = new TaskCompletionSource<IOperationResult<T>?>(cancellationToken);
+                    _nextResult = new TaskCompletionSource<IOperationResult<T>?>(
+                        cancellationToken);
                     _resultSemaphore.Release();
                 }
             }
         }
 
-        public void OnRegister(Func<Task> unregister)
+
+        protected override IAsyncEnumerator<IOperationResult> OnGetAsyncEnumerator(
+            CancellationToken cancellationToken) =>
+            GetAsyncEnumerator(cancellationToken);
+
+
+        public override void OnRegister(Func<Task> unregister)
         {
             _unregister = unregister ?? throw new ArgumentNullException(nameof(unregister));
         }
 
-        public Task OnReceiveResultAsync(
+        public override Task OnReceiveResultAsync(
             DataResultMessage message,
             CancellationToken cancellationToken)
         {
@@ -136,7 +140,7 @@ namespace StrawberryShake.Http.Subscriptions
             return Task.CompletedTask;
         }
 
-        public async Task OnCompletedAsync(CancellationToken cancellationToken)
+        public override async Task OnCompletedAsync(CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -152,7 +156,7 @@ namespace StrawberryShake.Http.Subscriptions
             await DisposeAsync();
         }
 
-        public async ValueTask DisposeAsync()
+        public override async ValueTask DisposeAsync()
         {
             if (!_disposed)
             {

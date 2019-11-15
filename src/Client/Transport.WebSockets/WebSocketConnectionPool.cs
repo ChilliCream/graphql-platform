@@ -1,5 +1,5 @@
+using System.Linq;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,14 +11,19 @@ namespace StrawberryShake.Transport.WebSockets
     {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, ConnectionInfo> _connections =
-            new  Dictionary<string, ConnectionInfo>();
+            new Dictionary<string, ConnectionInfo>();
         private readonly IWebSocketClientFactory _webSocketClientFactory;
+        private readonly ISocketConnectionInterceptor[] _connectionInterceptors;
         private bool _disposed;
 
-        public WebSocketConnectionPool(IWebSocketClientFactory webSocketClientFactory)
+        public WebSocketConnectionPool(
+            IWebSocketClientFactory webSocketClientFactory,
+            IEnumerable<ISocketConnectionInterceptor> connectionInterceptors)
         {
             _webSocketClientFactory = webSocketClientFactory
                 ?? throw new ArgumentNullException(nameof(webSocketClientFactory));
+            _connectionInterceptors = connectionInterceptors?.ToArray()
+                ?? throw new ArgumentNullException(nameof(connectionInterceptors));
         }
 
         public async Task<ISocketConnection> RentAsync(
@@ -29,7 +34,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             try
             {
-                if (_connections.TryGetValue(name, out ConnectionInfo connectionInfo))
+                if (_connections.TryGetValue(name, out ConnectionInfo? connectionInfo))
                 {
                     connectionInfo.Rentals++;
                 }
@@ -45,6 +50,13 @@ namespace StrawberryShake.Transport.WebSockets
 
                     await InitializeConnectionAsync(connectionInfo.Connection, cancellationToken)
                         .ConfigureAwait(false);
+
+                    for (int i = 0; i < _connectionInterceptors.Length; i++)
+                    {
+                        await _connectionInterceptors[i].OnConnectAsync(
+                            connectionInfo.Connection)
+                            .ConfigureAwait(false);
+                    }
 
                     _connections.Add(name, connectionInfo);
                 }
@@ -65,7 +77,7 @@ namespace StrawberryShake.Transport.WebSockets
 
             try
             {
-                if (_connections.TryGetValue(connection.Name, out ConnectionInfo connectionInfo))
+                if (_connections.TryGetValue(connection.Name, out ConnectionInfo? connectionInfo))
                 {
                     connectionInfo.Rentals--;
                 }
@@ -80,6 +92,12 @@ namespace StrawberryShake.Transport.WebSockets
                 {
                     try
                     {
+                        for (int i = 0; i < _connectionInterceptors.Length; i++)
+                        {
+                            await _connectionInterceptors[i].OnDisconnectAsync(
+                                connectionInfo.Connection)
+                                .ConfigureAwait(false);
+                        }
                         await TerminateConnectionAsync(connection, cancellationToken)
                             .ConfigureAwait(false);
                         _connections.Remove(connection.Name);

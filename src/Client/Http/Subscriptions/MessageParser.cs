@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using StrawberryShake.Http.Subscriptions.Messages;
 using StrawberryShake.Transport.WebSockets.Messages;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
-using static StrawberryShake.Http.Subscriptions.Messages.MessageTypes;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -92,15 +91,15 @@ namespace StrawberryShake.Http.Subscriptions
             {
                 // case MessageTypes.Connection.Error:
 
-                case Connection.Accept:
+                case MessageTypes.Connection.Accept:
                     return AcceptConnectionMessage.Default;
 
-                case Subscription.Data:
+                case MessageTypes.Subscription.Data:
                     return DeserializeSubscriptionResultMessage(parsedMessage);
 
                 // case MessageTypes.Subscription.Error:
 
-                case Subscription.Complete:
+                case MessageTypes.Subscription.Complete:
                     return DeserializeSubscriptionCompleteMessage(parsedMessage);
 
                 default:
