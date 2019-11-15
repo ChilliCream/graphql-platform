@@ -2,10 +2,8 @@ namespace StrawberryShake
 {
     public interface IOperationExecutorFactory
     {
-        IOperationExecutor CreateExecutor(string name);
+        string Name { get; }
 
-        IOperationBatchExecutor CreateBatchExecutor(string name);
-
-        IOperationStreamExecutor CreateStreamExecutor(string name);
+        IOperationExecutor CreateExecutor();
     }
 }
