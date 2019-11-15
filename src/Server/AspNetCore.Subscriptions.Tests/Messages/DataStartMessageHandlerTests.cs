@@ -1,5 +1,4 @@
 using System.Linq;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public class DataStartMessageHanlderTests
+    public class DataStartMessageHandlerTests
     {
         [Fact]
         public void CanHandle_DataStartMessage_True()

@@ -13,7 +13,7 @@ using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public class DataStopMessageHanlderTests
+    public class DataStopMessageHandlerTests
     {
         [Fact]
         public void CanHandle_DataStartMessage_True()

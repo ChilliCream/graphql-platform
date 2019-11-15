@@ -20,7 +20,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _requestInterceptors = queryRequestInterceptors.ToArray();
+            _requestInterceptors = queryRequestInterceptors?.ToArray();
         }
 
         protected override async Task HandleAsync(
@@ -37,13 +37,16 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     .SetProperties(message.Payload.Extensions)
                     .SetServices(connection.RequestServices);
 
-            for (var i = 0; i < _requestInterceptors.Length; i++)
+            if (_requestInterceptors != null)
             {
-                await _requestInterceptors[i].OnCreateAsync(
-                        connection,
-                        requestBuilder,
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                for (var i = 0; i < _requestInterceptors.Length; i++)
+                {
+                    await _requestInterceptors[i].OnCreateAsync(
+                            connection,
+                            requestBuilder,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
             }
 
             IExecutionResult result =
