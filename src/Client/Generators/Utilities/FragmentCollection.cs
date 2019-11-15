@@ -38,7 +38,7 @@ namespace StrawberryShake.Generators.Utilities
             }
 
             if (!_fragments.TryGetValue(fragmentName,
-                out Fragment fragment))
+                out Fragment? fragment))
             {
                 fragment = CreateFragment(fragmentName);
                 _fragments[fragmentName] = fragment;
@@ -68,7 +68,8 @@ namespace StrawberryShake.Generators.Utilities
                 }
             }
 
-            return null;
+            throw new InvalidOperationException(
+                $"Could not resolve fragment {fragmentName}.");
         }
 
         public Fragment GetFragment(
@@ -87,11 +88,10 @@ namespace StrawberryShake.Generators.Utilities
 
             string fragmentName = CreateInlineFragmentName(inlineFragment);
 
-            if (!_fragments.TryGetValue(fragmentName, out Fragment fragment))
+            if (!_fragments.TryGetValue(fragmentName, out Fragment? fragment))
             {
                 fragment = CreateFragment(parentType, inlineFragment);
                 _fragments[fragmentName] = fragment;
-
             }
 
             return fragment;
@@ -113,13 +113,13 @@ namespace StrawberryShake.Generators.Utilities
                     inlineFragment.TypeCondition.Name.Value);
             }
 
-            return new Fragment(null, type, inlineFragment.SelectionSet);
+            return new Fragment(type.Name, type, inlineFragment.SelectionSet);
         }
 
         private static string CreateInlineFragmentName(
             InlineFragmentNode inlineFragment)
         {
-            return $"^__{inlineFragment.Location.Start}_" +
+            return $"^__{inlineFragment.Location!.Start}_" +
                 inlineFragment.Location.End;
         }
     }

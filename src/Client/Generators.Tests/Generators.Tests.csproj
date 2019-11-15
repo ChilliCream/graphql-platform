@@ -15,15 +15,10 @@
     <AssemblyName>StrawberryShake.Generators.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
     <IsPackable>false</IsPackable>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Generators\Generators.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="InterfaceGeneratorTests.txt" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -35,6 +35,9 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Type(
             ITypeNode typeNode);
+
+        IObjectFieldDescriptor Type(
+            Type type);
 
         IObjectFieldDescriptor Argument(
             NameString argumentName,

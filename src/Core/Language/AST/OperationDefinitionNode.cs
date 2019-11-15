@@ -8,8 +8,8 @@ namespace HotChocolate.Language
         , IHasDirectives
     {
         public OperationDefinitionNode(
-            Location location,
-            NameNode name,
+            Location? location,
+            NameNode? name,
             OperationType operation,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             IReadOnlyList<DirectiveNode> directives,
@@ -18,19 +18,19 @@ namespace HotChocolate.Language
             Location = location;
             Name = name;
             Operation = operation;
-            VariableDefinitions = variableDefinitions 
+            VariableDefinitions = variableDefinitions
                 ?? throw new ArgumentNullException(nameof(variableDefinitions));
-            Directives = directives 
+            Directives = directives
                 ?? throw new ArgumentNullException(nameof(directives));
-            SelectionSet = selectionSet 
+            SelectionSet = selectionSet
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
         public NodeKind Kind { get; } = NodeKind.OperationDefinition;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
-        public NameNode Name { get; }
+        public NameNode? Name { get; }
 
         public OperationType Operation { get; }
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
 
         public SelectionSetNode SelectionSet { get; }
 
-        public OperationDefinitionNode WithLocation(Location location)
+        public OperationDefinitionNode WithLocation(Location? location)
         {
             return new OperationDefinitionNode(
                 location, Name, Operation,
@@ -49,7 +49,7 @@ namespace HotChocolate.Language
                 Directives, SelectionSet);
         }
 
-        public OperationDefinitionNode WithName(NameNode name)
+        public OperationDefinitionNode WithName(NameNode? name)
         {
             return new OperationDefinitionNode(
                 Location, name, Operation,

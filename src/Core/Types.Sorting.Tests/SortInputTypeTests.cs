@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -69,6 +70,261 @@ namespace HotChocolate.Types.Sorting
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+
+        [Fact]
+        public void Create_Description_Explicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new SortInputType<Foo>(descriptor =>
+            {
+                descriptor.BindFieldsExplicitly()
+                    .Sortable(x => x.Bar)
+                    .Description("custom_description");
+            }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_DynamicName()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+                 d => d
+                     .Name(dep => dep.Name + "Foo")
+                     .DependsOn<StringType>()
+                     .Sortable(x => x.Bar)
+                     )
+                 )
+             );
+
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void SortInputType_DynamicName_NonGeneric()
+        {
+
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+                 d => d
+                     .Name(dep => dep.Name + "Foo")
+                     .DependsOn(typeof(StringType))
+                     .Sortable(x => x.Bar)
+                     )
+                 )
+             );
+
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_AddDirectives_NameArgs()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+             .AddType(new SortInputType<Foo>(
+                 d => d.Directive("foo")
+                     .Sortable(x => x.Bar)
+                     )
+                )
+            );
+
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_AddDirectives_NameArgs2()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+             .AddType(new SortInputType<Foo>(
+               d => d.Directive(new NameString("foo"))
+                    .Sortable(x => x.Bar)
+                    )
+                )
+            );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Directive_By_Name()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new SortInputType<Foo>(d =>
+                {
+                    d.BindFieldsExplicitly().
+                    Sortable(x => x.Bar)
+                        .Directive("bar");
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Directive_By_Name_With_Argument()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new SortInputType<Foo>(d =>
+                {
+                    d.BindFieldsExplicitly()
+                        .Sortable(x => x.Bar)
+                        .Directive("bar",
+                            new ArgumentNode("qux",
+                                new StringValueNode("foo")));
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition)
+                    .Argument("qux")
+                    .Type<StringType>())));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Directive_With_Clr_Type()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new SortInputType<Foo>(d =>
+                {
+                    d.BindFieldsExplicitly()
+                    .Sortable(x => x.Bar)
+                    .Directive<FooDirective>();
+                }))
+                .AddDirectiveType(new DirectiveType<FooDirective>(d => d
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void SortInputType_AddDirectives_DirectiveNode()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+             .AddType(new SortInputType<Foo>(
+                d => d
+                    .Directive(new DirectiveNode("foo"))
+                     .Sortable(x => x.Bar)
+                     )
+                )
+            );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_AddDirectives_DirectiveClassInstance()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+             .AddType(new SortInputType<Foo>(
+                 d => d
+                     .Directive(new FooDirective())
+                     .Sortable(x => x.Bar)
+                     )
+                )
+            );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_AddDirectives_DirectiveType()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+             .AddType(new SortInputType<Foo>(
+                d => d
+                .Directive<FooDirective>()
+                 .Sortable(x => x.Bar)
+                 )
+                )
+             );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_AddDescription()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+                d => d.Description("Test")
+                 .Sortable(x => x.Bar)
+                 )
+                )
+             );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_AddName()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+                d => d.Name("Test")
+                 .Sortable(x => x.Bar)
+                 )
+                )
+             );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        private class FooDirectiveType
+          : DirectiveType<FooDirective>
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor<FooDirective> descriptor)
+            {
+                descriptor.Name("foo");
+                descriptor.Location(DirectiveLocation.InputObject)
+                    .Location(DirectiveLocation.InputFieldDefinition);
+            }
+        }
+        private class FooDirective { }
 
         private class Foo
         {

@@ -1,0 +1,16 @@
+{
+  "Data": {
+    "items": [
+      {
+        "nested": {
+          "nested": {
+            "foo": "abc"
+          }
+        }
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

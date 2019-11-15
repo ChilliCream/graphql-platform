@@ -10,8 +10,8 @@ namespace HotChocolate.Language
     public ref partial struct Utf8GraphQLRequestParser
     {
         private const string _persistedQuery = "persistedQuery";
-        private readonly IDocumentHashProvider _hashProvider;
-        private readonly IDocumentCache _cache;
+        private readonly IDocumentHashProvider? _hashProvider;
+        private readonly IDocumentCache? _cache;
         private readonly bool _useCache;
         private Utf8GraphQLReader _reader;
         private ParserOptions _options;
@@ -87,6 +87,12 @@ namespace HotChocolate.Language
                 ParseMessageProperty(ref message);
             }
 
+            if (message.Type is null)
+            {
+                throw new InvalidOperationException(
+                    "The GraphQL socket message had no type property specified.");
+            }
+
             return new GraphQLSocketMessage
             (
                 message.Type,
@@ -96,7 +102,7 @@ namespace HotChocolate.Language
             );
         }
 
-        public object ParseJson()
+        public object? ParseJson()
         {
             _reader.MoveNext();
             return ParseValue();
@@ -133,9 +139,9 @@ namespace HotChocolate.Language
             {
                 if (_useCache
                     && request.Extensions != null
-                    && request.Extensions.TryGetValue(_persistedQuery, out object obj)
+                    && request.Extensions.TryGetValue(_persistedQuery, out object? obj)
                     && obj is IReadOnlyDictionary<string, object> persistedQuery
-                    && persistedQuery.TryGetValue(_hashProvider.Name, out obj)
+                    && persistedQuery.TryGetValue(_hashProvider!.Name, out obj)
                     && obj is string hash)
                 {
                     request.QueryName = hash;
@@ -304,13 +310,13 @@ namespace HotChocolate.Language
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] unescapedArray = null;
+            byte[]? unescapedArray = null;
 
             Span<byte> unescapedSpan = useStackalloc
                 ? stackalloc byte[length]
                 : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
 
-            DocumentNode document = null;
+            DocumentNode? document = null;
 
             try
             {
@@ -322,10 +328,10 @@ namespace HotChocolate.Language
                     {
                         request.QueryName =
                             request.QueryHash =
-                            _hashProvider.ComputeHash(unescapedSpan);
+                            _hashProvider!.ComputeHash(unescapedSpan);
                     }
 
-                    if (!_cache.TryGetDocument(
+                    if (!_cache!.TryGetDocument(
                         request.QueryName,
                         out document))
                     {
@@ -334,7 +340,7 @@ namespace HotChocolate.Language
                         if (request.QueryHash is null)
                         {
                             request.QueryHash =
-                                _hashProvider.ComputeHash(unescapedSpan);
+                                _hashProvider!.ComputeHash(unescapedSpan);
                         }
                     }
                 }
@@ -388,7 +394,7 @@ namespace HotChocolate.Language
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] source = null;
+            byte[]? source = null;
 
             Span<byte> sourceSpan = useStackalloc
                 ? stackalloc byte[length]
@@ -414,19 +420,19 @@ namespace HotChocolate.Language
             ReadOnlySpan<byte> messageData) =>
             new Utf8GraphQLRequestParser(messageData).ParseMessage();
 
-        public static object ParseJson(
+        public static object? ParseJson(
             ReadOnlySpan<byte> jsonData) =>
             new Utf8GraphQLRequestParser(jsonData).ParseJson();
 
-        public static object ParseJson(
+        public static object? ParseJson(
             ReadOnlySpan<byte> jsonData,
             ParserOptions options) =>
             new Utf8GraphQLRequestParser(jsonData, options).ParseJson();
 
-        public static object ParseJson(string sourceText) =>
+        public static object? ParseJson(string sourceText) =>
             ParseJson(sourceText, ParserOptions.Default);
 
-        public static unsafe object ParseJson(
+        public static unsafe object? ParseJson(
             string sourceText,
             ParserOptions options)
         {
@@ -446,7 +452,7 @@ namespace HotChocolate.Language
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] source = null;
+            byte[]? source = null;
 
             Span<byte> sourceSpan = useStackalloc
                 ? stackalloc byte[length]

@@ -1,6 +1,4 @@
-using System.Reflection.PortableExecutable;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using StrawberryShake.Generators;
 using HCError = HotChocolate.IError;
@@ -12,6 +10,7 @@ namespace StrawberryShake.Tools
     {
         protected override Task<bool> Compile(
             string path,
+            IReadOnlyList<DocumentInfo> documents,
             Configuration config,
             ClientGenerator generator)
         {

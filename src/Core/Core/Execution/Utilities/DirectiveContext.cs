@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -81,6 +81,12 @@ namespace HotChocolate.Execution
         public IVariableValueCollection Variables =>
             _middlewareContext.Variables;
 
+        public IImmutableDictionary<string, object> LocalContextData
+        {
+            get => _middlewareContext.LocalContextData;
+            set => _middlewareContext.LocalContextData = value;
+        }
+
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
@@ -114,5 +120,11 @@ namespace HotChocolate.Execution
             ObjectType typeContext, SelectionSetNode selectionSet) =>
             _middlewareContext.CollectFields(
                 typeContext, FieldSelection.SelectionSet);
+
+        public ValueKind ArgumentKind(NameString name) =>
+            _middlewareContext.ArgumentKind(name);
+
+        public void ModifyScopedContext(ModifyScopedContext modify) =>
+            _middlewareContext.ModifyScopedContext(modify);
     }
 }

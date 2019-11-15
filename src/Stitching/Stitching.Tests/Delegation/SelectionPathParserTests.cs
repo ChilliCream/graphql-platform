@@ -13,7 +13,7 @@ namespace HotChocolate.Stitching.Delegation
         public void Parse_PathWithoutArgs_ThreeComponentsFound()
         {
             // arrange
-            var serializedPath = new Source("foo.bar.baz");
+            var serializedPath = "foo.bar.baz";
 
             // act
             IImmutableStack<SelectionPathComponent> path =
@@ -42,7 +42,7 @@ namespace HotChocolate.Stitching.Delegation
         public void Parse_PathWithArgs_ThreeComponentsTwoWithArgs()
         {
             // arrange
-            var serializedPath = new Source("foo(a: 1).bar.baz(b: \"s\")");
+            var serializedPath = "foo(a: 1).bar.baz(b: \"s\")";
 
             // act
             IImmutableStack<SelectionPathComponent> path =
@@ -81,7 +81,7 @@ namespace HotChocolate.Stitching.Delegation
         public void Parse_PathWithVarArgs_ThreeComponentsOneWithVarArgs()
         {
             // arrange
-            var serializedPath = new Source("foo(a: $foo:bar).bar.baz");
+            var serializedPath = "foo(a: $foo:bar).bar.baz";
 
             // act
             IImmutableStack<SelectionPathComponent> path =

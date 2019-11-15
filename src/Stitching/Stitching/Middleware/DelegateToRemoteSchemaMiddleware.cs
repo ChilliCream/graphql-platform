@@ -18,6 +18,7 @@ namespace HotChocolate.Stitching
     public class DelegateToRemoteSchemaMiddleware
     {
         private const string _remoteErrorField = "remote";
+        private const string _schemaNameErrorField = "schemaName";
         private static readonly RootScopedVariableResolver _resolvers =
             new RootScopedVariableResolver();
         private readonly FieldDelegate _next;
@@ -51,7 +52,7 @@ namespace HotChocolate.Stitching
 
                 context.Result = new SerializedData(
                     ExtractData(result.Data, path.Count()));
-                ReportErrors(context, result.Errors);
+                ReportErrors(delegateDirective.Schema, context, result.Errors);
             }
 
             await _next.Invoke(context).ConfigureAwait(false);
@@ -108,7 +109,7 @@ namespace HotChocolate.Stitching
                     context, scopedVariables, extractedField);
 
             DocumentNode query = RemoteQueryBuilder.New()
-                .SetOperation(operationType)
+                .SetOperation(context.Operation.Name, operationType)
                 .SetSelectionPath(path)
                 .SetRequestField(extractedField.Field)
                 .AddVariables(CreateVariableDefs(variableValues))
@@ -178,18 +179,25 @@ namespace HotChocolate.Stitching
         }
 
         private static void ReportErrors(
+            NameString schemaName,
             IResolverContext context,
             IEnumerable<IError> errors)
         {
             foreach (IError error in errors)
             {
                 IErrorBuilder builder = ErrorBuilder.FromError(error)
-                    .SetExtension(_remoteErrorField, error.RemoveException());
+                    .SetExtension(_remoteErrorField, error.RemoveException())
+                    .SetExtension(_schemaNameErrorField, schemaName.Value);
 
                 if (error.Path != null)
                 {
                     Path path = RewriteErrorPath(error, context.Path);
                     builder.SetPath(path)
+                        .ClearLocations()
+                        .AddLocation(context.FieldSelection);
+                } else if (IsHttpError(error))
+                {
+                    builder.SetPath(context.Path)
                         .ClearLocations()
                         .AddLocation(context.FieldSelection);
                 }
@@ -222,6 +230,8 @@ namespace HotChocolate.Stitching
 
             return current;
         }
+
+        private static bool IsHttpError(IError error) => error.Code == ErrorCodes.HttpRequestException;
 
         private static IReadOnlyCollection<VariableValue> CreateVariableValues(
             IMiddlewareContext context,

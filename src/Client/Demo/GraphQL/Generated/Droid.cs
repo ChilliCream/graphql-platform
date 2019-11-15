@@ -3,15 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client
+namespace StrawberryShake.Client.GraphQL
 {
     public class Droid
-        : IDroid
+        : IHasName
+        , ISearchResult
+        , IDroid
     {
-        public double? Height { get; set; }
+        public Droid(
+            string? name, 
+            double? height, 
+            IFriend? friends)
+        {
+            Name = name;
+            Height = height;
+            Friends = friends;
+        }
 
-        public string Name { get; set; }
+        public string? Name { get; }
 
-        public IFriend Friends { get; set; }
+        public double? Height { get; }
+
+        public IFriend? Friends { get; }
     }
 }

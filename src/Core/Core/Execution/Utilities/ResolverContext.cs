@@ -63,6 +63,12 @@ namespace HotChocolate.Execution
             set;
         }
 
+        public IImmutableDictionary<string, object> LocalContextData
+        {
+            get;
+            set;
+        }
+
         public FieldDelegate Middleware => _fieldSelection.Middleware;
 
         public Task Task { get; set; }
@@ -100,6 +106,11 @@ namespace HotChocolate.Execution
         public Action PropagateNonNullViolation { get; private set; }
 
         public IVariableValueCollection Variables => _executionContext.Variables;
+
+        public void ModifyScopedContext(ModifyScopedContext modify)
+        {
+            ScopedContextData = modify(ScopedContextData);
+        }
 
         public T Parent<T>()
         {

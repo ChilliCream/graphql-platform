@@ -9,24 +9,24 @@ namespace StrawberryShake.Http
     public class HttpOperationExecutor
         : IOperationExecutor
     {
-        private readonly HttpClient _client;
+        private readonly Func<HttpClient> _clientFactory;
         private readonly OperationDelegate _executeOperation;
         private readonly IServiceProvider _services;
 
         public HttpOperationExecutor(
-            HttpClient client,
+            Func<HttpClient> clientFactory,
             OperationDelegate executeOperation,
             IServiceProvider services)
         {
-            _client = client
-                ?? throw new ArgumentNullException(nameof(client));
+            _clientFactory = clientFactory
+                ?? throw new ArgumentNullException(nameof(clientFactory));
             _executeOperation = executeOperation
                 ?? throw new ArgumentNullException(nameof(executeOperation));
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
         }
 
-        public Task<IOperationResult> ExecuteAsync(
+        public async Task<IOperationResult> ExecuteAsync(
             IOperation operation,
             CancellationToken cancellationToken)
         {
@@ -35,49 +35,53 @@ namespace StrawberryShake.Http
                 throw new ArgumentNullException(nameof(operation));
             }
 
-            return ExecuteOperationAsync(operation, cancellationToken);
+            var resultBuilder = OperationResultBuilder.New(operation.ResultType);
+
+            await ExecuteOperationAsync(
+                operation,
+                resultBuilder,
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            return resultBuilder.Build();
         }
 
-        public Task<IOperationResult<T>> ExecuteAsync<T>(
+        public async Task<IOperationResult<T>> ExecuteAsync<T>(
             IOperation<T> operation,
             CancellationToken cancellationToken)
+            where T : class
         {
             if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
 
-            return ExecuteAndCastAsync<T>(operation, cancellationToken);
+            var resultBuilder = OperationResultBuilder.New<T>();
+
+            await ExecuteOperationAsync(
+                operation,
+                resultBuilder,
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            return resultBuilder.Build();
         }
 
-        public async Task<IOperationResult<T>> ExecuteAndCastAsync<T>(
-           IOperation<T> operation,
-           CancellationToken cancellationToken)
-        {
-            IOperationResult result =
-                await ExecuteOperationAsync(operation, cancellationToken)
-                    .ConfigureAwait(false);
-            return (IOperationResult<T>)result;
-        }
-
-        private async Task<IOperationResult> ExecuteOperationAsync(
+        private async Task ExecuteOperationAsync(
             IOperation operation,
+            IOperationResultBuilder resultBuilder,
             CancellationToken cancellationToken)
         {
             var context = new HttpOperationContext(
-                operation, _client, _services, cancellationToken);
+                operation,
+                _clientFactory(),
+                _services,
+                resultBuilder,
+                cancellationToken);
 
             try
             {
                 await _executeOperation(context).ConfigureAwait(false);
-
-                if (context.Result is null)
-                {
-                    // todo : resources
-                    throw new InvalidOperationException();
-                }
-
-                return context.Result;
             }
             finally
             {

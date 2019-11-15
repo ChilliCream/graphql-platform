@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Types;
@@ -41,6 +40,13 @@ namespace StrawberryShake.Generators.CSharp
                 { typeof(double?), "GetDouble" }
             };
 
+        private LanguageVersion _languageVersion;
+
+        public ResultParserDeserializeMethodGenerator(LanguageVersion languageVersion)
+        {
+            _languageVersion = languageVersion;
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IResultParserDescriptor descriptor,
@@ -52,391 +58,304 @@ namespace StrawberryShake.Generators.CSharp
                 descriptor.ParseMethods.SelectMany(t => t.PossibleTypes))
             {
                 await WriteDeserializeMethodAsync(
-                    writer, possibleType, typeLookup, generatedMethods);
+                    writer, possibleType, typeLookup, generatedMethods)
+                    .ConfigureAwait(false);
             }
         }
 
         private async Task WriteDeserializeMethodAsync(
-           CodeWriter writer,
-           IResultParserTypeDescriptor possibleType,
-           ITypeLookup typeLookup,
-           ISet<string> generatedMethods)
+            CodeWriter writer,
+            IResultParserTypeDescriptor possibleType,
+            ITypeLookup typeLookup,
+            ISet<string> generatedMethods)
         {
             bool first = true;
 
-            foreach (IFieldDescriptor fieldDescriptor in possibleType.ResultDescriptor.Fields)
+            foreach (IType type in possibleType.ResultDescriptor.Fields
+                .Where(t => t.Type.NamedType().IsLeafType())
+                .Select(t => t.Type))
             {
-                if (fieldDescriptor.Type.NamedType().IsLeafType())
+                string methodName = SerializerNameUtils.CreateDeserializerName(type);
+
+                if (generatedMethods.Add(methodName))
                 {
-                    ITypeInfo typeInfo = typeLookup.GetTypeInfo(
-                        fieldDescriptor.Type,
-                        false);
+                    Type serializationType = typeLookup.GetSerializationType(type);
+                    string serializerMethod = _jsonMethod[serializationType];
 
-                    string methodName = CreateDeserializerName(typeInfo);
-
-                    if (generatedMethods.Add(methodName))
+                    if (!first)
                     {
-                        string serializerMethod = _jsonMethod[typeInfo.SerializationType];
+                        await writer.WriteLineAsync().ConfigureAwait(false);
+                    }
+                    first = false;
 
-                        if (fieldDescriptor.Type.IsListType()
-                            && fieldDescriptor.Type.ListType().ElementType.IsListType())
-                        {
-                            if (!first)
-                            {
-                                await writer.WriteLineAsync();
-                            }
-                            first = false;
-                            await WriteDeserializeNestedLeafList(
-                                writer, methodName, typeInfo, serializerMethod);
-
-                        }
-                        else if (fieldDescriptor.Type.IsListType()
-                            && fieldDescriptor.Type.ListType().ElementType.IsLeafType())
-                        {
-                            if (!first)
-                            {
-                                await writer.WriteLineAsync();
-                            }
-                            first = false;
-                            await WriteDeserializeLeafList(
-                                writer, methodName, typeInfo, serializerMethod);
-                        }
-                        else
-                        {
-                            if (!first)
-                            {
-                                await writer.WriteLineAsync();
-                            }
-                            first = false;
-                            await WriteDeserializeLeaf(
-                                writer, methodName, typeInfo, serializerMethod);
-                        }
+                    if (type.IsListType() && type.ListType().ElementType.IsListType())
+                    {
+                        // TODO : implement this
+                        throw new NotImplementedException();
+                    }
+                    else if (type.IsListType()
+                        && type.ListType().ElementType.IsLeafType())
+                    {
+                        await WriteDeserializeLeafList(
+                            writer,
+                            typeLookup,
+                            methodName,
+                            type,
+                            type.NamedType().Name,
+                            serializerMethod)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await WriteDeserializeLeafAsync(
+                            writer,
+                            methodName,
+                            typeLookup.GetLeafClrTypeName(type),
+                            type.NamedType().Name,
+                            serializerMethod,
+                            type.IsNonNullType())
+                            .ConfigureAwait(false);
                     }
                 }
             }
         }
 
-        private async Task WriteDeserializeLeaf(
+        private async Task WriteDeserializeLeafAsync(
             CodeWriter writer,
             string methodName,
-            ITypeInfo typeInfo,
-            string serializerMethod)
+            string clrTypeName,
+            string schemaTypeName,
+            string serializerMethod,
+            bool isNonNullType)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"private {typeInfo.ClrTypeName} {methodName}(JsonElement obj, string fieldName)");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
-
-            using (writer.IncreaseIndent())
-            {
-                await WriteTryGetFieldAsync(writer, "obj", "value");
-                await writer.WriteLineAsync();
-
-                if (typeInfo.IsNullable)
+            await WriteDeserializerMethodAsync(
+                writer, methodName, clrTypeName, async () =>
                 {
-                    await WriteReturnNullIfValueIsNull(writer, "value");
-                    await writer.WriteLineAsync();
-                }
+                    await WriteNullHandlingAsync(
+                        writer, "obj", "value", isNonNullType)
+                        .ConfigureAwait(false);
 
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    $"return ({typeInfo.ClrTypeName})_{GetFieldName(typeInfo.SchemaTypeName)}" +
-                    $"Serializer.Serialize(value.{serializerMethod}());");
-                await writer.WriteLineAsync();
-            }
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return ").ConfigureAwait(false);
+                    await WriteSerializerAsync(
+                        writer, clrTypeName, schemaTypeName,
+                        "value", serializerMethod);
+                    await writer.WriteAsync(';').ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                }).ConfigureAwait(false);
         }
 
         private async Task WriteDeserializeLeafList(
             CodeWriter writer,
+            ITypeLookup typeLookup,
             string methodName,
-            ITypeInfo typeInfo,
+            IType type,
+            string schemaTypeName,
             string serializerMethod)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"private {typeInfo.ClrTypeName} {methodName}" +
-                "(JsonElement obj, string fieldName)");
-            await writer.WriteLineAsync();
+            IType elementType = type.ElementType();
+            string clrTypeName = typeLookup.GetLeafClrTypeName(type);
+            string clrElementTypeName = typeLookup.GetLeafClrTypeName(elementType);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
-
-            using (writer.IncreaseIndent())
-            {
-                await WriteTryGetFieldAsync(writer, "obj", "value");
-                await writer.WriteLineAsync();
-
-                await WriteReturnNullIfValueIsNull(writer, "value");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "int arrayLength = value.GetArrayLength();");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "var list = new List<string>(arrayLength);");
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "for (int i = 0; i < arrayLength; i++)");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('{');
-                await writer.WriteLineAsync();
-
-                using (writer.IncreaseIndent())
+            await WriteDeserializerMethodAsync(
+                writer, methodName, clrTypeName, async () =>
                 {
-                    if (typeInfo.Type.ListType().ElementType.IsNonNullType())
-                    {
-                        await WriteAddElementAsync(
-                            writer, "list", "value[i]", typeInfo.ClrTypeName,
-                            typeInfo.SchemaTypeName, serializerMethod);
-                    }
-                    else
-                    {
-                        await WriteAddNullableElementAsync(
-                            writer, "list", "value[i]",
-                            w => WriteAddElementAsync(
-                                w, "list", "value[i]", typeInfo.ClrTypeName,
-                                typeInfo.SchemaTypeName, serializerMethod));
-                    }
-                }
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('}');
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync();
-            }
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("return list;");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+                    await WriteNullHandlingAsync(
+                        writer, "obj", "list", type.IsNonNullType())
+                        .ConfigureAwait(false);
+                    await WriteDeserializeListAsync(
+                        writer, "list", "i", "element",
+                        clrElementTypeName, elementType.IsNonNullType(),
+                        () => WriteAddElementAsync(
+                            writer, clrElementTypeName, schemaTypeName,
+                            "list", "i", "element", serializerMethod))
+                        .ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            ;
         }
 
-        private async Task WriteDeserializeNestedLeafList(
+        private Task WriteDeserializeNestedLeafList(
             CodeWriter writer,
             string methodName,
             ITypeInfo typeInfo,
             string serializerMethod)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"private {typeInfo.ClrTypeName} {methodName}" +
-                "(JsonElement obj, string fieldName)");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
-
-            using (writer.IncreaseIndent())
-            {
-                await WriteTryGetFieldAsync(writer, "obj", "value");
-                await writer.WriteLineAsync();
-
-                await WriteReturnNullIfValueIsNull(writer, "value");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "int arrayLength = value.GetArrayLength();");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "var list = new List<string>(arrayLength);");
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "for (int i = 0; i < arrayLength; i++)");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('{');
-                await writer.WriteLineAsync();
-
-                using (writer.IncreaseIndent())
-                {
-                    if (typeInfo.Type.ListType().ElementType.IsNonNullType())
-                    {
-
-                    }
-                    else
-                    {
-
-                    }
-                }
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('}');
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync();
-            }
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("return list;");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            throw new NotImplementedException();
         }
 
-        private async Task WriteTryGetFieldAsync(
+        private async Task WriteDeserializerMethodAsync(
             CodeWriter writer,
-            string objectName,
-            string elementName)
+            string methodName,
+            string clrTypeName,
+            Func<Task> body)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"if (!{objectName}.TryGetProperty(fieldName, " +
-                $"out JsonElement {elementName}))");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync(
+                $"private {clrTypeName} {methodName}" +
+                "(JsonElement obj, string fieldName)")
+                .ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("return null;");
-                await writer.WriteLineAsync();
+                await body().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
-        private async Task WriteReturnNullIfValueIsNull(
-            CodeWriter writer,
-            string elementName)
-        {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"if ({elementName}.ValueKind == JsonValueKind.Null)");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
-
-            using (writer.IncreaseIndent())
-            {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("return null;");
-                await writer.WriteLineAsync();
-            }
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
-            await writer.WriteLineAsync();
-        }
-
-        private async Task WriteAddNullableElementAsync(
+        private async Task WriteDeserializeListAsync(
             CodeWriter writer,
             string listName,
+            string listIndex,
             string elementName,
-            Func<CodeWriter, Task> writeAddValue)
+            string clrElementTypeName,
+            bool isElementNonNull,
+            Func<Task> body)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"if ({elementName}.ValueKind == JsonValueKind.Null)");
+            await writer.WriteIndentedLineAsync(
+                $"int {listName}Length = {listName}.GetArrayLength();")
+                .ConfigureAwait(false);
+
+            await writer.WriteIndentedLineAsync(
+                $"var {listName}List = new {clrElementTypeName}[{listName}Length];")
+                .ConfigureAwait(false);
+
             await writer.WriteLineAsync();
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync(
+                $"for (int {listIndex} = 0; {listIndex} < {listName}Length; {listIndex}++)")
+                .ConfigureAwait(false);
 
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync($"{listName}.Add(null);");
+                await writer.WriteIndentedLineAsync(
+                    $"JsonElement {elementName} = {listName}[i];")
+                    .ConfigureAwait(false);
+
+                if (isElementNonNull)
+                {
+                    await body().ConfigureAwait(false);
+                }
+                else
+                {
+                    await writer.WriteIndentedLineAsync(
+                        $"if ({elementName}.ValueKind == JsonValueKind.Null)")
+                        .ConfigureAwait(false);
+                    await writer.WriteIndentedLineAsync("{")
+                        .ConfigureAwait(false);
+
+                    using (writer.IncreaseIndent())
+                    {
+                        await writer.WriteIndentedLineAsync(
+                            $"{listName}List[i] = null;")
+                            .ConfigureAwait(false);
+                    }
+
+                    await writer.WriteIndentedLineAsync("}")
+                        .ConfigureAwait(false);
+                    await writer.WriteIndentedLineAsync("else")
+                        .ConfigureAwait(false);
+                    await writer.WriteIndentedLineAsync("{")
+                        .ConfigureAwait(false);
+
+                    using (writer.IncreaseIndent())
+                    {
+                        await body().ConfigureAwait(false);
+                    }
+
+                    await writer.WriteIndentedLineAsync("}")
+                        .ConfigureAwait(false);
+                }
+            }
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync($"return {listName}List;")
+                .ConfigureAwait(false);
+        }
+
+        private async Task WriteNullHandlingAsync(
+            CodeWriter writer,
+            string parameterName,
+            string valueName,
+            bool isNonNullType)
+        {
+            if (isNonNullType)
+            {
+                await writer.WriteIndentedLineAsync(
+                    $"JsonElement {valueName} = {parameterName}.GetProperty(fieldName);")
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await writer.WriteIndentedLineAsync(
+                    $"if (!{parameterName}.TryGetProperty(fieldName, " +
+                    $"out JsonElement {valueName}))");
+
+                await writer.WriteIndentedLineAsync("{");
+
+                using (writer.IncreaseIndent())
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("return null;");
+                    await writer.WriteLineAsync();
+                }
+
+                await writer.WriteIndentedLineAsync("}");
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentedLineAsync(
+                    $"if ({valueName}.ValueKind == JsonValueKind.Null)");
+
+                await writer.WriteIndentedLineAsync("{");
+
+                using (writer.IncreaseIndent())
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("return null;");
+                    await writer.WriteLineAsync();
+                }
+
+                await writer.WriteIndentedLineAsync("}");
                 await writer.WriteLineAsync();
             }
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("else");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
-
-            using (writer.IncreaseIndent())
-            {
-                await writeAddValue(writer);
-            }
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
         }
 
         private async Task WriteAddElementAsync(
             CodeWriter writer,
-            string listName,
-            string elementName,
             string clrTypeName,
             string schemaTypeName,
+            string listName,
+            string listIndex,
+            string elementName,
             string serializerMethod)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"{listName}.Add((${clrTypeName})_${schemaTypeName}Serializer" +
-                $".Serialize({elementName}.{serializerMethod}());");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync($"{listName}List[{listIndex}] = ").ConfigureAwait(false);
+            await WriteSerializerAsync(
+                writer, clrTypeName, schemaTypeName,
+                elementName, serializerMethod)
+                .ConfigureAwait(false);
+            await writer.WriteAsync(";").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        internal static string CreateDeserializerName(ITypeInfo typeInfo)
+        private async Task WriteSerializerAsync(
+           CodeWriter writer,
+           string clrTypeName,
+           string schemaTypeName,
+           string valueName,
+           string serializerMethod)
         {
-            var sb = new StringBuilder();
-            sb.Append("Deserialize");
+            await writer.WriteAsync(
+                $"({clrTypeName})_{GetFieldName(schemaTypeName)}Serializer." +
+                $"Deserialize({valueName}.{serializerMethod}())")
+                .ConfigureAwait(false);
 
-            if (typeInfo.ListLevel == 2)
+            if (_languageVersion == LanguageVersion.CSharp_8_0)
             {
-                sb.Append("Nested");
+                await writer.WriteAsync('!').ConfigureAwait(false);
             }
-
-            if (typeInfo.IsNullable)
-            {
-                sb.Append("Nullable");
-            }
-
-            sb.Append(typeInfo.SchemaTypeName);
-
-            if (typeInfo.ListLevel > 0)
-            {
-                sb.Append("List");
-            }
-
-            return sb.ToString();
         }
     }
 }

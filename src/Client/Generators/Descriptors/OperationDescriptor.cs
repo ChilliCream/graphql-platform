@@ -52,7 +52,10 @@ namespace StrawberryShake.Generators.Descriptors
 
             foreach (IArgumentDescriptor argument in Arguments)
             {
-                yield return argument.InputObjectType;
+                if (argument.InputObjectType is { })
+                {
+                    yield return argument.InputObjectType;
+                }
             }
         }
     }

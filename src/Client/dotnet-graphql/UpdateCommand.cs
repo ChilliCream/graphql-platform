@@ -1,17 +1,13 @@
-using System.Net;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Text.Json;
-using HotChocolate.Stitching.Introspection;
 using McMaster.Extensions.CommandLineUtils;
+using HotChocolate.Stitching.Introspection;
 using HotChocolate.Language;
 using IOPath = System.IO.Path;
-using System.ComponentModel.DataAnnotations;
 
 namespace StrawberryShake.Tools
 {
@@ -19,13 +15,13 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         [Option]
-        public string Token { get; set; }
+        public string? Token { get; set; }
 
         [Option]
-        public string Scheme { get; set; }
+        public string? Scheme { get; set; }
 
         public async Task<int> OnExecute()
         {
@@ -33,15 +29,13 @@ namespace StrawberryShake.Tools
             {
                 foreach (string configFile in Directory.GetFiles(
                     Environment.CurrentDirectory,
-                    "config.json",
+                    WellKnownFiles.Config,
                     SearchOption.AllDirectories))
                 {
-                    string directory = IOPath.GetDirectoryName(configFile);
-                    if (Directory.GetFiles(
-                        directory,
-                        "*.graphql").Length > 0)
+                    string directory = IOPath.GetDirectoryName(configFile)!;
+                    if (Directory.GetFiles(directory, "*.graphql").Length > 0)
                     {
-                        Configuration config = null;
+                        Configuration? config = null;
                         try
                         {
                             config = await Configuration.LoadConfig(directory);
@@ -51,7 +45,7 @@ namespace StrawberryShake.Tools
                             // ignore invalid configs
                         }
 
-                        if (config != null && config.Schemas.Count > 0)
+                        if (config != null && config.Schemas != null && config.Schemas.Count > 0)
                         {
                             await UpdateSchemaAsync(directory, config);
                         }
@@ -60,9 +54,12 @@ namespace StrawberryShake.Tools
             }
             else
             {
-                Configuration config = await Configuration.LoadConfig(
-                    IOPath.Combine(Path, "config.json"));
-                await UpdateSchemaAsync(Path, config);
+                Configuration? config = await Configuration.LoadConfig(
+                    IOPath.Combine(Path, WellKnownFiles.Config));
+                if (config != null)
+                {
+                    await UpdateSchemaAsync(Path, config);
+                }
             }
             return 0;
         }
@@ -70,7 +67,7 @@ namespace StrawberryShake.Tools
 
         private async Task UpdateSchemaAsync(string path, Configuration configuration)
         {
-            foreach (SchemaFile schema in configuration.Schemas)
+            foreach (SchemaFile schema in configuration.Schemas!)
             {
                 if (schema.Type == "http")
                 {
@@ -103,7 +100,7 @@ namespace StrawberryShake.Tools
             stopwatch.Restart();
             Console.WriteLine("Client configuration started.");
 
-            string fileName = IOPath.Combine(path, schemaFile.Name);
+            string fileName = IOPath.Combine(path, schemaFile.Name + ".graphql");
             if (File.Exists(fileName))
             {
                 File.Delete(fileName);

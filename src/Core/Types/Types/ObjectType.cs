@@ -114,8 +114,7 @@ namespace HotChocolate.Types
         {
             if (context.IsQueryType.HasValue
                 && context.IsQueryType.Value
-                && context.ContextData.ContainsKey(
-                    RelayConstants.IsRelaySupportEnabled))
+                && context.ContextData.ContainsKey(RelayConstants.IsRelaySupportEnabled))
             {
                 fields.Add(new NodeField(context.DescriptorContext));
             }
@@ -144,8 +143,7 @@ namespace HotChocolate.Types
                 {
                     // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                           "COULD NOT RESOLVE INTERFACE")
+                        .SetMessage("COULD NOT RESOLVE INTERFACE")
                         .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)

@@ -1,0 +1,19 @@
+﻿{
+  "Data": {
+    "items": [
+      {
+        "model": {
+          "foo": "def"
+        }
+      },
+      {
+        "model": {
+          "foo": "abc"
+        }
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

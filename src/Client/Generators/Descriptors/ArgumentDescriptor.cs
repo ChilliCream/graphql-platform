@@ -12,7 +12,7 @@ namespace StrawberryShake.Generators.Descriptors
             string name,
             IType type,
             VariableDefinitionNode variableDefinition,
-            IInputClassDescriptor inputObjectType)
+            IInputClassDescriptor? inputObjectType)
         {
             Name = name
                 ?? throw new ArgumentNullException(nameof(name));
@@ -27,13 +27,16 @@ namespace StrawberryShake.Generators.Descriptors
 
         public IType Type { get; }
 
-        public IInputClassDescriptor InputObjectType { get; }
+        public IInputClassDescriptor? InputObjectType { get; }
 
         public VariableDefinitionNode VariableDefinition { get; }
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {
-            yield return InputObjectType;
+            if (InputObjectType is { })
+            {
+                yield return InputObjectType;
+            }
         }
     }
 }

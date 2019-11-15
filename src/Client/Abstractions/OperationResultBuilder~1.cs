@@ -1,68 +1,108 @@
-using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake
 {
+
     public class OperationResultBuilder<T>
+        : OperationResultBuilder
+        where T : class
     {
-        private OperationResult<T> _result = new OperationResult<T>();
-        private bool _dirty;
+        public OperationResultBuilder()
+            : base(typeof(T))
+        {
+        }
+
+        public OperationResultBuilder(IOperationResult result)
+            : base(result)
+        {
+        }
+
+        protected new T? Data => (T?)base.Data;
 
         public OperationResultBuilder<T> SetData(T data)
         {
-            CheckIfDirty();
-            _result.Data = data;
+            base.SetData(data);
             return this;
         }
 
-        public OperationResultBuilder<T> SetErrors(
-            IReadOnlyList<IError> errors)
+        public new OperationResultBuilder<T> AddErrors(
+            IEnumerable<IError> errors)
         {
-            CheckIfDirty();
-            _result.Errors = errors;
+            base.AddErrors(errors);
             return this;
         }
 
-        public OperationResultBuilder<T> SetExtensions(
-            IReadOnlyDictionary<string, object> extensions)
+        public new OperationResultBuilder<T> AddError(IError error)
         {
-            CheckIfDirty();
-            _result.Extensions = extensions;
+            base.AddError(error);
             return this;
         }
 
-        public IOperationResult<T> Build()
+        public new OperationResultBuilder<T> ClearErrors()
         {
-            if (Equals(_result.Data, default(T))
-                && (_result.Errors is null || _result.Errors.Count == 0))
-            {
-                throw new InvalidOperationException(
-                    "An operation result must either have data or errors or both.");
-            }
-
-            _dirty = true;
-            return _result;
+            base.ClearErrors();
+            return this;
         }
 
-        public static OperationResultBuilder<T> New() =>
-            new OperationResultBuilder<T>();
-
-        private void CheckIfDirty()
+        public new OperationResultBuilder<T> AddExtensions(
+            IEnumerable<KeyValuePair<string, object?>> extensions)
         {
-            if (_dirty)
-            {
-                OperationResult<T> source = _result;
-                _result = new OperationResult<T>();
-                CopyResult(source);
-                _dirty = false;
-            }
+            base.AddExtensions(extensions);
+            return this;
         }
 
-        private void CopyResult(OperationResult<T> source)
+        public new OperationResultBuilder<T> AddExtension(
+            string key, object? value)
         {
-            _result.Data = source.Data;
-            _result.Errors = source.Errors;
-            _result.Extensions = source.Extensions;
+            base.AddExtension(key, value);
+            return this;
+        }
+
+        public new OperationResultBuilder<T> SetExtension(
+            string key, object? value)
+        {
+            base.SetExtension(key, value);
+            return this;
+        }
+
+        public new OperationResultBuilder<T> RemoveExtension(string key)
+        {
+            base.RemoveExtension(key);
+            return this;
+        }
+
+        public new OperationResultBuilder<T> ClearExtensions()
+        {
+            base.ClearExtensions();
+            return this;
+        }
+
+        public new OperationResultBuilder<T> ClearAll()
+        {
+            base.ClearAll();
+            return this;
+        }
+
+        public new IOperationResult<T> Build()
+        {
+            Validate();
+            SetDirty();
+            return new OperationResult<T>
+            (
+                Data,
+                Errors,
+                Extensions
+            );
+        }
+
+        protected override IOperationResult CreateResult()
+        {
+            return new OperationResult<T>
+            (
+                Data,
+                Errors,
+                Extensions
+            );
         }
     }
 }

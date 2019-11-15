@@ -21,4 +21,19 @@
     <ProjectReference Include="..\Types\Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Properties\FilterResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FilterResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\FilterResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FilterResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

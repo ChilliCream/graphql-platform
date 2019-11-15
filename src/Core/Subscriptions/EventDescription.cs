@@ -186,8 +186,8 @@ namespace HotChocolate.Subscriptions
             {
                 if (reader.Kind != TokenKind.Name)
                 {
-                    // TODO : exception
-                    throw new Exception();
+                    // TODO : resources
+                    throw new SyntaxException(reader,  "Expected a name token.");
                 }
 
                 string name = reader.GetString();

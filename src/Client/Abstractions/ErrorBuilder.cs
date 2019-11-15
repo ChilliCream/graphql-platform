@@ -1,3 +1,4 @@
+using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,9 +7,11 @@ namespace StrawberryShake
 {
     public class ErrorBuilder
     {
-        private Error _error = new Error();
+        private string? _message;
+        private IReadOnlyList<object>? _path;
         private List<Location>? _locations;
         private Dictionary<string, object?>? _extensions;
+        private Exception? _exception;
         private bool _dirty;
 
         public ErrorBuilder()
@@ -22,7 +25,25 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(source));
             }
 
-            CopyError(source);
+            _message = source.Message;
+            _exception = source.Exception;
+
+            if (source.Path != null && source.Path.Count > 0)
+            {
+                _path = source.Path;
+            }
+
+            if (source.Locations != null && source.Locations.Count > 0)
+            {
+                _locations = new List<Location>(source.Locations);
+            }
+
+            if (source.Extensions != null && source.Extensions.Count > 0)
+            {
+                _extensions = source.Extensions.ToDictionary(
+                    t => t.Key,
+                    t => t.Value);
+            }
         }
 
         public ErrorBuilder SetMessage(string message)
@@ -34,8 +55,7 @@ namespace StrawberryShake
                     nameof(message));
             }
 
-            CheckIfDirty();
-            _error.Message = message;
+            _message = message;
             return this;
         }
 
@@ -48,8 +68,21 @@ namespace StrawberryShake
 
         public ErrorBuilder SetPath(IReadOnlyList<object>? path)
         {
+            _path = path;
+            return this;
+        }
+
+        public ErrorBuilder AddLocations(IEnumerable<Location> locations)
+        {
+            if (locations is null)
+            {
+                throw new ArgumentNullException(nameof(locations));
+            }
+
             CheckIfDirty();
-            _error.Path = path;
+
+            _locations = new List<Location>(locations);
+
             return this;
         }
 
@@ -63,8 +96,13 @@ namespace StrawberryShake
             }
 
             CheckIfDirty();
-            InitializeLocations();
-            _locations!.Add(location);
+
+            if (_locations is null)
+            {
+                _locations = new List<Location>();
+            }
+            _locations.Add(location);
+
             return this;
         }
 
@@ -91,31 +129,55 @@ namespace StrawberryShake
         {
             CheckIfDirty();
             _locations = null;
-            _error.Locations = null;
             return this;
         }
 
 
         public ErrorBuilder SetException(Exception? exception)
         {
+            _exception = exception;
+            return this;
+        }
+
+        public ErrorBuilder SetExtensions(
+            IEnumerable<KeyValuePair<string, object?>> extensions)
+        {
             CheckIfDirty();
-            _error.Exception = exception;
+
+            if (extensions is null)
+            {
+                _extensions = null;
+            }
+            else
+            {
+                _extensions = extensions.ToDictionary(t => t.Key, t => t.Value);
+            }
+
             return this;
         }
 
         public ErrorBuilder SetExtension(string key, object? value)
         {
             CheckIfDirty();
-            InitializeExtensions();
-            _extensions![key] = value;
+
+            if (_extensions is null)
+            {
+                _extensions = new Dictionary<string, object?>();
+            }
+            _extensions[key] = value;
+
             return this;
         }
 
         public ErrorBuilder RemoveExtension(string key)
         {
             CheckIfDirty();
-            InitializeExtensions();
-            _extensions!.Remove(key);
+
+            if (_extensions != null)
+            {
+                _extensions.Remove(key);
+            }
+
             return this;
         }
 
@@ -123,20 +185,26 @@ namespace StrawberryShake
         {
             CheckIfDirty();
             _extensions = null;
-            _error.Extensions = null;
             return this;
         }
 
         public IError Build()
         {
-            if (string.IsNullOrEmpty(_error.Message))
+            if (string.IsNullOrEmpty(_message))
             {
                 throw new InvalidOperationException(
                     "The message mustn't be null or empty.");
             }
 
             _dirty = true;
-            return _error;
+            return new Error
+            (
+                _message!,
+                _path,
+                _locations,
+                _extensions,
+                _exception
+            );
         }
 
         public static ErrorBuilder New() => new ErrorBuilder();
@@ -144,6 +212,13 @@ namespace StrawberryShake
         public static ErrorBuilder FromError(IError error)
         {
             return new ErrorBuilder(error);
+        }
+
+        public static ErrorBuilder FromException(Exception exception)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(exception.Message)
+                .SetException(exception);
         }
 
         public static ErrorBuilder FromDictionary(
@@ -187,60 +262,20 @@ namespace StrawberryShake
             return builder;
         }
 
-        private void InitializeLocations()
-        {
-            if (_locations is null)
-            {
-                _locations = _error.Locations is null
-                    ? new List<Location>()
-                    : new List<Location>(_error.Locations);
-                _error.Locations = _locations;
-            }
-        }
-
-        private void InitializeExtensions()
-        {
-            if (_extensions is null)
-            {
-                _extensions = _error.Extensions is null
-                    ? new Dictionary<string, object?>()
-                    : _error.Extensions.ToDictionary(t => t.Key, t => t.Value);
-                _error.Extensions = _extensions;
-            }
-        }
-
         private void CheckIfDirty()
         {
             if (_dirty)
             {
-                Error source = _error;
-                _error = new Error();
-                CopyError(source);
+                if (_locations != null)
+                {
+                    _locations = new List<Location>(_locations);
+                }
+
+                if (_extensions != null)
+                {
+                    _extensions = new Dictionary<string, object?>(_extensions);
+                }
                 _dirty = false;
-            }
-        }
-
-        private void CopyError(IError source)
-        {
-            _locations = null;
-            _extensions = null;
-
-            _error.Message = source.Message;
-            _error.Exception = source.Exception;
-
-            if (source.Path != null && source.Path.Count > 0)
-            {
-                _error.Path = source.Path;
-            }
-
-            if (source.Locations != null && source.Locations.Count > 0)
-            {
-                _error.Locations = source.Locations;
-            }
-
-            if (source.Extensions != null && source.Extensions.Count > 0)
-            {
-                _error.Extensions = source.Extensions;
             }
         }
     }

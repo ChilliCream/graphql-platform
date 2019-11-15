@@ -1,0 +1,14 @@
+﻿{
+  "Data": {
+    "paging": {
+      "nodes": [
+        {
+          "foo": "abc"
+        }
+      ]
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

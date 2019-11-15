@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client
+namespace StrawberryShake.Client.GraphQL
 {
     public interface IFriend
     {
-        IReadOnlyList<IHasName> Nodes { get; }
+        IReadOnlyList<IHasName>? Nodes { get; }
     }
 }

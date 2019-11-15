@@ -1,13 +1,48 @@
-query getHero {
-  hero {
+query getHero($episode: Episode) {
+  hero(episode: $episode) {
     ...Hero
+  }
+}
+
+query getHuman($id: String!) {
+  human(id: $id) {
+    ...Hero
+  }
+}
+
+query search($text: String!) {
+  search(text: $text) {
+    ...Hero
+    ...Starship
+  }
+}
+
+mutation createReview($episode: Episode!, $review: ReviewInput!) {
+  createReview(episode: $episode, review: $review) {
+    commentary
   }
 }
 
 fragment Hero on Character {
   ...HasName
+  ...Human
+  ...Droid
+}
+
+fragment Human on Human {
+  ...HasName
   ...HasFriends
   height
+}
+
+fragment Droid on Droid {
+  ...HasName
+  ...HasFriends
+  height
+}
+
+fragment Starship on Starship {
+  name
 }
 
 fragment Friend on CharacterConnection {

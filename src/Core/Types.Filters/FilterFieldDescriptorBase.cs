@@ -12,11 +12,15 @@ namespace HotChocolate.Types.Filters
     public abstract class FilterFieldDescriptorBase
         : DescriptorBase<FilterFieldDefintion>
     {
+        private readonly IFilterNamingConvention _namingConvention;
+
         protected FilterFieldDescriptorBase(
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
         {
+            _namingConvention = context.GetConventionOrDefault<IFilterNamingConvention>(
+                FilterNamingConventionSnakeCase.Default);
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -28,7 +32,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected override FilterFieldDefintion Definition { get; } =
+        protected sealed override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
@@ -164,8 +168,12 @@ namespace HotChocolate.Types.Filters
                 {
                     if (clrRef.Type.IsValueType)
                     {
-                        return clrRef.WithType(
-                            typeof(Nullable<>).MakeGenericType(clrRef.Type));
+                        if (Nullable.GetUnderlyingType(clrRef.Type) == null)
+                        {
+                            return clrRef.WithType(
+                                typeof(Nullable<>).MakeGenericType(clrRef.Type));
+                        }
+                        return clrRef;
                     }
                     else if (clrRef.Type.IsGenericType
                         && clrRef.Type.GetGenericTypeDefinition() ==
@@ -196,56 +204,7 @@ namespace HotChocolate.Types.Filters
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
-            switch (kind)
-            {
-                case FilterOperationKind.Equals:
-                    return Definition.Name;
-                case FilterOperationKind.NotEquals:
-                    return Definition.Name + "_not";
-
-                case FilterOperationKind.Contains:
-                    return Definition.Name + "_contains";
-                case FilterOperationKind.NotContains:
-                    return Definition.Name + "_not_contains";
-
-                case FilterOperationKind.In:
-                    return Definition.Name + "_in";
-                case FilterOperationKind.NotIn:
-                    return Definition.Name + "_not_in";
-
-                case FilterOperationKind.StartsWith:
-                    return Definition.Name + "_starts_with";
-                case FilterOperationKind.NotStartsWith:
-                    return Definition.Name + "_not_starts_with";
-
-                case FilterOperationKind.EndsWith:
-                    return Definition.Name + "_ends_with";
-                case FilterOperationKind.NotEndsWith:
-                    return Definition.Name + "_not_ends_with";
-
-                case FilterOperationKind.GreaterThan:
-                    return Definition.Name + "_gt";
-                case FilterOperationKind.NotGreaterThan:
-                    return Definition.Name + "_not_gt";
-
-                case FilterOperationKind.GreaterThanOrEquals:
-                    return Definition.Name + "_gte";
-                case FilterOperationKind.NotGreaterThanOrEquals:
-                    return Definition.Name + "_not_gte";
-
-                case FilterOperationKind.LowerThan:
-                    return Definition.Name + "_lt";
-                case FilterOperationKind.NotLowerThan:
-                    return Definition.Name + "_not_lt";
-
-                case FilterOperationKind.LowerThanOrEquals:
-                    return Definition.Name + "_lte";
-                case FilterOperationKind.NotLowerThanOrEquals:
-                    return Definition.Name + "_not_lte";
-
-                default:
-                    throw new NotSupportedException();
-            }
+            return _namingConvention.CreateFieldName(Definition, kind);
         }
 
         protected virtual ITypeReference RewriteType(

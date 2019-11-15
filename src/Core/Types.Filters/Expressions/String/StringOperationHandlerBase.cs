@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters.Expressions
             out Expression expression)
         {
             if (operation.Type == typeof(string)
-                && type.IsInstanceOfType(value)) 
+                && type.IsInstanceOfType(value))
             {
                 object parsedValue = type.ParseLiteral(value);
 

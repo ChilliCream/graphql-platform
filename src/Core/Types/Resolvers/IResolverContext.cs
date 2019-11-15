@@ -8,6 +8,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
+    public delegate IImmutableDictionary<string, object> ModifyScopedContext(
+        IImmutableDictionary<string, object> contextData);
+
     /// <summary>
     /// The resolver context represent the execution context for a specific
     /// field that is being resolved.
@@ -71,6 +74,13 @@ namespace HotChocolate.Resolvers
         IImmutableDictionary<string, object> ScopedContextData { get; set; }
 
         /// <summary>
+        /// The local context data dictionary can be used by middlewares and
+        /// resolvers to store and retrieve data during execution scoped to the
+        /// field
+        /// </summary>
+        IImmutableDictionary<string, object> LocalContextData { get; set; }
+
+        /// <summary>
         /// Gets access to the coerced variable values of the request.
         /// </summary>
         IVariableValueCollection Variables { get; }
@@ -102,9 +112,20 @@ namespace HotChocolate.Resolvers
         /// The type to which the argument shall be casted to.
         /// </typeparam>
         /// <returns>
-        /// Returns a specific field argument.
+        /// Returns the value of the specified field argument.
         /// </returns>
         T Argument<T>(NameString name);
+
+        /// <summary>
+        /// Gets the value kind of a specific field argument.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <returns>
+        /// Returns the value kind of the specified field argument kind.
+        /// </returns>
+        ValueKind ArgumentKind(NameString name);
 
         /// <summary>
         /// Gets as specific service from the dependency injection container.
@@ -197,5 +218,10 @@ namespace HotChocolate.Resolvers
         IReadOnlyCollection<IFieldSelection> CollectFields(
             ObjectType typeContext,
             SelectionSetNode selectionSet);
+
+        /// <summary>
+        /// Helper method to modify the scoped context data.
+        /// </summary>
+        void ModifyScopedContext(ModifyScopedContext modify);
     }
 }

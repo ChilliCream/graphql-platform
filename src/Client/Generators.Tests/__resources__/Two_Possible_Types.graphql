@@ -1,0 +1,17 @@
+query getHero {
+  hero {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ...HasName
+}
+
+fragment SomeDroid on Droid {
+  primaryFunction
+}
+
+fragment SomeHuman on Human {
+  homePlanet
+}

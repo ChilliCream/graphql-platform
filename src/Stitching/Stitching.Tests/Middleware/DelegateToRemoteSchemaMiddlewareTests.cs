@@ -10,6 +10,7 @@ using HotChocolate.Types;
 using HotChocolate.Resolvers;
 using FileResource = ChilliCream.Testing.FileResource;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using System.Threading;
 
 namespace HotChocolate.Stitching
 {
@@ -1089,6 +1090,70 @@ namespace HotChocolate.Stitching
 
             // assert
             Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task HttpErrorsHavePathSet()
+        {
+            // arrange
+            var connections = new Dictionary<string, HttpClient>();
+            IHttpClientFactory clientFactory = CreateRemoteSchemas(connections);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            ISchema schema = services.GetRequiredService<ISchema>();
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // have to replace the http client after the schema is built
+            connections["customer"] = new HttpClient(new ServiceUnavailableDelegatingHandler())
+            {
+                BaseAddress = connections["customer"].BaseAddress
+            };
+
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        {
+                            customer(id: ""Q3VzdG9tZXIKZDE="") {
+                                contracts {
+                                    id
+                                }
+                            }
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            result.MatchSnapshot(options => options.IgnoreField("Errors[0].Exception.StackTrace"));
+        }
+
+        private class ServiceUnavailableDelegatingHandler : DelegatingHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                var response = new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable);
+                return Task.FromResult(response);
+            }
         }
 
         [Fact]

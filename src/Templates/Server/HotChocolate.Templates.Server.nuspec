@@ -7,7 +7,7 @@
       Contains a Hot Chocolate GraphQL server template.
     </description>
     <authors>Michael Staib</authors>
-    <iconUrl>https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/master/img/hotchocolate-signet.png</iconUrl>
+    <iconUrl>https://chillicream.com/img/projects/hotchocolate-signet.png</iconUrl>
     <packageTypes>
       <packageType name="Template" />
     </packageTypes>

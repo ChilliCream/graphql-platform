@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Generators
 {
     [Serializable]
-    public class GeneratorException
+    public sealed class GeneratorException
         : Exception
     {
         public GeneratorException(string message)
@@ -32,13 +31,6 @@ namespace StrawberryShake.Generators
             Errors = new List<HotChocolate.IError>(
                errors ?? Array.Empty<HotChocolate.IError>())
                    .AsReadOnly();
-        }
-
-        protected GeneratorException(
-            SerializationInfo info,
-            StreamingContext context)
-            : base(info, context)
-        {
         }
 
         public IReadOnlyList<HotChocolate.IError> Errors { get; }

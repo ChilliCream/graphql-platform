@@ -7,9 +7,9 @@ namespace HotChocolate.Language
         , ITypeDefinitionNode
     {
         public EnumTypeDefinitionNode(
-            Location location,
+            Location? location,
             NameNode name,
-            StringValueNode description,
+            StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<EnumValueDefinitionNode> values)
             : base(location, name, directives, values)
@@ -19,9 +19,9 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.EnumTypeDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
-        public EnumTypeDefinitionNode WithLocation(Location location)
+        public EnumTypeDefinitionNode WithLocation(Location? location)
         {
             return new EnumTypeDefinitionNode(
                 location, Name, Description,
@@ -36,7 +36,7 @@ namespace HotChocolate.Language
         }
 
         public EnumTypeDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new EnumTypeDefinitionNode(
                 Location, Name, description,

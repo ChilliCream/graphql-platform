@@ -23,4 +23,8 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Squadron.Redis" Version="0.3.0" />
+  </ItemGroup>
+
 </Project>

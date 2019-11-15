@@ -5,73 +5,73 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace StrawberryShake.Client
+namespace StrawberryShake.Client.GraphQL
 {
     public class GetHeroResultParser
         : JsonResultParserBase<IGetHero>
     {
-        private readonly IValueSerializer _floatSerializer;
         private readonly IValueSerializer _stringSerializer;
+        private readonly IValueSerializer _floatSerializer;
 
-        public GetHeroResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetHeroResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("Float", out IValueSerializer serializer)){
-                throw new ArgumentException(
-                    "There is no serializer specified for `Float`.",
-                    nameof(serializers));
+            if(serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _floatSerializer = serializer;
-
-            if (!map.TryGetValue("String", out  serializer)){
-                throw new ArgumentException(
-                    "There is no serializer specified for `String`.",
-                    nameof(serializers));
-            }
-            _stringSerializer = serializer;
+            _stringSerializer = serializerResolver.GetValueSerializer("String");
+            _floatSerializer = serializerResolver.GetValueSerializer("Float");
         }
 
         protected override IGetHero ParserData(JsonElement data)
         {
-            var getHero = new GetHero();
-            getHero.Hero = ParseRootHero(data, "hero");
-            return getHero;
+            return new GetHero
+            (
+                ParseGetHeroHero(data, "hero")
+            );
+
         }
 
-        private IHero ParseRootHero(
+        private IHasName? ParseGetHeroHero(
             JsonElement parent,
             string field)
         {
             if (!parent.TryGetProperty(field, out JsonElement obj))
+            {
+                return null;
+            }
+
+            if (obj.ValueKind == JsonValueKind.Null)
             {
                 return null;
             }
 
             string type = obj.GetProperty(TypeName).GetString();
 
-            if (string.Equals(type, "Droid", StringComparison.Ordinal))
+            switch(type)
             {
-                var droid = new Droid();
-                droid.Height = (double?)DeserializeFloat(obj, "height");
-                droid.Name = (string)DeserializeString(obj, "name");
-                droid.Friends = ParseRootHeroFriends(obj, "friends");
-                return droid;
-            }
+                case "Droid":
+                    return new Droid
+                    (
+                        DeserializeNullableString(obj, "name"),
+                        DeserializeNullableFloat(obj, "height"),
+                        ParseGetHeroHeroFriends(obj, "friends")
+                    );
 
-            if (string.Equals(type, "Human", StringComparison.Ordinal))
-            {
-                var human = new Human();
-                human.Height = (double?)DeserializeFloat(obj, "height");
-                human.Name = (string)DeserializeString(obj, "name");
-                human.Friends = ParseRootHeroFriends(obj, "friends");
-                return human;
-            }
+                case "Human":
+                    return new Human
+                    (
+                        DeserializeNullableString(obj, "name"),
+                        DeserializeNullableFloat(obj, "height"),
+                        ParseGetHeroHeroFriends(obj, "friends")
+                    );
 
-            throw new UnknownSchemaTypeException(type);
+                default:
+                    throw new UnknownSchemaTypeException(type);
+            }
         }
 
-        private IFriend ParseRootHeroFriends(
+        private IFriend? ParseGetHeroHeroFriends(
             JsonElement parent,
             string field)
         {
@@ -80,12 +80,18 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            var friend = new Friend();
-            friend.Nodes = ParseRootHeroFriendsNodes(obj, "nodes");
-            return friend;
+            if (obj.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return new Friend
+            (
+                ParseGetHeroHeroFriendsNodes(obj, "nodes")
+            );
         }
 
-        private IReadOnlyList<IHasName> ParseRootHeroFriendsNodes(
+        private IReadOnlyList<IHasName>? ParseGetHeroHeroFriendsNodes(
             JsonElement parent,
             string field)
         {
@@ -94,61 +100,54 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            string type = obj.GetProperty(TypeName).GetString();
-
-            if (string.Equals(type, "Droid", StringComparison.Ordinal))
+            if (obj.ValueKind == JsonValueKind.Null)
             {
-                int objLength = obj.GetArrayLength();
-                var list = new IHasName[objLength];
-
-                for (int objIndex = 0; objIndex < objLength; objIndex++)
-                {
-                    JsonElement element = obj[objIndex];
-                    var entity = new Droid();
-                    entity.Name = (string)DeserializeString(element, "name");
-                    list[objIndex] = entity;
-                }
-
-                return list;
+                return null;
             }
 
-            if (string.Equals(type, "Human", StringComparison.Ordinal))
+            int objLength = obj.GetArrayLength();
+            var list = new IHasName[objLength];
+            for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
-                int objLength = obj.GetArrayLength();
-                var list = new IHasName[objLength];
+                JsonElement element = obj[objIndex];
+                list[objIndex] = new HasName
+                (
+                    DeserializeNullableString(element, "name")
+                );
 
-                for (int objIndex = 0; objIndex < objLength; objIndex++)
-                {
-                    JsonElement element = obj[objIndex];
-                    var entity = new Human();
-                    entity.Name = (string)DeserializeString(element, "name");
-                    list[objIndex] = entity;
-                }
-
-                return list;
             }
 
-            throw new UnknownSchemaTypeException(type);
+            return list;
         }
 
-        private double? DeserializeFloat(JsonElement obj, string fieldName)
+        private string? DeserializeNullableString(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
                 return null;
             }
 
-            return (double?)_floatSerializer.Serialize(value.GetDouble());
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
         }
 
-        private string DeserializeString(JsonElement obj, string fieldName)
+        private double? DeserializeNullableFloat(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
                 return null;
             }
 
-            return (string)_stringSerializer.Serialize(value.GetString());
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (double?)_floatSerializer.Deserialize(value.GetDouble())!;
         }
     }
 }

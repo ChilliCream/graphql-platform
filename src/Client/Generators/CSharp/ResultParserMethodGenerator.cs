@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
@@ -14,16 +16,19 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            string resultTypeName = descriptor.ResultSelection is null
+            bool isOperation = descriptor.ResultSelection.Directives.Any(t =>
+                t.Name.Value.EqualsOrdinal(GeneratorDirectives.Operation));
+
+            string resultTypeName = isOperation
                 ? descriptor.ResultDescriptor.Name
                 : typeLookup.GetTypeName(
-                    descriptor.ResultSelection,
                     descriptor.ResultType,
+                    descriptor.ResultSelection,
                     true);
 
-            if (descriptor.ResultSelection is null)
+            if (isOperation)
             {
-                return WriteOperationSelectionSet(
+                return WriteParseDataAsync(
                     writer, descriptor, typeLookup, resultTypeName);
             }
 
@@ -31,34 +36,36 @@ namespace StrawberryShake.Generators.CSharp
                 writer, descriptor, typeLookup, resultTypeName);
         }
 
-        private async Task WriteOperationSelectionSet(
+        private async Task WriteParseDataAsync(
            CodeWriter writer,
            IResultParserMethodDescriptor descriptor,
            ITypeLookup typeLookup,
            string resultTypeName)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("protected override ");
-            await writer.WriteAsync(resultTypeName);
-            await writer.WriteSpaceAsync();
-            await writer.WriteAsync("ParserData(JsonElement data)");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("protected override ").ConfigureAwait(false);
+            await writer.WriteAsync(resultTypeName).ConfigureAwait(false);
+            await writer.WriteSpaceAsync().ConfigureAwait(false);
+            await writer.WriteAsync("ParserData(JsonElement data)").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('{').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("return ").ConfigureAwait(false);
                 await WriteCreateObjectAsync(
                     writer, descriptor, descriptor.PossibleTypes[0],
-                    "data", typeLookup);
-                await writer.WriteLineAsync();
+                    "data", typeLookup).ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('}').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteFieldSelectionSet(
@@ -67,61 +74,55 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup,
             string resultTypeName)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("private ");
-            await writer.WriteAsync(resultTypeName);
-            await writer.WriteSpaceAsync();
-            await writer.WriteAsync("Parse");
-            await writer.WriteAsync(descriptor.Name);
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("private ").ConfigureAwait(false);
+            await writer.WriteAsync(resultTypeName).ConfigureAwait(false);
+            await writer.WriteSpaceAsync().ConfigureAwait(false);
+            await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
 
-            await writer.WriteAsync('(');
-            await writer.WriteLineAsync();
+            await writer.WriteAsync('(').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("JsonElement parent,");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("JsonElement parent,").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("string field)");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("string field)").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('{').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("if (!parent.TryGetProperty(field, out JsonElement obj))");
-                await writer.WriteLineAsync();
+                await WriteNullHandlingAsync(
+                    writer,
+                    descriptor.ResultType.IsNonNullType())
+                    .ConfigureAwait(false);
 
-                await writer.WriteIndentAsync();
-                using (writer.WriteBraces())
-                {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("return null;");
-                }
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync();
-
-                if (descriptor.ResultType.NamedType().IsAbstractType())
+                if (descriptor.ResultType.NamedType().IsAbstractType()
+                    && descriptor.PossibleTypes.Count > 1)
                 {
                     await WriteParserForMultipleResultTypes(
-                        writer, descriptor, typeLookup);
+                        writer, descriptor, typeLookup)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
                     await WriteParserForSingleResultType(
-                        writer, descriptor, typeLookup);
+                        writer, descriptor, typeLookup)
+                        .ConfigureAwait(false);
                 }
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('}').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteParserForMultipleResultTypes(
@@ -129,74 +130,81 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor methodDescriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("string type = obj.GetProperty(TypeName).GetString();");
-            await writer.WriteLineAsync();
-            await writer.WriteLineAsync();
-
-            int last = methodDescriptor.PossibleTypes.Count - 1;
-
-            for (int i = 0; i <= last; i++)
+            if (methodDescriptor.ResultType.IsListType())
             {
-                var possibleType = methodDescriptor.PossibleTypes[i];
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("if (string.Equals(type, ");
-                await writer.WriteStringValueAsync(possibleType.ResultDescriptor.Name);
-                await writer.WriteAsync(", StringComparison.Ordinal))");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                using (writer.WriteBraces())
-                {
-                    if (methodDescriptor.ResultType.IsListType())
-                    {
-                        await WriteListAsync(
-                            writer,
-                            methodDescriptor,
-                            possibleType,
-                            "obj",
-                            "element",
-                            "list",
-                            "entity",
-                            typeLookup);
-                    }
-                    else
-                    {
-                        await WriteCreateObjectAsync(
-                            writer,
-                            methodDescriptor,
-                            possibleType,
-                            "obj",
-                            typeLookup);
-                    }
-                }
-
-                await writer.WriteLineAsync();
-
-                if (i < last)
-                {
-                    await writer.WriteLineAsync();
-                }
-            }
-
-            await writer.WriteLineAsync();
-
-            if (methodDescriptor.UnknownType is null)
-            {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "throw new UnknownSchemaTypeException(type);");
-                await writer.WriteLineAsync();
+                await WriteListAsync(
+                    writer,
+                    methodDescriptor,
+                    "obj",
+                    "element",
+                    "list",
+                    typeLookup)
+                    .ConfigureAwait(false);
             }
             else
             {
-                await WriteParserForSingleResultType(
+                await WriteAbstractTypeHandlingAsync(
                     writer,
                     methodDescriptor,
-                    methodDescriptor.UnknownType,
-                    typeLookup);
+                    typeLookup,
+                    "obj",
+                    async m =>
+                    {
+                        await writer.WriteIndentAsync().ConfigureAwait(false);
+                        await writer.WriteAsync("return ").ConfigureAwait(false);
+                        await WriteCreateObjectAsync(
+                            writer,
+                            methodDescriptor,
+                            m,
+                            "obj",
+                            typeLookup)
+                            .ConfigureAwait(false);
+                    }).ConfigureAwait(false);
             }
+        }
+
+        private async Task WriteAbstractTypeHandlingAsync(
+            CodeWriter writer,
+            IResultParserMethodDescriptor methodDescriptor,
+            ITypeLookup typeLookup,
+            string elementName,
+            Func<IResultParserTypeDescriptor, Task> writeObject)
+        {
+            await writer.WriteIndentedLineAsync(
+                "string type = {0}.GetProperty(TypeName).GetString();",
+                elementName)
+                .ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("switch(type)").ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+
+            using (writer.IncreaseIndent())
+            {
+                foreach (IResultParserTypeDescriptor possibleType in methodDescriptor.PossibleTypes)
+                {
+                    await writer.WriteIndentedLineAsync(
+                        "case \"{0}\":",
+                        possibleType.ResultDescriptor.Type.Name)
+                        .ConfigureAwait(false);
+
+                    using (writer.IncreaseIndent())
+                    {
+                        await writeObject(possibleType).ConfigureAwait(false);
+                    }
+
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                }
+
+                await writer.WriteIndentedLineAsync("default:").ConfigureAwait(false);
+                using (writer.IncreaseIndent())
+                {
+                    await writer.WriteIndentedLineAsync(
+                        "throw new UnknownSchemaTypeException(type);")
+                        .ConfigureAwait(false);
+                }
+            }
+
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
         private Task WriteParserForSingleResultType(
@@ -221,137 +229,151 @@ namespace StrawberryShake.Generators.CSharp
                 await WriteListAsync(
                     writer,
                     methodDescriptor,
-                    possibleType,
                     "obj",
                     "element",
                     "list",
-                    "entity",
-                    typeLookup);
+                    typeLookup)
+                    .ConfigureAwait(false);
             }
             else
             {
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("return ").ConfigureAwait(false);
                 await WriteCreateObjectAsync(
                     writer,
                     methodDescriptor,
                     possibleType,
                     "obj",
-                    typeLookup);
+                    typeLookup)
+                    .ConfigureAwait(false);
             }
-
-            await writer.WriteLineAsync();
         }
 
         private async Task WriteListAsync(
             CodeWriter writer,
             IResultParserMethodDescriptor methodDescriptor,
-            IResultParserTypeDescriptor possibleType,
             string jsonElement,
             string elementField,
             string listField,
-            string entityField,
             ITypeLookup typeLookup)
         {
             IType elementType = methodDescriptor.ResultType.ElementType();
 
             string resultTypeName = typeLookup.GetTypeName(
+                elementType.IsNonNullType() ? elementType : new NonNullType(elementType),
                 methodDescriptor.ResultSelection,
-                elementType,
                 true);
 
             string lengthField = jsonElement + "Length";
             string indexField = jsonElement + "Index";
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("int ");
-            await writer.WriteAsync(lengthField);
-            await writer.WriteAsync(" = ");
-            await writer.WriteAsync(jsonElement);
-            await writer.WriteAsync(".GetArrayLength();");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync(
+                "int {0} = {1}.GetArrayLength();",
+                lengthField,
+                jsonElement)
+                .ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("var ");
-            await writer.WriteAsync(listField);
-            await writer.WriteAsync(" = new ");
-            await writer.WriteAsync(resultTypeName);
-            await writer.WriteAsync('[');
-            await writer.WriteAsync(lengthField);
-            await writer.WriteAsync(']');
-            await writer.WriteAsync(';');
-            await writer.WriteLineAsync();
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync(
+                "var {0} = new {1}[{2}];",
+                listField,
+                resultTypeName,
+                lengthField)
+                .ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("for (int ");
-            await writer.WriteAsync(indexField);
-            await writer.WriteAsync(" = 0; ");
-            await writer.WriteAsync(indexField);
-            await writer.WriteAsync($" < {lengthField}; ");
-            await writer.WriteAsync(indexField);
-            await writer.WriteAsync("++)");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync(
+                "for (int {0} = 0; {0} < {1}; {0}++)",
+                indexField,
+                lengthField)
+                .ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
             using (writer.WriteBraces())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("JsonElement ");
-                await writer.WriteAsync(elementField);
-                await writer.WriteAsync(" = ");
-                await writer.WriteAsync(jsonElement);
-                await writer.WriteAsync('[');
-                await writer.WriteAsync(indexField);
-                await writer.WriteAsync(']');
-                await writer.WriteAsync(';');
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync(
+                    "JsonElement {0} = {1}[{2}];",
+                    elementField,
+                    jsonElement,
+                    indexField)
+                    .ConfigureAwait(false);
 
                 if (elementType.IsListType())
                 {
                     await WriteListAsync(
                         writer,
                         methodDescriptor,
-                        possibleType,
                         elementField,
                         "inner" + char.ToUpper(elementField[0]) + elementField.Substring(1),
                         "inner" + char.ToUpper(listField[0]) + listField.Substring(1),
-                        "inner" + char.ToUpper(entityField[0]) + entityField.Substring(1),
-                        typeLookup);
+                        typeLookup)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("var ");
-                    await writer.WriteAsync(entityField);
-                    await writer.WriteAsync(" = new ");
-                    await writer.WriteAsync(possibleType.ResultDescriptor.Name);
-                    await writer.WriteAsync("();");
-                    await writer.WriteLineAsync();
-
-                    await WriteObjectPropertyDeserializationAsync(
-                        writer,
-                        possibleType,
-                        elementField,
-                        entityField,
-                        typeLookup);
-
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync(listField);
-                    await writer.WriteAsync('[');
-                    await writer.WriteAsync(indexField);
-                    await writer.WriteAsync(']');
-                    await writer.WriteAsync(" = ");
-                    await writer.WriteAsync(entityField);
-                    await writer.WriteAsync(';');
+                    if (elementType.IsAbstractType()
+                        && methodDescriptor.PossibleTypes.Count > 1)
+                    {
+                        await WriteAbstractTypeHandlingAsync(
+                            writer,
+                            methodDescriptor,
+                            typeLookup,
+                            elementField,
+                            async m =>
+                            {
+                                await WriteCreateListElementAsync(
+                                    writer,
+                                    methodDescriptor,
+                                    m,
+                                    elementField,
+                                    listField,
+                                    indexField,
+                                    typeLookup)
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync("break;").ConfigureAwait(false);
+                            });
+                    }
+                    else
+                    {
+                        await WriteCreateListElementAsync(
+                            writer,
+                            methodDescriptor,
+                            methodDescriptor.PossibleTypes[0],
+                            elementField,
+                            listField,
+                            indexField,
+                            typeLookup)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
 
-            await writer.WriteLineAsync();
-            await writer.WriteLineAsync();
+            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("return ");
-            await writer.WriteAsync(listField);
-            await writer.WriteAsync(';');
+            await writer.WriteIndentedLineAsync("return {0};", listField).ConfigureAwait(false);
+        }
+
+        private async Task WriteCreateListElementAsync(
+            CodeWriter writer,
+            IResultParserMethodDescriptor methodDescriptor,
+            IResultParserTypeDescriptor possibleType,
+            string jsonElement,
+            string listField,
+            string indexField,
+            ITypeLookup typeLookup)
+        {
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync(string.Format(
+                "{0}[{1}] = ",
+                listField,
+                indexField))
+                .ConfigureAwait(false);
+            await WriteCreateObjectAsync(
+                writer,
+                methodDescriptor,
+                possibleType,
+                jsonElement,
+                typeLookup)
+                .ConfigureAwait(false);
         }
 
         private async Task WriteCreateObjectAsync(
@@ -361,44 +383,41 @@ namespace StrawberryShake.Generators.CSharp
             string jsonElement,
             ITypeLookup typeLookup)
         {
-            string entityField = GetFieldName(possibleType.ResultDescriptor.Name);
+            await writer.WriteAsync("new ").ConfigureAwait(false);
+            await writer.WriteAsync(possibleType.ResultDescriptor.Name).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("var ");
-            await writer.WriteAsync(entityField);
-            await writer.WriteAsync(" = new ");
-            await writer.WriteAsync(possibleType.ResultDescriptor.Name);
-            await writer.WriteAsync("();");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('(').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await WriteObjectPropertyDeserializationAsync(
-                writer,
-                possibleType,
-                jsonElement,
-                entityField,
-                typeLookup);
+            using (writer.IncreaseIndent())
+            {
+                await WriteObjectPropertyDeserializationAsync(
+                    writer,
+                    possibleType,
+                    jsonElement,
+                    typeLookup)
+                    .ConfigureAwait(false);
+            }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("return ");
-            await writer.WriteAsync(entityField);
-            await writer.WriteAsync(';');
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync(')').ConfigureAwait(false);
+            await writer.WriteAsync(';').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteObjectPropertyDeserializationAsync(
-           CodeWriter writer,
-           IResultParserTypeDescriptor possibleType,
-           string jsonElement,
-           string entityField,
-           ITypeLookup typeLookup)
+            CodeWriter writer,
+            IResultParserTypeDescriptor possibleType,
+            string jsonElement,
+            ITypeLookup typeLookup)
         {
-            foreach (IFieldDescriptor fieldDescriptor in possibleType.ResultDescriptor.Fields)
+            for (int i = 0; i < possibleType.ResultDescriptor.Fields.Count; i++)
             {
-                await writer.WriteIndentAsync();
+                IFieldDescriptor fieldDescriptor = possibleType.ResultDescriptor.Fields[i];
 
-                await writer.WriteAsync(entityField);
-                await writer.WriteAsync('.');
-                await writer.WriteAsync(GetPropertyName(fieldDescriptor.ResponseName));
-                await writer.WriteAsync(" = ");
+                await writer.WriteIndentAsync().ConfigureAwait(false);
 
                 if (fieldDescriptor.Type.NamedType().IsLeafType())
                 {
@@ -407,30 +426,77 @@ namespace StrawberryShake.Generators.CSharp
                         true);
 
                     string deserializeMethod =
-                        ResultParserDeserializeMethodGenerator.CreateDeserializerName(typeInfo);
+                        SerializerNameUtils.CreateDeserializerName(
+                            fieldDescriptor.Type);
 
-                    await writer.WriteAsync('(');
-                    await writer.WriteAsync(typeInfo.ClrTypeName);
-                    await writer.WriteAsync(')');
-                    await writer.WriteAsync(deserializeMethod);
-                    await writer.WriteAsync('(');
-                    await writer.WriteAsync(jsonElement);
-                    await writer.WriteAsync(", \"");
-                    await writer.WriteAsync(fieldDescriptor.ResponseName);
-                    await writer.WriteAsync("\");");
+                    await writer.WriteAsync(deserializeMethod).ConfigureAwait(false);
+                    await writer.WriteAsync('(').ConfigureAwait(false);
+                    await writer.WriteAsync(jsonElement).ConfigureAwait(false);
+                    await writer.WriteAsync(", \"").ConfigureAwait(false);
+                    await writer.WriteAsync(fieldDescriptor.ResponseName).ConfigureAwait(false);
+                    await writer.WriteAsync("\")").ConfigureAwait(false);
                 }
                 else
                 {
-                    await writer.WriteAsync("Parse");
-                    await writer.WriteAsync(GetPathName(fieldDescriptor.Path));
-                    await writer.WriteAsync('(');
-                    await writer.WriteAsync(jsonElement);
-                    await writer.WriteAsync(", \"");
-                    await writer.WriteAsync(fieldDescriptor.ResponseName);
-                    await writer.WriteAsync("\");");
+                    await writer.WriteAsync("Parse").ConfigureAwait(false);
+                    await writer.WriteAsync(GetPathName(fieldDescriptor.Path))
+                        .ConfigureAwait(false);
+                    await writer.WriteAsync('(').ConfigureAwait(false);
+                    await writer.WriteAsync(jsonElement).ConfigureAwait(false);
+                    await writer.WriteAsync(", \"").ConfigureAwait(false);
+                    await writer.WriteAsync(fieldDescriptor.ResponseName).ConfigureAwait(false);
+                    await writer.WriteAsync("\")").ConfigureAwait(false);
                 }
 
-                await writer.WriteLineAsync();
+                if (i < possibleType.ResultDescriptor.Fields.Count - 1)
+                {
+                    await writer.WriteAsync(',').ConfigureAwait(false);
+                }
+
+                await writer.WriteLineAsync().ConfigureAwait(false);
+            }
+        }
+
+        private async Task WriteNullHandlingAsync(CodeWriter writer, bool isNonNullType)
+        {
+            if (isNonNullType)
+            {
+                await writer.WriteIndentedLineAsync(
+                    "JsonElement obj = parent.GetProperty(field);")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync(
+                    "if (!parent.TryGetProperty(field, out JsonElement obj))")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                using (writer.WriteBraces())
+                {
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return null;").ConfigureAwait(false);
+                }
+                await writer.WriteLineAsync().ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync(
+                    "if (obj.ValueKind == JsonValueKind.Null)")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                using (writer.WriteBraces())
+                {
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return null;").ConfigureAwait(false);
+                }
+                await writer.WriteLineAsync().ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
         }
     }

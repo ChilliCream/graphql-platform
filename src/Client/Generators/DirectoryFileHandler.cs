@@ -26,12 +26,12 @@ namespace StrawberryShake.Generators
             ICodeGenerator generator)
         {
             _tasks.Add(new GeneratorTask
-            {
-                Descriptor = descriptor,
-                Generator = new NamespaceGenerator(
+            (
+                descriptor,
+                new NamespaceGenerator(
                     generator,
                     ((IHasNamespace)descriptor).Namespace)
-            });
+            ));
         }
 
         public async Task WriteAllAsync(ITypeLookup typeLookup)
@@ -90,8 +90,14 @@ namespace StrawberryShake.Generators
 
         private class GeneratorTask
         {
-            public ICodeDescriptor Descriptor { get; set; }
-            public ICodeGenerator Generator { get; set; }
+            public GeneratorTask(ICodeDescriptor descriptor, ICodeGenerator generator)
+            {
+                Descriptor = descriptor;
+                Generator = generator;
+            }
+
+            public ICodeDescriptor Descriptor { get; }
+            public ICodeGenerator Generator { get; }
         }
     }
 }

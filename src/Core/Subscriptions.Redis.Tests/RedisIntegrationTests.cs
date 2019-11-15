@@ -8,37 +8,22 @@ using Xunit;
 using HotChocolate.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Squadron;
 
 namespace HotChocolate.Subscriptions.Redis
 {
     public class RedisIntegrationTests
+        : IClassFixture<RedisResource>
     {
+        private readonly ConnectionMultiplexer _connection;
         private readonly IEventSender _sender;
-        private readonly ConfigurationOptions _configuration;
 
-        public RedisIntegrationTests()
+        public RedisIntegrationTests(RedisResource redisResource)
         {
-            string endpoint =
-                Environment.GetEnvironmentVariable("REDIS_ENDPOINT")
-                ?? "localhost:6379";
-
-            string password =
-                Environment.GetEnvironmentVariable("REDIS_PASSWORD");
-
-            _configuration = new ConfigurationOptions
-            {
-                Ssl = !string.IsNullOrEmpty(password),
-                AbortOnConnectFail = false,
-                Password = password
-            };
-
-            _configuration.EndPoints.Add(endpoint);
-
-            var redisEventRegistry = new RedisEventRegistry(
-                ConnectionMultiplexer.Connect(_configuration),
+            _connection = redisResource.GetConnection();
+            _sender = new RedisEventRegistry(
+                _connection,
                 new JsonPayloadSerializer());
-
-            _sender = redisEventRegistry;
         }
 
         [Fact]
@@ -48,7 +33,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 // arrange
                 var services = new ServiceCollection();
-                services.AddRedisSubscriptionProvider(_configuration);
+                services.AddRedisSubscriptionProvider(_connection);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
 
@@ -90,7 +75,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 // arrange
                 var services = new ServiceCollection();
-                services.AddRedisSubscriptionProvider(_configuration);
+                services.AddRedisSubscriptionProvider(_connection);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
 

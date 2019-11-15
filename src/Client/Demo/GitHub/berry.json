@@ -1,0 +1,9 @@
+{
+  "Schemas": [{
+    "Name": "GitHub",
+    "Type": "http",
+    "File": "GitHub.graphql",
+    "Url": "https://api.github.com/graphql"
+  }],
+  "ClientName": "GitHubClient"
+}

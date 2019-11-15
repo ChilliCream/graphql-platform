@@ -6,12 +6,12 @@ using HotChocolate.Language;
 namespace StrawberryShake.Generators.Utilities
 {
     internal class AddTypeNameQueryRewriter
-        : QuerySyntaxRewriter<object>
+        : QuerySyntaxRewriter<object?>
     {
         private const string _typeName = "__typename";
 
         protected override SelectionSetNode RewriteSelectionSet(
-            SelectionSetNode node, object context)
+            SelectionSetNode node, object? context)
         {
             SelectionSetNode current = base.RewriteSelectionSet(node, context);
 
@@ -20,7 +20,7 @@ namespace StrawberryShake.Generators.Utilities
             {
                 List<ISelectionNode> selections = current.Selections.ToList();
 
-                selections.Add(new FieldNode(
+                selections.Insert(0, new FieldNode(
                     null,
                     new NameNode(_typeName),
                     null,

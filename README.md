@@ -1,7 +1,7 @@
-![HotChocolate](https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/05d976dc63b50439f6e48e77077862d739d05913/img/hotchocolate-banner.svg)
+![HotChocolate](https://chillicream.com/img/projects/hotchocolate-banner.svg)
 
 [![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![Azure DevOps builds](https://img.shields.io/azure-devops/build/chillicream/414ff59c-4852-4687-b04d-6973125e7de2/48.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=48) [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/chillicream/HotChocolate/48.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=48) [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) [![Quality](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=alert_status)](https://sonarcloud.io/dashboard?id=HotChocolate)
-[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
+[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
 
 ---
 
@@ -25,7 +25,7 @@ dotnet new starwars
 
 The GraphQL specification and more is available on the [Facebook GraphQL repository](https://github.com/graphql/graphql-spec).
 
-If you want to get in touch with us you can do so by joining our [slack group](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg).
+If you want to get in touch with us you can do so by joining our [slack group](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
 
 > This readme only provides a simple quickstart, in order to learn more about advanced features like schema stitching head over to our [documentation](http://hotchocolate.io).
 
@@ -204,14 +204,8 @@ dotnet new graphql
 
 We have moved the roadmap into the [ROADMAP.md](ROADMAP.md)
 
-## GraphQL Compatibility Acceptance Tests
-
-We are now investing to implement the GraphQL Compatibility Acceptance Tests for Hot Chocolate. We should have the first test running with Version 0.8.0 and should have this finished until Version 0.11.0.
-
-More about GraphQL compatibility acceptance tests can be read [here](https://github.com/graphql-cats/graphql-cats).
-
 ## Documentation
 
 For more examples and detailed documentation, click [here](http://hotchocolate.io).
 
-For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/greendonut).
+For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/hotchocolate/tree/master/src/DataLoader).

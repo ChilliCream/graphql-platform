@@ -18,7 +18,7 @@
     <Description>Green Donut is a port of facebook's DataLoader utility, written in C# for .NET Core and .NET Framework.</Description>
     <PackageProjectUrl>https://greendonut.io</PackageProjectUrl>
     <PackageTags>DataLoader Batching Caching GraphQL ChilliCream Facebook</PackageTags>
-    <PackageIconUrl>https://cdn.rawgit.com/ChilliCream/greendonut-logo/master/img/greendonut-signet.png</PackageIconUrl>
+    <PackageIconUrl>https://chillicream.com/img/projects/greendonut-signet.png</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>

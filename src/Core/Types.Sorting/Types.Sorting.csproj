@@ -21,4 +21,19 @@
     <ProjectReference Include="..\Types\Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Properties\SortingResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SortingResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\SortingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SortingResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

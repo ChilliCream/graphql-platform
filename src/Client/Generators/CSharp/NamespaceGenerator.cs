@@ -15,7 +15,7 @@ namespace StrawberryShake.Generators.CSharp
         {
             _innerGenerator = innerGenerator
                 ?? throw new ArgumentNullException(nameof(innerGenerator));
-            _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
+            _namespace = ns?.Trim() ?? throw new ArgumentNullException(nameof(ns));
         }
 
         public bool CanHandle(ICodeDescriptor descriptor) =>
@@ -47,7 +47,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync();
         }
 
-        private async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
+        private static async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
         {
             var components = generator is IUsesComponents c
                 ? new HashSet<string>(c.Components)
@@ -56,6 +56,11 @@ namespace StrawberryShake.Generators.CSharp
             await WriteUsing(writer, "System");
             await WriteUsing(writer, "System.Collections");
             await WriteUsing(writer, "System.Collections.Generic");
+
+            if (components.Contains(WellKnownComponents.Http))
+            {
+                await WriteUsing(writer, "System.Net.Http");
+            }
 
             if (components.Contains(WellKnownComponents.Json))
             {
@@ -68,15 +73,31 @@ namespace StrawberryShake.Generators.CSharp
                 await WriteUsing(writer, "System.Threading.Tasks");
             }
 
+            if (components.Contains(WellKnownComponents.DI))
+            {
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection");
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection.Extensions");
+            }
+
             await WriteUsing(writer, "StrawberryShake");
 
-            if (components.Contains(WellKnownComponents.Http))
+            if (components.Contains(WellKnownComponents.HttpExecutor))
             {
                 await WriteUsing(writer, "StrawberryShake.Http");
             }
+
+            if (components.Contains(WellKnownComponents.HttpExecutorPipeline))
+            {
+                await WriteUsing(writer, "StrawberryShake.Http.Pipelines");
+            }
+
+            if (components.Contains(WellKnownComponents.Serializer))
+            {
+                await WriteUsing(writer, "StrawberryShake.Serializers");
+            }
         }
 
-        private async Task WriteUsing(CodeWriter writer, string ns)
+        private static async Task WriteUsing(CodeWriter writer, string ns)
         {
             await writer.WriteAsync($"using {ns};");
             await writer.WriteLineAsync();
