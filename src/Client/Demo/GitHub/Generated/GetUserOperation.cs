@@ -14,13 +14,15 @@ namespace StrawberryShake.Client.GitHub
 
         public Type ResultType => typeof(IGetUser);
 
+        public OperationKind Kind => OperationKind.Query;
+
         public Optional<string> Login { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
 
-            if(Login.HasValue)
+            if (Login.HasValue)
             {
                 variables.Add(new VariableValue("login", "String", Login.Value));
             }

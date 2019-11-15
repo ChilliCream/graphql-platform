@@ -103,6 +103,8 @@ namespace StrawberryShake.Http
 
             public IDocument Document { get; } = new Document();
 
+            public OperationKind Kind { get; } = OperationKind.Subscription;
+
             public Type ResultType => typeof(OnReview);
 
             public IReadOnlyList<VariableValue> GetVariableValues() =>
