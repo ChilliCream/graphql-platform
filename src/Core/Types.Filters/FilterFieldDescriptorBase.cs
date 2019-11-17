@@ -151,7 +151,7 @@ namespace HotChocolate.Types.Filters
             return RewriteTypeToNullableType(reference);
         }
 
-        protected ITypeReference RewriteTypeToNullableType(ITypeReference reference)
+        protected static ITypeReference RewriteTypeToNullableType(ITypeReference reference)
         {
 
             if (reference is IClrTypeReference clrRef

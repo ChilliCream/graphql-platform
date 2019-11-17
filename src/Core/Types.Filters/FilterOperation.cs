@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Filters
 {
     public class FilterOperation
     {
-        private bool _singleFilterInitialized = false;
+        private bool _singleFilterInitialized;
         private Type _arrayBaseType;
 
         public FilterOperation(
