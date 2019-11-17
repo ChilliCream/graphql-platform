@@ -98,10 +98,26 @@ namespace HotChocolate.Types.Filters
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { FooNested = new[] { new FooNested { Bar = "c" },null, new FooNested { Bar = "a" } } };
+            var a = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" },
+                    null, 
+                    new FooNested { Bar = "a" } 
+                } 
+            };
             Assert.True(func(a));
 
-            var b = new Foo { FooNested = new[] { new FooNested { Bar = "c" },null, new FooNested { Bar = "b" } } };
+            var b = new Foo 
+            {
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" },
+                    null, 
+                    new FooNested { Bar = "b" } 
+                } 
+            };
             Assert.False(func(b));
         }
         [Fact]
@@ -129,10 +145,26 @@ namespace HotChocolate.Types.Filters
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "d" }, new FooNested { Bar = "a" } } };
+            var a = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "a" } 
+                } 
+            };
             Assert.True(func(a));
 
-            var b = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "d" }, new FooNested { Bar = "b" } } };
+            var b = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "b" } 
+                } 
+            };
             Assert.False(func(b));
         }
 
@@ -161,10 +193,26 @@ namespace HotChocolate.Types.Filters
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "d" }, new FooNested { Bar = "a" } } };
+            var a = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "a" } 
+                } 
+            };
             Assert.False(func(a));
 
-            var b = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "d" }, new FooNested { Bar = "b" } } };
+            var b = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "b" } 
+                } 
+            };
             Assert.True(func(b));
         }
 
@@ -193,16 +241,48 @@ namespace HotChocolate.Types.Filters
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { FooNested = new[] { new FooNested { Bar = "a" }, new FooNested { Bar = "a" }, new FooNested { Bar = "a" } } };
+            var a = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "a" }, 
+                    new FooNested { Bar = "a" }, 
+                    new FooNested { Bar = "a" } 
+                } 
+            };
             Assert.True(func(a));
 
-            var b = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "a" }, new FooNested { Bar = "a" } } };
+            var b = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "a" }, 
+                    new FooNested { Bar = "a" } 
+                } 
+            };
             Assert.False(func(b));
 
-            var c = new Foo { FooNested = new[] { new FooNested { Bar = "a" }, new FooNested { Bar = "d" }, new FooNested { Bar = "b" } } };
+            var c = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "a" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "b" } 
+                } 
+            };
             Assert.False(func(c));
 
-            var d = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "d" }, new FooNested { Bar = "b" } } };
+            var d = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "b" } 
+                } 
+            };
             Assert.False(func(d));
         }
 
@@ -227,7 +307,15 @@ namespace HotChocolate.Types.Filters
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "d" }, new FooNested { Bar = "a" } } };
+            var a = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "a" } 
+                } 
+            };
             Assert.True(func(a));
 
             var b = new Foo { FooNested = new FooNested[] { } };
@@ -240,9 +328,7 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("fooNested_any",
-                    new BooleanValueNode(false)
-                )
-            );
+                    new BooleanValueNode(false)));
 
             var fooType = CreateType(new FooFilterType());
 
@@ -255,14 +341,20 @@ namespace HotChocolate.Types.Filters
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { FooNested = new[] { new FooNested { Bar = "c" }, new FooNested { Bar = "d" }, new FooNested { Bar = "a" } } };
+            var a = new Foo 
+            { 
+                FooNested = new[] 
+                { 
+                    new FooNested { Bar = "c" }, 
+                    new FooNested { Bar = "d" }, 
+                    new FooNested { Bar = "a" } 
+                } 
+            };
             Assert.False(func(a));
 
             var b = new Foo { FooNested = new FooNested[] { } };
             Assert.True(func(b));
         }
-
-
         public class Foo
         {
             public IEnumerable<FooNested> FooNested { get; set; }
@@ -297,6 +389,5 @@ namespace HotChocolate.Types.Filters
                 descriptor.List(t => t.Bar).BindImplicitly();
             }
         }
-
     }
 }
