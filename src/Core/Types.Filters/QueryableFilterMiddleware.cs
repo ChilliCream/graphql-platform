@@ -62,6 +62,7 @@ namespace HotChocolate.Types.Filters
                     fit.EntityType,
                     _converter);
                 filter.Accept(visitor);
+                
                 if (source is EnumerableQuery)
                 {
                     source = source.Where(visitor.CreateFilterInMemory<T>());
@@ -70,6 +71,7 @@ namespace HotChocolate.Types.Filters
                 {
                     source = source.Where(visitor.CreateFilter<T>());
                 }
+                
                 context.Result = p is null
                     ? (object)source
                     : new PageableData<T>(source, p.Properties);

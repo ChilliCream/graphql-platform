@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -16,8 +15,7 @@ namespace HotChocolate.Types.Filters.Expressions
             ITypeConversion converter,
             out Expression expression)
         {
-            if (operation.Type == typeof(bool)
-                && type.IsInstanceOfType(value))
+            if (operation.Type == typeof(bool) && type.IsInstanceOfType(value))
             {
                 Expression property = instance;
 
@@ -46,6 +44,5 @@ namespace HotChocolate.Types.Filters.Expressions
             expression = null;
             return false;
         }
-
     }
 }

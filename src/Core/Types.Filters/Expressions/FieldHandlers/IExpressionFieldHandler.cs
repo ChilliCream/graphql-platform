@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -14,16 +11,14 @@ namespace HotChocolate.Types.Filters.Expressions
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
             Stack<QueryableClosure> closures,
-            out VisitorAction action
-        );
+            out VisitorAction action);
 
         void Leave(FilterOperationField field,
             ObjectFieldNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures
-        );
+            Stack<QueryableClosure> closures);
     }
 }
 

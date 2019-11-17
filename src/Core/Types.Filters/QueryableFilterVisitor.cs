@@ -13,7 +13,6 @@ namespace HotChocolate.Types.Filters
     {
         private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
         private readonly IReadOnlyList<IExpressionFieldHandler> _fieldHandlers;
-        private readonly ParameterExpression _parameter;
         private readonly ITypeConversion _converter;
 
         protected Stack<QueryableClosure> Closures { get; } = new Stack<QueryableClosure>();
@@ -22,7 +21,12 @@ namespace HotChocolate.Types.Filters
             InputObjectType initialType,
             Type source,
             ITypeConversion converter)
-            : this(initialType, source, converter, ExpressionOperationHandlers.All, ExpressionFieldHandlers.All)
+            : this(
+                initialType, 
+                source, 
+                converter, 
+                ExpressionOperationHandlers.All, 
+                ExpressionFieldHandlers.All)
         {
         }
 
@@ -68,7 +72,6 @@ namespace HotChocolate.Types.Filters
         }
 
         #region Object Value
-
         public override VisitorAction Enter(
             ObjectValueNode node,
             ISyntaxNode parent,
@@ -166,7 +169,6 @@ namespace HotChocolate.Types.Filters
             }
             return base.Leave(node, parent, path, ancestors);
         }
-
 
         private bool TryCombineOperations(
             Queue<Expression> operations,

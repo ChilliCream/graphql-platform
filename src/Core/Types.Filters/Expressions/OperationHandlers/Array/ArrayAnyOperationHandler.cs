@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -18,11 +15,9 @@ namespace HotChocolate.Types.Filters.Expressions
             ITypeConversion converter,
             out Expression expression)
         {
-            if (
-                operation.Kind == FilterOperationKind.ArrayAny &&
+            if (operation.Kind == FilterOperationKind.ArrayAny &&
                 type.IsInstanceOfType(value) &&
-                type.ParseLiteral(value) is bool parsedValue
-                )
+                type.ParseLiteral(value) is bool parsedValue)
             {
                 Expression property = instance;
 
@@ -33,15 +28,16 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 if (parsedValue)
                 {
-                    expression = FilterExpressionBuilder.Any(operation.Type,
-                            property);
+                    expression = FilterExpressionBuilder.Any(
+                        operation.Type,
+                        property);
                 }
                 else
                 {
                     expression = FilterExpressionBuilder.Not(
-                        FilterExpressionBuilder.Any(operation.Type,
-                            property)
-                        );
+                        FilterExpressionBuilder.Any(
+                            operation.Type,
+                            property));
                 }
                 return true;
             }

@@ -46,7 +46,6 @@ namespace HotChocolate.Types.Filters
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
 
-
         public IFilterInputTypeDescriptor<T> Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
@@ -60,7 +59,8 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>(TDirective directiveInstance)
+        public IFilterInputTypeDescriptor<T> Directive<TDirective>(
+            TDirective directiveInstance)
             where TDirective : class
         {
             Definition.AddDirective(directiveInstance);
@@ -123,8 +123,7 @@ namespace HotChocolate.Types.Filters
                         if (TryCreateImplicitFilter(property,
                             out FilterFieldDefintion definition))
                         {
-                            foreach (FilterOperationDefintion filter in
-                                definition.Filters)
+                            foreach (FilterOperationDefintion filter in definition.Filters)
                             {
                                 if (!fields.ContainsKey(filter.Name))
                                 {
@@ -203,7 +202,6 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-
             if (type.IsClass)
             {
                 var field = new ObjectFilterFieldDescriptor(
@@ -262,7 +260,6 @@ namespace HotChocolate.Types.Filters
                 nameof(property));
         }
 
-
         public IBooleanFilterFieldDescriptor Filter(
             Expression<Func<T, bool>> property)
         {
@@ -277,7 +274,6 @@ namespace HotChocolate.Types.Filters
                 FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
-
 
         public IComparableFilterFieldDescriptor Filter(
             Expression<Func<T, IComparable>> property)
@@ -323,8 +319,6 @@ namespace HotChocolate.Types.Filters
                 nameof(property));
         }
 
-
-
         public IArrayFilterFieldDescriptor<TObject> ListFilter<TObject, TListType>(
             Expression<Func<T, TListType>> property)
         {
@@ -347,28 +341,30 @@ namespace HotChocolate.Types.Filters
             return ListFilter<TObject, IEnumerable<TObject>>(property);
         }
 
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<string>> List(Expression<Func<T, IEnumerable<string>>> property)
+        public IArrayFilterFieldDescriptor<ISingleFilter<string>> List(
+            Expression<Func<T, IEnumerable<string>>> property)
         {
             return ListFilter<ISingleFilter<string>, IEnumerable<string>>(property);
         }
 
-        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> List(Expression<Func<T, IEnumerable<bool>>> property)
+        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> List(
+            Expression<Func<T, IEnumerable<bool>>> property)
         {
             return ListFilter<ISingleFilter<bool>, IEnumerable<bool>>(property);
         }
 
-
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) where TStruct : struct
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
         }
 
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct?>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) where TStruct : struct
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
         }
@@ -376,6 +372,5 @@ namespace HotChocolate.Types.Filters
         public static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context, Type entityType) =>
             new FilterInputTypeDescriptor<T>(context, entityType);
-
     }
 }

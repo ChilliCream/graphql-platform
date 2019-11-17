@@ -105,7 +105,6 @@ namespace HotChocolate.Types.Filters
             Expression<Func<T, IEnumerable<TObject>>> property)
             where TObject : class;
 
-
         /// <summary>
         /// Define a object filter for a IEnumerable of type object
         /// </summary>
@@ -122,7 +121,9 @@ namespace HotChocolate.Types.Filters
         /// The property for which a filter shall be applied.
         /// </param>
         IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct>>> property, RequireStruct<TStruct> ignore = null) where TStruct : struct;
+            Expression<Func<T, IEnumerable<TStruct>>> property, 
+            RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct;
 
         /// <summary>
         /// Define a object filter for a IEnumerable of type object
@@ -131,10 +132,9 @@ namespace HotChocolate.Types.Filters
         /// The property for which a filter shall be applied.
         /// </param>
         IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct?>>> property, RequireStruct<TStruct> ignore = null) where TStruct : struct;
-
-
-
+            Expression<Func<T, IEnumerable<TStruct?>>> property, 
+            RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct;
 
         /// <summary>
         /// Ignore the specified property.

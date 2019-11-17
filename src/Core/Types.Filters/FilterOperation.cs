@@ -5,18 +5,17 @@ namespace HotChocolate.Types.Filters
 {
     public class FilterOperation
     {
+        private bool _singleFilterInitialized = false;
+        private Type _arrayBaseType;
+
         public FilterOperation(
             Type type,
             FilterOperationKind kind,
             PropertyInfo property)
         {
-            Type = type
-                ?? throw new ArgumentNullException(nameof(type));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
             Kind = kind;
-            Property = property
-                ?? throw new ArgumentNullException(nameof(property));
-
-
+            Property = property ?? throw new ArgumentNullException(nameof(property));
         }
 
         public Type Type { get; }
@@ -24,10 +23,6 @@ namespace HotChocolate.Types.Filters
         public FilterOperationKind Kind { get; }
 
         public PropertyInfo Property { get; }
-
-        private bool _singleFilterInitialized = false;
-
-        private Type _arrayBaseType;
 
         public bool TryGetSimpleFilterBaseType(out Type baseType)
         {
@@ -41,18 +36,13 @@ namespace HotChocolate.Types.Filters
                 {
                     _arrayBaseType = Property.DeclaringType.GetGenericArguments()[0];
                 }
+                _singleFilterInitialized = true;
             }
+
             baseType = _arrayBaseType;
             return _arrayBaseType != null;
         }
 
-        public bool IsSimpleArrayType()
-        {
-            if (TryGetSimpleFilterBaseType(out Type baseType))
-            {
-                return true;
-            }
-            return false;
-        }
+        public bool IsSimpleArrayType() => TryGetSimpleFilterBaseType(out _);
     }
 }
