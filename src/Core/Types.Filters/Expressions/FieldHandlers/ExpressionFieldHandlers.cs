@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class ExpressionFieldHandlers
+    public static class ExpressionFieldHandlers
     {
         public static IReadOnlyList<IExpressionFieldHandler> All { get; } =
            new IExpressionFieldHandler[]

@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Filters.Expressions
             }
         }
 
-        private Type GetTypeFor(FilterOperation operation)
+        private static Type GetTypeFor(FilterOperation operation)
         {
             if (operation.TryGetSimpleFilterBaseType(out Type baseType))
             {

@@ -83,17 +83,10 @@ namespace HotChocolate.Types.Filters
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind)
         {
-            if (FilterOperationKind.ArrayAny == operationKind)
-            {
-                return CreateBooleanOperation(operationKind).CreateDefinition();
-            }
-            else
-            {
-                return CreateOperation(operationKind).CreateDefinition();
-            }
-
+            return FilterOperationKind.ArrayAny == operationKind
+                ? CreateBooleanOperation(operationKind).CreateDefinition()
+                : CreateOperation(operationKind).CreateDefinition();
         }
-
 
         protected FilterOperation GetFilterOperation(
             FilterOperationKind operationKind)
@@ -114,8 +107,6 @@ namespace HotChocolate.Types.Filters
            );
         }
 
-
-
         private ArrayFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {
@@ -127,7 +118,6 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 typeReference,
                 operation);
-            ;
         }
 
         private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(

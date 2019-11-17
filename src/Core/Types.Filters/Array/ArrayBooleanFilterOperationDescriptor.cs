@@ -6,7 +6,9 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    public class ArrayBooleanFilterOperationDescriptor : BooleanFilterOperationDescriptorBase, IArrayBooleanFilterOperationDescriptor
+    public class ArrayBooleanFilterOperationDescriptor 
+        : BooleanFilterOperationDescriptorBase
+        , IArrayBooleanFilterOperationDescriptor
     {
         private readonly ArrayFilterFieldDescriptor _descriptor;
 
@@ -66,7 +68,6 @@ namespace HotChocolate.Types.Filters
             base.Directive(name, arguments);
             return this;
         }
-
 
         /// <summary>
         /// Create a new boolean filter operation descriptor.
