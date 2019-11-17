@@ -8,7 +8,6 @@ namespace HotChocolate.Types.Filters
         : FilterOperationDescriptorBase
         , IBooleanFilterOperationDescriptorBase
     {
-
         protected BooleanFilterOperationDescriptorBase(
             IDescriptorContext context,
             NameString name,
@@ -63,7 +62,5 @@ namespace HotChocolate.Types.Filters
             base.Directive(name, arguments);
             return this;
         }
-
-
     }
 }

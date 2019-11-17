@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Types.Filters
 {
@@ -58,7 +56,6 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.Object:
                     return GetNameForDefintion(definition);
 
-
                 case FilterOperationKind.ArraySome:
                     return definition.Name + "_Some";
                 case FilterOperationKind.ArrayNone:
@@ -83,6 +80,5 @@ namespace HotChocolate.Types.Filters
             }
             return name.ToUpperInvariant();
         }
-
     }
 }
