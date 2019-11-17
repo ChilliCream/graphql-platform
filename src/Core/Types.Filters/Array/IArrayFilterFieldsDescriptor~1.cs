@@ -42,7 +42,6 @@ namespace HotChocolate.Types.Filters
         IArrayFilterOperationDescriptor<TArray> AllowSome(
             Action<IFilterInputTypeDescriptor<TArray>> descriptor);
 
-
         /// <summary>
         /// Allow array filter operations. Some returns true wehn one item matchs the filter
         /// </summary>
@@ -58,7 +57,6 @@ namespace HotChocolate.Types.Filters
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowNone(
             Action<IFilterInputTypeDescriptor<TArray>> descriptor);
-
 
         /// <summary>
         /// Allow array filter operations. None returns true when no item matchs the filter
@@ -76,12 +74,11 @@ namespace HotChocolate.Types.Filters
         IArrayFilterOperationDescriptor<TArray> AllowAll(
             Action<IFilterInputTypeDescriptor<TArray>> descriptor);
 
-
         /// <summary>
         /// Allow array filter operations. All returns true when all item match the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>() 
-        where TFilter : FilterInputType<TArray>;
+            where TFilter : FilterInputType<TArray>;
 
         /// <summary>
         /// Allow array filter operations. All returns true when all item match the filter
@@ -92,6 +89,5 @@ namespace HotChocolate.Types.Filters
         /// Allow array filter operations. Check if there are items or there are none
         /// </summary>
         IArrayBooleanFilterOperationDescriptor AllowAny();
-
     }
 }
