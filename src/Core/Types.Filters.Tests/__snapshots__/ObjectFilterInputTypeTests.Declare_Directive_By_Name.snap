@@ -25,6 +25,7 @@ input FooFilter {
   AND: [FooFilter!]
   bar: String
   barNested: BarFilter @bar
+  barNestedSecond: BarFilter
   bar_contains: String
   bar_ends_with: String
   bar_in: [String]

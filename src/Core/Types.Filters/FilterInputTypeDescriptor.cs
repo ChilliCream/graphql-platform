@@ -8,6 +8,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using System.Collections;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
@@ -45,7 +46,6 @@ namespace HotChocolate.Types.Filters
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
 
-
         public IFilterInputTypeDescriptor<T> Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
@@ -59,7 +59,8 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>(TDirective directiveInstance)
+        public IFilterInputTypeDescriptor<T> Directive<TDirective>(
+            TDirective directiveInstance)
             where TDirective : class
         {
             Definition.AddDirective(directiveInstance);
@@ -122,8 +123,7 @@ namespace HotChocolate.Types.Filters
                         if (TryCreateImplicitFilter(property,
                             out FilterFieldDefintion definition))
                         {
-                            foreach (FilterOperationDefintion filter in
-                                definition.Filters)
+                            foreach (FilterOperationDefintion filter in definition.Filters)
                             {
                                 if (!fields.ContainsKey(filter.Name))
                                 {
@@ -140,15 +140,21 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             out FilterFieldDefintion definition)
         {
-            if (property.PropertyType == typeof(string))
+            var type = property.PropertyType;
+
+            if (type.IsGenericType && Nullable.GetUnderlyingType(type) is Type nullableType)
+            {
+                type = nullableType;
+            }
+
+            if (type == typeof(string))
             {
                 var field = new StringFilterFieldDescriptor(Context, property);
                 definition = field.CreateDefinition();
                 return true;
             }
 
-            if (property.PropertyType == typeof(bool)
-                || property.PropertyType == typeof(bool?))
+            if (type == typeof(bool))
             {
                 var field = new BooleanFilterFieldDescriptor(
                     Context, property);
@@ -164,7 +170,39 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-            if (property.PropertyType.IsClass)
+            if (typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                ArrayFilterFieldDescriptor field;
+
+                var genericTypeArgument = type.GetGenericArguments()[0];
+
+                if (genericTypeArgument.IsGenericType &&
+                    Nullable.GetUnderlyingType(genericTypeArgument) is Type nullableEnumerableType)
+                {
+                    genericTypeArgument = nullableEnumerableType;
+                }
+                if (genericTypeArgument == typeof(string)
+                    || genericTypeArgument == typeof(bool)
+                    || genericTypeArgument == typeof(bool?)
+                    || typeof(IComparable).IsAssignableFrom(genericTypeArgument))
+                {
+                    field = new ArrayFilterFieldDescriptor(
+                        Context,
+                        property,
+                        typeof(ISingleFilter<>).MakeGenericType(genericTypeArgument)
+                        );
+
+                }
+                else
+                {
+                    field = new ArrayFilterFieldDescriptor(Context, property, genericTypeArgument);
+
+                }
+                definition = field.CreateDefinition();
+                return true;
+            }
+
+            if (type.IsClass)
             {
                 var field = new ObjectFilterFieldDescriptor(
                     Context, property, property.PropertyType);
@@ -222,7 +260,6 @@ namespace HotChocolate.Types.Filters
                 nameof(property));
         }
 
-
         public IBooleanFilterFieldDescriptor Filter(
             Expression<Func<T, bool>> property)
         {
@@ -237,7 +274,6 @@ namespace HotChocolate.Types.Filters
                 FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
-
 
         public IComparableFilterFieldDescriptor Filter(
             Expression<Func<T, IComparable>> property)
@@ -268,7 +304,7 @@ namespace HotChocolate.Types.Filters
                 nameof(property));
         }
 
-        public IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
+        public IObjectFilterFieldDescriptor<TObject> Object<TObject>(
             Expression<Func<T, TObject>> property) where TObject : class
         {
             if (property.ExtractMember() is PropertyInfo p)
@@ -281,6 +317,56 @@ namespace HotChocolate.Types.Filters
             throw new ArgumentException(
                 FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
+        }
+
+        public IArrayFilterFieldDescriptor<TObject> ListFilter<TObject, TListType>(
+            Expression<Func<T, TListType>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                var field = new ArrayFilterFieldDescriptor<TObject>(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
+                nameof(property));
+        }
+
+        public IArrayFilterFieldDescriptor<TObject> List<TObject>(
+            Expression<Func<T, IEnumerable<TObject>>> property)
+            where TObject : class
+        {
+            return ListFilter<TObject, IEnumerable<TObject>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<string>> List(
+            Expression<Func<T, IEnumerable<string>>> property)
+        {
+            return ListFilter<ISingleFilter<string>, IEnumerable<string>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> List(
+            Expression<Func<T, IEnumerable<bool>>> property)
+        {
+            return ListFilter<ISingleFilter<bool>, IEnumerable<bool>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
+            Expression<Func<T, IEnumerable<TStruct>>> property,
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct
+        {
+            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
+            Expression<Func<T, IEnumerable<TStruct?>>> property,
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct
+        {
+            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
         }
 
         public static FilterInputTypeDescriptor<T> New(

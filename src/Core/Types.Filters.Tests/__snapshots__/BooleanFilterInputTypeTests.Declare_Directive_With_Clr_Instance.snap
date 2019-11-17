@@ -9,6 +9,8 @@ type Query {
 input FooFilter {
   AND: [FooFilter!]
   bar: Boolean @Bar
+  barNullable: Boolean
+  barNullable_not: Boolean
   OR: [FooFilter!]
 }
 

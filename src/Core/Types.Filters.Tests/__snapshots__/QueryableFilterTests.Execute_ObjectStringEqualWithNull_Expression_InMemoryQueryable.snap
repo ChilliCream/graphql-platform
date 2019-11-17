@@ -1,0 +1,14 @@
+﻿{
+  "Data": {
+    "list": [
+      {
+        "fooNested": {
+          "bar": "a"
+        }
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

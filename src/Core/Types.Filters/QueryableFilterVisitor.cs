@@ -11,16 +11,22 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterVisitor
         : FilterVisitorBase
     {
-        private const string _parameterName = "t";
         private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
-        private readonly ParameterExpression _parameter;
+        private readonly IReadOnlyList<IExpressionFieldHandler> _fieldHandlers;
         private readonly ITypeConversion _converter;
+
+        protected Stack<QueryableClosure> Closures { get; } = new Stack<QueryableClosure>();
 
         public QueryableFilterVisitor(
             InputObjectType initialType,
             Type source,
             ITypeConversion converter)
-            : this(initialType, source, converter, ExpressionOperationHandlers.All)
+            : this(
+                initialType, 
+                source, 
+                converter, 
+                ExpressionOperationHandlers.All, 
+                ExpressionFieldHandlers.All)
         {
         }
 
@@ -28,7 +34,8 @@ namespace HotChocolate.Types.Filters
             InputObjectType initialType,
             Type source,
             ITypeConversion converter,
-            IEnumerable<IExpressionOperationHandler> operationHandlers)
+            IEnumerable<IExpressionOperationHandler> operationHandlers,
+            IEnumerable<IExpressionFieldHandler> fieldHandlers)
             : base(initialType)
         {
             if (initialType is null)
@@ -49,36 +56,29 @@ namespace HotChocolate.Types.Filters
             }
 
             _opHandlers = operationHandlers.ToArray();
-
-            _parameter = Expression.Parameter(source, _parameterName);
+            _fieldHandlers = fieldHandlers.ToArray();
             _converter = converter;
-
-            Level.Push(new Queue<Expression>());
-            Instance.Push(_parameter);
+            Closures.Push(new QueryableClosure(source, "r"));
         }
 
         public Expression<Func<TSource, bool>> CreateFilter<TSource>()
         {
-            return Expression.Lambda<Func<TSource, bool>>(
-                Level.Peek().Peek(),
-                _parameter);
+            return Closures.Peek().CreateLambda<Func<TSource, bool>>();
         }
 
-        protected Stack<Queue<Expression>> Level { get; } =
-            new Stack<Queue<Expression>>();
-
-        protected Stack<Expression> Instance { get; } =
-            new Stack<Expression>();
+        public Expression<Func<TSource, bool>> CreateFilterInMemory<TSource>()
+        {
+            return Closures.Peek().CreateLambdaWithNullCheck<Func<TSource, bool>>();
+        }
 
         #region Object Value
-
         public override VisitorAction Enter(
             ObjectValueNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            Level.Push(new Queue<Expression>());
+            Closures.Peek().Level.Push(new Queue<Expression>());
             return VisitorAction.Continue;
         }
 
@@ -88,14 +88,14 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            Queue<Expression> operations = Level.Pop();
+            Queue<Expression> operations = Closures.Peek().Level.Pop();
 
             if (TryCombineOperations(
                 operations,
                 (a, b) => Expression.AndAlso(a, b),
                 out Expression combined))
             {
-                Level.Peek().Enqueue(combined);
+                Closures.Peek().Level.Peek().Enqueue(combined);
             }
 
             return VisitorAction.Continue;
@@ -115,31 +115,35 @@ namespace HotChocolate.Types.Filters
 
             if (Operations.Peek() is FilterOperationField field)
             {
-                if (field.Operation.Kind == FilterOperationKind.Object)
+                for (var i = _fieldHandlers.Count - 1; i >= 0; i--)
                 {
-                    Instance.Push(Expression.Property(
-                        Instance.Peek(),
-                        field.Operation.Property));
-                    return VisitorAction.Continue;
-                }
-                else
-                {
-                    for (var i = _opHandlers.Count - 1; i >= 0; i--)
+                    if (_fieldHandlers[i].Enter(
+                        field,
+                        node,
+                        parent,
+                        path,
+                        ancestors,
+                        Closures,
+                        out VisitorAction action))
                     {
-                        if (_opHandlers[i].TryHandle(
-                            field.Operation,
-                            field.Type,
-                            node.Value,
-                            Instance.Peek(),
-                            _converter,
-                            out Expression expression))
-                        {
-                            Level.Peek().Enqueue(expression);
-                            break;
-                        }
+                        return action;
                     }
-                    return VisitorAction.Skip;
                 }
+                for (var i = _opHandlers.Count - 1; i >= 0; i--)
+                {
+                    if (_opHandlers[i].TryHandle(
+                        field.Operation,
+                        field.Type,
+                        node.Value,
+                        Closures.Peek().Instance.Peek(),
+                        _converter,
+                        out Expression expression))
+                    {
+                        Closures.Peek().Level.Peek().Enqueue(expression);
+                        break;
+                    }
+                }
+                return VisitorAction.Skip;
             }
             return VisitorAction.Continue;
         }
@@ -150,20 +154,21 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (Operations.Peek() is FilterOperationField field
-                && field.Operation.Kind == FilterOperationKind.Object)
+            if (Operations.Peek() is FilterOperationField field)
             {
-                // Deque last expression to prefix with nullcheck
-                var condition = Level.Peek().Dequeue();
-                var nullCheck = Expression.NotEqual(
-                    Instance.Peek(),
-                    Expression.Constant(null, typeof(object)));
-                Level.Peek().Enqueue(Expression.AndAlso(nullCheck, condition));
-                Instance.Pop();
+                for (var i = _fieldHandlers.Count - 1; i >= 0; i--)
+                {
+                    _fieldHandlers[i].Leave(
+                        field,
+                        node,
+                        parent,
+                        path,
+                        ancestors,
+                        Closures);
+                }
             }
             return base.Leave(node, parent, path, ancestors);
         }
-
 
         private bool TryCombineOperations(
             Queue<Expression> operations,
@@ -196,7 +201,7 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            Level.Push(new Queue<Expression>());
+            Closures.Peek().Level.Push(new Queue<Expression>());
             return VisitorAction.Continue;
         }
 
@@ -212,14 +217,14 @@ namespace HotChocolate.Types.Filters
                 : new Func<Expression, Expression, Expression>(
                     (a, b) => Expression.AndAlso(a, b));
 
-            Queue<Expression> operations = Level.Pop();
+            Queue<Expression> operations = Closures.Peek().Level.Pop();
 
             if (TryCombineOperations(
                 operations,
                 combine,
                 out Expression combined))
             {
-                Level.Peek().Enqueue(combined);
+                Closures.Peek().Level.Peek().Enqueue(combined);
             }
 
             return VisitorAction.Continue;

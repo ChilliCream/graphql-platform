@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
 
@@ -18,7 +19,25 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default, null);
+                fooType, typeof(Foo), TypeConversion.Default, null, ExpressionFieldHandlers.All);
+            };
+
+            // act
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Create_Should_Throw_IfFieldHandlersIsNull()
+        {
+            // arrange
+
+            var fooType = CreateType(new FooFilterType());
+
+            Action action = () =>
+            {
+                new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default, ExpressionOperationHandlers.All, null);
             };
 
             // act

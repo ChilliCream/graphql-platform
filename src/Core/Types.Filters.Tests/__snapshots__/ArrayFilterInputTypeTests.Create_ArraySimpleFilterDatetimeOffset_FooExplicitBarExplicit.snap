@@ -1,0 +1,25 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooSimpleFilter {
+  AND: [FooSimpleFilter!]
+  barDatetimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
+  OR: [FooSimpleFilter!]
+}
+
+input ISingleFilterOfDateTimeOffsetFilter {
+  AND: [ISingleFilterOfDateTimeOffsetFilter!]
+  element: DateTime
+  OR: [ISingleFilterOfDateTimeOffsetFilter!]
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
