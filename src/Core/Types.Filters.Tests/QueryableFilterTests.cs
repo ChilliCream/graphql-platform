@@ -135,7 +135,6 @@ namespace HotChocolate.Types.Filters
             result.MatchSnapshot();
         }
 
-
         [Fact]
         public async Task Execute_ObjectStringEqualWithNull_Expression_Array()
         {
@@ -159,7 +158,7 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ list(where: { fooNested: {bar: \"a\"} }) { fooNested {bar}}}")
+                .SetQuery("{ list(where: { fooNested: { bar: \"a\" } }) { fooNested { bar } } }")
                 .Create();
 
             // act
@@ -168,7 +167,6 @@ namespace HotChocolate.Types.Filters
             // assert
             result.MatchSnapshot();
         }
-
 
         [Fact]
         public async Task Execute_ObjectStringEqualWithNull_Expression_InMemoryQueryable()
@@ -192,7 +190,7 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ list(where: { fooNested: {bar: \"a\"} }) { fooNested {bar}}}")
+                .SetQuery("{ list(where: { fooNested: {bar: \"a\"} }) { fooNested { bar } } }")
                 .Create();
 
             // act
