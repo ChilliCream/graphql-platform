@@ -25,9 +25,7 @@ namespace HotChocolate.Types.Filters
         public static IEnumerable<object[]> GetData => new List<FilterInputType<Foo>[]>
         {
             new[] { CreateFilterTypeFor(x => x.List(y => y.IEnumerable)) },
-            new[] { CreateFilterTypeFor(x => x.List(y => y.List)) },
-            new[] { CreateFilterTypeFor(x => x.List(y => y.IEnumerableNullable)) },
-            new[] { CreateFilterTypeFor(x => x.List(y => y.ListNullable)) }
+            new[] { CreateFilterTypeFor(x => x.List(y => y.List)) }
         };
 
         public static FilterInputType<Foo> CreateFilterTypeFor(
