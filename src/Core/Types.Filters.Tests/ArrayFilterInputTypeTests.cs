@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDouble)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDoubleNullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarBool)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -121,7 +121,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarBoolNullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -144,7 +144,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarInt32)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -167,7 +167,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarInt32Nullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -190,7 +190,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarInt64)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -212,7 +212,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarInt64Nullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -235,7 +235,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarSingle)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -258,7 +258,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarSingleNullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -281,7 +281,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarInt16)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -304,7 +304,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarInt16Nullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -327,7 +327,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDatetime)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -349,7 +349,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDatetimeNullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -371,7 +371,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDatetimeOffset)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -393,7 +393,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDatetimeOffsetNullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -415,7 +415,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarGuid)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -437,7 +437,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarGuidNullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -460,7 +460,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDecimal)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -482,7 +482,7 @@ namespace HotChocolate.Types.Filters
                     .List(y => y.BarDecimalNullable)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
-                        .Filter(m => m.El)
+                        .Filter(m => m.Element)
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
@@ -515,7 +515,7 @@ namespace HotChocolate.Types.Filters
                     x => x.List(y => y.BarString).BindImplicitly()
                     .AllowSome(
                         y => y.BindFieldsExplicitly()
-                        .Filter(z => z.El)
+                        .Filter(z => z.Element)
                         .BindFiltersExplicitly()
                         .AllowContains()
                         )
