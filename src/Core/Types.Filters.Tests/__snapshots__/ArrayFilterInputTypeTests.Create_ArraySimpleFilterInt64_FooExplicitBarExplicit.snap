@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfInt64Filter {
   AND: [ISingleFilterOfInt64Filter!]
-  el: Long
+  element: Long
   OR: [ISingleFilterOfInt64Filter!]
 }
 

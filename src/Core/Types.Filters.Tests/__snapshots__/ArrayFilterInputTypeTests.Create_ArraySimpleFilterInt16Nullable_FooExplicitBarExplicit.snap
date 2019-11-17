@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfInt16Filter {
   AND: [ISingleFilterOfInt16Filter!]
-  el: Short
+  element: Short
   OR: [ISingleFilterOfInt16Filter!]
 }
 

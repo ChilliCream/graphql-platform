@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfDoubleFilter {
   AND: [ISingleFilterOfDoubleFilter!]
-  el: Float
+  element: Float
   OR: [ISingleFilterOfDoubleFilter!]
 }
 

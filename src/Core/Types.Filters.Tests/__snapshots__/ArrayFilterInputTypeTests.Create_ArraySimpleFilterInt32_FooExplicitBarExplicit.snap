@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfInt32Filter {
   AND: [ISingleFilterOfInt32Filter!]
-  el: Int
+  element: Int
   OR: [ISingleFilterOfInt32Filter!]
 }
 

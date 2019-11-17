@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfBooleanFilter {
   AND: [ISingleFilterOfBooleanFilter!]
-  el: Boolean
+  element: Boolean
   OR: [ISingleFilterOfBooleanFilter!]
 }
 

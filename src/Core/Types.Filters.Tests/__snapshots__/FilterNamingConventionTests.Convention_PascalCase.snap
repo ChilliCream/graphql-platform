@@ -47,18 +47,18 @@ input FooFilter {
 
 input ISingleFilterOfInt16Filter {
   AND: [ISingleFilterOfInt16Filter!]
-  El: Short
-  El_Gt: Short
-  El_Gte: Short
-  El_In: [Short!]
-  El_Lt: Short
-  El_Lte: Short
-  El_Not: Short
-  El_Not_Gt: Short
-  El_Not_Gte: Short
-  El_Not_In: [Short!]
-  El_Not_Lt: Short
-  El_Not_Lte: Short
+  Element: Short
+  Element_Gt: Short
+  Element_Gte: Short
+  Element_In: [Short!]
+  Element_Lt: Short
+  Element_Lte: Short
+  Element_Not: Short
+  Element_Not_Gt: Short
+  Element_Not_Gte: Short
+  Element_Not_In: [Short!]
+  Element_Not_Lt: Short
+  Element_Not_Lte: Short
   OR: [ISingleFilterOfInt16Filter!]
 }
 

@@ -17,7 +17,7 @@ input FooStringFilter {
 
 input ISingleFilterOfStringFilter {
   AND: [ISingleFilterOfStringFilter!]
-  el_contains: String
+  element_contains: String
   OR: [ISingleFilterOfStringFilter!]
 }
 

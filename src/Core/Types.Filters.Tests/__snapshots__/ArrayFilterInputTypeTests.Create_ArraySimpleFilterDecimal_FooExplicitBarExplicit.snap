@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfDecimalFilter {
   AND: [ISingleFilterOfDecimalFilter!]
-  el: Decimal
+  element: Decimal
   OR: [ISingleFilterOfDecimalFilter!]
 }
 

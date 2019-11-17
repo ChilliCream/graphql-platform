@@ -17,16 +17,16 @@ input FooStringFilter {
 
 input ISingleFilterOfStringFilter {
   AND: [ISingleFilterOfStringFilter!]
-  el: String
-  el_contains: String
-  el_ends_with: String
-  el_in: [String]
-  el_not: String
-  el_not_contains: String
-  el_not_ends_with: String
-  el_not_in: [String]
-  el_not_starts_with: String
-  el_starts_with: String
+  element: String
+  element_contains: String
+  element_ends_with: String
+  element_in: [String]
+  element_not: String
+  element_not_contains: String
+  element_not_ends_with: String
+  element_not_in: [String]
+  element_not_starts_with: String
+  element_starts_with: String
   OR: [ISingleFilterOfStringFilter!]
 }
 

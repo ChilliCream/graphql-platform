@@ -97,176 +97,176 @@ input FooSimpleFilter {
 
 input ISingleFilterOfBooleanFilter {
   AND: [ISingleFilterOfBooleanFilter!]
-  el: Boolean
-  el_not: Boolean
+  element: Boolean
+  element_not: Boolean
   OR: [ISingleFilterOfBooleanFilter!]
 }
 
 input ISingleFilterOfDateTimeFilter {
   AND: [ISingleFilterOfDateTimeFilter!]
-  el: DateTime
-  el_gt: DateTime
-  el_gte: DateTime
-  el_in: [DateTime!]
-  el_lt: DateTime
-  el_lte: DateTime
-  el_not: DateTime
-  el_not_gt: DateTime
-  el_not_gte: DateTime
-  el_not_in: [DateTime!]
-  el_not_lt: DateTime
-  el_not_lte: DateTime
+  element: DateTime
+  element_gt: DateTime
+  element_gte: DateTime
+  element_in: [DateTime!]
+  element_lt: DateTime
+  element_lte: DateTime
+  element_not: DateTime
+  element_not_gt: DateTime
+  element_not_gte: DateTime
+  element_not_in: [DateTime!]
+  element_not_lt: DateTime
+  element_not_lte: DateTime
   OR: [ISingleFilterOfDateTimeFilter!]
 }
 
 input ISingleFilterOfDateTimeOffsetFilter {
   AND: [ISingleFilterOfDateTimeOffsetFilter!]
-  el: DateTime
-  el_gt: DateTime
-  el_gte: DateTime
-  el_in: [DateTime!]
-  el_lt: DateTime
-  el_lte: DateTime
-  el_not: DateTime
-  el_not_gt: DateTime
-  el_not_gte: DateTime
-  el_not_in: [DateTime!]
-  el_not_lt: DateTime
-  el_not_lte: DateTime
+  element: DateTime
+  element_gt: DateTime
+  element_gte: DateTime
+  element_in: [DateTime!]
+  element_lt: DateTime
+  element_lte: DateTime
+  element_not: DateTime
+  element_not_gt: DateTime
+  element_not_gte: DateTime
+  element_not_in: [DateTime!]
+  element_not_lt: DateTime
+  element_not_lte: DateTime
   OR: [ISingleFilterOfDateTimeOffsetFilter!]
 }
 
 input ISingleFilterOfDecimalFilter {
   AND: [ISingleFilterOfDecimalFilter!]
-  el: Decimal
-  el_gt: Decimal
-  el_gte: Decimal
-  el_in: [Decimal!]
-  el_lt: Decimal
-  el_lte: Decimal
-  el_not: Decimal
-  el_not_gt: Decimal
-  el_not_gte: Decimal
-  el_not_in: [Decimal!]
-  el_not_lt: Decimal
-  el_not_lte: Decimal
+  element: Decimal
+  element_gt: Decimal
+  element_gte: Decimal
+  element_in: [Decimal!]
+  element_lt: Decimal
+  element_lte: Decimal
+  element_not: Decimal
+  element_not_gt: Decimal
+  element_not_gte: Decimal
+  element_not_in: [Decimal!]
+  element_not_lt: Decimal
+  element_not_lte: Decimal
   OR: [ISingleFilterOfDecimalFilter!]
 }
 
 input ISingleFilterOfDoubleFilter {
   AND: [ISingleFilterOfDoubleFilter!]
-  el: Float
-  el_gt: Float
-  el_gte: Float
-  el_in: [Float!]
-  el_lt: Float
-  el_lte: Float
-  el_not: Float
-  el_not_gt: Float
-  el_not_gte: Float
-  el_not_in: [Float!]
-  el_not_lt: Float
-  el_not_lte: Float
+  element: Float
+  element_gt: Float
+  element_gte: Float
+  element_in: [Float!]
+  element_lt: Float
+  element_lte: Float
+  element_not: Float
+  element_not_gt: Float
+  element_not_gte: Float
+  element_not_in: [Float!]
+  element_not_lt: Float
+  element_not_lte: Float
   OR: [ISingleFilterOfDoubleFilter!]
 }
 
 input ISingleFilterOfGuidFilter {
   AND: [ISingleFilterOfGuidFilter!]
-  el: Uuid
-  el_gt: Uuid
-  el_gte: Uuid
-  el_in: [Uuid!]
-  el_lt: Uuid
-  el_lte: Uuid
-  el_not: Uuid
-  el_not_gt: Uuid
-  el_not_gte: Uuid
-  el_not_in: [Uuid!]
-  el_not_lt: Uuid
-  el_not_lte: Uuid
+  element: Uuid
+  element_gt: Uuid
+  element_gte: Uuid
+  element_in: [Uuid!]
+  element_lt: Uuid
+  element_lte: Uuid
+  element_not: Uuid
+  element_not_gt: Uuid
+  element_not_gte: Uuid
+  element_not_in: [Uuid!]
+  element_not_lt: Uuid
+  element_not_lte: Uuid
   OR: [ISingleFilterOfGuidFilter!]
 }
 
 input ISingleFilterOfInt16Filter {
   AND: [ISingleFilterOfInt16Filter!]
-  el: Short
-  el_gt: Short
-  el_gte: Short
-  el_in: [Short!]
-  el_lt: Short
-  el_lte: Short
-  el_not: Short
-  el_not_gt: Short
-  el_not_gte: Short
-  el_not_in: [Short!]
-  el_not_lt: Short
-  el_not_lte: Short
+  element: Short
+  element_gt: Short
+  element_gte: Short
+  element_in: [Short!]
+  element_lt: Short
+  element_lte: Short
+  element_not: Short
+  element_not_gt: Short
+  element_not_gte: Short
+  element_not_in: [Short!]
+  element_not_lt: Short
+  element_not_lte: Short
   OR: [ISingleFilterOfInt16Filter!]
 }
 
 input ISingleFilterOfInt32Filter {
   AND: [ISingleFilterOfInt32Filter!]
-  el: Int
-  el_gt: Int
-  el_gte: Int
-  el_in: [Int!]
-  el_lt: Int
-  el_lte: Int
-  el_not: Int
-  el_not_gt: Int
-  el_not_gte: Int
-  el_not_in: [Int!]
-  el_not_lt: Int
-  el_not_lte: Int
+  element: Int
+  element_gt: Int
+  element_gte: Int
+  element_in: [Int!]
+  element_lt: Int
+  element_lte: Int
+  element_not: Int
+  element_not_gt: Int
+  element_not_gte: Int
+  element_not_in: [Int!]
+  element_not_lt: Int
+  element_not_lte: Int
   OR: [ISingleFilterOfInt32Filter!]
 }
 
 input ISingleFilterOfInt64Filter {
   AND: [ISingleFilterOfInt64Filter!]
-  el: Long
-  el_gt: Long
-  el_gte: Long
-  el_in: [Long!]
-  el_lt: Long
-  el_lte: Long
-  el_not: Long
-  el_not_gt: Long
-  el_not_gte: Long
-  el_not_in: [Long!]
-  el_not_lt: Long
-  el_not_lte: Long
+  element: Long
+  element_gt: Long
+  element_gte: Long
+  element_in: [Long!]
+  element_lt: Long
+  element_lte: Long
+  element_not: Long
+  element_not_gt: Long
+  element_not_gte: Long
+  element_not_in: [Long!]
+  element_not_lt: Long
+  element_not_lte: Long
   OR: [ISingleFilterOfInt64Filter!]
 }
 
 input ISingleFilterOfSingleFilter {
   AND: [ISingleFilterOfSingleFilter!]
-  el: Float
-  el_gt: Float
-  el_gte: Float
-  el_in: [Float!]
-  el_lt: Float
-  el_lte: Float
-  el_not: Float
-  el_not_gt: Float
-  el_not_gte: Float
-  el_not_in: [Float!]
-  el_not_lt: Float
-  el_not_lte: Float
+  element: Float
+  element_gt: Float
+  element_gte: Float
+  element_in: [Float!]
+  element_lt: Float
+  element_lte: Float
+  element_not: Float
+  element_not_gt: Float
+  element_not_gte: Float
+  element_not_in: [Float!]
+  element_not_lt: Float
+  element_not_lte: Float
   OR: [ISingleFilterOfSingleFilter!]
 }
 
 input ISingleFilterOfStringFilter {
   AND: [ISingleFilterOfStringFilter!]
-  el: String
-  el_contains: String
-  el_ends_with: String
-  el_in: [String]
-  el_not: String
-  el_not_contains: String
-  el_not_ends_with: String
-  el_not_in: [String]
-  el_not_starts_with: String
-  el_starts_with: String
+  element: String
+  element_contains: String
+  element_ends_with: String
+  element_in: [String]
+  element_not: String
+  element_not_contains: String
+  element_not_ends_with: String
+  element_not_in: [String]
+  element_not_starts_with: String
+  element_starts_with: String
   OR: [ISingleFilterOfStringFilter!]
 }
 

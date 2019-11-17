@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfGuidFilter {
   AND: [ISingleFilterOfGuidFilter!]
-  el: Uuid
+  element: Uuid
   OR: [ISingleFilterOfGuidFilter!]
 }
 

@@ -14,7 +14,7 @@ input FooSimpleFilter {
 
 input ISingleFilterOfDateTimeOffsetFilter {
   AND: [ISingleFilterOfDateTimeOffsetFilter!]
-  el: DateTime
+  element: DateTime
   OR: [ISingleFilterOfDateTimeOffsetFilter!]
 }
 
