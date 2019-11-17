@@ -62,6 +62,11 @@ namespace HotChocolate.Types.Filters
             return Closures.Peek().CreateLambda<Func<TSource, bool>>();
         }
 
+        public Expression<Func<TSource, bool>> CreateFilterInMemory<TSource>()
+        {
+            return Closures.Peek().CreateLambdaWithNullCheck<Func<TSource, bool>>();
+        }
+
         #region Object Value
 
         public override VisitorAction Enter(

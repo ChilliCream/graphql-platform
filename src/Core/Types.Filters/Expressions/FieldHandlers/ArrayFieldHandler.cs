@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Filters.Expressions
               )
             {
                 var nestedClosure = closures.Pop();
-                var lambda = nestedClosure.CreateLambda();
+                var lambda = nestedClosure.CreateLambdaWithNullCheck();
                 Type closureType = GetTypeFor(field.Operation);
 
                 Expression expression;

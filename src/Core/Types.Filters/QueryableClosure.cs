@@ -26,15 +26,25 @@ namespace HotChocolate.Types.Filters
 
         public LambdaExpression CreateLambda()
         {
-            return Expression.Lambda(GetSafeExpressionBody(), Parameter);
+            return Expression.Lambda(Level.Peek().Peek(), Parameter);
         }
 
         public Expression<T> CreateLambda<T>()
         {
-            return Expression.Lambda<T>(GetSafeExpressionBody(), Parameter);
+            return Expression.Lambda<T>(Level.Peek().Peek(), Parameter);
         }
 
-        private Expression GetSafeExpressionBody()
+        public LambdaExpression CreateLambdaWithNullCheck()
+        {
+            return Expression.Lambda(GetExpressionBodyWithNullCheck(), Parameter);
+        }
+
+        public Expression<T> CreateLambdaWithNullCheck<T>()
+        {
+            return Expression.Lambda<T>(GetExpressionBodyWithNullCheck(), Parameter);
+        }
+
+        private Expression GetExpressionBodyWithNullCheck()
         {
             return FilterExpressionBuilder.NotNullAndAlso(Parameter, Level.Peek().Peek());
         }

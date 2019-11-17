@@ -40,7 +40,6 @@ namespace HotChocolate.Types.Filters
             Assert.False(func(b));
         }
 
-
         [Fact]
         public void Create_ObjectStringEqualWithNull_Expression()
         {
@@ -63,7 +62,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default);
             value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateFilterInMemory<Foo>().Compile();
 
             // assert
             var a = new Foo { FooNested = new FooNested { Bar = "a" } };
