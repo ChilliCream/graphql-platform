@@ -45,9 +45,6 @@ namespace HotChocolate.Types.Filters
         public IArrayFilterFieldDescriptor BindImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
-
-
-
         public IArrayFilterOperationDescriptor AllowSome()
         {
             ArrayFilterOperationDescriptor field =
@@ -100,11 +97,10 @@ namespace HotChocolate.Types.Filters
         protected ClrTypeReference GetTypeReference()
         {
             return new ClrTypeReference(
-                    typeof(FilterInputType<>).MakeGenericType(_type),
-                        Definition.Type.Context,
-                        true,
-                        true
-           );
+                typeof(FilterInputType<>).MakeGenericType(_type),
+                    Definition.Type.Context,
+                    true,
+                    true);
         }
 
         private ArrayFilterOperationDescriptor CreateOperation(
@@ -129,8 +125,7 @@ namespace HotChocolate.Types.Filters
                 new ClrTypeReference(typeof(bool),
                     Definition.Type.Context,
                     true,
-                    true)
-                );
+                    true));
 
             return ArrayBooleanFilterOperationDescriptor.New(
                 Context,
