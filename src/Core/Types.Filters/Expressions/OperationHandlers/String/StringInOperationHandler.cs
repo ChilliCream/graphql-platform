@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -24,7 +23,6 @@ namespace HotChocolate.Types.Filters.Expressions
                 {
                     property = Expression.Property(instance, operation.Property);
                 }
-
 
                 var parsedValue = type.ParseLiteral(value);
 
