@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_some",
                     new ObjectValueNode(
-                        new ObjectFieldNode("el",
+                        new ObjectFieldNode("element",
                             new StringValueNode("a")
                         )
                     )
@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Filters
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_some",
                     new ObjectValueNode(
-                        new ObjectFieldNode("el",
+                        new ObjectFieldNode("element",
                             new StringValueNode("a")
                         )
                     )
