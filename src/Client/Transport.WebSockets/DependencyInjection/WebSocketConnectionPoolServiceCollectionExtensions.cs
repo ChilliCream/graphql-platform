@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -12,7 +13,8 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(services));
             }
 
-            return services.AddSingleton<ISocketConnectionPool, WebSocketConnectionPool>();
+            services.TryAddSingleton<ISocketConnectionPool, WebSocketConnectionPool>();
+            return services;
         }
     }
 }

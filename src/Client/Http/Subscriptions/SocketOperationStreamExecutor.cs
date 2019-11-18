@@ -5,15 +5,15 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    public class WebSocketOperationStreamExecutor
+    public class SocketOperationStreamExecutor
         : IOperationStreamExecutor
     {
-        Func<Task<ISocketConnection>> _connectionFactory;
+        Func<CancellationToken, Task<ISocketConnection>> _connectionFactory;
         private readonly ISubscriptionManager _subscriptionManager;
         private readonly IResultParserResolver _resultParserResolver;
 
-        public WebSocketOperationStreamExecutor(
-            Func<Task<ISocketConnection>> connectionFactory,
+        public SocketOperationStreamExecutor(
+            Func<CancellationToken, Task<ISocketConnection>> connectionFactory,
             ISubscriptionManager subscriptionManager,
             IResultParserResolver resultParserResolver)
         {
@@ -52,7 +52,7 @@ namespace StrawberryShake.Http.Subscriptions
                 _resultParserResolver.GetResultParser(operation.ResultType);
             var subscription = Subscription.New(operation, resultParser);
 
-            ISocketConnection connection = await _connectionFactory()
+            ISocketConnection connection = await _connectionFactory(cancellationToken)
                 .ConfigureAwait(false);
             await _subscriptionManager.RegisterAsync(subscription, connection)
                 .ConfigureAwait(false);
@@ -89,7 +89,7 @@ namespace StrawberryShake.Http.Subscriptions
                 _resultParserResolver.GetResultParser(operation.ResultType);
             var subscription = Subscription.New(operation, resultParser);
 
-            ISocketConnection connection = await _connectionFactory()
+            ISocketConnection connection = await _connectionFactory(cancellationToken)
                 .ConfigureAwait(false);
             await _subscriptionManager.RegisterAsync(subscription, connection)
                 .ConfigureAwait(false);

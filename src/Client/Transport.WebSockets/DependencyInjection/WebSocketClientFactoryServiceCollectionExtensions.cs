@@ -28,6 +28,7 @@ namespace StrawberryShake.Transport.WebSockets
             services.AddSingleton<DefaultWebSocketClientFactory>();
             services.TryAddSingleton<IWebSocketClientFactory>(sp =>
                 sp.GetRequiredService<DefaultWebSocketClientFactory>());
+            services.AddWebSocketConnectionPool();
 
             return services;
         }

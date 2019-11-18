@@ -7,6 +7,7 @@ using Moq;
 using Xunit;
 using HotChocolate.AspNetCore;
 using StrawberryShake.Client.GraphQL;
+using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.Demo
 {
@@ -31,7 +32,6 @@ namespace StrawberryShake.Demo
             var serviceCollection = new ServiceCollection();
 
             serviceCollection.AddSingleton<IHttpClientFactory>(clientFactory.Object);
-            serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddStarWarsClient();
 
             Services = serviceCollection.BuildServiceProvider();

@@ -29,7 +29,6 @@ namespace StrawberryShake.Http
                 serviceCollection.AddWebSocketClient(
                     "Foo",
                     c => c.Uri = new Uri("ws://localhost:" + port));
-                serviceCollection.AddWebSocketConnectionPool();
 
                 IServiceProvider services =
                     serviceCollection.BuildServiceProvider();
