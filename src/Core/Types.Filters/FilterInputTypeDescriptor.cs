@@ -183,6 +183,7 @@ namespace HotChocolate.Types.Filters
                 }
 
                 var elementType = typeInfo.ClrType;
+
                 if (elementType == typeof(string)
                     || elementType == typeof(bool)
                     || typeof(IComparable).IsAssignableFrom(elementType))
