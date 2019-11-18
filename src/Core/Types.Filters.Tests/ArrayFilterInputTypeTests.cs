@@ -9,18 +9,6 @@ namespace HotChocolate.Types.Filters
     public class ArrayFilterInputTypeTests
         : TypeTestBase
     {
-
-        [Fact]
-        public void Create_ArraySimpleFilter_FooImplicitBarImplicit_Collection()
-        {
-            // arrange
-            // act
-            var schema = CreateSchema(new FilterInputType<FooSimpleCollection>());
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
         [Fact]
         public void Create_ArraySimpleFilter_FooImplicitBarImplicit()
         {
@@ -31,7 +19,6 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterBool_FooExplicitBarExplicitAny()
@@ -50,7 +37,6 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterDouble_FooExplicitBarExplicit()
@@ -74,7 +60,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void Create_ArraySimpleFilterDoubleNullable_FooExplicitBarExplicit()
         {
@@ -97,7 +82,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void Create_ArraySimpleFilterBool_FooExplicitBarExplicit()
         {
@@ -113,8 +97,7 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
-            }
-            ));
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -135,13 +118,11 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
-            }
-            ));
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterInt32_FooExplicitBarExplicit()
@@ -158,13 +139,11 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
-            }
-            ));
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterInt32Nullable_FooExplicitBarExplicit()
@@ -179,15 +158,12 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterInt64_FooExplicitBarExplicit()
@@ -202,10 +178,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -224,15 +198,12 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterSingle_FooExplicitBarExplicit()
@@ -247,15 +218,12 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterSingleNullable_FooExplicitBarExplicit()
@@ -270,15 +238,12 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterInt16_FooExplicitBarExplicit()
@@ -293,15 +258,12 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterInt16Nullable_FooExplicitBarExplicit()
@@ -316,15 +278,12 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArraySimpleFilterDatetime_FooExplicitBarExplicit()
@@ -341,8 +300,7 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
-            }
-            ));
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -361,10 +319,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -383,10 +339,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -405,10 +359,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -427,10 +379,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -449,10 +399,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -472,10 +420,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -494,10 +440,8 @@ namespace HotChocolate.Types.Filters
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.Element)
                         .BindFiltersExplicitly()
-                        .AllowEquals()
-                     );
-            }
-            ));
+                        .AllowEquals());
+            }));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -523,14 +467,11 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<FooString>(
                     x => x.List(y => y.BarString).BindImplicitly()
-                    .AllowSome(
-                        y => y.BindFieldsExplicitly()
-                        .Filter(z => z.Element)
-                        .BindFiltersExplicitly()
-                        .AllowContains()
-                        )
-                    )
-           );
+                        .AllowSome(
+                            y => y.BindFieldsExplicitly()
+                            .Filter(z => z.Element)
+                            .BindFiltersExplicitly()
+                            .AllowContains())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -555,14 +496,11 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
                     x => x.List(y => y.BarNested).BindImplicitly()
-                    .AllowSome(
-                        y => y.BindFieldsExplicitly()
-                        .Filter(z => z.Baz)
-                        .BindFiltersExplicitly()
-                        .AllowContains()
-                        )
-                    )
-           );
+                        .AllowSome(
+                            y => y.BindFieldsExplicitly()
+                            .Filter(z => z.Baz)
+                            .BindFiltersExplicitly()
+                            .AllowContains())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -584,10 +522,9 @@ namespace HotChocolate.Types.Filters
                         .And()
                         .AllowNone(
                             y => y.BindFieldsExplicitly()
-                            .Filter(z => z.Baz)
-                            .BindFiltersExplicitly()
-                            .AllowEquals()))
-           );
+                                .Filter(z => z.Baz)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -602,15 +539,12 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
-                    .List(y => y.BarNested)
-                    .AllowSome(
-                        y => y.BindFieldsExplicitly()
-                        .Filter(z => z.Baz)
-                        .BindFiltersExplicitly()
-                        .AllowContains()
-                        )
-                    )
-           );
+                        .List(y => y.BarNested)
+                        .AllowSome(
+                            y => y.BindFieldsExplicitly()
+                            .Filter(z => z.Baz)
+                            .BindFiltersExplicitly()
+                            .AllowContains())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -624,11 +558,9 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
-                    .List(y => y.BarNested)
-                    .BindExplicitly()
-                    .AllowSome<BarFilterType>()
-                    )
-           );
+                        .List(y => y.BarNested)
+                        .BindExplicitly()
+                        .AllowSome<BarFilterType>()));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -643,9 +575,7 @@ namespace HotChocolate.Types.Filters
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
                     .List(y => y.BarNested)
-                    .AllowSome()
-                    )
-           );
+                    .AllowSome()));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -658,12 +588,13 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             var schema = CreateSchema(
-                new FilterInputType<Foo>(descriptor => descriptor.BindFieldsExplicitly()
+                new FilterInputType<Foo>(descriptor => descriptor
+                    .BindFieldsExplicitly()
                     .List(x => x.BarNested)
-                    .AllowSome(x =>
-                        x.BindFieldsExplicitly()
-                        .Filter(y => y.Baz).BindFiltersExplicitly().AllowEquals()
-                    )));
+                    .AllowSome(x => x.BindFieldsExplicitly()
+                        .Filter(y => y.Baz)
+                        .BindFiltersExplicitly()
+                        .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -792,7 +723,6 @@ namespace HotChocolate.Types.Filters
         public class FooString
         {
             public IEnumerable<string> BarString { get; set; }
-
         }
 
         public class FooSimple
@@ -818,33 +748,7 @@ namespace HotChocolate.Types.Filters
             public IEnumerable<Guid?> BarGuidNullable { get; set; }
             public IEnumerable<DateTime?> BarDatetimeNullable { get; set; }
             public IEnumerable<DateTimeOffset?> BarDatetimeOffsetNullable { get; set; }
-
         }
-
-
-        public class FooSimpleCollection
-        {
-            public int[] Array { get; set; }
-            public int?[] ArrayNullable { get; set; }
-
-            public List<int> List { get; set; }
-            public List<int?> ListNullable { get; set; }
-            public Queue<int> Queue { get; set; }
-            public Queue<int?> QueueNullable { get; set; }
-            public Stack<int> Stack { get; set; }
-            public Stack<int?> StackNullable { get; set; }
-            public IList<int> IList { get; set; }
-            public IList<int?> IListNullable { get; set; }
-            public HashSet<int> HashSet { get; set; }
-            public HashSet<int?> HashSetNullable { get; set; }
-            public ICollection<int> ICollection { get; set; }
-            public ICollection<int?> ICollectionNullable { get; set; }
-            public IReadOnlyCollection<int> IReadOnlyCollection { get; set; }
-            public IReadOnlyCollection<int?> IReadOnlyCollectionNullable { get; set; }
-            public ISet<int> ISet { get; set; }
-            public ISet<int?> ISetNullable { get; set; }
-        }
-
 
         public class Foo
         {
@@ -863,7 +767,9 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
-                descriptor.BindFieldsExplicitly().List(x => x.BarNested).AllowSome();
+                descriptor.BindFieldsExplicitly()
+                    .List(x => x.BarNested)
+                    .AllowSome();
             }
         }
 
@@ -873,7 +779,11 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<Bar> descriptor)
             {
-                descriptor.BindFieldsExplicitly().Filter(x => x.Baz).BindFiltersExplicitly().AllowEquals().Name("test");
+                descriptor.BindFieldsExplicitly()
+                    .Filter(x => x.Baz)
+                    .BindFiltersExplicitly()
+                    .AllowEquals()
+                    .Name("test");
             }
         }
     }

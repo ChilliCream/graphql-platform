@@ -140,7 +140,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             out FilterFieldDefintion definition)
         {
-            var type = property.PropertyType;
+            Type type = property.PropertyType;
 
             if (type.IsGenericType && Nullable.GetUnderlyingType(type) is Type nullableType)
             {
@@ -170,19 +170,17 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(type))
+            if (DotNetTypeInfoFactory.IsListType(type))
             {
-
-                ArrayFilterFieldDescriptor field;
-                if (!TypeInspector.Default.TryCreate(
-                           type, out Utilities.TypeInfo typeInfo))
+                if (!TypeInspector.Default.TryCreate(type, out Utilities.TypeInfo typeInfo))
                 {
                     throw new ArgumentException(
                         FilterResources.FilterArrayFieldDescriptor_InvalidType,
-                        nameof(type));
+                        nameof(property));
                 }
 
-                var elementType = typeInfo.ClrType;
+                Type elementType = typeInfo.ClrType;
+                ArrayFilterFieldDescriptor field;
 
                 if (elementType == typeof(string)
                     || elementType == typeof(bool)
@@ -191,18 +189,15 @@ namespace HotChocolate.Types.Filters
                     field = new ArrayFilterFieldDescriptor(
                         Context,
                         property,
-                        typeof(ISingleFilter<>).MakeGenericType(elementType)
-                        );
-
+                        typeof(ISingleFilter<>).MakeGenericType(elementType));
                 }
                 else
                 {
                     field = new ArrayFilterFieldDescriptor(Context, property, elementType);
-
                 }
+
                 definition = field.CreateDefinition();
                 return true;
-
             }
 
             if (type.IsClass)
