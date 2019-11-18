@@ -172,34 +172,36 @@ namespace HotChocolate.Types.Filters
 
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
+
                 ArrayFilterFieldDescriptor field;
-
-                var genericTypeArgument = type.GetGenericArguments()[0];
-
-                if (genericTypeArgument.IsGenericType &&
-                    Nullable.GetUnderlyingType(genericTypeArgument) is Type nullableEnumerableType)
+                if (!TypeInspector.Default.TryCreate(
+                           type, out Utilities.TypeInfo typeInfo))
                 {
-                    genericTypeArgument = nullableEnumerableType;
+                    throw new ArgumentException(
+                        FilterResources.FilterArrayFieldDescriptor_InvalidType,
+                        nameof(type));
                 }
-                if (genericTypeArgument == typeof(string)
-                    || genericTypeArgument == typeof(bool)
-                    || genericTypeArgument == typeof(bool?)
-                    || typeof(IComparable).IsAssignableFrom(genericTypeArgument))
+
+                var elementType = typeInfo.ClrType;
+                if (elementType == typeof(string)
+                    || elementType == typeof(bool)
+                    || typeof(IComparable).IsAssignableFrom(elementType))
                 {
                     field = new ArrayFilterFieldDescriptor(
                         Context,
                         property,
-                        typeof(ISingleFilter<>).MakeGenericType(genericTypeArgument)
+                        typeof(ISingleFilter<>).MakeGenericType(elementType)
                         );
 
                 }
                 else
                 {
-                    field = new ArrayFilterFieldDescriptor(Context, property, genericTypeArgument);
+                    field = new ArrayFilterFieldDescriptor(Context, property, elementType);
 
                 }
                 definition = field.CreateDefinition();
                 return true;
+
             }
 
             if (type.IsClass)
@@ -355,7 +357,7 @@ namespace HotChocolate.Types.Filters
 
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
             where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
@@ -363,7 +365,7 @@ namespace HotChocolate.Types.Filters
 
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct?>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
             where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
