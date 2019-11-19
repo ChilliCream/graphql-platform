@@ -11,16 +11,14 @@ namespace HotChocolate.Types.Sorting
 
         public virtual NameString GetSortingTypeName(IDescriptorContext context, Type entityType)
         {
-            return context.Naming.GetTypeName(
-                    entityType, TypeKind.Object) + "Sort";
+            return context.Naming.GetTypeName(entityType, TypeKind.Object) + "Sort";
         }
 
         public virtual NameString GetSortingOperationKindTypeName(
             IDescriptorContext context,
             Type entityType)
         {
-            return context.Naming.GetTypeName(
-                entityType, TypeKind.Enum);
+            return context.Naming.GetTypeName(entityType, TypeKind.Enum);
         }
 
         public static ISortingNamingConvention Default { get; } =
