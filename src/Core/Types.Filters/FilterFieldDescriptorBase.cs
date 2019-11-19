@@ -171,7 +171,7 @@ namespace HotChocolate.Types.Filters
                 else
                 {
                     var type = clrRef.Type;
-                    if(type.IsGenericType &&
+                    if (type.IsGenericType &&
                         Nullable.GetUnderlyingType(type) is Type nullableType)
                     {
                         type = nullableType;
@@ -210,6 +210,10 @@ namespace HotChocolate.Types.Filters
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
+            if (typeof(ISingleFilter<>).IsAssignableFrom(Definition.Property.DeclaringType))
+            {
+                Definition.Name = _namingConvention.ArrayFilterPropertyName;
+            }
             return _namingConvention.CreateFieldName(Definition, kind);
         }
 

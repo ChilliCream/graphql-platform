@@ -73,8 +73,5 @@ namespace HotChocolate.Types.Filters
                     throw new NotSupportedException();
             }
         }
-
-        public static FilterNamingConventionSnakeCase Default { get; } =
-            new FilterNamingConventionSnakeCase();
     }
 }

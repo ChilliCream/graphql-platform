@@ -69,6 +69,7 @@ namespace HotChocolate.Types.Filters
         private class CustomConvention : FilterNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
+            public override NameString ArrayFilterPropertyName => "TESTelement";
 
             public override NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
             {

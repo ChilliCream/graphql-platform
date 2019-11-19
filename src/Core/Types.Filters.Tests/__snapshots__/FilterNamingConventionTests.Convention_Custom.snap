@@ -18,12 +18,12 @@ type Query {
 }
 
 type Test {
-  foo(test: ObjectFilter): [Foo!]!
+  foo(test: ObjectFilterTest): [Foo!]!
 }
 
-input ObjectFilter {
-  AND: [ObjectFilter!]
-  OR: [ObjectFilter!]
+input ObjectFilterTest {
+  AND: [ObjectFilterTest!]
+  OR: [ObjectFilterTest!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."
