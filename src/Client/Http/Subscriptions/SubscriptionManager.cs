@@ -74,7 +74,7 @@ namespace StrawberryShake.Http.Subscriptions
                 _operationFormatter.Serialize(subscription.Operation, writer);
                 writer.WriteEndObject();
 
-                await connection.SendAsync(writer.Body);
+                await connection.SendAsync(writer.Body).ConfigureAwait(false);
             }
         }
 

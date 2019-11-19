@@ -40,7 +40,10 @@ namespace StrawberryShake.Client.GraphQL
                     sp.GetRequiredService<ISocketConnectionPool>().RentAsync,
                     sp.GetRequiredService<ISubscriptionManager>(),
                     sp.GetRequiredService<IResultParserResolver>()));
-            serviceCollection.AddSingleton<ISubscriptionManager, SubscriptionManager>();
+
+            serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
+            serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
+            serviceCollection.TryAddSingleton<ISocketConnectionInterceptor, MessagePipelineHandler>();
 
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();

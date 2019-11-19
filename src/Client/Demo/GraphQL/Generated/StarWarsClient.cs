@@ -13,10 +13,15 @@ namespace StrawberryShake.Client.GraphQL
         private readonly IOperationExecutor _executor;
         private readonly IOperationStreamExecutor _streamExecutor;
 
-        public StarWarsClient(IOperationExecutor executor, IOperationStreamExecutor streamExecutor)
+        public StarWarsClient(IOperationExecutorPool executorPool)
         {
-            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
-            _streamExecutor = streamExecutor ?? throw new ArgumentNullException(nameof(streamExecutor));
+            if (executorPool is null)
+            {
+                throw new ArgumentNullException(nameof(executorPool));
+            }
+
+            _executor = executorPool.CreateExecutor("StarWarsClient");
+            _streamExecutor = executorPool.CreateStreamExecutor("StarWarsClient");
         }
 
         public Task<IOperationResult<IGetHero>> GetHeroAsync(
@@ -33,7 +38,7 @@ namespace StrawberryShake.Client.GraphQL
             GetHeroOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -59,7 +64,7 @@ namespace StrawberryShake.Client.GraphQL
             GetHumanOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -85,7 +90,7 @@ namespace StrawberryShake.Client.GraphQL
             SearchOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -106,7 +111,7 @@ namespace StrawberryShake.Client.GraphQL
             return _executor.ExecuteAsync(
                 new CreateReviewOperation
                 {
-                    Episode = episode, 
+                    Episode = episode,
                     Review = review
                 },
                 cancellationToken);
@@ -116,7 +121,7 @@ namespace StrawberryShake.Client.GraphQL
             CreateReviewOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -138,7 +143,7 @@ namespace StrawberryShake.Client.GraphQL
             OnReviewOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }

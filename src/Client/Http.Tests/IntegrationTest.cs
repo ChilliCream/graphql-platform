@@ -17,20 +17,31 @@ namespace StrawberryShake.Http
             using (IWebHost host = TestServerHelper.CreateServer(out int port))
             {
                 var serviceCollection = new ServiceCollection();
-                serviceCollection.AddWebSocketClient(
-                    "StarWarsClient",
-                    c => c.Uri = new Uri("ws://localhost:" + port));
                 serviceCollection.AddHttpClient(
                     "StarWarsClient",
                     c => c.BaseAddress = new Uri("http://localhost:" + port));
+                serviceCollection.AddWebSocketClient(
+                    "StarWarsClient",
+                    c => c.Uri = new Uri("ws://localhost:" + port));
                 serviceCollection.AddStarWarsClient();
 
                 IServiceProvider services = serviceCollection.BuildServiceProvider();
                 IStarWarsClient client = services.GetRequiredService<IStarWarsClient>();
-                IResponseStream<IOnReview> responseStream = await client.OnReviewAsync(Episode.Empire);
-                await foreach (IOperationResult<IOnReview> result in responseStream)
-                {
 
+                var stream = await client.OnReviewAsync(Episode.Empire);
+
+                Task.Run(async () =>
+                {
+                    await Task.Delay(2000);
+                    await client.CreateReviewAsync(Episode.Empire, new ReviewInput { Commentary = "jfkdjfk", Stars = 1 });
+                });
+
+                await foreach (IOperationResult<IOnReview> result in stream)
+                {
+                    if (result.Data is { })
+                    {
+                        Console.WriteLine(result.Data.OnReview.Commentary);
+                    }
                 }
             }
         }

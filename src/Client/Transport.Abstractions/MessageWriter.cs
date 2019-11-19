@@ -30,6 +30,7 @@ namespace StrawberryShake.Transport
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
             _start += count;
+            _capacity -= count;
         }
 
         public Memory<byte> GetMemory(int sizeHint = 0)
@@ -51,7 +52,7 @@ namespace StrawberryShake.Transport
             if (_capacity < size)
             {
                 byte[] buffer = _buffer;
-                _buffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
+                _buffer = ArrayPool<byte>.Shared.Rent(size + _buffer.Length);
                 _capacity += _buffer.Length;
                 buffer.AsSpan().CopyTo(_buffer);
                 ArrayPool<byte>.Shared.Return(buffer);
