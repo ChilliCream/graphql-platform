@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
 
@@ -15,19 +17,22 @@ namespace HotChocolate.Resolvers
                     nameof(FieldClassMiddlewareFactory.Create))
                     && t.GetGenericArguments().Length == 1)
                 {
-                    return t.GetParameters().Length == 0;
+                    var parameter = t.GetParameters();
+                    return parameter.Length == 1 && parameter[0].Name == "customParameters";
                 }
                 return false;
             });
 
-        public static FieldMiddleware Create<TMiddleware>()
+        public static FieldMiddleware Create<TMiddleware>(
+            params object[] customParameters
+            )
             where TMiddleware : class
         {
             return next =>
             {
                 MiddlewareFactory<TMiddleware, FieldDelegate> factory =
                     MiddlewareActivator
-                        .CompileFactory<TMiddleware, FieldDelegate>();
+                        .CompileFactory<TMiddleware, FieldDelegate>(customParameters);
 
                 return CreateDelegate(
                     (s, n) => factory(s, n),
@@ -35,11 +40,13 @@ namespace HotChocolate.Resolvers
             };
         }
 
-        public static FieldMiddleware Create(Type middlewareType)
+        public static FieldMiddleware Create(
+            Type middlewareType,
+            params object[] customParameters)
         {
             return (FieldMiddleware)_createGeneric
                 .MakeGenericMethod(middlewareType)
-                .Invoke(null, Array.Empty<object>());
+                .Invoke(null, new object[] { customParameters });
         }
 
         public static FieldMiddleware Create<TMiddleware>(

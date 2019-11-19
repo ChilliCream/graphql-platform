@@ -11,7 +11,6 @@ namespace HotChocolate.Types
 {
     public static class SortObjectFieldDescriptorExtensions
     {
-        internal const string OrderByArgumentName = "order_by";
         private static readonly Type _middlewareDefinition =
             typeof(QueryableSortMiddleware<>);
 
@@ -84,10 +83,25 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Name = OrderByArgumentName,
                         Type = new ClrTypeReference(
                             argumentType, TypeContext.Input)
                     };
+
+                    ILazyTypeConfiguration lazyArgumentConfiguration =
+                        LazyTypeConfigurationBuilder
+                            .New<ArgumentDefinition>()
+                            .Definition(argumentDefinition)
+                            .Configure((context, definition) =>
+                                {
+                                    var convention = context.DescriptorContext
+                                        .GetConventionOrDefault(SortingNamingConventionBase.Default);
+                                    definition.Name = convention.ArgumentName;
+                                })
+                           .On(ApplyConfigurationOn.Completion)
+                           .Build();
+                    argumentDefinition.Configurations.Add(lazyArgumentConfiguration);
+
+
                     definition.Arguments.Add(argumentDefinition);
 
                     ILazyTypeConfiguration lazyConfiguration =
@@ -152,14 +166,36 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
+            var convention = context.DescriptorContext
+                .GetConventionOrDefault(SortingNamingConventionBase.Default);
             ISortInputType type =
                 context.GetType<ISortInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
                 .MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(middlewareType);
+                FieldClassMiddlewareFactory.Create(
+                    middlewareType,
+                    SortMiddlewareContext.Create(convention.ArgumentName
+                ));
+
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
+        }
+
+
+    }
+    public class SortMiddlewareContext
+    {
+        public SortMiddlewareContext(string argumentName)
+        {
+            ArgumentName = argumentName;
+        }
+
+        public string ArgumentName { get; }
+
+        public static SortMiddlewareContext Create(string argumentName)
+        {
+            return new SortMiddlewareContext(argumentName);
         }
     }
 }
