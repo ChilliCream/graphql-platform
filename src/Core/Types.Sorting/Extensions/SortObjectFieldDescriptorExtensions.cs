@@ -179,7 +179,5 @@ namespace HotChocolate.Types
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
-
-
     }
 }
