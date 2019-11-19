@@ -14,9 +14,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
-                x.AddSortingType()
-            );
+            var schema = CreateSchema(x => x.AddSortingType());
 
             // assert
             schema.ToString().MatchSnapshot();
