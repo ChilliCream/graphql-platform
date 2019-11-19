@@ -17,7 +17,7 @@ namespace HotChocolate.Resolvers
                     nameof(FieldClassMiddlewareFactory.Create))
                     && t.GetGenericArguments().Length == 1)
                 {
-                    var parameter = t.GetParameters();
+                    ParameterInfo[] parameter = t.GetParameters();
                     return parameter.Length == 1 && parameter[0].Name == "customParameters";
                 }
                 return false;

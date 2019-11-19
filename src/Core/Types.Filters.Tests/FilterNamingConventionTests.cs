@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(new FilterInputType<Foo>());
+            ISchema schema = CreateSchema(new FilterInputType<Foo>());
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(
+            ISchema schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterNamingConvention, FilterNamingConventionPascalCase>());
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(
+            ISchema schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterNamingConvention, FilterNamingConventionSnakeCase>());
 

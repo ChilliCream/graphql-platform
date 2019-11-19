@@ -6,7 +6,6 @@ namespace HotChocolate.Types.Sorting
     public class SortOperationKindType
         : EnumType<SortOperationKind>
     {
-
         protected override void Configure(IEnumTypeDescriptor<SortOperationKind> descriptor)
         {
             base.Configure(descriptor);
@@ -14,19 +13,21 @@ namespace HotChocolate.Types.Sorting
 
         protected override EnumTypeDefinition CreateDefinition(IInitializationContext context)
         {
-            var definition = base.CreateDefinition(context);
-            var convention = context.DescriptorContext.GetSortingNamingConvention();
+            EnumTypeDefinition definition = base.CreateDefinition(context);
+            ISortingNamingConvention convention =
+                context.DescriptorContext.GetSortingNamingConvention();
 
             definition.Name = convention.GetSortingOperationKindTypeName(
                 context.DescriptorContext, definition.ClrType);
 
-            foreach (var value in definition.Values)
+            foreach (EnumValueDefinition value in definition.Values)
             {
                 ConfigureEnumValue(value, convention);
             }
 
             return definition;
         }
+
         private void ConfigureEnumValue(
             EnumValueDefinition definition,
             ISortingNamingConvention convention)

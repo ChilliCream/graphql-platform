@@ -14,9 +14,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
-                x.AddSortingType()
-            );
+            ISchema schema = CreateSchema(x => x.AddSortingType());
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -27,7 +25,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
+            ISchema schema = CreateSchema(x =>
                 x.AddConvention<ISortingNamingConvention, SortingNamingConventionPascalCase>()
                 .AddSortingType()
             );
@@ -42,7 +40,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
+            ISchema schema = CreateSchema(x =>
                 x.AddConvention<ISortingNamingConvention, SortingNamingConventionSnakeCase>()
                 .AddSortingType()
             );
@@ -56,7 +54,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
+            ISchema schema = CreateSchema(x =>
                 x.AddConvention<ISortingNamingConvention, CustomConvention>()
                 .AddSortingType()
             );
@@ -68,7 +66,9 @@ namespace HotChocolate.Types.Sorting
         private class CustomConvention : SortingNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
+
             public override NameString SortKindAscName => "TESTASC";
+
             public override NameString SortKindDescName => "TESTDESC";
 
             public override NameString GetSortingTypeName(
@@ -85,7 +85,6 @@ namespace HotChocolate.Types.Sorting
                 return base.GetSortingOperationKindTypeName(context, entityType).Add("Test");
             }
         }
-
     }
 
     internal class Foo

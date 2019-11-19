@@ -170,8 +170,8 @@ namespace HotChocolate.Types.Filters
                 }
                 else
                 {
-                    var type = clrRef.Type;
-                    if (type.IsGenericType &&
+                    Type type = clrRef.Type;
+                    if(type.IsGenericType &&
                         Nullable.GetUnderlyingType(type) is Type nullableType)
                     {
                         type = nullableType;

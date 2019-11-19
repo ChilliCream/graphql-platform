@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                  d => d
                      .Name(dep => dep.Name + "Foo")
                      .DependsOn<StringType>()
@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                  d => d
                      .Name(dep => dep.Name + "Foo")
                      .DependsOn(typeof(StringType))
@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
              .AddType(new FilterInputType<Foo>(
                  d => d.Directive("foo")
                      .Filter(x => x.Bar)
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
              .AddType(new FilterInputType<Foo>(
                d => d.Directive(new NameString("foo"))
                     .Filter(x => x.Bar)
@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
              .AddType(new FilterInputType<Foo>(
                 d => d
                     .Directive(new DirectiveNode("foo"))
@@ -116,7 +116,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive(new FooDirective())
                     .Filter(x => x.Bar)
@@ -132,7 +132,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive<FooDirective>()
                     .Filter(x => x.Bar)
@@ -148,7 +148,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                 d => d.Description("Test")
                  .Filter(x => x.Bar)
                  .BindFiltersExplicitly()
@@ -166,7 +166,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                 d => d.Name("Test")
                  .Filter(x => x.Bar)
                  .BindFiltersExplicitly()

@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Filters
         {
             await _next(context).ConfigureAwait(false);
 
-            var filter = context.Argument<IValueNode>(_contextData.ArgumentName);
+            IValueNode filter = context.Argument<IValueNode>(_contextData.ArgumentName);
 
             if (filter is null || filter is NullValueNode)
             {
