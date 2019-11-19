@@ -99,9 +99,8 @@ namespace HotChocolate.Types
                                 })
                            .On(ApplyConfigurationOn.Completion)
                            .Build();
+
                     argumentDefinition.Configurations.Add(lazyArgumentConfiguration);
-
-
                     definition.Arguments.Add(argumentDefinition);
 
                     ILazyTypeConfiguration lazyConfiguration =
@@ -168,6 +167,7 @@ namespace HotChocolate.Types
         {
             var convention = context.DescriptorContext.GetSortingNamingConvention();
             ISortInputType type =
+
                 context.GetType<ISortInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
                 .MakeGenericType(type.EntityType);
