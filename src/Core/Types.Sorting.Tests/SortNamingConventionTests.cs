@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -67,9 +66,7 @@ namespace HotChocolate.Types.Sorting
         private class CustomConvention : ISortingNamingConvention
         {
             public NameString ArgumentName => "test";
-
             public NameString SortKindAscName => "TESTASC";
-
             public NameString SortKindDescName => "TESTDESC";
         }
 

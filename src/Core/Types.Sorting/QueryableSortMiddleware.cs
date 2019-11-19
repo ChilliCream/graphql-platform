@@ -26,9 +26,7 @@ namespace HotChocolate.Types.Sorting
         {
             await _next(context).ConfigureAwait(false);
 
-            IValueNode sortArgument = context.Argument<IValueNode>(
-                _contextData.ArgumentName
-            );
+            IValueNode sortArgument = context.Argument<IValueNode>(_contextData.ArgumentName);
 
             if (sortArgument is null || sortArgument is NullValueNode)
             {

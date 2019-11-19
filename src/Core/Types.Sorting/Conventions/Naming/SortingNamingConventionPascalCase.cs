@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types.Sorting
 {
     public class SortingNamingConventionPascalCase : SortingNamingConventionBase
