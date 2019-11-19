@@ -140,7 +140,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             out FilterFieldDefintion definition)
         {
-            var type = property.PropertyType;
+            Type type = property.PropertyType;
 
             if (type.IsGenericType && Nullable.GetUnderlyingType(type) is Type nullableType)
             {
@@ -170,34 +170,32 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(type))
+            if (DotNetTypeInfoFactory.IsListType(type))
             {
+                if (!TypeInspector.Default.TryCreate(type, out Utilities.TypeInfo typeInfo))
+                {
+                    throw new ArgumentException(
+                        FilterResources.FilterArrayFieldDescriptor_InvalidType,
+                        nameof(property));
+                }
+
+                Type elementType = typeInfo.ClrType;
                 ArrayFilterFieldDescriptor field;
 
-                var genericTypeArgument = type.GetGenericArguments()[0];
-
-                if (genericTypeArgument.IsGenericType &&
-                    Nullable.GetUnderlyingType(genericTypeArgument) is Type nullableEnumerableType)
-                {
-                    genericTypeArgument = nullableEnumerableType;
-                }
-                if (genericTypeArgument == typeof(string)
-                    || genericTypeArgument == typeof(bool)
-                    || genericTypeArgument == typeof(bool?)
-                    || typeof(IComparable).IsAssignableFrom(genericTypeArgument))
+                if (elementType == typeof(string)
+                    || elementType == typeof(bool)
+                    || typeof(IComparable).IsAssignableFrom(elementType))
                 {
                     field = new ArrayFilterFieldDescriptor(
                         Context,
                         property,
-                        typeof(ISingleFilter<>).MakeGenericType(genericTypeArgument)
-                        );
-
+                        typeof(ISingleFilter<>).MakeGenericType(elementType));
                 }
                 else
                 {
-                    field = new ArrayFilterFieldDescriptor(Context, property, genericTypeArgument);
-
+                    field = new ArrayFilterFieldDescriptor(Context, property, elementType);
                 }
+
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -355,7 +353,7 @@ namespace HotChocolate.Types.Filters
 
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
             where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
@@ -363,7 +361,7 @@ namespace HotChocolate.Types.Filters
 
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct?>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) 
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
             where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
