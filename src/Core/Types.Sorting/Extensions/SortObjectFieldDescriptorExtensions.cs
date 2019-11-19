@@ -175,8 +175,7 @@ namespace HotChocolate.Types
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(
                     middlewareType,
-                    SortMiddlewareContext.Create(convention.ArgumentName
-                ));
+                    SortMiddlewareContext.Create(convention.ArgumentName));
 
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
