@@ -48,7 +48,7 @@ namespace StrawberryShake.Client
 
         public GetBarsResultParser(IValueSerializerResolver serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
@@ -102,7 +102,7 @@ namespace StrawberryShake.Client
         {
             var variables = new List<VariableValue>();
 
-            if(A.HasValue)
+            if (A.HasValue)
             {
                 variables.Add(new VariableValue("a", "String", A.Value));
             }
@@ -168,7 +168,7 @@ namespace StrawberryShake.Client
             GetBarsOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }

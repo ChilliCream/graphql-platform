@@ -16,7 +16,7 @@ namespace StrawberryShake.Client.GitHub
 
         public GetUserResultParser(IValueSerializerResolver serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }

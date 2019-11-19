@@ -431,7 +431,7 @@ namespace StrawberryShake.Generators.CSharp
 
         private async Task WriteNonNullHandling(CodeWriter writer)
         {
-            await writer.WriteIndentedLineAsync("if(value is null)").ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("if (value is null)").ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
             using (writer.IncreaseIndent())
             {

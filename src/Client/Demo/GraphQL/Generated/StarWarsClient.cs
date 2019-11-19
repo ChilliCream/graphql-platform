@@ -10,24 +10,22 @@ namespace StrawberryShake.Client.GraphQL
     public class StarWarsClient
         : IStarWarsClient
     {
+        private const string _clientName = "StarWarsClient";
+
         private readonly IOperationExecutor _executor;
         private readonly IOperationStreamExecutor _streamExecutor;
 
         public StarWarsClient(IOperationExecutorPool executorPool)
         {
-            if (executorPool is null)
-            {
-                throw new ArgumentNullException(nameof(executorPool));
-            }
-
-            _executor = executorPool.CreateExecutor("StarWarsClient");
-            _streamExecutor = executorPool.CreateStreamExecutor("StarWarsClient");
+            _executor = executorPool.CreateExecutor(_clientName);
+            _streamExecutor = executorPool.CreateStreamExecutor(_clientName);
         }
 
         public Task<IOperationResult<IGetHero>> GetHeroAsync(
             Optional<Episode?> episode = default,
             CancellationToken cancellationToken = default)
         {
+
             return _executor.ExecuteAsync(
                 new GetHeroOperation { Episode = episode },
                 cancellationToken);
@@ -110,7 +108,7 @@ namespace StrawberryShake.Client.GraphQL
             return _executor.ExecuteAsync(
                 new CreateReviewOperation
                 {
-                    Episode = episode,
+                    Episode = episode, 
                     Review = review
                 },
                 cancellationToken);

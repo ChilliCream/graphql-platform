@@ -83,7 +83,7 @@ namespace StrawberryShake.Client
 
         public GetBarsResultParser(IValueSerializerResolver serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
@@ -204,7 +204,7 @@ namespace StrawberryShake.Client
             GetBarsOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }

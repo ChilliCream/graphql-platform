@@ -124,14 +124,14 @@ namespace StrawberryShake.Generators.CSharp
                 if (executor)
                 {
                     await writer.WriteIndentedLineAsync(
-                        "_executor = executorPool.CreateExecutor(_clientName)")
+                        "_executor = executorPool.CreateExecutor(_clientName);")
                         .ConfigureAwait(false);
                 }
 
                 if (streamExecutor)
                 {
                     await writer.WriteIndentedLineAsync(
-                        "_streamExecutor = executorPool.CreateStreamExecutor(_clientName)")
+                        "_streamExecutor = executorPool.CreateStreamExecutor(_clientName);")
                         .ConfigureAwait(false);
                 }
             }
@@ -204,7 +204,7 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if(operation is null)")
+                await writer.WriteIndentedLineAsync("if (operation is null)")
                     .ConfigureAwait(false);
                 await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())

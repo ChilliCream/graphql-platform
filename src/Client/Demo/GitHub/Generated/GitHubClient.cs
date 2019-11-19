@@ -35,7 +35,7 @@ namespace StrawberryShake.Client.GitHub
             GetUserOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }

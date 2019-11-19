@@ -26,7 +26,6 @@ namespace StrawberryShake.Client.GraphQL
             }
 
             serviceCollection.AddSingleton<IStarWarsClient, StarWarsClient>();
-
             serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
                 new HttpOperationExecutorFactory(
                     _clientName,
@@ -62,11 +61,6 @@ namespace StrawberryShake.Client.GraphQL
         private static IServiceCollection AddDefaultScalarSerializers(
             this IServiceCollection serviceCollection)
         {
-            if (serviceCollection is null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
             serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
 
             foreach (IValueSerializer serializer in ValueSerializers.All)

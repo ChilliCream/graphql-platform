@@ -39,7 +39,7 @@ namespace StrawberryShake.Client.GraphQL
                     $"The serializer for type `{Name}` has not been initialized.");
             }
 
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
@@ -62,7 +62,7 @@ namespace StrawberryShake.Client.GraphQL
 
         private object? SerializeNullableString(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }

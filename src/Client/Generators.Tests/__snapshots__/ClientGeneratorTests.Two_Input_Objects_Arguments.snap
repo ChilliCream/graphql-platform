@@ -90,7 +90,7 @@ namespace StrawberryShake.Client
                     $"The serializer for type `{Name}` has not been initialized.");
             }
 
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
@@ -108,7 +108,7 @@ namespace StrawberryShake.Client
 
         private object? SerializeNullableBarInput(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
@@ -165,7 +165,7 @@ namespace StrawberryShake.Client
                     $"The serializer for type `{Name}` has not been initialized.");
             }
 
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
@@ -183,7 +183,7 @@ namespace StrawberryShake.Client
 
         private object? SerializeNullableInt(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
@@ -233,7 +233,7 @@ namespace StrawberryShake.Client
 
         public GetFooResultParser(IValueSerializerResolver serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
@@ -292,12 +292,12 @@ namespace StrawberryShake.Client
         {
             var variables = new List<VariableValue>();
 
-            if(Input1.HasValue)
+            if (Input1.HasValue)
             {
                 variables.Add(new VariableValue("input1", "FooInput", Input1.Value));
             }
 
-            if(Input2.HasValue)
+            if (Input2.HasValue)
             {
                 variables.Add(new VariableValue("input2", "FooInput", Input2.Value));
             }
@@ -378,7 +378,7 @@ namespace StrawberryShake.Client
             GetFooOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }

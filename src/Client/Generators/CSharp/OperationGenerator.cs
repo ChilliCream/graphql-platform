@@ -195,7 +195,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentedLineAsync(
-                $"if({GetPropertyName(argument.Name)}.HasValue)")
+                $"if ({GetPropertyName(argument.Name)}.HasValue)")
                 .ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 

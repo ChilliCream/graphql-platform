@@ -114,7 +114,7 @@ namespace StrawberryShake.Client
 
         public GetFooResultParser(IValueSerializerResolver serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
@@ -344,7 +344,7 @@ namespace StrawberryShake.Client
             GetFooOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -389,7 +389,7 @@ namespace StrawberryShake.Client
 
         public object? Serialize(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
@@ -407,7 +407,7 @@ namespace StrawberryShake.Client
 
         public object? Deserialize(object? serialized)
         {
-            if(serialized is null)
+            if (serialized is null)
             {
                 return null;
             }

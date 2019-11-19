@@ -29,22 +29,23 @@ namespace StrawberryShake.Generators.CSharp
             ICodeDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await WriteUsings(writer, _innerGenerator);
-            await writer.WriteLineAsync();
+            await WriteUsings(writer, _innerGenerator).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteAsync($"namespace {_namespace}");
-            await writer.WriteLineAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteAsync($"namespace {_namespace}").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteAsync('{').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 await _innerGenerator.WriteAsync(
-                    writer, descriptor, typeLookup);
+                    writer, descriptor, typeLookup)
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteAsync('}').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private static async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
@@ -53,54 +54,67 @@ namespace StrawberryShake.Generators.CSharp
                 ? new HashSet<string>(c.Components)
                 : new HashSet<string>();
 
-            await WriteUsing(writer, "System");
-            await WriteUsing(writer, "System.Collections");
-            await WriteUsing(writer, "System.Collections.Generic");
+            await WriteUsing(writer, "System").ConfigureAwait(false);
+            await WriteUsing(writer, "System.Collections").ConfigureAwait(false);
+            await WriteUsing(writer, "System.Collections.Generic").ConfigureAwait(false);
 
             if (components.Contains(WellKnownComponents.Http))
             {
-                await WriteUsing(writer, "System.Net.Http");
+                await WriteUsing(writer, "System.Net.Http").ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.Json))
             {
-                await WriteUsing(writer, "System.Text.Json");
+                await WriteUsing(writer, "System.Text.Json").ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.Task))
             {
-                await WriteUsing(writer, "System.Threading");
-                await WriteUsing(writer, "System.Threading.Tasks");
+                await WriteUsing(writer, "System.Threading").ConfigureAwait(false);
+                await WriteUsing(writer, "System.Threading.Tasks").ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.DI))
             {
-                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection");
-                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection.Extensions");
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection")
+                    .ConfigureAwait(false);
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection.Extensions")
+                    .ConfigureAwait(false);
             }
 
-            await WriteUsing(writer, "StrawberryShake");
+            await WriteUsing(writer, "StrawberryShake").ConfigureAwait(false);
 
             if (components.Contains(WellKnownComponents.HttpExecutor))
             {
-                await WriteUsing(writer, "StrawberryShake.Http");
+                await WriteUsing(writer, "StrawberryShake.Http").ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.HttpExecutorPipeline))
             {
-                await WriteUsing(writer, "StrawberryShake.Http.Pipelines");
+                await WriteUsing(writer, "StrawberryShake.Http.Pipelines").ConfigureAwait(false);
+            }
+
+            if (components.Contains(WellKnownComponents.HttpExecutor))
+            {
+                await WriteUsing(writer, "StrawberryShake.Http.Subscriptions")
+                    .ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.Serializer))
             {
-                await WriteUsing(writer, "StrawberryShake.Serializers");
+                await WriteUsing(writer, "StrawberryShake.Serializers").ConfigureAwait(false);
+            }
+
+            if (components.Contains(WellKnownComponents.HttpExecutor))
+            {
+                await WriteUsing(writer, "StrawberryShake.Transport").ConfigureAwait(false);
             }
         }
 
         private static async Task WriteUsing(CodeWriter writer, string ns)
         {
-            await writer.WriteAsync($"using {ns};");
-            await writer.WriteLineAsync();
+            await writer.WriteAsync($"using {ns};").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
     }
 }
