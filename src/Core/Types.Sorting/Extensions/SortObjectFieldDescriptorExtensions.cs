@@ -108,7 +108,7 @@ namespace HotChocolate.Types
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, defintion) =>
+                            .Configure((context, definition) =>
                                 CompileMiddleware(
                                     context,
                                     definition,
