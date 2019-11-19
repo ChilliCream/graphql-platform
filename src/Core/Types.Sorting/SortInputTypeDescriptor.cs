@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Sorting
                 throw new ArgumentNullException(nameof(entityType));
             }
 
-            var convention = context.GetConventionOrDefault(SortingNamingConventionBase.Default);
+            var convention = context.GetSortingNamingConvention();
 
             Definition.EntityType = entityType;
             Definition.ClrType = typeof(object);
