@@ -66,7 +66,9 @@ namespace HotChocolate.Types.Sorting
         private class CustomConvention : SortingNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
+
             public override NameString SortKindAscName => "TESTASC";
+
             public override NameString SortKindDescName => "TESTDESC";
 
             public override NameString GetSortingTypeName(
@@ -83,7 +85,6 @@ namespace HotChocolate.Types.Sorting
                 return base.GetSortingOperationKindTypeName(context, entityType).Add("Test");
             }
         }
-
     }
 
     internal class Foo

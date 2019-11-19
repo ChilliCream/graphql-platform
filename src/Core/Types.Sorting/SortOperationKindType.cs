@@ -26,6 +26,7 @@ namespace HotChocolate.Types.Sorting
 
             return definition;
         }
+
         private void ConfigureEnumValue(
             EnumValueDefinition definition,
             ISortingNamingConvention convention)
