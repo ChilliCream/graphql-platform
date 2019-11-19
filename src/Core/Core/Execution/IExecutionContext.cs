@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -61,7 +62,7 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; }
 
-        IReadOnlyCollection<FieldSelection> CollectFields(
+        IReadOnlyList<FieldSelection> CollectFields(
             ObjectType objectType,
             SelectionSetNode selectionSet,
             Path path);
@@ -87,6 +88,10 @@ namespace HotChocolate.Execution
         /// </summary>
         /// <param name="error">The error that shall be added.</param>
         void AddError(IError error);
+
+        void TrackContext(IResolverContext resolverContext);
+
+        ReadOnlySpan<IResolverContext> GetTrackedContexts();
 
         /// <summary>
         /// Creates a copy of this execution context

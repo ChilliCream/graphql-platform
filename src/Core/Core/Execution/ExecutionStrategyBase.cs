@@ -7,9 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution
@@ -17,6 +15,9 @@ namespace HotChocolate.Execution
     internal abstract partial class ExecutionStrategyBase
         : IExecutionStrategy
     {
+        private static ArrayPool<ResolverContext> _pool =
+            ArrayPool<ResolverContext>.Create(1024 * 1000, 512);
+
         public abstract Task<IExecutionResult> ExecuteAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken);
@@ -192,7 +193,8 @@ namespace HotChocolate.Execution
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static ResolverContext[] CreateInitialBatch(
             IExecutionContext executionContext,
-            IDictionary<string, object> result)
+            IDictionary<string, object> result,
+            out int buffered)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
                 .Push(executionContext.Operation.RootValue);
@@ -217,6 +219,7 @@ namespace HotChocolate.Execution
                     result);
             }
 
+            buffered = i - 1;
             return batch;
         }
 

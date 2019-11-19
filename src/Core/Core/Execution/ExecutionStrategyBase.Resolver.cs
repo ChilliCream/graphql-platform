@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
@@ -67,6 +68,18 @@ namespace HotChocolate.Execution
                         .SetPath(resolverContext.Path)
                         .AddLocation(resolverContext.FieldSelection)
                         .Build();
+            }
+        }
+
+        protected static void ReleaseTrackedContextObjects(IExecutionContext context)
+        {
+            ReadOnlySpan<IResolverContext> contexts = context.GetTrackedContexts();
+            for (int i = 0; i < contexts.Length; i++)
+            {
+                if (contexts[i] is ResolverContext rented)
+                {
+                    ResolverContext.Return(rented);
+                }
             }
         }
     }

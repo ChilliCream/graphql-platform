@@ -27,8 +27,8 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             ResolverContext[] initialBatch =
-                    CreateInitialBatch(executionContext,
-                        executionContext.Result.Data);
+                CreateInitialBatch(executionContext,
+                    executionContext.Result.Data);
 
             BatchOperationHandler batchOperationHandler =
                 CreateBatchOperationHandler(executionContext);
@@ -51,25 +51,22 @@ namespace HotChocolate.Execution
             finally
             {
                 batchOperationHandler?.Dispose();
-                ResolverContext.Return(initialBatch);
+                ReleaseTrackedContextObjects(executionContext);
                 ArrayPool<ResolverContext>.Shared.Return(initialBatch);
             }
         }
 
         private static async Task ExecuteResolverBatchSeriallyAsync(
-           IExecutionContext executionContext,
-           IEnumerable<ResolverContext> batch,
-           BatchOperationHandler batchOperationHandler,
-           CancellationToken cancellationToken)
+            IExecutionContext executionContext,
+            ReadOnlyMemory<ResolverContext> batch,
+            BatchOperationHandler batchOperationHandler,
+            CancellationToken cancellationToken)
         {
             var next = new List<ResolverContext>();
 
-            foreach (ResolverContext resolverContext in batch)
+            for(int i = 0; i < batch.Length; i++)
             {
-                if (resolverContext is null)
-                {
-                    break;
-                }
+                ResolverContext resolverContext = batch[i];
 
                 await ExecuteResolverSeriallyAsync(
                     resolverContext,
@@ -89,7 +86,6 @@ namespace HotChocolate.Execution
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                ResolverContext.Return(next);
                 next.Clear();
             }
         }

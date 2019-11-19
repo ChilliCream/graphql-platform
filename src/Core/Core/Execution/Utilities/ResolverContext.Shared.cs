@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
-    // TODO : FIX the object
     internal partial class ResolverContext
         : IShared
     {
+        private static readonly DefaultObjectPool<ResolverContext> _pool = 
+            new DefaultObjectPool<ResolverContext>(new ResolverContextPolicy(), 1024);
+
         public void Clean()
         {
             _executionContext = null;
@@ -108,7 +111,7 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
-            var context = new ResolverContext();
+            var context = _pool.Get();
             context.Initialize(
                 executionContext,
                 fieldSelection,
@@ -126,8 +129,7 @@ namespace HotChocolate.Execution
             Path path,
             Action propagateNonNullViolation)
         {
-            // var context = ObjectPools.ResolverContexts.Rent();
-            var context = new ResolverContext();
+            var context = _pool.Get();
             context.Initialize(
                 fieldSelection,
                 source,
@@ -141,32 +143,7 @@ namespace HotChocolate.Execution
 
         public static void Return(ResolverContext rentedContext)
         {
-            //ObjectPools.ResolverContexts.Return(rentedContext);
-        }
-
-        public static void Return(IEnumerable<ResolverContext> rentedContexts)
-        {
-            foreach (ResolverContext rentedContext in rentedContexts)
-            {
-                if (rentedContext is null)
-                {
-                    break;
-                }
-                //ResolverContext.Return(rentedContext);
-            }
-        }
-
-        public static void Return(ResolverContext[] rentedContexts)
-        {
-            for (int i = 0; i < rentedContexts.Length; i++)
-            {
-                if (rentedContexts[i] is null)
-                {
-                    break;
-                }
-                //ResolverContext.Return(rentedContexts[i]);
-                rentedContexts[i] = null;
-            }
+            _pool.Return(rentedContext);
         }
     }
 }
