@@ -94,7 +94,7 @@ namespace HotChocolate.Types
                             .Configure((context, definition) =>
                                 {
                                     var convention = context.DescriptorContext
-                                        .GetConventionOrDefault(SortingNamingConventionBase.Default);
+                                        .GetSortingNamingConvention();
                                     definition.Name = convention.ArgumentName;
                                 })
                            .On(ApplyConfigurationOn.Completion)
@@ -166,8 +166,7 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            var convention = context.DescriptorContext
-                .GetConventionOrDefault(SortingNamingConventionBase.Default);
+            var convention = context.DescriptorContext.GetSortingNamingConvention();
             ISortInputType type =
                 context.GetType<ISortInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
