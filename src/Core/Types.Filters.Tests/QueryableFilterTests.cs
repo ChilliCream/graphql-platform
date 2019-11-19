@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
@@ -129,6 +130,71 @@ namespace HotChocolate.Types.Filters
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_ObjectStringEqualWithNull_Expression_Array()
+        {
+            // arrange 
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(x =>
+                   x.Field("list")
+                   .Type<ListType<ObjectType<FooObject>>>()
+                   .Resolver(
+                       x => new FooObject[] {
+                           null,
+                           new FooObject { FooNested = new FooNested { Bar = "a" }
+                           }
+                        }
+                    )
+                   .UseFiltering()
+                    )
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ list(where: { fooNested: { bar: \"a\" } }) { fooNested { bar } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_ObjectStringEqualWithNull_Expression_InMemoryQueryable()
+        {
+            // arrange 
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(
+                    x => x.Field("list")
+                    .Type<ListType<ObjectType<FooObject>>>()
+                    .Resolver(x =>
+                        new FooObject[] {
+                            null,
+                            new FooObject { FooNested = new FooNested { Bar = "a" } }
+                            }
+                            .AsQueryable()
+                        )
+                   .UseFiltering()
+                    )
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ list(where: { fooNested: {bar: \"a\"} }) { fooNested { bar } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             result.MatchSnapshot();
@@ -364,6 +430,15 @@ namespace HotChocolate.Types.Filters
                 new FooDateTime { Foo = new DateTime(2020,01,01, 18, 0, 0, DateTimeKind.Utc) },
                 new FooDateTime { Foo = new DateTime(2018,01,01, 18, 0, 0, DateTimeKind.Utc) }
             };
+        }
+
+        public class FooObject
+        {
+            public FooNested FooNested { get; set; }
+        }
+        public class FooNested
+        {
+            public string Bar { get; set; }
         }
 
         public class QueryType

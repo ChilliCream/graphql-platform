@@ -148,6 +148,11 @@ namespace HotChocolate.Types.Filters
         protected ITypeReference RewriteTypeToNullableType()
         {
             ITypeReference reference = Definition.Type;
+            return RewriteTypeToNullableType(reference);
+        }
+
+        protected static ITypeReference RewriteTypeToNullableType(ITypeReference reference)
+        {
 
             if (reference is IClrTypeReference clrRef
                 && TypeInspector.Default.TryCreate(
@@ -166,17 +171,19 @@ namespace HotChocolate.Types.Filters
                 }
                 else
                 {
-                    if (clrRef.Type.IsValueType)
+                    var type = clrRef.Type;
+                    if(type.IsGenericType &&
+                        Nullable.GetUnderlyingType(type) is Type nullableType)
                     {
-                        if (Nullable.GetUnderlyingType(clrRef.Type) == null)
-                        {
-                            return clrRef.WithType(
-                                typeof(Nullable<>).MakeGenericType(clrRef.Type));
-                        }
-                        return clrRef;
+                        type = nullableType;
                     }
-                    else if (clrRef.Type.IsGenericType
-                        && clrRef.Type.GetGenericTypeDefinition() ==
+                    if (type.IsValueType)
+                    {
+                        return clrRef.WithType(
+                            typeof(Nullable<>).MakeGenericType(type));
+                    }
+                    else if (type.IsGenericType
+                        && type.GetGenericTypeDefinition() ==
                             typeof(NonNullType<>))
                     {
                         return clrRef.WithType(typeInfo.Components[1]);

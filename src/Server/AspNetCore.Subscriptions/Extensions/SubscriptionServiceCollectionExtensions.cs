@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.AspNetCore.Subscriptions.Interceptors;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
@@ -43,7 +44,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             serviceCollection.AddSingleton<IMessageHandler>(sp =>
                 new DataStartMessageHandler(
                     sp.GetRequiredService<IQueryExecutor>(),
-                    sp.GetRequiredService<ISocketQueryRequestInterceptor>()));
+                    sp.GetServices<ISocketQueryRequestInterceptor>()));
 
             serviceCollection.AddSingleton<IMessageHandler>(sp =>
                 new DataStopMessageHandler());
