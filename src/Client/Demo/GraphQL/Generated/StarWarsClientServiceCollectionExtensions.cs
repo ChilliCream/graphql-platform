@@ -43,7 +43,10 @@ namespace StrawberryShake.Client.GraphQL
 
             serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
-            serviceCollection.TryAddSingleton<ISocketConnectionInterceptor, MessagePipelineHandler>();
+            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
+                typeof(ISocketConnectionInterceptor),
+                typeof(MessagePipelineHandler),
+                ServiceLifetime.Singleton));
 
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();

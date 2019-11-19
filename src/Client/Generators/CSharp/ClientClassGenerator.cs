@@ -79,6 +79,11 @@ namespace StrawberryShake.Generators.CSharp
             CodeWriter writer,
             IClientDescriptor descriptor)
         {
+            await writer.WriteIndentedLineAsync(
+                $"private const string _clientName = \"{descriptor.Name}\";")
+                .ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+
             if (descriptor.Operations.Any(
                 t => t.Operation.Operation != OperationType.Subscription))
             {
@@ -104,68 +109,34 @@ namespace StrawberryShake.Generators.CSharp
             CodeWriter writer,
             IClientDescriptor descriptor)
         {
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public ").ConfigureAwait(false);
-            await writer.WriteAsync(GetClassName(descriptor.Name)).ConfigureAwait(false);
-            await writer.WriteAsync("(").ConfigureAwait(false);
+            bool executor = descriptor.Operations.Any(t =>
+                t.Operation.Operation != OperationType.Subscription);
+            bool streamExecutor = descriptor.Operations.Any(t =>
+                t.Operation.Operation == OperationType.Subscription);
 
-            bool executor = false;
-            bool streamExecutor = false;
-
-            if (descriptor.Operations.Any(
-                t => t.Operation.Operation != OperationType.Subscription))
-            {
-                executor = true;
-
-                await writer.WriteAsync("IOperationExecutor executor").ConfigureAwait(false);
-            }
-
-            if (descriptor.Operations.Any(
-                t => t.Operation.Operation == OperationType.Subscription))
-            {
-                streamExecutor = true;
-
-                if (executor)
-                {
-                    await writer.WriteAsync(", ").ConfigureAwait(false);
-                }
-                await writer.WriteAsync("IOperationStreamExecutor streamExecutor")
-                    .ConfigureAwait(false);
-            }
-
-            await writer.WriteAsync(')').ConfigureAwait(false);
-            await writer.WriteLineAsync().ConfigureAwait(false);
-
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync('{').ConfigureAwait(false);
-            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync(
+                $"public {GetClassName(descriptor.Name)}(IOperationExecutorPool executorPool)")
+                .ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 if (executor)
                 {
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync("_executor = executor " +
-                        "?? throw new ArgumentNullException(nameof(executor));")
-                        .ConfigureAwait(false);
-                    await writer.WriteLineAsync()
+                    await writer.WriteIndentedLineAsync(
+                        "_executor = executorPool.CreateExecutor(_clientName)")
                         .ConfigureAwait(false);
                 }
 
                 if (streamExecutor)
                 {
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync("_streamExecutor = streamExecutor " +
-                        "?? throw new ArgumentNullException(nameof(streamExecutor));")
-                        .ConfigureAwait(false);
-                    await writer.WriteLineAsync()
+                    await writer.WriteIndentedLineAsync(
+                        "_streamExecutor = executorPool.CreateStreamExecutor(_clientName)")
                         .ConfigureAwait(false);
                 }
             }
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync('}').ConfigureAwait(false);
-            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
         private static async Task WriteOperationAsync(

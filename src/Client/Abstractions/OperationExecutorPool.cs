@@ -54,7 +54,7 @@ namespace StrawberryShake
             if (!_executorFact.TryGetValue(name, out IOperationExecutorFactory? fact))
             {
                 throw new ArgumentException(
-                    $"There is no batch executor `{name}` registered.",
+                    $"There is no executor `{name}` registered.",
                     nameof(name));
             }
 
@@ -88,7 +88,7 @@ namespace StrawberryShake
             if (!_streamExecutorFact.TryGetValue(name, out IOperationStreamExecutorFactory? fact))
             {
                 throw new ArgumentException(
-                    $"There is no batch executor `{name}` registered.",
+                    $"There is no stream executor `{name}` registered.",
                     nameof(name));
             }
 

@@ -28,7 +28,6 @@ namespace StrawberryShake.Client.GraphQL
             Optional<Episode?> episode = default,
             CancellationToken cancellationToken = default)
         {
-
             return _executor.ExecuteAsync(
                 new GetHeroOperation { Episode = episode },
                 cancellationToken);
