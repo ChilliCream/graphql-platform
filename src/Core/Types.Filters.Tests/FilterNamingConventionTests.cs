@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
+            ISchema schema = CreateSchema(x =>
                 x.AddConvention<IFilterNamingConvention, CustomConvention>()
                 .AddObjectType(x => x.Name("Test")
                 .Field("foo") 
@@ -69,6 +69,7 @@ namespace HotChocolate.Types.Filters
         private class CustomConvention : FilterNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
+
             public override NameString ArrayFilterPropertyName => "TESTelement";
 
             public override NameString GetFilterTypeName(IDescriptorContext context, Type entityType)

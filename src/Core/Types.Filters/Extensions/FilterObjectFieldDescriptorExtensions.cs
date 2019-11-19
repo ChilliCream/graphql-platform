@@ -114,7 +114,6 @@ namespace HotChocolate.Types
                     };
 
                     argumentDefinition.ConfigureArgumentName();
-
                     definition.Arguments.Add(argumentDefinition);
 
                     ILazyTypeConfiguration lazyConfiguration =
@@ -142,7 +141,7 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            var convention = context.DescriptorContext.GetFilterNamingConvention();
+            IFilterNamingConvention convention = context.DescriptorContext.GetFilterNamingConvention();
             IFilterInputType type =
                 context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
@@ -190,14 +189,13 @@ namespace HotChocolate.Types
         private static ArgumentDefinition ConfigureArgumentName(
             this ArgumentDefinition definition)
         {
-
             ILazyTypeConfiguration lazyArgumentConfiguration =
                 LazyTypeConfigurationBuilder
                     .New<ArgumentDefinition>()
                     .Definition(definition)
                     .Configure((context, definition) =>
                     {
-                        var convention = context.DescriptorContext.GetFilterNamingConvention();
+                        IFilterNamingConvention convention = context.DescriptorContext.GetFilterNamingConvention();
                         definition.Name = convention.ArgumentName;
                     })
                    .On(ApplyConfigurationOn.Completion)

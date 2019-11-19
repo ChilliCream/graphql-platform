@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Filters
     public abstract class FilterNamingConventionBase : IFilterNamingConvention
     {
         public abstract NameString ArgumentName { get; }
+
         public virtual NameString ArrayFilterPropertyName => "element";
 
         public abstract NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind);

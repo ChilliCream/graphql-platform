@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters
                 throw new ArgumentNullException(nameof(entityType));
             }
 
-            var convention = context.GetFilterNamingConvention();
+            IFilterNamingConvention convention = context.GetFilterNamingConvention();
 
             Definition.EntityType = entityType;
             Definition.ClrType = typeof(object);
