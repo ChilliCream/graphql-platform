@@ -6,7 +6,8 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Filters
 {
     public interface IFilterNamingConvention : IConvention
-    {
+    { 
+        NameString ArgumentName { get; }
         NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind);
     }
 }

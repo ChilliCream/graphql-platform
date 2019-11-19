@@ -48,6 +48,28 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Convention_Custom()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(x =>
+                x.AddConvention<IFilterNamingConvention, CustomConvention>()
+                .AddObjectType(x => x.Name("Test")
+                .Field("foo") 
+                .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
+                .UseFiltering())
+            );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        private class CustomConvention : FilterNamingConventionSnakeCase
+        {
+            public override NameString ArgumentName => "test";
+        }
+
         public class Foo
         {
             public short Comparable { get; set; }

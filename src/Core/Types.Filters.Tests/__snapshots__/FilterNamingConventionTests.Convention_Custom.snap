@@ -1,0 +1,36 @@
+﻿schema {
+  query: Query
+}
+
+type Foo {
+  bool: Boolean!
+  comparable: Short!
+  comparableEnumerable: [Short!]
+  object: FooBar
+}
+
+type FooBar {
+  nested: String
+}
+
+type Query {
+  foo: String
+}
+
+type Test {
+  foo(test: ObjectFilter): [Foo!]!
+}
+
+input ObjectFilter {
+  AND: [ObjectFilter!]
+  OR: [ObjectFilter!]
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

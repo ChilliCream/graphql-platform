@@ -4,7 +4,9 @@ namespace HotChocolate.Types.Filters
 {
     public class FilterNamingConventionSnakeCase : IFilterNamingConvention
     {
-        public NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind)
+        public virtual NameString ArgumentName => "where";
+
+        public virtual NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind)
         {
             switch (kind)
             {

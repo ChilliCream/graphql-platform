@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,20 +13,24 @@ namespace HotChocolate.Types.Filters
     {
         private readonly FieldDelegate _next;
         private readonly ITypeConversion _converter;
+        private readonly FilterMiddlewareContext _contextData;
 
         public QueryableFilterMiddleware(
             FieldDelegate next,
+            FilterMiddlewareContext contextData,
             ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _converter = converter ?? TypeConversion.Default;
+            _contextData = contextData
+                 ?? throw new ArgumentNullException(nameof(contextData));
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
             await _next(context).ConfigureAwait(false);
 
-            var filter = context.Argument<IValueNode>("where");
+            var filter = context.Argument<IValueNode>(_contextData.ArgumentName);
 
             if (filter is null || filter is NullValueNode)
             {
@@ -54,15 +58,12 @@ namespace HotChocolate.Types.Filters
             }
 
             if (source != null
-                && context.Field.Arguments["where"].Type is InputObjectType iot
+                && context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot
                 && iot is IFilterInputType fit)
             {
-                var visitor = new QueryableFilterVisitor(
-                    iot,
-                    fit.EntityType,
-                    _converter);
+                var visitor = new QueryableFilterVisitor(iot, fit.EntityType, _converter);
                 filter.Accept(visitor);
-                
+
                 if (source is EnumerableQuery)
                 {
                     source = source.Where(visitor.CreateFilterInMemory<T>());
@@ -71,7 +72,7 @@ namespace HotChocolate.Types.Filters
                 {
                     source = source.Where(visitor.CreateFilter<T>());
                 }
-                
+
                 context.Result = p is null
                     ? (object)source
                     : new PageableData<T>(source, p.Properties);
