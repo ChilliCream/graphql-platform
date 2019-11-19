@@ -2,11 +2,11 @@ using System;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterNamingConventionSnakeCase : IFilterNamingConvention
+    public class FilterNamingConventionSnakeCase : FilterNamingConventionBase
     {
-        public virtual NameString ArgumentName => "where";
+        public override NameString ArgumentName => "where";
 
-        public virtual NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind)
+        public override NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind)
         {
             switch (kind)
             {

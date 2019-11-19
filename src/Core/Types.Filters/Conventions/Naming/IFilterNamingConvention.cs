@@ -9,5 +9,7 @@ namespace HotChocolate.Types.Filters
     { 
         NameString ArgumentName { get; }
         NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind);
+
+        NameString GetFilterTypeName(IDescriptorContext context, Type entityType); 
     }
 }

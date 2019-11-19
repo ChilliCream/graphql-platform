@@ -143,8 +143,7 @@ namespace HotChocolate.Types
             FieldMiddleware placeholder)
         {
             var convention = context.DescriptorContext
-                .GetConventionOrDefault<IFilterNamingConvention>(
-                    FilterNamingConventionSnakeCase.Default);
+                .GetConventionOrDefault(FilterNamingConventionBase.Default);
             IFilterInputType type =
                 context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
@@ -200,8 +199,7 @@ namespace HotChocolate.Types
                     .Configure((context, definition) =>
                     {
                         var convention = context.DescriptorContext
-                            .GetConventionOrDefault<IFilterNamingConvention>(
-                                FilterNamingConventionSnakeCase.Default);
+                            .GetConventionOrDefault(FilterNamingConventionBase.Default);
                         definition.Name = convention.ArgumentName;
                     })
                    .On(ApplyConfigurationOn.Completion)

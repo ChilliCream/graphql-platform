@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -68,6 +69,11 @@ namespace HotChocolate.Types.Filters
         private class CustomConvention : FilterNamingConventionSnakeCase
         {
             public override NameString ArgumentName => "test";
+
+            public override NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
+            {
+                return base.GetFilterTypeName(context, entityType) + "Test";
+            }
         }
 
         public class Foo

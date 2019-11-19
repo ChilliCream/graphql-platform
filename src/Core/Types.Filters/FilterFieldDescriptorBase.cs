@@ -19,8 +19,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context)
         {
-            _namingConvention = context.GetConventionOrDefault<IFilterNamingConvention>(
-                FilterNamingConventionSnakeCase.Default);
+            _namingConvention = context.GetConventionOrDefault(FilterNamingConventionBase.Default);
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
