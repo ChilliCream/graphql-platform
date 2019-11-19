@@ -210,7 +210,7 @@ namespace HotChocolate.Types.Filters
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
-            if (typeof(ISingleFilter<>).IsAssignableFrom(Definition.Property.DeclaringType))
+            if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
             {
                 Definition.Name = _namingConvention.ArrayFilterPropertyName;
             }

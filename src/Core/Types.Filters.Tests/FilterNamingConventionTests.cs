@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Filters
                 .AddObjectType(x => x.Name("Test")
                 .Field("foo") 
                 .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
-                .UseFiltering())
+                .UseFiltering<FilterInputType<Foo>>())
             );
 
             // assert
