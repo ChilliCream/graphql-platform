@@ -102,7 +102,6 @@ namespace HotChocolate.Utilities
                 { typeof(TContext), context }
             };
 
-
             return CreateParameters(
                 invokeMethod.GetParameters(),
                 services,
