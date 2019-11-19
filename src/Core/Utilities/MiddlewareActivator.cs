@@ -105,8 +105,7 @@ namespace HotChocolate.Utilities
             return CreateParameters(
                 invokeMethod.GetParameters(),
                 services,
-                AddCustomParameter(custom, customParameters)
-                );
+                AddCustomParameter(custom, customParameters));
         }
 
         private static IEnumerable<Expression>
@@ -114,7 +113,7 @@ namespace HotChocolate.Utilities
                 ConstructorInfo constructor,
                 ParameterExpression services,
                 Expression next,
-            params object[] customParameters)
+                params object[] customParameters)
         {
             var custom = new Dictionary<Type, Expression>()
             {
@@ -124,8 +123,7 @@ namespace HotChocolate.Utilities
             return CreateParameters(
                 constructor.GetParameters(),
                 services,
-                AddCustomParameter(custom, customParameters)
-                );
+                AddCustomParameter(custom, customParameters));
         }
 
         private static IEnumerable<Expression> CreateParameters(
