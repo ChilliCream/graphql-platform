@@ -11,14 +11,14 @@ type Query {
 }
 
 type Test {
-  foo(test: FooSort): [Foo!]!
+  foo(test: FooSortTest): [Foo!]!
 }
 
-input FooSort {
-  comparable: SortOperationKind
+input FooSortTest {
+  comparable: SortOperationKindTest
 }
 
-enum SortOperationKind {
+enum SortOperationKindTest {
   TESTASC
   TESTDESC
 }

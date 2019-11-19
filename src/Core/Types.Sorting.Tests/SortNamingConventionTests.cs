@@ -1,3 +1,5 @@
+using System;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -63,11 +65,25 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
-        private class CustomConvention : ISortingNamingConvention
+        private class CustomConvention : SortingNamingConventionSnakeCase
         {
-            public NameString ArgumentName => "test";
-            public NameString SortKindAscName => "TESTASC";
-            public NameString SortKindDescName => "TESTDESC";
+            public override NameString ArgumentName => "test";
+            public override NameString SortKindAscName => "TESTASC";
+            public override NameString SortKindDescName => "TESTDESC";
+
+            public override NameString GetSortingTypeName(
+                IDescriptorContext context,
+                Type entityType)
+            {
+                return base.GetSortingTypeName(context, entityType).Add("Test");
+            }
+
+            public override NameString GetSortingOperationKindTypeName(
+                IDescriptorContext context,
+                Type entityType)
+            {
+                return base.GetSortingOperationKindTypeName(context, entityType).Add("Test");
+            }
         }
 
     }
