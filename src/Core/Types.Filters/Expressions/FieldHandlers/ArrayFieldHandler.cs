@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 field.Operation.Kind == FilterOperationKind.ArrayAll
                )
             {
-                var nestedProperty = Expression.Property(
+                MemberExpression nestedProperty = Expression.Property(
                     closures.Peek().Instance.Peek(),
                     field.Operation.Property
                 );
@@ -57,8 +57,8 @@ namespace HotChocolate.Types.Filters.Expressions
                field.Operation.Kind == FilterOperationKind.ArrayAll
               )
             {
-                var nestedClosure = closures.Pop();
-                var lambda = nestedClosure.CreateLambdaWithNullCheck();
+                QueryableClosure nestedClosure = closures.Pop();
+                LambdaExpression lambda = nestedClosure.CreateLambdaWithNullCheck();
                 Type closureType = GetTypeFor(field.Operation);
 
                 Expression expression;

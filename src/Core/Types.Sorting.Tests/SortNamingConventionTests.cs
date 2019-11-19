@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x => x.AddSortingType());
+            ISchema schema = CreateSchema(x => x.AddSortingType());
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
+            ISchema schema = CreateSchema(x =>
                 x.AddConvention<ISortingNamingConvention, SortingNamingConventionPascalCase>()
                 .AddSortingType()
             );
@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
+            ISchema schema = CreateSchema(x =>
                 x.AddConvention<ISortingNamingConvention, SortingNamingConventionSnakeCase>()
                 .AddSortingType()
             );
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            var schema = CreateSchema(x =>
+            ISchema schema = CreateSchema(x =>
                 x.AddConvention<ISortingNamingConvention, CustomConvention>()
                 .AddSortingType()
             );

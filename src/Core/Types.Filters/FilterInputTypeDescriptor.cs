@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Filters
                 fields,
                 handledProperties);
 
-            foreach (var field in explicitFields.Where(t => t.Ignore))
+            foreach (FilterFieldDefintion field in explicitFields.Where(t => t.Ignore))
             {
                 handledProperties.Add(field.Property);
             }
