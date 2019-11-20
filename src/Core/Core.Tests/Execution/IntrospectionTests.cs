@@ -75,8 +75,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteGraphiQLIntrospectionQuery()
         {
             // arrange
-            string query =
-                FileResource.Open("IntrospectionQuery.graphql");
+            string query = FileResource.Open("IntrospectionQuery.graphql");
             IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act

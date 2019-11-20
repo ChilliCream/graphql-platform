@@ -11,7 +11,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            if (executionContext == null)
+            if (executionContext is null)
             {
                 throw new ArgumentNullException(nameof(executionContext));
             }
@@ -36,6 +36,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
+                ReleaseTrackedContextObjects(executionContext);
                 batchOperationHandler?.Dispose();
             }
         }

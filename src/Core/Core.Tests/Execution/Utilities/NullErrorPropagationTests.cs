@@ -55,9 +55,9 @@ namespace HotChocolate.Execution
         }
 
         [InlineData("nullable_list_nullable_element")]
-        [InlineData("nonnull_list_nullable_element")]
-        [InlineData("nullable_list_nonnull_element")]
-        [InlineData("nonnull_list_nonnull_element")]
+        // [InlineData("nonnull_list_nullable_element")]
+        // [InlineData("nullable_list_nonnull_element")]
+        // [InlineData("nonnull_list_nonnull_element")]
         [Theory]
         public async Task List_NonNullElementIsNull(string fieldType)
         {

@@ -1,9 +1,6 @@
 using System;
-using System.Buffers;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -26,15 +23,18 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            ResolverContext[] initialBatch =
+            ResolverContext[] initialBatchBuffer =
                 CreateInitialBatch(executionContext,
-                    executionContext.Result.Data);
+                    executionContext.Result.Data,
+                    out int buffered);
 
             BatchOperationHandler batchOperationHandler =
                 CreateBatchOperationHandler(executionContext);
 
             try
             {
+                Memory<ResolverContext> initialBatch = initialBatchBuffer.AsMemory(0, buffered);
+
                 await ExecuteResolverBatchSeriallyAsync(
                     executionContext,
                     initialBatch,
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
 
                 EnsureRootValueNonNullState(
                     executionContext.Result,
-                    initialBatch);
+                    initialBatch.Span);
 
                 return executionContext.Result;
             }
@@ -52,7 +52,7 @@ namespace HotChocolate.Execution
             {
                 batchOperationHandler?.Dispose();
                 ReleaseTrackedContextObjects(executionContext);
-                ArrayPool<ResolverContext>.Shared.Return(initialBatch);
+                ExecutionPools.ContextPool.Return(initialBatchBuffer);
             }
         }
 
@@ -62,31 +62,50 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            var next = new List<ResolverContext>();
-
-            for(int i = 0; i < batch.Length; i++)
+            for (int i = 0; i < batch.Length; i++)
             {
-                ResolverContext resolverContext = batch[i];
+                // note: this buffer will be returned by ExecuteResolversAsync
+                ResolverContext[] nextBatchBuffer = ExecutionPools.ContextPool.Rent(32);
+                int buffered = 0;
 
-                await ExecuteResolverSeriallyAsync(
-                    resolverContext,
-                    next.Add,
-                    batchOperationHandler,
-                    executionContext.ErrorHandler,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    ResolverContext resolverContext = batch.Span[i];
 
-                cancellationToken.ThrowIfCancellationRequested();
+                    await ExecuteResolverSeriallyAsync(
+                        resolverContext,
+                        AddItem,
+                        batchOperationHandler,
+                        executionContext.ErrorHandler,
+                        cancellationToken)
+                        .ConfigureAwait(false);
 
-                // execute child fields with the default parallel flow logic
-                await ExecuteResolversAsync(
-                    executionContext,
-                    next,
-                    batchOperationHandler,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                next.Clear();
+                    // execute child fields with the default parallel flow logic
+                    await ExecuteResolversAsync(
+                        executionContext,
+                        nextBatchBuffer,
+                        buffered,
+                        batchOperationHandler,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+                finally
+                {
+                    ExecutionPools.ContextPool.Return(nextBatchBuffer);
+                }
+
+                void AddItem(ResolverContext context)
+                {
+                    if (nextBatchBuffer.Length <= buffered)
+                    {
+                        nextBatchBuffer = EnsureBatchCapacity(nextBatchBuffer);
+                    }
+                    nextBatchBuffer[buffered++] = context;
+                }
             }
         }
 

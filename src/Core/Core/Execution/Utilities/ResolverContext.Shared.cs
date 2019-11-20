@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
     internal partial class ResolverContext
         : IShared
     {
-        private static readonly DefaultObjectPool<ResolverContext> _pool = 
+        private static readonly DefaultObjectPool<ResolverContext> _pool =
             new DefaultObjectPool<ResolverContext>(new ResolverContextPolicy(), 1024);
 
         public void Clean()
@@ -117,6 +117,7 @@ namespace HotChocolate.Execution
                 fieldSelection,
                 source,
                 serializedResult);
+            executionContext.TrackContext(context);
             return context;
         }
 
@@ -138,6 +139,7 @@ namespace HotChocolate.Execution
                 serializedResult,
                 path,
                 propagateNonNullViolation);
+            sourceContext._executionContext.TrackContext(context);
             return context;
         }
 

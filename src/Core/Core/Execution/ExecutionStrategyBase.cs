@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Buffers;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,9 +13,6 @@ namespace HotChocolate.Execution
     internal abstract partial class ExecutionStrategyBase
         : IExecutionStrategy
     {
-        private static ArrayPool<ResolverContext> _pool =
-            ArrayPool<ResolverContext>.Create(1024 * 1000, 512);
-
         public abstract Task<IExecutionResult> ExecuteAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken);
@@ -29,94 +24,116 @@ namespace HotChocolate.Execution
         {
             ResolverContext[] initialBatch =
                 CreateInitialBatch(executionContext,
-                    executionContext.Result.Data);
+                    executionContext.Result.Data,
+                    out int buffered);
             try
             {
                 await ExecuteResolversAsync(
                     executionContext,
                     initialBatch,
+                    buffered,
                     batchOperationHandler,
                     cancellationToken)
                     .ConfigureAwait(false);
 
                 EnsureRootValueNonNullState(
                     executionContext.Result,
-                    initialBatch);
+                    initialBatch.AsSpan().Slice(0, buffered));
 
                 return executionContext.Result;
             }
             finally
             {
-                ResolverContext.Return(initialBatch);
-                ArrayPool<ResolverContext>.Shared.Return(initialBatch);
+                ExecutionPools.ContextPool.Return(initialBatch);
             }
         }
 
         protected static async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
-            IEnumerable<ResolverContext> initialBatch,
+            ResolverContext[] initialBatch,
+            int initialBatchSize,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            var batch = new List<ResolverContext>();
-            var next = new List<ResolverContext>();
-            List<ResolverContext> swap = null;
+            ResolverContext[] batchBuffer = ExecutionPools.ContextPool.Rent(initialBatch.Length);
+            ResolverContext[] nextBatchBuffer = ExecutionPools.ContextPool.Rent(32);
+            ResolverContext[] swap = null;
+            int buffered = initialBatchSize;
+            int i = 0;
 
-            foreach (ResolverContext resolverContext in initialBatch)
+            initialBatch.AsSpan().Slice(0, initialBatchSize).CopyTo(batchBuffer);
+
+            try
             {
-                if (resolverContext == null)
+                while (buffered > 0)
                 {
-                    break;
-                }
-                batch.Add(resolverContext);
-            }
+                    Memory<ResolverContext> batch = batchBuffer.AsMemory().Slice(0, buffered);
 
-            while (batch.Count > 0)
-            {
-                // start field resolvers
-                BeginExecuteResolverBatch(
-                    batch,
-                    executionContext.ErrorHandler,
-                    cancellationToken);
+                    // start field resolvers
+                    BeginExecuteResolverBatch(
+                        batch.Span,
+                        executionContext.ErrorHandler,
+                        cancellationToken);
 
-                // execute batch data loaders
-                if (batchOperationHandler != null)
-                {
-                    await CompleteBatchOperationsAsync(
+                    // execute batch data loaders
+                    if (batchOperationHandler != null)
+                    {
+                        await CompleteBatchOperationsAsync(
+                            batch,
+                            batchOperationHandler,
+                            cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
+                    // await field resolver results
+                    await EndExecuteResolverBatchAsync(
                         batch,
-                        batchOperationHandler,
+                        AddItem,
                         cancellationToken)
                         .ConfigureAwait(false);
+
+                    swap = batchBuffer;
+                    batchBuffer = nextBatchBuffer;
+                    nextBatchBuffer = swap;
+                    buffered = i;
+                    i = 0;
+
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
-
-                // await field resolver results
-                await EndExecuteResolverBatchAsync(
-                    batch,
-                    next.Add,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                swap = batch;
-                batch = next;
-                next = swap;
-                next.Clear();
-
-                cancellationToken.ThrowIfCancellationRequested();
             }
+            finally
+            {
+                ExecutionPools.ContextPool.Return(batchBuffer);
+                ExecutionPools.ContextPool.Return(nextBatchBuffer);
+            }
+
+            void AddItem(ResolverContext resolverContext)
+            {
+                if (nextBatchBuffer.Length <= i)
+                {
+                    nextBatchBuffer = EnsureBatchCapacity(nextBatchBuffer);
+                }
+                nextBatchBuffer[i++] = resolverContext;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static ResolverContext[] EnsureBatchCapacity(ResolverContext[] buffer)
+        {
+            ResolverContext[] newBuffer = ExecutionPools.ContextPool.Rent(buffer.Length * 2);
+            buffer.AsSpan().CopyTo(newBuffer);
+            ExecutionPools.ContextPool.Return(buffer);
+            return newBuffer;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static void EnsureRootValueNonNullState(
             IQueryResult result,
-            IEnumerable<ResolverContext> initialBatch)
+            ReadOnlySpan<ResolverContext> initialBatch)
         {
-            foreach (ResolverContext resolverContext in initialBatch)
+            for (int i = 0; i < initialBatch.Length; i++)
             {
-                if (resolverContext is null)
-                {
-                    break;
-                }
-
+                ResolverContext resolverContext = initialBatch[i];
                 if (resolverContext.Field.Type.IsNonNullType()
                     && result.Data[resolverContext.ResponseName] == null)
                 {
@@ -128,65 +145,65 @@ namespace HotChocolate.Execution
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void BeginExecuteResolverBatch(
-            IReadOnlyCollection<ResolverContext> batch,
+            ReadOnlySpan<ResolverContext> batch,
             IErrorHandler errorHandler,
             CancellationToken cancellationToken)
         {
-            foreach (ResolverContext context in batch)
+            for (int i = 0; i < batch.Length; i++)
             {
+                ResolverContext context = batch[i];
                 context.Task = ExecuteResolverAsync(context, errorHandler);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static async Task CompleteBatchOperationsAsync(
-            IReadOnlyList<ResolverContext> batch,
+            ReadOnlyMemory<ResolverContext> batch,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(batch != null);
-            Debug.Assert(batchOperationHandler != null);
-
-            Task[] tasks = ArrayPool<Task>.Shared.Rent(batch.Count);
-            for (int i = 0; i < batch.Count; i++)
-            {
-                tasks[i] = batch[i].Task;
-            }
-
-            var taskMemory = new Memory<Task>(tasks);
-            taskMemory = taskMemory.Slice(0, batch.Count);
+            Task[] tasks = ExecutionPools.TaskPool.Rent(batch.Length);
+            CopyContextTasks(batch.Span, tasks);
 
             try
             {
                 await batchOperationHandler.CompleteAsync(
-                    taskMemory, cancellationToken)
+                    tasks.AsMemory().Slice(0, batch.Length),
+                    cancellationToken)
                     .ConfigureAwait(false);
             }
             finally
             {
-                ArrayPool<Task>.Shared.Return(tasks);
+                ExecutionPools.TaskPool.Return(tasks);
+            }
+        }
+
+        private static void CopyContextTasks(
+            ReadOnlySpan<ResolverContext> batch,
+            Span<Task> tasks)
+        {
+            for (int i = 0; i < batch.Length; i++)
+            {
+                tasks[i] = batch[i].Task;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static async Task EndExecuteResolverBatchAsync(
-            IEnumerable<ResolverContext> batch,
+            ReadOnlyMemory<ResolverContext> batch,
             Action<ResolverContext> enqueueNext,
             CancellationToken cancellationToken)
         {
-            foreach (ResolverContext resolverContext in batch)
+            for (int i = 0; i < batch.Length; i++)
             {
+                ResolverContext resolverContext = batch.Span[i];
+
                 if (resolverContext.Task.Status != TaskStatus.RanToCompletion)
                 {
                     await resolverContext.Task.ConfigureAwait(false);
                 }
 
                 ValueCompletion.CompleteValue(enqueueNext, resolverContext);
-
-                if (!resolverContext.IsRoot)
-                {
-                    ResolverContext.Return(resolverContext);
-                }
             }
         }
 
@@ -199,27 +216,24 @@ namespace HotChocolate.Execution
             ImmutableStack<object> source = ImmutableStack<object>.Empty
                 .Push(executionContext.Operation.RootValue);
 
-            IReadOnlyCollection<FieldSelection> fieldSelections =
+            IReadOnlyList<FieldSelection> fieldSelections =
                 executionContext.CollectFields(
                     executionContext.Operation.RootType,
                     executionContext.Operation.Definition.SelectionSet,
                     null);
 
-            int i = 0;
-            ResolverContext[] batch =
-                ArrayPool<ResolverContext>.Shared.Rent(
-                    fieldSelections.Count);
+            ResolverContext[] batch = ExecutionPools.ContextPool.Rent(fieldSelections.Count);
 
-            foreach (FieldSelection fieldSelection in fieldSelections)
+            for (int i = 0; i < fieldSelections.Count; i++)
             {
-                batch[i++] = ResolverContext.Rent(
+                batch[i] = ResolverContext.Rent(
                     executionContext,
-                    fieldSelection,
+                    fieldSelections[i],
                     source,
                     result);
             }
 
-            buffered = i - 1;
+            buffered = fieldSelections.Count;
             return batch;
         }
 

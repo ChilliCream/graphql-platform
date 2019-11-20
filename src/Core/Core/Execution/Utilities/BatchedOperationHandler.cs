@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
         }
 
         public async Task CompleteAsync(
-            Memory<Task> tasks,
+            ReadOnlyMemory<Task> tasks,
             CancellationToken cancellationToken)
         {
             if (tasks.Length == 0 || All(tasks.Span, IsFinished))
@@ -57,14 +57,14 @@ namespace HotChocolate.Execution
         }
 
         private void StartCompleteTask(
-            Memory<Task> tasks,
+            ReadOnlyMemory<Task> tasks,
             CancellationToken cancellationToken)
         {
             Task.Run(() => CompleteTasksAsync(tasks, cancellationToken));
         }
 
         private async Task CompleteTasksAsync(
-            Memory<Task> tasks,
+            ReadOnlyMemory<Task> tasks,
             CancellationToken cancellationToken)
         {
             try
