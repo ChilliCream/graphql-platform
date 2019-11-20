@@ -14,7 +14,9 @@ type SchemaVersion implements Node {
     id: ID!
     published: DateTime!
     sourceText: String!
+    schema: Schema!
     environments: [EnvironmentInfo!]!
+    tags: [Tag!]!
 }
 
 type EnvironmentInfo implements Node {
@@ -22,7 +24,50 @@ type EnvironmentInfo implements Node {
     published: DateTime!
     state: PublishState!
     environment: [Environment!]!
-    
+    issues: [Issue!]!
+    schemaVersion: SchemaVersion!
+    documentVersion: [DocumentVersion!]!
+}
+
+type Issue implements Node {
+    id: ID!
+    code: String!
+    message: String!
+    type: IssueType!
+    resolution: ResolutionType!
+    schemaVersion: SchemaVersion
+    documentVersion: [DocumentVersion!]!
+}
+
+type Tag {
+    key: String!
+    value: String!
+    published: DateTime!
+}
+
+type Environment implements Node {
+    id: ID!
+    name: String!
+    description: String
+    policy: Policy!
+    schemaVersions: [SchemaVersion!]!
+    documentVersion: [DocumentVersion!]!
+}
+
+type Client implements Node {
+    id: ID!
+    name: String!
+    description: String
+    schema: Schema!
+    clientVersions: [ClientVersion!]!
+}
+
+type ClientVersion implements Node {
+    id: ID!
+    published: DateTime!
+    schema: Schema!
+    environments: [EnvironmentInfo!]!
+    tags: [Tag!]!
 }
 
 interface Node {
@@ -33,3 +78,15 @@ enum PublishState {
     REJECTED
     PUBLISHED
 }
+
+enum IssueType {
+    INFORMATION
+    WARNING
+    ERROR
+}
+
+enum ResolutionType {
+    OPEN
+    FIXED
+    WONTFIX
+} 
