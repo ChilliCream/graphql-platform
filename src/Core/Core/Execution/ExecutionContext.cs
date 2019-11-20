@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
@@ -14,15 +13,11 @@ namespace HotChocolate.Execution
     internal class ExecutionContext
         : IExecutionContext
     {
-        private static readonly ArrayPool<IResolverContext> _contextPool =
-            ArrayPool<IResolverContext>.Create(1024 * 1000, 256);
-
         private readonly object _syncRoot = new object();
         private readonly IRequestContext _requestContext;
         private readonly FieldCollector _fieldCollector;
         private readonly ICachedQuery _cachedQuery;
-        private IResolverContext[] _trackedContextBuffer;
-        private int _buffered = 0;
+        private List<ResolverContext> _trackedContextBuffer;
 
         public ExecutionContext(
             ISchema schema,
@@ -59,17 +54,6 @@ namespace HotChocolate.Execution
                 requestContext.ServiceScope.ServiceProvider);
         }
 
-        internal ExecutionContext(ISchema schema, IErrorHandler errorHandler, IOperation operation, IQueryResult result, CancellationToken requestAborted, IActivator activator, ITypeConversion converter)
-        {
-            this.Schema = schema;
-            this.ErrorHandler = errorHandler;
-            this.Operation = operation;
-            this.Result = result;
-            this.RequestAborted = requestAborted;
-            this.Activator = activator;
-            this.Converter = converter;
-
-        }
         public ISchema Schema { get; }
 
         public IRequestServiceScope ServiceScope =>
@@ -148,28 +132,25 @@ namespace HotChocolate.Execution
 
         public void TrackContext(IResolverContext resolverContext)
         {
-
             if (_trackedContextBuffer is null)
             {
-                _trackedContextBuffer = _contextPool.Rent(256);
+                _trackedContextBuffer = ExecutionPools.ContextListPool.Get();
             }
 
-            if (_trackedContextBuffer.Length <= _buffered)
+            if (resolverContext is ResolverContext c)
             {
-                IResolverContext[] next = _contextPool.Rent(
-                    _trackedContextBuffer.Length * 2);
-                _trackedContextBuffer.AsSpan().CopyTo(next);
-                _contextPool.Return(_trackedContextBuffer);
-                _trackedContextBuffer = next;
+                _trackedContextBuffer.Add(c);
             }
-
-            _trackedContextBuffer[_buffered++] = resolverContext;
-
         }
 
-        public ReadOnlySpan<IResolverContext> GetTrackedContexts()
+        public IReadOnlyList<IResolverContext> GetTrackedContexts()
         {
-            return _trackedContextBuffer.AsSpan().Slice(0, _buffered);
+            return _trackedContextBuffer;
+        }
+
+        public void ClearTrackedContexts()
+        {
+            ExecutionPools.ContextListPool.Return(_trackedContextBuffer);
         }
 
         public IExecutionContext Clone()

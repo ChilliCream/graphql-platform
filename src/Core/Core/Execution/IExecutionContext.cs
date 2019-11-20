@@ -91,7 +91,9 @@ namespace HotChocolate.Execution
 
         void TrackContext(IResolverContext resolverContext);
 
-        ReadOnlySpan<IResolverContext> GetTrackedContexts();
+        IReadOnlyList<IResolverContext> GetTrackedContexts();
+
+        void ClearTrackedContexts();
 
         /// <summary>
         /// Creates a copy of this execution context

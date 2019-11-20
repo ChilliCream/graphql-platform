@@ -22,56 +22,49 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            ResolverContext[] initialBatch =
-                CreateInitialBatch(executionContext,
-                    executionContext.Result.Data,
-                    out int buffered);
+            List<ResolverContext> initialBatch =
+                CreateInitialBatch(
+                    executionContext,
+                    executionContext.Result.Data);
             try
             {
                 await ExecuteResolversAsync(
                     executionContext,
                     initialBatch,
-                    buffered,
                     batchOperationHandler,
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                EnsureRootValueNonNullState(
-                    executionContext.Result,
-                    initialBatch.AsSpan().Slice(0, buffered));
+                EnsureRootValueNonNullState(executionContext.Result, initialBatch);
 
                 return executionContext.Result;
             }
             finally
             {
-                ExecutionPools.ContextPool.Return(initialBatch);
+                ExecutionPools.ContextListPool.Return(initialBatch);
             }
         }
 
         protected static async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
-            ResolverContext[] initialBatch,
-            int initialBatchSize,
+            IEnumerable<ResolverContext> initialBatch,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            ResolverContext[] batchBuffer = ExecutionPools.ContextPool.Rent(initialBatch.Length);
-            ResolverContext[] nextBatchBuffer = ExecutionPools.ContextPool.Rent(256);
-            ResolverContext[] swap = null;
-            int buffered = initialBatchSize;
-            int i = 0;
+            List<ResolverContext> batch = ExecutionPools.ContextListPool.Get();
+            List<ResolverContext> next = ExecutionPools.ContextListPool.Get();
+            List<ResolverContext> swap = null;
 
-            initialBatch.AsSpan().Slice(0, initialBatchSize).CopyTo(batchBuffer);
+            batch.AddRange(initialBatch);
+            int batchSize = batch.Count;
 
             try
             {
-                while (buffered > 0)
+                while (batchSize > 0)
                 {
-                    Memory<ResolverContext> batch = batchBuffer.AsMemory().Slice(0, buffered);
-
                     // start field resolvers
                     BeginExecuteResolverBatch(
-                        batch.Span,
+                        batch,
                         executionContext.ErrorHandler,
                         cancellationToken);
 
@@ -88,50 +81,33 @@ namespace HotChocolate.Execution
                     // await field resolver results
                     await EndExecuteResolverBatchAsync(
                         batch,
-                        AddItem,
+                        next.Add,
                         cancellationToken)
                         .ConfigureAwait(false);
 
-                    swap = batchBuffer;
-                    batchBuffer = nextBatchBuffer;
-                    nextBatchBuffer = swap;
-                    buffered = i;
-                    i = 0;
+                    swap = batch;
+                    batch = next;
+                    next = swap;
+
+                    next.Clear();
+                    batchSize = batch.Count;
 
                     cancellationToken.ThrowIfCancellationRequested();
                 }
             }
             finally
             {
-                ExecutionPools.ContextPool.Return(batchBuffer);
-                ExecutionPools.ContextPool.Return(nextBatchBuffer);
+                ExecutionPools.ContextListPool.Return(batch);
+                ExecutionPools.ContextListPool.Return(next);
             }
-
-            void AddItem(ResolverContext resolverContext)
-            {
-                if (nextBatchBuffer.Length <= i)
-                {
-                    nextBatchBuffer = EnsureBatchCapacity(nextBatchBuffer);
-                }
-                nextBatchBuffer[i++] = resolverContext;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static ResolverContext[] EnsureBatchCapacity(ResolverContext[] buffer)
-        {
-            ResolverContext[] newBuffer = ExecutionPools.ContextPool.Rent(buffer.Length * 2);
-            buffer.AsSpan().CopyTo(newBuffer);
-            ExecutionPools.ContextPool.Return(buffer);
-            return newBuffer;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static void EnsureRootValueNonNullState(
             IQueryResult result,
-            ReadOnlySpan<ResolverContext> initialBatch)
+            IReadOnlyList<ResolverContext> initialBatch)
         {
-            for (int i = 0; i < initialBatch.Length; i++)
+            for (int i = 0; i < initialBatch.Count; i++)
             {
                 ResolverContext resolverContext = initialBatch[i];
                 if (resolverContext.Field.Type.IsNonNullType()
@@ -145,30 +121,30 @@ namespace HotChocolate.Execution
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void BeginExecuteResolverBatch(
-            ReadOnlySpan<ResolverContext> batch,
+            IReadOnlyList<ResolverContext> batch,
             IErrorHandler errorHandler,
             CancellationToken cancellationToken)
         {
-            for (int i = 0; i < batch.Length; i++)
+            for (int i = 0; i < batch.Count; i++)
             {
-                ResolverContext context = batch[i];
-                context.Task = ExecuteResolverAsync(context, errorHandler);
+                ResolverContext resolverContext = batch[i];
+                resolverContext.Task = ExecuteResolverAsync(resolverContext, errorHandler);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static async Task CompleteBatchOperationsAsync(
-            ReadOnlyMemory<ResolverContext> batch,
+            IReadOnlyList<ResolverContext> batch,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            Task[] tasks = ExecutionPools.TaskPool.Rent(batch.Length);
-            CopyContextTasks(batch.Span, tasks);
+            Task[] tasks = ExecutionPools.TaskPool.Rent(batch.Count);
+            CopyContextTasks(batch, tasks);
 
             try
             {
                 await batchOperationHandler.CompleteAsync(
-                    tasks.AsMemory().Slice(0, batch.Length),
+                    tasks.AsMemory().Slice(0, batch.Count),
                     cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -179,10 +155,10 @@ namespace HotChocolate.Execution
         }
 
         private static void CopyContextTasks(
-            ReadOnlySpan<ResolverContext> batch,
+            IReadOnlyList<ResolverContext> batch,
             Span<Task> tasks)
         {
-            for (int i = 0; i < batch.Length; i++)
+            for (int i = 0; i < batch.Count; i++)
             {
                 tasks[i] = batch[i].Task;
             }
@@ -190,13 +166,13 @@ namespace HotChocolate.Execution
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static async Task EndExecuteResolverBatchAsync(
-            ReadOnlyMemory<ResolverContext> batch,
+            IReadOnlyList<ResolverContext> batch,
             Action<ResolverContext> enqueueNext,
             CancellationToken cancellationToken)
         {
-            for (int i = 0; i < batch.Length; i++)
+            for (int i = 0; i < batch.Count; i++)
             {
-                ResolverContext resolverContext = batch.Span[i];
+                ResolverContext resolverContext = batch[i];
 
                 if (resolverContext.Task.Status != TaskStatus.RanToCompletion)
                 {
@@ -208,10 +184,9 @@ namespace HotChocolate.Execution
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static ResolverContext[] CreateInitialBatch(
+        protected static List<ResolverContext> CreateInitialBatch(
             IExecutionContext executionContext,
-            IDictionary<string, object> result,
-            out int buffered)
+            IDictionary<string, object> result)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
                 .Push(executionContext.Operation.RootValue);
@@ -222,18 +197,17 @@ namespace HotChocolate.Execution
                     executionContext.Operation.Definition.SelectionSet,
                     null);
 
-            ResolverContext[] batch = ExecutionPools.ContextPool.Rent(fieldSelections.Count);
+            List<ResolverContext> batch = ExecutionPools.ContextListPool.Get();
 
             for (int i = 0; i < fieldSelections.Count; i++)
             {
-                batch[i] = ResolverContext.Rent(
+                batch.Add(ResolverContext.Rent(
                     executionContext,
                     fieldSelections[i],
                     source,
-                    result);
+                    result));
             }
 
-            buffered = fieldSelections.Count;
             return batch;
         }
 

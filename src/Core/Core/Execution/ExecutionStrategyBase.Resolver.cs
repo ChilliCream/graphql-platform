@@ -73,14 +73,17 @@ namespace HotChocolate.Execution
 
         protected static void ReleaseTrackedContextObjects(IExecutionContext context)
         {
-            ReadOnlySpan<IResolverContext> contexts = context.GetTrackedContexts();
-            for (int i = 0; i < contexts.Length; i++)
+            IReadOnlyList<IResolverContext> resolverContexts = context.GetTrackedContexts();
+
+            for (int i = 0; i < resolverContexts.Count; i++)
             {
-                if (contexts[i] is ResolverContext rented)
+                if (resolverContexts[i] is ResolverContext rented)
                 {
                     ResolverContext.Return(rented);
                 }
             }
+
+            context.ClearTrackedContexts();
         }
     }
 }

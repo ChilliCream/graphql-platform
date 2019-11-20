@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
@@ -12,6 +13,8 @@ namespace HotChocolate.Execution
     {
         private static readonly DefaultObjectPool<ResolverContext> _pool =
             new DefaultObjectPool<ResolverContext>(new ResolverContextPolicy(), 1024);
+        private static readonly ConcurrentBag<ResolverContext> _pool2 =
+            new ConcurrentBag<ResolverContext>();
 
         public void Clean()
         {
@@ -111,7 +114,11 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
-            var context = _pool.Get();
+            if (!_pool2.TryTake(out ResolverContext context))
+            {
+                context = new ResolverContext();
+            }
+            // var context = new ResolverContext(); // = _pool.Get();
             context.Initialize(
                 executionContext,
                 fieldSelection,
@@ -130,7 +137,11 @@ namespace HotChocolate.Execution
             Path path,
             Action propagateNonNullViolation)
         {
-            var context = _pool.Get();
+            if (!_pool2.TryTake(out ResolverContext context))
+            {
+                context = new ResolverContext();
+            }
+            // var context = new ResolverContext();  // _pool.Get();
             context.Initialize(
                 fieldSelection,
                 source,
@@ -145,7 +156,12 @@ namespace HotChocolate.Execution
 
         public static void Return(ResolverContext rentedContext)
         {
-            _pool.Return(rentedContext);
+            rentedContext.Clean();
+            if (_pool2.Count < 1024)
+            {
+                _pool2.Add(rentedContext);
+            }
+            // _pool.Return(rentedContext);
         }
     }
 }
