@@ -1,0 +1,35 @@
+type Query {
+    schemas: [Schema!]! 
+    schema(id: ID!): Schema
+}
+
+type Schema implements Node {
+    id: ID!
+    name: String!
+    description: String
+    versions: [SchemaVersion!]!
+}
+
+type SchemaVersion implements Node {
+    id: ID!
+    published: DateTime!
+    sourceText: String!
+    environments: [EnvironmentInfo!]!
+}
+
+type EnvironmentInfo implements Node {
+    id: ID!
+    published: DateTime!
+    state: PublishState!
+    environment: [Environment!]!
+    
+}
+
+interface Node {
+    id: ID!
+}
+
+enum PublishState {
+    REJECTED
+    PUBLISHED
+}
