@@ -151,7 +151,7 @@ namespace HotChocolate.Execution
 
             if (_trackedContextBuffer is null)
             {
-                _trackedContextBuffer = _contextPool.Rent(32);
+                _trackedContextBuffer = _contextPool.Rent(256);
             }
 
             if (_trackedContextBuffer.Length <= _buffered)

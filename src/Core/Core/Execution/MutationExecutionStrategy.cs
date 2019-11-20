@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             for (int i = 0; i < batch.Length; i++)
             {
                 // note: this buffer will be returned by ExecuteResolversAsync
-                ResolverContext[] nextBatchBuffer = ExecutionPools.ContextPool.Rent(32);
+                ResolverContext[] nextBatchBuffer = ExecutionPools.ContextPool.Rent(256);
                 int buffered = 0;
 
                 try

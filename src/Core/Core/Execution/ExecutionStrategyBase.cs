@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             ResolverContext[] batchBuffer = ExecutionPools.ContextPool.Rent(initialBatch.Length);
-            ResolverContext[] nextBatchBuffer = ExecutionPools.ContextPool.Rent(32);
+            ResolverContext[] nextBatchBuffer = ExecutionPools.ContextPool.Rent(256);
             ResolverContext[] swap = null;
             int buffered = initialBatchSize;
             int i = 0;
