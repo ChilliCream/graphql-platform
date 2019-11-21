@@ -18,7 +18,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
- <ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Demo\Demo.csproj" />
     <ProjectReference Include="..\Http\Http.csproj" />
     <ProjectReference Include="..\..\Core\StarWars\StarWars.csproj" />
@@ -28,6 +28,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

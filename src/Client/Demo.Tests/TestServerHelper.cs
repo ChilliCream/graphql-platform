@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Demo
 {
     public static class TestServerHelper
     {

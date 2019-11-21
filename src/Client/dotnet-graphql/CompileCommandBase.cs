@@ -1,3 +1,4 @@
+using System.Text;
 using System.Security.Cryptography;
 using System;
 using System.Collections.Generic;
@@ -204,7 +205,6 @@ namespace StrawberryShake.Tools
             foreach (string file in Directory.GetFiles(path, "*.graphql"))
             {
                 byte[] buffer = await File.ReadAllBytesAsync(file);
-                byte[] hash = md5.ComputeHash(buffer);
 
                 try
                 {
@@ -215,9 +215,15 @@ namespace StrawberryShake.Tools
                         DocumentKind kind =
                             document.Definitions.Any(t =>
                                 t is ITypeSystemDefinitionNode
-                                ||t is ITypeSystemExtensionNode)
+                                || t is ITypeSystemExtensionNode)
                                 ? DocumentKind.Schema
                                 : DocumentKind.Query;
+
+                        string text = kind == DocumentKind.Query
+                            ? QuerySyntaxSerializer.Serialize(document, false)
+                            : SchemaSyntaxSerializer.Serialize(document, false);
+
+                        byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(text));
 
                         documents.Add(new DocumentInfo
                         (
@@ -234,6 +240,18 @@ namespace StrawberryShake.Tools
                         .SetMessage(ex.Message)
                         .AddLocation(ex.Line, ex.Column)
                         .SetCode("SYNTAX_ERROR")
+                        .SetExtension("fileName", file)
+                        .Build();
+
+                    errors.Add(error);
+                    return Array.Empty<DocumentInfo>();
+                }
+                catch (NotSupportedException ex)
+                {
+                    HCError error = HCErrorBuilder.New()
+                        .SetMessage(
+                            "The filed contained schema definitions and query definitions.")
+                        .SetCode("MIXED_DOCUMENTS")
                         .SetExtension("fileName", file)
                         .Build();
 
