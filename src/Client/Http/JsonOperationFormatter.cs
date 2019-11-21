@@ -44,7 +44,7 @@ namespace StrawberryShake.Http
             OperationFormatterOptions opt = options ?? OperationFormatterOptions.Default;
 
             return SerializeInternalAsync(
-                operation, stream, opt.Extensions,
+                operation, stream, opt.Extensions, opt.IncludeId,
                 opt.IncludeDocument, cancellationToken);
         }
 
@@ -52,12 +52,13 @@ namespace StrawberryShake.Http
             IOperation operation,
             Stream stream,
             IReadOnlyDictionary<string, object?>? extensions,
+            bool includeId,
             bool includeDocument,
             CancellationToken cancellationToken = default)
         {
             await using var jsonWriter = new Utf8JsonWriter(stream);
             WriteJsonRequest(
-                operation, jsonWriter, extensions,
+                operation, jsonWriter, extensions, includeId,
                 includeDocument, cancellationToken);
         }
 
@@ -80,7 +81,7 @@ namespace StrawberryShake.Http
             var opt = options ?? OperationFormatterOptions.Default;
 
             SerializeInternal(
-                operation, writer, opt.Extensions,
+                operation, writer, opt.Extensions, opt.IncludeId,
                 opt.IncludeDocument, cancellationToken);
         }
 
@@ -88,12 +89,13 @@ namespace StrawberryShake.Http
             IOperation operation,
             IBufferWriter<byte> writer,
             IReadOnlyDictionary<string, object?>? extensions,
+            bool includeId,
             bool includeDocument,
             CancellationToken cancellationToken = default)
         {
             using var jsonWriter = new Utf8JsonWriter(writer);
             WriteJsonRequest(
-                operation, jsonWriter, extensions,
+                operation, jsonWriter, extensions, includeId,
                 includeDocument, cancellationToken);
         }
 
@@ -101,13 +103,17 @@ namespace StrawberryShake.Http
             IOperation operation,
             Utf8JsonWriter writer,
             IReadOnlyDictionary<string, object?>? extensions,
+            bool includeId,
             bool includeDocument,
             CancellationToken cancellationToken)
         {
             writer.WriteStartObject();
 
-            writer.WritePropertyName("id");
-            writer.WriteStringValue(operation.Document.Hash);
+            if (includeId)
+            {
+                writer.WritePropertyName("id");
+                writer.WriteStringValue(operation.Document.Hash);
+            }
 
             if (includeDocument)
             {

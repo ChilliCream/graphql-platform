@@ -1,9 +1,0 @@
-﻿{
-  "Data": {
-    "Stars": 5
-  },
-  "Errors": [],
-  "Extensions": {},
-  "HasErrors": false,
-  "ResultType": "StrawberryShake.Http.Foo+OnReview, StrawberryShake.Http.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
-}
