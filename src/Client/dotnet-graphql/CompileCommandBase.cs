@@ -246,7 +246,7 @@ namespace StrawberryShake.Tools
                     errors.Add(error);
                     return Array.Empty<DocumentInfo>();
                 }
-                catch (NotSupportedException ex)
+                catch (NotSupportedException)
                 {
                     HCError error = HCErrorBuilder.New()
                         .SetMessage(
