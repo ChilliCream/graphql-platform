@@ -6,7 +6,6 @@ using static McMaster.Extensions.CommandLineUtils.CommandLineApplication;
 
 namespace StrawberryShake.Tools
 {
-    [Command(ThrowOnUnexpectedArgument = false)]
     public class CommandRouter
         : ICommand
     {
@@ -23,11 +22,7 @@ namespace StrawberryShake.Tools
             switch (Command)
             {
                 case Command.Init:
-                    return ExecuteAsync<InitCommand>(RemainingArgs);
-
                 case Command.Update:
-                    return ExecuteAsync<UpdateCommand>(RemainingArgs);
-
                 case Command.Compile:
                     return ExecuteAsync<CompileCommand>(RemainingArgs);
 

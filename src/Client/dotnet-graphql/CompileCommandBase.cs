@@ -15,46 +15,51 @@ using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools
 {
-    public abstract class CompileCommandBase
-        : ICommand
+    public abstract class CompileCommandHandlerBase
     {
-        [Argument(0, "path")]
-        public string? Path { get; set; }
-
-        [Option("-s|--SearchForClients")]
-        public bool SearchForClients { get; set; }
-
-        public async Task<int> OnExecute()
+        public async Task<int> Execute(
+            CommandArgument pathArg,
+            CommandOption searchArg)
         {
             try
             {
-                if (Path is null || Path == string.Empty)
-                {
-                    foreach (string clientDirectory in FindDirectories(
-                        Environment.CurrentDirectory))
+
+
+                string path = pathArg.Value ?? Environment.CurrentDirectory;
+
+                if (SearchForClients)
+
+
+                    if (Path is null || Path == string.Empty)
                     {
-                        if (!await Compile(clientDirectory))
+                        foreach (string clientDirectory in FindDirectories(
+                            Environment.CurrentDirectory))
                         {
-                            return 1;
+                            if (!await Compile(clientDirectory))
+                            {
+                                return 1;
+                            }
                         }
+                        return 0;
                     }
-                    return 0;
-                }
-                else if (SearchForClients)
-                {
-                    foreach (string clientDirectory in FindDirectories(Path))
+
+
+
+                    else if (SearchForClients)
                     {
-                        if (!await Compile(clientDirectory))
+                        foreach (string clientDirectory in FindDirectories(Path))
                         {
-                            return 1;
+                            if (!await Compile(clientDirectory))
+                            {
+                                return 1;
+                            }
                         }
+                        return 0;
                     }
-                    return 0;
-                }
-                else
-                {
-                    return (await Compile(Path)) ? 0 : 1;
-                }
+                    else
+                    {
+                        return (await Compile(Path)) ? 0 : 1;
+                    }
             }
             catch (GeneratorException ex)
             {
