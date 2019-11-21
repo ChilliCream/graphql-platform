@@ -543,7 +543,7 @@ namespace StrawberryShake.Generators
 
                     Type serializationType = GetTypeFromDirective(
                         scalarType,
-                        GeneratorDirectives.ClrType) ??
+                        GeneratorDirectives.SerializationType) ??
                         clrType;
 
                     _leafTypes[scalarType.Name] =
