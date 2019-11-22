@@ -4,13 +4,13 @@ using McMaster.Extensions.CommandLineUtils.HelpText;
 
 namespace StrawberryShake.Tools
 {
-    public class UpdateHelpTextGenerator : IHelpTextGenerator
+    public class GenerateHelpTextGenerator : IHelpTextGenerator
     {
         public void Generate(CommandLineApplication application, TextWriter output)
         {
             output.WriteLine(
-                "dotnet graphql update [-p|--Path] [-u|--uri] " +
-                "[-t|--token] [-s|--scheme]");
+                "dotnet graphql generate [-l|--LanguageVersion] [-d|--DISupport] " + 
+                "[-n|--Namespace] [-f|--Force] [-j|--json]");
         }
     }
 }

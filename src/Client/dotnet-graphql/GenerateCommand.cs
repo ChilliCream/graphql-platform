@@ -11,20 +11,52 @@ using IOPath = System.IO.Path;
 
 namespace StrawberryShake.Tools
 {
-    public class GenerateCommand
-        : CompileCommandBase
+
+    public static class GenerateCommand
     {
-        [Option("-l|--LanguageVersion")]
-        public string? LanguageVersion { get; set; }
+        public static CommandLineApplication Create()
+        {
+            var generate = new CommandLineApplication();
+            generate.AddName("generate");
+            generate.AddHelp<GenerateHelpTextGenerator>();
 
-        [Option("-d|--DISupport")]
-        public bool DISupport { get; set; }
+            CommandOption languageArg = generate.Option(
+                "-l|--LanguageVersion",
+                "The C# Language Version (7.3 or 8.0).",
+                CommandOptionType.SingleValue);
 
-        [Option("-n|--Namespace")]
-        public string? Namespace { get; set; }
+            CommandOption pathArg = generate.Option(
+                "-d|--DISupport",
+                "Generate dependency injection integration for " + 
+                "Microsoft.Extensions.DependencyInjection.",
+                CommandOptionType.SingleValue);
 
-        [Option("-f|--Force")]
-        public bool Force { get; set; }
+            CommandOption schemaArg = generate.Option(
+                "-n|--Namespace",
+                "The namespace that shall be used for the generated files.",
+                CommandOptionType.SingleValue);
+
+            CommandOption tokenArg = generate.Option(
+                "-f|--Force",
+                "Force code generation even if nothing has changed.",
+                CommandOptionType.SingleValue);
+
+            CommandOption jsonArg = generate.Option(
+                "-j|--json",
+                "Console output as JSON.",
+                CommandOptionType.NoValue);
+
+            generate.OnExecuteAsync(cancellationToken =>
+            {
+                var arguments = new InitCommandArguments(
+                    languageArg, pathArg, schemaArg, tokenArg, schemeArg);
+                var handler = CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
+                return handler.ExecuteAsync(arguments, cancellationToken);
+            });
+
+            return generate;
+        }
+
 
         protected override async Task<bool> Compile(
             string path,

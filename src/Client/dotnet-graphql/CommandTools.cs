@@ -5,6 +5,7 @@ using McMaster.Extensions.CommandLineUtils;
 using McMaster.Extensions.CommandLineUtils.HelpText;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.Tools
 {
@@ -49,6 +50,15 @@ namespace StrawberryShake.Tools
         {
             app.HelpOption("-h|--help");
             app.HelpTextGenerator = new T();
+        }
+
+        public static T CreateHandler<T>(CommandOption jsonArg) where T : class
+        {
+            var services = new ServiceCollection();
+            services.AddSingleton<IHttpClientFactory, DefaultHttpClientFactory>();
+            
+            services.AddSingleton<T>();
+            return services.BuildServiceProvider().GetRequiredService<T>();
         }
     }
 }
