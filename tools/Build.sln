@@ -113,11 +113,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.Tests", "..\src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.DiagnosticSource.Tests", "..\src\DataLoader\DiagnosticSource.Tests\GreenDonut.DiagnosticSource.Tests.csproj", "{FE0F443F-A0C5-4222-8E53-A5C3328DB545}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting", "..\src\Core\Types.Sorting\Types.Sorting.csproj", "{47068127-8C8B-411F-B620-A6AC70F97CAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting", "..\src\Core\Types.Sorting\Types.Sorting.csproj", "{47068127-8C8B-411F-B620-A6AC70F97CAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting.Tests", "..\src\Core\Types.Sorting.Tests\Types.Sorting.Tests.csproj", "{546E0DFD-40F2-41F5-AC54-52DD1D168D24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Tests", "..\src\Core\Types.Sorting.Tests\Types.Sorting.Tests.csproj", "{546E0DFD-40F2-41F5-AC54-52DD1D168D24}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting.Mongo.Tests", "..\src\Core\Types.Sorting.Mongo.Tests\Types.Sorting.Mongo.Tests.csproj", "{77432023-09F0-481B-BA86-1D0C233A24AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Mongo.Tests", "..\src\Core\Types.Sorting.Mongo.Tests\Types.Sorting.Mongo.Tests.csproj", "{77432023-09F0-481B-BA86-1D0C233A24AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
