@@ -22,6 +22,8 @@ namespace StrawberryShake.Tools
             }
         }
 
+        public bool FileExists(string path) => File.Exists(path);
+
         public IEnumerable<string> GetClientDirectories(string path)
         {
             foreach (string configFile in Directory.GetFiles(

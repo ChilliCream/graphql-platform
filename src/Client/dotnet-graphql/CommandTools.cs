@@ -61,11 +61,11 @@ namespace StrawberryShake.Tools
 
             if (jsonArg.HasValue())
             {
-                services.AddSingleton<IConsoleOutput, DefaultConsoleOutput>();
+                services.AddSingleton<IConsoleOutput, JsonConsoleOutput>();
             }
             else
             {
-                services.AddSingleton<IConsoleOutput, JsonConsoleOutput>();
+                services.AddSingleton<IConsoleOutput, DefaultConsoleOutput>();
             }
 
             services.AddSingleton<T>();
