@@ -8,7 +8,7 @@ namespace StrawberryShake.Tools
         {
             var generate = new CommandLineApplication();
             generate.AddName("generate");
-            generate.AddHelp<GenerateHelpTextGenerator>();
+            generate.AddHelp<CompileHelpTextGenerator>();
 
             CommandOption pathArg = generate.Option(
                 "-p|--Path",

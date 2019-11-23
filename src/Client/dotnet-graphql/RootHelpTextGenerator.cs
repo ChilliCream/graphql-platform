@@ -12,15 +12,26 @@ namespace StrawberryShake.Tools
             output.WriteLine();
             output.WriteLine("- Initialize project and download schema");
             output.WriteLine("  dotnet graphql init http://localhost");
+            output.WriteLine(
+                "  dotnet graphql init {url} [-p|--Path] [-n|--SchemaName] " +
+                "[-t|--token] [-s|--scheme]");
             output.WriteLine();
             output.WriteLine("- Update local schema");
             output.WriteLine("  dotnet graphql update");
+            output.WriteLine(
+                "  dotnet graphql update [-p|--Path] [-u|--uri] " +
+                "[-t|--token] [-s|--scheme]");
             output.WriteLine();
             output.WriteLine("- Compile queries");
             output.WriteLine("  dotnet graphql compile");
+            output.WriteLine(
+                "dotnet graphql compile [-s|--Search] [-f|--Force] [-j|--json]");
             output.WriteLine();
             output.WriteLine("- Compile queries and generate C# client files");
             output.WriteLine("  dotnet graphql generate");
+            output.WriteLine(
+                "  dotnet graphql generate [-l|--LanguageVersion] [-d|--DISupport] " +
+                "[-n|--Namespace] [-s|--Search] [-f|--Force] [-j|--json]");
         }
     }
 }

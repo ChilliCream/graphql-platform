@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using HotChocolate.Language;
-
 using StrawberryShake.Generators;
 using HCError = HotChocolate.IError;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
@@ -110,7 +109,7 @@ namespace StrawberryShake.Tools
                 var documents = new List<DocumentInfo>();
                 var errors = new List<HCError>();
                 await LoadGraphQLDocumentsAsync(
-                    path, configuration, generator, 
+                    path, configuration, generator,
                     documents, errors);
 
                 if (errors.Count > 0)
@@ -120,7 +119,7 @@ namespace StrawberryShake.Tools
                 }
 
                 bool success = await Compile(
-                    context, path, configuration, generator, 
+                    context, path, configuration, generator,
                     documents, errors);
 
                 if (errors.Count > 0)
