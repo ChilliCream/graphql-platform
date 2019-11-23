@@ -57,7 +57,17 @@ namespace StrawberryShake.Tools
             var services = new ServiceCollection();
             services.AddSingleton<IHttpClientFactory, DefaultHttpClientFactory>();
             services.AddSingleton<IFileSystem, DefaultFileSystem>();
-            
+            services.AddSingleton<IConfigurationStore, DefaultConfigurationStore>();
+
+            if (jsonArg.HasValue())
+            {
+                services.AddSingleton<IConsoleOutput, DefaultConsoleOutput>();
+            }
+            else
+            {
+                services.AddSingleton<IConsoleOutput, JsonConsoleOutput>();
+            }
+
             services.AddSingleton<T>();
             return services.BuildServiceProvider().GetRequiredService<T>();
         }

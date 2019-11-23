@@ -19,6 +19,8 @@ namespace StrawberryShake.Tools
 
         string GetFileName(string path);
 
+        bool FileExists(string path);
+
         IEnumerable<string> GetClientDirectories(string path);
 
         IEnumerable<string> GetGraphQLFiles(string path);
