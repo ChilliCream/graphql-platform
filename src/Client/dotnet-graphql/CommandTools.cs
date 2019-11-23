@@ -56,6 +56,7 @@ namespace StrawberryShake.Tools
         {
             var services = new ServiceCollection();
             services.AddSingleton<IHttpClientFactory, DefaultHttpClientFactory>();
+            services.AddSingleton<IFileSystem, DefaultFileSystem>();
             
             services.AddSingleton<T>();
             return services.BuildServiceProvider().GetRequiredService<T>();

@@ -11,7 +11,7 @@ namespace StrawberryShake.Tools
 
         string ResolvePath(string? path);
 
-        string CombinePath(params string[] path);
+        string CombinePath(params string[] paths);
 
         void EnsureDirectoryExists(string path);
 
@@ -19,16 +19,6 @@ namespace StrawberryShake.Tools
 
         string GetFileName(string path);
 
-        /*
-        foreach (string configFile in Directory.GetFiles(
-                Environment.CurrentDirectory,
-                WellKnownFiles.Config,
-                SearchOption.AllDirectories))
-            {
-                string directory = IOPath.GetDirectoryName(configFile)!;
-                if (Directory.GetFiles(directory, "*.graphql").Length > 0)
-                {
-        */
         IEnumerable<string> GetClientDirectories(string path);
 
         IEnumerable<string> GetGraphQLFiles(string path);

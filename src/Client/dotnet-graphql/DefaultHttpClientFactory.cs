@@ -7,7 +7,7 @@ namespace StrawberryShake.Tools
     public class DefaultHttpClientFactory
         : IHttpClientFactory
     {
-        public HttpClient Create(Uri uri, string token, string scheme)
+        public HttpClient Create(Uri uri, string? token, string? scheme)
         {
             var httpClient = new HttpClient();
             httpClient.BaseAddress = uri;
@@ -22,6 +22,7 @@ namespace StrawberryShake.Tools
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue(scheme ?? "bearer", token);
             }
+
             return httpClient;
         }
     }
