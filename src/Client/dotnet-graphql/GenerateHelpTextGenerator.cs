@@ -10,7 +10,7 @@ namespace StrawberryShake.Tools
         {
             output.WriteLine(
                 "dotnet graphql generate [-l|--LanguageVersion] [-d|--DISupport] " + 
-                "[-n|--Namespace] [-f|--Force] [-j|--json]");
+                "[-n|--Namespace] [-s|--Search] [-f|--Force] [-j|--json]");
         }
     }
 }
