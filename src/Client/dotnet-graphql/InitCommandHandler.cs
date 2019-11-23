@@ -12,9 +12,9 @@ namespace StrawberryShake.Tools
         : CommandHandler<InitCommandArguments>
     {
         public InitCommandHandler(
-            IFileSystem fileSystem, 
-            IHttpClientFactory httpClientFactory, 
-            IConfigurationStore configurationStore, 
+            IFileSystem fileSystem,
+            IHttpClientFactory httpClientFactory,
+            IConfigurationStore configurationStore,
             IConsoleOutput output)
         {
             FileSystem = fileSystem;
@@ -35,6 +35,8 @@ namespace StrawberryShake.Tools
             InitCommandArguments arguments,
             CancellationToken cancellationToken)
         {
+            using IDisposable command = Output.WriteCommand();
+            
             var context = new InitCommandContext(
                 arguments.Schema.Value()?.Trim() ?? "schema",
                 FileSystem.ResolvePath(arguments.Path.Value()),

@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using McMaster.Extensions.CommandLineUtils;
 using McMaster.Extensions.CommandLineUtils.HelpText;
+using Microsoft.Extensions.DependencyInjection;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.Tools
 {

@@ -1,7 +1,7 @@
-using System.IO;
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace StrawberryShake.Tools
 {
@@ -15,6 +15,10 @@ namespace StrawberryShake.Tools
 
         void EnsureDirectoryExists(string path);
 
+        string GetFileNameWithoutExtension(string path);
+
+        string GetFileName(string path);
+
         /*
         foreach (string configFile in Directory.GetFiles(
                 Environment.CurrentDirectory,
@@ -27,6 +31,10 @@ namespace StrawberryShake.Tools
         */
         IEnumerable<string> GetClientDirectories(string path);
 
+        IEnumerable<string> GetGraphQLFiles(string path);
+
         Task WriteToAsync(string fileName, Func<Stream, Task> write);
+
+        Task<byte[]> ReadAllBytesAsync(string fileName);
     }
 }

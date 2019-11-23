@@ -35,6 +35,8 @@ namespace StrawberryShake.Tools
             UpdateCommandArguments arguments,
             CancellationToken cancellationToken)
         {
+            using IDisposable command = Output.WriteCommand();
+            
             var context = new UpdateCommandContext(
                 arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()) : null,
                 arguments.Path.Value(),
