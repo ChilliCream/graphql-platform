@@ -9,8 +9,9 @@ namespace StrawberryShake.Tools
         public void Generate(CommandLineApplication application, TextWriter output)
         {
             output.WriteLine(
-                "dotnet graphql generate [-l|--LanguageVersion] [-d|--DISupport] " + 
-                "[-n|--Namespace] [-s|--Search] [-f|--Force] [-j|--json]");
+                "dotnet graphql generate [-p|--Path] [-l|--LanguageVersion] " +
+                "[-d|--DISupport] [-n|--Namespace] [-s|--Search] [-f|--Force] " +
+                "[-j|--json]");
         }
     }
 }

@@ -10,10 +10,10 @@ namespace StrawberryShake.Tools
             generate.AddName("generate");
             generate.AddHelp<GenerateHelpTextGenerator>();
 
-             CommandOption pathArg = generate.Option(
-                "-p|--Path",
-                "The directory where the client shall be located.",
-                CommandOptionType.SingleValue);
+            CommandOption pathArg = generate.Option(
+               "-p|--Path",
+               "The directory where the client shall be located.",
+               CommandOptionType.SingleValue);
 
             CommandOption languageArg = generate.Option(
                 "-l|--LanguageVersion",

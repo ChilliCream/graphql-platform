@@ -8,7 +8,7 @@ namespace StrawberryShake.Tools
     {
         private readonly JsonConsoleOutputData _data;
         private readonly string _activityText;
-        private readonly string _path;
+        private readonly string? _path;
         private readonly Stopwatch _stopwatch;
         private bool _hasErrors;
 

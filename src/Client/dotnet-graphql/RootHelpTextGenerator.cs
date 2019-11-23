@@ -30,8 +30,9 @@ namespace StrawberryShake.Tools
             output.WriteLine("- Compile queries and generate C# client files");
             output.WriteLine("  dotnet graphql generate");
             output.WriteLine(
-                "  dotnet graphql generate [-l|--LanguageVersion] [-d|--DISupport] " +
-                "[-n|--Namespace] [-s|--Search] [-f|--Force] [-j|--json]");
+                "  dotnet graphql generate [-p|--Path] [-l|--LanguageVersion] " +
+                "[-d|--DISupport] [-n|--Namespace] [-s|--Search] [-f|--Force] " +
+                "[-j|--json]");
         }
     }
 }
