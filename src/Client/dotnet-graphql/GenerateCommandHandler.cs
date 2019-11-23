@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.Generators;
 using HCError = HotChocolate.IError;
-using IOPath = System.IO.Path;
 
 namespace StrawberryShake.Tools
 {
@@ -48,7 +47,7 @@ namespace StrawberryShake.Tools
             IReadOnlyList<DocumentInfo> documents,
             ICollection<HCError> errors)
         {
-            string hashFile = IOPath.Combine(
+            string hashFile = FileSystem.CombinePath(
                path,
                WellKnownDirectories.Generated,
                WellKnownFiles.Hash);

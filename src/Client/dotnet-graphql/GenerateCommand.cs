@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace StrawberryShake.Tools
@@ -11,7 +10,7 @@ namespace StrawberryShake.Tools
             generate.AddName("generate");
             generate.AddHelp<GenerateHelpTextGenerator>();
 
-            CommandOption pathArg = generate.Option(
+             CommandOption pathArg = generate.Option(
                 "-p|--Path",
                 "The directory where the client shall be located.",
                 CommandOptionType.SingleValue);
@@ -50,15 +49,12 @@ namespace StrawberryShake.Tools
             generate.OnExecuteAsync(cancellationToken =>
             {
                 var arguments = new GenerateCommandArguments(
-                    pathArg, languageArg, diSupportArg, namespaceArg, forceArg);
+                    pathArg, languageArg, diSupportArg, namespaceArg, searchArg, forceArg);
                 var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
 
             return generate;
         }
-
-
-
     }
 }
