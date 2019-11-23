@@ -77,7 +77,7 @@ namespace StrawberryShake.Generators
         {
             private readonly List<GeneratorTask> _tasks = new List<GeneratorTask>();
 
-            public string? Content { get; private set; }
+            public string Content { get; private set; }
 
             public void Register(
                 ICodeDescriptor descriptor,

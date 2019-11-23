@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.GitHub
 {
     public class GetUser
         : IGetUser

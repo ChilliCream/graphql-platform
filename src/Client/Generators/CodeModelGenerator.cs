@@ -70,8 +70,6 @@ namespace StrawberryShake.Generators
         {
             _context.Register(_query);
 
-            GenerateEnumTypes();
-
             var backlog = new Queue<FieldSelection>();
 
             foreach (var operation in
@@ -101,6 +99,8 @@ namespace StrawberryShake.Generators
 
                 GenerateResultParserDescriptor(operation, resultType);
             }
+
+            GenerateEnumTypes();
 
             var clientDescriptor = new ClientDescriptor(
                 _context.ClientName,
@@ -246,10 +246,18 @@ namespace StrawberryShake.Generators
 
         private void GenerateEnumTypes()
         {
-            IReadOnlyList<EnumType> enumTypes =
+            var enumTypes = new HashSet<EnumType>(
                 CollectUsedEnumTypesVisitor.Collect(
                     _context.Schema,
-                    _context.Query.OriginalDocument);
+                    _context.Query.OriginalDocument)
+                    .ToList());
+
+            foreach (EnumType type in _context.Descriptors.OfType<IInputClassDescriptor>()
+                .SelectMany(t => t.Fields.Select(t => t.Field.Type.NamedType()))
+                .OfType<EnumType>())
+            {
+                enumTypes.Add(type);
+            }
 
             foreach (EnumType enumType in enumTypes)
             {

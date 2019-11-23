@@ -12,6 +12,8 @@ namespace StrawberryShake.Client.GraphQL
 
         public IDocument Document => Queries.Default;
 
+        public OperationKind Kind => OperationKind.Query;
+
         public Type ResultType => typeof(ISearch);
 
         public Optional<string> Text { get; set; }
@@ -20,7 +22,7 @@ namespace StrawberryShake.Client.GraphQL
         {
             var variables = new List<VariableValue>();
 
-            if(Text.HasValue)
+            if (Text.HasValue)
             {
                 variables.Add(new VariableValue("text", "String", Text.Value));
             }

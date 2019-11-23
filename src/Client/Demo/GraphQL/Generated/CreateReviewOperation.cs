@@ -12,6 +12,8 @@ namespace StrawberryShake.Client.GraphQL
 
         public IDocument Document => Queries.Default;
 
+        public OperationKind Kind => OperationKind.Mutation;
+
         public Type ResultType => typeof(ICreateReview);
 
         public Optional<Episode> Episode { get; set; }
@@ -22,12 +24,12 @@ namespace StrawberryShake.Client.GraphQL
         {
             var variables = new List<VariableValue>();
 
-            if(Episode.HasValue)
+            if (Episode.HasValue)
             {
                 variables.Add(new VariableValue("episode", "Episode", Episode.Value));
             }
 
-            if(Review.HasValue)
+            if (Review.HasValue)
             {
                 variables.Add(new VariableValue("review", "ReviewInput", Review.Value));
             }

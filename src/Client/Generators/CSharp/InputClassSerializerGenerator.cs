@@ -398,7 +398,11 @@ namespace StrawberryShake.Generators.CSharp
                         .ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(actualType.NamedType().Name))
                         .ConfigureAwait(false);
-                    await writer.WriteAsync("Serializer!.Serialize(value);").ConfigureAwait(false);
+                    await writer.WriteAsync(
+                        _languageVersion == LanguageVersion.CSharp_8_0
+                            ? "Serializer!.Serialize(value);"
+                            : "Serializer.Serialize(value);")
+                            .ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
                 await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
@@ -427,7 +431,7 @@ namespace StrawberryShake.Generators.CSharp
 
         private async Task WriteNonNullHandling(CodeWriter writer)
         {
-            await writer.WriteIndentedLineAsync("if(value is null)").ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("if (value is null)").ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
             using (writer.IncreaseIndent())
             {
@@ -443,7 +447,9 @@ namespace StrawberryShake.Generators.CSharp
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync(
-                "public object? Deserialize(object? value)")
+                _languageVersion == LanguageVersion.CSharp_8_0
+                    ? "public object? Deserialize(object? value)"
+                    : "public object Deserialize(object value)")
                 .ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 

@@ -45,6 +45,8 @@ using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
@@ -56,7 +58,7 @@ namespace StrawberryShake.Client
 
         public GetFooResultParser(IValueSerializerResolver serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
@@ -121,6 +123,8 @@ namespace StrawberryShake.Client
 
         public IDocument Document => Queries.Default;
 
+        public OperationKind Kind => OperationKind.Query;
+
         public Type ResultType => typeof(IGetFoo);
 
         public IReadOnlyList<VariableValue> GetVariableValues()
@@ -164,11 +168,13 @@ namespace StrawberryShake.Client
     public class SchemaClient
         : ISchemaClient
     {
+        private const string _clientName = "SchemaClient";
+
         private readonly IOperationExecutor _executor;
 
-        public SchemaClient(IOperationExecutor executor)
+        public SchemaClient(IOperationExecutorPool executorPool)
         {
-            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+            _executor = executorPool.CreateExecutor(_clientName);
         }
 
         public Task<IOperationResult<IGetFoo>> GetFooAsync(
@@ -184,7 +190,7 @@ namespace StrawberryShake.Client
             GetFooOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if(operation is null)
+            if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -204,12 +210,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
 using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
+using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Serializers;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
     public static class SchemaClientServiceCollectionExtensions
     {
+        private const string _clientName = "SchemaClient";
+
         public static IServiceCollection AddSchemaClient(
             this IServiceCollection serviceCollection)
         {
@@ -219,12 +229,26 @@ namespace StrawberryShake.Client
             }
 
             serviceCollection.AddSingleton<ISchemaClient, SchemaClient>();
-            serviceCollection.AddSingleton(sp =>
-                HttpOperationExecutorBuilder.New()
-                    .AddServices(sp)
-                    .SetClient(ClientFactory)
-                    .SetPipeline(PipelineFactory)
-                    .Build());
+            serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
+                new HttpOperationExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<IHttpClientFactory>().CreateClient,
+                    PipelineFactory(sp),
+                    sp));
+
+            serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>
+                new SocketOperationStreamExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<ISocketConnectionPool>().RentAsync,
+                    sp.GetRequiredService<ISubscriptionManager>(),
+                    sp.GetRequiredService<IResultParserResolver>()));
+
+            serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
+            serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
+            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
+                typeof(ISocketConnectionInterceptor),
+                typeof(MessagePipelineHandler),
+                ServiceLifetime.Singleton));
 
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddResultParsers();
@@ -235,14 +259,9 @@ namespace StrawberryShake.Client
             return serviceCollection;
         }
 
-        public static IServiceCollection AddDefaultScalarSerializers(
+        private static IServiceCollection AddDefaultScalarSerializers(
             this IServiceCollection serviceCollection)
         {
-            if (serviceCollection is null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
             serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
 
             foreach (IValueSerializer serializer in ValueSerializers.All)
@@ -266,7 +285,7 @@ namespace StrawberryShake.Client
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
+            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
             return serviceCollection;
         }
 
@@ -280,12 +299,6 @@ namespace StrawberryShake.Client
                     .Use<ParseSingleResultMiddleware>()
                     .Build(sp));
             return serviceCollection;
-        }
-
-        private static Func<HttpClient> ClientFactory(IServiceProvider services)
-        {
-            var clientFactory = services.GetRequiredService<IHttpClientFactory>();
-            return () => clientFactory.CreateClient("SchemaClient");
         }
 
         private static OperationDelegate PipelineFactory(IServiceProvider services)

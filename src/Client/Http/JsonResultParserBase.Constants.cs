@@ -1,3 +1,5 @@
+using System;
+
 namespace StrawberryShake.Http
 {
     public abstract partial class JsonResultParserBase<T>

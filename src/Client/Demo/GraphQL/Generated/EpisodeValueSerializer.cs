@@ -18,7 +18,7 @@ namespace StrawberryShake.Client.GraphQL
 
         public object? Serialize(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
@@ -40,7 +40,7 @@ namespace StrawberryShake.Client.GraphQL
 
         public object? Deserialize(object? serialized)
         {
-            if(serialized is null)
+            if (serialized is null)
             {
                 return null;
             }

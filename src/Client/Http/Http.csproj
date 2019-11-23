@@ -21,6 +21,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    <ProjectReference Include="..\Transport.Abstractions\Transport.Abstractions.csproj" />
+    <ProjectReference Include="..\Transport.WebSockets\Transport.WebSockets.csproj" />
+    <ProjectReference Include="..\..\Core\Language\Language.csproj" />
   </ItemGroup>
 
 </Project>
