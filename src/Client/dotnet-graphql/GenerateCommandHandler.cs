@@ -26,15 +26,15 @@ namespace StrawberryShake.Tools
             GenerateCommandArguments arguments)
         {
             LanguageVersion languageVersion =
-                (!arguments.Language.HasValue() || arguments.Language.Value() == "7.3")
+                (!arguments.Language.HasValue() || arguments.Language.Value()?.Trim() == "7.3")
                 ? LanguageVersion.CSharp_7_3
                 : LanguageVersion.CSharp_8_0;
 
             return new GenerateCommandContext(
-                arguments.Path.Value() ?? FileSystem.CurrentDirectory,
+                arguments.Path.Value()?.Trim() ?? FileSystem.CurrentDirectory,
                 languageVersion,
                 arguments.DISupport.HasValue(),
-                arguments.Namespace.Value() ?? "StrawberryShake",
+                arguments.Namespace.Value()?.Trim() ?? "StrawberryShake",
                 arguments.Search.HasValue(),
                 arguments.Force.HasValue());
         }

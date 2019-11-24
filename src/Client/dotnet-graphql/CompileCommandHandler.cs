@@ -21,7 +21,7 @@ namespace StrawberryShake.Tools
             CompileCommandArguments arguments)
         {
             return new CompileCommandContext(
-                arguments.Path.Value() ?? FileSystem.CurrentDirectory,
+                arguments.Path.Value()?.Trim() ?? FileSystem.CurrentDirectory,
                 arguments.Search.HasValue());
         }
 

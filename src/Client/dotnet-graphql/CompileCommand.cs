@@ -7,7 +7,7 @@ namespace StrawberryShake.Tools
         public static CommandLineApplication Create()
         {
             var generate = new CommandLineApplication();
-            generate.AddName("generate");
+            generate.AddName("compile");
             generate.AddHelp<CompileHelpTextGenerator>();
 
             CommandOption pathArg = generate.Option(
