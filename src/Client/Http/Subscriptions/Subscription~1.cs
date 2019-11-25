@@ -44,25 +44,28 @@ namespace StrawberryShake.Http.Subscriptions
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            try
+            while (!_disposed && !completed)
             {
-                IOperationResult<T>? result = await _nextResult!.Task.ConfigureAwait(false);
-                if (result is { })
+                try
                 {
-                    yield return result;
+                    IOperationResult<T>? result = await _nextResult!.Task.ConfigureAwait(false);
+                    if (result is { })
+                    {
+                        yield return result;
+                    }
+                    else
+                    {
+                        completed = true;
+                    }
                 }
-                else
+                finally
                 {
-                    completed = true;
-                }
-            }
-            finally
-            {
-                if (!completed)
-                {
-                    _nextResult = new TaskCompletionSource<IOperationResult<T>?>(
-                        cancellationToken);
-                    _resultSemaphore.Release();
+                    if (!completed)
+                    {
+                        _nextResult = new TaskCompletionSource<IOperationResult<T>?>(
+                            cancellationToken);
+                        _resultSemaphore.Release();
+                    }
                 }
             }
         }
