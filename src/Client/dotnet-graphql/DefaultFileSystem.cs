@@ -12,8 +12,7 @@ namespace StrawberryShake.Tools
 
         public string CurrentDirectory => Environment.CurrentDirectory;
 
-        public string CombinePath(params string[] paths) =>
-            Path.GetFullPath(Path.Combine(paths));
+        public string CombinePath(params string[] paths) => Path.Combine(paths);
 
         public void EnsureDirectoryExists(string path)
         {

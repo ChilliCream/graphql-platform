@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using static StrawberryShake.Generators.Utilities.NameUtils;
@@ -132,53 +133,61 @@ namespace StrawberryShake.Generators.CSharp
                     }
                     await writer.WriteLineAsync().ConfigureAwait(false);
 
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>")
-                        .ConfigureAwait(false);
-
-                    using (writer.IncreaseIndent())
+                    if (descriptor.OperationTypes.Contains(OperationType.Subscription))
                     {
                         await writer.WriteIndentedLineAsync(
-                            "new SocketOperationStreamExecutorFactory(")
+                            "serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>")
+                            .ConfigureAwait(false);
+
+                        using (writer.IncreaseIndent())
+                        {
+                            await writer.WriteIndentedLineAsync(
+                                "new SocketOperationStreamExecutorFactory(")
+                                .ConfigureAwait(false);
+                            using (writer.IncreaseIndent())
+                            {
+                                await writer.WriteIndentedLineAsync(
+                                    "_clientName,")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<ISocketConnectionPool>().RentAsync,")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<ISubscriptionManager>(),")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<IResultParserResolver>()));")
+                                    .ConfigureAwait(false);
+                            }
+                        }
+                        await writer.WriteLineAsync().ConfigureAwait(false);
+
+                        await writer.WriteIndentedLineAsync(
+                        "serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();")
+                        .ConfigureAwait(false);
+                    }
+
+                    await writer.WriteIndentedLineAsync(
+                        "serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();")
+                        .ConfigureAwait(false);
+
+                    if (descriptor.OperationTypes.Contains(OperationType.Subscription))
+                    {
+                        await writer.WriteIndentedLineAsync(
+                            "serviceCollection.TryAddEnumerable(new ServiceDescriptor(")
                             .ConfigureAwait(false);
                         using (writer.IncreaseIndent())
                         {
                             await writer.WriteIndentedLineAsync(
-                                "_clientName,")
+                                "typeof(ISocketConnectionInterceptor),")
                                 .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                "sp.GetRequiredService<ISocketConnectionPool>().RentAsync,")
+                                "typeof(MessagePipelineHandler),")
                                 .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                "sp.GetRequiredService<ISubscriptionManager>(),")
-                                .ConfigureAwait(false);
-                            await writer.WriteIndentedLineAsync(
-                                "sp.GetRequiredService<IResultParserResolver>()));")
+                                "ServiceLifetime.Singleton));")
                                 .ConfigureAwait(false);
                         }
-                    }
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();")
-                        .ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();")
-                        .ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddEnumerable(new ServiceDescriptor(")
-                        .ConfigureAwait(false);
-                    using (writer.IncreaseIndent())
-                    {
-                        await writer.WriteIndentedLineAsync(
-                            "typeof(ISocketConnectionInterceptor),")
-                            .ConfigureAwait(false);
-                        await writer.WriteIndentedLineAsync(
-                            "typeof(MessagePipelineHandler),")
-                            .ConfigureAwait(false);
-                        await writer.WriteIndentedLineAsync(
-                            "ServiceLifetime.Singleton));")
-                            .ConfigureAwait(false);
                     }
                     await writer.WriteLineAsync().ConfigureAwait(false);
 
