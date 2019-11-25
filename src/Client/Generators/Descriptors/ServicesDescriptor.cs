@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Language;
 
 namespace StrawberryShake.Generators.Descriptors
 {
@@ -27,6 +29,9 @@ namespace StrawberryShake.Generators.Descriptors
                 ?? throw new ArgumentNullException(nameof(inputTypes));
             ResultParsers = resultParsers
                 ?? throw new ArgumentNullException(nameof(resultParsers));
+
+            OperationTypes = new HashSet<OperationType>(
+                client.Operations.Select(t => t.Operation.Operation));
         }
 
         public string Name { get; }
@@ -40,6 +45,8 @@ namespace StrawberryShake.Generators.Descriptors
         public IReadOnlyCollection<IEnumDescriptor> EnumTypes { get; }
 
         public IReadOnlyCollection<IResultParserDescriptor> ResultParsers { get; }
+
+        public ISet<OperationType> OperationTypes { get; }
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {

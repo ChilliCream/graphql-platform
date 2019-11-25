@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Language;
 
 namespace StrawberryShake.Generators.Descriptors
 {
@@ -12,5 +13,7 @@ namespace StrawberryShake.Generators.Descriptors
         IReadOnlyCollection<IEnumDescriptor> EnumTypes { get; }
 
         IReadOnlyCollection<IResultParserDescriptor> ResultParsers { get; }
+
+        ISet<OperationType> OperationTypes { get; }
     }
 }

@@ -12,9 +12,9 @@ namespace StrawberryShake.Tools
         : CommandHandler<UpdateCommandArguments>
     {
         public UpdateCommandHandler(
-            IFileSystem fileSystem, 
-            IHttpClientFactory httpClientFactory, 
-            IConfigurationStore configurationStore, 
+            IFileSystem fileSystem,
+            IHttpClientFactory httpClientFactory,
+            IConfigurationStore configurationStore,
             IConsoleOutput output)
         {
             FileSystem = fileSystem;
@@ -36,12 +36,12 @@ namespace StrawberryShake.Tools
             CancellationToken cancellationToken)
         {
             using IDisposable command = Output.WriteCommand();
-            
+
             var context = new UpdateCommandContext(
-                arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()) : null,
-                arguments.Path.Value(),
-                arguments.Token.Value(),
-                arguments.Scheme.Value() ?? "bearer");
+                arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()?.Trim()) : null,
+                arguments.Path.Value()?.Trim(),
+                arguments.Token.Value()?.Trim(),
+                arguments.Scheme.Value()?.Trim() ?? "bearer");
 
             return context.Path is null
                 ? FindAndUpdateSchemasAsync(context)

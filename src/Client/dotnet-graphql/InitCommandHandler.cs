@@ -36,12 +36,12 @@ namespace StrawberryShake.Tools
             CancellationToken cancellationToken)
         {
             using IDisposable command = Output.WriteCommand();
-            
+
             var context = new InitCommandContext(
                 arguments.Schema.Value()?.Trim() ?? "schema",
-                FileSystem.ResolvePath(arguments.Path.Value()),
-                arguments.Token.Value(),
-                arguments.Schema.Value() ?? "bearer",
+                FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
+                arguments.Token.Value()?.Trim(),
+                arguments.Schema.Value()?.Trim() ?? "bearer",
                 new Uri(arguments.Uri.Value!));
 
             FileSystem.EnsureDirectoryExists(context.Path);
