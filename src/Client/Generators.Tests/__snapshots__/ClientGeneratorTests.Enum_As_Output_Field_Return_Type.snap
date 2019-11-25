@@ -468,19 +468,7 @@ namespace StrawberryShake.Client
                     PipelineFactory(sp),
                     sp));
 
-            serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>
-                new SocketOperationStreamExecutorFactory(
-                    _clientName,
-                    sp.GetRequiredService<ISocketConnectionPool>().RentAsync,
-                    sp.GetRequiredService<ISubscriptionManager>(),
-                    sp.GetRequiredService<IResultParserResolver>()));
-
-            serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
-            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
-                typeof(ISocketConnectionInterceptor),
-                typeof(MessagePipelineHandler),
-                ServiceLifetime.Singleton));
 
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();
