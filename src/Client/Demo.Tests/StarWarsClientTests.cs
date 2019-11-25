@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using StrawberryShake.Client.GraphQL;
+using Snapshooter;
 
 namespace StrawberryShake.Demo
 {
@@ -74,10 +75,24 @@ namespace StrawberryShake.Demo
                     Stars = 4
                 });
 
+            await client.CreateReviewAsync(
+                Episode.Empire,
+                new ReviewInput
+                {
+                    Commentary = "Me",
+                    Stars = 4
+                });
+
+            int count = 0;
             await foreach (IOperationResult<IOnReview> result in stream.WithCancellation(cts.Token))
             {
-                result.MatchSnapshot();
-                break;
+                result.MatchSnapshot(new SnapshotNameExtension(count));
+
+                count++;
+                if (count > 1)
+                {
+                    break;
+                }
             }
 
             await stream.DisposeAsync();
