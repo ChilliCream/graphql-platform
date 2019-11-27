@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreTestFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'TestSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
+    <AssemblyName>StrawberryShake.Http.Tests</AssemblyName>
+    <RootNamespace>StrawberryShake.Http</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Demo\Demo.csproj" />
+    <ProjectReference Include="..\Http\Http.csproj" />
+    <ProjectReference Include="..\Transport.WebSockets\Transport.WebSockets.csproj" />
+    <ProjectReference Include="..\..\Core\StarWars\StarWars.csproj" />
+    <ProjectReference Include="..\..\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\..\Server\AspNetCore\AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.7" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.0.0" />
+  </ItemGroup>
+
+</Project>

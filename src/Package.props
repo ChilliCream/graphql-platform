@@ -10,7 +10,7 @@
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/master/img/hotchocolate-signet.png</PackageIconUrl>
+    <PackageIconUrl>https://chillicream.com/img/projects/hotchocolate-signet.png</PackageIconUrl>
   </PropertyGroup>
 
   <PropertyGroup>

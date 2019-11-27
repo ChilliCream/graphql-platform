@@ -2791,6 +2791,7 @@
               "Line": 110,
               "Column": 18
             },
+            "Format": "Exponential",
             "Value": "1.23e4"
           },
           "Location": {

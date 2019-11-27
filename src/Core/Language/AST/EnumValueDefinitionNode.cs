@@ -6,9 +6,9 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         public EnumValueDefinitionNode(
-            Location location,
+            Location? location,
             NameNode name,
-            StringValueNode description,
+            StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         {
@@ -17,9 +17,9 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.EnumValueDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
-        public EnumValueDefinitionNode WithLocation(Location location)
+        public EnumValueDefinitionNode WithLocation(Location? location)
         {
             return new EnumValueDefinitionNode(
                 location, Name, Description, Directives);
@@ -32,7 +32,7 @@ namespace HotChocolate.Language
         }
 
         public EnumValueDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new EnumValueDefinitionNode(
                 Location, Name, description, Directives);

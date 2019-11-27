@@ -1,0 +1,501 @@
+﻿﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class GetFoo
+        : IGetFoo
+    {
+        public GetFoo(
+            string? a, 
+            string? b)
+        {
+            A = a;
+            B = b;
+        }
+
+        public string? A { get; }
+
+        public string? B { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class FooInput
+    {
+        public Optional<BarInput?> Bar { get; set; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class BarInput
+    {
+        public Optional<int?> Baz { get; set; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class FooInputSerializer
+        : IInputSerializer
+    {
+        private bool _needsInitialization = true;
+        private IValueSerializer? _barInputSerializer;
+
+        public string Name { get; } = "FooInput";
+
+        public ValueKind Kind { get; } = ValueKind.InputObject;
+
+        public Type ClrType => typeof(FooInput);
+
+        public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
+
+        public void Initialize(IValueSerializerResolver serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
+            _barInputSerializer = serializerResolver.GetValueSerializer("BarInput");
+            _needsInitialization = false;
+        }
+
+        public object? Serialize(object? value)
+        {
+            if (_needsInitialization)
+            {
+                throw new InvalidOperationException(
+                    $"The serializer for type `{Name}` has not been initialized.");
+            }
+
+            if (value is null)
+            {
+                return null;
+            }
+
+            var input = (FooInput)value;
+            var map = new Dictionary<string, object?>();
+
+            if (input.Bar.HasValue)
+            {
+                map.Add("bar", SerializeNullableBarInput(input.Bar.Value));
+            }
+
+            return map;
+        }
+
+        private object? SerializeNullableBarInput(object? value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+
+            return _barInputSerializer!.Serialize(value);
+        }
+
+        public object? Deserialize(object? value)
+        {
+            throw new NotSupportedException(
+                "Deserializing input values is not supported.");
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class BarInputSerializer
+        : IInputSerializer
+    {
+        private bool _needsInitialization = true;
+        private IValueSerializer? _intSerializer;
+
+        public string Name { get; } = "BarInput";
+
+        public ValueKind Kind { get; } = ValueKind.InputObject;
+
+        public Type ClrType => typeof(BarInput);
+
+        public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
+
+        public void Initialize(IValueSerializerResolver serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
+            _intSerializer = serializerResolver.GetValueSerializer("Int");
+            _needsInitialization = false;
+        }
+
+        public object? Serialize(object? value)
+        {
+            if (_needsInitialization)
+            {
+                throw new InvalidOperationException(
+                    $"The serializer for type `{Name}` has not been initialized.");
+            }
+
+            if (value is null)
+            {
+                return null;
+            }
+
+            var input = (BarInput)value;
+            var map = new Dictionary<string, object?>();
+
+            if (input.Baz.HasValue)
+            {
+                map.Add("baz", SerializeNullableInt(input.Baz.Value));
+            }
+
+            return map;
+        }
+
+        private object? SerializeNullableInt(object? value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+
+            return _intSerializer!.Serialize(value);
+        }
+
+        public object? Deserialize(object? value)
+        {
+            throw new NotSupportedException(
+                "Deserializing input values is not supported.");
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface IGetFoo
+    {
+        string? A { get; }
+
+        string? B { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text.Json;
+using StrawberryShake;
+using StrawberryShake.Http;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport;
+
+namespace StrawberryShake.Client
+{
+    public class GetFooResultParser
+        : JsonResultParserBase<IGetFoo>
+    {
+        private readonly IValueSerializer _stringSerializer;
+
+        public GetFooResultParser(IValueSerializerResolver serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
+            _stringSerializer = serializerResolver.GetValueSerializer("String");
+        }
+
+        protected override IGetFoo ParserData(JsonElement data)
+        {
+            return new GetFoo
+            (
+                DeserializeNullableString(data, "a"),
+                DeserializeNullableString(data, "b")
+            );
+
+        }
+
+        private string? DeserializeNullableString(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class GetFooOperation
+        : IOperation<IGetFoo>
+    {
+        public string Name => "getFoo";
+
+        public IDocument Document => Queries.Default;
+
+        public OperationKind Kind => OperationKind.Query;
+
+        public Type ResultType => typeof(IGetFoo);
+
+        public Optional<FooInput> Input1 { get; set; }
+
+        public Optional<FooInput> Input2 { get; set; }
+
+        public IReadOnlyList<VariableValue> GetVariableValues()
+        {
+            var variables = new List<VariableValue>();
+
+            if (Input1.HasValue)
+            {
+                variables.Add(new VariableValue("input1", "FooInput", Input1.Value));
+            }
+
+            if (Input2.HasValue)
+            {
+                variables.Add(new VariableValue("input2", "FooInput", Input2.Value));
+            }
+
+            return variables;
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface ISchemaClient
+    {
+        Task<IOperationResult<IGetFoo>> GetFooAsync(
+            Optional<FooInput> input1 = default,
+            Optional<FooInput> input2 = default,
+            CancellationToken cancellationToken = default);
+
+        Task<IOperationResult<IGetFoo>> GetFooAsync(
+            GetFooOperation operation,
+            CancellationToken cancellationToken = default);
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class SchemaClient
+        : ISchemaClient
+    {
+        private const string _clientName = "SchemaClient";
+
+        private readonly IOperationExecutor _executor;
+
+        public SchemaClient(IOperationExecutorPool executorPool)
+        {
+            _executor = executorPool.CreateExecutor(_clientName);
+        }
+
+        public Task<IOperationResult<IGetFoo>> GetFooAsync(
+            Optional<FooInput> input1 = default,
+            Optional<FooInput> input2 = default,
+            CancellationToken cancellationToken = default)
+        {
+            if (input1.HasValue && input1.Value is null)
+            {
+                throw new ArgumentNullException(nameof(input1));
+            }
+
+            if (input2.HasValue && input2.Value is null)
+            {
+                throw new ArgumentNullException(nameof(input2));
+            }
+
+            return _executor.ExecuteAsync(
+                new GetFooOperation
+                {
+                    Input1 = input1, 
+                    Input2 = input2
+                },
+                cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetFoo>> GetFooAsync(
+            GetFooOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if (operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using StrawberryShake;
+using StrawberryShake.Http;
+using StrawberryShake.Http.Pipelines;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Serializers;
+using StrawberryShake.Transport;
+
+namespace StrawberryShake.Client
+{
+    public static class SchemaClientServiceCollectionExtensions
+    {
+        private const string _clientName = "SchemaClient";
+
+        public static IServiceCollection AddSchemaClient(
+            this IServiceCollection serviceCollection)
+        {
+            if (serviceCollection is null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
+
+            serviceCollection.AddSingleton<ISchemaClient, SchemaClient>();
+            serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
+                new HttpOperationExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<IHttpClientFactory>().CreateClient,
+                    PipelineFactory(sp),
+                    sp));
+
+            serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
+
+            serviceCollection.AddDefaultScalarSerializers();
+            serviceCollection.AddInputSerializers();
+            serviceCollection.AddResultParsers();
+
+            serviceCollection.TryAddDefaultOperationSerializer();
+            serviceCollection.TryAddDefaultHttpPipeline();
+
+            return serviceCollection;
+        }
+
+        private static IServiceCollection AddDefaultScalarSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+
+            foreach (IValueSerializer serializer in ValueSerializers.All)
+            {
+                serviceCollection.AddSingleton(serializer);
+            }
+
+            return serviceCollection;
+        }
+
+
+        private static IServiceCollection AddInputSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IValueSerializer, FooInputSerializer>();
+            serviceCollection.AddSingleton<IValueSerializer, BarInputSerializer>();
+            return serviceCollection;
+        }
+
+        private static IServiceCollection AddResultParsers(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
+            serviceCollection.AddSingleton<IResultParser, GetFooResultParser>();
+            return serviceCollection;
+        }
+
+        private static IServiceCollection TryAddDefaultOperationSerializer(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
+            return serviceCollection;
+        }
+
+        private static IServiceCollection TryAddDefaultHttpPipeline(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.TryAddSingleton<OperationDelegate>(
+                sp => HttpPipelineBuilder.New()
+                    .Use<CreateStandardRequestMiddleware>()
+                    .Use<SendHttpRequestMiddleware>()
+                    .Use<ParseSingleResultMiddleware>()
+                    .Build(sp));
+            return serviceCollection;
+        }
+
+        private static OperationDelegate PipelineFactory(IServiceProvider services)
+        {
+            return services.GetRequiredService<OperationDelegate>();
+        }
+    }
+}
+
+

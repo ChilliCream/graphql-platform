@@ -95,7 +95,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task DateTimeType_GreaterThan_Filter()
+        public async Task GetItems_ObjectEqualsFilter_FirstItems_Is_Returned()
         {
             // arrange
             var serviceCollection = new ServiceCollection();
@@ -106,8 +106,30 @@ namespace HotChocolate.Types.Filters
                 var collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
-                    new Model { Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
-                    new Model { Time = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
+                    new Model
+                    {
+                        Nested = new Model
+                        {
+                            Nested = new Model
+                            {
+                                Foo = "abc",
+                                Bar = 1,
+                                Baz = true
+                            }
+                        }
+                    },
+                    new Model
+                    {
+                        Nested = new Model
+                        {
+                            Nested= new Model
+                            {
+                                Foo = "def",
+                                Bar = 2,
+                                Baz = false
+                            }
+                        }
+                    },
                 });
                 return collection;
             });
@@ -120,43 +142,9 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(where: { time_gt: \"2001-01-01\" }) { time } }")
-                .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task DateType_GreaterThan_Filter()
-        {
-            // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                var collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
-                {
-                    new Model { Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
-                    new Model { Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(where: { date_gt: \"2001-01-01\" }) { date } }")
+                .SetQuery(
+                    "{ items(where: { nested:{ nested: { foo: \"abc\" " +
+                    "} } }) { nested { nested { foo } } } }")
                 .Create();
 
             // act
@@ -274,6 +262,78 @@ namespace HotChocolate.Types.Filters
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task DateTimeType_GreaterThan_Filter()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                var collection = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
+                    new Model { Time = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items(where: { time_gt: \"2001-01-01\" }) { time } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DateType_GreaterThan_Filter()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                var collection = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
+                    new Model { Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items(where: { date_gt: \"2001-01-01\" }) { date } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -316,6 +376,7 @@ namespace HotChocolate.Types.Filters
             public string Foo { get; set; }
             public int Bar { get; set; }
             public bool Baz { get; set; }
+            public Model Nested { get; set; }
             public DateTime Time { get; set; }
             public DateTime Date { get; set; }
         }

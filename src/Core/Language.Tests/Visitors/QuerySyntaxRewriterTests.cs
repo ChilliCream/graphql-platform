@@ -12,7 +12,7 @@ namespace HotChocolate.Language
         public void RewriteEveryFieldOfTheQuery()
         {
             // arange
-            DocumentNode document = Parser.Default.Parse(
+            DocumentNode document = Utf8GraphQLParser.Parse(
                 "{ foo { bar { baz } } }");
 
             // act

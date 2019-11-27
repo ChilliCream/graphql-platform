@@ -11,35 +11,31 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IQueryable<Foo> source = new Foo[0].AsQueryable();
-            var operation = new SortOperationInvocation(
-                SortOperationKind.Asc,
-                typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            ParameterExpression parameter = Expression.Parameter(typeof(Foo));
+            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+            var operation = closure.CreateSortOperation(SortOperationKind.Asc);
+
 
             // act
             IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
-                operation,
-                parameter
+                operation
             );
 
             // assert
             Assert.Equal(source.OrderBy(s => s.Bar), sorted);
         }
-
         [Fact]
         public void AddInitialSortOperation_DescOnIQueryable_ShouldAddOrderBy()
         {
             // arrange
             IQueryable<Foo> source = new Foo[0].AsQueryable();
-            var operation = new SortOperationInvocation(
-                SortOperationKind.Desc,
-                typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            ParameterExpression parameter = Expression.Parameter(typeof(Foo));
+            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+            var operation = closure.CreateSortOperation(SortOperationKind.Desc);
 
             // act
             IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
-                operation,
-                parameter
+                operation
             );
 
             // assert
@@ -51,15 +47,13 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
-            var operation = new SortOperationInvocation(
-                SortOperationKind.Asc,
-                typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            ParameterExpression parameter = Expression.Parameter(typeof(Foo));
+            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+            var operation = closure.CreateSortOperation(SortOperationKind.Asc);
 
             // act
             IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
-                operation,
-                parameter
+                operation
             );
 
             // assert
@@ -71,15 +65,13 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
-            var operation = new SortOperationInvocation(
-                SortOperationKind.Desc,
-                typeof(Foo).GetProperty(nameof(Foo.Bar)));
-            ParameterExpression parameter = Expression.Parameter(typeof(Foo));
+            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
+            var operation = closure.CreateSortOperation(SortOperationKind.Desc);
 
             // act
             IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
-                operation,
-                parameter
+                operation
             );
 
             // assert

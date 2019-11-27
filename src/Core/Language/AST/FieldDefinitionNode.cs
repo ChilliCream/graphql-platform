@@ -7,30 +7,30 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         public FieldDefinitionNode(
-            Location location,
+            Location? location,
             NameNode name,
-            StringValueNode description,
+            StringValueNode? description,
             IReadOnlyList<InputValueDefinitionNode> arguments,
             ITypeNode type,
             IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         {
             Description = description;
-            Arguments = arguments 
+            Arguments = arguments
                 ?? throw new ArgumentNullException(nameof(arguments));
-            Type = type 
+            Type = type
                 ?? throw new ArgumentNullException(nameof(type));
         }
 
         public override NodeKind Kind { get; } = NodeKind.FieldDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
         public IReadOnlyList<InputValueDefinitionNode> Arguments { get; }
 
         public ITypeNode Type { get; }
 
-        public FieldDefinitionNode WithLocation(Location location)
+        public FieldDefinitionNode WithLocation(Location? location)
         {
             return new FieldDefinitionNode(
                 location, Name, Description,
@@ -44,7 +44,8 @@ namespace HotChocolate.Language
                 Arguments, Type, Directives);
         }
 
-        public FieldDefinitionNode WithDescription(StringValueNode description)
+        public FieldDefinitionNode WithDescription(
+            StringValueNode? description)
         {
             return new FieldDefinitionNode(
                 Location, Name, description,

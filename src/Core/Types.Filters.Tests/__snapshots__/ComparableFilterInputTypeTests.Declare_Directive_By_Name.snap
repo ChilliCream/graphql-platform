@@ -9,6 +9,18 @@ type Query {
 input FooFilter {
   AND: [FooFilter!]
   barDecimal: Decimal
+  barDecimalNullable: Decimal
+  barDecimalNullable_gt: Decimal
+  barDecimalNullable_gte: Decimal
+  barDecimalNullable_in: [Decimal]
+  barDecimalNullable_lt: Decimal
+  barDecimalNullable_lte: Decimal
+  barDecimalNullable_not: Decimal
+  barDecimalNullable_not_gt: Decimal
+  barDecimalNullable_not_gte: Decimal
+  barDecimalNullable_not_in: [Decimal]
+  barDecimalNullable_not_lt: Decimal
+  barDecimalNullable_not_lte: Decimal
   barDecimal_gt: Decimal
   barDecimal_gte: Decimal
   barDecimal_in: [Decimal!]
@@ -21,6 +33,18 @@ input FooFilter {
   barDecimal_not_lt: Decimal
   barDecimal_not_lte: Decimal
   barDouble: Float
+  barDoubleNullable: Float
+  barDoubleNullable_gt: Float
+  barDoubleNullable_gte: Float
+  barDoubleNullable_in: [Float]
+  barDoubleNullable_lt: Float
+  barDoubleNullable_lte: Float
+  barDoubleNullable_not: Float
+  barDoubleNullable_not_gt: Float
+  barDoubleNullable_not_gte: Float
+  barDoubleNullable_not_in: [Float]
+  barDoubleNullable_not_lt: Float
+  barDoubleNullable_not_lte: Float
   barDouble_gt: Float
   barDouble_gte: Float
   barDouble_in: [Float!]
@@ -33,6 +57,18 @@ input FooFilter {
   barDouble_not_lt: Float
   barDouble_not_lte: Float
   barFloat: Float
+  barFloatNullable: Float
+  barFloatNullable_gt: Float
+  barFloatNullable_gte: Float
+  barFloatNullable_in: [Float]
+  barFloatNullable_lt: Float
+  barFloatNullable_lte: Float
+  barFloatNullable_not: Float
+  barFloatNullable_not_gt: Float
+  barFloatNullable_not_gte: Float
+  barFloatNullable_not_in: [Float]
+  barFloatNullable_not_lt: Float
+  barFloatNullable_not_lte: Float
   barFloat_gt: Float
   barFloat_gte: Float
   barFloat_in: [Float!]
@@ -45,7 +81,31 @@ input FooFilter {
   barFloat_not_lt: Float
   barFloat_not_lte: Float
   barInt: Int @bar
+  barIntNullable: Int
+  barIntNullable_gt: Int
+  barIntNullable_gte: Int
+  barIntNullable_in: [Int]
+  barIntNullable_lt: Int
+  barIntNullable_lte: Int
+  barIntNullable_not: Int
+  barIntNullable_not_gt: Int
+  barIntNullable_not_gte: Int
+  barIntNullable_not_in: [Int]
+  barIntNullable_not_lt: Int
+  barIntNullable_not_lte: Int
   barLong: Long
+  barLongNullable: Long
+  barLongNullable_gt: Long
+  barLongNullable_gte: Long
+  barLongNullable_in: [Long]
+  barLongNullable_lt: Long
+  barLongNullable_lte: Long
+  barLongNullable_not: Long
+  barLongNullable_not_gt: Long
+  barLongNullable_not_gte: Long
+  barLongNullable_not_in: [Long]
+  barLongNullable_not_lt: Long
+  barLongNullable_not_lte: Long
   barLong_gt: Long
   barLong_gte: Long
   barLong_in: [Long!]
@@ -58,6 +118,18 @@ input FooFilter {
   barLong_not_lt: Long
   barLong_not_lte: Long
   barShort: Short
+  barShortNullable: Short
+  barShortNullable_gt: Short
+  barShortNullable_gte: Short
+  barShortNullable_in: [Short]
+  barShortNullable_lt: Short
+  barShortNullable_lte: Short
+  barShortNullable_not: Short
+  barShortNullable_not_gt: Short
+  barShortNullable_not_gte: Short
+  barShortNullable_not_in: [Short]
+  barShortNullable_not_lt: Short
+  barShortNullable_not_lte: Short
   barShort_gt: Short
   barShort_gte: Short
   barShort_in: [Short!]

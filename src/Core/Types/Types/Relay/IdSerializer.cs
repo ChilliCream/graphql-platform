@@ -1,8 +1,9 @@
-﻿using System.Buffers;
 using System;
 using System.Text;
+using System.Buffers;
 using System.Buffers.Text;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Relay
 {
@@ -20,7 +21,6 @@ namespace HotChocolate.Types.Relay
         private const char _forwardSlash = '/';
         private const char _equals = '=';
         private const byte _schema = 0;
-        private const byte _empty = (byte)'\0';
 
         private static readonly Encoding _utf8 = Encoding.UTF8;
 
@@ -58,17 +58,17 @@ namespace HotChocolate.Types.Relay
 
             int bytesWritten;
 
-            int schemaSize = checked(schemaName.HasValue
+            var schemaSize = checked(schemaName.HasValue
                 ? GetAllocationSize(schemaName.Value)
                 : 0);
 
-            int nameSize = GetAllocationSize(typeName.Value);
+            var nameSize = GetAllocationSize(typeName.Value);
 
-            int idSize = checked(idString is null
+            var idSize = checked(idString is null
                 ? GetAllocationSize(in id)
                 : GetAllocationSize(in idString));
 
-            int serializedSize = ((schemaSize + nameSize + idSize + 16) / 3) * 4;
+            var serializedSize = ((schemaSize + nameSize + idSize + 16) / 3) * 4;
 
             byte[] serializedArray = null;
 
@@ -78,7 +78,7 @@ namespace HotChocolate.Types.Relay
 
             try
             {
-                int position = 0;
+                var position = 0;
 
                 if (schemaName.HasValue)
                 {
@@ -129,8 +129,8 @@ namespace HotChocolate.Types.Relay
                 if (Base64.EncodeToUtf8InPlace(
                     serialized, position, out bytesWritten) != OperationStatus.Done)
                 {
-                    // TODO : resources
-                    throw new InvalidOperationException("Unable to encode data.");
+                    throw new IdSerializationException(
+                        TypeResources.IdSerializer_UnableToEncode);
                 }
 
                 serialized = serialized.Slice(0, bytesWritten);
@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Relay
                 throw new ArgumentNullException(nameof(serializedId));
             }
 
-            int serializedSize = GetAllocationSize(serializedId);
+            var serializedSize = GetAllocationSize(serializedId);
 
             byte[] serializedArray = null;
 
@@ -185,18 +185,17 @@ namespace HotChocolate.Types.Relay
 
             try
             {
-                int bytesWritten = CopyString(serializedId, serialized);
+                var bytesWritten = CopyString(serializedId, serialized);
                 serialized = serialized.Slice(0, bytesWritten);
 
                 if (Base64.DecodeFromUtf8InPlace(
                     serialized, out bytesWritten) != OperationStatus.Done)
                 {
-                    // TODO : resources
-                    throw new InvalidOperationException(
-                        "Unable to decode the id string.");
+                    throw new IdSerializationException(
+                        TypeResources.IdSerializer_UnableToDecode);
                 }
 
-                int nextSeparator = -1;
+                var nextSeparator = -1;
 
                 Span<byte> decoded = serialized.Slice(0, bytesWritten);
 
@@ -265,9 +264,9 @@ namespace HotChocolate.Types.Relay
                 return false;
             }
 
-            int equalsCount = 0;
+            var equalsCount = 0;
 
-            for (int i = 0; i < s.Length; i++)
+            for (var i = 0; i < s.Length; i++)
             {
                 if (IsBase64Char(s[i]))
                 {
@@ -287,39 +286,29 @@ namespace HotChocolate.Types.Relay
 
         private static bool IsBase64Char(in char c)
         {
-            return c.IsLetter()
-                || c.IsDigit()
-                || c.IsPlus()
-                || c == _forwardSlash;
+            byte b = (byte)c;
+            return (b.IsLetterOrUnderscore() && b != GraphQLConstants.Underscore)
+                || b.IsDigit()
+                || c == GraphQLConstants.Dollar
+                || c == GraphQLConstants.Forwardslash;
         }
 
         private static int GetAllocationSize<T>(in T value)
         {
-            switch (value)
+            return value switch
             {
-                case Guid g:
-                    return 32;
-
-                case short s:
-                    return 6;
-
-                case int i:
-                    return 11;
-
-                case long l:
-                    return 20;
-
-                case string s:
-                    return _utf8.GetByteCount(s);
-
-                default:
-                    throw new NotSupportedException();
-            }
+                Guid _ => 32,
+                short _ => 6,
+                int _ => 11,
+                long _ => 20,
+                string s => _utf8.GetByteCount(s),
+                _ => throw new NotSupportedException(),
+            };
         }
 
         private static int NextSeparator(ReadOnlySpan<byte> serializedId)
         {
-            for (int i = 0; i < serializedId.Length; i++)
+            for (var i = 0; i < serializedId.Length; i++)
             {
                 if (serializedId[i] == _separator)
                 {

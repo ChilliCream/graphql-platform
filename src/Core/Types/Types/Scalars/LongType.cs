@@ -1,25 +1,46 @@
-using System.Globalization;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public sealed class LongType
-        : NumericTypeBase<long>
+        : IntegerTypeBase<long>
     {
         public LongType()
-            : base("Long")
+            : this(long.MinValue, long.MaxValue)
+        {
+        }
+
+        public LongType(long min, long max)
+            : this(ScalarNames.Long, min, max)
         {
             Description = TypeResources.LongType_Description;
         }
 
-        protected override bool TryParseValue(string s, out long value) =>
-            long.TryParse(
-                s,
-                NumberStyles.Integer,
-                CultureInfo.InvariantCulture,
-                out value);
+        public LongType(NameString name)
+            : this(name, long.MinValue, long.MaxValue)
+        {
+        }
 
-        protected override string SerializeValue(long value) =>
-            value.ToString("D", CultureInfo.InvariantCulture);
+        public LongType(NameString name, long min, long max)
+            : base(name, min, max)
+        {
+        }
+
+        public LongType(NameString name, string description, long min, long max)
+            : base(name, min, max)
+        {
+            Description = description;
+        }
+
+        protected override long ParseLiteral(IntValueNode literal)
+        {
+            return literal.ToInt64();
+        }
+
+        protected override IntValueNode ParseValue(long value)
+        {
+            return new IntValueNode(value);
+        }
     }
 }

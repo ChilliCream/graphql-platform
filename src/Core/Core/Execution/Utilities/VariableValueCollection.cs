@@ -46,7 +46,13 @@ namespace HotChocolate.Execution
             {
                 object coercedValue = null;
 
-                if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
+                if (typeof(T) == typeof(object))
+                {
+                    coercedValue = variableValue.Literal == null
+                        ? variableValue.Value
+                        : variableValue.Literal;
+                }
+                else if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
                 {
                     if (variableValue.Literal == null)
                     {

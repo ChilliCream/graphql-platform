@@ -9,11 +9,10 @@ namespace HotChocolate.Types.Sorting
     {
         internal static IOrderedQueryable<TSource> AddInitialSortOperation<TSource>(
             this IQueryable<TSource> source,
-            SortOperationInvocation operation,
-            ParameterExpression parameter)
+            SortOperationInvocation operation)
         {
             Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation, parameter);
+                = HandleProperty<TSource>(operation);
 
             if (operation.Kind == SortOperationKind.Desc)
             {
@@ -25,11 +24,10 @@ namespace HotChocolate.Types.Sorting
 
         internal static IOrderedQueryable<TSource> AddSortOperation<TSource>(
             this IOrderedQueryable<TSource> source,
-            SortOperationInvocation operation,
-            ParameterExpression parameter)
+            SortOperationInvocation operation)
         {
             Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation, parameter);
+                = HandleProperty<TSource>(operation);
 
             if (operation.Kind == SortOperationKind.Desc)
             {
@@ -40,13 +38,16 @@ namespace HotChocolate.Types.Sorting
         }
 
         internal static Expression<Func<TSource, object>> HandleProperty<TSource>(
-            SortOperationInvocation operation, ParameterExpression parameter)
+            SortOperationInvocation operation)
         {
-            PropertyInfo propertyInfo = operation.Property;
-
-            MemberExpression property = Expression.Property(parameter, propertyInfo);
-            UnaryExpression propAsObject = Expression.Convert(property, typeof(object));
-            return Expression.Lambda<Func<TSource, object>>(propAsObject, parameter);
+            UnaryExpression propAsObject = Expression.Convert(
+                operation.ExpressionBody,
+                typeof(object)
+            );
+            return Expression.Lambda<Func<TSource, object>>(
+                propAsObject,
+                operation.Parameter
+           );
         }
     }
 }

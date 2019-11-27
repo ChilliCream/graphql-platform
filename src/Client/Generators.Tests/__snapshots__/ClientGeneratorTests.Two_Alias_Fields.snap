@@ -1,0 +1,376 @@
+﻿﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class GetBars
+        : IGetBars
+    {
+        public GetBars(
+            IFoo a, 
+            IFoo1 b)
+        {
+            A = a;
+            B = b;
+        }
+
+        public IFoo A { get; }
+
+        public IFoo1 B { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class Foo
+        : IFoo
+    {
+        public Foo(
+            string? bar)
+        {
+            Bar = bar;
+        }
+
+        public string? Bar { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class Foo1
+        : IFoo1
+    {
+        public Foo1(
+            string? bar)
+        {
+            Bar = bar;
+        }
+
+        public string? Bar { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface IGetBars
+    {
+        IFoo A { get; }
+
+        IFoo1 B { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface IFoo
+    {
+        string? Bar { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface IFoo1
+    {
+        string? Bar { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text.Json;
+using StrawberryShake;
+using StrawberryShake.Http;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport;
+
+namespace StrawberryShake.Client
+{
+    public class GetBarsResultParser
+        : JsonResultParserBase<IGetBars>
+    {
+        private readonly IValueSerializer _stringSerializer;
+
+        public GetBarsResultParser(IValueSerializerResolver serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
+            _stringSerializer = serializerResolver.GetValueSerializer("String");
+        }
+
+        protected override IGetBars ParserData(JsonElement data)
+        {
+            return new GetBars
+            (
+                ParseGetBarsA(data, "a"),
+                ParseGetBarsB(data, "b")
+            );
+
+        }
+
+        private IFoo ParseGetBarsA(
+            JsonElement parent,
+            string field)
+        {
+            JsonElement obj = parent.GetProperty(field);
+
+            return new Foo
+            (
+                DeserializeNullableString(obj, "bar")
+            );
+        }
+
+        private IFoo1 ParseGetBarsB(
+            JsonElement parent,
+            string field)
+        {
+            JsonElement obj = parent.GetProperty(field);
+
+            return new Foo1
+            (
+                DeserializeNullableString(obj, "bar")
+            );
+        }
+
+        private string? DeserializeNullableString(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class GetBarsOperation
+        : IOperation<IGetBars>
+    {
+        public string Name => "getBars";
+
+        public IDocument Document => Queries.Default;
+
+        public OperationKind Kind => OperationKind.Query;
+
+        public Type ResultType => typeof(IGetBars);
+
+        public IReadOnlyList<VariableValue> GetVariableValues()
+        {
+            return Array.Empty<VariableValue>();
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface ISchemaClient
+    {
+        Task<IOperationResult<IGetBars>> GetBarsAsync(
+            CancellationToken cancellationToken = default);
+
+        Task<IOperationResult<IGetBars>> GetBarsAsync(
+            GetBarsOperation operation,
+            CancellationToken cancellationToken = default);
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class SchemaClient
+        : ISchemaClient
+    {
+        private const string _clientName = "SchemaClient";
+
+        private readonly IOperationExecutor _executor;
+
+        public SchemaClient(IOperationExecutorPool executorPool)
+        {
+            _executor = executorPool.CreateExecutor(_clientName);
+        }
+
+        public Task<IOperationResult<IGetBars>> GetBarsAsync(
+            CancellationToken cancellationToken = default)
+        {
+
+            return _executor.ExecuteAsync(
+                new GetBarsOperation(),
+                cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetBars>> GetBarsAsync(
+            GetBarsOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if (operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using StrawberryShake;
+using StrawberryShake.Http;
+using StrawberryShake.Http.Pipelines;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Serializers;
+using StrawberryShake.Transport;
+
+namespace StrawberryShake.Client
+{
+    public static class SchemaClientServiceCollectionExtensions
+    {
+        private const string _clientName = "SchemaClient";
+
+        public static IServiceCollection AddSchemaClient(
+            this IServiceCollection serviceCollection)
+        {
+            if (serviceCollection is null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
+
+            serviceCollection.AddSingleton<ISchemaClient, SchemaClient>();
+            serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
+                new HttpOperationExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<IHttpClientFactory>().CreateClient,
+                    PipelineFactory(sp),
+                    sp));
+
+            serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
+
+            serviceCollection.AddDefaultScalarSerializers();
+            serviceCollection.AddResultParsers();
+
+            serviceCollection.TryAddDefaultOperationSerializer();
+            serviceCollection.TryAddDefaultHttpPipeline();
+
+            return serviceCollection;
+        }
+
+        private static IServiceCollection AddDefaultScalarSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+
+            foreach (IValueSerializer serializer in ValueSerializers.All)
+            {
+                serviceCollection.AddSingleton(serializer);
+            }
+
+            return serviceCollection;
+        }
+
+
+
+        private static IServiceCollection AddResultParsers(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
+            serviceCollection.AddSingleton<IResultParser, GetBarsResultParser>();
+            return serviceCollection;
+        }
+
+        private static IServiceCollection TryAddDefaultOperationSerializer(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
+            return serviceCollection;
+        }
+
+        private static IServiceCollection TryAddDefaultHttpPipeline(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.TryAddSingleton<OperationDelegate>(
+                sp => HttpPipelineBuilder.New()
+                    .Use<CreateStandardRequestMiddleware>()
+                    .Use<SendHttpRequestMiddleware>()
+                    .Use<ParseSingleResultMiddleware>()
+                    .Build(sp));
+            return serviceCollection;
+        }
+
+        private static OperationDelegate PipelineFactory(IServiceProvider services)
+        {
+            return services.GetRequiredService<OperationDelegate>();
+        }
+    }
+}
+
+

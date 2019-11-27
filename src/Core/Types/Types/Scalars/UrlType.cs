@@ -5,50 +5,41 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types
 {
     public sealed class UrlType
-        : ScalarType
+        : ScalarType<Uri, StringValueNode>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UrlType"/> class.
+        /// </summary>
         public UrlType()
-            : base("Url")
+            : base(ScalarNames.Url)
         {
         }
 
-        public override Type ClrType => typeof(Uri);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UrlType"/> class.
+        /// </summary>
+        public UrlType(NameString name)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is NullValueNode)
-            {
-                return true;
-            }
-
-            if (literal is StringValueNode stringLiteral
-                && TryParseUri(stringLiteral.Value, out _))
-            {
-                return true;
-            }
-
-            return false;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UrlType"/> class.
+        /// </summary>
+        public UrlType(NameString name, string description)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            Description = description;
+        }
 
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
+        protected override bool IsInstanceOfType(StringValueNode literal)
+        {
+            return TryParseUri(literal.Value, out _);
+        }
 
-            if (literal is StringValueNode stringLiteral
-                && TryParseUri(stringLiteral.Value, out Uri uri))
+        protected override Uri ParseLiteral(StringValueNode literal)
+        {
+            if (TryParseUri(literal.Value, out Uri uri))
             {
                 return uri;
             }
@@ -58,37 +49,27 @@ namespace HotChocolate.Types
                     Name, literal.GetType()));
         }
 
-        public override IValueNode ParseValue(object value)
+        protected override StringValueNode ParseValue(Uri value)
         {
-            if (value == null)
-            {
-                return new NullValueNode(null);
-            }
-
-            if (value is Uri uri)
-            {
-                return new StringValueNode(uri.AbsoluteUri);
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            return new StringValueNode(value.AbsoluteUri);
         }
 
-        public override object Serialize(object value)
+        public override bool TrySerialize(object value, out object serialized)
         {
-            if (value == null)
+            if (value is null)
             {
-                return null;
+                serialized = null;
+                return true;
             }
 
             if (value is Uri uri)
             {
-                return uri;
+                serialized = uri.AbsoluteUri;
+                return true;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+            serialized = null;
+            return false;
         }
 
         public override bool TryDeserialize(object serialized, out object value)

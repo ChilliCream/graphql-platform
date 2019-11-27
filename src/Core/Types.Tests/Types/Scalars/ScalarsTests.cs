@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 
@@ -97,6 +98,48 @@ namespace HotChocolate.Types
 
             // assert
             Assert.False(isScalar);
+        }
+
+        [Fact]
+        public void List_From_ListOfObject()
+        {
+            // arrange
+            var list = new List<object>();
+
+            // act
+            bool success = Scalars.TryGetKind(list, out ValueKind kind);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(ValueKind.List, kind);
+        }
+
+        [Fact]
+        public void List_From_ArrayOfObject()
+        {
+            // arrange
+            var list = new object[0];
+
+            // act
+            bool success = Scalars.TryGetKind(list, out ValueKind kind);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(ValueKind.List, kind);
+        }
+
+        [Fact]
+        public void Object_From_Dictionary()
+        {
+            // arrange
+            var list = new Dictionary<string, object>();
+
+            // act
+            bool success = Scalars.TryGetKind(list, out ValueKind kind);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(ValueKind.Object, kind);
         }
 
         public enum Foo

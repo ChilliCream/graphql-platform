@@ -77,9 +77,13 @@ namespace HotChocolate.Execution
             {
                 IError error = null;
 
-                if (!variables.TryGetVariable(
+                if (variables.TryGetVariable(
                     var.Value.VariableName,
                     out object value))
+                {
+                    value = var.Value.CoerceValue(value);
+                }
+                else
                 {
                     value = var.Value.DefaultValue;
 
@@ -89,7 +93,8 @@ namespace HotChocolate.Execution
                         value = var.Value.Type.ParseLiteral(literal);
                     }
 
-                    if (var.Value.Type.IsNonNullType() && value is null)
+                    if (var.Value.Type.IsNonNullType()
+                        && (value is null || value is NullValueNode))
                     {
                         error = ErrorBuilder.New()
                             .SetMessage(string.Format(
@@ -111,12 +116,12 @@ namespace HotChocolate.Execution
                     if (value is IValueNode literal)
                     {
                         kind = literal.GetValueKind();
-                        args[var.Key] = new ArgumentValue(var.Value.Type, kind, literal);
+                        args[var.Key] = new ArgumentValue(var.Value.Argument, kind, literal);
                     }
                     else
                     {
                         Scalars.TryGetKind(value, out kind);
-                        args[var.Key] = new ArgumentValue(var.Value.Type, kind, value);
+                        args[var.Key] = new ArgumentValue(var.Value.Argument, kind, value);
                     }
                 }
                 else

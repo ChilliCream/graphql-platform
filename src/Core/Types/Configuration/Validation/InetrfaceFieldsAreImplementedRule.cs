@@ -15,9 +15,12 @@ namespace HotChocolate.Configuration.Validation
         {
             var errors = new List<ISchemaError>();
 
-            foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
+            if (options.StrictValidation)
             {
-                ValidateInterfaceImplementation(errors, objectType);
+                foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
+                {
+                    ValidateInterfaceImplementation(errors, objectType);
+                }
             }
 
             return errors;

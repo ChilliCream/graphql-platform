@@ -19,8 +19,10 @@ namespace HotChocolate
             IServiceProvider services = _services
                 ?? new EmptyServiceProvider();
 
-            DescriptorContext descriptorContext =
-                DescriptorContext.Create(_options, services);
+            var descriptorContext = DescriptorContext.Create(
+                _options,
+                services,
+                CreateConventions(services));
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
@@ -148,9 +150,18 @@ namespace HotChocolate
             IEnumerable<ITypeReference> types,
             Func<ISchema> schemaResolver)
         {
+            var interceptor = new AggregateTypeInitilizationInterceptor(
+                CreateInterceptors(services));
+
             var initializer = new TypeInitializer(
-                services, descriptorContext, types, _resolverTypes,
-                _contextData, _isOfType, IsQueryType);
+                services,
+                descriptorContext,
+                types,
+                _resolverTypes,
+                _contextData,
+                interceptor,
+                _isOfType,
+                IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)
             {
@@ -290,6 +301,45 @@ namespace HotChocolate
             }
 
             return false;
+        }
+
+        private IReadOnlyCollection<ITypeInitializationInterceptor> CreateInterceptors(
+            IServiceProvider services)
+        {
+            var list = new List<ITypeInitializationInterceptor>();
+
+            var obj = services.GetService(typeof(IEnumerable<ITypeInitializationInterceptor>));
+            if (obj is IEnumerable<ITypeInitializationInterceptor> interceptors)
+            {
+                list.AddRange(interceptors);
+            }
+
+            var serviceFactory = new ServiceFactory { Services = services };
+            Type interceptorType = typeof(ITypeInitializationInterceptor);
+            foreach (Type type in _interceptors.Where(t => interceptorType.IsAssignableFrom(t)))
+            {
+                obj = serviceFactory.CreateInstance(type);
+                if (obj is ITypeInitializationInterceptor interceptor)
+                {
+                    list.Add(interceptor);
+                }
+            }
+
+            return list;
+        }
+
+        private IReadOnlyDictionary<Type, IConvention> CreateConventions(
+            IServiceProvider services)
+        {
+            var serviceFactory = new ServiceFactory { Services = services };
+            var conventions = new Dictionary<Type, IConvention>();
+
+            foreach (KeyValuePair<Type, CreateConvention> item in _conventions)
+            {
+                conventions.Add(item.Key, item.Value(serviceFactory));
+            }
+
+            return conventions;
         }
     }
 }

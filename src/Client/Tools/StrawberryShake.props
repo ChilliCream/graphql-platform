@@ -1,0 +1,16 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
+    <GraphQLCompiler>$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "dotnet-graphql.dll"))</GraphQLCompiler>
+    <GraphQLCompileOnBuild>true</GraphQLCompileOnBuild>
+    <GraphQLGenerateOnBuild>true</GraphQLGenerateOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="**/*.graphql" />
+    <GraphQL Include="**/*.graphql" />
+    <Watch Include="**/*.graphql" />
+  </ItemGroup>
+
+</Project>

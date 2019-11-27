@@ -3,7 +3,7 @@ using System;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public interface INamingConventions
+    public interface INamingConventions : IConvention
     {
         NameString GetTypeName(Type type);
 

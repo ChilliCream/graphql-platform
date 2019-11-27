@@ -1,4 +1,0 @@
-﻿enum Foo @foo(a: "123") {
-  BAR @foo(a: 123)
-  BAZ
-}

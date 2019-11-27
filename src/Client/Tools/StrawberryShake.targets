@@ -1,0 +1,57 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemDefinitionGroup>
+    <GraphQL>
+      <Generator>MSBuild:GraphQL_Compile</Generator>
+    </GraphQL>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
+      <Context>File;BrowseObject</Context>
+    </PropertyPageSchema>
+    <AvailableItemName Include="GraphQL" />
+  </ItemGroup>
+
+  <!-- Extension points. -->
+  <Target Name="GraphQL_BeforeCompile" />
+  <Target Name="GraphQL_AfterCompile" />
+
+  <!-- Main compile sequence. -->
+  <Target Name="GraphQL_Compile" Condition="'@(GraphQL)' != ''"
+    DependsOnTargets="GraphQL_BeforeCompile;
+          GraphQL_CoreCompile;
+          GraphQL_AfterCompile" />
+
+  <Target Name="GraphQL_CoreCompile">
+    <PropertyGroup>
+      <BerryLangVersion Condition="'$(Nullable)'=='enable' AND '$(LangVersion)'=='8.0'">8.0</BerryLangVersion>
+      <BerryLangVersion Condition="'$(BerryLangVersion)'==''">7.3</BerryLangVersion>
+      <GraphQLEnableDI Condition="'$(GraphQLEnableDI)'==''">true</GraphQLEnableDI>
+      <BerryNamespace Condition="'$(BerryNamespace)'=='' AND '$(RootNamespace)'!=''">$(RootNamespace)</BerryNamespace>
+      <GraphQLCompileCommand>dotnet "$(GraphQLCompiler)" generate -p "$(MSBuildProjectDirectory)" -s</GraphQLCompileCommand>
+      <GraphQLCompileCommand>$(GraphQLCompileCommand) -l $(BerryLangVersion)</GraphQLCompileCommand>
+      <GraphQLCompileCommand Condition="'$(GraphQLEnableDI)'=='true'">$(GraphQLCompileCommand) -d</GraphQLCompileCommand>
+      <GraphQLCompileCommand Condition="'$(BerryNamespace)'!=''">$(GraphQLCompileCommand) -n $(BerryNamespace)</GraphQLCompileCommand>
+      <GraphQLCompileCommand Condition="'$(Force)'=='true'">$(GraphQLCompileCommand) -f</GraphQLCompileCommand>
+    </PropertyGroup>
+
+    <Message Text="$(GraphQLCompileCommand)" Importance="High" />
+    <Exec Command="$(GraphQLCompileCommand)" WorkingDirectory="$(MSBuildProjectDirectory)" IgnoreExitCode="true" />
+  </Target>
+
+  <Target Name="GraphQL_Environment_Validation" BeforeTargets="BeforeBuild">
+    <Error Text="GraphQL content definition is missing." Condition="!Exists('$(GraphQLPropertyPageSchema)')" />
+  </Target>
+
+  <!-- Events -->
+  <Target Name="GraphQL_Compile_OnBuild"
+    BeforeTargets="BeforeBuild"
+    DependsOnTargets="GraphQL_Compile"
+    Condition="'$(GraphQLCompileOnBuild)' == 'true' OR '$(GraphQLGenerateOnBuild)' == 'true'" />
+
+  <!-- Public Targets -->
+  <Target Name="CompileGraphQL" DependsOnTargets="GraphQL_Compile" />
+  <Target Name="GenerateGraphQL" DependsOnTargets="GraphQL_Compile" />
+
+</Project>

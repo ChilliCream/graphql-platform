@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.Types.Filters</PackageId>
     <AssemblyName>HotChocolate.Types.Filters</AssemblyName>
     <RootNamespace>HotChocolate.Types.Filters</RootNamespace>
@@ -18,6 +19,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\FilterResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FilterResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\FilterResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FilterResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

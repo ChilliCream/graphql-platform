@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
                 {
                     resolverContext.Result =
                         await Task.Run(() =>
-                        {
+                        { 
                             var items = new List<object>();
                             foreach (object o in q)
                             {
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
                         .ConfigureAwait(false);
                 }
             }
-            catch (QueryException ex)
+            catch (GraphQLException ex)
             {
                 resolverContext.Result = ex.Errors;
             }
