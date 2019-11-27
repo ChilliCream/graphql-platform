@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
@@ -11,13 +12,13 @@ namespace HotChocolate.Types.Descriptors
         , IEquatable<IClrTypeReference>
     {
         public ClrTypeReference(
-            Type type, TypeContext context)
+            IExtendedType type, TypeContext context)
             : this(type, context, null, null)
         {
         }
 
         public ClrTypeReference(
-            Type type, TypeContext context,
+            IExtendedType type, TypeContext context,
             bool? isTypeNullable, bool? isElementTypeNullable)
             : base(context, isTypeNullable, isElementTypeNullable)
         {
@@ -29,7 +30,7 @@ namespace HotChocolate.Types.Descriptors
             Type = type;
         }
 
-        public Type Type { get; }
+        public IExtendedType Type { get; }
 
         public IClrTypeReference Compile()
         {

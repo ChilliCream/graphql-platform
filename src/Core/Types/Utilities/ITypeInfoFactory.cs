@@ -1,9 +1,9 @@
-﻿using System;
+﻿#nullable enable
 
 namespace HotChocolate.Utilities
 {
     internal interface ITypeInfoFactory
     {
-        bool TryCreate(Type type, out TypeInfo typeInfo);
+        bool TryCreate(IExtendedType type, out TypeInfo? typeInfo);
     }
 }

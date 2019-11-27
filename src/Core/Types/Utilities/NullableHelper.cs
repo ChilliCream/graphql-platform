@@ -168,49 +168,4 @@ namespace HotChocolate.Utilities
             return default;
         }
     }
-
-    public enum Nullable : byte
-    {
-        Yes = 2,
-        No = 1
-    }
-
-    public class MethodTypeInfo
-    {
-        public MethodTypeInfo(
-            TypeNullability returnType,
-            IReadOnlyList<TypeNullability> parameterTypes)
-        {
-            ReturnType = returnType;
-            ParameterTypes = parameterTypes;
-        }
-
-        public TypeNullability ReturnType { get; }
-
-        public IReadOnlyList<TypeNullability> ParameterTypes { get; }
-    }
-
-    public class TypeNullability
-    {
-        public TypeNullability(Nullable state, Type type)
-            : this(state, type, Array.Empty<TypeNullability>())
-        {
-        }
-
-        public TypeNullability(
-            Nullable state,
-            Type type,
-            IReadOnlyList<TypeNullability> genericArguments)
-        {
-            State = state;
-            Type = type;
-            GenericArguments = genericArguments;
-        }
-
-        public Nullable State { get; }
-
-        public Type Type { get; }
-
-        public IReadOnlyList<TypeNullability> GenericArguments { get; }
-    }
 }

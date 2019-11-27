@@ -2,23 +2,52 @@
 using System;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Utilities
 {
     public sealed class TypeInfo
     {
-        public TypeInfo(Type clrType,
-            IReadOnlyList<Type> components,
-            Func<IType, IType> typeFactory)
+        public TypeInfo(
+            Type clrType,
+            IReadOnlyList<TypeComponent> components)
         {
             ClrType = clrType;
             Components = components;
-            TypeFactory = typeFactory;
         }
 
-        public IReadOnlyList<Type> Components { get; }
+        public IReadOnlyList<TypeComponent> Components { get; }
 
         public Type ClrType { get; }
 
-        public Func<IType, IType> TypeFactory { get; }
+        public IType CreateSchemaType(INamedType namedType)
+        {
+            if (Components.Count == 1)
+            {
+                return namedType;
+            }
+
+            IType current = namedType;
+
+            for (int i = Components.Count - 2; i >= 0; i--)
+            {
+                switch (Components[i].Kind)
+                {
+                    case TypeComponentKind.NonNull:
+                        current = new NonNullType(current);
+                        break;
+
+                    case TypeComponentKind.List:
+                        current = new ListType(current);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException(
+                            "The type info components have an invalid structure.");
+                }
+            }
+
+            return current;
+        }
     }
 }
