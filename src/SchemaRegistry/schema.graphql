@@ -1,92 +1,92 @@
 type Query {
-    schemas: [Schema!]! 
-    schema(id: ID!): Schema
+  schemas: [Schema!]!
+  schema(id: ID!): Schema
 }
 
 type Schema implements Node {
-    id: ID!
-    name: String!
-    description: String
-    versions: [SchemaVersion!]!
+  id: ID!
+  name: String!
+  description: String
+  versions: [SchemaVersion!]!
 }
 
 type SchemaVersion implements Node {
-    id: ID!
-    published: DateTime!
-    sourceText: String!
-    schema: Schema!
-    environments: [EnvironmentInfo!]!
-    tags: [Tag!]!
+  id: ID!
+  published: DateTime!
+  sourceText: String!
+  schema: Schema!
+  environments: [EnvironmentInfo!]!
+  tags: [Tag!]!
 }
 
 type EnvironmentInfo implements Node {
-    id: ID!
-    published: DateTime!
-    state: PublishState!
-    environment: [Environment!]!
-    issues: [Issue!]!
-    schemaVersion: SchemaVersion!
-    documentVersion: [DocumentVersion!]!
+  id: ID!
+  published: DateTime!
+  state: PublishState!
+  environment: [Environment!]!
+  issues: [Issue!]!
+  schemaVersion: s!
+  documentVersion: [DocumentVersion!]!
 }
 
 type Issue implements Node {
-    id: ID!
-    code: String!
-    message: String!
-    type: IssueType!
-    resolution: ResolutionType!
-    schemaVersion: SchemaVersion
-    documentVersion: [DocumentVersion!]!
+  id: ID!
+  code: String!
+  message: String!
+  type: IssueType!
+  resolution: ResolutionType!
+  schemaVersion: SchemaVersion
+  documentVersion: [DocumentVersion!]!
 }
 
 type Tag {
-    key: String!
-    value: String!
-    published: DateTime!
+  key: String!
+  value: String!
+  published: DateTime!
 }
 
 type Environment implements Node {
-    id: ID!
-    name: String!
-    description: String
-    policy: Policy!
-    schemaVersions: [SchemaVersion!]!
-    documentVersion: [DocumentVersion!]!
+  id: ID!
+  name: String!
+  description: String
+  policy: Policy!
+  schemaVersions: [SchemaVersion!]!
+  documentVersion: [DocumentVersion!]!
 }
 
 type Client implements Node {
-    id: ID!
-    name: String!
-    description: String
-    schema: Schema!
-    clientVersions: [ClientVersion!]!
+  id: ID!
+  name: String!
+  description: String
+  schema: Schema!
+  clientVersions: [ClientVersion!]!
 }
 
 type ClientVersion implements Node {
-    id: ID!
-    published: DateTime!
-    schema: Schema!
-    environments: [EnvironmentInfo!]!
-    tags: [Tag!]!
+  id: ID!
+  published: DateTime!
+  schema: Schema!
+  environments: [EnvironmentInfo!]!
+  tags: [Tag!]!
 }
 
 interface Node {
-    id: ID!
+  id: ID!
 }
 
 enum PublishState {
-    REJECTED
-    PUBLISHED
+  REJECTED
+  PUBLISHED
 }
 
 enum IssueType {
-    INFORMATION
-    WARNING
-    ERROR
+  INFORMATION
+  WARNING
+  ERROR
 }
 
 enum ResolutionType {
-    OPEN
-    FIXED
-    WONTFIX
-} 
+  OPEN
+  FIXED
+  WONTFIX
+}
