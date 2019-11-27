@@ -10,10 +10,7 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate</PackageId>
     <AssemblyName>HotChocolate.Core</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>

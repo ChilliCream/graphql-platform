@@ -24,34 +24,27 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _unregistered =
             new List<ITypeReference>();
         private readonly IDictionary<string, object> _contextData;
-        private readonly ITypeInitializationInterceptor _interceptor;
 
         public TypeRegistrar(
             IServiceProvider services,
             IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
             IDictionary<ITypeReference, ITypeReference> clrTypes,
-            IDictionary<string, object> contextData,
-            ITypeInitializationInterceptor interceptor)
+            IDictionary<string, object> contextData)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (initialTypes is null)
+            if (initialTypes == null)
             {
                 throw new ArgumentNullException(nameof(initialTypes));
             }
 
-            if (contextData is null)
+            if (contextData == null)
             {
                 throw new ArgumentNullException(nameof(contextData));
             }
 
-            if (interceptor is null)
+            if (services == null)
             {
-                throw new ArgumentNullException(nameof(interceptor));
+                throw new ArgumentNullException(nameof(services));
             }
 
             _descriptorContext = descriptorContext
@@ -64,7 +57,6 @@ namespace HotChocolate.Configuration
             _unregistered.AddRange(initialTypes);
             _serviceFactory.Services = services;
             _contextData = contextData;
-            _interceptor = interceptor;
         }
 
         public ICollection<InitializationContext> InitializationContexts =>
@@ -325,8 +317,7 @@ namespace HotChocolate.Configuration
                     typeSystemObject,
                     _serviceFactory.Services,
                     _descriptorContext,
-                    _contextData,
-                    _interceptor);
+                    _contextData);
 
                 typeSystemObject.Initialize(initializationContext);
                 _initContexts.Add(initializationContext);

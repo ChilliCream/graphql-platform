@@ -1,4 +1,3 @@
-using System.Buffers.Text;
 using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -6,45 +5,52 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types
 {
     public sealed class UuidType
-        : ScalarType<Guid, StringValueNode>
+        : ScalarType
     {
-        private const char _format = 'N';
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UuidType"/> class.
-        /// </summary>
         public UuidType()
-            : base(ScalarNames.Uuid)
+            : base("Uuid")
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UuidType"/> class.
-        /// </summary>
-        public UuidType(NameString name)
-            : base(name)
-        {
-        }
+        public override Type ClrType => typeof(Guid);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UuidType"/> class.
-        /// </summary>
-        public UuidType(NameString name, string description)
-            : base(name)
+        public override bool IsInstanceOfType(IValueNode literal)
         {
-            Description = description;
-        }
-
-        protected override bool IsInstanceOfType(StringValueNode literal)
-        {
-            return Utf8Parser.TryParse(literal.AsSpan(), out Guid _, out int _, _format);
-        }
-
-        protected override Guid ParseLiteral(StringValueNode literal)
-        {
-            if (Utf8Parser.TryParse(literal.AsSpan(), out Guid g, out int _, _format))
+            if (literal == null)
             {
-                return g;
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            if (literal is StringValueNode stringLiteral
+                && Guid.TryParse(stringLiteral.Value, out _))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public override object ParseLiteral(IValueNode literal)
+        {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
+            if (literal is StringValueNode stringLiteral
+                && Guid.TryParse(stringLiteral.Value, out Guid guid))
+            {
+                return guid;
             }
 
             throw new ScalarSerializationException(
@@ -52,27 +58,37 @@ namespace HotChocolate.Types
                     Name, literal.GetType()));
         }
 
-        protected override StringValueNode ParseValue(Guid value)
+        public override IValueNode ParseValue(object value)
         {
-            return new StringValueNode(value.ToString("N"));
+            if (value == null)
+            {
+                return new NullValueNode(null);
+            }
+
+            if (value is Guid guid)
+            {
+                return new StringValueNode(guid.ToString("N"));
+            }
+
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()));
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override object Serialize(object value)
         {
-            if (value is null)
+            if (value == null)
             {
-                serialized = null;
-                return true;
+                return null;
             }
 
-            if (value is Guid uri)
+            if (value is Guid guid)
             {
-                serialized = uri.ToString("N");
-                return true;
+                return guid;
             }
 
-            serialized = null;
-            return false;
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
         public override bool TryDeserialize(object serialized, out object value)

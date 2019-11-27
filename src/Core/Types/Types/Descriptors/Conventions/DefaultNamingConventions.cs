@@ -17,16 +17,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public DefaultNamingConventions()
-            : this(true)
         {
-        }
-
-        public DefaultNamingConventions(bool useXmlDocumentation)
-        {
-            _documentation = useXmlDocumentation
-                ? (IDocumentationProvider)new XmlDocumentationProvider(
-                    new XmlDocumentationFileResolver())
-                : new NoopDocumentationProvider();
+            _documentation = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
         }
 
         protected IDocumentationProvider DocumentationProvider =>

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 namespace HotChocolate.Types.Descriptors
 {
     public interface ITypeInspector
-        : IConvention
     {
         IEnumerable<Type> GetResolverTypes(Type sourceType);
 

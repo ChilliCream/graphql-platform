@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace HotChocolate.Language
@@ -10,7 +9,6 @@ namespace HotChocolate.Language
         , IEquatable<ObjectValueNode>
     {
         private int? _hash;
-        private string? _stringValue;
 
         public ObjectValueNode(
             params ObjectFieldNode[] fields)
@@ -25,7 +23,7 @@ namespace HotChocolate.Language
         }
 
         public ObjectValueNode(
-            Location? location,
+            Location location,
             IReadOnlyList<ObjectFieldNode> fields)
         {
             Location = location;
@@ -34,7 +32,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.ObjectValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public IReadOnlyList<ObjectFieldNode> Fields { get; }
 
@@ -56,7 +54,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ObjectValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(ObjectValueNode? other)
+        public bool Equals(ObjectValueNode other)
         {
             if (other is null)
             {
@@ -104,7 +102,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ObjectValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode? other)
+        public bool Equals(IValueNode other)
         {
             if (other is null)
             {
@@ -136,7 +134,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="ObjectValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             if (obj is null)
             {
@@ -179,16 +177,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string? ToString()
-        {
-            if (_stringValue is null)
-            {
-                _stringValue = QuerySyntaxSerializer.Serialize(this, true);
-            }
-            return _stringValue;
-        }
-
-        public ObjectValueNode WithLocation(Location? location)
+        public ObjectValueNode WithLocation(Location location)
         {
             return new ObjectValueNode(location, Fields);
         }

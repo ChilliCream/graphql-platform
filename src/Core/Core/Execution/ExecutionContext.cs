@@ -34,24 +34,22 @@ namespace HotChocolate.Execution
 
             _cachedQuery = _requestContext.CachedQuery;
 
-            IServiceProvider services = requestContext.ServiceScope.ServiceProvider;
-
-            ErrorHandler = services.GetRequiredService<IErrorHandler>();
+            ErrorHandler = requestContext.ServiceScope.ServiceProvider
+                .GetRequiredService<IErrorHandler>();
 
             Result = new QueryResult();
 
             var fragments = new FragmentCollection(
                 schema, operation.Document);
 
-            Converter = services.GetTypeConversion();
+            Converter = _requestContext.ServiceScope
+                .ServiceProvider.GetTypeConversion();
 
             _fieldCollector = new FieldCollector(
-                fragments,
-                requestContext.ResolveMiddleware,
-                Converter,
-                services.GetService<IEnumerable<IArgumentCoercionHandler>>());
+                fragments, requestContext.ResolveMiddleware, Converter);
 
-            Activator = new Activator(services);
+            Activator = new Activator(
+                requestContext.ServiceScope.ServiceProvider);
         }
 
 

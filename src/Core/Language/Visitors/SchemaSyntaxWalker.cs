@@ -30,7 +30,7 @@ namespace HotChocolate.Language
             IDefinitionNode node,
             TContext context)
         {
-            if (node is ITypeSystemExtensionNode)
+            if (node is ITypeExtensionNode)
             {
                 VisitTypeExtensionDefinition(node, context);
             }

@@ -12,6 +12,7 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase
         where TDefinition : DefinitionBase
     {
+        private TDefinition _definition;
         private Dictionary<string, object> _contextData;
         private IReadOnlyCollection<ILazyTypeConfiguration> _configrations;
 
@@ -20,28 +21,21 @@ namespace HotChocolate.Types
         public override IReadOnlyDictionary<string, object> ContextData =>
             _contextData;
 
-        internal TDefinition Definition { get; private set; }
+        internal TDefinition Definition => _definition;
 
         internal sealed override void Initialize(IInitializationContext context)
         {
-            Definition = CreateDefinition(context);
-            _configrations = Definition?.GetConfigurations().ToList();
+            _definition = CreateDefinition(context);
+            _configrations = _definition?.GetConfigurations().ToList();
 
-            if (Definition == null)
+            if (_definition == null)
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            context.Interceptor.OnBeforeRegisterDependencies(
-                context, Definition, Definition.ContextData);
-
             RegisterConfigurationDependencies(context);
-            OnRegisterDependencies(context, Definition);
-
-            context.Interceptor.OnAfterRegisterDependencies(
-                context, Definition, Definition.ContextData);
-
+            OnRegisterDependencies(context, _definition);
             base.Initialize(context);
         }
 
@@ -56,11 +50,8 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
-            context.Interceptor.OnBeforeCompleteName(
-                context, Definition, Definition.ContextData);
-
             ExecuteConfigurations(context, ApplyConfigurationOn.Naming);
-            OnCompleteName(context, Definition);
+            OnCompleteName(context, _definition);
 
             if (Name.IsEmpty)
             {
@@ -75,9 +66,6 @@ namespace HotChocolate.Types
             }
 
             base.CompleteName(context);
-
-            context.Interceptor.OnAfterCompleteName(
-                context, Definition, Definition.ContextData);
         }
 
         protected virtual void OnCompleteName(
@@ -92,27 +80,18 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
-            DefinitionBase definition = Definition;
-
-            context.Interceptor.OnBeforeCompleteType(
-                context, definition, definition.ContextData);
-
             ExecuteConfigurations(context, ApplyConfigurationOn.Completion);
 
-            Description = Definition.Description;
+            Description = _definition.Description;
 
-            OnCompleteType(context, Definition);
+            OnCompleteType(context, _definition);
 
             _contextData = new Dictionary<string, object>(
-                Definition.ContextData);
-            
-            Definition = null;
+                _definition.ContextData);
+            _definition = null;
             _configrations = null;
 
             base.CompleteType(context);
-
-            context.Interceptor.OnAfterCompleteType(
-                context, definition, _contextData);
         }
 
         protected virtual void OnCompleteType(
@@ -124,7 +103,7 @@ namespace HotChocolate.Types
         private void RegisterConfigurationDependencies(
             IInitializationContext context)
         {
-            foreach (IGrouping<TypeDependencyKind, TypeDependency> group in
+            foreach (var group in
                 _configrations.SelectMany(t => t.Dependencies)
                     .GroupBy(t => t.Kind))
             {

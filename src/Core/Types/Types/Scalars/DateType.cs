@@ -1,53 +1,30 @@
 using System;
 using System.Globalization;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public sealed class DateType
-        : ScalarType<DateTime, StringValueNode>
+        : DateTimeTypeBase
     {
         private const string _dateFormat = "yyyy-MM-dd";
 
-        public DateType() : base(ScalarNames.Date)
+        public DateType()
+            : base("Date")
         {
             Description = TypeResources.DateType_Description;
         }
 
-        protected override DateTime ParseLiteral(StringValueNode literal)
-        {
-            if (TryDeserializeFromString(literal.Value, out DateTime? value))
-            {
-                return value.Value;
-            }
+        public override Type ClrType => typeof(DateTime);
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+        protected override string Serialize(DateTime value)
+        {
+            return value.ToString(_dateFormat, CultureInfo.InvariantCulture);
         }
 
-        protected override StringValueNode ParseValue(DateTime value)
+        protected override string Serialize(DateTimeOffset value)
         {
-            return new StringValueNode(Serialize(value));
-        }
-
-        public override bool TrySerialize(object value, out object serialized)
-        {
-            if (value is null)
-            {
-                serialized = null;
-                return true;
-            }
-
-            if (value is DateTime dt)
-            {
-                serialized = Serialize(dt);
-                return true;
-            }
-
-            serialized = null;
-            return false;
+            return value.ToString(_dateFormat, CultureInfo.InvariantCulture);
         }
 
         public override bool TryDeserialize(object serialized, out object value)
@@ -58,15 +35,10 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is string s && TryDeserializeFromString(s, out DateTime? d))
+            if (serialized is string s
+                && TryDeserializeFromString(s, out object d))
             {
                 value = d;
-                return true;
-            }
-
-            if (serialized is DateTimeOffset dt)
-            {
-                value = dt.UtcDateTime;
                 return true;
             }
 
@@ -76,30 +48,30 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            value = null;
-            return false;
-        }
-
-        private static string Serialize(DateTime value)
-        {
-            return value.Date.ToString(
-                _dateFormat,
-                CultureInfo.InvariantCulture);
-        }
-
-        private static bool TryDeserializeFromString(string serialized, out DateTime? value)
-        {
-            if (DateTime.TryParse(
-               serialized,
-               CultureInfo.InvariantCulture,
-               DateTimeStyles.AssumeLocal,
-               out DateTime dateTime))
+            if (serialized is DateTimeOffset dto)
             {
-                value = dateTime.Date;
+                value = dto.UtcDateTime;
                 return true;
             }
 
             value = null;
+            return false;
+        }
+
+        protected override bool TryDeserializeFromString(
+            string serialized, out object obj)
+        {
+            if (DateTime.TryParse(
+                serialized,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeLocal,
+                out DateTime dateTime))
+            {
+                obj = dateTime.Date;
+                return true;
+            }
+
+            obj = null;
             return false;
         }
     }

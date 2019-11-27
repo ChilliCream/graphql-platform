@@ -114,7 +114,8 @@ namespace HotChocolate.Types
         {
             if (context.IsQueryType.HasValue
                 && context.IsQueryType.Value
-                && context.ContextData.ContainsKey(RelayConstants.IsRelaySupportEnabled))
+                && context.ContextData.ContainsKey(
+                    RelayConstants.IsRelaySupportEnabled))
             {
                 fields.Add(new NodeField(context.DescriptorContext));
             }

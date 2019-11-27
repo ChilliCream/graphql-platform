@@ -5,7 +5,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
-using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
@@ -81,8 +80,9 @@ namespace HotChocolate.Types
                         if (!TypeInspector.Default.TryCreate(
                             definition.ResultType, out TypeInfo typeInfo))
                         {
+                            // TODO : resources
                             throw new ArgumentException(
-                                FilterResources.FilterObjectFieldDescriptor_InvalidType,
+                                "Cannot handle the specified type.",
                                 nameof(descriptor));
                         }
 
@@ -91,18 +91,19 @@ namespace HotChocolate.Types
                                 typeInfo.ClrType);
                     }
 
-                    ITypeReference argumentTypeReference =
-                        filterTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(
-                                argumentType, TypeContext.Input)
-                            : new SchemaTypeReference(filterTypeInstance);
+                    var argumentTypeReference = filterTypeInstance is null
+                        ? (ITypeReference)new ClrTypeReference(
+                            argumentType, TypeContext.Input)
+                        : new SchemaTypeReference(filterTypeInstance);
 
                     if (argumentType == typeof(object))
                     {
+                        // TODO : resources
                         throw new SchemaException(
                             SchemaErrorBuilder.New()
                                 .SetMessage(
-                                    FilterResources.FilterObjectFieldDescriptor_InvalidType_Msg)
+                                    "The filter type cannot be " +
+                                    "infered from `System.Object`.")
                                 .SetCode(ErrorCodes.Filtering.FilterObjectType)
                                 .Build());
                     }

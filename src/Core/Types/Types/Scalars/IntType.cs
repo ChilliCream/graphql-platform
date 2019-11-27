@@ -1,4 +1,3 @@
-using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types
@@ -12,43 +11,12 @@ namespace HotChocolate.Types
     /// </summary>
     [SpecScalar]
     public sealed class IntType
-        : IntegerTypeBase<int>
+        : IntTypeBase
     {
         public IntType()
-            : this(int.MinValue, int.MaxValue)
-        {
-        }
-
-        public IntType(int min, int max)
-            : this(ScalarNames.Int, min, max)
+            : base("Int")
         {
             Description = TypeResources.IntType_Description;
-        }
-
-        public IntType(NameString name)
-            : this(name, int.MinValue, int.MaxValue)
-        {
-        }
-
-        public IntType(NameString name, int min, int max)
-            : base(name, min, max)
-        {
-        }
-
-        public IntType(NameString name, string description, int min, int max)
-            : base(name, min, max)
-        {
-            Description = description;
-        }
-
-        protected override int ParseLiteral(IntValueNode literal)
-        {
-            return literal.ToInt32();
-        }
-
-        protected override IntValueNode ParseValue(int value)
-        {
-            return new IntValueNode(value);
         }
     }
 }

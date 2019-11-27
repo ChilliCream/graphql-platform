@@ -822,9 +822,7 @@ namespace GreenDonut
             Assert.Equal(0, loader.CachedValues);
         }
 
-        [Fact(
-            DisplayName = "LoadAsync: Should handle batching error",
-            Skip = "This one is not stable and has to be fixed.")]
+        [Fact(DisplayName = "LoadAsync: Should handle batching error")]
         public async Task LoadBatchingError()
         {
             // arrange

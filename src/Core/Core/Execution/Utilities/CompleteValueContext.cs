@@ -36,7 +36,12 @@ namespace HotChocolate.Execution
             get => _resolverContext;
             set
             {
-                _resolverContext = value ?? throw new ArgumentNullException(nameof(value));
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _resolverContext = value;
                 _selection = _resolverContext.FieldSelection;
                 _selectionSet = _selection.SelectionSet;
                 _path = _resolverContext.Path;
@@ -53,7 +58,12 @@ namespace HotChocolate.Execution
             get => _path;
             set
             {
-                _path = value ?? throw new ArgumentNullException(nameof(value));
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _path = value;
             }
         }
 
@@ -65,12 +75,9 @@ namespace HotChocolate.Execution
 
         public Action SetElementNull { get; set; }
 
-        public IReadOnlyDictionary<string, object> LocalContextData =>
-            ResolverContext.LocalContextData;
-
         public void AddError(Action<IErrorBuilder> error)
         {
-            if (error is null)
+            if (error == null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
@@ -82,7 +89,7 @@ namespace HotChocolate.Execution
 
         public void AddError(IError error)
         {
-            if (error is null)
+            if (error == null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
@@ -123,7 +130,7 @@ namespace HotChocolate.Execution
             ResolverContext resolverContext,
             Action setElementNull)
         {
-            if (setElementNull is null)
+            if (setElementNull == null)
             {
                 return null;
             }
@@ -165,15 +172,6 @@ namespace HotChocolate.Execution
 
             throw new NotSupportedException(
                 CoreResources.ResolveObjectType_TypeNotSupported);
-        }
-
-        public ObjectType ResolveObjectType(NameString typeName)
-        {
-            if (ResolverContext.Schema.TryGetType(typeName, out ObjectType type))
-            {
-                return type;
-            }
-            return null;
         }
     }
 }

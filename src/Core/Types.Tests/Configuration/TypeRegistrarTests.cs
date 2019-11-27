@@ -28,8 +28,7 @@ namespace HotChocolate
                 DescriptorContext.Create(),
                 initialTypes,
                 new Dictionary<ITypeReference, ITypeReference>(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitilizationInterceptor());
+                new Dictionary<string, object>());
 
             // act
             typeRegistrar.Complete();
@@ -65,8 +64,7 @@ namespace HotChocolate
                 DescriptorContext.Create(),
                 initialTypes,
                 new Dictionary<ITypeReference, ITypeReference>(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitilizationInterceptor());
+                new Dictionary<string, object>());
 
             // act
             typeRegistrar.Complete();

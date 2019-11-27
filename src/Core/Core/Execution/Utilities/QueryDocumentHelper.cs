@@ -29,8 +29,7 @@ namespace HotChocolate.Execution
             }
 
             OperationDefinitionNode operation = operations.SingleOrDefault(
-                t => t.Name is { } && t.Name.Value.EqualsOrdinal(operationName));
-
+                t => t.Name.Value.EqualsOrdinal(operationName));
             if (operation == null)
             {
                 throw new QueryException(string.Format(

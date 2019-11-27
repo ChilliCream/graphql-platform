@@ -1,21 +1,22 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace HotChocolate.Types.Sorting
 {
     public class SortOperation
     {
-        public SortOperation(PropertyInfo property) : this(property, false)
+        public SortOperation(
+            IEnumerable<SortOperationKind> allowedSorts,
+            PropertyInfo property)
         {
-            Property = property ?? throw new ArgumentNullException(nameof(property));
-        }
-        public SortOperation(PropertyInfo property, bool isObject)
-        {
-            IsObject = isObject;
-            Property = property ?? throw new ArgumentNullException(nameof(property));
+            AllowedSorts = allowedSorts
+                           ?? throw new ArgumentNullException(nameof(allowedSorts));
+            Property = property
+                       ?? throw new ArgumentNullException(nameof(property));
         }
 
-        public bool IsObject { get; }
+        public IEnumerable<SortOperationKind> AllowedSorts { get; }
 
         public PropertyInfo Property { get; }
     }

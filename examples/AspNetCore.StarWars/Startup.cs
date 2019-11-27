@@ -1,13 +1,12 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using StarWars.Data;
 using StarWars.Types;
 
@@ -40,7 +39,12 @@ namespace StarWars
                 .AddType<HumanType>()
                 .AddType<DroidType>()
                 .AddType<EpisodeType>()
-                .Create());
+                .Create(),
+                new QueryExecutionOptions
+                {
+                    MaxOperationComplexity = 10,
+                    UseComplexityMultipliers = true
+                });
 
 
             // Add Authorization Policy
@@ -69,14 +73,12 @@ namespace StarWars
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseRouting();
 
             app
                 .UseWebSockets()

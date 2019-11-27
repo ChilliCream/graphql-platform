@@ -77,7 +77,7 @@ namespace HotChocolate.Types
             var serializedValue = uuidType.Serialize(guid);
 
             // assert
-            Assert.Equal(guid.ToString("N"), Assert.IsType<string>(serializedValue));
+            Assert.Equal(guid, Assert.IsType<Guid>(serializedValue));
         }
 
         [Fact]
@@ -172,7 +172,7 @@ namespace HotChocolate.Types
             // arrange
             var uuidType = new UuidType();
             var expected = Guid.NewGuid();
-            var literal = new StringValueNode(expected.ToString("N"));
+            var literal = new StringValueNode(expected.ToString());
 
             // act
             var actual = (Guid)uuidType

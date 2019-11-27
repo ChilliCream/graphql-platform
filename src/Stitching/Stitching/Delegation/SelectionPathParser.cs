@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation
 {
@@ -11,110 +13,101 @@ namespace HotChocolate.Stitching.Delegation
         public static IImmutableStack<SelectionPathComponent> Parse(
             string serializedPath)
         {
-            if (serializedPath is null)
-            {
-                throw new ArgumentNullException(nameof(serializedPath));
-            }
-
-            byte[] buffer = Encoding.UTF8.GetBytes(RemoveDots(serializedPath));
-            var reader = new Utf8GraphQLReader(buffer);
-            var parser = new Utf8GraphQLParser(reader, ParserOptions.Default);
-
-            return ParseSelectionPath(ref parser);
+            return Parse(new Source(serializedPath));
         }
 
-        private static string RemoveDots(string serializedPath)
+        public static IImmutableStack<SelectionPathComponent> Parse(
+            ISource source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            SyntaxToken start = Lexer.Default.Read(RemoveDots(source));
+            if (start.Kind != TokenKind.StartOfFile)
+            {
+                throw new InvalidOperationException(StitchingResources
+                    .SelectionPathParser_StartOfFileTokenExpected);
+            }
+
+            return ParseSelectionPath(source, start, ParserOptions.Default);
+        }
+
+        private static ISource RemoveDots(ISource source)
         {
             var stringBuilder = new StringBuilder();
 
-            for (int i = 0; i < serializedPath.Length; i++)
+            for (int i = 0; i < source.Text.Length; i++)
             {
-                char current = serializedPath[i];
-                stringBuilder.Append(current == GraphQLConstants.Dot ? ' ' : current);
+                char current = source.Text[i];
+                stringBuilder.Append(current.IsDot() ? ' ' : current);
             }
 
-            return stringBuilder.ToString();
+            return new Source(stringBuilder.ToString());
         }
 
-        private static ImmutableStack<SelectionPathComponent> ParseSelectionPath(
-            ref Utf8GraphQLParser parser)
+        private static ImmutableStack<SelectionPathComponent>
+            ParseSelectionPath(
+                ISource source,
+                SyntaxToken start,
+                ParserOptions options)
         {
-            var path = ImmutableStack<SelectionPathComponent>.Empty;
+            ImmutableStack<SelectionPathComponent> path =
+                ImmutableStack<SelectionPathComponent>.Empty;
+            var context = new ParserContext(
+                source, start, options, Parser.ParseName);
 
-            parser.MoveNext();
+            context.MoveNext();
 
-            while (parser.Kind != TokenKind.EndOfFile)
+            while (!context.IsEndOfFile())
             {
-                path = path.Push(ParseSelectionPathComponent(ref parser));
+                context.Skip(TokenKind.Pipe);
+                path = path.Push(ParseSelectionPathComponent(context));
             }
 
             return path;
         }
 
         private static SelectionPathComponent ParseSelectionPathComponent(
-            ref Utf8GraphQLParser parser)
+            ParserContext context)
         {
-            NameNode name = parser.ParseName();
-            List<ArgumentNode> arguments = ParseArguments(ref parser);
+            NameNode name = Parser.ParseName(context);
+            List<ArgumentNode> arguments = ParseArguments(context);
             return new SelectionPathComponent(name, arguments);
         }
 
         private static List<ArgumentNode> ParseArguments(
-            ref Utf8GraphQLParser parser)
+            ParserContext context)
         {
-            var list = new List<ArgumentNode>();
+            return Parser.ParseArguments(context, ParseArgument);
+        }
 
-            if (parser.Kind == TokenKind.LeftParenthesis)
+        private static ArgumentNode ParseArgument(ParserContext context)
+        {
+            return Parser.ParseArgument(context, ParseValueLiteral);
+        }
+
+        private static IValueNode ParseValueLiteral(ParserContext context)
+        {
+            if (context.Current.IsDollar())
             {
-                // skip opening token
-                parser.MoveNext();
-
-                while (parser.Kind != TokenKind.RightParenthesis)
-                {
-                    list.Add(ParseArgument(ref parser));
-                }
-
-                // skip closing token
-                parser.ExpectRightParenthesis();
-
+                return ParseVariable(context);
             }
-            return list;
+            return Parser.ParseValueLiteral(context, true);
         }
 
-        private static ArgumentNode ParseArgument(ref Utf8GraphQLParser parser)
+        private static ScopedVariableNode ParseVariable(ParserContext context)
         {
-            NameNode name = parser.ParseName();
-
-            parser.ExpectColon();
-
-            IValueNode value = ParseValueLiteral(ref parser);
-
-            return new ArgumentNode
-            (
-                null,
-                name,
-                value
-            );
-        }
-        private static IValueNode ParseValueLiteral(ref Utf8GraphQLParser parser)
-        {
-            if (parser.Kind == TokenKind.Dollar)
-            {
-                return ParseVariable(ref parser);
-            }
-            return parser.ParseValueLiteral(true);
-        }
-
-        private static ScopedVariableNode ParseVariable(ref Utf8GraphQLParser parser)
-        {
-            parser.ExpectDollar();
-            NameNode scope = parser.ParseName();
-            parser.ExpectColon();
-            NameNode name = parser.ParseName();
+            SyntaxToken start = context.ExpectDollar();
+            NameNode scope = Parser.ParseName(context);
+            context.Expect(TokenKind.Colon);
+            NameNode name = Parser.ParseName(context);
+            Language.Location location = context.CreateLocation(start);
 
             return new ScopedVariableNode
             (
-                null,
+                location,
                 scope,
                 name
             );

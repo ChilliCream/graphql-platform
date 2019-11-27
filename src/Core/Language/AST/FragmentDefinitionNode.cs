@@ -6,10 +6,9 @@ namespace HotChocolate.Language
     public sealed class FragmentDefinitionNode
         : NamedSyntaxNode
         , IExecutableDefinitionNode
-        , INamedSyntaxNode
     {
         public FragmentDefinitionNode(
-            Location? location,
+            Location location,
             NameNode name,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             NamedTypeNode typeCondition,
@@ -34,7 +33,7 @@ namespace HotChocolate.Language
 
         public SelectionSetNode SelectionSet { get; }
 
-        public FragmentDefinitionNode WithLocation(Location? location)
+        public FragmentDefinitionNode WithLocation(Location location)
         {
             return new FragmentDefinitionNode(
                 location, Name,

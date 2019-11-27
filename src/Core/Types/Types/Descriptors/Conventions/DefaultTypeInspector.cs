@@ -17,9 +17,6 @@ namespace HotChocolate.Types.Descriptors
         private readonly TypeInspector _typeInspector =
             new TypeInspector();
 
-        public static DefaultTypeInspector Default { get; } =
-            new DefaultTypeInspector();
-
         public virtual IEnumerable<MemberInfo> GetMembers(Type type)
         {
             if (type == null)

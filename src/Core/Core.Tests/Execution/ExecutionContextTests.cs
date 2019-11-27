@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -71,11 +70,12 @@ namespace HotChocolate.Execution
 
             var errorHandler = new Mock<IErrorHandler>();
 
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IErrorHandler>(errorHandler.Object);
-            var services = serviceCollection.BuildServiceProvider();
+            var services = new Mock<IServiceProvider>();
+            services.Setup(t => t.GetService(typeof(IErrorHandler)))
+                .Returns(errorHandler.Object);
 
-            IRequestServiceScope serviceScope = services.CreateRequestServiceScope();
+            IRequestServiceScope serviceScope = services.Object
+                .CreateRequestServiceScope();
 
             var variables = new Mock<IVariableValueCollection>();
 

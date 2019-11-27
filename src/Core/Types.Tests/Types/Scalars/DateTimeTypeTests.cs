@@ -9,13 +9,12 @@ namespace HotChocolate.Types
     public class DateTimeTypeTests
     {
         [Fact]
-        public void Serialize_Utc_DateTimeOffset()
+        public void Serialize_Utc_DateTime()
         {
             // arrange
             var dateTimeType = new DateTimeType();
-            DateTimeOffset dateTime = new DateTime(
+            var dateTime = new DateTime(
                 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
             string expectedValue = "2018-06-11T08:46:14.000Z";
 
             // act
@@ -306,11 +305,51 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ParseValue_Utc_DateTimeOffset()
+        public void ParseValue_Unspecified_DateTime()
         {
             // arrange
             var dateTimeType = new DateTimeType();
-            DateTimeOffset dateTime =
+            var dateTime =
+                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Unspecified);
+            DateTimeOffset offset = dateTime;
+            DateTime offsetDateTime = offset.DateTime;
+
+            // act
+            var stringLiteral =
+                (StringValueNode)dateTimeType.ParseValue(dateTime);
+            var stringLiteralOffset =
+                (StringValueNode)dateTimeType.ParseValue(offsetDateTime);
+
+            // assert
+            Assert.Equal(stringLiteralOffset, stringLiteral);
+        }
+
+        [Fact]
+        public void ParseValue_Local_DateTime()
+        {
+            // arrange
+            var dateTimeType = new DateTimeType();
+            var dateTime =
+                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Local);
+            DateTimeOffset offset = dateTime;
+            DateTime offsetDateTime = offset.DateTime;
+
+            // act
+            var stringLiteral =
+                (StringValueNode)dateTimeType.ParseValue(dateTime);
+            var stringLiteralOffset =
+                (StringValueNode)dateTimeType.ParseValue(offsetDateTime);
+
+            // assert
+            Assert.Equal(stringLiteral, stringLiteralOffset);
+        }
+
+        [Fact]
+        public void ParseValue_Utc_DateTime()
+        {
+            // arrange
+            var dateTimeType = new DateTimeType();
+            var dateTime =
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
             string expectedLiteralValue = "2018-06-11T08:46:14.000Z";
 

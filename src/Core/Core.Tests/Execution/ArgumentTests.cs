@@ -1,10 +1,8 @@
-﻿using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -228,64 +226,6 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public async Task Extend_Argument_Coercion()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
-            services.AddGraphQLSchema(builder => builder
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("bar")
-                    .Argument("baz", a => a.Type<StringType>())
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
-
-            QueryExecutionBuilder
-                .New()
-                .UseDefaultPipeline()
-                .Populate(services);
-
-            IQueryExecutor executor = services.BuildServiceProvider()
-                .GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result =
-                await executor.ExecuteAsync("{ bar(baz: \"0\") }");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Extend_Argument_Coercion_DefaultValue_String()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
-            services.AddGraphQLSchema(builder => builder
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("bar")
-                    .Argument("baz", a => a.Type<StringType>().DefaultValue("abc"))
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
-
-            QueryExecutionBuilder
-                .New()
-                .UseDefaultPipeline()
-                .Populate(services);
-
-            IQueryExecutor executor = services.BuildServiceProvider()
-                .GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result =
-                await executor.ExecuteAsync("{ bar }");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
         public async Task Invalid_InputObject_Provided_As_Variable()
         {
             ISchema schema = SchemaBuilder.New()
@@ -320,72 +260,6 @@ namespace HotChocolate.Execution
 
             IExecutionResult result = await executor.ExecuteAsync(request);
 
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Extend_Argument_Coercion_With_Variables()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
-            services.AddGraphQLSchema(builder => builder
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("bar")
-                    .Argument("baz", a => a.Type<StringType>())
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
-
-            QueryExecutionBuilder
-                .New()
-                .UseDefaultPipeline()
-                .Populate(services);
-
-            IQueryExecutor executor = services.BuildServiceProvider()
-                .GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result =
-                await executor.ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery("query foo($a: String) { bar(baz: $a) }")
-                        .SetVariableValue("a", "abc")
-                        .Create());
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Extend_Argument_Coercion_With_Variables_And_ObjectValue()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
-            services.AddGraphQLSchema(builder => builder
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("bar")
-                    .Argument("baz", a => a.Type<InputObjectType<Foo>>())
-                    .Resolver(ctx => ctx.Argument<Foo>("baz").Bar)));
-
-            QueryExecutionBuilder
-                .New()
-                .UseDefaultPipeline()
-                .Populate(services);
-
-            IQueryExecutor executor = services.BuildServiceProvider()
-                .GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result =
-                await executor.ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery("query foo($a: String) { bar(baz: { bar: $a }) }")
-                        .SetVariableValue("a", "abc")
-                        .Create());
-
-            // assert
             result.MatchSnapshot();
         }
 
@@ -436,38 +310,6 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public async Task Extend_Argument_Coercion_With_Variables_DefaultValue()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
-            services.AddGraphQLSchema(builder => builder
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("bar")
-                    .Argument("baz", a => a.Type<StringType>())
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
-
-            QueryExecutionBuilder
-                .New()
-                .UseDefaultPipeline()
-                .Populate(services);
-
-            IQueryExecutor executor = services.BuildServiceProvider()
-                .GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result =
-                await executor.ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            "query foo($a: String = \"def\") { bar(baz: $a) }")
-                        .Create());
-
-            // assert
-            result.MatchSnapshot();
-        }
-
         public async Task Valid_InputObject_Provided_As_Variable()
         {
             ISchema schema = SchemaBuilder.New()
@@ -502,39 +344,6 @@ namespace HotChocolate.Execution
 
             IExecutionResult result = await executor.ExecuteAsync(request);
 
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task InputObject_As_Variable_Is_Converted_To_ObjectLiteral()
-        {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<IArgumentCoercionHandler, ModifyObjectHandler>();
-            services.AddGraphQLSchema(builder => builder
-                .AddQueryType<Query>()
-                .Create());
-
-            QueryExecutionBuilder
-                .New()
-                .UseDefaultPipeline()
-                .Populate(services);
-
-            IQueryExecutor executor = services.BuildServiceProvider()
-                .GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result =
-                await executor.ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery("query foo($a: FooInput) { singleFoo(foo: $a) { foo } }")
-                        .AddVariableValue("a", new Dictionary<string, object>
-                        {
-                            { "bar", "TEST_123" }
-                        })
-                        .Create());
-
-            // assert
             result.MatchSnapshot();
         }
 
@@ -626,34 +435,6 @@ namespace HotChocolate.Execution
         public class Bar
         {
             public string Foo { get; set; }
-        }
-
-        public class ModifyStringHandler
-            : IArgumentCoercionHandler
-        {
-            public object CoerceValue(IInputField argument, object value)
-            {
-                if (argument.Type is StringType && value is string s)
-                {
-                    return s + "123";
-                }
-                return value;
-            }
-        }
-
-        public class ModifyObjectHandler
-            : IArgumentCoercionHandler
-        {
-            public object CoerceValue(IInputField argument, object value)
-            {
-                if (value is ObjectValueNode o)
-                {
-                    var fields = o.Fields.ToList();
-                    fields[0] = fields[0].WithValue(new StringValueNode("Bar_123"));
-                    return o.WithFields(fields);
-                }
-                return value;
-            }
         }
     }
 }

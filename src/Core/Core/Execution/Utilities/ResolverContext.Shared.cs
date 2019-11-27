@@ -24,7 +24,6 @@ namespace HotChocolate.Execution
             Source = null;
             SourceObject = null;
             ScopedContextData = null;
-            LocalContextData = null;
 
             Task = null;
             Result = null;
@@ -47,7 +46,6 @@ namespace HotChocolate.Execution
             Source = source;
             SourceObject = executionContext.Operation.RootValue;
             ScopedContextData = ImmutableDictionary<string, object>.Empty;
-            LocalContextData = ImmutableDictionary<string, object>.Empty;
 
             _arguments = fieldSelection.CoerceArguments(
                 executionContext.Variables,
@@ -81,7 +79,6 @@ namespace HotChocolate.Execution
             Source = source;
             SourceObject = sourceObject;
             ScopedContextData = sourceContext.ScopedContextData;
-            LocalContextData = ImmutableDictionary<string, object>.Empty;
 
             bool isNonNullType = fieldSelection.Field.Type.IsNonNullType();
             string responseName = fieldSelection.ResponseName;

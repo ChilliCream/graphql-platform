@@ -107,7 +107,7 @@ namespace HotChocolate.Execution.Batching
                 IsCompleted = _index >= _batch.Count;
                 return result;
             }
-            catch (GraphQLException ex)
+            catch (QueryException ex)
             {
                 IsCompleted = true;
                 return QueryResult.CreateError(ex.Errors);

@@ -1,63 +1,49 @@
 using System;
 using System.Globalization;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public sealed class DateTimeType
-        : ScalarType<DateTimeOffset, StringValueNode>
+        : DateTimeTypeBase
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
 
-        public DateTimeType() : base(ScalarNames.DateTime)
+        public DateTimeType()
+            : base("DateTime")
         {
             Description = TypeResources.DateTimeType_Description;
         }
 
-        public DateTimeType(NameString name) : base(name)
-        {
-        }
+        public override Type ClrType => typeof(DateTimeOffset);
 
-        public DateTimeType(NameString name, string description) : base(name)
+        protected override string Serialize(DateTime value)
         {
-            Description = description;
-        }
-
-        protected override DateTimeOffset ParseLiteral(StringValueNode literal)
-        {
-            if (TryDeserializeFromString(literal.Value, out DateTimeOffset? value))
+            if (value.Kind == DateTimeKind.Utc)
             {
-                return value.Value;
+                return value.ToString(
+                    _utcFormat,
+                    CultureInfo.InvariantCulture);
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            return value.ToString(
+                _localFormat,
+                CultureInfo.InvariantCulture);
         }
 
-        protected override StringValueNode ParseValue(DateTimeOffset value)
+        protected override string Serialize(DateTimeOffset value)
         {
-            return new StringValueNode(Serialize(value));
-        }
-
-        public override bool TrySerialize(object value, out object serialized)
-        {
-            if (value is null)
+            if (value.Offset == TimeSpan.Zero)
             {
-                serialized = null;
-                return true;
+                return value.ToString(
+                    _utcFormat,
+                    CultureInfo.InvariantCulture);
             }
 
-            if (value is DateTimeOffset dt)
-            {
-                serialized = Serialize(dt);
-                return true;
-            }
-
-            serialized = null;
-            return false;
+            return value.ToString(
+                _localFormat,
+                CultureInfo.InvariantCulture);
         }
 
         public override bool TryDeserialize(object serialized, out object value)
@@ -68,7 +54,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is string s && TryDeserializeFromString(s, out DateTimeOffset? d))
+            if (serialized is string s
+                && TryDeserializeFromString(s, out object d))
             {
                 value = d;
                 return true;
@@ -92,21 +79,9 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private static string Serialize(DateTimeOffset value)
-        {
-            if (value.Offset == TimeSpan.Zero)
-            {
-                return value.ToString(
-                    _utcFormat,
-                    CultureInfo.InvariantCulture);
-            }
-
-            return value.ToString(
-                _localFormat,
-                CultureInfo.InvariantCulture);
-        }
-
-        private static bool TryDeserializeFromString(string serialized, out DateTimeOffset? value)
+        protected override bool TryDeserializeFromString(
+            string serialized,
+            out object obj)
         {
             if (serialized != null
                 && serialized.EndsWith("Z")
@@ -116,7 +91,7 @@ namespace HotChocolate.Types
                     DateTimeStyles.AssumeUniversal,
                     out DateTime zuluTime))
             {
-                value = new DateTimeOffset(
+                obj = new DateTimeOffset(
                     zuluTime.ToUniversalTime(),
                     TimeSpan.Zero);
                 return true;
@@ -124,13 +99,13 @@ namespace HotChocolate.Types
 
             if (DateTimeOffset.TryParse(
                 serialized,
-                out DateTimeOffset dt))
+                out DateTimeOffset dateTime))
             {
-                value = dt;
+                obj = dateTime;
                 return true;
             }
 
-            value = null;
+            obj = null;
             return false;
         }
     }

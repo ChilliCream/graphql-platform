@@ -188,21 +188,16 @@ namespace HotChocolate.Types.Descriptors
             {
                 Definition.SetMoreSpecificType(resultType, TypeContext.Output);
 
-                if (resultType.IsGenericType)
-                {
-                    Type resultTypeDef = resultType.GetGenericTypeDefinition();
-
-                    Type clrResultType = resultTypeDef == typeof(NativeType<>)
+                Type resultTypeDef = resultType.GetGenericTypeDefinition();
+                Type clrResultType = resultType.IsGenericType
+                    && resultTypeDef == typeof(NativeType<>)
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
-
-                    if (!BaseTypes.IsSchemaType(clrResultType))
-                    {
-                        Definition.ResultType = clrResultType;
-                    }
+                if (!BaseTypes.IsSchemaType(clrResultType))
+                {
+                    Definition.ResultType = clrResultType;
                 }
             }
-
             return this;
         }
 

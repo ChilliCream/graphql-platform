@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -12,15 +10,15 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         : MessageHandler<DataStartMessage>
     {
         private readonly IQueryExecutor _queryExecutor;
-        private readonly ISocketQueryRequestInterceptor[] _requestInterceptors;
+        private readonly ISocketQueryRequestInterceptor _requestInterceptor;
 
         public DataStartMessageHandler(
             IQueryExecutor queryExecutor,
-            IEnumerable<ISocketQueryRequestInterceptor> queryRequestInterceptors)
+            ISocketQueryRequestInterceptor queryRequestInterceptor)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _requestInterceptors = queryRequestInterceptors?.ToArray();
+            _requestInterceptor = queryRequestInterceptor;
         }
 
         protected override async Task HandleAsync(
@@ -37,16 +35,13 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     .SetProperties(message.Payload.Extensions)
                     .SetServices(connection.RequestServices);
 
-            if (_requestInterceptors != null)
+            if (_requestInterceptor != null)
             {
-                for (var i = 0; i < _requestInterceptors.Length; i++)
-                {
-                    await _requestInterceptors[i].OnCreateAsync(
-                            connection,
-                            requestBuilder,
-                            cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                await _requestInterceptor.OnCreateAsync(
+                    connection,
+                    requestBuilder,
+                    cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             IExecutionResult result =

@@ -1,8 +1,5 @@
-﻿using System;
-
-namespace HotChocolate.Language
+﻿namespace HotChocolate.Language
 {
-    [Obsolete("Use the Utf8GraphQLParser.")]
     public static class ParserExtensions
     {
         public static DocumentNode Parse(this Parser parser, string sourceText)

@@ -5,7 +5,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -50,10 +49,8 @@ namespace HotChocolate.Execution
 
         public IRequestContext Clone()
         {
-            IServiceScope serviceScope = ServiceScope.ServiceProvider.CreateScope();
-
             return new RequestContext(
-                new RequestServiceScope(serviceScope.ServiceProvider, serviceScope),
+                ServiceScope,
                 _factory,
                 CachedQuery,
                 new ConcurrentDictionary<string, object>(ContextData),

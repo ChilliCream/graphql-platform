@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language.Properties;
@@ -30,7 +31,7 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        internal IValueNode ParseValueLiteral(bool isConstant)
+        private IValueNode ParseValueLiteral(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftBracket)
             {
@@ -66,8 +67,8 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
-            ReadOnlyMemory<byte> value = ExpectString();
-            Location? location = CreateLocation(in start);
+            string value = ExpectString();
+            Location location = CreateLocation(in start);
 
             return new StringValueNode(location, value, isBlock);
         }
@@ -111,7 +112,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBracket);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ListValueNode
             (
@@ -159,7 +160,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBrace);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ObjectValueNode
             (
@@ -174,12 +175,10 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             NameNode name = ParseName();
-
             ExpectColon();
-
             IValueNode value = ParseValueLiteral(isConstant);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ObjectFieldNode
             (
@@ -199,28 +198,15 @@ namespace HotChocolate.Language
 
             TokenInfo start = Start();
             TokenKind kind = _reader.Kind;
-
-            if (!TokenHelper.IsScalarValue(in _reader))
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidScalarToken,
-                        _reader.Kind));
-            }
-
-            ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-            FloatFormat? format = _reader.FloatFormat;
-            MoveNext();
-
-            Location? location = CreateLocation(in start);
+            string value = ExpectScalarValue();
+            Location location = CreateLocation(in start);
 
             if (kind == TokenKind.Float)
             {
                 return new FloatValueNode
                 (
                     location,
-                    value,
-                    format ?? FloatFormat.FixedPoint
+                    value
                 );
             }
 
@@ -241,7 +227,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            Location? location;
+            Location location;
 
             if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
             {
@@ -260,15 +246,11 @@ namespace HotChocolate.Language
             if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
             {
                 MoveNext();
-                if (_createLocation)
-                {
-                    location = CreateLocation(in start);
-                    return new NullValueNode(location);
-                }
-                return NullValueNode.Default;
+                location = CreateLocation(in start);
+                return new NullValueNode(location);
             }
 
-            ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+            string value = _reader.GetScalarValue();
             MoveNext();
             location = CreateLocation(in start);
 

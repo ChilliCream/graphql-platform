@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -8,44 +10,54 @@ namespace HotChocolate.Types
     /// and can be used to refer to fields or types.
     /// </summary>
     public sealed class NameType
-        : ScalarType<NameString, StringValueNode>
+        : ScalarType
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NameType"/> class.
-        /// </summary>
         public NameType()
-            : base(ScalarNames.Name)
+            : base("Name")
         {
             Description = TypeResources.NameType_Description;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NameType"/> class.
-        /// </summary>
-        public NameType(NameString name)
-            : base(name)
-        {
-        }
+        public override Type ClrType => typeof(NameString);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NameType"/> class.
-        /// </summary>
-        public NameType(NameString name, string description)
-            : base(name)
+        public override bool IsInstanceOfType(IValueNode literal)
         {
-            Description = description;
-        }
-
-        protected override bool IsInstanceOfType(StringValueNode literal)
-        {
-            return NameUtils.IsValidGraphQLName(literal.AsSpan());
-        }
-
-        protected override NameString ParseLiteral(StringValueNode literal)
-        {
-            if (IsInstanceOfType(literal))
+            if (literal == null)
             {
-                return new NameString(literal.Value);
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            return literal is StringValueNode s
+                && NameUtils.IsValidGraphQLName(s.Value);
+        }
+
+        public override object ParseLiteral(IValueNode literal)
+        {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is StringValueNode stringLiteral)
+            {
+                if (!NameUtils.IsValidGraphQLName(stringLiteral.Value))
+                {
+                    throw new ScalarSerializationException(
+                        string.Format(CultureInfo.InvariantCulture,
+                            AbstractionResources.Type_NameIsNotValid,
+                            stringLiteral.Value ?? "null"));
+                }
+                return new NameString(stringLiteral.Value);
+            }
+
+            if (literal is NullValueNode)
+            {
+                return null;
             }
 
             throw new ScalarSerializationException(
@@ -53,27 +65,37 @@ namespace HotChocolate.Types
                     Name, literal.GetType()));
         }
 
-        protected override StringValueNode ParseValue(NameString value)
+        public override IValueNode ParseValue(object value)
         {
-            return new StringValueNode(value.Value);
+            if (value == null)
+            {
+                return new NullValueNode(null);
+            }
+
+            if (value is NameString n)
+            {
+                return new StringValueNode(null, n, false);
+            }
+
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()));
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override object Serialize(object value)
         {
-            if (value is null)
+            if (value == null)
             {
-                serialized = null;
-                return true;
+                return null;
             }
 
-            if (value is NameString name)
+            if (value is NameString n)
             {
-                serialized = name.Value;
-                return true;
+                return (string)n;
             }
 
-            serialized = null;
-            return false;
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
         public override bool TryDeserialize(object serialized, out object value)

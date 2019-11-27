@@ -22,8 +22,7 @@ namespace HotChocolate.Stitching.Utilities
             new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                DateParseHandling = DateParseHandling.None,
-                NullValueHandling = NullValueHandling.Ignore
+                DateParseHandling = DateParseHandling.None
             };
 
         public Task<QueryResult> FetchAsync(
@@ -104,9 +103,10 @@ namespace HotChocolate.Stitching.Utilities
             return FetchStringInternalAsync(request, httpClient);
         }
 
-        private async Task<(string, HttpResponseMessage)> FetchStringInternalAsync(
-            HttpQueryRequest request,
-            HttpClient httpClient)
+        private async Task<(string, HttpResponseMessage)>
+            FetchStringInternalAsync(
+                HttpQueryRequest request,
+                HttpClient httpClient)
         {
             var content = new StringContent(
                 SerializeRemoteRequest(request),
@@ -114,7 +114,7 @@ namespace HotChocolate.Stitching.Utilities
                 _json);
 
             HttpResponseMessage response =
-                await httpClient.PostAsync(httpClient.BaseAddress, content)
+                await httpClient.PostAsync(default(Uri), content)
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 

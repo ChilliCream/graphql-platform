@@ -1,29 +1,16 @@
-﻿using HotChocolate.Language;
-using HotChocolate.Properties;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     public sealed class PaginationAmountType
-        : IntegerTypeBase<int>
+        : IntTypeBase
     {
         public PaginationAmountType()
-            : this(byte.MaxValue)
+            : this(int.MaxValue)
         {
         }
 
         public PaginationAmountType(int max)
-            : base(ScalarNames.PaginationAmount, 0, max)
+            : base("PaginationAmount", 0, max)
         {
-        }
-
-        protected override int ParseLiteral(IntValueNode literal)
-        {
-            return literal.ToInt32();
-        }
-
-        protected override IntValueNode ParseValue(int value)
-        {
-            return new IntValueNode(value);
         }
     }
 }

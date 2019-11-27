@@ -10,10 +10,7 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <AssemblyName>HotChocolate.Core.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
@@ -22,10 +19,6 @@
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\StarWars\StarWars.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Execution\__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

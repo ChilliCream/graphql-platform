@@ -10,7 +10,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public sealed class DirectiveCollection
+    internal sealed class DirectiveCollection
         : IDirectiveCollection
     {
         private readonly object _source;
@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         private List<DirectiveDefinition> _definitions;
         private ILookup<NameString, IDirective> _lookup;
 
-        internal DirectiveCollection(
+        public DirectiveCollection(
             object source,
             IEnumerable<DirectiveDefinition> directiveDefinitions)
         {
@@ -186,32 +186,6 @@ namespace HotChocolate.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        public static DirectiveCollection CreateAndComplete(
-            ICompletionContext context,
-            object source,
-            IEnumerable<DirectiveDefinition> directiveDefinitions)
-        {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (directiveDefinitions is null)
-            {
-                throw new ArgumentNullException(nameof(directiveDefinitions));
-            }
-
-            var directives = new DirectiveCollection(
-                source, directiveDefinitions);
-            directives.CompleteCollection(context);
-            return directives;
         }
     }
 }

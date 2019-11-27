@@ -266,12 +266,6 @@ namespace HotChocolate.Types.Filters
             public float BarFloat { get; set; }
             public double BarDouble { get; set; }
             public decimal BarDecimal { get; set; }
-            public short? BarShortNullable { get; set; }
-            public int? BarIntNullable { get; set; }
-            public long? BarLongNullable { get; set; }
-            public float? BarFloatNullable { get; set; }
-            public double? BarDoubleNullable { get; set; }
-            public decimal? BarDecimalNullable { get; set; }
             public FooBar FooBar { get; set; }
         }
 
@@ -298,12 +292,6 @@ namespace HotChocolate.Types.Filters
                 descriptor.Filter(x => x.BarFloat);
                 descriptor.Filter(x => x.BarDouble);
                 descriptor.Filter(x => x.BarDecimal);
-                descriptor.Filter(x => x.BarShortNullable);
-                descriptor.Filter(x => x.BarIntNullable);
-                descriptor.Filter(x => x.BarLongNullable);
-                descriptor.Filter(x => x.BarFloatNullable);
-                descriptor.Filter(x => x.BarDoubleNullable);
-                descriptor.Filter(x => x.BarDecimalNullable);
                 descriptor.Filter(x => x.FooBar);
             }
         }

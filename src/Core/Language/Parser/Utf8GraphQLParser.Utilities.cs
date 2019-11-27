@@ -1,21 +1,20 @@
-using System.Runtime.InteropServices;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
 using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLParser
     {
-        internal TokenKind Kind => _reader.Kind;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal NameNode ParseName()
+        private NameNode ParseName()
         {
             TokenInfo start = Start();
             string name = ExpectName();
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new NameNode
             (
@@ -25,7 +24,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool MoveNext() => _reader.MoveNext();
+        private bool MoveNext() => _reader.MoveNext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TokenInfo Start() =>
@@ -38,7 +37,7 @@ namespace HotChocolate.Language
                 : default;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Location? CreateLocation(in TokenInfo start) =>
+        private Location CreateLocation(in TokenInfo start) =>
             _createLocation
                 ? new Location(
                     start.Start,
@@ -64,10 +63,10 @@ namespace HotChocolate.Language
                     _reader.Kind));
         }
 
-        internal void ExpectColon() =>
+        private void ExpectColon() =>
             Expect(TokenKind.Colon);
 
-        internal void ExpectDollar() =>
+        private void ExpectDollar() =>
             Expect(TokenKind.Dollar);
 
         private void ExpectAt() =>
@@ -77,11 +76,11 @@ namespace HotChocolate.Language
             Expect(TokenKind.RightBracket);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ReadOnlyMemory<byte> ExpectString()
+        private string ExpectString()
         {
             if (TokenHelper.IsString(in _reader))
             {
-                ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+                string value = _reader.GetString();
                 MoveNext();
                 return value;
             }
@@ -94,11 +93,11 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Memory<byte> ExpectScalarValue()
+        private string ExpectScalarValue()
         {
             if (TokenHelper.IsScalarValue(in _reader))
             {
-                Memory<byte> value = _reader.Value.ToArray();
+                string value = _reader.GetScalarValue();
                 MoveNext();
                 return value;
             }
@@ -112,7 +111,7 @@ namespace HotChocolate.Language
         private void ExpectSpread() =>
             Expect(TokenKind.Spread);
 
-        internal void ExpectRightParenthesis() =>
+        private void ExpectRightParenthesis() =>
             Expect(TokenKind.RightParenthesis);
 
         private void ExpectRightBrace() =>
@@ -184,9 +183,9 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private StringValueNode? TakeDescription()
+        private StringValueNode TakeDescription()
         {
-            StringValueNode? description = _description;
+            StringValueNode description = _description;
             _description = null;
             return description;
         }

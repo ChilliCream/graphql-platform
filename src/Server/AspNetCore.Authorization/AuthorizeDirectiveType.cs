@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Security.Principal;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 #if ASPNETCLASSIC
 
@@ -17,9 +24,7 @@ namespace HotChocolate.AspNetCore.Authorization
         {
             descriptor.Name("authorize");
 
-            descriptor
-                .Location(DirectiveLocation.Schema)
-                .Location(DirectiveLocation.Object)
+            descriptor.Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.FieldDefinition);
 
 #if !ASPNETCLASSIC

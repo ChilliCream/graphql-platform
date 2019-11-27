@@ -74,13 +74,6 @@ namespace HotChocolate.Resolvers
         IImmutableDictionary<string, object> ScopedContextData { get; set; }
 
         /// <summary>
-        /// The local context data dictionary can be used by middlewares and
-        /// resolvers to store and retrieve data during execution scoped to the
-        /// field
-        /// </summary>
-        IImmutableDictionary<string, object> LocalContextData { get; set; }
-
-        /// <summary>
         /// Gets access to the coerced variable values of the request.
         /// </summary>
         IVariableValueCollection Variables { get; }

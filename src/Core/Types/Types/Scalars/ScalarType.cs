@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
@@ -16,7 +15,6 @@ namespace HotChocolate.Types
     public abstract class ScalarType
         : TypeSystemObjectBase
         , ILeafType
-        , IHasDirectives
     {
         private static readonly ITypeConversion _converter =
             TypeConversion.Default;
@@ -45,8 +43,6 @@ namespace HotChocolate.Types
 
         public override IReadOnlyDictionary<string, object> ContextData =>
             _contextData;
-
-        public IDirectiveCollection Directives { get; private set; }
 
         /// <summary>
         /// Defines if the specified <paramref name="literal" />
@@ -129,31 +125,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be serialized
         /// by this scalar.
         /// </exception>
-        public virtual object Serialize(object value)
-        {
-            if (TrySerialize(value, out object s))
-            {
-                return s;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
-        }
-
-        /// <summary>
-        /// Tries to serializes the .net value representation to the output format.
-        /// </summary>
-        /// <param name="value">
-        /// The .net value representation.
-        /// </param>
-        /// <param name="serialized">
-        /// The serialized value.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the value was correctly serialized; otherwise, <c>false</c>.
-        /// </returns>
-        public abstract bool TrySerialize(
-            object value, out object serialized);
+        public abstract object Serialize(object value);
 
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
@@ -181,28 +153,20 @@ namespace HotChocolate.Types
 
 
         /// <summary>
-        /// Tries to deserializes the value from the output format to the .net value representation.
+        /// Deserializes the serialized value to it`s .net value representation.
         /// </summary>
-        /// <param name="serialized">
-        /// The serialized value.
-        /// </param>
         /// <param name="value">
-        /// The .net value representation.
+        /// The serialized value representation.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
+        /// Returns the .net value representation.
         /// </returns>
         public abstract bool TryDeserialize(
             object serialized, out object value);
 
         internal sealed override void Initialize(IInitializationContext context)
         {
-            context.Interceptor.OnBeforeRegisterDependencies(
-                context, null, _contextData);
             OnRegisterDependencies(context, _contextData);
-            context.Interceptor.OnAfterRegisterDependencies(
-                context, null, _contextData);
-
             base.Initialize(context);
         }
 
@@ -214,12 +178,8 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
-            context.Interceptor.OnBeforeCompleteName(
-                context, null, _contextData);
             OnCompleteName(context, _contextData);
             base.CompleteName(context);
-            context.Interceptor.OnAfterCompleteName(
-                context, null, _contextData);
         }
 
         protected virtual void OnCompleteName(
@@ -230,20 +190,14 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
-            context.Interceptor.OnBeforeCompleteType(
-                context, null, _contextData);
             OnCompleteType(context, _contextData);
             base.CompleteType(context);
-            context.Interceptor.OnAfterCompleteType(
-                context, null, _contextData);
         }
 
         protected virtual void OnCompleteType(
             ICompletionContext context,
             IDictionary<string, object> contextData)
         {
-            Directives = DirectiveCollection.CreateAndComplete(
-                context, this, Array.Empty<DirectiveDefinition>());
         }
 
         protected static bool TryConvertSerialized<T>(

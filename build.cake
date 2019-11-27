@@ -11,7 +11,7 @@ var sonarLogin = Argument("sonarLogin", default(string));
 var sonarPrKey = Argument("sonarPrKey", default(string));
 var sonarBranch = Argument("sonarBranch", default(string));
 var sonarBranchBase = Argument("sonarBranch", default(string));
-var sonarVersion = Argument("sonarVersion", default(string));
+var packageVersion = Argument("packageVersion", default(string));
 
 //////////////////////////////////////////////////////////////////////
 // PREPARATION
@@ -25,10 +25,11 @@ var publishOutputDir = Directory("./artifacts");
 Task("EnvironmentSetup")
     .Does(() =>
 {
-    if(string.IsNullOrEmpty(sonarVersion))
+    if(string.IsNullOrEmpty(packageVersion))
     {
-        sonarVersion = EnvironmentVariable("SONAR_VERSION");
+        packageVersion = EnvironmentVariable("Version");
     }
+    Environment.SetEnvironmentVariable("Version", packageVersion);
 
     if(string.IsNullOrEmpty(sonarPrKey))
     {
@@ -116,11 +117,14 @@ Task("AllTests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        DotNetCoreTest(file.FullPath, testSettings);
+        if(!file.FullPath.Contains("Classic"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
     }
 });
 
@@ -139,7 +143,7 @@ Task("SonarBegin")
         OpenCoverReportsPath = "**/*.opencover.xml",
         Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/StarWars/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
         Verbose = false,
-        Version = sonarVersion,
+        Version = packageVersion,
         ArgumentCustomization = a => {
             if(!string.IsNullOrEmpty(sonarPrKey))
             {

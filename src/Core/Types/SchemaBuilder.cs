@@ -28,11 +28,8 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly Dictionary<Type, CreateConvention> _conventions =
-            new Dictionary<Type, CreateConvention>();
         private readonly Dictionary<ITypeReference, ITypeReference> _clrTypes =
             new Dictionary<ITypeReference, ITypeReference>();
-        private readonly List<Type> _interceptors = new List<Type>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
@@ -77,17 +74,6 @@ namespace HotChocolate
                     TypeResources.SchemaBuilder_ISchemaNotTso,
                     nameof(schema));
             }
-            return this;
-        }
-
-        public ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure)
-        {
-            if (configure is null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            _schema = new SchemaTypeReference(new Schema(configure));
             return this;
         }
 
@@ -151,23 +137,6 @@ namespace HotChocolate
                     SchemaTypeReference.InferTypeContext(type)));
             }
 
-            return this;
-        }
-
-
-        public ISchemaBuilder AddConvention(Type convention, CreateConvention factory)
-        {
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            if (factory is null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            _conventions[convention] = factory;
             return this;
         }
 
@@ -391,25 +360,6 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddTypeInterceptor(Type interceptor)
-        {
-            if (interceptor is null)
-            {
-                throw new ArgumentNullException(nameof(interceptor));
-            }
-
-            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Interceptor_NotSuppported,
-                    nameof(interceptor));
-            }
-
-            _interceptors.Add(interceptor);
-            return this;
-        }
-
         public static SchemaBuilder New() => new SchemaBuilder();
-
     }
 }

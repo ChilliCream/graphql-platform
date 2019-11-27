@@ -11,7 +11,6 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <AssemblyName>HotChocolate.Stitching.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Stitching</RootNamespace>
   </PropertyGroup>

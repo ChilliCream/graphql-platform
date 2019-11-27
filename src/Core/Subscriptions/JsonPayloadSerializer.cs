@@ -11,12 +11,12 @@ namespace HotChocolate.Subscriptions
         private static readonly JsonSerializerSettings _settings =
             new JsonSerializerSettings
             {
-#if NET461
-                TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
-#else
+                #if NETSTANDARD2_0
                 TypeNameAssemblyFormatHandling =
                     TypeNameAssemblyFormatHandling.Full,
-#endif
+                #else
+                TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
+                #endif
 
                 TypeNameHandling = TypeNameHandling.All,
                 Culture = CultureInfo.InvariantCulture,

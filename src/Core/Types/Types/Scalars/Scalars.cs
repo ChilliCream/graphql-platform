@@ -48,39 +48,39 @@ namespace HotChocolate.Types
         private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
            new Dictionary<NameString, IClrTypeReference>
            {
-                { ScalarNames.String, new ClrTypeReference(
+                { "String", new ClrTypeReference(
                     typeof(StringType), TypeContext.None) },
-                { ScalarNames.ID, new ClrTypeReference(
+                { "ID", new ClrTypeReference(
                     typeof(IdType), TypeContext.None) },
-                { ScalarNames.Boolean, new ClrTypeReference(
+                { "Boolean", new ClrTypeReference(
                     typeof(BooleanType), TypeContext.None) },
-                { ScalarNames.Byte, new ClrTypeReference(
+                { "Byte", new ClrTypeReference(
                     typeof(ByteType), TypeContext.None) },
-                { ScalarNames.Short, new ClrTypeReference(
+                { "Short", new ClrTypeReference(
                     typeof(ShortType), TypeContext.None) },
-                { ScalarNames.Int, new ClrTypeReference(
+                { "Int", new ClrTypeReference(
                     typeof(IntType), TypeContext.None) },
-                { ScalarNames.Long, new ClrTypeReference(
+                { "Long", new ClrTypeReference(
                     typeof(LongType), TypeContext.None) },
 
-                { ScalarNames.Float, new ClrTypeReference(
+                { "Float", new ClrTypeReference(
                     typeof(FloatType), TypeContext.None) },
-                { ScalarNames.Decimal, new ClrTypeReference(
+                { "Decimal", new ClrTypeReference(
                     typeof(DecimalType), TypeContext.None) },
 
-                { ScalarNames.Url, new ClrTypeReference(
+                { "Url", new ClrTypeReference(
                     typeof(UrlType), TypeContext.None) },
-                { ScalarNames.Uuid, new ClrTypeReference(
+                { "Uuid", new ClrTypeReference(
                     typeof(UuidType), TypeContext.None) },
-                { ScalarNames.DateTime, new ClrTypeReference(
+                { "DateTime", new ClrTypeReference(
                     typeof(DateTimeType), TypeContext.None) },
-                { ScalarNames.Date, new ClrTypeReference(
+                { "Date", new ClrTypeReference(
                     typeof(DateType), TypeContext.None) },
-                { ScalarNames.MultiplierPath, new ClrTypeReference(
+                { "MultiplierPath", new ClrTypeReference(
                     typeof(MultiplierPathType), TypeContext.None) },
-                { ScalarNames.Name, new ClrTypeReference(
+                { "Name", new ClrTypeReference(
                     typeof(NameType), TypeContext.None) },
-                { ScalarNames.PaginationAmount, new ClrTypeReference(
+                { "PaginationAmount", new ClrTypeReference(
                     typeof(PaginationAmountType), TypeContext.None) },
            };
 

@@ -246,12 +246,6 @@ namespace HotChocolate.Discovery
             {
                 throw new NotSupportedException();
             }
-
-            public override bool TrySerialize(
-                object value, out object serialized)
-            {
-                throw new NotSupportedException();
-            }
         }
     }
 }

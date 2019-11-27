@@ -1,6 +1,4 @@
 ﻿using System.Threading.Tasks;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Integration.StarWarsCodeFirst

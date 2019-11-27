@@ -37,8 +37,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(
@@ -88,8 +87,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             Action action = () => fieldResolver
                .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -123,8 +121,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -164,8 +161,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -205,8 +201,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -251,8 +246,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -306,8 +300,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -357,8 +350,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -419,8 +411,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -484,8 +475,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
@@ -532,8 +522,7 @@ namespace HotChocolate.Execution
             var fieldResolver = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default,
-                Array.Empty<IArgumentCoercionHandler>());
+                TypeConversion.Default);
 
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),

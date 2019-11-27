@@ -26,8 +26,7 @@ namespace HotChocolate.Language
                 return ParseFragmentSpread(in start);
             }
 
-            NamedTypeNode? typeCondition = null;
-
+            NamedTypeNode typeCondition = null;
             if (isOnKeyword)
             {
                 MoveNext();
@@ -62,7 +61,7 @@ namespace HotChocolate.Language
                 NamedTypeNode typeCondition = ParseNamedType();
                 List<DirectiveNode> directives = ParseDirectives(false);
                 SelectionSetNode selectionSet = ParseSelectionSet();
-                Location? location = CreateLocation(in start);
+                Location location = CreateLocation(in start);
 
                 return new FragmentDefinitionNode
                 (
@@ -81,7 +80,7 @@ namespace HotChocolate.Language
                 NamedTypeNode typeCondition = ParseNamedType();
                 List<DirectiveNode> directives = ParseDirectives(false);
                 SelectionSetNode selectionSet = ParseSelectionSet();
-                Location? location = CreateLocation(in start);
+                Location location = CreateLocation(in start);
 
                 return new FragmentDefinitionNode
                 (
@@ -108,7 +107,7 @@ namespace HotChocolate.Language
         {
             NameNode name = ParseFragmentName();
             List<DirectiveNode> directives = ParseDirectives(false);
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new FragmentSpreadNode
             (
@@ -131,12 +130,11 @@ namespace HotChocolate.Language
         /// The fragment type condition.
         /// </param>
         private InlineFragmentNode ParseInlineFragment(
-            in TokenInfo start,
-            NamedTypeNode? typeCondition)
+            in TokenInfo start, NamedTypeNode typeCondition)
         {
             List<DirectiveNode> directives = ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new InlineFragmentNode
             (

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -219,22 +218,11 @@ namespace HotChocolate.Types.Filters
         public class Foo
         {
             public bool Bar { get; set; }
-            public bool? BarNullable { get; set; }
         }
 
         public class Bar
         {
             public string Qux { get; set; }
-        }
-
-        public class FooArray
-        {
-            public List<bool> BarList { get; set; }
-            public IEnumerable<bool> BarEnumerable { get; set; }
-            public bool[] BarArray { get; set; }
-            public List<bool?> BarListNullable { get; set; }
-            public IEnumerable<bool?> BarEnumerableNullable { get; set; }
-            public bool?[] BarArrayNullable { get; set; }
         }
 
         public class FooFilterType

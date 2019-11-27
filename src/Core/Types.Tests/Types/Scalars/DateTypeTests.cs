@@ -25,6 +25,23 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Serialize_DateTimeOffset()
+        {
+            // arrange
+            var dateType = new DateType();
+            var dateTime = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
+            string expectedValue = "2018-06-11";
+
+            // act
+            string serializedValue = (string)dateType.Serialize(dateTime);
+
+            // assert
+            Assert.Equal(expectedValue, serializedValue);
+        }
+
+        [Fact]
         public void Serialize_Null()
         {
             // arrange
@@ -207,6 +224,24 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Null(value);
+        }
+
+        [Fact]
+        public void ParseValue_DateTimeOffset()
+        {
+            // arrange
+            var dateType = new DateType();
+            var dateTime = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
+            string expectedLiteralValue = "2018-06-11";
+
+            // act
+            var stringLiteral =
+                (StringValueNode)dateType.ParseValue(dateTime);
+
+            // assert
+            Assert.Equal(expectedLiteralValue, stringLiteral.Value);
         }
 
         [Fact]

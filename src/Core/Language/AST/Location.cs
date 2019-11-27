@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Language
+﻿using System;
+
+namespace HotChocolate.Language
 {
     public sealed class Location
     {

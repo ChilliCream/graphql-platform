@@ -36,6 +36,7 @@ namespace HotChocolate.Configuration
             _schemaResolver = schemaResolver
                 ?? throw new ArgumentNullException(
                     nameof(schemaResolver));
+
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
 
@@ -68,9 +69,6 @@ namespace HotChocolate.Configuration
 
         public IDescriptorContext DescriptorContext =>
             _initializationContext.DescriptorContext;
-
-        public ITypeInitializationInterceptor Interceptor =>
-            _initializationContext.Interceptor;
 
         public T GetType<T>(ITypeReference reference)
             where T : IType

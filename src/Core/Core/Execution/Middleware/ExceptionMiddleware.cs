@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 
@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
             {
                 await _next(context).ConfigureAwait(false);
             }
-            catch (GraphQLException ex)
+            catch (QueryException ex)
             {
                 context.Exception = ex;
                 context.Result = QueryResult.CreateError(

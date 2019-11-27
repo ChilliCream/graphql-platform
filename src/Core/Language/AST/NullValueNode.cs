@@ -3,25 +3,23 @@
 namespace HotChocolate.Language
 {
     public sealed class NullValueNode
-        : IValueNode<object?>
+        : IValueNode<object>
         , IEquatable<NullValueNode>
     {
-        private const string _null = "null";
-
         private NullValueNode()
         {
         }
 
-        public NullValueNode(Location? location)
+        public NullValueNode(Location location)
         {
             Location = location;
         }
 
         public NodeKind Kind { get; } = NodeKind.NullValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
-        public object? Value { get; }
+        public object Value { get; }
 
         /// <summary>
         /// Determines whether the specified <see cref="NullValueNode"/>
@@ -36,7 +34,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="NullValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(NullValueNode? other)
+        public bool Equals(NullValueNode other)
         {
             if (other is null)
             {
@@ -59,7 +57,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="NullValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode? other)
+        public bool Equals(IValueNode other)
         {
             if (other is null)
             {
@@ -71,7 +69,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return other is NullValueNode;
+            if (other is NullValueNode n)
+            {
+                return Equals(n);
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -86,7 +89,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="NullValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             if (obj is null)
             {
@@ -98,7 +101,7 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return obj is NullValueNode;
+            return Equals(obj as NullValueNode);
         }
 
         /// <summary>
@@ -111,11 +114,9 @@ namespace HotChocolate.Language
         /// </returns>
         public override int GetHashCode() => 104729;
 
-        public override string? ToString() => _null;
-
         public static NullValueNode Default { get; } = new NullValueNode();
 
-        public NullValueNode WithLocation(Location? location)
+        public NullValueNode WithLocation(Location location)
         {
             return new NullValueNode(location);
         }
