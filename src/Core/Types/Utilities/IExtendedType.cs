@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Utilities
 {
     public interface IExtendedType
     {
         Type Type { get; }
 
-        Type Definition { get; }
+        Type? Definition { get; }
 
         ExtendedTypeKind Kind { get; }
 
@@ -22,5 +24,9 @@ namespace HotChocolate.Utilities
         IReadOnlyList<IExtendedType> TypeArguments { get; }
 
         IReadOnlyList<IExtendedType> GetInterfaces();
+
+        IExtendedType WithIsNullable(bool isNullable);
+
+        IExtendedType WithTypeArguments(IReadOnlyList<IExtendedType> arguments);
     }
 }

@@ -150,7 +150,7 @@ namespace HotChocolate.Types.Filters
                     clrRef.Type,
                     out Utilities.TypeInfo typeInfo))
             {
-                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
+                if (BaseTypes.IsSchemaType(typeInfo.Type))
                 {
                     if (clrRef.Type.IsGenericType
                         && clrRef.Type.GetGenericTypeDefinition() ==

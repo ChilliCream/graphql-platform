@@ -203,10 +203,10 @@ namespace HotChocolate.Configuration
                 && _typeInspector.TryCreate(typeReference.Type,
                     out TypeInfo typeInfo))
             {
-                if (IsTypeSystemObject(typeInfo.ClrType))
+                if (IsTypeSystemObject(typeInfo.Type))
                 {
                     RegisterSchemaType(
-                        typeInfo.ClrType,
+                        typeInfo.Type,
                         typeReference.Context);
                 }
                 else

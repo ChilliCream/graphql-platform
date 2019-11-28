@@ -36,10 +36,17 @@ namespace HotChocolate.Types.Descriptors
         {
             if (IsTypeNullable.HasValue || IsElementTypeNullable.HasValue)
             {
-                Type rewritten = DotNetTypeInfoFactory.Rewrite(
+                IExtendedType rewritten = ExtendedTypeInfoFactory.Rewrite(
                     Type,
-                    !(IsTypeNullable ?? false),
-                    !(IsElementTypeNullable ?? false));
+                    new Utilities.Nullable[]
+                    {
+                        (IsTypeNullable ?? false)
+                            ? Utilities.Nullable.Yes
+                            : Utilities.Nullable.No,
+                        (IsElementTypeNullable?? false)
+                            ? Utilities.Nullable.Yes
+                            : Utilities.Nullable.No
+                    });
                 return new ClrTypeReference(rewritten, Context);
             }
             return this;
@@ -132,7 +139,7 @@ namespace HotChocolate.Types.Descriptors
 
         public override string ToString()
         {
-            return $"{Context}: {Type.GetTypeName()}";
+            return $"{Context}: {Type.Type.GetTypeName()}";
         }
 
         public IClrTypeReference WithoutContext()
@@ -142,7 +149,7 @@ namespace HotChocolate.Types.Descriptors
                 IsTypeNullable, IsElementTypeNullable);
         }
 
-        public IClrTypeReference WithType(Type type)
+        public IClrTypeReference WithType(IExtendedType type)
         {
             if (type is null)
             {
@@ -160,7 +167,7 @@ namespace HotChocolate.Types.Descriptors
             where T : ITypeSystemMember
         {
             return new ClrTypeReference(
-                typeof(T),
+                ExtendedType.FromType(typeof(T)),
                 SchemaTypeReference.InferTypeContext(typeof(T)));
         }
 
@@ -173,9 +180,8 @@ namespace HotChocolate.Types.Descriptors
 
             if (typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
             {
-
                 return new ClrTypeReference(
-                    schemaType,
+                    ExtendedType.FromType(schemaType),
                     SchemaTypeReference.InferTypeContext(schemaType));
             }
 

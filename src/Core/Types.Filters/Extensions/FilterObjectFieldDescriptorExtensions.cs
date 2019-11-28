@@ -88,7 +88,7 @@ namespace HotChocolate.Types
 
                         argumentType =
                             typeof(FilterInputType<>).MakeGenericType(
-                                typeInfo.ClrType);
+                                typeInfo.Type);
                     }
 
                     var argumentTypeReference = filterTypeInstance is null

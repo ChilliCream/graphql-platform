@@ -35,8 +35,8 @@ namespace HotChocolate.Types.Descriptors
                     nameof(dependency));
             }
 
-            if (!NamedTypeInfoFactory.Default.TryCreate(
-                dependency,
+            if (!SchemaTypeInfoFactory.Default.TryCreate(
+                ExtendedType.FromType(dependency),
                 out TypeInfo typeInfo))
             {
                 throw new ArgumentException(
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Descriptors
                 .OnBeforeNaming((ctx, definition) =>
                 {
                     INamedType type = ctx.GetType<INamedType>(
-                        ClrTypeReference.FromSchemaType(typeInfo.ClrType));
+                        ClrTypeReference.FromSchemaType(typeInfo.Type));
                     definition.Name = createName(type);
                 })
                 .DependsOn(dependency, true);

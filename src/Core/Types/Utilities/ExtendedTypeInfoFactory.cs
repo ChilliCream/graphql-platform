@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal class DotNetTypeInfoFactory1
+    internal class ExtendedTypeInfoFactory
         : ITypeInfoFactory
     {
         public bool TryCreate(IExtendedType type, out TypeInfo? typeInfo)
@@ -20,14 +21,12 @@ namespace HotChocolate.Utilities
 
             if (CanHandle(type))
             {
-                List<Type> components = DecomposeType(type);
-
-                if (components.Any()
-                    && (TryCreate4ComponentType(components, out typeInfo)
-                    || TryCreate3ComponentType(components, out typeInfo)
-                    || TryCreate2ComponentType(components, out typeInfo)
-                    || TryCreate1ComponentType(components, out typeInfo)))
+                List<TypeComponent> components = DecomposeType(type);
+                if (components.Count > 0)
                 {
+                    typeInfo = new TypeInfo(
+                        components[components.Count - 1].Type,
+                        components);
                     return true;
                 }
             }
@@ -36,15 +35,14 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        public static Type Unwrap(Type type)
+        public static IExtendedType Unwrap(IExtendedType type)
         {
             return RemoveNonEssentialParts(type);
         }
 
-        public static Type Rewrite(
-            Type type,
-            bool isNonNullType,
-            bool isNonNullElementType)
+        public static IExtendedType Rewrite(
+            IExtendedType type,
+            ReadOnlySpan<Nullable> nullable)
         {
             if (type == null)
             {
@@ -53,37 +51,53 @@ namespace HotChocolate.Utilities
 
             if (CanHandle(type))
             {
-                var components = RemoveNonNullComponents(type).ToList();
+                var components = new Stack<IExtendedType>();
+                IExtendedType? current = type;
+                int i = 0;
 
-                if (components.Count == 2
-                    && IsListType(components[0])
-                    && IsPossibleNamedType(components[1]))
+                do
                 {
-                    return RewriteListType(
-                        components[1],
-                        isNonNullType,
-                        isNonNullElementType);
+                    bool shallBeNullable = nullable.Length < i && nullable[i++] == Nullable.Yes;
+                    current = RemoveNonEssentialParts(current);
+
+                    if (current.IsNullable == shallBeNullable)
+                    {
+                        components.Push(current);
+                    }
+                    else
+                    {
+                        components.Push(current.WithIsNullable(shallBeNullable));
+                    }
+
+                    current = GetInnerType(current);
+                } while (current != null && components.Count < 7);
+
+                current = null;
+
+                while (components.Count > 0)
+                {
+                    if (current is null)
+                    {
+                        current = components.Pop();
+                    }
+                    else
+                    {
+                        var parent = components.Pop();
+                        if (parent.TypeArguments.Contains(current))
+                        {
+                            current = parent;
+                        }
+                        else
+                        {
+                            current = parent.WithTypeArguments(new[] { current });
+                        }
+                    }
                 }
 
-                if (components.Count == 1)
-                {
-                    return RewriteNamedType(components[0], isNonNullType);
-                }
+                return current!;
             }
 
             return type;
-        }
-
-
-        private static IEnumerable<Type> RemoveNonNullComponents(Type type)
-        {
-            foreach (Type component in DecomposeType(type))
-            {
-                if (!IsNonNullType(component) && !IsNullableType(component))
-                {
-                    yield return component;
-                }
-            }
         }
 
         private static Type RewriteListType(
@@ -143,161 +157,6 @@ namespace HotChocolate.Utilities
             return typeof(NonNullType<>).MakeGenericType(wrapper);
         }
 
-        private static bool TryCreate4ComponentType(
-            List<Type> components, out TypeInfo typeInfo)
-        {
-            if (components.Count == 4)
-            {
-                if (IsNonNullType(components[0])
-                    && IsListType(components[1])
-                    && IsNonNullType(components[2])
-                    && IsPossibleNamedType(components[3]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[3],
-                        components,
-                        t => new NonNullType(new ListType(new NonNullType(t))));
-                    return true;
-                }
-
-                if (IsNonNullType(components[0])
-                    && IsListType(components[1])
-                    && IsNullableType(components[2])
-                    && components[3].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new NonNullType(new ListType(t)));
-                    return true;
-                }
-            }
-
-            typeInfo = default;
-            return false;
-        }
-
-        private static bool TryCreate3ComponentType(
-             List<Type> components, out TypeInfo typeInfo)
-        {
-            if (components.Count == 3)
-            {
-                if (IsListType(components[0])
-                    && IsNullableType(components[1])
-                    && components[2].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new ListType(t));
-                    return true;
-                }
-
-                if (IsListType(components[0])
-                    && IsNonNullType(components[1])
-                    && IsPossibleNamedType(components[2]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new ListType(new NonNullType(t)));
-                    return true;
-                }
-
-                if (IsNonNullType(components[0])
-                    && IsListType(components[1])
-                    && IsPossibleNamedType(components[2]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new NonNullType(new ListType(t)));
-                    return true;
-                }
-            }
-
-            typeInfo = default;
-            return false;
-        }
-
-        private static bool TryCreate2ComponentType(
-             List<Type> components, out TypeInfo typeInfo)
-        {
-            if (components.Count == 2)
-            {
-                if (IsListType(components[0])
-                    && components[1].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => new ListType(new NonNullType(t)));
-                    return true;
-                }
-
-                if (IsListType(components[0])
-                    && IsPossibleNamedType(components[1]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => new ListType(t));
-                    return true;
-                }
-
-                if (IsNullableType(components[0])
-                    && components[1].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => t);
-                    return true;
-                }
-
-                if (IsNonNullType(components[0])
-                    && IsPossibleNamedType(components[1]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => new NonNullType(t));
-                    return true;
-                }
-            }
-
-            typeInfo = default;
-            return false;
-        }
-
-        private static bool TryCreate1ComponentType(
-            List<Type> components, out TypeInfo typeInfo)
-        {
-            if (components.Count == 1)
-            {
-                if (components[0].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[0],
-                        components,
-                        t => new NonNullType(t));
-                    return true;
-                }
-
-                if (IsPossibleNamedType(components[0]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[0],
-                        components,
-                        t => t);
-                    return true;
-                }
-            }
-
-            typeInfo = default;
-            return false;
-        }
-
         private static List<TypeComponent> DecomposeType(IExtendedType type)
         {
             var components = new List<TypeComponent>();
@@ -315,10 +174,16 @@ namespace HotChocolate.Utilities
                 if (IsListType(current))
                 {
                     components.Add(TypeComponent.List);
+                    current = GetInnerType(current);
                 }
-
-                current = GetInnerType(current);
-            } while (current != null && components.Count < 5);
+                else
+                {
+                    components.Add(new TypeComponent(
+                        TypeComponentKind.Named,
+                        current.Type));
+                    current = null;
+                }
+            } while (current != null && components.Count < 7);
 
             if (IsTypeStackValid(components))
             {
@@ -465,7 +330,8 @@ namespace HotChocolate.Utilities
 
         private static bool CanHandle(IExtendedType type)
         {
-            return type.Kind == ExtendedTypeKind.Extended;
+            return type.Kind == ExtendedTypeKind.Extended
+                || type.Kind == ExtendedTypeKind.Unknown;
         }
     }
 }

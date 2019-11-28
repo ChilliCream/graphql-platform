@@ -638,11 +638,11 @@ namespace HotChocolate.Configuration
                 && _typeInspector.TryCreate(typeReference.Type,
                     out Utilities.TypeInfo typeInfo))
             {
-                if (IsTypeSystemObject(typeInfo.ClrType))
+                if (IsTypeSystemObject(typeInfo.Type))
                 {
                     normalized = new ClrTypeReference(
-                        typeInfo.ClrType,
-                        SchemaTypeReference.InferTypeContext(typeInfo.ClrType));
+                        typeInfo.Type,
+                        SchemaTypeReference.InferTypeContext(typeInfo.Type));
                     return true;
                 }
                 else

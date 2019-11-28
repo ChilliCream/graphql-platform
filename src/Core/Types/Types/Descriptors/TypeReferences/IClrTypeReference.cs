@@ -1,16 +1,17 @@
 using System;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
     public interface IClrTypeReference
         : ITypeReference
     {
-        Type Type { get; }
+        IExtendedType Type { get; }
 
         IClrTypeReference Compile();
 
         IClrTypeReference WithoutContext();
 
-        IClrTypeReference WithType(Type type);
+        IClrTypeReference WithType(IExtendedType type);
     }
 }

@@ -1,6 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System;
-using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Concurrent;
+
+#nullable enable
 
 namespace HotChocolate.Utilities
 {
@@ -9,14 +10,14 @@ namespace HotChocolate.Utilities
     {
         private static readonly ITypeInfoFactory[] _factories =
         {
-            new NamedTypeInfoFactory(),
-            new DotNetTypeInfoFactory()
+            new SchemaTypeInfoFactory(),
+            new ExtendedTypeInfoFactory()
         };
 
-        private readonly ConcurrentDictionary<Type, TypeInfo> _cache =
-            new ConcurrentDictionary<Type, TypeInfo>();
+        private readonly ConcurrentDictionary<IExtendedType, TypeInfo> _cache =
+            new ConcurrentDictionary<IExtendedType, TypeInfo>();
 
-        public bool TryCreate(Type type, out TypeInfo typeInfo)
+        public bool TryCreate(IExtendedType type, out TypeInfo? typeInfo)
         {
             if (!_cache.TryGetValue(type, out typeInfo))
             {
@@ -30,7 +31,7 @@ namespace HotChocolate.Utilities
             return true;
         }
 
-        private bool TryCreateInternal(Type type, out TypeInfo typeInfo)
+        private bool TryCreateInternal(IExtendedType type, out TypeInfo typeInfo)
         {
             foreach (ITypeInfoFactory factory in _factories)
             {

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using System;
 using System.Collections.Generic;
@@ -5,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -16,6 +19,9 @@ namespace HotChocolate.Types.Descriptors
 
         private readonly TypeInspector _typeInspector =
             new TypeInspector();
+
+        private ConcurrentDictionary<MemberInfo, IExtendedMethodTypeInfo> _methods =
+            new ConcurrentDictionary<MemberInfo, IExtendedMethodTypeInfo>();
 
         public virtual IEnumerable<MemberInfo> GetMembers(Type type)
         {
@@ -86,13 +92,13 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(member));
             }
 
-            Type returnType = GetReturnType(member);
+            IExtendedType returnType = GetReturnType(member);
 
             if (member.IsDefined(typeof(GraphQLTypeAttribute)))
             {
                 GraphQLTypeAttribute attribute =
                     member.GetCustomAttribute<GraphQLTypeAttribute>();
-                returnType = attribute.Type;
+                returnType = ExtendedType.FromType(attribute.Type);
             }
 
             if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
@@ -111,15 +117,17 @@ namespace HotChocolate.Types.Descriptors
             return new ClrTypeReference(returnType, context);
         }
 
-        protected static Type GetReturnType(MemberInfo member)
+        protected IExtendedType GetReturnType(MemberInfo member)
         {
             if (member is MethodInfo m)
             {
-                return m.ReturnType;
+                IExtendedMethodTypeInfo info = m.GetExtendeMethodTypeInfo();
+                _methods.TryAdd(m, info);
+                return info.ReturnType;
             }
             else if (member is PropertyInfo p)
             {
-                return p.PropertyType;
+                return p.GetExtendedReturnType();
             }
             else
             {
@@ -136,13 +144,13 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            Type argumentType = parameter.ParameterType;
+            IExtendedType argumentType = GetArgumentReturnType(parameter);
 
             if (parameter.IsDefined(typeof(GraphQLTypeAttribute)))
             {
                 GraphQLTypeAttribute attribute =
                     parameter.GetCustomAttribute<GraphQLTypeAttribute>();
-                argumentType = attribute.Type;
+                argumentType = ExtendedType.FromType(attribute.Type);
             }
 
             if (parameter.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
@@ -159,6 +167,18 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return new ClrTypeReference(argumentType, TypeContext.Input);
+        }
+
+        private IExtendedType GetArgumentReturnType(ParameterInfo parameter)
+        {
+            MethodInfo method = (MethodInfo)parameter.Member;
+
+            if (!_methods.TryGetValue(method, out IExtendedMethodTypeInfo info))
+            {
+                info = method.GetExtendeMethodTypeInfo();
+            }
+
+            return info.ParameterTypes[parameter];
         }
 
         public virtual IEnumerable<object> GetEnumValues(Type enumType)
@@ -178,7 +198,7 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsIgnored(MemberInfo member)
         {
-            if(IsToString(member) || IsGetHashCode(member))
+            if (IsToString(member) || IsGetHashCode(member))
             {
                 return true;
             }
@@ -207,9 +227,11 @@ namespace HotChocolate.Types.Descriptors
                 return type;
             }
 
-            if (_typeInspector.TryCreate(type, out Utilities.TypeInfo typeInfo))
+            if (_typeInspector.TryCreate(
+                ExtendedType.FromType(type),
+                out Utilities.TypeInfo? typeInfo))
             {
-                return typeInfo.ClrType;
+                return typeInfo!.Type;
             }
 
             return type;

@@ -2,6 +2,8 @@ using System.Reflection;
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public interface ITypeInspector

@@ -7,25 +7,27 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Utilities
 {
-    public class NullableHelper
+    internal readonly ref struct NullableHelper
     {
         private readonly Type _type;
-        private Nullable _context = Nullable.Yes;
+        private readonly Nullable _context;
 
         public NullableHelper(Type type)
         {
             _type = type;
 
             _context = GetContext(
-                type.Assembly.GetCustomAttribute<NullableContextAttribute>());
+                type.Assembly.GetCustomAttribute<NullableContextAttribute>(),
+                Nullable.Yes);
 
             _context = GetContext(
-                type.GetCustomAttribute<NullableContextAttribute>());
+                type.GetCustomAttribute<NullableContextAttribute>(),
+                _context);
         }
 
         public Type Type => _type;
 
-        public TypeNullability GetPropertyInfo(PropertyInfo property)
+        public IExtendedType GetPropertyInfo(PropertyInfo property)
         {
             return CreateNullableTypeInfo(
                 GetContext(property),
@@ -33,15 +35,15 @@ namespace HotChocolate.Utilities
                 property.PropertyType);
         }
 
-        public MethodTypeInfo GetMethodInfo(MethodInfo method)
+        public ExtendedMethodTypeInfo GetMethodInfo(MethodInfo method)
         {
-            TypeNullability returnType = CreateNullableTypeInfo(
+            IExtendedType returnType = CreateNullableTypeInfo(
                 GetContext(method),
                 GetFlags(method),
                 method.ReturnType);
 
             ParameterInfo[] parameters = method.GetParameters();
-            TypeNullability[] parameterTypes = new TypeNullability[parameters.Length];
+            IExtendedType[] parameterTypes = new IExtendedType[parameters.Length];
 
             for (int i = 0; i < parameters.Length; i++)
             {
@@ -52,10 +54,10 @@ namespace HotChocolate.Utilities
                     parameter.ParameterType);
             }
 
-            return new MethodTypeInfo(returnType, parameterTypes);
+            return new ExtendedMethodTypeInfo(returnType, parameterTypes);
         }
 
-        private TypeNullability CreateNullableTypeInfo(
+        private IExtendedType CreateNullableTypeInfo(
             Nullable context,
             ReadOnlySpan<byte> flags,
             Type type)
@@ -64,7 +66,7 @@ namespace HotChocolate.Utilities
             return CreateNullableTypeInfo(context, flags, type, ref position);
         }
 
-        private TypeNullability CreateNullableTypeInfo(
+        private IExtendedType CreateNullableTypeInfo(
             Nullable context,
             ReadOnlySpan<byte> flags,
             Type type,
@@ -76,22 +78,32 @@ namespace HotChocolate.Utilities
                 {
                     if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
-                        return new TypeNullability(Nullable.Yes, type);
+                        return new ExtendedType(
+                            type,
+                            true,
+                            ExtendedTypeKind.Extended);
                     }
                     else
                     {
-                        var arguments = new List<TypeNullability>();
+                        var arguments = new List<IExtendedType>();
                         foreach (Type argumentType in type.GetGenericArguments())
                         {
                             arguments.Add(CreateNullableTypeInfo(
                                 context, flags, argumentType, ref position));
                         }
-                        return new TypeNullability(Nullable.No, type, arguments);
+                        return new ExtendedType(
+                            type,
+                            false,
+                            ExtendedTypeKind.Extended,
+                            arguments);
                     }
                 }
                 else
                 {
-                    return new TypeNullability(Nullable.No, type);
+                    return new ExtendedType(
+                        type,
+                        false,
+                        ExtendedTypeKind.Extended);
                 }
             }
             else
@@ -104,17 +116,24 @@ namespace HotChocolate.Utilities
 
                 if (type.IsGenericType)
                 {
-                    var arguments = new List<TypeNullability>();
+                    var arguments = new List<IExtendedType>();
                     foreach (Type argumentType in type.GetGenericArguments())
                     {
                         arguments.Add(CreateNullableTypeInfo(
                             context, flags, argumentType, ref position));
                     }
-                    return new TypeNullability(state, type, arguments);
+                    return new ExtendedType(
+                        type,
+                        state == Nullable.Yes,
+                        ExtendedTypeKind.Extended,
+                        arguments);
                 }
                 else
                 {
-                    return new TypeNullability(state, type);
+                    return new ExtendedType(
+                        type,
+                        state == Nullable.Yes,
+                        ExtendedTypeKind.Extended);
                 }
             }
         }
@@ -138,7 +157,7 @@ namespace HotChocolate.Utilities
             return GetContext(attribute, _context);
         }
 
-        private Nullable GetContext(
+        private static Nullable GetContext(
             NullableContextAttribute? attribute,
             Nullable parent)
         {
@@ -149,17 +168,17 @@ namespace HotChocolate.Utilities
             return parent;
         }
 
-        private ReadOnlySpan<byte> GetFlags(MemberInfo member)
+        private static ReadOnlySpan<byte> GetFlags(MemberInfo member)
         {
             return GetFlags(member.GetCustomAttribute<NullableAttribute>());
         }
 
-        private ReadOnlySpan<byte> GetFlags(ParameterInfo parameter)
+        private static ReadOnlySpan<byte> GetFlags(ParameterInfo parameter)
         {
             return GetFlags(parameter.GetCustomAttribute<NullableAttribute>());
         }
 
-        private ReadOnlySpan<byte> GetFlags(NullableAttribute? attribute)
+        private static ReadOnlySpan<byte> GetFlags(NullableAttribute? attribute)
         {
             if (attribute is { })
             {

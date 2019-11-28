@@ -128,7 +128,7 @@ namespace HotChocolate.Types
 
                 argumentType =
                     typeof(SortInputType<>).MakeGenericType(
-                        typeInfo.ClrType);
+                        typeInfo.Type);
             }
 
             if (argumentType == typeof(object))

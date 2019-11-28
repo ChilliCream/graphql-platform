@@ -12,13 +12,13 @@ namespace HotChocolate.Utilities
             Type clrType,
             IReadOnlyList<TypeComponent> components)
         {
-            ClrType = clrType;
+            Type = clrType;
             Components = components;
         }
 
         public IReadOnlyList<TypeComponent> Components { get; }
 
-        public Type ClrType { get; }
+        public Type Type { get; }
 
         public IType CreateSchemaType(INamedType namedType)
         {
