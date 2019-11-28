@@ -78,7 +78,7 @@ namespace HotChocolate.Types
                     if (filterType == null)
                     {
                         if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType, out TypeInfo typeInfo))
+                            definition.ResultType.ToExtendedType(), out TypeInfo typeInfo))
                         {
                             // TODO : resources
                             throw new ArgumentException(

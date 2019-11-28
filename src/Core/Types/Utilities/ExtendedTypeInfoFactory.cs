@@ -1,4 +1,3 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +41,7 @@ namespace HotChocolate.Utilities
 
         public static IExtendedType Rewrite(
             IExtendedType type,
-            ReadOnlySpan<Nullable> nullable)
+            params Nullable[] nullable)
         {
             if (type == null)
             {
@@ -227,7 +226,12 @@ namespace HotChocolate.Utilities
             return true;
         }
 
-        private static IExtendedType? GetInnerType(IExtendedType type)
+        public static Type? GetInnerType(Type type)
+        {
+            return GetInnerType(ExtendedType.FromType(type))?.Type;
+        }
+
+        public static IExtendedType? GetInnerType(IExtendedType type)
         {
             if (type.IsArray)
             {

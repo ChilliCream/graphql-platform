@@ -46,7 +46,7 @@ namespace HotChocolate
 
             if (typeof(Schema).IsAssignableFrom(type))
             {
-                _schema = new ClrTypeReference(type, TypeContext.None);
+                _schema = type.ToTypeReference(TypeContext.None);
             }
             else
             {
@@ -132,9 +132,7 @@ namespace HotChocolate
             }
             else
             {
-                _types.Add(new ClrTypeReference(
-                    type,
-                    SchemaTypeReference.InferTypeContext(type)));
+                _types.Add(type.ToTypeReference(SchemaTypeReference.InferTypeContext(type)));
             }
 
             return this;
@@ -154,16 +152,13 @@ namespace HotChocolate
 
             if (!BaseTypes.IsSchemaType(schemaType))
             {
-                // TODO : resources
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_MustBeSchemaType,
                     nameof(schemaType));
             }
 
-            TypeContext context =
-                SchemaTypeReference.InferTypeContext(schemaType);
-            _clrTypes[new ClrTypeReference(clrType, context)] =
-                new ClrTypeReference(schemaType, context);
+            TypeContext context = SchemaTypeReference.InferTypeContext(schemaType);
+            _clrTypes[clrType.ToTypeReference(context)] = schemaType.ToTypeReference(context);
 
             return this;
         }

@@ -31,17 +31,25 @@ namespace HotChocolate.Utilities
             Kind = kind;
             TypeArguments = typeArguments ?? throw new ArgumentNullException(nameof(typeArguments));
 
-            if (kind == ExtendedTypeKind.Unknown
-                && type.IsGenericType
-                && typeArguments.Count == 0)
+            if (kind == ExtendedTypeKind.Unknown)
             {
-                Type[] arguments = type.GetGenericArguments();
-                var extendedArguments = new IExtendedType[arguments.Length];
-                for (int i = 0; i < extendedArguments.Length; i++)
+                if (type.IsGenericType && typeArguments.Count == 0)
                 {
-                    extendedArguments[i] = FromType(arguments[i]);
+                    Type[] arguments = type.GetGenericArguments();
+                    var extendedArguments = new IExtendedType[arguments.Length];
+                    for (int i = 0; i < extendedArguments.Length; i++)
+                    {
+                        extendedArguments[i] = FromType(arguments[i]);
+                    }
+                    TypeArguments = extendedArguments;
                 }
-                TypeArguments = extendedArguments;
+                else if (type.IsArray)
+                {
+                    TypeArguments = new IExtendedType[]
+                    {
+                        FromType(type.GetElementType())
+                    };
+                }
             }
 
             if (type.IsGenericType)

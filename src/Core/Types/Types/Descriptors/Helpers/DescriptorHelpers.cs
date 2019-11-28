@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             if (typeReference is IClrTypeReference clr
-                && !BaseTypes.IsSchemaType(clr.Type))
+                && !clr.Type.IsSchemaType())
             {
                 return true;
             }

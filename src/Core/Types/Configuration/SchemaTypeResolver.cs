@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Configuration
 {
@@ -11,38 +14,38 @@ namespace HotChocolate.Configuration
 
         public static bool TryInferSchemaType(
             IClrTypeReference unresolvedType,
-            out IClrTypeReference schemaType)
+            out IClrTypeReference? schemaType)
         {
             if (IsInterfaceType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(InterfaceType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = typeof(InterfaceType<>)
+                    .MakeGenericType(unresolvedType.Type.Type)
+                    .ToTypeReference(TypeContext.Output);
             }
             else if (IsObjectType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(ObjectType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = typeof(ObjectType<>)
+                    .MakeGenericType(unresolvedType.Type.Type)
+                    .ToTypeReference(TypeContext.Output);
             }
             else if (IsInputObjectType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(InputObjectType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Input);
+                schemaType = typeof(InputObjectType<>)
+                    .MakeGenericType(unresolvedType.Type.Type)
+                    .ToTypeReference(TypeContext.Input);
             }
             else if (IsEnumType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(EnumType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    unresolvedType.Context);
+                schemaType = typeof(EnumType<>)
+                    .MakeGenericType(unresolvedType.Type.Type)
+                    .ToTypeReference(unresolvedType.Context);
             }
             else
             {
                 schemaType = null;
             }
 
-            return schemaType != null;
+            return schemaType is { };
         }
 
         private static bool IsObjectType(IClrTypeReference unresolvedType)
@@ -62,23 +65,21 @@ namespace HotChocolate.Configuration
         private static bool IsInputObjectType(IClrTypeReference unresolvedType)
         {
             return IsComplexType(unresolvedType)
-                && !unresolvedType.Type.IsAbstract
+                && !unresolvedType.Type.Type.IsAbstract
                 && unresolvedType.Context == TypeContext.Input;
         }
 
         private static bool IsComplexType(IClrTypeReference unresolvedType)
         {
             bool isComplexType =
-                (unresolvedType.Type.IsClass
-                    && (unresolvedType.Type.IsPublic
-                        || unresolvedType.Type.IsNestedPublic))
-                    && unresolvedType.Type != typeof(string);
+                (unresolvedType.Type.Type.IsClass
+                    && (unresolvedType.Type.Type.IsPublic
+                        || unresolvedType.Type.Type.IsNestedPublic))
+                    && unresolvedType.Type.Type != typeof(string);
 
-            if (!isComplexType && unresolvedType.Type.IsGenericType)
+            if (!isComplexType && unresolvedType.Type.IsGeneric)
             {
-                Type typeDefinition =
-                    unresolvedType.Type.GetGenericTypeDefinition();
-                return typeDefinition == _keyValuePair;
+                return unresolvedType.Type.Definition == _keyValuePair;
             }
 
             return isComplexType;
@@ -86,9 +87,9 @@ namespace HotChocolate.Configuration
 
         private static bool IsEnumType(IClrTypeReference unresolvedType)
         {
-            return (unresolvedType.Type.IsEnum
-                    && (unresolvedType.Type.IsPublic
-                        || unresolvedType.Type.IsNestedPublic));
+            return (unresolvedType.Type.Type.IsEnum
+                    && (unresolvedType.Type.Type.IsPublic
+                        || unresolvedType.Type.Type.IsNestedPublic));
         }
     }
 }

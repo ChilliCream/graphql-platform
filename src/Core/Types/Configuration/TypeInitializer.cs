@@ -384,9 +384,7 @@ namespace HotChocolate.Configuration
                         objectType.ClrType))
                     {
                         dependencies.Add(new TypeDependency(
-                            new ClrTypeReference(
-                                interfaceType.ClrType,
-                                TypeContext.Output),
+                            interfaceType.ClrType.ToTypeReference(TypeContext.Output),
                             TypeDependencyKind.Completed));
                     }
                 }
@@ -608,8 +606,8 @@ namespace HotChocolate.Configuration
                     break;
 
                 case ISchemaTypeReference r:
-                    var internalReference = new ClrTypeReference(
-                        r.Type.GetType(), r.Context);
+                    var internalReference =
+                        r.Type.GetType().ToTypeReference(r.Context);
                     _depsLup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
@@ -634,33 +632,27 @@ namespace HotChocolate.Configuration
             IClrTypeReference typeReference,
             out ITypeReference normalized)
         {
-            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
+            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type.Type)
                 && _typeInspector.TryCreate(typeReference.Type,
                     out Utilities.TypeInfo typeInfo))
             {
                 if (IsTypeSystemObject(typeInfo.Type))
                 {
-                    normalized = new ClrTypeReference(
-                        typeInfo.Type,
+                    normalized = typeInfo.Type.ToTypeReference(
                         SchemaTypeReference.InferTypeContext(typeInfo.Type));
                     return true;
                 }
                 else
                 {
-                    for (int i = 0; i < typeInfo.Components.Count; i++)
+                    if (ClrTypes.TryGetValue(
+                            typeInfo.Type.ToTypeReference(),
+                            out ITypeReference r)
+                        || ClrTypes.TryGetValue(
+                            typeInfo.Type.ToTypeReference(
+                            TypeContext.None), out r))
                     {
-                        var n = new ClrTypeReference(
-                            typeInfo.Components[i],
-                            typeReference.Context);
-
-                        if ((ClrTypes.TryGetValue(
-                                n, out ITypeReference r)
-                            || ClrTypes.TryGetValue(
-                                n.WithoutContext(), out r)))
-                        {
-                            normalized = r;
-                            return true;
-                        }
+                        normalized = r;
+                        return true;
                     }
                 }
             }

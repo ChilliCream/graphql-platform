@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Descriptors
                 isElementTypeNullable);
 
             // assert
-            Assert.Equal(clrType, typeReference.Type);
+            Assert.Equal(clrType, typeReference.Type.Type);
             Assert.Equal(context, typeReference.Context);
             Assert.Equal(isTypeNullable, typeReference.IsTypeNullable);
             Assert.Equal(isElementTypeNullable,
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
             IClrTypeReference compiled = typeReference.Compile();
 
             // assert
-            Assert.Equal(rewrittenClrType, compiled.Type);
+            Assert.Equal(rewrittenClrType, compiled.Type.Type);
             Assert.Null(compiled.IsTypeNullable);
             Assert.Null(compiled.IsElementTypeNullable);
         }

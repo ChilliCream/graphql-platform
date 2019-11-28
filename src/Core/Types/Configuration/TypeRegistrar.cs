@@ -126,7 +126,8 @@ namespace HotChocolate.Configuration
 
             foreach (IClrTypeReference unresolvedType in Unresolved.ToList())
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type,
+                if (Scalars.TryGetScalar(
+                    unresolvedType.Type.Type,
                     out IClrTypeReference schemaType))
                 {
                     resolved = true;
@@ -166,10 +167,8 @@ namespace HotChocolate.Configuration
                     }
                     else
                     {
-                        var secondaryRef = new ClrTypeReference(
-                            tso.GetType(),
+                        var secondaryRef = tso.GetType().ToTypeReference(
                             SchemaTypeReference.InferTypeContext(tso));
-
                         RegisterTypeSystemObject(tso, str, secondaryRef);
                     }
                 }
@@ -199,9 +198,8 @@ namespace HotChocolate.Configuration
 
         private void RegisterClrType(IClrTypeReference typeReference)
         {
-            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
-                && _typeInspector.TryCreate(typeReference.Type,
-                    out TypeInfo typeInfo))
+            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type.Type)
+                && _typeInspector.TryCreate(typeReference.Type, out TypeInfo typeInfo))
             {
                 if (IsTypeSystemObject(typeInfo.Type))
                 {
@@ -211,21 +209,10 @@ namespace HotChocolate.Configuration
                 }
                 else
                 {
-                    for (int i = 0; i < typeInfo.Components.Count; i++)
+                    var normalizedTypeRef = typeInfo.Type.ToTypeReference(typeReference.Context);
+                    if (!IsTypeResolved(normalizedTypeRef))
                     {
-                        var normalizedTypeRef = new ClrTypeReference(
-                            typeInfo.Components[i],
-                            typeReference.Context);
-
-                        if (IsTypeResolved(normalizedTypeRef))
-                        {
-                            break;
-                        }
-
-                        if ((i + 1) == typeInfo.Components.Count)
-                        {
-                            Unresolved.Add(normalizedTypeRef);
-                        }
+                        Unresolved.Add(normalizedTypeRef);
                     }
                 }
             }
@@ -233,7 +220,7 @@ namespace HotChocolate.Configuration
 
         private void RegisterSchemaType(Type type, TypeContext typeContext)
         {
-            if (!Registerd.ContainsKey(new ClrTypeReference(type, typeContext)))
+            if (!Registerd.ContainsKey(type.ToTypeReference(typeContext)))
             {
                 TypeSystemObjectBase typeSystemObject = CreateInstance(type);
                 RegisterTypeSystemObject(typeSystemObject);
@@ -243,13 +230,8 @@ namespace HotChocolate.Configuration
         private void RegisterTypeSystemObject(
             TypeSystemObjectBase typeSystemObject)
         {
-            TypeContext typeContext =
-                SchemaTypeReference.InferTypeContext(typeSystemObject);
-
-            var internalReference = new ClrTypeReference(
-                typeSystemObject.GetType(),
-                typeContext);
-
+            TypeContext typeContext = SchemaTypeReference.InferTypeContext(typeSystemObject);
+            var internalReference = typeSystemObject.GetType().ToTypeReference(typeContext);
             RegisterTypeSystemObject(typeSystemObject, internalReference);
         }
 
@@ -268,9 +250,7 @@ namespace HotChocolate.Configuration
 
                 if (registeredType.ClrType != typeof(object))
                 {
-                    var clrTypeRef = new ClrTypeReference(
-                        registeredType.ClrType,
-                        typeContext);
+                    var clrTypeRef = registeredType.ClrType.ToTypeReference(typeContext);
 
                     RemoveUnresolvedType(clrTypeRef);
 

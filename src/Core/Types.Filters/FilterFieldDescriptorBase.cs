@@ -118,13 +118,15 @@ namespace HotChocolate.Types.Filters
             {
                 if (BaseTypes.IsSchemaType(clrRef.Type))
                 {
-                    return clrRef.WithType(
-                        typeof(ListType<>).MakeGenericType(clrRef.Type));
+                    return clrRef.WithType(typeof(ListType<>)
+                        .MakeGenericType(clrRef.Type.Type)
+                        .ToExtendedType());
                 }
                 else
                 {
-                    return clrRef.WithType(
-                        typeof(List<>).MakeGenericType(clrRef.Type));
+                    return clrRef.WithType(typeof(List<>)
+                        .MakeGenericType(clrRef.Type.Type)
+                        .ToExtendedType());
                 }
             }
 

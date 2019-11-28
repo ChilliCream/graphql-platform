@@ -88,8 +88,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            Type elementType = DotNetTypeInfoFactory
-                .GetInnerListType(value.GetType());
+            Type elementType = ExtendedTypeInfoFactory.GetInnerType(value.GetType());
 
             if (elementType is null)
             {

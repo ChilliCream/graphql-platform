@@ -9,8 +9,8 @@ namespace HotChocolate.Utilities
         private bool TryCreateListTypeConverter(Type from, Type to,
             out ChangeType listConverter)
         {
-            Type fromElement = DotNetTypeInfoFactory.GetInnerListType(from);
-            Type toElement = DotNetTypeInfoFactory.GetInnerListType(to);
+            Type fromElement = ExtendedTypeInfoFactory.GetInnerType(from);
+            Type toElement = ExtendedTypeInfoFactory.GetInnerType(to);
 
             if (fromElement != null && toElement != null
                 && TryGetOrCreateConverter(fromElement, toElement,

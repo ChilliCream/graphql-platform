@@ -4,19 +4,19 @@ using Xunit;
 
 namespace HotChocolate.Utilities
 {
-    public class NamedTypeInfoFactoryTests
+    public class SchemaTypeInfoFactoryTests
     {
         [Fact]
         public void Case4()
         {
             // arrange
-            var factory = new NamedTypeInfoFactory();
+            var factory = new SchemaTypeInfoFactory();
             Type nativeType =
                 typeof(NonNullType<ListType<NonNullType<StringType>>>);
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
-            IType type = typeInfo.TypeFactory(new StringType());
+            bool success = factory.TryCreate(nativeType.ToExtendedType(), out TypeInfo typeInfo);
+            IType type = typeInfo.CreateSchemaType(new StringType());
 
             // assert
             Assert.True(success);
@@ -33,12 +33,12 @@ namespace HotChocolate.Utilities
         public void Case3_1()
         {
             // arrange
-            var factory = new NamedTypeInfoFactory();
+            var factory = new SchemaTypeInfoFactory();
             Type nativeType = typeof(ListType<NonNullType<StringType>>);
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
-            IType type = typeInfo.TypeFactory(new StringType());
+            bool success = factory.TryCreate(nativeType.ToExtendedType(), out TypeInfo typeInfo);
+            IType type = typeInfo.CreateSchemaType(new StringType());
 
             // assert
             Assert.True(success);
@@ -53,12 +53,12 @@ namespace HotChocolate.Utilities
         public void Case3_2()
         {
             // arrange
-            var factory = new NamedTypeInfoFactory();
+            var factory = new SchemaTypeInfoFactory();
             Type nativeType = typeof(NonNullType<ListType<StringType>>);
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
-            IType type = typeInfo.TypeFactory(new StringType());
+            bool success = factory.TryCreate(nativeType.ToExtendedType(), out TypeInfo typeInfo);
+            IType type = typeInfo.CreateSchemaType(new StringType());
 
             // assert
             Assert.True(success);
@@ -73,12 +73,12 @@ namespace HotChocolate.Utilities
         public void Case2_1()
         {
             // arrange
-            var factory = new NamedTypeInfoFactory();
+            var factory = new SchemaTypeInfoFactory();
             Type nativeType = typeof(NonNullType<StringType>);
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
-            IType type = typeInfo.TypeFactory(new StringType());
+            bool success = factory.TryCreate(nativeType.ToExtendedType(), out TypeInfo typeInfo);
+            IType type = typeInfo.CreateSchemaType(new StringType());
 
             // assert
             Assert.True(success);
@@ -91,12 +91,12 @@ namespace HotChocolate.Utilities
         public void Case2_2()
         {
             // arrange
-            var factory = new NamedTypeInfoFactory();
+            var factory = new SchemaTypeInfoFactory();
             Type nativeType = typeof(ListType<StringType>);
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
-            IType type = typeInfo.TypeFactory(new StringType());
+            bool success = factory.TryCreate(nativeType.ToExtendedType(), out TypeInfo typeInfo);
+            IType type = typeInfo.CreateSchemaType(new StringType());
 
             // assert
             Assert.True(success);
@@ -109,12 +109,12 @@ namespace HotChocolate.Utilities
         public void Case1()
         {
             // arrange
-            var factory = new NamedTypeInfoFactory();
+            var factory = new SchemaTypeInfoFactory();
             Type nativeType = typeof(StringType);
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
-            IType type = typeInfo.TypeFactory(new StringType());
+            bool success = factory.TryCreate(nativeType.ToExtendedType(), out TypeInfo typeInfo);
+            IType type = typeInfo.CreateSchemaType(new StringType());
 
             // assert
             Assert.True(success);
@@ -128,10 +128,10 @@ namespace HotChocolate.Utilities
         public void NotSupportedCases(Type nativeType)
         {
             // arrange
-            var factory = new NamedTypeInfoFactory();
+            var factory = new SchemaTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(nativeType.ToExtendedType(), out TypeInfo typeInfo);
 
             // assert
             Assert.False(success);

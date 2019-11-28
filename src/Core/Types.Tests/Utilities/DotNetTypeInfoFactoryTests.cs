@@ -37,15 +37,15 @@ namespace HotChocolate.Utilities
             string expectedTypeName)
         {
             // arrange
-            var factory = new DotNetTypeInfoFactory();
+            var factory = new ExtendedTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType.ToExtendedType(), out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
             Assert.Equal(expectedTypeName,
-                typeInfo.TypeFactory(new StringType()).Visualize());
+                typeInfo.CreateSchemaType(new StringType()).Visualize());
         }
 
         [InlineData(typeof(int), "Int!")]
@@ -78,15 +78,15 @@ namespace HotChocolate.Utilities
             string expectedTypeName)
         {
             // arrange
-            var factory = new DotNetTypeInfoFactory();
+            var factory = new ExtendedTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType.ToExtendedType(), out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
             Assert.Equal(expectedTypeName,
-                typeInfo.TypeFactory(new IntType()).Visualize());
+                typeInfo.CreateSchemaType(new IntType()).Visualize());
         }
 
         [InlineData(typeof(NativeType<StringType>))]
@@ -99,10 +99,10 @@ namespace HotChocolate.Utilities
         public void NotSupportedCases(Type clrType)
         {
             // arrange
-            var factory = new DotNetTypeInfoFactory();
+            var factory = new ExtendedTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType.ToExtendedType(), out TypeInfo typeInfo);
 
             // assert
             Assert.False(success);
@@ -124,36 +124,48 @@ namespace HotChocolate.Utilities
         public void SupportedListTypes(Type clrType, string expectedTypeName)
         {
             // arrange
-            var factory = new DotNetTypeInfoFactory();
+            var factory = new ExtendedTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType.ToExtendedType(), out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
             Assert.Equal(expectedTypeName,
-                typeInfo.TypeFactory(new StringType()).Visualize());
+                typeInfo.CreateSchemaType(new StringType()).Visualize());
         }
 
-        [InlineData(typeof(NonNullType<NativeType<string>>), "String!")]
-        [InlineData(typeof(NonNullType<NativeType<int?>>), "String!")]
-        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>), "[String!]!")]
-        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<string>>[]>>), "[String!]!")]
-        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<int?>>>>>), "[String!]!")]
-        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<int?>>[]>>), "[String!]!")]
+        [InlineData(
+            typeof(NonNullType<NativeType<string>>),
+            "String!")]
+        [InlineData(
+            typeof(NonNullType<NativeType<int?>>),
+            "String!")]
+        [InlineData(
+            typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>),
+            "[String!]!")]
+        [InlineData(
+            typeof(NonNullType<NativeType<NonNullType<NativeType<string>>[]>>),
+            "[String!]!")]
+        [InlineData(
+            typeof(NonNullType<NativeType<List<NonNullType<NativeType<int?>>>>>),
+            "[String!]!")]
+        [InlineData(
+            typeof(NonNullType<NativeType<NonNullType<NativeType<int?>>[]>>),
+            "[String!]!")]
         [Theory]
         public void MixedTypes(Type clrType, string expectedTypeName)
         {
             // arrange
-            var factory = new DotNetTypeInfoFactory();
+            var factory = new ExtendedTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType.ToExtendedType(), out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
             Assert.Equal(expectedTypeName,
-                typeInfo.TypeFactory(new StringType()).Visualize());
+                typeInfo.CreateSchemaType(new StringType()).Visualize());
         }
 
         [InlineData(typeof(NativeType<Task<string>>), typeof(string))]
@@ -170,30 +182,46 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            Type reducedType = DotNetTypeInfoFactory.Unwrap(type);
+            IExtendedType reducedType = ExtendedTypeInfoFactory.Unwrap(type.ToExtendedType());
 
             // assert
-            Assert.Equal(expectedReducedType, reducedType);
+            Assert.Equal(expectedReducedType, reducedType.Type);
         }
 
-        [InlineData(typeof(string[]), true, true, typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
-        [InlineData(typeof(List<string>), true, true, typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
-        [InlineData(typeof(List<string>), true, false, typeof(NonNullType<NativeType<List<string>>>))]
-        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>), false, false, typeof(List<string>))]
+        [InlineData(
+            typeof(string[]),
+            Nullable.Yes,
+            Nullable.Yes,
+            typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
+        [InlineData(
+            typeof(List<string>),
+            Nullable.Yes,
+            Nullable.Yes,
+            typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
+        [InlineData(
+            typeof(List<string>),
+            Nullable.Yes,
+            Nullable.No,
+            typeof(NonNullType<NativeType<List<string>>>))]
+        [InlineData(
+            typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>),
+            Nullable.No,
+            Nullable.No,
+            typeof(List<string>))]
         [Theory]
         public void Rewrite(
             Type type,
-            bool isNonNullType,
-            bool isElementNonNullType,
+            Nullable isNonNullType,
+            Nullable isElementNonNullType,
             Type expectedReducedType)
         {
             // arrange
             // act
-            Type reducedType = DotNetTypeInfoFactory.Rewrite(
-                type, isNonNullType, isElementNonNullType);
+            IExtendedType reducedType = ExtendedTypeInfoFactory.Rewrite(
+                type.ToExtendedType(), isNonNullType, isElementNonNullType);
 
             // assert
-            Assert.Equal(expectedReducedType, reducedType);
+            Assert.Equal(expectedReducedType, reducedType.Type);
         }
 
         private class CustomStringList

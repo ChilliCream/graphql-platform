@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Utilities
 {
     public static class BaseTypes
@@ -20,6 +22,11 @@ namespace HotChocolate.Utilities
             typeof(DirectiveType<>),
             typeof(DirectiveType)
         };
+
+        public static bool IsSchemaType(this IExtendedType extendedType)
+        {
+            return IsSchemaType(extendedType.Type);
+        }
 
         public static bool IsSchemaType(Type type)
         {

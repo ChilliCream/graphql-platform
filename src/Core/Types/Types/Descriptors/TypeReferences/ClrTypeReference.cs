@@ -30,6 +30,19 @@ namespace HotChocolate.Types.Descriptors
             Type = type;
         }
 
+        public ClrTypeReference(
+            Type type, TypeContext context)
+            : this(type.ToExtendedType(), context)
+        {
+        }
+
+        public ClrTypeReference(
+            Type type, TypeContext context,
+            bool? isTypeNullable, bool? isElementTypeNullable)
+            : this(type.ToExtendedType(), context, isTypeNullable, isElementTypeNullable)
+        {
+        }
+
         public IExtendedType Type { get; }
 
         public IClrTypeReference Compile()

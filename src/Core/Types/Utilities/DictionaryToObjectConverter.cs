@@ -72,8 +72,7 @@ namespace HotChocolate.Utilities
             IList<object> list,
             ConverterContext context)
         {
-            Type elementType = DotNetTypeInfoFactory
-                .GetInnerListType(context.ClrType);
+            Type elementType = ExtendedTypeInfoFactory.GetInnerType(context.ClrType);
 
             if (elementType != null)
             {

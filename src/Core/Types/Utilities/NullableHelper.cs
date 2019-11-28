@@ -29,7 +29,7 @@ namespace HotChocolate.Utilities
 
         public IExtendedType GetPropertyInfo(PropertyInfo property)
         {
-            return CreateNullableTypeInfo(
+            return CreateExtendedType(
                 GetContext(property),
                 GetFlags(property),
                 property.PropertyType);
@@ -37,36 +37,37 @@ namespace HotChocolate.Utilities
 
         public ExtendedMethodTypeInfo GetMethodInfo(MethodInfo method)
         {
-            IExtendedType returnType = CreateNullableTypeInfo(
+            IExtendedType returnType = CreateExtendedType(
                 GetContext(method),
                 GetFlags(method),
                 method.ReturnType);
 
             ParameterInfo[] parameters = method.GetParameters();
-            IExtendedType[] parameterTypes = new IExtendedType[parameters.Length];
+            var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
 
-            for (int i = 0; i < parameters.Length; i++)
+            foreach (ParameterInfo parameter in parameters)
             {
-                ParameterInfo parameter = parameters[i];
-                parameterTypes[i] = CreateNullableTypeInfo(
-                    GetContext(parameter),
-                    GetFlags(parameter),
-                    parameter.ParameterType);
+                parameterTypes.Add(
+                    parameter,
+                    CreateExtendedType(
+                        GetContext(parameter),
+                        GetFlags(parameter),
+                        parameter.ParameterType));
             }
 
             return new ExtendedMethodTypeInfo(returnType, parameterTypes);
         }
 
-        private IExtendedType CreateNullableTypeInfo(
+        private IExtendedType CreateExtendedType(
             Nullable context,
             ReadOnlySpan<byte> flags,
             Type type)
         {
             int position = 0;
-            return CreateNullableTypeInfo(context, flags, type, ref position);
+            return CreateExtendedType(context, flags, type, ref position);
         }
 
-        private IExtendedType CreateNullableTypeInfo(
+        private IExtendedType CreateExtendedType(
             Nullable context,
             ReadOnlySpan<byte> flags,
             Type type,
@@ -88,7 +89,7 @@ namespace HotChocolate.Utilities
                         var arguments = new List<IExtendedType>();
                         foreach (Type argumentType in type.GetGenericArguments())
                         {
-                            arguments.Add(CreateNullableTypeInfo(
+                            arguments.Add(CreateExtendedType(
                                 context, flags, argumentType, ref position));
                         }
                         return new ExtendedType(
@@ -119,9 +120,23 @@ namespace HotChocolate.Utilities
                     var arguments = new List<IExtendedType>();
                     foreach (Type argumentType in type.GetGenericArguments())
                     {
-                        arguments.Add(CreateNullableTypeInfo(
+                        arguments.Add(CreateExtendedType(
                             context, flags, argumentType, ref position));
                     }
+                    return new ExtendedType(
+                        type,
+                        state == Nullable.Yes,
+                        ExtendedTypeKind.Extended,
+                        arguments);
+                }
+                else if (type.IsArray)
+                {
+                    var arguments = new IExtendedType[]
+                    {
+                        CreateExtendedType(
+                            context, flags, type.GetElementType(), ref position)
+                    };
+
                     return new ExtendedType(
                         type,
                         state == Nullable.Yes,

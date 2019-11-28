@@ -118,10 +118,10 @@ namespace HotChocolate.Configuration
                     clrRef, out ITypeReference normalized)
                 && _typeInitializer.Types.TryGetValue(
                     normalized, out RegisteredType registered)
-                && registered.Type is IType t
+                && registered.Type is INamedType namedType
                 && _typeInitializer.TypeInspector.TryCreate(
                     clrRef.Type, out TypeInfo typeInfo)
-                && typeInfo.TypeFactory.Invoke(t) is T casted)
+                && typeInfo.CreateSchemaType(namedType) is T casted)
             {
                 type = casted;
                 return true;
@@ -196,7 +196,7 @@ namespace HotChocolate.Configuration
             if (reference is ClrTypeDirectiveReference cr)
             {
                 ITypeReference clrTypeReference = new ClrTypeReference(
-                    cr.ClrType, TypeContext.None);
+                    ExtendedType.FromType(cr.ClrType), TypeContext.None);
                 if (!_typeInitializer.ClrTypes.TryGetValue(
                     clrTypeReference,
                     out ITypeReference internalReference))
