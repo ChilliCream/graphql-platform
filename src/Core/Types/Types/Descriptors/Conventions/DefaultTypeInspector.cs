@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors
 
         private readonly TypeInspector _typeInspector =
             new TypeInspector();
-        private ConcurrentDictionary<MemberInfo, IExtendedMethodTypeInfo> _methods =
+        private readonly ConcurrentDictionary<MemberInfo, IExtendedMethodTypeInfo> _methods =
             new ConcurrentDictionary<MemberInfo, IExtendedMethodTypeInfo>();
 
         public virtual IEnumerable<MemberInfo> GetMembers(Type type)
@@ -210,7 +210,7 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsEquals(MemberInfo member) =>
             member is MethodInfo m
-            && m.Name.Equals(_getHashCode)
+            && m.Name.Equals(_equals)
             && m.GetParameters().Length == 1
             && m.GetParameters()[0].ParameterType == typeof(object);
 

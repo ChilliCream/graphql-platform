@@ -24,9 +24,5 @@ namespace HotChocolate.Utilities
         IReadOnlyList<IExtendedType> TypeArguments { get; }
 
         IReadOnlyList<IExtendedType> GetInterfaces();
-
-        IExtendedType WithIsNullable(bool isNullable);
-
-        IExtendedType WithTypeArguments(IReadOnlyList<IExtendedType> arguments);
     }
 }

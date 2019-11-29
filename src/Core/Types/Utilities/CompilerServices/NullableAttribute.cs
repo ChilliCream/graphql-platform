@@ -10,7 +10,7 @@ namespace System.Runtime.CompilerServices
         AttributeTargets.ReturnValue)]
     internal sealed class NullableAttribute : Attribute
     {
-        private byte[] _flags;
+        private readonly byte[] _flags;
 
         public NullableAttribute(byte flag)
             : this(new[] { flag })

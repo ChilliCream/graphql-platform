@@ -88,21 +88,6 @@ namespace HotChocolate.Utilities
             return _interfaces;
         }
 
-        public IExtendedType WithIsNullable(bool isNullable)
-        {
-            if (IsNullable == isNullable)
-            {
-                return this;
-            }
-            return new ExtendedType(Type, isNullable, Kind, TypeArguments);
-        }
-
-        public IExtendedType WithTypeArguments(
-            IReadOnlyList<IExtendedType> arguments)
-        {
-            return new ExtendedType(Type, IsNullable, Kind, arguments);
-        }
-
         public bool Equals(ExtendedType? other)
         {
             if (ReferenceEquals(other, null))
@@ -164,19 +149,14 @@ namespace HotChocolate.Utilities
             }
         }
 
-        public static IExtendedType FromType(Type type)
+        public static ExtendedType FromType(Type type)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             return IsSchemaType(type)
                 ? FromSchemaType(type)
                 : FromSystemType(type);
         }
 
-        private static IExtendedType FromSystemType(Type type)
+        private static ExtendedType FromSystemType(Type type)
         {
             if (type.IsValueType)
             {
@@ -193,7 +173,7 @@ namespace HotChocolate.Utilities
             return new ExtendedType(type, true, ExtendedTypeKind.Unknown);
         }
 
-        private static IExtendedType FromSchemaType(Type type)
+        private static ExtendedType FromSchemaType(Type type)
         {
             var components = new Stack<Type>();
             Type? current = type;
@@ -222,7 +202,7 @@ namespace HotChocolate.Utilities
                 }
             }
 
-            IExtendedType? extendedType = null;
+            ExtendedType? extendedType = null;
 
             while (components.Count > 0)
             {
