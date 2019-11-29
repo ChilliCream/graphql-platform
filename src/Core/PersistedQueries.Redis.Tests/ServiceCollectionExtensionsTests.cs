@@ -1,18 +1,17 @@
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using StackExchange.Redis;
-using Xunit;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Squadron;
+using StackExchange.Redis;
+using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis
 {
     public class ServiceCollectionExtensionsTests
         : IClassFixture<RedisResource>
     {
-        private ConnectionMultiplexer _connectionMultiplexer;
         private IDatabase _database;
 
         public ServiceCollectionExtensionsTests(RedisResource redisResource)
