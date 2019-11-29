@@ -41,6 +41,8 @@ namespace HotChocolate.Types
                     typeof(DateTimeType), TypeContext.None) },
                 { typeof(MultiplierPathString), new ClrTypeReference(
                     typeof(MultiplierPathType), TypeContext.None) },
+                { typeof(byte[]), new ClrTypeReference(
+                    typeof(ByteArrayType), TypeContext.None) },
                 { typeof(NameString), new ClrTypeReference(
                     typeof(NameType), TypeContext.None) },
             };
@@ -82,6 +84,8 @@ namespace HotChocolate.Types
                     typeof(NameType), TypeContext.None) },
                 { ScalarNames.PaginationAmount, new ClrTypeReference(
                     typeof(PaginationAmountType), TypeContext.None) },
+                { ScalarNames.ByteArray, new ClrTypeReference(
+                    typeof(ByteArrayType), TypeContext.None) },
            };
 
         private static readonly Dictionary<Type, ValueKind> _scalarKinds =
