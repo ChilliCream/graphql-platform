@@ -11,7 +11,7 @@ namespace HotChocolate.Utilities
             return new NullableHelper(property.DeclaringType).GetPropertyInfo(property);
         }
 
-        public static IExtendedMethodTypeInfo GetExtendeMethodTypeInfo(this MethodInfo method)
+        public static IExtendedMethodTypeInfo GetExtendedMethodTypeInfo(this MethodInfo method)
         {
             return new NullableHelper(method.DeclaringType).GetMethodInfo(method);
         }

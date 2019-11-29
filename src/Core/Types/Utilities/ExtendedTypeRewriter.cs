@@ -55,7 +55,9 @@ namespace HotChocolate.Utilities
                 else
                 {
                     current = components.Pop();
-                    rewritten = MakeListType(rewritten);
+                    rewritten = current.IsArray && !typeof(IType).IsAssignableFrom(rewritten)
+                        ? rewritten.MakeArrayType()
+                        : MakeListType(rewritten);
                     rewritten = Rewrite(rewritten, current.IsNullable);
                 }
             }

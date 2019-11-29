@@ -115,7 +115,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (member is MethodInfo m)
             {
-                IExtendedMethodTypeInfo info = m.GetExtendeMethodTypeInfo();
+                IExtendedMethodTypeInfo info = m.GetExtendedMethodTypeInfo();
                 _methods.TryAdd(m, info);
                 return ExtendedTypeRewriter.Rewrite(info.ReturnType);
             }
@@ -169,7 +169,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (!_methods.TryGetValue(method, out IExtendedMethodTypeInfo info))
             {
-                info = method.GetExtendeMethodTypeInfo();
+                info = method.GetExtendedMethodTypeInfo();
             }
 
             return ExtendedTypeRewriter.Rewrite(info.ParameterTypes[parameter]);

@@ -20,6 +20,15 @@ namespace HotChocolate.Utilities
                 type.Assembly.GetCustomAttribute<NullableContextAttribute>(),
                 Nullable.Yes);
 
+            Type? current = type.DeclaringType;
+            while (current != null)
+            {
+                _context = GetContext(
+                    current.GetCustomAttribute<NullableContextAttribute>(),
+                    _context);
+                current = current.DeclaringType;
+            }
+
             _context = GetContext(
                 type.GetCustomAttribute<NullableContextAttribute>(),
                 _context);
@@ -80,7 +89,7 @@ namespace HotChocolate.Utilities
                     if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
                         return new ExtendedType(
-                            type,
+                            type.GetGenericArguments()[0],
                             true,
                             ExtendedTypeKind.Extended);
                     }
