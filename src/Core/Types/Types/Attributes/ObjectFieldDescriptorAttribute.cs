@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     public abstract class ObjectFieldDescriptorAttribute
         : DescriptorAttribute
     {
-        internal sealed override void TryConfigure(IDescriptor descriptor)
+        internal protected sealed override void TryConfigure(IDescriptor descriptor)
         {
             if (descriptor is IObjectFieldDescriptor d)
             {
