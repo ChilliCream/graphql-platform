@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override DirectiveTypeDefinition Definition { get; } =
+        internal protected override DirectiveTypeDefinition Definition { get; } =
             new DirectiveTypeDefinition();
 
         protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
@@ -59,6 +59,11 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteArguments(arguments, handledMembers);
 
             definition.Arguments.AddRange(arguments.Values);
+
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
         }
 
         protected virtual void OnCompleteArguments(

@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected override EnumTypeDefinition Definition { get; } =
+        internal protected override EnumTypeDefinition Definition { get; } =
             new EnumTypeDefinition();
 
         protected ICollection<EnumValueDescriptor> Values { get; } =
@@ -50,6 +50,11 @@ namespace HotChocolate.Types.Descriptors
             foreach (EnumValueDefinition value in values.Values)
             {
                 definition.Values.Add(value);
+            }
+
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
             }
         }
 

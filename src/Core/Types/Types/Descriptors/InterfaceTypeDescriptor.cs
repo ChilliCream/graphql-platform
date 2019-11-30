@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override InterfaceTypeDefinition Definition { get; } =
+        internal protected override InterfaceTypeDefinition Definition { get; } =
             new InterfaceTypeDefinition();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
@@ -56,6 +56,11 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledMembers);
 
             Definition.Fields.AddRange(fields.Values);
+
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
         }
 
         protected virtual void OnCompleteFields(

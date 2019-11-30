@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Descriptors
 
         IDescriptorContext IHasDescriptorContext.Context => Context;
 
-        protected abstract T Definition { get; }
+        internal protected abstract T Definition { get; }
 
         public IDescriptorExtension<T> Extend()
         {

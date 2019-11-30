@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override InputObjectTypeDefinition Definition { get; } =
+        internal protected override InputObjectTypeDefinition Definition { get; } =
             new InputObjectTypeDefinition();
 
         protected List<InputFieldDescriptor> Fields { get; } =
@@ -55,6 +55,11 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledProperties);
 
             Definition.Fields.AddRange(fields.Values);
+
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
         }
 
         protected virtual void OnCompleteFields(

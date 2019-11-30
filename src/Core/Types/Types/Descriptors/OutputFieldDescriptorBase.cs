@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Reflection;
-using System.Globalization;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -12,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<TDefinition>
         where TDefinition : OutputFieldDefinitionBase
     {
-        private bool _deprecatedDependecySet;
+        private bool _deprecatedDependencySet;
         private DirectiveDefinition _deprecatedDirective;
 
         protected OutputFieldDescriptorBase(IDescriptorContext context)
@@ -20,8 +19,7 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
-        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters
-        { get; set; }
+        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; }
 
         protected void SyntaxNode(
             FieldDefinitionNode syntaxNode)
@@ -141,14 +139,14 @@ namespace HotChocolate.Types.Descriptors
                 new DeprecatedDirective(reason));
             Definition.Directives.Add(_deprecatedDirective);
 
-            if (!_deprecatedDependecySet)
+            if (!_deprecatedDependencySet)
             {
                 Definition.Dependencies.Add(new TypeDependency(
                     new ClrTypeReference(
                         typeof(DeprecatedDirectiveType),
                         TypeContext.None),
                     TypeDependencyKind.Completed));
-                _deprecatedDependecySet = true;
+                _deprecatedDependencySet = true;
             }
         }
 
