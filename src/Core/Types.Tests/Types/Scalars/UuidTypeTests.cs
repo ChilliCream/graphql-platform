@@ -41,7 +41,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-            var guid = Guid.NewGuid();
+
             var literal = new IntValueNode(123);
 
             // act
