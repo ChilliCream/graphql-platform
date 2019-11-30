@@ -46,6 +46,21 @@ namespace HotChocolate.Types
                 schema.QueryType.Fields["field"].ContextData["abc"]);
         }
 
+        [Fact]
+        public void ObjectFieldDescriptorAttribute_Updated_FieldDefinition()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Object2>(d =>
+                    d.Field(t => t.GetField()).Name("foo"))
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "def",
+                schema.QueryType.Fields["foo"].ContextData["abc"]);
+        }
+
         public class Object1
         {
             public string GetField([ArgumentDefaultValue("abc")]string argument)
