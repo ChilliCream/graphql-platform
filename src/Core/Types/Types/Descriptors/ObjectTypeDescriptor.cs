@@ -47,6 +47,11 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
+
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
@@ -59,11 +64,6 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledMembers);
 
             Definition.Fields.AddRange(fields.Values);
-
-            if (Definition.ClrType is { })
-            {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
-            }
         }
 
         protected virtual void OnCompleteFields(

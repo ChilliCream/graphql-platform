@@ -61,6 +61,18 @@ namespace HotChocolate.Types
                 schema.QueryType.Fields["foo"].ContextData["abc"]);
         }
 
+        [Fact]
+        public void ObjectTypeDescriptorAttribute_Updated_FieldDefinition()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Object3>()
+                .Create();
+
+            // assert
+            Assert.True(schema.QueryType.Fields.ContainsField("abc"));
+        }
+
         public class Object1
         {
             public string GetField([ArgumentDefaultValue("abc")]string argument)
@@ -101,6 +113,24 @@ namespace HotChocolate.Types
             {
                 descriptor.Extend().OnBeforeCompletion(
                     (c, d) => d.ContextData.Add("abc", "def"));
+            }
+        }
+
+        [ObjectAddField]
+        public class Object3
+        {
+            public string GetField()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class ObjectAddFieldAttribute
+            : ObjectTypeDescriptorAttribute
+        {
+            public override void OnConfigure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Field("abc").Resolver("def");
             }
         }
     }
