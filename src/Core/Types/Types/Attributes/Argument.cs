@@ -2,41 +2,6 @@ using System;
 
 namespace HotChocolate.Types
 {
-    [AttributeUsage(
-        AttributeTargets.Property | AttributeTargets.Method,
-        Inherited = true,
-        AllowMultiple = true)]
-    public abstract class ObjectFieldDescriptorAttribute
-        : DescriptorAttribute
-    {
-        internal sealed override void TryConfigure(IDescriptor descriptor)
-        {
-            if (descriptor is IObjectFieldDescriptor d)
-            {
-                OnConfigure(d);
-            }
-        }
-
-        public abstract void OnConfigure(IObjectFieldDescriptor descriptor);
-    }
-
-    [AttributeUsage(
-        AttributeTargets.Property | AttributeTargets.Method,
-        Inherited = true,
-        AllowMultiple = true)]
-    public abstract class ArgumentDescriptorAttribute
-        : DescriptorAttribute
-    {
-        internal sealed override void TryConfigure(IDescriptor descriptor)
-        {
-            if (descriptor is IArgumentDescriptor d)
-            {
-                OnConfigure(d);
-            }
-        }
-
-        public abstract void OnConfigure(IArgumentDescriptor descriptor);
-    }
 
     [AttributeUsage(
         AttributeTargets.Property | AttributeTargets.Method,
