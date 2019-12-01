@@ -6,15 +6,14 @@ namespace HotChocolate.Types.Relay
 {
     public sealed class UsePagingAttribute : ObjectFieldDescriptorAttribute
     {
-        private static readonly MethodInfo _usePaging = typeof(PagingObjectFieldDescriptorExtensions)
+        private static readonly MethodInfo _generic = typeof(PagingObjectFieldDescriptorExtensions)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name.Equals(
+            .Single(m => m.Name.Equals(
                 nameof(PagingObjectFieldDescriptorExtensions.UsePaging),
                 StringComparison.Ordinal)
                 && m.GetGenericArguments().Length == 1
                 && m.GetParameters().Length == 1
-                && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor))
-            .Single();
+                && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
         public UsePagingAttribute(Type schemaType)
         {
@@ -33,7 +32,7 @@ namespace HotChocolate.Types.Relay
                         .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
                         .Build());
             }
-            _usePaging.MakeGenericMethod(SchemaType).Invoke(null, new[] { descriptor });
+            _generic.MakeGenericMethod(SchemaType).Invoke(null, new[] { descriptor });
         }
     }
 }

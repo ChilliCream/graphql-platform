@@ -8,13 +8,12 @@ namespace HotChocolate.Types
     {
         private static readonly MethodInfo _generic = typeof(SortObjectFieldDescriptorExtensions)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name.Equals(
+            .Single(m => m.Name.Equals(
                 nameof(SortObjectFieldDescriptorExtensions.UseSorting),
                 StringComparison.Ordinal)
                 && m.GetGenericArguments().Length == 1
                 && m.GetParameters().Length == 1
-                && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor))
-            .Single();
+                && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
         /// <summary>
         /// Gets or sets the sort type which specifies the sort object structure.
