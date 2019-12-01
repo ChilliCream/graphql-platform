@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Properties;
-using System.Linq;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
