@@ -7,5 +7,4 @@ namespace HotChocolate.Types
     {
         internal protected abstract void TryConfigure(IDescriptor descriptor);
     }
-
 }

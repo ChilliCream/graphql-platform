@@ -43,6 +43,11 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)
         {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
+
             var fields = new Dictionary<NameString, InputFieldDefinition>();
             var handledProperties = new HashSet<PropertyInfo>();
 
@@ -55,11 +60,6 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledProperties);
 
             Definition.Fields.AddRange(fields.Values);
-
-            if (Definition.ClrType is { })
-            {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
-            }
         }
 
         protected virtual void OnCompleteFields(
