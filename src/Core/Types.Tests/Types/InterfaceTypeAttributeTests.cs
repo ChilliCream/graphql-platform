@@ -13,7 +13,7 @@ namespace HotChocolate.Types
         {
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType<Interface1>()
+                .AddInterfaceType<Interface1>()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         {
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType<Interface2>()
+                .AddInterfaceType<Interface2>()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
@@ -67,7 +67,7 @@ namespace HotChocolate.Types
         {
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType<Interface3>()
+                .AddInterfaceType<Interface3>()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 

@@ -1,14 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
-using Moq;
-using Snapshooter.Xunit;
 using Xunit;
 
 #nullable enable
@@ -52,7 +42,7 @@ namespace HotChocolate.Types
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Object2>(d =>
-                    d.Field(t => t.GetField()).Name("foo"))
+                    d.Field<string>(t => t.GetField()).Name("foo"))
                 .Create();
 
             // assert
@@ -71,6 +61,19 @@ namespace HotChocolate.Types
 
             // assert
             Assert.True(schema.QueryType.Fields.ContainsField("abc"));
+        }
+
+        [Fact]
+        public void ObjectTypeDescriptorAttribute_Add_FieldDefinition_2()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddObjectType<Object3>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.True(schema.GetType<ObjectType>("Object3").Fields.ContainsField("abc"));
         }
 
         public class Object1
@@ -130,7 +133,7 @@ namespace HotChocolate.Types
         {
             public override void OnConfigure(IObjectTypeDescriptor descriptor)
             {
-                descriptor.Field("abc").Resolver("def");
+                descriptor.Field("abc").Resolver<string>("def");
             }
         }
     }

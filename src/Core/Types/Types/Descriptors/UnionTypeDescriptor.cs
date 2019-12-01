@@ -32,12 +32,11 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(UnionTypeDefinition definition)
         {
-            base.OnCreateDefinition(definition);
-
             if (Definition.ClrType is { })
             {
                 Context.Inspector.ApplyAttributes(this, Definition.ClrType);
             }
+            base.OnCreateDefinition(definition);
         }
 
         public IUnionTypeDescriptor SyntaxNode(
