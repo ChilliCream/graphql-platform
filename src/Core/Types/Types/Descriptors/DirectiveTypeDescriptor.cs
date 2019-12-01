@@ -46,6 +46,11 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             DirectiveTypeDefinition definition)
         {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
+
             var arguments =
                 new Dictionary<NameString, DirectiveArgumentDefinition>();
             var handledMembers = new HashSet<PropertyInfo>();
@@ -59,11 +64,6 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteArguments(arguments, handledMembers);
 
             definition.Arguments.AddRange(arguments.Values);
-
-            if (Definition.ClrType is { })
-            {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
-            }
         }
 
         protected virtual void OnCompleteArguments(
@@ -93,7 +93,14 @@ namespace HotChocolate.Types.Descriptors
 
         public IDirectiveArgumentDescriptor Argument(NameString name)
         {
-            var descriptor = new DirectiveArgumentDescriptor(
+            DirectiveArgumentDescriptor descriptor =
+                Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            if (descriptor is { })
+            {
+                return descriptor;
+            }
+
+            descriptor = new DirectiveArgumentDescriptor(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
             Arguments.Add(descriptor);

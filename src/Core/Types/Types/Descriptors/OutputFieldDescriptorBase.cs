@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Reflection;
+using System.Linq;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -19,7 +20,20 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
+        protected ICollection<ArgumentDescriptor> Arguments { get; } =
+            new List<ArgumentDescriptor>();
+
         protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; }
+
+        protected override void OnCreateDefinition(TDefinition definition)
+        {
+            base.OnCreateDefinition(definition);
+
+            foreach (ArgumentDescriptor argument in Arguments)
+            {
+                Definition.Arguments.Add(argument.CreateDefinition());
+            }
+        }
 
         protected void SyntaxNode(
             FieldDefinitionNode syntaxNode)
@@ -96,16 +110,22 @@ namespace HotChocolate.Types.Descriptors
 
             name.EnsureNotEmpty(nameof(name));
 
-            ArgumentDescriptor descriptor =
-                Parameters != null
-                && Parameters.TryGetValue(name, out ParameterInfo p)
-                    ? ArgumentDescriptor.New(Context, p)
-                    : ArgumentDescriptor.New(Context, name);
+            ParameterInfo parameter = null;
+            Parameters?.TryGetValue(name, out parameter);
+
+            ArgumentDescriptor descriptor = parameter is null
+                ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
+                : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
+
+            if (descriptor is null)
+            {
+                descriptor = parameter is null
+                        ? ArgumentDescriptor.New(Context, name)
+                        : ArgumentDescriptor.New(Context, parameter);
+                Arguments.Add(descriptor);
+            }
 
             argument(descriptor);
-
-            ArgumentDefinition definition = descriptor.CreateDefinition();
-            Definition.Arguments.Add(definition);
         }
 
         public void Deprecated(string reason)

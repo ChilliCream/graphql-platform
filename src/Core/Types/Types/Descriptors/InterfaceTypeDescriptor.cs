@@ -90,7 +90,14 @@ namespace HotChocolate.Types.Descriptors
 
         public IInterfaceFieldDescriptor Field(NameString name)
         {
-            var fieldDescriptor = new InterfaceFieldDescriptor(
+            InterfaceFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = InterfaceFieldDescriptor.New(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
             Fields.Add(fieldDescriptor);

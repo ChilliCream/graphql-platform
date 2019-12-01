@@ -89,11 +89,18 @@ namespace HotChocolate.Types.Descriptors
 
         public IInputFieldDescriptor Field(NameString name)
         {
-            var field = new InputFieldDescriptor(
+            InputFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = new InputFieldDescriptor(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
-            Fields.Add(field);
-            return field;
+            Fields.Add(fieldDescriptor);
+            return fieldDescriptor;
         }
 
         public IInputObjectTypeDescriptor Directive<T>(T directive)
