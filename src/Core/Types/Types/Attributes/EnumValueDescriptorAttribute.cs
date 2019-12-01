@@ -3,20 +3,20 @@ using System;
 namespace HotChocolate.Types
 {
     [AttributeUsage(
-        AttributeTargets.Parameter,
+        AttributeTargets.Field,
         Inherited = true,
         AllowMultiple = true)]
-    public abstract class ArgumentDescriptorAttribute
+    public abstract class EnumValueDescriptorAttribute
         : DescriptorAttribute
     {
         internal protected sealed override void TryConfigure(IDescriptor descriptor)
         {
-            if (descriptor is IArgumentDescriptor d)
+            if (descriptor is IEnumValueDescriptor d)
             {
                 OnConfigure(d);
             }
         }
 
-        public abstract void OnConfigure(IArgumentDescriptor descriptor);
+        public abstract void OnConfigure(IEnumValueDescriptor descriptor);
     }
 }
