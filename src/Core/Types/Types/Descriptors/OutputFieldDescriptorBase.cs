@@ -120,8 +120,8 @@ namespace HotChocolate.Types.Descriptors
             if (descriptor is null)
             {
                 descriptor = parameter is null
-                        ? ArgumentDescriptor.New(Context, name)
-                        : ArgumentDescriptor.New(Context, parameter);
+                    ? ArgumentDescriptor.New(Context, name)
+                    : ArgumentDescriptor.New(Context, parameter);
                 Arguments.Add(descriptor);
             }
 

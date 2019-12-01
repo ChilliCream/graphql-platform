@@ -69,6 +69,8 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectFieldDefinition definition)
         {
+            base.OnCreateDefinition(definition);
+
             CompleteArguments(definition);
 
             if (Definition.Member is { })

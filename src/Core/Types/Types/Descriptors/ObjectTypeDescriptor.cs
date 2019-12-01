@@ -23,10 +23,8 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name =
-                context.Naming.GetTypeName(clrType, TypeKind.Object);
-            Definition.Description =
-                context.Naming.GetTypeDescription(clrType, TypeKind.Object);
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
 
         public ObjectTypeDescriptor(IDescriptorContext context)

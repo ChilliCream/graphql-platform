@@ -52,6 +52,8 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceFieldDefinition definition)
         {
+            base.OnCreateDefinition(definition);
+
             CompleteArguments(definition);
 
             if (Definition.Member is { })
