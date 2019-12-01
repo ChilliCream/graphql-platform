@@ -3,20 +3,20 @@ using System;
 namespace HotChocolate.Types
 {
     [AttributeUsage(
-        AttributeTargets.Class | AttributeTargets.Struct,
+        AttributeTargets.Class | AttributeTargets.Interface,
         Inherited = true,
         AllowMultiple = true)]
-    public abstract class ObjectTypeDescriptorAttribute
+    public abstract class InterfaceTypeDescriptorAttribute
         : DescriptorAttribute
     {
         internal protected sealed override void TryConfigure(IDescriptor descriptor)
         {
-            if (descriptor is IObjectTypeDescriptor d)
+            if (descriptor is IInterfaceTypeDescriptor d)
             {
                 OnConfigure(d);
             }
         }
 
-        public abstract void OnConfigure(IObjectTypeDescriptor descriptor);
+        public abstract void OnConfigure(IInterfaceTypeDescriptor descriptor);
     }
 }

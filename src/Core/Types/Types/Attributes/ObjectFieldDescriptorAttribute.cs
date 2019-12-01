@@ -19,5 +19,4 @@ namespace HotChocolate.Types
 
         public abstract void OnConfigure(IObjectFieldDescriptor descriptor);
     }
-
 }

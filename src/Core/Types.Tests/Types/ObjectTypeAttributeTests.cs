@@ -62,7 +62,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeDescriptorAttribute_Updated_FieldDefinition()
+        public void ObjectTypeDescriptorAttribute_Add_FieldDefinition()
         {
             // act
             ISchema schema = SchemaBuilder.New()
