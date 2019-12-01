@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -83,7 +84,14 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                var fieldDescriptor = new InterfaceFieldDescriptor(
+                InterfaceFieldDescriptor fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Member == member);
+                if (fieldDescriptor is { })
+                {
+                    return fieldDescriptor;
+                }
+
+                fieldDescriptor = new InterfaceFieldDescriptor(
                     Context, member);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;

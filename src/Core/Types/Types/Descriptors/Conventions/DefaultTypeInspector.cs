@@ -193,6 +193,21 @@ namespace HotChocolate.Types.Descriptors
             return Enumerable.Empty<object>();
         }
 
+        public MemberInfo GetEnumValueMember(object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            Type enumType = value.GetType();
+            if (enumType.IsEnum)
+            {
+                return enumType.GetMember(value.ToString()).FirstOrDefault();
+            }
+            return null;
+        }
+
         private static bool IsIgnored(MemberInfo member)
         {
             if (IsToString(member) || IsGetHashCode(member) || IsEquals(member))
@@ -239,5 +254,16 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public bool IsSchemaType(Type type) => BaseTypes.IsSchemaType(type);
+
+        public void ApplyAttributes(
+            IDescriptor descriptor,
+            ICustomAttributeProvider attributeProvider)
+        {
+            foreach (var attribute in attributeProvider.GetCustomAttributes(true)
+                .OfType<DescriptorAttribute>())
+            {
+                attribute.TryConfigure(descriptor);
+            }
+        }
     }
 }

@@ -6,14 +6,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public interface IDescriptorExtension
+    public interface IDescriptorExtension<T>
+        where T : DefinitionBase
     {
-        void OnBeforeCreate(Action<DefinitionBase> configure);
+        void OnBeforeCreate(Action<T> configure);
 
         INamedDependencyDescriptor OnBeforeNaming(
-            Action<ICompletionContext, DefinitionBase> configure);
+            Action<ICompletionContext, T> configure);
 
         ICompletedDependencyDescriptor OnBeforeCompletion(
-            Action<ICompletionContext, DefinitionBase> configure);
+            Action<ICompletionContext, T> configure);
     }
 }
