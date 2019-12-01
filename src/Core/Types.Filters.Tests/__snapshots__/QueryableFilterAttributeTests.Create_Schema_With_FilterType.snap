@@ -1,0 +1,58 @@
+﻿schema {
+  query: Query1
+}
+
+type Foo {
+  bar: String
+  baz: Int!
+  qux: Int
+}
+
+type Query1 {
+  foos(where: FooFilter): [Foo]
+}
+
+input FooFilter {
+  AND: [FooFilter!]
+  bar: String
+  bar_contains: String
+  bar_ends_with: String
+  bar_in: [String]
+  bar_not: String
+  bar_not_contains: String
+  bar_not_ends_with: String
+  bar_not_in: [String]
+  bar_not_starts_with: String
+  bar_starts_with: String
+  baz: Int
+  baz_gt: Int
+  baz_gte: Int
+  baz_in: [Int!]
+  baz_lt: Int
+  baz_lte: Int
+  baz_not: Int
+  baz_not_gt: Int
+  baz_not_gte: Int
+  baz_not_in: [Int!]
+  baz_not_lt: Int
+  baz_not_lte: Int
+  OR: [FooFilter!]
+  qux: Int
+  qux_gt: Int
+  qux_gte: Int
+  qux_in: [Int]
+  qux_lt: Int
+  qux_lte: Int
+  qux_not: Int
+  qux_not_gt: Int
+  qux_not_gte: Int
+  qux_not_in: [Int]
+  qux_not_lt: Int
+  qux_not_lte: Int
+}
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

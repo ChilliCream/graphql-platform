@@ -569,6 +569,18 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddObjectTypeT2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddObjectType<Foo>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void AddObjectTypeT_ConfigureIsNull_ArgumentNullException()
         {
             // arrange
@@ -711,6 +723,18 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddInterfaceTypeT2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInterfaceType<Foo>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void AddInterfaceTypeT_ConfigureIsNull_ArgumentNullException()
         {
             // arrange
@@ -798,6 +822,18 @@ namespace HotChocolate
             Action action = () =>
                 SchemaBuilderExtensions.AddUnionType<Foo>(
                     null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddUnionTypeT2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddUnionType<Foo>(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -897,6 +933,18 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddInputObjectTypeT2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputObjectType<Foo>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void AddInputObjectTypeT_ConfigureIsNull_ArgumentNullException()
         {
             // arrange
@@ -986,6 +1034,18 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddEnumTypeT2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddEnumType<Foo>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void AddEnumTypeT_ConfigureIsNull_ArgumentNullException()
         {
             // arrange
@@ -998,7 +1058,7 @@ namespace HotChocolate
             Assert.Throws<ArgumentNullException>(action);
         }
 
-         [Fact]
+        [Fact]
         public void AddEnumTypeT_With_Descriptor()
         {
             // arrange
