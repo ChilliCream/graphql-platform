@@ -1,5 +1,6 @@
 ﻿schema {
   query: Query
+  mutation: Mutation
 }
 
 "The node interface is implemented by entities that have a gloabl unique identifier."
@@ -7,14 +8,27 @@ interface Node {
   id: ID!
 }
 
+type AddSchemaPayload {
+  schema: Schema!
+}
+
+type Mutation {
+  addSchema(input: AddSchemaInput): AddSchemaPayload
+}
+
 type Query {
-  schema(id: Uuid!): Schema!
+  schema(id: Uuid!): Schema
   schemas: [Schema!]!
 }
 
 type Schema implements Node {
   description: String
   id: ID!
+  name: String!
+}
+
+input AddSchemaInput {
+  description: String
   name: String!
 }
 

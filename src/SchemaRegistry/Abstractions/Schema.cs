@@ -9,7 +9,7 @@ namespace MarshmallowPie
             string name,
             string? description)
         {
-            Id = id;
+            Id = Guid.NewGuid();
             Name = name;
             Description = description;
         }

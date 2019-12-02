@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Threading;
+using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
@@ -9,20 +10,30 @@ namespace MarshmallowPie.Repositories
     {
         IQueryable<Schema> Schemas { get; }
 
-        Task<IReadOnlyDictionary<Guid, Schema>> GetSchemasAsync(
-            IReadOnlyList<Guid> ids);
-
-        Task AddSchemaAsync(Schema schema);
-
-        Task UpdateSchemaAsync(SchemaVersion schema);
-
         IQueryable<SchemaVersion> SchemaVersions { get; }
 
+        Task<IReadOnlyDictionary<Guid, Schema>> GetSchemasAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken);
+
+        Task AddSchemaAsync(
+            Schema schema,
+            CancellationToken cancellationToken);
+
+        Task UpdateSchemaAsync(
+            SchemaVersion schema,
+            CancellationToken cancellationToken);
+
         Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
-            IReadOnlyList<Guid> ids);
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken);
 
-        Task AddSchemaVersionAsync(SchemaVersion schema);
+        Task AddSchemaVersionAsync(
+            SchemaVersion schema,
+            CancellationToken cancellationToken);
 
-        Task UpdateSchemaVersionAsync(SchemaVersion schema);
+        Task UpdateSchemaVersionAsync(
+            SchemaVersion schema,
+            CancellationToken cancellationToken);
     }
 }

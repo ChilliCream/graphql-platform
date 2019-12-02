@@ -30,11 +30,14 @@ namespace MarshmallowPie.GraphQL.Resolvers
 
     public class Mutation
     {
-        public async Task AddSchemaAsync(
+        public async Task<AddSchemaPayload> AddSchemaAsync(
             AddSchemaInput input,
-            [Service]ISchemaRepository repository)
+            [Service]ISchemaRepository repository,
+            CancellationToken cancellationToken)
         {
-            repository.AddSchemaAsync(new Schema())
+            var schema = new Schema(input.Name, input.Description);
+            await repository.AddSchemaAsync(schema, cancellationToken);
+            return new AddSchemaPayload(schema);
         }
     }
 

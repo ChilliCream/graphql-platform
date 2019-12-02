@@ -21,16 +21,16 @@ namespace MarshmallowPie.GraphQL.DataLoader
             IReadOnlyList<Guid> keys,
             CancellationToken cancellationToken)
         {
-            IReadOnlyDictionary<Guid, Schema> schemas = await _repository.GetSchemasAsync(keys);
-            var list = new List<Result<Schema?>>();
+            IReadOnlyDictionary<Guid, Schema> schemas =
+                await _repository.GetSchemasAsync(keys, cancellationToken);
 
+            var list = new List<Result<Schema?>>();
             for (int i = 0; i < keys.Count; i++)
             {
                 list[i] = schemas.TryGetValue(keys[i], out Schema? schema)
                     ? Result<Schema?>.Resolve(schema)
                     : Result<Schema?>.Resolve(null);
             }
-
             return list;
         }
     }
