@@ -18,36 +18,37 @@ namespace HotChocolate.Utilities
 
             do
             {
-                bool makeNullable = current.IsNullable;
-
-                if (nullable.Length < i)
+                if (!IsNonEssentialComponent(current))
                 {
-                    Nullable value = nullable[i++];
-                    if (value != Nullable.Undefined)
+                    bool makeNullable = current.IsNullable;
+
+                    if (nullable.Length < i)
                     {
-                        makeNullable = value == Nullable.Yes;
+                        Nullable value = nullable[i++];
+                        if (value != Nullable.Undefined)
+                        {
+                            makeNullable = value == Nullable.Yes;
+                        }
                     }
-                }
-                current = RemoveNonEssentialParts(current);
 
-                if (current.IsNullable == makeNullable)
-                {
-                    components.Push(current);
-                }
-                else
-                {
                     if (current.IsNullable == makeNullable)
                     {
                         components.Push(current);
                     }
                     else
                     {
-                        components.Push(new ExtendedType(
-                            current.Type, makeNullable,
-                            current.Kind, current.TypeArguments));
+                        if (current.IsNullable == makeNullable)
+                        {
+                            components.Push(current);
+                        }
+                        else
+                        {
+                            components.Push(new ExtendedType(
+                                current.Type, makeNullable,
+                                current.Kind, current.TypeArguments));
+                        }
                     }
                 }
-
                 current = GetInnerType(current);
             } while (current != null && components.Count < 7);
 
@@ -113,21 +114,9 @@ namespace HotChocolate.Utilities
         }
 
 
-        private static IExtendedType RemoveNonEssentialParts(IExtendedType type)
+        private static bool IsNonEssentialComponent(IExtendedType type)
         {
-            IExtendedType current = type;
-
-            if (IsTaskType(current))
-            {
-                current = current.TypeArguments[0];
-            }
-
-            if (IsResolverResultType(current))
-            {
-                current = current.TypeArguments[0];
-            }
-
-            return current;
+            return IsTaskType(type) || IsResolverResultType(type);
         }
 
         public static IExtendedType? GetInnerType(IExtendedType type)
