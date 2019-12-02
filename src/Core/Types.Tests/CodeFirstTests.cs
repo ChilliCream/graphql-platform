@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -23,10 +24,14 @@ namespace HotChocolate
         {
             public string SayHello(string name) =>
                 throw new NotImplementedException();
+
             public Greetings GetGreetings(Greetings greetings) =>
                 throw new NotImplementedException();
 
             public IPet GetPet() =>
+                throw new NotImplementedException();
+
+            public Task<IPet?> GetPetOrNull() =>
                 throw new NotImplementedException();
         }
 
