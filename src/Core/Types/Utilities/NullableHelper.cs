@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -161,15 +162,13 @@ namespace HotChocolate.Utilities
 
         private Nullable GetContext(MemberInfo member)
         {
-            NullableContextAttribute? attribute =
-                member.GetCustomAttribute<NullableContextAttribute>();
+            NullableContextAttribute? attribute = GetNullableContextAttribute(member);
             return GetContext(attribute);
         }
 
         private Nullable GetContext(ParameterInfo parameter)
         {
-            NullableContextAttribute? attribute =
-                parameter.GetCustomAttribute<NullableContextAttribute>();
+            NullableContextAttribute? attribute = GetNullableContextAttribute(parameter);
             return GetContext(attribute, GetContext(parameter.Member));
         }
 
@@ -214,6 +213,10 @@ namespace HotChocolate.Utilities
 
         private static NullableContextAttribute? GetNullableContextAttribute(
             MemberInfo member) =>
+            GetNullableContextAttribute(member.GetCustomAttributesData());
+
+        private static NullableContextAttribute? GetNullableContextAttribute(
+            ParameterInfo member) =>
             GetNullableContextAttribute(member.GetCustomAttributesData());
 
         private static NullableContextAttribute? GetNullableContextAttribute(
