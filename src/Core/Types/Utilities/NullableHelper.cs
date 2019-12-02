@@ -10,6 +10,9 @@ namespace HotChocolate.Utilities
 {
     internal readonly ref struct NullableHelper
     {
+        private const string _nullableContextAttributeName = "NullableContextAttribute";
+        private const string _nullableAttributeName = "NullableAttribute";
+
         private readonly Type _type;
         private readonly Nullable _context;
 
@@ -188,6 +191,10 @@ namespace HotChocolate.Utilities
 
         private static ReadOnlySpan<byte> GetFlags(MemberInfo member)
         {
+            if (member is MethodInfo m)
+            {
+                return GetFlags(GetNullableAttribute(m));
+            }
             return GetFlags(GetNullableAttribute(member));
         }
 
@@ -217,7 +224,7 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                t.AttributeType.Name == "NullableContextAttribute");
+                t.AttributeType.Name.EqualsOrdinal(_nullableContextAttributeName));
 
             if (data is { })
             {
@@ -227,6 +234,33 @@ namespace HotChocolate.Utilities
 
             return null;
         }
+
+        private static NullableAttribute? GetNullableAttribute(
+            MethodInfo method)
+        {
+            object[] attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
+            object attribute = attributes.FirstOrDefault(t =>
+                t.GetType().Name.EqualsOrdinal(_nullableAttributeName));
+
+            if (attribute is null)
+            {
+                return GetNullableAttribute((MemberInfo)method);
+            }
+
+            try
+            {
+                var flags = (byte[])attribute.GetType().GetField(
+                    "_flags",
+                    BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(attribute);
+                return new NullableAttribute(flags);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private static NullableAttribute? GetNullableAttribute(
             MemberInfo member) =>
             GetNullableAttribute(member.GetCustomAttributesData());
@@ -239,7 +273,7 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                t.AttributeType.Name == "NullableAttribute");
+                t.AttributeType.Name.EqualsOrdinal(_nullableAttributeName));
 
             if (data is { })
             {
