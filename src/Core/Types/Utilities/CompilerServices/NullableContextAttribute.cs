@@ -1,4 +1,6 @@
-﻿namespace System.Runtime.CompilerServices
+﻿using System;
+
+namespace HotChocolate.Utilities.CompilerServices
 {
     [AttributeUsage(
         AttributeTargets.Module |

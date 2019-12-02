@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using HotChocolate.Utilities.CompilerServices;
 
 #nullable enable
 
@@ -249,9 +249,8 @@ namespace HotChocolate.Utilities
 
             try
             {
-                var flags = (byte[])attribute.GetType().GetField(
-                    "_flags",
-                    BindingFlags.Instance | BindingFlags.NonPublic)
+                var flags = (byte[])attribute.GetType()
+                    .GetField("NullableFlags")
                     .GetValue(attribute);
                 return new NullableAttribute(flags);
             }
