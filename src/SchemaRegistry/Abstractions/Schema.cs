@@ -5,6 +5,25 @@ namespace MarshmallowPie
 {
     public class Schema
     {
+        public Schema(
+            string name,
+            string? description)
+        {
+            Id = id;
+            Name = name;
+            Description = description;
+        }
+
+        public Schema(
+            Guid id,
+            string name,
+            string? description)
+        {
+            Id = id;
+            Name = name;
+            Description = description;
+        }
+
         public Guid Id { get; }
 
         public string Name { get; }

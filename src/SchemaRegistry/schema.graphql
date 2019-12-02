@@ -3,6 +3,10 @@ type Query {
   schema(id: ID!): Schema
 }
 
+type Mutation {
+  addSchema(input: AddSchemaInput): AddSchemaPayload
+}
+
 type Schema implements Node {
   id: ID!
   name: String!

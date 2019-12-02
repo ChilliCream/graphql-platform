@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using HotChocolate;
 using MarshmallowPie.GraphQL.DataLoader;
 using MarshmallowPie.Repositories;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types;
+using System.Reflection;
 
 namespace MarshmallowPie.GraphQL.Resolvers
 {
@@ -25,5 +28,30 @@ namespace MarshmallowPie.GraphQL.Resolvers
         }
     }
 
+    public class Mutation
+    {
+        public async Task AddSchemaAsync(
+            AddSchemaInput input,
+            [Service]ISchemaRepository repository)
+        {
+            repository.AddSchemaAsync(new Schema())
+        }
+    }
 
+    public class AddSchemaInput
+    {
+        public string Name { get; set; }
+
+        public string? Description { get; set; }
+    }
+
+    public class AddSchemaPayload
+    {
+        public AddSchemaPayload(Schema schema)
+        {
+            Schema = schema;
+        }
+
+        public Schema Schema { get; }
+    }
 }
