@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -15,23 +16,16 @@ namespace HotChocolate.Utilities
         public NullableHelper(Type type)
         {
             _type = type;
-
-            _context = GetContext(
-                type.Assembly.GetCustomAttribute<NullableContextAttribute>(),
-                Nullable.Yes);
+            _context = GetContext(GetNullableContextAttribute(type.Assembly), Nullable.Yes);
 
             Type? current = type.DeclaringType;
             while (current != null)
             {
-                _context = GetContext(
-                    current.GetCustomAttribute<NullableContextAttribute>(),
-                    _context);
+                _context = GetContext(GetNullableContextAttribute(current), _context);
                 current = current.DeclaringType;
             }
 
-            _context = GetContext(
-                type.GetCustomAttribute<NullableContextAttribute>(),
-                _context);
+            _context = GetContext(GetNullableContextAttribute(type), _context);
         }
 
         public Type Type => _type;
@@ -194,12 +188,12 @@ namespace HotChocolate.Utilities
 
         private static ReadOnlySpan<byte> GetFlags(MemberInfo member)
         {
-            return GetFlags(member.GetCustomAttribute<NullableAttribute>());
+            return GetFlags(GetNullableAttribute(member));
         }
 
         private static ReadOnlySpan<byte> GetFlags(ParameterInfo parameter)
         {
-            return GetFlags(parameter.GetCustomAttribute<NullableAttribute>());
+            return GetFlags(GetNullableAttribute(parameter));
         }
 
         private static ReadOnlySpan<byte> GetFlags(NullableAttribute? attribute)
@@ -209,6 +203,59 @@ namespace HotChocolate.Utilities
                 return attribute.Flags;
             }
             return default;
+        }
+
+        private static NullableContextAttribute? GetNullableContextAttribute(
+            MemberInfo member) =>
+            GetNullableContextAttribute(member.GetCustomAttributesData());
+
+        private static NullableContextAttribute? GetNullableContextAttribute(
+            Assembly assembly) =>
+            GetNullableContextAttribute(assembly.GetCustomAttributesData());
+
+        private static NullableContextAttribute? GetNullableContextAttribute(
+            IList<CustomAttributeData> attributes)
+        {
+            CustomAttributeData data = attributes.FirstOrDefault(t =>
+                t.AttributeType.Name == "NullableContextAttribute");
+
+            if (data is { })
+            {
+                return new NullableContextAttribute(
+                    (byte)data.ConstructorArguments[0].Value);
+            }
+
+            return null;
+        }
+        private static NullableAttribute? GetNullableAttribute(
+            MemberInfo member) =>
+            GetNullableAttribute(member.GetCustomAttributesData());
+
+        private static NullableAttribute? GetNullableAttribute(
+            ParameterInfo parameter) =>
+            GetNullableAttribute(parameter.GetCustomAttributesData());
+
+        private static NullableAttribute? GetNullableAttribute(
+            IList<CustomAttributeData> attributes)
+        {
+            CustomAttributeData data = attributes.FirstOrDefault(t =>
+                t.AttributeType.Name == "NullableAttribute");
+
+            if (data is { })
+            {
+                switch (data.ConstructorArguments[0].Value)
+                {
+                    case byte b:
+                        return new NullableAttribute(b);
+                    case byte[] a:
+                        return new NullableAttribute(a);
+                    default:
+                        throw new InvalidOperationException(
+                            "Unexpected nullable attribute data.");
+                }
+            }
+
+            return null;
         }
     }
 }
