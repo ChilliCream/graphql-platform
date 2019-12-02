@@ -72,7 +72,6 @@ namespace HotChocolate.Utilities
             return type;
         }
 
-
         private static IEnumerable<Type> RemoveNonNullComponents(Type type)
         {
             foreach (Type component in DecomposeType(type))
@@ -386,6 +385,11 @@ namespace HotChocolate.Utilities
 
         internal static Type GetInnerListType(Type type)
         {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
+            {
+                return type.GetGenericArguments().First();
+            }
+
             if (type.IsInterface && IsSupportedCollectionInterface(type, true))
             {
                 return type.GetGenericArguments().First();
@@ -432,7 +436,7 @@ namespace HotChocolate.Utilities
         public static bool IsListType(Type type)
         {
             return type.IsArray
-                || typeof(ListType) == type
+                || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
                 || ImplementsListInterface(type);
         }
 
@@ -482,13 +486,18 @@ namespace HotChocolate.Utilities
 
         private static bool CanHandle(Type type)
         {
-            if (!typeof(IType).IsAssignableFrom(type)
-                || IsWrapperType(type))
+            if (!typeof(IType).IsAssignableFrom(type) || IsWrapperType(type))
             {
                 return true;
             }
 
             if (IsNonNullType(type) && CanHandle(GetInnerType(type)))
+            {
+                return true;
+            }
+
+            List<Type> types = DecomposeType(type);
+            if (types.Count > 0 && CanHandle(types[types.Count - 1]))
             {
                 return true;
             }

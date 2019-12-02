@@ -7,12 +7,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
 using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
+using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Serializers;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GraphQL
 {
     public static class StarWarsClientServiceCollectionExtensions
     {
+        private const string _clientName = "StarWarsClient";
+
         public static IServiceCollection AddStarWarsClient(
             this IServiceCollection serviceCollection)
         {
@@ -22,12 +26,26 @@ namespace StrawberryShake.Client.GraphQL
             }
 
             serviceCollection.AddSingleton<IStarWarsClient, StarWarsClient>();
-            serviceCollection.AddSingleton(sp =>
-                HttpOperationExecutorBuilder.New()
-                    .AddServices(sp)
-                    .SetClient(ClientFactory)
-                    .SetPipeline(PipelineFactory)
-                    .Build());
+            serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
+                new HttpOperationExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<IHttpClientFactory>().CreateClient,
+                    PipelineFactory(sp),
+                    sp));
+
+            serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>
+                new SocketOperationStreamExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<ISocketConnectionPool>().RentAsync,
+                    sp.GetRequiredService<ISubscriptionManager>(),
+                    sp.GetRequiredService<IResultParserResolver>()));
+
+            serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
+            serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
+            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
+                typeof(ISocketConnectionInterceptor),
+                typeof(MessagePipelineHandler),
+                ServiceLifetime.Singleton));
 
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();
@@ -40,14 +58,9 @@ namespace StrawberryShake.Client.GraphQL
             return serviceCollection;
         }
 
-        public static IServiceCollection AddDefaultScalarSerializers(
+        private static IServiceCollection AddDefaultScalarSerializers(
             this IServiceCollection serviceCollection)
         {
-            if (serviceCollection is null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
             serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
 
             foreach (IValueSerializer serializer in ValueSerializers.All)
@@ -69,7 +82,6 @@ namespace StrawberryShake.Client.GraphQL
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IValueSerializer, ReviewInputSerializer>();
-            serviceCollection.AddSingleton<IValueSerializer, AuthorSerializer>();
             return serviceCollection;
         }
 
@@ -81,13 +93,14 @@ namespace StrawberryShake.Client.GraphQL
             serviceCollection.AddSingleton<IResultParser, GetHumanResultParser>();
             serviceCollection.AddSingleton<IResultParser, SearchResultParser>();
             serviceCollection.AddSingleton<IResultParser, CreateReviewResultParser>();
+            serviceCollection.AddSingleton<IResultParser, OnReviewResultParser>();
             return serviceCollection;
         }
 
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
+            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
             return serviceCollection;
         }
 
@@ -101,12 +114,6 @@ namespace StrawberryShake.Client.GraphQL
                     .Use<ParseSingleResultMiddleware>()
                     .Build(sp));
             return serviceCollection;
-        }
-
-        private static Func<HttpClient> ClientFactory(IServiceProvider services)
-        {
-            var clientFactory = services.GetRequiredService<IHttpClientFactory>();
-            return () => clientFactory.CreateClient("StarWarsClient");
         }
 
         private static OperationDelegate PipelineFactory(IServiceProvider services)

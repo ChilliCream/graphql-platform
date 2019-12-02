@@ -24,17 +24,6 @@ namespace HotChocolate.Utilities
             return ExtractMemberInternal<T>(UnwrapFunc(memberExpression));
         }
 
-        public static MemberInfo ExtractMember<T>(
-            this Expression<Action<T>> memberExpression)
-        {
-            if (memberExpression == null)
-            {
-                throw new ArgumentNullException(nameof(memberExpression));
-            }
-
-            return ExtractMemberInternal<T>(UnwrapAction(memberExpression));
-        }
-
         private static MemberInfo ExtractMemberInternal<T>(
             Expression expression)
         {
@@ -83,16 +72,6 @@ namespace HotChocolate.Utilities
 
         private static Expression UnwrapFunc<T, TPropertyType>(
             Expression<Func<T, TPropertyType>> memberExpression)
-        {
-            if (memberExpression.Body is UnaryExpression u)
-            {
-                return u.Operand;
-            }
-            return memberExpression.Body;
-        }
-
-        private static Expression UnwrapAction<T>(
-            Expression<Action<T>> memberExpression)
         {
             if (memberExpression.Body is UnaryExpression u)
             {
@@ -248,21 +227,6 @@ namespace HotChocolate.Utilities
             return members;
         }
 
-        public static Dictionary<string, MemberInfo> GetMembers(Type type)
-        {
-            var members = new Dictionary<string, MemberInfo>(
-                StringComparer.OrdinalIgnoreCase);
-
-            AddProperties(
-                members.ContainsKey,
-                (n, p) => members[n] = p,
-                type);
-
-            AddMethods(members, type);
-
-            return members;
-        }
-
         private static void AddProperties(
             Func<string, bool> exists,
             Action<string, PropertyInfo> add,
@@ -278,26 +242,6 @@ namespace HotChocolate.Utilities
                 if (!exists(name))
                 {
                     add(name, property);
-                }
-            }
-        }
-
-        private static void AddMethods(
-            IDictionary<string, MemberInfo> members,
-            Type type)
-        {
-            foreach (MethodInfo method in type.GetMethods(
-                BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => !IsIgnored(m)
-                    && !m.IsSpecialName
-                    && m.DeclaringType != typeof(object)
-                    && m.ReturnType != typeof(void)
-                    && m.ReturnType != typeof(Task)))
-            {
-                string name = method.GetGraphQLName();
-                if (!members.ContainsKey(name))
-                {
-                    members[name] = method;
                 }
             }
         }

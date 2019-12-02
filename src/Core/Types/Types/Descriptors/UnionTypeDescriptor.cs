@@ -17,10 +17,8 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name =
-                context.Naming.GetTypeName(clrType, TypeKind.Union);
-            Definition.Description =
-                context.Naming.GetTypeDescription(clrType, TypeKind.Union);
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Union);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
 
         protected UnionTypeDescriptor(IDescriptorContext context)
@@ -29,8 +27,17 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override UnionTypeDefinition Definition { get; } =
+        internal protected override UnionTypeDefinition Definition { get; } =
             new UnionTypeDefinition();
+
+        protected override void OnCreateDefinition(UnionTypeDefinition definition)
+        {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
+            base.OnCreateDefinition(definition);
+        }
 
         public IUnionTypeDescriptor SyntaxNode(
             UnionTypeDefinitionNode unionTypeDefinitionNode)

@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace  StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.GitHub
 {
     public class GetUserResultParser
         : JsonResultParserBase<IGetUser>
@@ -14,33 +14,15 @@ namespace  StrawberryShake.Client.GitHub
         private readonly IValueSerializer _dateTimeSerializer;
         private readonly IValueSerializer _intSerializer;
 
-        public GetUserResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetUserResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("String", out IValueSerializer? serializer))
+            if (serializerResolver is null)
             {
-                throw new ArgumentException(
-                    "There is no serializer specified for `String`.",
-                    nameof(serializers));
+                throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializer;
-
-            if (!map.TryGetValue("DateTime", out  serializer))
-            {
-                throw new ArgumentException(
-                    "There is no serializer specified for `DateTime`.",
-                    nameof(serializers));
-            }
-            _dateTimeSerializer = serializer;
-
-            if (!map.TryGetValue("Int", out  serializer))
-            {
-                throw new ArgumentException(
-                    "There is no serializer specified for `Int`.",
-                    nameof(serializers));
-            }
-            _intSerializer = serializer;
+            _stringSerializer = serializerResolver.GetValueSerializer("String");
+            _dateTimeSerializer = serializerResolver.GetValueSerializer("DateTime");
+            _intSerializer = serializerResolver.GetValueSerializer("Int");
         }
 
         protected override IGetUser ParserData(JsonElement data)

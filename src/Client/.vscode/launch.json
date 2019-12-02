@@ -13,7 +13,8 @@
       // "args": ["generate", "-d", "-n StrawberryShake.Client.GraphQL", "-f"],
       "args": [
         "generate",
-        "./GraphQL",
+        "-p ./GraphQL",
+        "-l 8.0",
         "-d",
         "-n StrawberryShake.Client.GraphQL",
         "-f"

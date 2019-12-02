@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using System.Linq;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -77,9 +78,16 @@ namespace HotChocolate.Types.Descriptors
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new InputFieldDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
+                InputFieldDescriptor fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Property == p);
+                if (fieldDescriptor is { })
+                {
+                    return fieldDescriptor;
+                }
+
+                fieldDescriptor = new InputFieldDescriptor(Context, p);
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
             }
 
             throw new ArgumentException(

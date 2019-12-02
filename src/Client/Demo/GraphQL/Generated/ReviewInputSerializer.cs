@@ -9,7 +9,6 @@ namespace StrawberryShake.Client.GraphQL
         : IInputSerializer
     {
         private bool _needsInitialization = true;
-        private IValueSerializer? _authorSerializer;
         private IValueSerializer? _stringSerializer;
         private IValueSerializer? _intSerializer;
 
@@ -27,7 +26,6 @@ namespace StrawberryShake.Client.GraphQL
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _authorSerializer = serializerResolver.GetValueSerializer("Author");
             _stringSerializer = serializerResolver.GetValueSerializer("String");
             _intSerializer = serializerResolver.GetValueSerializer("Int");
             _needsInitialization = false;
@@ -41,18 +39,13 @@ namespace StrawberryShake.Client.GraphQL
                     $"The serializer for type `{Name}` has not been initialized.");
             }
 
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
 
             var input = (ReviewInput)value;
             var map = new Dictionary<string, object?>();
-
-            if (input.Author.HasValue)
-            {
-                map.Add("author", SerializeNullableAuthor(input.Author.Value));
-            }
 
             if (input.Commentary.HasValue)
             {
@@ -67,19 +60,9 @@ namespace StrawberryShake.Client.GraphQL
             return map;
         }
 
-        private object? SerializeNullableAuthor(object? value)
-        {
-            if(value is null)
-            {
-                return null;
-            }
-
-
-            return _authorSerializer!.Serialize(value);
-        }
         private object? SerializeNullableString(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }

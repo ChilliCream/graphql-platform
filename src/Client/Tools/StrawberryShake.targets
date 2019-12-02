@@ -25,11 +25,11 @@
 
   <Target Name="GraphQL_CoreCompile">
     <PropertyGroup>
-      <BerryLangVersion Condition="'$(Nullable)'=='enable' AND '$(LangVersion)'=='8.0'">CSharp_8_0</BerryLangVersion>
-      <BerryLangVersion Condition="'$(BerryLangVersion)'==''">CSharp_7_3</BerryLangVersion>
+      <BerryLangVersion Condition="'$(Nullable)'=='enable' AND '$(LangVersion)'=='8.0'">8.0</BerryLangVersion>
+      <BerryLangVersion Condition="'$(BerryLangVersion)'==''">7.3</BerryLangVersion>
       <GraphQLEnableDI Condition="'$(GraphQLEnableDI)'==''">true</GraphQLEnableDI>
       <BerryNamespace Condition="'$(BerryNamespace)'=='' AND '$(RootNamespace)'!=''">$(RootNamespace)</BerryNamespace>
-      <GraphQLCompileCommand>dotnet "$(GraphQLCompiler)" generate "$(MSBuildProjectDirectory)" -s</GraphQLCompileCommand>
+      <GraphQLCompileCommand>dotnet "$(GraphQLCompiler)" generate -p "$(MSBuildProjectDirectory)" -s</GraphQLCompileCommand>
       <GraphQLCompileCommand>$(GraphQLCompileCommand) -l $(BerryLangVersion)</GraphQLCompileCommand>
       <GraphQLCompileCommand Condition="'$(GraphQLEnableDI)'=='true'">$(GraphQLCompileCommand) -d</GraphQLCompileCommand>
       <GraphQLCompileCommand Condition="'$(BerryNamespace)'!=''">$(GraphQLCompileCommand) -n $(BerryNamespace)</GraphQLCompileCommand>
@@ -48,9 +48,10 @@
   <Target Name="GraphQL_Compile_OnBuild"
     BeforeTargets="BeforeBuild"
     DependsOnTargets="GraphQL_Compile"
-    Condition="'$(GraphQLCompileOnBuild)' == 'true'" />
+    Condition="'$(GraphQLCompileOnBuild)' == 'true' OR '$(GraphQLGenerateOnBuild)' == 'true'" />
 
   <!-- Public Targets -->
   <Target Name="CompileGraphQL" DependsOnTargets="GraphQL_Compile" />
+  <Target Name="GenerateGraphQL" DependsOnTargets="GraphQL_Compile" />
 
 </Project>

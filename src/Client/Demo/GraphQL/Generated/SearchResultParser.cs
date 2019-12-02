@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GraphQL
 {
@@ -15,7 +17,7 @@ namespace StrawberryShake.Client.GraphQL
 
         public SearchResultParser(IValueSerializerResolver serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }

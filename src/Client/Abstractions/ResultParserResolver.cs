@@ -20,7 +20,7 @@ namespace StrawberryShake
 
         public IResultParser GetResultParser(Type resultType)
         {
-            if(!_parsers.TryGetValue(resultType, out IResultParser? parser))
+            if (!_parsers.TryGetValue(resultType, out IResultParser? parser))
             {
                 throw new ArgumentException(
                     $"The type `{resultType.FullName}` has no result parser " +

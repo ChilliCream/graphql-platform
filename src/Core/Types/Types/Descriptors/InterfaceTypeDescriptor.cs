@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override InterfaceTypeDefinition Definition { get; } =
+        internal protected override InterfaceTypeDefinition Definition { get; } =
             new InterfaceTypeDefinition();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
@@ -44,6 +44,11 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceTypeDefinition definition)
         {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
+
             var fields = new Dictionary<NameString, InterfaceFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
@@ -85,7 +90,14 @@ namespace HotChocolate.Types.Descriptors
 
         public IInterfaceFieldDescriptor Field(NameString name)
         {
-            var fieldDescriptor = new InterfaceFieldDescriptor(
+            InterfaceFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = InterfaceFieldDescriptor.New(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
             Fields.Add(fieldDescriptor);

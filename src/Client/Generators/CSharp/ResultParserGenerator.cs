@@ -128,7 +128,7 @@ namespace StrawberryShake.Generators.CSharp
             using (writer.IncreaseIndent())
             {
                 await writer.WriteIndentedLineAsync(
-                    "if(serializerResolver is null)")
+                    "if (serializerResolver is null)")
                     .ConfigureAwait(false);
                 await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())
