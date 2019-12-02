@@ -37,16 +37,9 @@ namespace HotChocolate.Utilities
                     }
                     else
                     {
-                        if (current.IsNullable == makeNullable)
-                        {
-                            components.Push(current);
-                        }
-                        else
-                        {
-                            components.Push(new ExtendedType(
-                                current.Type, makeNullable,
-                                current.Kind, current.TypeArguments));
-                        }
+                        components.Push(new ExtendedType(
+                            current.Type, makeNullable,
+                            current.Kind, current.TypeArguments));
                     }
                 }
                 current = GetInnerType(current);

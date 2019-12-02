@@ -2,15 +2,7 @@ using System;
 
 namespace HotChocolate.Utilities.CompilerServices
 {
-    [AttributeUsage(
-        AttributeTargets.Class |
-        AttributeTargets.GenericParameter |
-        AttributeTargets.Event |
-        AttributeTargets.Field |
-        AttributeTargets.Property |
-        AttributeTargets.Parameter |
-        AttributeTargets.ReturnValue)]
-    internal sealed class NullableAttribute : Attribute
+    internal sealed class NullableAttribute
     {
         private readonly byte[] _flags;
 

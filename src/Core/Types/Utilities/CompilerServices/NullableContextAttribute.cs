@@ -1,17 +1,6 @@
-﻿using System;
-
-namespace HotChocolate.Utilities.CompilerServices
+﻿namespace HotChocolate.Utilities.CompilerServices
 {
-    [AttributeUsage(
-        AttributeTargets.Module |
-        AttributeTargets.Class |
-        AttributeTargets.Delegate |
-        AttributeTargets.Interface |
-        AttributeTargets.Method |
-        AttributeTargets.Struct,
-        AllowMultiple = false,
-        Inherited = false)]
-    internal sealed class NullableContextAttribute : Attribute
+    internal sealed class NullableContextAttribute
     {
         public readonly byte Flag;
 

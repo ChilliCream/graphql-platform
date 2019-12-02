@@ -13,6 +13,10 @@ namespace HotChocolate.Utilities
         [InlineData("Array", typeof(NonNullType<NativeType<byte[]>>))]
         [InlineData("ArrayNullableElement", typeof(NonNullType<NativeType<byte?[]>>))]
         [InlineData("NullableArrayNullableElement", typeof(byte?[]))]
+        [InlineData("NullableObjectArray", typeof(List<NonNullType<NativeType<object>>>))]
+        [InlineData("ObjectArray", typeof(NonNullType<NativeType<List<NonNullType<NativeType<object>>>>>))]
+        [InlineData("ObjectArrayNullableElement", typeof(NonNullType<NativeType<object[]>>))]
+        [InlineData("NullableObjectArrayNullableElement", typeof(object[]))]
         [Theory]
         public void Rewrite_ValueType_Arrays(string propertyName, Type expectedRewrittenType)
         {
@@ -47,6 +51,26 @@ namespace HotChocolate.Utilities
             }
 
             public byte?[]? NullableArrayNullableElement()
+            {
+                throw new NotImplementedException();
+            }
+
+            public object[] ObjectArray()
+            {
+                throw new NotImplementedException();
+            }
+
+            public object[]? NullableObjectArray()
+            {
+                throw new NotImplementedException();
+            }
+
+            public object?[] ObjectArrayNullableElement()
+            {
+                throw new NotImplementedException();
+            }
+
+            public object?[]? NullableObjectArrayNullableElement()
             {
                 throw new NotImplementedException();
             }
