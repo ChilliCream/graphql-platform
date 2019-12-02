@@ -17,7 +17,7 @@ type Greetings {
 type Query {
   greetings(greetings: GreetingsInput!): Greetings!
   pet: IPet!
-  petOrNull: IPet!
+  petOrNull: IPet
   sayHello(name: String!): String!
 }
 
