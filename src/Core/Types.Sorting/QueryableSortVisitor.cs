@@ -38,9 +38,11 @@ namespace HotChocolate.Types.Sorting
                 return source;
             }
 
-            IOrderedQueryable<TSource> sortedSource
-                = source.AddInitialSortOperation(
-                    Instance.Dequeue(), _parameter);
+            if (!(source is IOrderedQueryable<TSource> sortedSource))
+            {
+                sortedSource = source.AddInitialSortOperation(
+                      Instance.Dequeue(), _parameter);
+            }
 
             while (Instance.Any())
             {
@@ -99,7 +101,7 @@ namespace HotChocolate.Types.Sorting
             {
                 Instance.Enqueue(
                     new SortOperationInvocation(
-                        (SortOperationKind) sortField.Type.Deserialize(node.Value.Value),
+                        (SortOperationKind)sortField.Type.Deserialize(node.Value.Value),
                         sortField.Operation.Property));
             }
 
