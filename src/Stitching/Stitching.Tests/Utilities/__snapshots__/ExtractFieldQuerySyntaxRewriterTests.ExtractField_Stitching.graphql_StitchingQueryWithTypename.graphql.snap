@@ -1,0 +1,6 @@
+query fetch {
+  consultant {
+    __typename
+    name
+  }
+}
