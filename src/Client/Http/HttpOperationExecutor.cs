@@ -11,19 +11,19 @@ namespace StrawberryShake.Http
     {
         private readonly Func<HttpClient> _clientFactory;
         private readonly HttpOperationDelegate _executeOperation;
-        private readonly IServiceProvider _services;
+        private readonly IResultParserCollection _resultParserResolver;
 
         public HttpOperationExecutor(
             Func<HttpClient> clientFactory,
             HttpOperationDelegate executeOperation,
-            IServiceProvider services)
+            IResultParserCollection resultParserResolver)
         {
             _clientFactory = clientFactory
                 ?? throw new ArgumentNullException(nameof(clientFactory));
             _executeOperation = executeOperation
                 ?? throw new ArgumentNullException(nameof(executeOperation));
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
+            _resultParserResolver = resultParserResolver
+                ?? throw new ArgumentNullException(nameof(resultParserResolver));
         }
 
         public async Task<IOperationResult> ExecuteAsync(
@@ -74,9 +74,9 @@ namespace StrawberryShake.Http
         {
             var context = new HttpOperationContext(
                 operation,
-                _clientFactory(),
-                _services,
                 resultBuilder,
+                _resultParserResolver.GetByResult(operation.ResultType),
+                _clientFactory(),
                 cancellationToken);
 
             try

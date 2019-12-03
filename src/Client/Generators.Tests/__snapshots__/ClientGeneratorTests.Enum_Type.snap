@@ -48,7 +48,7 @@ namespace StrawberryShake.Client
         : JsonResultParserBase<IGetEpisode>
     {
 
-        public GetEpisodeResultParser(IValueSerializerResolver serializerResolver)
+        public GetEpisodeResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -322,7 +322,7 @@ namespace StrawberryShake.Client
         private static IServiceCollection AddDefaultScalarSerializers(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+            serviceCollection.AddSingleton<IValueSerializerCollection, ValueSerializerResolver>();
 
             foreach (IValueSerializer serializer in ValueSerializers.All)
             {

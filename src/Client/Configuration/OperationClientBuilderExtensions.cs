@@ -23,7 +23,7 @@ namespace StrawberryShake.Configuration
         /// </returns>
         public static IOperationClientBuilder ConfigureClient(
             this IOperationClientBuilder builder,
-            Action<ClientOptions> configure)
+            Action<ClientOptionsModifiers> configure)
         {
             if (builder == null)
             {
@@ -35,7 +35,7 @@ namespace StrawberryShake.Configuration
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            builder.Services.Configure<ClientOptions>(
+            builder.Services.Configure<ClientOptionsModifiers>(
                 builder.Name,
                 options => configure(options));
 
@@ -60,7 +60,7 @@ namespace StrawberryShake.Configuration
         /// </remarks>
         public static IOperationClientBuilder ConfigureClient(
             this IOperationClientBuilder builder,
-            Action<IServiceProvider, ClientOptions> configureClient)
+            Action<IServiceProvider, ClientOptionsModifiers> configureClient)
         {
             if (builder == null)
             {
@@ -72,12 +72,66 @@ namespace StrawberryShake.Configuration
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            builder.Services.AddTransient<IConfigureOptions<ClientOptions>>(sp =>
-                new ConfigureNamedOptions<ClientOptions>(
+            builder.Services.AddTransient<IConfigureOptions<ClientOptionsModifiers>>(sp =>
+                new ConfigureNamedOptions<ClientOptionsModifiers>(
                     builder.Name,
                     options => configureClient(sp, options)));
 
             return builder;
         }
+
+        public static IOperationClientBuilder AddValueSerializer(
+            this IOperationClientBuilder builder,
+            Func<IServiceProvider, IValueSerializer> factory) =>
+            builder.ConfigureClient((sp, o) =>
+                o.ValueSerializers.Add(serializers =>
+                {
+                    IValueSerializer serializer = factory(sp);
+                    serializers[serializer.Name] = serializer;
+                }));
+
+        public static IOperationClientBuilder AddValueSerializer(
+            this IOperationClientBuilder builder,
+            Func<IValueSerializer> factory) =>
+            builder.ConfigureClient(o =>
+                o.ValueSerializers.Add(serializers =>
+                {
+                    IValueSerializer serializer = factory();
+                    serializers[serializer.Name] = serializer;
+                }));
+
+        public static IOperationClientBuilder AddResultParser(
+            this IOperationClientBuilder builder,
+            Func<IServiceProvider, IValueSerializerCollection, IResultParser> factory) =>
+            builder.ConfigureClient((sp, o) =>
+                o.ResultParsers.Add((serializers, parsers) =>
+                {
+                    IResultParser parser = factory(sp, serializers);
+                    parsers[parser.ResultType] = parser;
+                }));
+
+        public static IOperationClientBuilder AddResultParser(
+            this IOperationClientBuilder builder,
+            Func<IValueSerializerCollection, IResultParser> factory) =>
+            builder.ConfigureClient(o =>
+                o.ResultParsers.Add((serializers, parsers) =>
+                {
+                    IResultParser parser = factory(serializers);
+                    parsers[parser.ResultType] = parser;
+                }));
+
+        public static IOperationClientBuilder AddOperationFormmatter(
+            this IOperationClientBuilder builder,
+            Func<IServiceProvider, IValueSerializerCollection, IOperationFormatter> factory) =>
+            builder.ConfigureClient((sp, o) =>
+                o.OperationFormatter = serializer =>
+                    factory(sp, serializer));
+
+        public static IOperationClientBuilder AddOperationFormmatter(
+            this IOperationClientBuilder builder,
+            Func<IValueSerializerCollection, IOperationFormatter> factory) =>
+            builder.ConfigureClient(o =>
+                o.OperationFormatter = serializer =>
+                    factory(serializer));
     }
 }

@@ -15,15 +15,19 @@ namespace StrawberryShake.Http
 
         public HttpOperationContext(
             IOperation operation,
-            HttpClient client,
-            IServiceProvider services,
             IOperationResultBuilder result,
+            IResultParser resultParser,
+            HttpClient client,
             CancellationToken requestAborted)
         {
-            Operation = operation ?? throw new ArgumentNullException(nameof(operation));
-            Client = client ?? throw new ArgumentNullException(nameof(client));
-            Services = services ?? throw new ArgumentNullException(nameof(services));
-            Result = result;
+            Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
+            Result = result
+                ?? throw new ArgumentNullException(nameof(result));
+            ResultParser = resultParser
+                ?? throw new ArgumentNullException(nameof(resultParser));
+            Client = client
+                ?? throw new ArgumentNullException(nameof(client));
             RequestAborted = requestAborted;
             MessageWriter = new MessageWriter();
         }
@@ -32,11 +36,7 @@ namespace StrawberryShake.Http
 
         public IOperationResultBuilder Result { get; }
 
-        public HttpRequestMessage? HttpRequest { get; set; }
-
-        public HttpResponseMessage? HttpResponse { get; set; }
-
-        public IMessageWriter MessageWriter { get; }
+        public IResultParser ResultParser { get; }
 
         public IDictionary<string, object> ContextData
         {
@@ -46,11 +46,15 @@ namespace StrawberryShake.Http
             }
         }
 
-        public HttpClient Client { get; }
-
-        public IServiceProvider Services { get; }
-
         public CancellationToken RequestAborted { get; }
+
+        public HttpRequestMessage? HttpRequest { get; set; }
+
+        public HttpResponseMessage? HttpResponse { get; set; }
+
+        public IMessageWriter MessageWriter { get; }
+
+        public HttpClient Client { get; }
 
         public void Dispose()
         {

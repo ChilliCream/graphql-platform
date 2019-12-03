@@ -10,12 +10,12 @@ namespace StrawberryShake.Http.Subscriptions
     {
         Func<CancellationToken, Task<ISocketConnection>> _connectionFactory;
         private readonly ISubscriptionManager _subscriptionManager;
-        private readonly IResultParserResolver _resultParserResolver;
+        private readonly IResultParserCollection _resultParserResolver;
 
         public SocketOperationStreamExecutor(
             Func<CancellationToken, Task<ISocketConnection>> connectionFactory,
             ISubscriptionManager subscriptionManager,
-            IResultParserResolver resultParserResolver)
+            IResultParserCollection resultParserResolver)
         {
             _connectionFactory = connectionFactory
                 ?? throw new ArgumentNullException(nameof(connectionFactory));
@@ -49,7 +49,7 @@ namespace StrawberryShake.Http.Subscriptions
             CancellationToken cancellationToken)
         {
             IResultParser resultParser =
-                _resultParserResolver.GetResultParser(operation.ResultType);
+                _resultParserResolver.GetByResult(operation.ResultType);
             var subscription = Subscription.New(operation, resultParser);
 
             ISocketConnection connection = await _connectionFactory(cancellationToken)
@@ -86,7 +86,7 @@ namespace StrawberryShake.Http.Subscriptions
             where T : class
         {
             IResultParser resultParser =
-                _resultParserResolver.GetResultParser(operation.ResultType);
+                _resultParserResolver.GetByResult(operation.ResultType);
             var subscription = Subscription.New(operation, resultParser);
 
             ISocketConnection connection = await _connectionFactory(cancellationToken)

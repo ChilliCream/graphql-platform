@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using StrawberryShake;
 using StrawberryShake.Configuration;
 using StrawberryShake.Http;
@@ -18,7 +19,7 @@ namespace StrawberryShake.Client.GraphQL
     {
         private const string _clientName = "StarWarsClient";
 
-        public static IServiceCollection AddStarWarsClient(
+        public static IOperationClientBuilder AddStarWarsClient(
             this IServiceCollection serviceCollection)
         {
             if (serviceCollection is null)
@@ -32,14 +33,24 @@ namespace StrawberryShake.Client.GraphQL
                     _clientName,
                     sp.GetRequiredService<IHttpClientFactory>().CreateClient,
                     PipelineFactory(sp),
-                    sp));
+                    sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
             serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>
                 new SocketOperationStreamExecutorFactory(
                     _clientName,
                     sp.GetRequiredService<ISocketConnectionPool>().RentAsync,
                     sp.GetRequiredService<ISubscriptionManager>(),
-                    sp.GetRequiredService<IResultParserResolver>()));
+                    sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
+
+            IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
+                .AddValueSerializer(() => new EpisodeValueSerializer())
+                .AddValueSerializer(() => new ReviewInputSerializer())
+                .AddResultParser(serializers => new GetHeroResultParser(serializers))
+                .AddResultParser(serializers => new GetHumanResultParser(serializers))
+                .AddResultParser(serializers => new SearchResultParser(serializers))
+                .AddResultParser(serializers => new CreateReviewResultParser(serializers))
+                .AddResultParser(serializers => new OnReviewResultParser(serializers))
+                .AddOperationFormmatter(serializers => new JsonOperationFormatter(serializers));
 
             serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
@@ -47,68 +58,9 @@ namespace StrawberryShake.Client.GraphQL
                 typeof(ISocketConnectionInterceptor),
                 typeof(MessagePipelineHandler),
                 ServiceLifetime.Singleton));
-
-            serviceCollection.AddOperationClientOptions(_clientName)
-                .ConfigureClient(c =>
-                {
-
-                });
-
-            serviceCollection.AddDefaultScalarSerializers();
-            serviceCollection.AddEnumSerializers();
-            serviceCollection.AddInputSerializers();
-            serviceCollection.AddResultParsers();
-
-            serviceCollection.TryAddDefaultOperationSerializer();
             serviceCollection.TryAddDefaultHttpPipeline();
 
-            return serviceCollection;
-        }
-
-        private static IServiceCollection AddDefaultScalarSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
-
-            foreach (IValueSerializer serializer in ValueSerializers.All)
-            {
-                serviceCollection.AddSingleton(serializer);
-            }
-
-            return serviceCollection;
-        }
-
-        private static IServiceCollection AddEnumSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
-            return serviceCollection;
-        }
-
-        private static IServiceCollection AddInputSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IValueSerializer, ReviewInputSerializer>();
-            return serviceCollection;
-        }
-
-        private static IServiceCollection AddResultParsers(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
-            serviceCollection.AddSingleton<IResultParser, GetHeroResultParser>();
-            serviceCollection.AddSingleton<IResultParser, GetHumanResultParser>();
-            serviceCollection.AddSingleton<IResultParser, SearchResultParser>();
-            serviceCollection.AddSingleton<IResultParser, CreateReviewResultParser>();
-            serviceCollection.AddSingleton<IResultParser, OnReviewResultParser>();
-            return serviceCollection;
-        }
-
-        private static IServiceCollection TryAddDefaultOperationSerializer(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
-            return serviceCollection;
+            return builder;
         }
 
         private static IServiceCollection TryAddDefaultHttpPipeline(

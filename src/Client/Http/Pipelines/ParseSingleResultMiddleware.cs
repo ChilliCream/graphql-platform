@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.Http.Pipelines
@@ -7,14 +6,10 @@ namespace StrawberryShake.Http.Pipelines
     public class ParseSingleResultMiddleware
     {
         private readonly HttpOperationDelegate _next;
-        private readonly IReadOnlyDictionary<Type, IResultParser> _resultParsers;
 
-        public ParseSingleResultMiddleware(
-            HttpOperationDelegate next,
-            IEnumerable<IResultParser> resultParsers)
+        public ParseSingleResultMiddleware(HttpOperationDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _resultParsers = resultParsers.ToDictionary();
         }
 
         public async Task InvokeAsync(IHttpOperationContext context)
@@ -23,27 +18,12 @@ namespace StrawberryShake.Http.Pipelines
             {
                 context.HttpResponse.EnsureSuccessStatusCode();
 
-                if (!_resultParsers.TryGetValue(
-                    context.Operation.ResultType,
-                    out IResultParser? resultParser))
+                using (var stream = await context.HttpResponse.Content.ReadAsStreamAsync()
+                    .ConfigureAwait(false))
                 {
-                    context.Result.AddError(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                "There is no result parser registered for " +
-                                $"`{context.Operation.ResultType.FullName}`.")
-                            .SetCode(ErrorCodes.NoResultParser)
-                            .Build());
-                }
-                else
-                {
-                    using (var stream = await context.HttpResponse.Content.ReadAsStreamAsync()
-                        .ConfigureAwait(false))
-                    {
-                        await resultParser.ParseAsync(
-                            stream, context.Result, context.RequestAborted)
-                            .ConfigureAwait(false);
-                    }
+                    await context.ResultParser.ParseAsync(
+                        stream, context.Result, context.RequestAborted)
+                        .ConfigureAwait(false);
                 }
             }
 

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -10,12 +9,12 @@ namespace StrawberryShake.Http
     {
         IOperation Operation { get; }
         IOperationResultBuilder Result { get; }
+        IResultParser ResultParser { get; }
+        IDictionary<string, object> ContextData { get; }
+        CancellationToken RequestAborted { get; }
         HttpRequestMessage? HttpRequest { get; set; }
         HttpResponseMessage? HttpResponse { get; set; }
         IMessageWriter MessageWriter { get; }
-        IDictionary<string, object> ContextData { get; }
         HttpClient Client { get; }
-        IServiceProvider Services { get; }
-        CancellationToken RequestAborted { get; }
     }
 }

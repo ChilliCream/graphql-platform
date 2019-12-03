@@ -20,7 +20,7 @@ namespace StrawberryShake.Client.GraphQL
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
-        public void Initialize(IValueSerializerResolver serializerResolver)
+        public void Initialize(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {

@@ -84,7 +84,7 @@ namespace StrawberryShake
 
             public bool IsInitialized { get; private set; }
 
-            public void Initialize(IValueSerializerResolver serializerResolver)
+            public void Initialize(IValueSerializerCollection serializerResolver)
             {
                 IsInitialized = true;
             }

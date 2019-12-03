@@ -15,7 +15,7 @@ namespace StrawberryShake
             var resolver = new ResultParserResolver(new[] { new DummyResultParser() });
 
             // act
-            IResultParser parser = resolver.GetResultParser(typeof(string));
+            IResultParser parser = resolver.GetByResult(typeof(string));
 
             // assert
             Assert.NotNull(parser);
@@ -29,7 +29,7 @@ namespace StrawberryShake
             var resolver = new ResultParserResolver(new[] { new DummyResultParser() });
 
             // act
-            Action action = () => resolver.GetResultParser(typeof(int));
+            Action action = () => resolver.GetByResult(typeof(int));
 
             // assert
             Assert.Throws<ArgumentException>(action);
@@ -42,7 +42,7 @@ namespace StrawberryShake
             var resolver = new ResultParserResolver(new[] { new DummyResultParser() });
 
             // act
-            Action action = () => resolver.GetResultParser(null);
+            Action action = () => resolver.GetByResult(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);

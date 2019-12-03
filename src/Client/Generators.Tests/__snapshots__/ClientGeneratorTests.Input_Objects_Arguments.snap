@@ -68,7 +68,7 @@ namespace StrawberryShake.Client
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
-        public void Initialize(IValueSerializerResolver serializerResolver)
+        public void Initialize(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -143,7 +143,7 @@ namespace StrawberryShake.Client
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
-        public void Initialize(IValueSerializerResolver serializerResolver)
+        public void Initialize(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -227,7 +227,7 @@ namespace StrawberryShake.Client
     {
         private readonly IValueSerializer _stringSerializer;
 
-        public GetFooResultParser(IValueSerializerResolver serializerResolver)
+        public GetFooResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -420,7 +420,7 @@ namespace StrawberryShake.Client
         private static IServiceCollection AddDefaultScalarSerializers(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+            serviceCollection.AddSingleton<IValueSerializerCollection, ValueSerializerResolver>();
 
             foreach (IValueSerializer serializer in ValueSerializers.All)
             {

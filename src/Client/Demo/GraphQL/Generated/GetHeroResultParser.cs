@@ -15,7 +15,7 @@ namespace StrawberryShake.Client.GraphQL
         private readonly IValueSerializer _stringSerializer;
         private readonly IValueSerializer _floatSerializer;
 
-        public GetHeroResultParser(IValueSerializerResolver serializerResolver)
+        public GetHeroResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -50,7 +50,7 @@ namespace StrawberryShake.Client.GraphQL
 
             string type = obj.GetProperty(TypeName).GetString();
 
-            switch(type)
+            switch (type)
             {
                 case "Droid":
                     return new Droid

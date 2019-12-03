@@ -67,7 +67,7 @@ namespace StrawberryShake.Generators.CSharp
                 async () =>
                 {
                     await writer.WriteIndentedLineAsync(
-                        "serviceCollection.AddSingleton<IValueSerializerResolver, " +
+                        "serviceCollection.AddSingleton<IValueSerializerCollection, " +
                         "ValueSerializerResolver>();")
                         .ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);

@@ -9,13 +9,13 @@ namespace StrawberryShake.Http
     {
         private readonly HttpOperationDelegate _executeOperation;
         private readonly Func<HttpClient> _clientFactory;
-        private readonly IServiceProvider _services;
+        private readonly IResultParserCollection _resultParserResolver;
 
         public HttpOperationExecutorFactory(
             string name,
             Func<string, HttpClient> clientFactory,
             HttpOperationDelegate executeOperation,
-            IServiceProvider services)
+            IResultParserCollection resultParserResolver)
         {
             if (clientFactory is null)
             {
@@ -27,8 +27,8 @@ namespace StrawberryShake.Http
             _clientFactory = () => clientFactory(name);
             _executeOperation = executeOperation
                 ?? throw new ArgumentNullException(nameof(executeOperation));
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
+            _resultParserResolver = resultParserResolver
+                ?? throw new ArgumentNullException(nameof(resultParserResolver));
         }
 
         public string Name { get; }
@@ -38,7 +38,7 @@ namespace StrawberryShake.Http
             return new HttpOperationExecutor(
                 _clientFactory,
                 _executeOperation,
-                _services);
+                _resultParserResolver);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace StrawberryShake.Client.GraphQL
         private readonly IValueSerializer _stringSerializer;
         private readonly IValueSerializer _floatSerializer;
 
-        public SearchResultParser(IValueSerializerResolver serializerResolver)
+        public SearchResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -55,7 +55,7 @@ namespace StrawberryShake.Client.GraphQL
                 JsonElement element = obj[objIndex];
                 string type = element.GetProperty(TypeName).GetString();
 
-                switch(type)
+                switch (type)
                 {
                     case "Starship":
                         list[objIndex] = new Starship

@@ -7,24 +7,26 @@ namespace StrawberryShake.Configuration
     {
         public static IOperationClientBuilder AddOperationClientOptions(
             this IServiceCollection services,
-            string name)
+            string clientName)
         {
             services.AddOptions();
-            return new DefaultOperationClientBuilder(services, name);
+            return new DefaultOperationClientBuilder(services, clientName);
         }
 
         public static IServiceCollection AddResultParser(
             this IServiceCollection services,
-            Func<IServiceProvider, IResultParser> factory)
+            string clientName,
+            Func<IServiceProvider, IValueSerializerCollection, IResultParser> factory)
         {
+            services.AddOperationClientOptions(clientName)
+
 
         }
 
         public static IServiceCollection AddResultParser(
             this IServiceCollection services,
-            Func<IResultParser> factory)
-        {
-            return
-        }
+            string clientName,
+            Func<IValueSerializerCollection, IResultParser> factory) =>
+            services.AddResultParser(clientName, (sp, opt) => factory(opt));
     }
 }

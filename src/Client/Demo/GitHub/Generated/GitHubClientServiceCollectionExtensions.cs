@@ -46,7 +46,7 @@ namespace StrawberryShake.Client.GitHub
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
-            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+            serviceCollection.AddSingleton<IValueSerializerCollection, ValueSerializerResolver>();
 
             foreach (IValueSerializer serializer in ValueSerializers.All)
             {
@@ -61,7 +61,7 @@ namespace StrawberryShake.Client.GitHub
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
+            serviceCollection.AddSingleton<IResultParserCollection, ResultParserResolver>();
             serviceCollection.AddSingleton<IResultParser, GetUserResultParser>();
             return serviceCollection;
         }

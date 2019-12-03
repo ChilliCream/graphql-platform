@@ -117,7 +117,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync("public ").ConfigureAwait(false);
             await writer.WriteAsync(parserDescriptor.Name).ConfigureAwait(false);
             await writer.WriteAsync(
-                "(IValueSerializerResolver serializerResolver)")
+                "(IValueSerializerCollection serializerResolver)")
                 .ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 

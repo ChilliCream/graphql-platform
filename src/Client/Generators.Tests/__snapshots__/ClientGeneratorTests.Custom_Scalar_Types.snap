@@ -56,7 +56,7 @@ namespace StrawberryShake.Client
         private readonly IValueSerializer _barSerializer;
         private readonly IValueSerializer _quxSerializer;
 
-        public GetFooResultParser(IValueSerializerResolver serializerResolver)
+        public GetFooResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -250,7 +250,7 @@ namespace StrawberryShake.Client
         private static IServiceCollection AddDefaultScalarSerializers(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+            serviceCollection.AddSingleton<IValueSerializerCollection, ValueSerializerResolver>();
 
             foreach (IValueSerializer serializer in ValueSerializers.All)
             {

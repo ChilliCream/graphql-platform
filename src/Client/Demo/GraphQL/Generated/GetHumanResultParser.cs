@@ -15,7 +15,7 @@ namespace StrawberryShake.Client.GraphQL
         private readonly IValueSerializer _stringSerializer;
         private readonly IValueSerializer _floatSerializer;
 
-        public GetHumanResultParser(IValueSerializerResolver serializerResolver)
+        public GetHumanResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {

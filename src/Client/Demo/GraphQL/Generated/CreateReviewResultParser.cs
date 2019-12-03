@@ -14,7 +14,7 @@ namespace StrawberryShake.Client.GraphQL
     {
         private readonly IValueSerializer _stringSerializer;
 
-        public CreateReviewResultParser(IValueSerializerResolver serializerResolver)
+        public CreateReviewResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {

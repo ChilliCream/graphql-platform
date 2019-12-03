@@ -113,7 +113,7 @@ namespace StrawberryShake.Generators.CSharp
             var serializers = new HashSet<string>();
 
             await writer.WriteIndentedLineAsync(
-                "public void Initialize(IValueSerializerResolver serializerResolver)");
+                "public void Initialize(IValueSerializerCollection serializerResolver)");
             await writer.WriteIndentedLineAsync("{");
 
             using (writer.IncreaseIndent())

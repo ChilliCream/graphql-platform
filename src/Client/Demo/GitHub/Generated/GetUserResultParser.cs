@@ -14,7 +14,7 @@ namespace StrawberryShake.Client.GitHub
         private readonly IValueSerializer _dateTimeSerializer;
         private readonly IValueSerializer _intSerializer;
 
-        public GetUserResultParser(IValueSerializerResolver serializerResolver)
+        public GetUserResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {

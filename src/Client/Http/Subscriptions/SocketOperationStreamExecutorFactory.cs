@@ -10,13 +10,13 @@ namespace StrawberryShake.Http.Subscriptions
     {
         private readonly Func<CancellationToken, Task<ISocketConnection>> _connectionFactory;
         private readonly ISubscriptionManager _subscriptionManager;
-        private readonly IResultParserResolver _resultParserResolver;
+        private readonly IResultParserCollection _resultParserResolver;
 
         public SocketOperationStreamExecutorFactory(
             string name,
             Func<string, CancellationToken, Task<ISocketConnection>> connectionFactory,
             ISubscriptionManager subscriptionManager,
-            IResultParserResolver resultParserResolver)
+            IResultParserCollection resultParserResolver)
         {
             if (connectionFactory is null)
             {
