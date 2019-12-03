@@ -5,6 +5,7 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
 using StrawberryShake.Http.Subscriptions;
@@ -46,6 +47,12 @@ namespace StrawberryShake.Client.GraphQL
                 typeof(ISocketConnectionInterceptor),
                 typeof(MessagePipelineHandler),
                 ServiceLifetime.Singleton));
+
+            serviceCollection.AddOperationClientOptions(_clientName)
+                .ConfigureClient(c =>
+                {
+
+                });
 
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();
