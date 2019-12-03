@@ -15,7 +15,7 @@ namespace StrawberryShake.Http
         private readonly List<IServiceProvider> _serviceProviders =
             new List<IServiceProvider>();
         private Func<IServiceProvider, Func<HttpClient>>? _clientFactory;
-        private Func<IServiceProvider, OperationDelegate>? _pipelineFactory;
+        private Func<IServiceProvider, HttpOperationDelegate>? _pipelineFactory;
 
         public IHttpOperationExecutorBuilder AddService(
             Type serviceType, object serviceInstance)
@@ -64,7 +64,7 @@ namespace StrawberryShake.Http
         }
 
         public IHttpOperationExecutorBuilder SetPipeline(
-            Func<IServiceProvider, OperationDelegate> pipelineFactory)
+            Func<IServiceProvider, HttpOperationDelegate> pipelineFactory)
         {
             if (pipelineFactory is null)
             {
@@ -93,7 +93,7 @@ namespace StrawberryShake.Http
 
             IServiceProvider services = BuildServices();
             Func<HttpClient> clientFactory = _clientFactory(services);
-            OperationDelegate pipeline = _pipelineFactory(services);
+            HttpOperationDelegate pipeline = _pipelineFactory(services);
 
             return new HttpOperationExecutor(clientFactory, pipeline, services);
         }

@@ -3,16 +3,18 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Http.Pipelines
 {
-    public delegate Task OperationDelegate(IHttpOperationContext context);
+    public delegate Task HttpOperationDelegate(IHttpOperationContext context);
 
-    public delegate OperationDelegate OperationMiddleware(
+    public delegate HttpOperationDelegate HttpOperationMiddleware(
         IServiceProvider services,
-        OperationDelegate next);
+        HttpOperationDelegate next);
 
     public interface IHttpPipelineBuilder
     {
-        IHttpPipelineBuilder Use(Func<OperationDelegate, OperationDelegate> middleware);
-        IHttpPipelineBuilder Use(OperationMiddleware middleware);
-        OperationDelegate Build(IServiceProvider services);
+        IHttpPipelineBuilder Use(Func<HttpOperationDelegate, HttpOperationDelegate> middleware);
+
+        IHttpPipelineBuilder Use(HttpOperationMiddleware middleware);
+
+        HttpOperationDelegate Build(IServiceProvider services);
     }
 }

@@ -6,11 +6,11 @@ namespace StrawberryShake.Http.Pipelines
 {
     public class ParseSingleResultMiddleware
     {
-        private readonly OperationDelegate _next;
+        private readonly HttpOperationDelegate _next;
         private readonly IReadOnlyDictionary<Type, IResultParser> _resultParsers;
 
         public ParseSingleResultMiddleware(
-            OperationDelegate next,
+            HttpOperationDelegate next,
             IEnumerable<IResultParser> resultParsers)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));

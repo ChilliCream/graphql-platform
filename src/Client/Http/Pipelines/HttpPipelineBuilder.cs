@@ -7,11 +7,11 @@ namespace StrawberryShake.Http.Pipelines
     public class HttpPipelineBuilder
         : IHttpPipelineBuilder
     {
-        private readonly Stack<OperationMiddleware> _components =
-            new Stack<OperationMiddleware>();
+        private readonly Stack<HttpOperationMiddleware> _components =
+            new Stack<HttpOperationMiddleware>();
 
         public IHttpPipelineBuilder Use(
-            Func<OperationDelegate, OperationDelegate> middleware)
+            Func<HttpOperationDelegate, HttpOperationDelegate> middleware)
         {
             if (middleware is null)
             {
@@ -23,7 +23,7 @@ namespace StrawberryShake.Http.Pipelines
         }
 
         public IHttpPipelineBuilder Use(
-            OperationMiddleware middleware)
+            HttpOperationMiddleware middleware)
         {
             if (middleware is null)
             {
@@ -34,7 +34,7 @@ namespace StrawberryShake.Http.Pipelines
             return this;
         }
 
-        public OperationDelegate Build(IServiceProvider services)
+        public HttpOperationDelegate Build(IServiceProvider services)
         {
             if (services is null)
             {
@@ -47,11 +47,11 @@ namespace StrawberryShake.Http.Pipelines
                     "There has to be at least one operation middleware.");
             }
 
-            OperationDelegate next = ThrowExceptionMiddleware;
+            HttpOperationDelegate next = ThrowExceptionMiddleware;
 
             while (_components.Count > 0)
             {
-                OperationMiddleware middleware = _components.Pop();
+                HttpOperationMiddleware middleware = _components.Pop();
                 next = middleware.Invoke(services, next);
             }
 

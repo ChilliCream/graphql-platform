@@ -76,7 +76,7 @@ namespace StrawberryShake.Client.GitHub
         private static IServiceCollection TryAddDefaultHttpPipeline(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.TryAddSingleton<OperationDelegate>(
+            serviceCollection.TryAddSingleton<HttpOperationDelegate>(
                 sp => HttpPipelineBuilder.New()
                     .Use<CreateStandardRequestMiddleware>()
                     .Use<SendHttpRequestMiddleware>()
@@ -91,9 +91,9 @@ namespace StrawberryShake.Client.GitHub
             return () => clientFactory.CreateClient("GitHubClient");
         }
 
-        private static OperationDelegate PipelineFactory(IServiceProvider services)
+        private static HttpOperationDelegate PipelineFactory(IServiceProvider services)
         {
-            return services.GetRequiredService<OperationDelegate>();
+            return services.GetRequiredService<HttpOperationDelegate>();
         }
     }
 }

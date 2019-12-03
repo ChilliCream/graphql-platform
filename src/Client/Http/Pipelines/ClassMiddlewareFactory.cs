@@ -11,14 +11,14 @@ namespace StrawberryShake.Http.Pipelines
     {
         private delegate object Factory(
             IServiceProvider services,
-            OperationDelegate next);
+            HttpOperationDelegate next);
 
         internal delegate Task Invoke(
             IServiceProvider services,
             IHttpOperationContext context,
             object instance);
 
-        public static OperationMiddleware Create(Type classMiddlewareType)
+        public static HttpOperationMiddleware Create(Type classMiddlewareType)
         {
             if (classMiddlewareType is null)
             {
@@ -38,7 +38,7 @@ namespace StrawberryShake.Http.Pipelines
             ParameterExpression services =
                 Expression.Parameter(typeof(IServiceProvider));
             ParameterExpression next =
-                Expression.Parameter(typeof(OperationDelegate));
+                Expression.Parameter(typeof(HttpOperationDelegate));
             NewExpression createInstance =
                 CreateMiddleware(classMiddlewareTypeInfo, services, next);
 
@@ -123,7 +123,7 @@ namespace StrawberryShake.Http.Pipelines
                 services,
                 new Dictionary<Type, Expression>
                 {
-                    { typeof(OperationDelegate), next }
+                    { typeof(HttpOperationDelegate), next }
                 });
         }
 

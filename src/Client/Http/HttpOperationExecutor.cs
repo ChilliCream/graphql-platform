@@ -10,12 +10,12 @@ namespace StrawberryShake.Http
         : IOperationExecutor
     {
         private readonly Func<HttpClient> _clientFactory;
-        private readonly OperationDelegate _executeOperation;
+        private readonly HttpOperationDelegate _executeOperation;
         private readonly IServiceProvider _services;
 
         public HttpOperationExecutor(
             Func<HttpClient> clientFactory,
-            OperationDelegate executeOperation,
+            HttpOperationDelegate executeOperation,
             IServiceProvider services)
         {
             _clientFactory = clientFactory
