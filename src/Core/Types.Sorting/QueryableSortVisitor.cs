@@ -139,7 +139,7 @@ namespace HotChocolate.Types.Sorting
 
         // Adapted from internal System.Web.Util.OrderingMethodFinder
         // http://referencesource.microsoft.com/#System.Web/Util/OrderingMethodFinder.cs
-        class OrderingMethodFinder : ExpressionVisitor
+        private class OrderingMethodFinder : ExpressionVisitor
         {
             bool _orderingMethodFound = false;
 
