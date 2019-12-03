@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class DefinitionBase
@@ -14,7 +16,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         // <summary>
         /// Gets or sets the description the type shall have.
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         /// <summary>
         /// Get access to context data that are copied to the type

@@ -1,19 +1,19 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public interface IDescriptorExtension<T>
-        where T : DefinitionBase
+    public interface IDescriptorExtension
     {
-        void OnBeforeCreate(Action<T> configure);
+        void OnBeforeCreate(Action<DefinitionBase> configure);
 
         INamedDependencyDescriptor OnBeforeNaming(
-            Action<ICompletionContext, T> configure);
+            Action<ICompletionContext, DefinitionBase> configure);
 
         ICompletedDependencyDescriptor OnBeforeCompletion(
-            Action<ICompletionContext, T> configure);
+            Action<ICompletionContext, DefinitionBase> configure);
     }
 }
