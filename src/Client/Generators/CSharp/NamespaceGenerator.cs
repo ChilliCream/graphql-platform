@@ -85,21 +85,25 @@ namespace StrawberryShake.Generators.CSharp
                     .ConfigureAwait(false);
             }
 
-            await WriteUsingAsync(writer, "StrawberryShake").ConfigureAwait(false);
+            await WriteUsingAsync(writer, "StrawberryShake")
+                .ConfigureAwait(false);
 
             if (components.Contains(WellKnownComponents.HttpExecutor))
             {
-                await WriteUsingAsync(writer, "StrawberryShake.Configuration").ConfigureAwait(false);
+                await WriteUsingAsync(writer, "StrawberryShake.Configuration")
+                    .ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.HttpExecutor))
             {
-                await WriteUsingAsync(writer, "StrawberryShake.Http").ConfigureAwait(false);
+                await WriteUsingAsync(writer, "StrawberryShake.Http")
+                    .ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.HttpExecutorPipeline))
             {
-                await WriteUsingAsync(writer, "StrawberryShake.Http.Pipelines").ConfigureAwait(false);
+                await WriteUsingAsync(writer, "StrawberryShake.Http.Pipelines")
+                    .ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.HttpExecutor))
@@ -110,12 +114,14 @@ namespace StrawberryShake.Generators.CSharp
 
             if (components.Contains(WellKnownComponents.Serializer))
             {
-                await WriteUsingAsync(writer, "StrawberryShake.Serializers").ConfigureAwait(false);
+                await WriteUsingAsync(writer, "StrawberryShake.Serializers")
+                    .ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.HttpExecutor))
             {
-                await WriteUsingAsync(writer, "StrawberryShake.Transport").ConfigureAwait(false);
+                await WriteUsingAsync(writer, "StrawberryShake.Transport")
+                    .ConfigureAwait(false);
             }
         }
 
