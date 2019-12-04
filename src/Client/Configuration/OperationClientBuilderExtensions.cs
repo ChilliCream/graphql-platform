@@ -133,5 +133,21 @@ namespace StrawberryShake.Configuration
             builder.ConfigureClient(o =>
                 o.OperationFormatter = serializer =>
                     factory(serializer));
+
+        public static IOperationClientBuilder AddOperationPipeline<T>(
+            this IOperationClientBuilder builder,
+            Func<IServiceProvider, OperationDelegate<T>> factory)
+            where T : IOperationContext =>
+            builder.ConfigureClient((sp, o) =>
+                o.OperationPipelines.Add(pipelines =>
+                    pipelines.Add(factory(sp))));
+
+        public static IOperationClientBuilder AddOperationPipeline<T>(
+            this IOperationClientBuilder builder,
+            Func<OperationDelegate<T>> factory)
+            where T : IOperationContext =>
+            builder.ConfigureClient(o =>
+                o.OperationPipelines.Add(pipelines =>
+                    pipelines.Add(factory())));
     }
 }

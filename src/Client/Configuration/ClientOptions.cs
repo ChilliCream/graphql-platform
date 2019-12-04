@@ -32,6 +32,15 @@ namespace StrawberryShake.Configuration
             return _configurations.GetOrAdd(clientName, n => CreateConfiguration(n));
         }
 
+        public OperationDelegate<T> GetOperationPipeline<T>(string clientName)
+            where T : IOperationContext
+        {
+            return _configurations.GetOrAdd(clientName, n => CreateConfiguration(n))
+                .OperationPipelines
+                .OfType<OperationDelegate<T>>()
+                .FirstOrDefault();
+        }
+
         private static Configuration CreateConfiguration(string clientName)
         {
             ClientOptionsModifiers options = new ClientOptionsModifiers();
@@ -65,10 +74,17 @@ namespace StrawberryShake.Configuration
             var parserCollection = new ResultParserCollection(parsers);
             IOperationFormatter formatter = options.OperationFormatter(serializerCollection);
 
+            var pipelines = new List<Delegate>();
+            foreach (ConfigureOperationPipeline configure in options.OperationPipelines)
+            {
+                configure(pipelines);
+            }
+
             return new Configuration(
                 serializerCollection,
                 parserCollection,
-                formatter);
+                formatter,
+                pipelines);
         }
 
         private class Configuration
@@ -76,11 +92,13 @@ namespace StrawberryShake.Configuration
             public Configuration(
                 ValueSerializerCollection valueSerializers,
                 ResultParserCollection resultParsers,
-                IOperationFormatter operationFormatter)
+                IOperationFormatter operationFormatter,
+                IReadOnlyCollection<Delegate> operationPipelines)
             {
                 ValueSerializers = valueSerializers;
                 ResultParsers = resultParsers;
                 OperationFormatter = operationFormatter;
+                OperationPipelines = operationPipelines;
             }
 
             public ValueSerializerCollection ValueSerializers { get; }
@@ -88,6 +106,8 @@ namespace StrawberryShake.Configuration
             public ResultParserCollection ResultParsers { get; }
 
             public IOperationFormatter OperationFormatter { get; }
+
+            public IReadOnlyCollection<Delegate> OperationPipelines { get; }
         }
     }
 }

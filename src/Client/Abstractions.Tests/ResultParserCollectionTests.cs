@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Threading;
@@ -6,13 +7,15 @@ using Xunit;
 
 namespace StrawberryShake
 {
-    public class ResultParserResolverTests
+    public class ResultParserCollectionTests
     {
         [Fact]
         public void Resolve_Parser()
         {
             // arrange
-            var resolver = new ResultParserResolver(new[] { new DummyResultParser() });
+            var dummy = new DummyResultParser();
+            var dict = new Dictionary<Type, IResultParser> { { dummy.ResultType, dummy } };
+            var resolver = new ResultParserCollection(dict);
 
             // act
             IResultParser parser = resolver.GetByResult(typeof(string));
@@ -26,7 +29,9 @@ namespace StrawberryShake
         public void Resolve_Parser_Not_Found()
         {
             // arrange
-            var resolver = new ResultParserResolver(new[] { new DummyResultParser() });
+            var dummy = new DummyResultParser();
+            var dict = new Dictionary<Type, IResultParser> { { dummy.ResultType, dummy } };
+            var resolver = new ResultParserCollection(dict);
 
             // act
             Action action = () => resolver.GetByResult(typeof(int));
@@ -39,7 +44,9 @@ namespace StrawberryShake
         public void Resolve_Type_Is_Null()
         {
             // arrange
-            var resolver = new ResultParserResolver(new[] { new DummyResultParser() });
+            var dummy = new DummyResultParser();
+            var dict = new Dictionary<Type, IResultParser> { { dummy.ResultType, dummy } };
+            var resolver = new ResultParserCollection(dict);
 
             // act
             Action action = () => resolver.GetByResult(null);
@@ -53,7 +60,7 @@ namespace StrawberryShake
         {
             // arrange
             // act
-            Action action = () => new ResultParserResolver(null);
+            Action action = () => new ResultParserCollection(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);

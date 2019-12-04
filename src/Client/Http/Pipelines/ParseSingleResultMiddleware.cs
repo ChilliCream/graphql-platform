@@ -5,9 +5,9 @@ namespace StrawberryShake.Http.Pipelines
 {
     public class ParseSingleResultMiddleware
     {
-        private readonly HttpOperationDelegate _next;
+        private readonly OperationDelegate<IHttpOperationContext> _next;
 
-        public ParseSingleResultMiddleware(HttpOperationDelegate next)
+        public ParseSingleResultMiddleware(OperationDelegate<IHttpOperationContext> next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }

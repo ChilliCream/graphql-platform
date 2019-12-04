@@ -7,5 +7,8 @@ namespace StrawberryShake.Configuration
         IResultParserCollection GetResultParsers(string clientName);
 
         IOperationFormatter GetOperationFormatter(string clientName);
+
+        OperationDelegate<T> GetOperationPipeline<T>(string clientName)
+            where T : IOperationContext;
     }
 }

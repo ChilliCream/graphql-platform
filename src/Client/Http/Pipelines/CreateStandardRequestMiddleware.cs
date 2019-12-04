@@ -9,11 +9,11 @@ namespace StrawberryShake.Http.Pipelines
     {
         private static readonly OperationFormatterOptions _options =
             OperationFormatterOptions.Default;
-        private readonly HttpOperationDelegate _next;
+        private readonly OperationDelegate<IHttpOperationContext> _next;
         private readonly IOperationFormatter _formatter;
 
         public CreateStandardRequestMiddleware(
-            HttpOperationDelegate next,
+            OperationDelegate<IHttpOperationContext> next,
             IOperationFormatter formatter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));

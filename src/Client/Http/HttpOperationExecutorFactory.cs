@@ -7,14 +7,14 @@ namespace StrawberryShake.Http
     public class HttpOperationExecutorFactory
         : IOperationExecutorFactory
     {
-        private readonly HttpOperationDelegate _executeOperation;
+        private readonly OperationDelegate<IHttpOperationContext> _executeOperation;
         private readonly Func<HttpClient> _clientFactory;
         private readonly IResultParserCollection _resultParserResolver;
 
         public HttpOperationExecutorFactory(
             string name,
             Func<string, HttpClient> clientFactory,
-            HttpOperationDelegate executeOperation,
+            OperationDelegate<IHttpOperationContext> executeOperation,
             IResultParserCollection resultParserResolver)
         {
             if (clientFactory is null)

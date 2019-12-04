@@ -52,7 +52,7 @@ namespace StrawberryShake.Http
 
         public HttpResponseMessage? HttpResponse { get; set; }
 
-        public IMessageWriter MessageWriter { get; }
+        public IRequestWriter MessageWriter { get; }
 
         public HttpClient Client { get; }
 

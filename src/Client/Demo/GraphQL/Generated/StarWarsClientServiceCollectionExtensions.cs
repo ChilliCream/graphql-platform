@@ -15,6 +15,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GraphQL
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static class StarWarsClientServiceCollectionExtensions
     {
         private const string _clientName = "StarWarsClient";
@@ -32,7 +33,7 @@ namespace StrawberryShake.Client.GraphQL
                 new HttpOperationExecutorFactory(
                     _clientName,
                     sp.GetRequiredService<IHttpClientFactory>().CreateClient,
-                    PipelineFactory(sp),
+                    sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
             serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>
@@ -50,7 +51,13 @@ namespace StrawberryShake.Client.GraphQL
                 .AddResultParser(serializers => new SearchResultParser(serializers))
                 .AddResultParser(serializers => new CreateReviewResultParser(serializers))
                 .AddResultParser(serializers => new OnReviewResultParser(serializers))
-                .AddOperationFormmatter(serializers => new JsonOperationFormatter(serializers));
+                .AddOperationFormmatter(serializers => new JsonOperationFormatter(serializers))
+                .AddOperationPipeline(sp =>
+                    OperationPipelineBuilder<IHttpOperationContext>.New()
+                        .Use<CreateStandardRequestMiddleware>()
+                        .Use<SendHttpRequestMiddleware>()
+                        .Use<ParseSingleResultMiddleware>()
+                        .Build(sp));
 
             serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
@@ -58,26 +65,8 @@ namespace StrawberryShake.Client.GraphQL
                 typeof(ISocketConnectionInterceptor),
                 typeof(MessagePipelineHandler),
                 ServiceLifetime.Singleton));
-            serviceCollection.TryAddDefaultHttpPipeline();
 
             return builder;
-        }
-
-        private static IServiceCollection TryAddDefaultHttpPipeline(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<HttpOperationDelegate>(
-                sp => HttpPipelineBuilder.New()
-                    .Use<CreateStandardRequestMiddleware>()
-                    .Use<SendHttpRequestMiddleware>()
-                    .Use<ParseSingleResultMiddleware>()
-                    .Build(sp));
-            return serviceCollection;
-        }
-
-        private static HttpOperationDelegate PipelineFactory(IServiceProvider services)
-        {
-            return services.GetRequiredService<HttpOperationDelegate>();
         }
     }
 }

@@ -1,19 +1,21 @@
 using System;
+using System.Linq;
 using StrawberryShake.Serializers;
 using Xunit;
 
 namespace StrawberryShake
 {
-    public class ValueSerializerResolverTests
+    public class ValueSerializerCollectionTests
     {
         [Fact]
         public void Resolve_Serializer()
         {
             // arrange
-            var resolver = new ValueSerializerResolver(ValueSerializers.All);
+            var resolver = new ValueSerializerCollection(
+                ValueSerializers.All.ToDictionary(t => t.Name));
 
             // act
-            IValueSerializer serializer = resolver.GetValueSerializer("String");
+            IValueSerializer serializer = resolver.GetByName("String");
 
             // assert
             Assert.NotNull(serializer);
@@ -24,10 +26,11 @@ namespace StrawberryShake
         public void Resolve_Serializer_Not_Found()
         {
             // arrange
-            var resolver = new ValueSerializerResolver(ValueSerializers.All);
+            var resolver = new ValueSerializerCollection(
+                ValueSerializers.All.ToDictionary(t => t.Name));
 
             // act
-            Action action = () => resolver.GetValueSerializer("Foo");
+            Action action = () => resolver.GetByName("Foo");
 
             // assert
             Assert.Throws<ArgumentException>(action);
@@ -37,10 +40,11 @@ namespace StrawberryShake
         public void Resolve_TypeName_Is_Null()
         {
             // arrange
-            var resolver = new ValueSerializerResolver(ValueSerializers.All);
+            var resolver = new ValueSerializerCollection(
+                ValueSerializers.All.ToDictionary(t => t.Name));
 
             // act
-            Action action = () => resolver.GetValueSerializer(null);
+            Action action = () => resolver.GetByName(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -51,7 +55,7 @@ namespace StrawberryShake
         {
             // arrange
             // act
-            Action action = () => new ValueSerializerResolver(null);
+            Action action = () => new ValueSerializerCollection(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -64,8 +68,8 @@ namespace StrawberryShake
             var serializer = new InputSerializer();
 
             // act
-            var resolver = new ValueSerializerResolver(
-                new IValueSerializer[] { serializer });
+            var resolver = new ValueSerializerCollection(
+                new IValueSerializer[] { serializer }.ToDictionary(t => t.Name));
 
             // assert
             Assert.True(serializer.IsInitialized);

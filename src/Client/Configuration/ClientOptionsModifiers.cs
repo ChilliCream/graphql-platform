@@ -13,6 +13,9 @@ namespace StrawberryShake.Configuration
     public delegate IOperationFormatter ConfigureOperationFormatter(
         IValueSerializerCollection serializers);
 
+    public delegate void ConfigureOperationPipeline(
+        IList<Delegate> pipelines);
+
     public class ClientOptionsModifiers
     {
         public IList<ConfigureValueSerializers> ValueSerializers { get; } =
@@ -22,5 +25,8 @@ namespace StrawberryShake.Configuration
             new List<ConfigureResultParsers>();
 
         public ConfigureOperationFormatter? OperationFormatter { get; set; }
+
+        public IList<ConfigureOperationPipeline> OperationPipelines { get; } =
+            new List<ConfigureOperationPipeline>();
     }
 }
