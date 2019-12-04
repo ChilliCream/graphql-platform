@@ -151,10 +151,11 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
                 }
-                await writer.WriteIndentedLineAsync("_needsInitialization = false;");
+                await writer.WriteIndentedLineAsync("_needsInitialization = false;")
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
         private static async Task WritePropertiesAsync(

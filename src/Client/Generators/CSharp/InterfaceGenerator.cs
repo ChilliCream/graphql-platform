@@ -67,7 +67,7 @@ namespace StrawberryShake.Generators.CSharp
 
                             if (i > 0)
                             {
-                                await writer.WriteLineAsync();
+                                await writer.WriteLineAsync().ConfigureAwait(false);
                             }
 
                             await writer.WriteIndentAsync().ConfigureAwait(false);

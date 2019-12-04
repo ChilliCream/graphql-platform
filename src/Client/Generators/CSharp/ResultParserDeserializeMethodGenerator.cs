@@ -1,6 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
@@ -221,7 +221,7 @@ namespace StrawberryShake.Generators.CSharp
                 $"var {listName}List = new {clrElementTypeName}[{listName}Length];")
                 .ConfigureAwait(false);
 
-            await writer.WriteLineAsync();
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             await writer.WriteIndentedLineAsync(
                 $"for (int {listIndex} = 0; {listIndex} < {listName}Length; {listIndex}++)")
@@ -290,34 +290,36 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentedLineAsync(
                     $"if (!{parameterName}.TryGetProperty(fieldName, " +
-                    $"out JsonElement {valueName}))");
+                    $"out JsonElement {valueName}))")
+                    .ConfigureAwait(false);
 
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("return null;");
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return null;").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await writer.WriteIndentedLineAsync("}");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
-                    $"if ({valueName}.ValueKind == JsonValueKind.Null)");
+                    $"if ({valueName}.ValueKind == JsonValueKind.Null)")
+                    .ConfigureAwait(false);
 
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("return null;");
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return null;").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await writer.WriteIndentedLineAsync("}");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
         }
 
