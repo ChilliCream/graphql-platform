@@ -12,7 +12,7 @@ namespace StrawberryShake.Configuration
     {
         private readonly ConcurrentDictionary<string, Configuration> _configurations =
             new ConcurrentDictionary<string, Configuration>();
-        private IOptionsMonitor<ClientOptionsModifiers> _optionsMonitor;
+        private readonly IOptionsMonitor<ClientOptionsModifiers> _optionsMonitor;
 
         public ClientOptions(IOptionsMonitor<ClientOptionsModifiers> optionsMonitor)
         {
