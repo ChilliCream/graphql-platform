@@ -7,6 +7,31 @@ namespace HotChocolate.Types.Sorting
     public class SortInputTypeTests
         : TypeTestBase
     {
+
+        [Fact]
+        public void Create_Global_Explicit_Sorting()
+        {
+            // arrange
+            // act
+            ISchemaBuilder builder = SchemaBuilder.New()
+               .AddQueryType(c =>
+                   c.Name("Query")
+                       .Field("foo")
+                       .Type<StringType>()
+                       .Resolver("bar"))
+               .AddType(new SortInputType<Foo>(
+                   d => d.BindFieldsExplicitly()
+                   .Sortable(f => f.Bar)
+                ))
+               .ModifyOptions(t => t.DefaultBindingBehavior = BindingBehavior.Explicit);
+
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
         [Fact]
         public void Create_Implicit_Sorting_NoBindInvocation()
         {
