@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using StrawberryShake.Serializers;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Options;
 
 namespace StrawberryShake.Configuration
 {
@@ -11,10 +12,12 @@ namespace StrawberryShake.Configuration
     {
         private readonly ConcurrentDictionary<string, Configuration> _configurations =
             new ConcurrentDictionary<string, Configuration>();
+        private IOptionsMonitor<ClientOptionsModifiers> _optionsMonitor;
 
-        public ClientOptions()
+        public ClientOptions(IOptionsMonitor<ClientOptionsModifiers> optionsMonitor)
         {
-
+            _optionsMonitor = optionsMonitor
+                ?? throw new ArgumentNullException(nameof(optionsMonitor));
         }
 
         public IOperationFormatter GetOperationFormatter(string clientName)
@@ -46,9 +49,9 @@ namespace StrawberryShake.Configuration
                 .LastOrDefault();
         }
 
-        private static Configuration CreateConfiguration(string clientName)
+        private Configuration CreateConfiguration(string clientName)
         {
-            ClientOptionsModifiers options = new ClientOptionsModifiers();
+            ClientOptionsModifiers options = _optionsMonitor.Get(clientName);
 
             if (options.ResultParsers.Count == 0)
             {
