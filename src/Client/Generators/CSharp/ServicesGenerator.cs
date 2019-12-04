@@ -37,7 +37,7 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync().ConfigureAwait(false);
             });
 
-        private async Task WriteAddClientAsync(
+        private static async Task WriteAddClientAsync(
             CodeWriter writer,
             IServicesDescriptor descriptor)
         {
@@ -176,7 +176,7 @@ namespace StrawberryShake.Generators.CSharp
                 });
         }
 
-        private async Task WriteAddEnumSerializersAsync(
+        private static async Task WriteAddEnumSerializersAsync(
             CodeWriter writer,
             IServicesDescriptor descriptor)
         {
@@ -189,7 +189,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteAddInputSerializersAsync(
+        private static async Task WriteAddInputSerializersAsync(
             CodeWriter writer,
             IServicesDescriptor descriptor)
         {
@@ -202,7 +202,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteAddResultParsersAsync(
+        private static async Task WriteAddResultParsersAsync(
             CodeWriter writer,
             IServicesDescriptor descriptor)
         {
@@ -215,7 +215,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteAddOperationSerializerAsync(CodeWriter writer)
+        private static async Task WriteAddOperationSerializerAsync(CodeWriter writer)
         {
             await writer.WriteIndentedLineAsync(
                 ".AddOperationFormatter(serializers => " +
@@ -223,14 +223,14 @@ namespace StrawberryShake.Generators.CSharp
                 .ConfigureAwait(false);
         }
 
-        private async Task WriteAddHttpDefaultPipelineAsync(CodeWriter writer)
+        private static async Task WriteAddHttpDefaultPipelineAsync(CodeWriter writer)
         {
             await writer.WriteIndentedLineAsync(
                 ".AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());")
                 .ConfigureAwait(false);
         }
 
-        private async Task WriteMethodAsync(
+        private static async Task WriteMethodAsync(
             CodeWriter writer,
             string methodName,
             bool isPublic,
