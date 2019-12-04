@@ -36,11 +36,6 @@ namespace HotChocolate.Types.Sorting
                 return source;
             }
 
-<<<<<<< HEAD
-            IOrderedQueryable<TSource> sortedSource
-                = source.AddInitialSortOperation(
-                    SortOperations.Dequeue());
-=======
             IOrderedQueryable<TSource> sortedSource;
             if (!OrderingMethodFinder.OrderMethodExists(source.Expression))
             {
@@ -51,7 +46,6 @@ namespace HotChocolate.Types.Sorting
             {
                 sortedSource = (IOrderedQueryable<TSource>)source;
             }
->>>>>>> version_10_0_0_master
 
             while (SortOperations.Any())
             {
