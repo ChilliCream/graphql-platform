@@ -9,7 +9,7 @@ namespace StrawberryShake.Client
         : IGetFoo
     {
         public GetFoo(
-            System.String[] foo, 
+            System.String[] foo,
             System.Byte[] baz)
         {
             Foo = foo;
@@ -62,8 +62,8 @@ namespace StrawberryShake.Client
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _barSerializer = serializerResolver.GetValueSerializer("Bar");
-            _quxSerializer = serializerResolver.GetValueSerializer("Qux");
+            _barSerializer = serializerResolver.GetByName("Bar");
+            _quxSerializer = serializerResolver.GetByName("Qux");
         }
 
         protected override IGetFoo ParserData(JsonElement data)

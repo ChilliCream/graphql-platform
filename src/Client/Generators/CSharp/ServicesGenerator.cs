@@ -226,7 +226,7 @@ namespace StrawberryShake.Generators.CSharp
             Func<Task> write)
         {
             await writer.WriteIndentedLineAsync(
-                "{0} static IServiceCollection {1}(",
+                "{0} static IOperationClientBuilder {1}(",
                 isPublic ? "public" : "private",
                 methodName)
                 .ConfigureAwait(false);
@@ -264,7 +264,7 @@ namespace StrawberryShake.Generators.CSharp
                 await write().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
-                    "return serviceCollection;")
+                    "return builder;")
                     .ConfigureAwait(false);
             }
 

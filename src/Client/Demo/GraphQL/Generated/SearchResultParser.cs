@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
 using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GraphQL
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class SearchResultParser
         : JsonResultParserBase<ISearch>
     {
@@ -21,8 +23,8 @@ namespace StrawberryShake.Client.GraphQL
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
-            _floatSerializer = serializerResolver.GetValueSerializer("Float");
+            _stringSerializer = serializerResolver.GetByName("String");
+            _floatSerializer = serializerResolver.GetByName("Float");
         }
 
         protected override ISearch ParserData(JsonElement data)
@@ -55,7 +57,7 @@ namespace StrawberryShake.Client.GraphQL
                 JsonElement element = obj[objIndex];
                 string type = element.GetProperty(TypeName).GetString();
 
-                switch (type)
+                switch(type)
                 {
                     case "Starship":
                         list[objIndex] = new Starship

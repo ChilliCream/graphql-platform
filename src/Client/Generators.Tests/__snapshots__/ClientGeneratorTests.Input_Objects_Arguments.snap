@@ -74,7 +74,7 @@ namespace StrawberryShake.Client
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _barInputSerializer = serializerResolver.GetValueSerializer("BarInput");
+            _barInputSerializer = serializerResolver.GetByName("BarInput");
             _needsInitialization = false;
         }
 
@@ -149,7 +149,7 @@ namespace StrawberryShake.Client
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _intSerializer = serializerResolver.GetValueSerializer("Int");
+            _intSerializer = serializerResolver.GetByName("Int");
             _needsInitialization = false;
         }
 
@@ -233,7 +233,7 @@ namespace StrawberryShake.Client
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
+            _stringSerializer = serializerResolver.GetByName("String");
         }
 
         protected override IGetFoo ParserData(JsonElement data)

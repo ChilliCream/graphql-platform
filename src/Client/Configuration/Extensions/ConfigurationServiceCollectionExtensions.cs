@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake.Configuration;
 
 namespace StrawberryShake
@@ -10,6 +11,7 @@ namespace StrawberryShake
             string clientName)
         {
             services.AddOptions();
+            services.TryAddSingleton<IClientOptions, ClientOptions>();
             return new DefaultOperationClientBuilder(services, clientName);
         }
     }

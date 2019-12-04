@@ -3,10 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GitHub
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class GetUserResultParser
         : JsonResultParserBase<IGetUser>
     {
@@ -20,9 +24,9 @@ namespace StrawberryShake.Client.GitHub
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
-            _dateTimeSerializer = serializerResolver.GetValueSerializer("DateTime");
-            _intSerializer = serializerResolver.GetValueSerializer("Int");
+            _stringSerializer = serializerResolver.GetByName("String");
+            _dateTimeSerializer = serializerResolver.GetByName("DateTime");
+            _intSerializer = serializerResolver.GetByName("Int");
         }
 
         protected override IGetUser ParserData(JsonElement data)

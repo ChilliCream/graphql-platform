@@ -147,7 +147,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteAsync('_').ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(leafType.Name)).ConfigureAwait(false);
                     await writer.WriteAsync(
-                        "Serializer = serializerResolver.GetValueSerializer(" +
+                        "Serializer = serializerResolver.GetByName(" +
                         $"\"{leafType.Name}\");")
                         .ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);

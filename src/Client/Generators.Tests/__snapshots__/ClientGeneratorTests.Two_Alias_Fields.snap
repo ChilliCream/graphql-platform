@@ -9,7 +9,7 @@ namespace StrawberryShake.Client
         : IGetBars
     {
         public GetBars(
-            IFoo a, 
+            IFoo a,
             IFoo1 b)
         {
             A = a;
@@ -131,7 +131,7 @@ namespace StrawberryShake.Client
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
+            _stringSerializer = serializerResolver.GetByName("String");
         }
 
         protected override IGetBars ParserData(JsonElement data)

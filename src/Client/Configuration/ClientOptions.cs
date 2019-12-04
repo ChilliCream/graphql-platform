@@ -12,6 +12,11 @@ namespace StrawberryShake.Configuration
         private readonly ConcurrentDictionary<string, Configuration> _configurations =
             new ConcurrentDictionary<string, Configuration>();
 
+        public ClientOptions()
+        {
+
+        }
+
         public IOperationFormatter GetOperationFormatter(string clientName)
         {
             return GetOrCreateConfiguration(clientName).OperationFormatter;

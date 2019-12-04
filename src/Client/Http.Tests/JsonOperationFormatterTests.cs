@@ -105,7 +105,7 @@ namespace StrawberryShake.Http
         {
             // arrange
             var serializerResolver = new Mock<IValueSerializerCollection>();
-            serializerResolver.Setup(t => t.GetValueSerializer(It.IsAny<string>()))
+            serializerResolver.Setup(t => t.GetByName(It.IsAny<string>()))
                 .Returns(new StringValueSerializer());
             var formatter = new JsonOperationFormatter(serializerResolver.Object);
             var formatterOptions = new OperationFormatterOptions();

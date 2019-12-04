@@ -3,8 +3,7 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": [
-    {
+  "configurations": [{
       "name": ".NET Core Launch (console)",
       "type": "coreclr",
       "request": "launch",
@@ -19,6 +18,14 @@
         "-n StrawberryShake.Client.GraphQL",
         "-f"
       ],
+      /*"args": [
+        "generate",
+        "-p ./GitHub",
+        "-l 8.0",
+        "-d",
+        "-n StrawberryShake.Client.GitHub",
+        "-f"
+      ],*/
       "cwd": "${workspaceFolder}/Demo",
       "console": "internalConsole",
       "stopAtEntry": false

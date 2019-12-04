@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using StrawberryShake;
 using StrawberryShake.Configuration;
 using StrawberryShake.Http;
@@ -15,7 +14,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GraphQL
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static class StarWarsClientServiceCollectionExtensions
     {
         private const string _clientName = "StarWarsClient";
@@ -29,6 +28,7 @@ namespace StrawberryShake.Client.GraphQL
             }
 
             serviceCollection.AddSingleton<IStarWarsClient, StarWarsClient>();
+
             serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
                 new HttpOperationExecutorFactory(
                     _clientName,
@@ -60,8 +60,8 @@ namespace StrawberryShake.Client.GraphQL
                 typeof(ISocketConnectionInterceptor),
                 typeof(MessagePipelineHandler),
                 ServiceLifetime.Singleton));
-
             return builder;
         }
+
     }
 }

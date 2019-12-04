@@ -5,15 +5,21 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
+using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Serializers;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GitHub
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static class GitHubClientServiceCollectionExtensions
     {
-        public static IServiceCollection AddGitHubClient(
+        private const string _clientName = "GitHubClient";
+
+        public static IOperationClientBuilder AddGitHubClient(
             this IServiceCollection serviceCollection)
         {
             if (serviceCollection is null)
@@ -22,78 +28,26 @@ namespace StrawberryShake.Client.GitHub
             }
 
             serviceCollection.AddSingleton<IGitHubClient, GitHubClient>();
-            serviceCollection.AddSingleton(sp =>
-                HttpOperationExecutorBuilder.New()
-                    .AddServices(sp)
-                    .SetClient(ClientFactory)
-                    .SetPipeline(PipelineFactory)
-                    .Build());
 
-            serviceCollection.AddDefaultScalarSerializers();
-            serviceCollection.AddResultParsers();
+            serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
+                new HttpOperationExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<IHttpClientFactory>().CreateClient,
+                    sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),
+                    sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
-            serviceCollection.TryAddDefaultOperationSerializer();
-            serviceCollection.TryAddDefaultHttpPipeline();
+            IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
+                .AddResultParser(serializers => new GetUserResultParser(serializers))
+                .AddOperationFormmatter(serializers => new JsonOperationFormatter(serializers))
+                .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
-            return serviceCollection;
+            serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
+            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
+                typeof(ISocketConnectionInterceptor),
+                typeof(MessagePipelineHandler),
+                ServiceLifetime.Singleton));
+            return builder;
         }
 
-        public static IServiceCollection AddDefaultScalarSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            if (serviceCollection is null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
-            serviceCollection.AddSingleton<IValueSerializerCollection, ValueSerializerResolver>();
-
-            foreach (IValueSerializer serializer in ValueSerializers.All)
-            {
-                serviceCollection.AddSingleton(serializer);
-            }
-
-            return serviceCollection;
-        }
-
-
-
-        private static IServiceCollection AddResultParsers(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IResultParserCollection, ResultParserResolver>();
-            serviceCollection.AddSingleton<IResultParser, GetUserResultParser>();
-            return serviceCollection;
-        }
-
-        private static IServiceCollection TryAddDefaultOperationSerializer(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
-            return serviceCollection;
-        }
-
-        private static IServiceCollection TryAddDefaultHttpPipeline(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<HttpOperationDelegate>(
-                sp => HttpPipelineBuilder.New()
-                    .Use<CreateStandardRequestMiddleware>()
-                    .Use<SendHttpRequestMiddleware>()
-                    .Use<ParseSingleResultMiddleware>()
-                    .Build(sp));
-            return serviceCollection;
-        }
-
-        private static Func<HttpClient> ClientFactory(IServiceProvider services)
-        {
-            var clientFactory = services.GetRequiredService<IHttpClientFactory>();
-            return () => clientFactory.CreateClient("GitHubClient");
-        }
-
-        private static HttpOperationDelegate PipelineFactory(IServiceProvider services)
-        {
-            return services.GetRequiredService<HttpOperationDelegate>();
-        }
     }
 }
