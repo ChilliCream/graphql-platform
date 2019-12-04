@@ -109,7 +109,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteConstructorAsync(
+        private static async Task WriteConstructorAsync(
             CodeWriter writer,
             IResultParserDescriptor parserDescriptor)
         {
