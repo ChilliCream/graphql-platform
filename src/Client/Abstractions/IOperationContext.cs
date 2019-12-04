@@ -7,6 +7,8 @@ namespace StrawberryShake
     {
         IOperation Operation { get; }
 
+        IOperationFormatter OperationFormatter { get; }
+
         IOperationResultBuilder Result { get; }
 
         IResultParser ResultParser { get; }

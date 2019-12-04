@@ -15,6 +15,7 @@ namespace StrawberryShake.Http
 
         public HttpOperationContext(
             IOperation operation,
+            IOperationFormatter operationFormatter,
             IOperationResultBuilder result,
             IResultParser resultParser,
             HttpClient client,
@@ -29,10 +30,12 @@ namespace StrawberryShake.Http
             Client = client
                 ?? throw new ArgumentNullException(nameof(client));
             RequestAborted = requestAborted;
-            MessageWriter = new MessageWriter();
+            RequestWriter = new MessageWriter();
         }
 
         public IOperation Operation { get; }
+
+        public IOperationFormatter OperationFormatter { get; }
 
         public IOperationResultBuilder Result { get; }
 
@@ -52,7 +55,7 @@ namespace StrawberryShake.Http
 
         public HttpResponseMessage? HttpResponse { get; set; }
 
-        public IRequestWriter MessageWriter { get; }
+        public IRequestWriter RequestWriter { get; }
 
         public HttpClient Client { get; }
 
@@ -65,7 +68,7 @@ namespace StrawberryShake.Http
         {
             if (!_disposed && disposing)
             {
-                MessageWriter.Dispose();
+                RequestWriter.Dispose();
                 _disposed = true;
             }
         }

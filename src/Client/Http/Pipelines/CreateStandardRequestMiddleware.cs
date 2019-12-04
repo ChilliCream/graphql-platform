@@ -13,11 +13,9 @@ namespace StrawberryShake.Http.Pipelines
         private readonly IOperationFormatter _formatter;
 
         public CreateStandardRequestMiddleware(
-            OperationDelegate<IHttpOperationContext> next,
-            IOperationFormatter formatter)
+            OperationDelegate<IHttpOperationContext> next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));
         }
 
         public async Task InvokeAsync(IHttpOperationContext context)
@@ -27,9 +25,12 @@ namespace StrawberryShake.Http.Pipelines
                 context.HttpRequest = new HttpRequestMessage(
                     HttpMethod.Post, context.Client.BaseAddress);
 
-                _formatter.Serialize(context.Operation, context.MessageWriter, _options);
+                context.OperationFormatter.Serialize(
+                    context.Operation,
+                    context.RequestWriter,
+                    _options);
 
-                context.HttpRequest.Content = context.MessageWriter.ToByteArrayContent();
+                context.HttpRequest.Content = context.RequestWriter.ToByteArrayContent();
                 context.HttpRequest.Content.Headers.Add(
                     WellKnownHeaders.ContentTypeJson.Name,
                     WellKnownHeaders.ContentTypeJson.Value);
