@@ -142,7 +142,7 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteAsync(GetFieldName(typeName)).ConfigureAwait(false);
                         await writer.WriteAsync("Serializer = ").ConfigureAwait(false);
                         await writer.WriteAsync(
-                            $"serializerResolver.GetByName(\"{typeName}\");")
+                            $"serializerResolver.Get(\"{typeName}\");")
                             .ConfigureAwait(false);
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }

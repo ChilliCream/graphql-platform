@@ -121,14 +121,14 @@ namespace StrawberryShake
                     parsers[parser.ResultType] = parser;
                 }));
 
-        public static IOperationClientBuilder AddOperationFormmatter(
+        public static IOperationClientBuilder AddOperationFormatter(
             this IOperationClientBuilder builder,
             Func<IServiceProvider, IValueSerializerCollection, IOperationFormatter> factory) =>
             builder.ConfigureClient((sp, o) =>
                 o.OperationFormatter = serializer =>
                     factory(sp, serializer));
 
-        public static IOperationClientBuilder AddOperationFormmatter(
+        public static IOperationClientBuilder AddOperationFormatter(
             this IOperationClientBuilder builder,
             Func<IValueSerializerCollection, IOperationFormatter> factory) =>
             builder.ConfigureClient(o =>

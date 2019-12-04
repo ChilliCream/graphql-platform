@@ -9,12 +9,14 @@ namespace StrawberryShake.Http
     {
         private readonly OperationDelegate<IHttpOperationContext> _executeOperation;
         private readonly Func<HttpClient> _clientFactory;
+        private readonly IOperationFormatter _operationFormatter;
         private readonly IResultParserCollection _resultParserResolver;
 
         public HttpOperationExecutorFactory(
             string name,
             Func<string, HttpClient> clientFactory,
             OperationDelegate<IHttpOperationContext> executeOperation,
+            IOperationFormatter operationFormatter,
             IResultParserCollection resultParserResolver)
         {
             if (clientFactory is null)
@@ -27,6 +29,8 @@ namespace StrawberryShake.Http
             _clientFactory = () => clientFactory(name);
             _executeOperation = executeOperation
                 ?? throw new ArgumentNullException(nameof(executeOperation));
+            _operationFormatter = operationFormatter
+                ?? throw new ArgumentNullException(nameof(operationFormatter));
             _resultParserResolver = resultParserResolver
                 ?? throw new ArgumentNullException(nameof(resultParserResolver));
         }
@@ -38,6 +42,7 @@ namespace StrawberryShake.Http
             return new HttpOperationExecutor(
                 _clientFactory,
                 _executeOperation,
+                _operationFormatter,
                 _resultParserResolver);
         }
     }

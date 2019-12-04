@@ -75,6 +75,9 @@ namespace StrawberryShake.Generators.CSharp
                                 "sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),")
                                 .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
+                                "sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),")
+                                .ConfigureAwait(false);
+                            await writer.WriteIndentedLineAsync(
                                 "sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));")
                                 .ConfigureAwait(false);
                         }
@@ -102,6 +105,9 @@ namespace StrawberryShake.Generators.CSharp
                                     .ConfigureAwait(false);
                                 await writer.WriteIndentedLineAsync(
                                     "sp.GetRequiredService<ISubscriptionManager>(),")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),")
                                     .ConfigureAwait(false);
                                 await writer.WriteIndentedLineAsync(
                                     "sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));")
@@ -207,7 +213,7 @@ namespace StrawberryShake.Generators.CSharp
         private async Task WriteAddOperationSerializerAsync(CodeWriter writer)
         {
             await writer.WriteIndentedLineAsync(
-                ".AddOperationFormmatter(serializers => " +
+                ".AddOperationFormatter(serializers => " +
                 "new JsonOperationFormatter(serializers))")
                 .ConfigureAwait(false);
         }

@@ -23,6 +23,8 @@ namespace StrawberryShake.Http
         {
             Operation = operation
                 ?? throw new ArgumentNullException(nameof(operation));
+            OperationFormatter = operationFormatter
+                ?? throw new ArgumentNullException(nameof(operationFormatter));
             Result = result
                 ?? throw new ArgumentNullException(nameof(result));
             ResultParser = resultParser

@@ -24,9 +24,9 @@ namespace StrawberryShake.Client.GitHub
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetByName("String");
-            _dateTimeSerializer = serializerResolver.GetByName("DateTime");
-            _intSerializer = serializerResolver.GetByName("Int");
+            _stringSerializer = serializerResolver.Get("String");
+            _dateTimeSerializer = serializerResolver.Get("DateTime");
+            _intSerializer = serializerResolver.Get("Int");
         }
 
         protected override IGetUser ParserData(JsonElement data)

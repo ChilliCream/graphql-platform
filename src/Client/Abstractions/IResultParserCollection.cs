@@ -6,6 +6,6 @@ namespace StrawberryShake
     public interface IResultParserCollection
         : IReadOnlyCollection<IResultParser>
     {
-        IResultParser GetByResult(Type resultType);
+        IResultParser Get(Type resultType);
     }
 }

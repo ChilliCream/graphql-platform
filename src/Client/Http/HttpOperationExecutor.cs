@@ -11,16 +11,20 @@ namespace StrawberryShake.Http
         private readonly Func<HttpClient> _clientFactory;
         private readonly OperationDelegate<IHttpOperationContext> _executeOperation;
         private readonly IResultParserCollection _resultParserResolver;
+        private readonly IOperationFormatter _operationFormatter;
 
         public HttpOperationExecutor(
             Func<HttpClient> clientFactory,
             OperationDelegate<IHttpOperationContext> executeOperation,
+            IOperationFormatter operationFormatter,
             IResultParserCollection resultParserResolver)
         {
             _clientFactory = clientFactory
                 ?? throw new ArgumentNullException(nameof(clientFactory));
             _executeOperation = executeOperation
                 ?? throw new ArgumentNullException(nameof(executeOperation));
+            _operationFormatter = operationFormatter
+                ?? throw new ArgumentNullException(nameof(operationFormatter));
             _resultParserResolver = resultParserResolver
                 ?? throw new ArgumentNullException(nameof(resultParserResolver));
         }
@@ -73,8 +77,9 @@ namespace StrawberryShake.Http
         {
             var context = new HttpOperationContext(
                 operation,
+                _operationFormatter,
                 resultBuilder,
-                _resultParserResolver.GetByResult(operation.ResultType),
+                _resultParserResolver.Get(operation.ResultType),
                 _clientFactory(),
                 cancellationToken);
 

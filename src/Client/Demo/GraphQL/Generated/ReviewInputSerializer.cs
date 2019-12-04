@@ -27,8 +27,8 @@ namespace StrawberryShake.Client.GraphQL
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetByName("String");
-            _intSerializer = serializerResolver.GetByName("Int");
+            _stringSerializer = serializerResolver.Get("String");
+            _intSerializer = serializerResolver.Get("Int");
             _needsInitialization = false;
         }
 

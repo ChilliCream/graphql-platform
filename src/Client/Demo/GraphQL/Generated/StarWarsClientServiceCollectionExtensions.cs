@@ -34,6 +34,7 @@ namespace StrawberryShake.Client.GraphQL
                     _clientName,
                     sp.GetRequiredService<IHttpClientFactory>().CreateClient,
                     sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),
+                    sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
             serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>
@@ -41,6 +42,7 @@ namespace StrawberryShake.Client.GraphQL
                     _clientName,
                     sp.GetRequiredService<ISocketConnectionPool>().RentAsync,
                     sp.GetRequiredService<ISubscriptionManager>(),
+                    sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
             IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
@@ -51,7 +53,7 @@ namespace StrawberryShake.Client.GraphQL
                 .AddResultParser(serializers => new SearchResultParser(serializers))
                 .AddResultParser(serializers => new CreateReviewResultParser(serializers))
                 .AddResultParser(serializers => new OnReviewResultParser(serializers))
-                .AddOperationFormmatter(serializers => new JsonOperationFormatter(serializers))
+                .AddOperationFormatter(serializers => new JsonOperationFormatter(serializers))
                 .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();

@@ -150,7 +150,7 @@ namespace StrawberryShake.Http
                 foreach (VariableValue variableValue in variableValues)
                 {
                     IValueSerializer serializer =
-                        _valueSerializers.GetByName(variableValue.TypeName);
+                        _valueSerializers.Get(variableValue.TypeName);
 
                     map.Add(
                         variableValue.Name,

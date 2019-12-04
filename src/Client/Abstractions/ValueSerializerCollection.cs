@@ -25,7 +25,7 @@ namespace StrawberryShake
 
         public int Count { get; }
 
-        public IValueSerializer GetByName(string typeName)
+        public IValueSerializer Get(string typeName)
         {
             if (typeName is null)
             {

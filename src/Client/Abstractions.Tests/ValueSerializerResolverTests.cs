@@ -15,7 +15,7 @@ namespace StrawberryShake
                 ValueSerializers.All.ToDictionary(t => t.Name));
 
             // act
-            IValueSerializer serializer = resolver.GetByName("String");
+            IValueSerializer serializer = resolver.Get("String");
 
             // assert
             Assert.NotNull(serializer);
@@ -30,7 +30,7 @@ namespace StrawberryShake
                 ValueSerializers.All.ToDictionary(t => t.Name));
 
             // act
-            Action action = () => resolver.GetByName("Foo");
+            Action action = () => resolver.Get("Foo");
 
             // assert
             Assert.Throws<ArgumentException>(action);
@@ -44,7 +44,7 @@ namespace StrawberryShake
                 ValueSerializers.All.ToDictionary(t => t.Name));
 
             // act
-            Action action = () => resolver.GetByName(null);
+            Action action = () => resolver.Get(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);

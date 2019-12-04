@@ -22,7 +22,7 @@ namespace StrawberryShake.Client.GraphQL
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetByName("String");
+            _stringSerializer = serializerResolver.Get("String");
         }
 
         protected override ICreateReview ParserData(JsonElement data)

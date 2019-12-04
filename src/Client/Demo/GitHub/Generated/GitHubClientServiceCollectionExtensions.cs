@@ -34,11 +34,12 @@ namespace StrawberryShake.Client.GitHub
                     _clientName,
                     sp.GetRequiredService<IHttpClientFactory>().CreateClient,
                     sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),
+                    sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
             IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
                 .AddResultParser(serializers => new GetUserResultParser(serializers))
-                .AddOperationFormmatter(serializers => new JsonOperationFormatter(serializers))
+                .AddOperationFormatter(serializers => new JsonOperationFormatter(serializers))
                 .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();

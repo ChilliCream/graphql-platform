@@ -10,6 +10,6 @@ namespace StrawberryShake
         /// </summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
-        IValueSerializer GetByName(string typeName);
+        IValueSerializer Get(string typeName);
     }
 }

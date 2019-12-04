@@ -17,7 +17,7 @@ namespace StrawberryShake
 
         public int Count { get; }
 
-        public IResultParser GetByResult(Type resultType)
+        public IResultParser Get(Type resultType)
         {
             if (!_parsers.TryGetValue(resultType, out IResultParser? parser))
             {

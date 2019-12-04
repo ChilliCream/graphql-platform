@@ -23,8 +23,8 @@ namespace StrawberryShake.Client.GraphQL
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetByName("String");
-            _floatSerializer = serializerResolver.GetByName("Float");
+            _stringSerializer = serializerResolver.Get("String");
+            _floatSerializer = serializerResolver.Get("Float");
         }
 
         protected override IGetHero ParserData(JsonElement data)
@@ -52,7 +52,7 @@ namespace StrawberryShake.Client.GraphQL
 
             string type = obj.GetProperty(TypeName).GetString();
 
-            switch(type)
+            switch (type)
             {
                 case "Droid":
                     return new Droid

@@ -18,7 +18,7 @@ namespace StrawberryShake
             var resolver = new ResultParserCollection(dict);
 
             // act
-            IResultParser parser = resolver.GetByResult(typeof(string));
+            IResultParser parser = resolver.Get(typeof(string));
 
             // assert
             Assert.NotNull(parser);
@@ -34,7 +34,7 @@ namespace StrawberryShake
             var resolver = new ResultParserCollection(dict);
 
             // act
-            Action action = () => resolver.GetByResult(typeof(int));
+            Action action = () => resolver.Get(typeof(int));
 
             // assert
             Assert.Throws<ArgumentException>(action);
@@ -49,7 +49,7 @@ namespace StrawberryShake
             var resolver = new ResultParserCollection(dict);
 
             // act
-            Action action = () => resolver.GetByResult(null);
+            Action action = () => resolver.Get(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
