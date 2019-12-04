@@ -69,7 +69,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private static async Task WriteSerializerFieldsAsync(
+        private async Task WriteSerializerFieldsAsync(
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {
