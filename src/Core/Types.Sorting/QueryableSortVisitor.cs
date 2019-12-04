@@ -36,9 +36,22 @@ namespace HotChocolate.Types.Sorting
                 return source;
             }
 
+<<<<<<< HEAD
             IOrderedQueryable<TSource> sortedSource
                 = source.AddInitialSortOperation(
                     SortOperations.Dequeue());
+=======
+            IOrderedQueryable<TSource> sortedSource;
+            if (!OrderingMethodFinder.OrderMethodExists(source.Expression))
+            {
+                sortedSource = source.AddInitialSortOperation(
+                    Instance.Dequeue(), _parameter);
+            }
+            else
+            {
+                sortedSource = (IOrderedQueryable<TSource>)source;
+            }
+>>>>>>> version_10_0_0_master
 
             while (SortOperations.Any())
             {
@@ -88,10 +101,7 @@ namespace HotChocolate.Types.Sorting
                 if (!sortField.Operation.IsObject)
                 {
                     var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value);
-                    SortOperations.Enqueue(
-                           Closure.CreateSortOperation(kind)
-                    );
-
+                    SortOperations.Enqueue(Closure.CreateSortOperation(kind));
                 }
             }
 
@@ -126,5 +136,42 @@ namespace HotChocolate.Types.Sorting
         }
 
         #endregion
+
+        // Adapted from internal System.Web.Util.OrderingMethodFinder
+        // http://referencesource.microsoft.com/#System.Web/Util/OrderingMethodFinder.cs
+        private class OrderingMethodFinder : ExpressionVisitor
+        {
+            bool _orderingMethodFound = false;
+
+            public override Expression Visit(Expression node)
+            {
+                if (_orderingMethodFound)
+                {
+                    return node;
+                }
+                return base.Visit(node);
+            }
+
+            protected override Expression VisitMethodCall(MethodCallExpression node)
+            {
+                var name = node.Method.Name;
+
+                if (node.Method.DeclaringType == typeof(Queryable) && (
+                    name.StartsWith(nameof(Queryable.OrderBy), StringComparison.Ordinal) ||
+                    name.StartsWith(nameof(Queryable.ThenBy), StringComparison.Ordinal)))
+                {
+                    _orderingMethodFound = true;
+                }
+
+                return base.VisitMethodCall(node);
+            }
+
+            public static bool OrderMethodExists(Expression expression)
+            {
+                var visitor = new OrderingMethodFinder();
+                visitor.Visit(expression);
+                return visitor._orderingMethodFound;
+            }
+        }
     }
 }
