@@ -16,35 +16,36 @@ namespace StrawberryShake.Generators.CSharp
             IInterfaceDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("public interface ");
-            await writer.WriteAsync(descriptor.Name);
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public interface ").ConfigureAwait(false);
+            await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 for (int i = 0; i < descriptor.Implements.Count; i++)
                 {
-                    await writer.WriteIndentAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
 
                     if (i == 0)
                     {
-                        await writer.WriteAsync(':');
+                        await writer.WriteAsync(':').ConfigureAwait(false);
                     }
                     else
                     {
-                        await writer.WriteAsync(',');
+                        await writer.WriteAsync(',').ConfigureAwait(false);
                     }
 
-                    await writer.WriteSpaceAsync();
-                    await writer.WriteAsync(descriptor.Implements[i].Name);
-                    await writer.WriteLineAsync();
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(descriptor.Implements[i].Name)
+                        .ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("{");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("{").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
@@ -66,16 +67,16 @@ namespace StrawberryShake.Generators.CSharp
 
                             if (i > 0)
                             {
-                                await writer.WriteLineAsync();
+                                await writer.WriteLineAsync().ConfigureAwait(false);
                             }
 
-                            await writer.WriteIndentAsync();
-                            await writer.WriteAsync(typeName);
-                            await writer.WriteSpaceAsync();
-                            await writer.WriteAsync(propertyName);
-                            await writer.WriteSpaceAsync();
-                            await writer.WriteAsync("{ get; }");
-                            await writer.WriteLineAsync();
+                            await writer.WriteIndentAsync().ConfigureAwait(false);
+                            await writer.WriteAsync(typeName).ConfigureAwait(false);
+                            await writer.WriteSpaceAsync().ConfigureAwait(false);
+                            await writer.WriteAsync(propertyName).ConfigureAwait(false);
+                            await writer.WriteSpaceAsync().ConfigureAwait(false);
+                            await writer.WriteAsync("{ get; }").ConfigureAwait(false);
+                            await writer.WriteLineAsync().ConfigureAwait(false);
                         }
                         else
                         {
@@ -87,9 +88,9 @@ namespace StrawberryShake.Generators.CSharp
                 }
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("}");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("}").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
     }
 }

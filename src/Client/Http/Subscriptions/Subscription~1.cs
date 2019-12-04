@@ -16,16 +16,25 @@ namespace StrawberryShake.Http.Subscriptions
         private Func<Task>? _unregister;
         private bool _disposed;
 
-        public Subscription(IOperation operation, IResultParser resultParser)
+        public Subscription(
+            IOperation operation,
+            IOperationFormatter operationFormatter,
+            IResultParser resultParser)
         {
             Id = Guid.NewGuid().ToString("N");
-            Operation = operation ?? throw new ArgumentNullException(nameof(operation));
-            ResultParser = resultParser ?? throw new ArgumentNullException(nameof(resultParser));
+            Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
+            OperationFormatter = operationFormatter
+                ?? throw new ArgumentNullException(nameof(operationFormatter));
+            ResultParser = resultParser
+                ?? throw new ArgumentNullException(nameof(resultParser));
         }
 
         public override string Id { get; }
 
         public override IOperation Operation { get; }
+
+        public override IOperationFormatter OperationFormatter { get; }
 
         public override IResultParser ResultParser { get; }
 

@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -140,7 +141,7 @@ namespace HotChocolate.Utilities
                     var arguments = new IExtendedType[]
                     {
                         CreateExtendedType(
-                            context, flags, type.GetElementType(), ref position)
+                            context, flags, type.GetElementType()!, ref position)
                     };
 
                     return new ExtendedType(
@@ -161,15 +162,13 @@ namespace HotChocolate.Utilities
 
         private Nullable GetContext(MemberInfo member)
         {
-            NullableContextAttribute? attribute =
-                member.GetCustomAttribute<NullableContextAttribute>();
+            NullableContextAttribute? attribute = GetNullableContextAttribute(member);
             return GetContext(attribute);
         }
 
         private Nullable GetContext(ParameterInfo parameter)
         {
-            NullableContextAttribute? attribute =
-                parameter.GetCustomAttribute<NullableContextAttribute>();
+            NullableContextAttribute? attribute = GetNullableContextAttribute(parameter);
             return GetContext(attribute, GetContext(parameter.Member));
         }
 
@@ -217,6 +216,10 @@ namespace HotChocolate.Utilities
             GetNullableContextAttribute(member.GetCustomAttributesData());
 
         private static NullableContextAttribute? GetNullableContextAttribute(
+            ParameterInfo member) =>
+            GetNullableContextAttribute(member.GetCustomAttributesData());
+
+        private static NullableContextAttribute? GetNullableContextAttribute(
             Assembly assembly) =>
             GetNullableContextAttribute(assembly.GetCustomAttributesData());
 
@@ -229,7 +232,7 @@ namespace HotChocolate.Utilities
             if (data is { })
             {
                 return new NullableContextAttribute(
-                    (byte)data.ConstructorArguments[0].Value);
+                    (byte)data.ConstructorArguments[0].Value!);
             }
 
             return null;
@@ -250,8 +253,8 @@ namespace HotChocolate.Utilities
             try
             {
                 var flags = (byte[])attribute.GetType()
-                    .GetField("NullableFlags")
-                    .GetValue(attribute);
+                    .GetField("NullableFlags")!
+                    .GetValue(attribute)!;
                 return new NullableAttribute(flags);
             }
             catch

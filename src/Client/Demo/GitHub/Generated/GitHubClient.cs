@@ -7,14 +7,17 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GitHub
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class GitHubClient
         : IGitHubClient
     {
+        private const string _clientName = "GitHubClient";
+
         private readonly IOperationExecutor _executor;
 
-        public GitHubClient(IOperationExecutor executor)
+        public GitHubClient(IOperationExecutorPool executorPool)
         {
-            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+            _executor = executorPool.CreateExecutor(_clientName);
         }
 
         public Task<IOperationResult<IGetUser>> GetUserAsync(

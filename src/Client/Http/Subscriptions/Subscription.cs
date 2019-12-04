@@ -20,6 +20,8 @@ namespace StrawberryShake.Http.Subscriptions
 
         public abstract IOperation Operation { get; }
 
+        public abstract IOperationFormatter OperationFormatter { get; }
+
         public abstract IResultParser ResultParser { get; }
 
         public abstract Task OnCompletedAsync(
@@ -44,17 +46,19 @@ namespace StrawberryShake.Http.Subscriptions
 
         public static Subscription<T> New<T>(
             IOperation<T> operation,
+            IOperationFormatter operationFormatter,
             IResultParser parser)
             where T : class =>
-            new Subscription<T>(operation, parser);
+            new Subscription<T>(operation, operationFormatter, parser);
 
         public static Subscription New(
             IOperation operation,
+            IOperationFormatter operationFormatter,
             IResultParser parser)
         {
             return (Subscription)_genericNew
                 .MakeGenericMethod(new[] { parser.ResultType })
-                .Invoke(null, new object[] { operation, parser })!;
+                .Invoke(null, new object[] { operation, operationFormatter, parser })!;
         }
     }
 }
