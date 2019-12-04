@@ -52,12 +52,7 @@ namespace StrawberryShake.Client.GraphQL
                 .AddResultParser(serializers => new CreateReviewResultParser(serializers))
                 .AddResultParser(serializers => new OnReviewResultParser(serializers))
                 .AddOperationFormmatter(serializers => new JsonOperationFormatter(serializers))
-                .AddOperationPipeline(sp =>
-                    OperationPipelineBuilder<IHttpOperationContext>.New()
-                        .Use<CreateStandardRequestMiddleware>()
-                        .Use<SendHttpRequestMiddleware>()
-                        .Use<ParseSingleResultMiddleware>()
-                        .Build(sp));
+                .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();

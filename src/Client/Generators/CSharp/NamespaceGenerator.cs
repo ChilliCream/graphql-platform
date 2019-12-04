@@ -39,6 +39,9 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
+                await writer.WriteGeneratedAttributeAsync()
+                    .ConfigureAwait(false);
+
                 await _innerGenerator.WriteAsync(
                     writer, descriptor, typeLookup)
                     .ConfigureAwait(false);
@@ -83,6 +86,11 @@ namespace StrawberryShake.Generators.CSharp
             }
 
             await WriteUsing(writer, "StrawberryShake").ConfigureAwait(false);
+
+            if (components.Contains(WellKnownComponents.HttpExecutor))
+            {
+                await WriteUsing(writer, "StrawberryShake.Configuration").ConfigureAwait(false);
+            }
 
             if (components.Contains(WellKnownComponents.HttpExecutor))
             {

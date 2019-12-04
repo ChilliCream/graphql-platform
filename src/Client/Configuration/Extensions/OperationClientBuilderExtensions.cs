@@ -1,8 +1,9 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using StrawberryShake.Configuration;
 
-namespace StrawberryShake.Configuration
+namespace StrawberryShake
 {
     /// <summary>
     /// Extension methods for configuring an <see cref="IOperationClientBuilder"/>

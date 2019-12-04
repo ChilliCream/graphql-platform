@@ -101,12 +101,14 @@ namespace StrawberryShake.Generators
             if (isStatic)
             {
                 await writer.WriteIndentedLineAsync(
-                    "public static class {0}", typeName);
+                    "public static class {0}", typeName)
+                    .ConfigureAwait(false);
             }
             else
             {
                 await writer.WriteIndentedLineAsync(
-                    "public class {0}", typeName);
+                    "public class {0}", typeName)
+                    .ConfigureAwait(false);
             }
 
             if (implements is { })
@@ -119,24 +121,26 @@ namespace StrawberryShake.Generators
                         if (first)
                         {
                             first = false;
-                            await writer.WriteIndentedLineAsync(": {0}", name);
+                            await writer.WriteIndentedLineAsync(": {0}", name)
+                                .ConfigureAwait(false);
                         }
                         else
                         {
-                            await writer.WriteIndentedLineAsync(", {0}", name);
+                            await writer.WriteIndentedLineAsync(", {0}", name)
+                                .ConfigureAwait(false);
                         }
                     }
                 }
             }
 
-            await writer.WriteIndentedLineAsync("{");
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await write();
+                await write().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
     }
 }

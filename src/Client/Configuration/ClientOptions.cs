@@ -38,7 +38,7 @@ namespace StrawberryShake.Configuration
             return _configurations.GetOrAdd(clientName, n => CreateConfiguration(n))
                 .OperationPipelines
                 .OfType<OperationDelegate<T>>()
-                .FirstOrDefault();
+                .LastOrDefault();
         }
 
         private static Configuration CreateConfiguration(string clientName)

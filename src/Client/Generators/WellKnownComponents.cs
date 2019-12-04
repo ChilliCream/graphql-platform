@@ -15,5 +15,7 @@ namespace StrawberryShake.Generators
         public const string DI = "DI";
 
         public const string Serializer = "SERIALIZER";
+
+        public const string Configuration = "CONFIGURATION";
     }
 }

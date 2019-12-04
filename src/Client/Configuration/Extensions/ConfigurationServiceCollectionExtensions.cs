@@ -1,7 +1,7 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake.Configuration;
 
-namespace StrawberryShake.Configuration
+namespace StrawberryShake
 {
     public static class ConfigurationServiceCollectionExtensions
     {
