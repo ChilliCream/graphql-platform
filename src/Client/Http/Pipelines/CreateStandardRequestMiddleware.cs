@@ -10,7 +10,6 @@ namespace StrawberryShake.Http.Pipelines
         private static readonly OperationFormatterOptions _options =
             OperationFormatterOptions.Default;
         private readonly OperationDelegate<IHttpOperationContext> _next;
-        private readonly IOperationFormatter _formatter;
 
         public CreateStandardRequestMiddleware(
             OperationDelegate<IHttpOperationContext> next)
