@@ -141,7 +141,7 @@ namespace HotChocolate.Utilities
                     var arguments = new IExtendedType[]
                     {
                         CreateExtendedType(
-                            context, flags, type.GetElementType(), ref position)
+                            context, flags, type.GetElementType()!, ref position)
                     };
 
                     return new ExtendedType(
@@ -232,7 +232,7 @@ namespace HotChocolate.Utilities
             if (data is { })
             {
                 return new NullableContextAttribute(
-                    (byte)data.ConstructorArguments[0].Value);
+                    (byte)data.ConstructorArguments[0].Value!);
             }
 
             return null;
@@ -253,8 +253,8 @@ namespace HotChocolate.Utilities
             try
             {
                 var flags = (byte[])attribute.GetType()
-                    .GetField("NullableFlags")
-                    .GetValue(attribute);
+                    .GetField("NullableFlags")!
+                    .GetValue(attribute)!;
                 return new NullableAttribute(flags);
             }
             catch

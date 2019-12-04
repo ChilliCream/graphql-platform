@@ -5,6 +5,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class GetBars
         : IGetBars
     {
@@ -26,6 +27,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class Foo
         : IFoo
     {
@@ -47,6 +49,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public interface IGetBars
     {
         IFoo Foo { get; }
@@ -61,6 +64,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public interface IFoo
     {
         IReadOnlyList<string> Bars { get; }
@@ -73,17 +77,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
 using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class GetBarsResultParser
         : JsonResultParserBase<IGetBars>
     {
 
-        public GetBarsResultParser(IValueSerializerResolver serializerResolver)
+        public GetBarsResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -136,6 +142,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class GetBarsOperation
         : IOperation<IGetBars>
     {
@@ -164,6 +171,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public interface ISchemaClient
     {
         Task<IOperationResult<IGetBars>> GetBarsAsync(
@@ -185,6 +193,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class SchemaClient
         : ISchemaClient
     {
@@ -228,6 +237,7 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
 using StrawberryShake.Http.Subscriptions;
@@ -236,11 +246,12 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static class SchemaClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaClient";
 
-        public static IServiceCollection AddSchemaClient(
+        public static IOperationClientBuilder AddSchemaClient(
             this IServiceCollection serviceCollection)
         {
             if (serviceCollection is null)
@@ -249,70 +260,28 @@ namespace StrawberryShake.Client
             }
 
             serviceCollection.AddSingleton<ISchemaClient, SchemaClient>();
+
             serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
                 new HttpOperationExecutorFactory(
                     _clientName,
                     sp.GetRequiredService<IHttpClientFactory>().CreateClient,
-                    PipelineFactory(sp),
-                    sp));
+                    sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),
+                    sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),
+                    sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
+
+            IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
+                .AddResultParser(serializers => new GetBarsResultParser(serializers))
+                .AddOperationFormatter(serializers => new JsonOperationFormatter(serializers))
+                .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
-
-            serviceCollection.AddDefaultScalarSerializers();
-            serviceCollection.AddResultParsers();
-
-            serviceCollection.TryAddDefaultOperationSerializer();
-            serviceCollection.TryAddDefaultHttpPipeline();
-
-            return serviceCollection;
+            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
+                typeof(ISocketConnectionInterceptor),
+                typeof(MessagePipelineHandler),
+                ServiceLifetime.Singleton));
+            return builder;
         }
 
-        private static IServiceCollection AddDefaultScalarSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
-
-            foreach (IValueSerializer serializer in ValueSerializers.All)
-            {
-                serviceCollection.AddSingleton(serializer);
-            }
-
-            return serviceCollection;
-        }
-
-
-
-        private static IServiceCollection AddResultParsers(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
-            serviceCollection.AddSingleton<IResultParser, GetBarsResultParser>();
-            return serviceCollection;
-        }
-
-        private static IServiceCollection TryAddDefaultOperationSerializer(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
-            return serviceCollection;
-        }
-
-        private static IServiceCollection TryAddDefaultHttpPipeline(
-            this IServiceCollection serviceCollection)
-        {
-            serviceCollection.TryAddSingleton<OperationDelegate>(
-                sp => HttpPipelineBuilder.New()
-                    .Use<CreateStandardRequestMiddleware>()
-                    .Use<SendHttpRequestMiddleware>()
-                    .Use<ParseSingleResultMiddleware>()
-                    .Build(sp));
-            return serviceCollection;
-        }
-
-        private static OperationDelegate PipelineFactory(IServiceProvider services)
-        {
-            return services.GetRequiredService<OperationDelegate>();
-        }
     }
 }
 

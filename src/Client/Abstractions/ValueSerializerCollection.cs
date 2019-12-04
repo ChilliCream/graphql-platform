@@ -1,30 +1,31 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace StrawberryShake
 {
-    public sealed class ValueSerializerResolver
-        : IValueSerializerResolver
+    public sealed class ValueSerializerCollection
+        : IValueSerializerCollection
     {
         private readonly IReadOnlyDictionary<string, IValueSerializer> _serializers;
 
-        public ValueSerializerResolver(IEnumerable<IValueSerializer> valueSerializers)
+        public ValueSerializerCollection(
+            IReadOnlyDictionary<string, IValueSerializer> serializers)
         {
-            if (valueSerializers is null)
-            {
-                throw new ArgumentNullException(nameof(valueSerializers));
-            }
-
-            _serializers = valueSerializers.ToDictionary();
+            _serializers = serializers ?? throw new ArgumentNullException(nameof(serializers));
 
             foreach (var serializer in _serializers.Values.OfType<IInputSerializer>())
             {
                 serializer.Initialize(this);
             }
+
+            Count = serializers.Count;
         }
 
-        public IValueSerializer GetValueSerializer(string typeName)
+        public int Count { get; }
+
+        public IValueSerializer Get(string typeName)
         {
             if (typeName is null)
             {
@@ -40,5 +41,11 @@ namespace StrawberryShake
 
             return serializer;
         }
+
+        public IEnumerator<IValueSerializer> GetEnumerator()
+        {
+            return _serializers.Values.GetEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

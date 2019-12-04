@@ -5,6 +5,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GraphQL
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class ReviewInputSerializer
         : IInputSerializer
     {
@@ -20,14 +21,14 @@ namespace StrawberryShake.Client.GraphQL
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
-        public void Initialize(IValueSerializerResolver serializerResolver)
+        public void Initialize(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
-            _intSerializer = serializerResolver.GetValueSerializer("Int");
+            _stringSerializer = serializerResolver.Get("String");
+            _intSerializer = serializerResolver.Get("Int");
             _needsInitialization = false;
         }
 

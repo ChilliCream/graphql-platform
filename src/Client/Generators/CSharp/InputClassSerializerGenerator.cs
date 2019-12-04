@@ -52,16 +52,16 @@ namespace StrawberryShake.Generators.CSharp
                     .ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteProperties(writer, descriptor).ConfigureAwait(false);
+                await WritePropertiesAsync(writer, descriptor).ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await WriteInitializationAsync(writer, descriptor).ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteSerializeMethod(writer, descriptor).ConfigureAwait(false);
+                await WriteSerializeMethodAsync(writer, descriptor).ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteDeserializeMethod(writer, descriptor).ConfigureAwait(false);
+                await WriteDeserializeMethodAsync(writer, descriptor).ConfigureAwait(false);
             }
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
@@ -76,7 +76,8 @@ namespace StrawberryShake.Generators.CSharp
             var serializers = new HashSet<string>();
 
             await writer.WriteIndentedLineAsync(
-                "private bool _needsInitialization = true;");
+                "private bool _needsInitialization = true;")
+                .ConfigureAwait(false);
 
             foreach (IInputFieldDescriptor field in descriptor.Fields)
             {
@@ -106,26 +107,29 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteInitializationAsync(
+        private static async Task WriteInitializationAsync(
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {
             var serializers = new HashSet<string>();
 
             await writer.WriteIndentedLineAsync(
-                "public void Initialize(IValueSerializerResolver serializerResolver)");
-            await writer.WriteIndentedLineAsync("{");
+                "public void Initialize(IValueSerializerCollection serializerResolver)")
+                .ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if (serializerResolver is null)");
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("if (serializerResolver is null)")
+                    .ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())
                 {
                     await writer.WriteIndentedLineAsync(
-                        "throw new ArgumentNullException(nameof(serializerResolver));");
+                        "throw new ArgumentNullException(nameof(serializerResolver));")
+                        .ConfigureAwait(false);
                 }
-                await writer.WriteIndentedLineAsync("}");
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
 
                 for (int i = 0; i < descriptor.Fields.Count; i++)
                 {
@@ -142,18 +146,19 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteAsync(GetFieldName(typeName)).ConfigureAwait(false);
                         await writer.WriteAsync("Serializer = ").ConfigureAwait(false);
                         await writer.WriteAsync(
-                            $"serializerResolver.GetValueSerializer(\"{typeName}\");")
+                            $"serializerResolver.Get(\"{typeName}\");")
                             .ConfigureAwait(false);
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
                 }
-                await writer.WriteIndentedLineAsync("_needsInitialization = false;");
+                await writer.WriteIndentedLineAsync("_needsInitialization = false;")
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
-        private async Task WriteProperties(
+        private static async Task WritePropertiesAsync(
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {
@@ -188,7 +193,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteSerializeMethod(
+        private async Task WriteSerializeMethodAsync(
             CodeWriter writer,
             IInputClassDescriptor descriptor)
         {
@@ -227,7 +232,6 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteIndentedLineAsync(
                             "$\"The serializer for type `{Name}` has not been initialized.\");")
                             .ConfigureAwait(false);
-                        ;
                     }
                 }
 
@@ -235,7 +239,7 @@ namespace StrawberryShake.Generators.CSharp
                     .ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteNonNullHandling(writer).ConfigureAwait(false);
+                await WriteNonNullHandlingAsync(writer).ConfigureAwait(false);
 
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync($"var input = ({descriptor.Name})value;")
@@ -258,17 +262,13 @@ namespace StrawberryShake.Generators.CSharp
 
                 foreach (IInputFieldDescriptor field in descriptor.Fields)
                 {
-                    string typeName = field.InputObjectType is null
-                        ? field.Type.NamedType().Name.Value
-                        : field.InputObjectType.Name;
-
                     IType type = field.Type.IsNonNullType() ? field.Type.InnerType() : field.Type;
                     string serializerName = SerializerNameUtils.CreateSerializerName(type);
 
                     await writer.WriteIndentedLineAsync(
                         $"if (input.{GetPropertyName(field.Name)}.HasValue)")
                         .ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync("{");
+                    await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                     using (writer.IncreaseIndent())
                     {
@@ -281,7 +281,7 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
 
-                    await writer.WriteIndentedLineAsync("}");
+                    await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
@@ -342,7 +342,7 @@ namespace StrawberryShake.Generators.CSharp
                 {
                     if (!type.IsNonNullType())
                     {
-                        await WriteNonNullHandling(writer).ConfigureAwait(false);
+                        await WriteNonNullHandlingAsync(writer).ConfigureAwait(false);
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
 
@@ -388,7 +388,7 @@ namespace StrawberryShake.Generators.CSharp
                 {
                     if (!type.IsNonNullType())
                     {
-                        await WriteNonNullHandling(writer).ConfigureAwait(false);
+                        await WriteNonNullHandlingAsync(writer).ConfigureAwait(false);
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
 
@@ -429,7 +429,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteNonNullHandling(CodeWriter writer)
+        private static async Task WriteNonNullHandlingAsync(CodeWriter writer)
         {
             await writer.WriteIndentedLineAsync("if (value is null)").ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
@@ -438,10 +438,10 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteIndentedLineAsync("return null;").ConfigureAwait(false);
             }
             await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
-            await writer.WriteLineAsync();
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteDeserializeMethod(
+        private async Task WriteDeserializeMethodAsync(
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {

@@ -16,7 +16,6 @@ namespace StrawberryShake
         void Serialize(
             IOperation operation,
             IBufferWriter<byte> writer,
-            OperationFormatterOptions? options = null,
-            CancellationToken cancellationToken = default);
+            OperationFormatterOptions? options = null);
     }
 }

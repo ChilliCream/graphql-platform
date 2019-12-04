@@ -11,6 +11,8 @@ namespace StrawberryShake.Http.Subscriptions
 
         IOperation Operation { get; }
 
+        IOperationFormatter OperationFormatter { get; }
+
         IResultParser ResultParser { get; }
 
         void OnRegister(Func<Task> unregister);
