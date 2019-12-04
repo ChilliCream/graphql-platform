@@ -2,7 +2,6 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Http.Pipelines;
 
 namespace StrawberryShake.Http
 {
@@ -10,20 +9,24 @@ namespace StrawberryShake.Http
         : IOperationExecutor
     {
         private readonly Func<HttpClient> _clientFactory;
-        private readonly OperationDelegate _executeOperation;
-        private readonly IServiceProvider _services;
+        private readonly OperationDelegate<IHttpOperationContext> _executeOperation;
+        private readonly IResultParserCollection _resultParserResolver;
+        private readonly IOperationFormatter _operationFormatter;
 
         public HttpOperationExecutor(
             Func<HttpClient> clientFactory,
-            OperationDelegate executeOperation,
-            IServiceProvider services)
+            OperationDelegate<IHttpOperationContext> executeOperation,
+            IOperationFormatter operationFormatter,
+            IResultParserCollection resultParserResolver)
         {
             _clientFactory = clientFactory
                 ?? throw new ArgumentNullException(nameof(clientFactory));
             _executeOperation = executeOperation
                 ?? throw new ArgumentNullException(nameof(executeOperation));
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
+            _operationFormatter = operationFormatter
+                ?? throw new ArgumentNullException(nameof(operationFormatter));
+            _resultParserResolver = resultParserResolver
+                ?? throw new ArgumentNullException(nameof(resultParserResolver));
         }
 
         public async Task<IOperationResult> ExecuteAsync(
@@ -74,9 +77,10 @@ namespace StrawberryShake.Http
         {
             var context = new HttpOperationContext(
                 operation,
-                _clientFactory(),
-                _services,
+                _operationFormatter,
                 resultBuilder,
+                _resultParserResolver.Get(operation.ResultType),
+                _clientFactory(),
                 cancellationToken);
 
             try

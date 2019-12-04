@@ -1281,7 +1281,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Argument_Type_IsInfered_From_Parameter()
+        public void Argument_Type_IsInferred_From_Parameter()
         {
             // arrange
             // act

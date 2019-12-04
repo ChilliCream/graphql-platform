@@ -2,28 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Pipelines
+namespace StrawberryShake
 {
-    public class HttpPipelineBuilder
-        : IHttpPipelineBuilder
+    public class OperationPipelineBuilder<T>
+        : IOperationPipelineBuilder<T>
+        where T : IOperationContext
     {
-        private readonly Stack<OperationMiddleware> _components =
-            new Stack<OperationMiddleware>();
+        private readonly Stack<OperationMiddleware<T>> _components =
+            new Stack<OperationMiddleware<T>>();
 
-        public IHttpPipelineBuilder Use(
-            Func<OperationDelegate, OperationDelegate> middleware)
+        public IOperationPipelineBuilder<T> Use(Type middleware)
         {
-            if (middleware is null)
-            {
-                throw new ArgumentNullException(nameof(middleware));
-            }
-
-            _components.Push((s, n) => middleware(n));
-            return this;
+            return Use(ClassMiddlewareFactory<T>.Create(middleware));
         }
 
-        public IHttpPipelineBuilder Use(
-            OperationMiddleware middleware)
+        public IOperationPipelineBuilder<T> Use<TMiddleware>()
+        {
+            return Use(ClassMiddlewareFactory<T>.Create(typeof(TMiddleware)));
+        }
+
+        public IOperationPipelineBuilder<T> Use(OperationMiddleware<T> middleware)
         {
             if (middleware is null)
             {
@@ -34,7 +32,7 @@ namespace StrawberryShake.Http.Pipelines
             return this;
         }
 
-        public OperationDelegate Build(IServiceProvider services)
+        public OperationDelegate<T> Build(IServiceProvider services)
         {
             if (services is null)
             {
@@ -47,22 +45,21 @@ namespace StrawberryShake.Http.Pipelines
                     "There has to be at least one operation middleware.");
             }
 
-            OperationDelegate next = ThrowExceptionMiddleware;
+            OperationDelegate<T> next = ThrowExceptionMiddlewareAsync;
 
             while (_components.Count > 0)
             {
-                OperationMiddleware middleware = _components.Pop();
+                OperationMiddleware<T> middleware = _components.Pop();
                 next = middleware.Invoke(services, next);
             }
 
             return next;
         }
 
-        public static HttpPipelineBuilder New() =>
-            new HttpPipelineBuilder();
+        public static OperationPipelineBuilder<T> New() =>
+            new OperationPipelineBuilder<T>();
 
-        private static Task ThrowExceptionMiddleware(
-            IHttpOperationContext context)
+        private static Task ThrowExceptionMiddlewareAsync(T context)
         {
             if (!context.Result.IsDataOrErrorModified)
             {

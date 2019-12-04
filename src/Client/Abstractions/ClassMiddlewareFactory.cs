@@ -5,20 +5,20 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Pipelines
+namespace StrawberryShake
 {
-    internal static class ClassMiddlewareFactory
+    internal static class ClassMiddlewareFactory<T> where T : IOperationContext
     {
         private delegate object Factory(
             IServiceProvider services,
-            OperationDelegate next);
+            OperationDelegate<T> next);
 
         internal delegate Task Invoke(
             IServiceProvider services,
-            IHttpOperationContext context,
+            T context,
             object instance);
 
-        public static OperationMiddleware Create(Type classMiddlewareType)
+        public static OperationMiddleware<T> Create(Type classMiddlewareType)
         {
             if (classMiddlewareType is null)
             {
@@ -35,22 +35,14 @@ namespace StrawberryShake.Http.Pipelines
                     "Class middleware must have a `Invoke` or a `InvokeAsync` method.");
             }
 
-            ParameterExpression services =
-                Expression.Parameter(typeof(IServiceProvider));
-            ParameterExpression next =
-                Expression.Parameter(typeof(OperationDelegate));
-            NewExpression createInstance =
-                CreateMiddleware(classMiddlewareTypeInfo, services, next);
+            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression next = Expression.Parameter(typeof(OperationDelegate<T>));
+            NewExpression create = CreateMiddleware(classMiddlewareTypeInfo, services, next);
 
-            Factory factory =
-                Expression.Lambda<Factory>(
-                    createInstance, services, next)
-                    .Compile();
+            Factory factory = Expression.Lambda<Factory>(create, services, next).Compile();
 
-            ParameterExpression context =
-                Expression.Parameter(typeof(IHttpOperationContext));
-            ParameterExpression instance =
-                Expression.Parameter(typeof(object));
+            ParameterExpression context = Expression.Parameter(typeof(T));
+            ParameterExpression instance = Expression.Parameter(typeof(object));
 
             MethodCallExpression invokeMiddleware = Expression.Call(
                 Expression.Convert(instance, classMiddlewareType),
@@ -74,12 +66,8 @@ namespace StrawberryShake.Http.Pipelines
             ParameterExpression services,
             Expression next)
         {
-            ConstructorInfo constructor = CreateConstructor(
-                classMiddlewareTypeInfo);
-
-            IEnumerable<Expression> arguments = CreateParameters(
-                constructor, services, next);
-
+            ConstructorInfo constructor = CreateConstructor(classMiddlewareTypeInfo);
+            IEnumerable<Expression> arguments = CreateParameters(constructor, services, next);
             return Expression.New(constructor, arguments);
         }
 
@@ -109,7 +97,7 @@ namespace StrawberryShake.Http.Pipelines
                 services,
                 new Dictionary<Type, Expression>
                 {
-                    { typeof(IHttpOperationContext), context }
+                    { typeof(T), context }
                 });
         }
 
@@ -123,7 +111,7 @@ namespace StrawberryShake.Http.Pipelines
                 services,
                 new Dictionary<Type, Expression>
                 {
-                    { typeof(OperationDelegate), next }
+                    { typeof(OperationDelegate<T>), next }
                 });
         }
 

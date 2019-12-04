@@ -3,7 +3,7 @@ using System.Buffers;
 
 namespace StrawberryShake.Transport
 {
-    public interface IMessageWriter
+    public interface IRequestWriter
         : IBufferWriter<byte>
         , IDisposable
     {
