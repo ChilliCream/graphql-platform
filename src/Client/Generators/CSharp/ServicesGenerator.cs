@@ -173,7 +173,7 @@ namespace StrawberryShake.Generators.CSharp
                             "ServiceLifetime.Singleton));")
                             .ConfigureAwait(false);
                     }
-                });
+                }).ConfigureAwait(false);
         }
 
         private static async Task WriteAddEnumSerializersAsync(

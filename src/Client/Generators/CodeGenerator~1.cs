@@ -91,7 +91,7 @@ namespace StrawberryShake.Generators
             Func<Task> write) =>
             WriteClassAsync(writer, typeName, false, implements, write);
 
-        private async Task WriteClassAsync(
+        private static async Task WriteClassAsync(
             CodeWriter writer,
             string typeName,
             bool isStatic,
