@@ -72,13 +72,16 @@ namespace StrawberryShake.Generators.CSharp
                                 "sp.GetRequiredService<IHttpClientFactory>().CreateClient,")
                                 .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                "sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),")
+                                "sp.GetRequiredService<IClientOptions>()" +
+                                ".GetOperationPipeline<IHttpOperationContext>(_clientName),")
                                 .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                "sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),")
+                                "sp.GetRequiredService<IClientOptions>()" +
+                                ".GetOperationFormatter(_clientName),")
                                 .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                "sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));")
+                                "sp.GetRequiredService<IClientOptions>()" +
+                                ".GetResultParsers(_clientName)));")
                                 .ConfigureAwait(false);
                         }
                     }
@@ -107,10 +110,12 @@ namespace StrawberryShake.Generators.CSharp
                                     "sp.GetRequiredService<ISubscriptionManager>(),")
                                     .ConfigureAwait(false);
                                 await writer.WriteIndentedLineAsync(
-                                    "sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),")
+                                    "sp.GetRequiredService<IClientOptions>()" +
+                                    ".GetOperationFormatter(_clientName),")
                                     .ConfigureAwait(false);
                                 await writer.WriteIndentedLineAsync(
-                                    "sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));")
+                                    "sp.GetRequiredService<IClientOptions>()" +
+                                    ".GetResultParsers(_clientName)));")
                                     .ConfigureAwait(false);
                             }
                         }

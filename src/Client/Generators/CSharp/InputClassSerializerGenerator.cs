@@ -61,7 +61,7 @@ namespace StrawberryShake.Generators.CSharp
                 await WriteSerializeMethodAsync(writer, descriptor).ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteDeserializeMethod(writer, descriptor).ConfigureAwait(false);
+                await WriteDeserializeMethodAsync(writer, descriptor).ConfigureAwait(false);
             }
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
@@ -440,7 +440,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteDeserializeMethod(
+        private async Task WriteDeserializeMethodAsync(
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {
