@@ -107,7 +107,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteInitializationAsync(
+        private static async Task WriteInitializationAsync(
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {
