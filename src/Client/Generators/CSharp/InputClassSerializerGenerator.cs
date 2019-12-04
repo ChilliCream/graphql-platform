@@ -76,7 +76,8 @@ namespace StrawberryShake.Generators.CSharp
             var serializers = new HashSet<string>();
 
             await writer.WriteIndentedLineAsync(
-                "private bool _needsInitialization = true;");
+                "private bool _needsInitialization = true;")
+                .ConfigureAwait(false);
 
             foreach (IInputFieldDescriptor field in descriptor.Fields)
             {
@@ -113,19 +114,22 @@ namespace StrawberryShake.Generators.CSharp
             var serializers = new HashSet<string>();
 
             await writer.WriteIndentedLineAsync(
-                "public void Initialize(IValueSerializerCollection serializerResolver)");
-            await writer.WriteIndentedLineAsync("{");
+                "public void Initialize(IValueSerializerCollection serializerResolver)")
+                .ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if (serializerResolver is null)");
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("if (serializerResolver is null)")
+                    .ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())
                 {
                     await writer.WriteIndentedLineAsync(
-                        "throw new ArgumentNullException(nameof(serializerResolver));");
+                        "throw new ArgumentNullException(nameof(serializerResolver));")
+                        .ConfigureAwait(false);
                 }
-                await writer.WriteIndentedLineAsync("}");
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
 
                 for (int i = 0; i < descriptor.Fields.Count; i++)
                 {
@@ -268,7 +272,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteIndentedLineAsync(
                         $"if (input.{GetPropertyName(field.Name)}.HasValue)")
                         .ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync("{");
+                    await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                     using (writer.IncreaseIndent())
                     {
@@ -281,7 +285,7 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
 
-                    await writer.WriteIndentedLineAsync("}");
+                    await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
-    public delegate Task OperationDelegate<T>(T context)
+    public delegate Task OperationDelegate<in T>(T context)
         where T : IOperationContext;
 
     public delegate OperationDelegate<T> OperationMiddleware<T>(

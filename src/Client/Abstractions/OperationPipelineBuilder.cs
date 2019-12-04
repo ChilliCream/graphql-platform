@@ -45,7 +45,7 @@ namespace StrawberryShake
                     "There has to be at least one operation middleware.");
             }
 
-            OperationDelegate<T> next = ThrowExceptionMiddleware;
+            OperationDelegate<T> next = ThrowExceptionMiddlewareAsync;
 
             while (_components.Count > 0)
             {
@@ -59,7 +59,7 @@ namespace StrawberryShake
         public static OperationPipelineBuilder<T> New() =>
             new OperationPipelineBuilder<T>();
 
-        private static Task ThrowExceptionMiddleware(T context)
+        private static Task ThrowExceptionMiddlewareAsync(T context)
         {
             if (!context.Result.IsDataOrErrorModified)
             {
