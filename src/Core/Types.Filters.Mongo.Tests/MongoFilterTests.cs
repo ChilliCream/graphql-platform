@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -103,7 +103,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model
@@ -163,7 +163,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -199,7 +199,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -235,7 +235,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -271,7 +271,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
@@ -307,7 +307,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
