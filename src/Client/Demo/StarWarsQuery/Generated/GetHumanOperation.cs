@@ -3,29 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetUserOperation
-        : IOperation<IGetUser>
+    public class GetHumanOperation
+        : IOperation<IGetHuman>
     {
-        public string Name => "getUser";
+        public string Name => "getHuman";
 
         public IDocument Document => Queries.Default;
 
         public OperationKind Kind => OperationKind.Query;
 
-        public Type ResultType => typeof(IGetUser);
+        public Type ResultType => typeof(IGetHuman);
 
-        public Optional<string> Login { get; set; }
+        public Optional<string> Id { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
 
-            if (Login.HasValue)
+            if (Id.HasValue)
             {
-                variables.Add(new VariableValue("login", "String", Login.Value));
+                variables.Add(new VariableValue("id", "String", Id.Value));
             }
 
             return variables;

@@ -12,14 +12,14 @@ using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Serializers;
 using StrawberryShake.Transport;
 
-namespace StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static class GitHubClientServiceCollectionExtensions
+    public static class StarWarsClientServiceCollectionExtensions
     {
-        private const string _clientName = "GitHubClient";
+        private const string _clientName = "StarWarsClient";
 
-        public static IOperationClientBuilder AddGitHubClient(
+        public static IOperationClientBuilder AddStarWarsClient(
             this IServiceCollection serviceCollection)
         {
             if (serviceCollection is null)
@@ -27,7 +27,7 @@ namespace StrawberryShake.Client.GitHub
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
-            serviceCollection.AddSingleton<IGitHubClient, GitHubClient>();
+            serviceCollection.AddSingleton<IStarWarsClient, StarWarsClient>();
 
             serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
                 new HttpOperationExecutorFactory(
@@ -38,15 +38,11 @@ namespace StrawberryShake.Client.GitHub
                     sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
             IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
-                .AddResultParser(serializers => new GetUserResultParser(serializers))
+                .AddResultParser(serializers => new GetHumanResultParser(serializers))
                 .AddOperationFormatter(serializers => new JsonOperationFormatter(serializers))
                 .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
-            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
-                typeof(ISocketConnectionInterceptor),
-                typeof(MessagePipelineHandler),
-                ServiceLifetime.Singleton));
             return builder;
         }
 

@@ -5,37 +5,37 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GitHubClient
-        : IGitHubClient
+    public class StarWarsClient
+        : IStarWarsClient
     {
-        private const string _clientName = "GitHubClient";
+        private const string _clientName = "StarWarsClient";
 
         private readonly IOperationExecutor _executor;
 
-        public GitHubClient(IOperationExecutorPool executorPool)
+        public StarWarsClient(IOperationExecutorPool executorPool)
         {
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<IGetUser>> GetUserAsync(
-            Optional<string> login = default,
+        public Task<IOperationResult<IGetHuman>> GetHumanAsync(
+            Optional<string> id = default,
             CancellationToken cancellationToken = default)
         {
-            if (login.HasValue && login.Value is null)
+            if (id.HasValue && id.Value is null)
             {
-                throw new ArgumentNullException(nameof(login));
+                throw new ArgumentNullException(nameof(id));
             }
 
             return _executor.ExecuteAsync(
-                new GetUserOperation { Login = login },
+                new GetHumanOperation { Id = id },
                 cancellationToken);
         }
 
-        public Task<IOperationResult<IGetUser>> GetUserAsync(
-            GetUserOperation operation,
+        public Task<IOperationResult<IGetHuman>> GetHumanAsync(
+            GetHumanOperation operation,
             CancellationToken cancellationToken = default)
         {
             if (operation is null)

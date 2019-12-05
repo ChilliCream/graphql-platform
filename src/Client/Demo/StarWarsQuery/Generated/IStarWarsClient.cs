@@ -5,17 +5,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGitHubClient
+    public interface IStarWarsClient
     {
-        Task<IOperationResult<IGetUser>> GetUserAsync(
-            Optional<string> login = default,
+        Task<IOperationResult<IGetHuman>> GetHumanAsync(
+            Optional<string> id = default,
             CancellationToken cancellationToken = default);
 
-        Task<IOperationResult<IGetUser>> GetUserAsync(
-            GetUserOperation operation,
+        Task<IOperationResult<IGetHuman>> GetHumanAsync(
+            GetHumanOperation operation,
             CancellationToken cancellationToken = default);
     }
 }

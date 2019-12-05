@@ -3,18 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetUser
-        : IGetUser
+    public class HasName
+        : IHasName
     {
-        public GetUser(
-            IUser? user)
+        public HasName(
+            string? name)
         {
-            User = user;
+            Name = name;
         }
 
-        public IUser? User { get; }
+        public string? Name { get; }
     }
 }

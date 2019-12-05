@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFollowerConnection
+    public interface IFriend
     {
-        int TotalCount { get; }
+        IReadOnlyList<IHasName>? Nodes { get; }
     }
 }
