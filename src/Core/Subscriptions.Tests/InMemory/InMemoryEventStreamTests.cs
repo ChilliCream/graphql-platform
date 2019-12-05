@@ -13,7 +13,7 @@ namespace HotChocolate.Subscriptions.InMemory
             var eventStream = new InMemoryEventStream();
 
             // act
-            eventStream.Trigger(sent);
+            await eventStream.TriggerAsync(sent);
 
             // assert
             IEventMessage received = await eventStream.ReadAsync();

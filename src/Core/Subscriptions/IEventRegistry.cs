@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
 {
@@ -18,6 +19,8 @@ namespace HotChocolate.Subscriptions
         /// <param name="eventDescription">
         /// The event description.
         /// </param>
-        Task<IEventStream> SubscribeAsync(IEventDescription eventDescription);
+        ValueTask<IEventStream> SubscribeAsync(
+            IEventDescription eventDescription,
+            CancellationToken cancellationToken = default);
     }
 }

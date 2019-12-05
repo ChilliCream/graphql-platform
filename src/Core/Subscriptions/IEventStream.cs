@@ -20,17 +20,12 @@ namespace HotChocolate.Subscriptions
         /// <summary>
         /// Reads the next event from the current event stream.
         /// </summary>
-        Task<IEventMessage> ReadAsync();
-
-        /// <summary>
-        /// Reads the next event from the current event stream.
-        /// </summary>
-        Task<IEventMessage> ReadAsync(CancellationToken cancellationToken);
+        ValueTask<IEventMessage> ReadAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Completes the event stream and deletes
         /// the pub/sub system subscription.
         /// </summary>
-        Task CompleteAsync();
+        ValueTask CompleteAsync(CancellationToken cancellationToken = default);
     }
 }

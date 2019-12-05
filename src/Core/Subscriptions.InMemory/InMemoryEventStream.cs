@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
@@ -7,65 +8,40 @@ namespace HotChocolate.Subscriptions
     public class InMemoryEventStream
         : IEventStream
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private TaskCompletionSource<IEventMessage> _taskCompletionSource =
-            new TaskCompletionSource<IEventMessage>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly Channel<IEventMessage> _channel;
+
+        public InMemoryEventStream()
+        {
+            _channel = Channel.CreateUnbounded<IEventMessage>();
+        }
 
         public event EventHandler Completed;
 
         public bool IsCompleted { get; private set; }
 
-        public void Trigger(IEventMessage message)
+        public ValueTask TriggerAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default)
         {
-            if (message == null)
+            if (message is null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            _semaphore.Wait();
-
-            try
-            {
-                _taskCompletionSource.TrySetResult(message);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+            return _channel.Writer.WriteAsync(message, cancellationToken);
         }
 
-        public Task<IEventMessage> ReadAsync()
+        public ValueTask<IEventMessage> ReadAsync(
+            CancellationToken cancellationToken = default)
         {
-            return ReadAsync(CancellationToken.None);
+            return _channel.Reader.ReadAsync(cancellationToken);
         }
 
-        public async Task<IEventMessage> ReadAsync(
-            CancellationToken cancellationToken)
-        {
-            IEventMessage message = await _taskCompletionSource.Task
-                .ConfigureAwait(false);
-
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-
-            try
-            {
-                _taskCompletionSource = new TaskCompletionSource<IEventMessage>(
-                    TaskCreationOptions.RunContinuationsAsynchronously);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-
-            return message;
-        }
-
-        public Task CompleteAsync()
+        public ValueTask CompleteAsync(CancellationToken cancellationToken = default)
         {
             IsCompleted = true;
             Completed?.Invoke(this, EventArgs.Empty);
-            return Task.CompletedTask;
+            return default;
         }
 
         #region IDisposable

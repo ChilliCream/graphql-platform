@@ -25,7 +25,8 @@ namespace HotChocolate.StarWars
         /// <param name="eventSender">The event sending service.</param>
         /// <returns>The created review.</returns>
         public async Task<Review> CreateReview(
-            Episode episode, Review review,
+            Episode episode,
+            Review review,
             [Service]IEventSender eventSender)
         {
             _repository.AddReview(episode, review);

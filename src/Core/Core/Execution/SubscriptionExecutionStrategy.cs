@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices.ComTypes;
-using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Subscriptions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
@@ -43,8 +41,10 @@ namespace HotChocolate.Execution
             EventDescription eventDescription = CreateEvent(executionContext);
 
             IEventStream eventStream = await SubscribeAsync(
-                executionContext.Services, eventDescription)
-                    .ConfigureAwait(false);
+                executionContext.Services,
+                eventDescription,
+                executionContext.RequestAborted)
+                .ConfigureAwait(false);
 
             return new SubscriptionResult(
                 eventStream,
@@ -96,9 +96,10 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static Task<IEventStream> SubscribeAsync(
+        private static ValueTask<IEventStream> SubscribeAsync(
             IServiceProvider services,
-            IEventDescription @event)
+            IEventDescription @event,
+            CancellationToken cancellationToken)
         {
             var eventRegistry = services.GetService<IEventRegistry>();
 
@@ -110,7 +111,7 @@ namespace HotChocolate.Execution
                         .Build());
             }
 
-            return eventRegistry.SubscribeAsync(@event);
+            return eventRegistry.SubscribeAsync(@event, cancellationToken);
         }
 
         private async Task<IReadOnlyQueryResult> ExecuteSubscriptionQueryAsync(

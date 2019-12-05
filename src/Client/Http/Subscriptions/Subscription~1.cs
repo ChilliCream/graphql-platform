@@ -79,11 +79,9 @@ namespace StrawberryShake.Http.Subscriptions
             }
         }
 
-
         protected override IAsyncEnumerator<IOperationResult> OnGetAsyncEnumerator(
             CancellationToken cancellationToken) =>
             GetAsyncEnumerator(cancellationToken);
-
 
         public override void OnRegister(Func<Task> unregister)
         {
