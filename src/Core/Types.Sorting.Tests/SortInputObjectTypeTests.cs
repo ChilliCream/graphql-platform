@@ -43,7 +43,6 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void Create_Description_Explicitly()
         {
@@ -199,8 +198,6 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
-
-
         private class BarType : SortInputType<Bar>
         {
             protected override void Configure(ISortInputTypeDescriptor<Bar> descriptor)
@@ -228,8 +225,6 @@ namespace HotChocolate.Types.Sorting
             public string BarProperty { get; set; }
             public string BazProperty { get; set; }
         }
-
-
         private class FooDoubleBaz
         {
             public Baz Baz2 { get; set; }

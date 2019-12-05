@@ -24,10 +24,11 @@ namespace HotChocolate.Types.Sorting
                 throw new ArgumentNullException(nameof(entityType));
             }
 
+            ISortingNamingConvention convention = context.GetSortingNamingConvention();
+
             Definition.EntityType = entityType;
             Definition.ClrType = typeof(object);
-            Definition.Name = context.Naming.GetTypeName(
-                entityType, TypeKind.Object) + "Sort";
+            Definition.Name = convention.GetSortingTypeName(context, entityType);
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
         }

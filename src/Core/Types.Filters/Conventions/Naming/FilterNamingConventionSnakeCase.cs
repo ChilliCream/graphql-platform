@@ -2,9 +2,13 @@ using System;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterNamingConventionSnakeCase : IFilterNamingConvention
+    public class FilterNamingConventionSnakeCase : FilterNamingConventionBase
     {
-        public NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind)
+        public override NameString ArgumentName => "where";
+
+        public override NameString CreateFieldName(
+            FilterFieldDefintion definition,
+            FilterOperationKind kind)
         {
             switch (kind)
             {
@@ -69,8 +73,5 @@ namespace HotChocolate.Types.Filters
                     throw new NotSupportedException();
             }
         }
-
-        public static FilterNamingConventionSnakeCase Default { get; } =
-            new FilterNamingConventionSnakeCase();
     }
 }

@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
-                var nestedProperty = Expression.Property(
+                MemberExpression nestedProperty = Expression.Property(
                     closures.Peek().Instance.Peek(),
                     field.Operation.Property);
                 closures.Peek().Instance.Push(nestedProperty);
@@ -39,8 +39,8 @@ namespace HotChocolate.Types.Filters.Expressions
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 // Deque last expression to prefix with nullcheck
-                var condition = closures.Peek().Level.Peek().Dequeue();
-                var property = closures.Peek().Instance.Peek();
+                Expression condition = closures.Peek().Level.Peek().Dequeue();
+                Expression property = closures.Peek().Instance.Peek();
                 
                 // wrap last expression  
                 closures.Peek().Level.Peek().Enqueue(
