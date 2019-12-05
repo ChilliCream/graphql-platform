@@ -1,0 +1,31 @@
+﻿{
+  "Message": "Abc",
+  "Code": null,
+  "Path": [
+    "abc",
+    1
+  ],
+  "Locations": [
+    {
+      "Line": 1,
+      "Column": 2
+    }
+  ],
+  "Extensions": {
+    "abc": "def"
+  },
+  "Exception": {
+    "ClassName": "System.Exception",
+    "Message": "Def",
+    "Data": null,
+    "InnerException": null,
+    "HelpURL": null,
+    "StackTraceString": null,
+    "RemoteStackTraceString": null,
+    "RemoteStackIndex": 0,
+    "ExceptionMethod": null,
+    "HResult": -2146233088,
+    "Source": null,
+    "WatsonBuckets": null
+  }
+}

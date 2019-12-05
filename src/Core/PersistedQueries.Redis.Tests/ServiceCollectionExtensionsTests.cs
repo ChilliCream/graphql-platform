@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using StackExchange.Redis;
-using Xunit;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Squadron;
+using StackExchange.Redis;
+using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis
 {

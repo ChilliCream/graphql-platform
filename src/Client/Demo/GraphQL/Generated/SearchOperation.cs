@@ -5,12 +5,15 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GraphQL
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class SearchOperation
         : IOperation<ISearch>
     {
         public string Name => "search";
 
         public IDocument Document => Queries.Default;
+
+        public OperationKind Kind => OperationKind.Query;
 
         public Type ResultType => typeof(ISearch);
 
@@ -20,7 +23,7 @@ namespace StrawberryShake.Client.GraphQL
         {
             var variables = new List<VariableValue>();
 
-            if(Text.HasValue)
+            if (Text.HasValue)
             {
                 variables.Add(new VariableValue("text", "String", Text.Value));
             }

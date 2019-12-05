@@ -5,11 +5,11 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GraphQL
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class ReviewInputSerializer
         : IInputSerializer
     {
         private bool _needsInitialization = true;
-        private IValueSerializer? _authorSerializer;
         private IValueSerializer? _stringSerializer;
         private IValueSerializer? _intSerializer;
 
@@ -21,15 +21,14 @@ namespace StrawberryShake.Client.GraphQL
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
-        public void Initialize(IValueSerializerResolver serializerResolver)
+        public void Initialize(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _authorSerializer = serializerResolver.GetValueSerializer("Author");
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
-            _intSerializer = serializerResolver.GetValueSerializer("Int");
+            _stringSerializer = serializerResolver.Get("String");
+            _intSerializer = serializerResolver.Get("Int");
             _needsInitialization = false;
         }
 
@@ -41,18 +40,13 @@ namespace StrawberryShake.Client.GraphQL
                     $"The serializer for type `{Name}` has not been initialized.");
             }
 
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
 
             var input = (ReviewInput)value;
             var map = new Dictionary<string, object?>();
-
-            if (input.Author.HasValue)
-            {
-                map.Add("author", SerializeNullableAuthor(input.Author.Value));
-            }
 
             if (input.Commentary.HasValue)
             {
@@ -67,19 +61,9 @@ namespace StrawberryShake.Client.GraphQL
             return map;
         }
 
-        private object? SerializeNullableAuthor(object? value)
-        {
-            if(value is null)
-            {
-                return null;
-            }
-
-
-            return _authorSerializer!.Serialize(value);
-        }
         private object? SerializeNullableString(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }

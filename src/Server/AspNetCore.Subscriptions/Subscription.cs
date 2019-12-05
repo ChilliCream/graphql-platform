@@ -11,8 +11,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         : ISubscription
     {
         internal const byte _delimiter = 0x07;
-        private readonly CancellationTokenSource _cts =
-            new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
         private bool _disposed;

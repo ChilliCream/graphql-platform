@@ -1,21 +1,20 @@
 using System;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Pipelines
 {
     public class CreateStandardRequestMiddleware
     {
-        private readonly OperationDelegate _next;
-        private readonly IOperationSerializer _serializer;
+        private static readonly OperationFormatterOptions _options =
+            OperationFormatterOptions.Default;
+        private readonly OperationDelegate<IHttpOperationContext> _next;
 
         public CreateStandardRequestMiddleware(
-            OperationDelegate next,
-            IOperationSerializer serializer)
+            OperationDelegate<IHttpOperationContext> next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         public async Task InvokeAsync(IHttpOperationContext context)
@@ -25,16 +24,15 @@ namespace StrawberryShake.Http.Pipelines
                 context.HttpRequest = new HttpRequestMessage(
                     HttpMethod.Post, context.Client.BaseAddress);
 
-                using (var stream = new MemoryStream())
-                {
-                    await _serializer.SerializeAsync(
-                        context.Operation, null, true, stream)
-                        .ConfigureAwait(false);
-                    context.HttpRequest.Content = new ByteArrayContent(
-                        stream.ToArray());
-                    context.HttpRequest.Content.Headers.Add(
-                        "Content-Type", "application/json");
-                }
+                context.OperationFormatter.Serialize(
+                    context.Operation,
+                    context.RequestWriter,
+                    _options);
+
+                context.HttpRequest.Content = context.RequestWriter.ToByteArrayContent();
+                context.HttpRequest.Content.Headers.Add(
+                    WellKnownHeaders.ContentTypeJson.Name,
+                    WellKnownHeaders.ContentTypeJson.Value);
             }
 
             await _next(context);

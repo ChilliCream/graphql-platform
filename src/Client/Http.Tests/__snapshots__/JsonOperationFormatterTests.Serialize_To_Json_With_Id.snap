@@ -1,0 +1,1 @@
+﻿{"id":"Hash","query":"subscription abc { onReview(episode: NEWHOPE) { stars } }","operationName":"abc"}

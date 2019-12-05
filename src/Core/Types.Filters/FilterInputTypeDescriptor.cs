@@ -4,11 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using System.Collections;
+using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
@@ -39,7 +37,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected override FilterInputTypeDefinition Definition { get; } =
+        internal protected override FilterInputTypeDefinition Definition { get; } =
             new FilterInputTypeDefinition();
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =
@@ -141,7 +139,8 @@ namespace HotChocolate.Types.Filters
         {
             Type type = property.PropertyType;
 
-            if (type.IsGenericType && Nullable.GetUnderlyingType(type) is Type nullableType)
+            if (type.IsGenericType
+                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
             {
                 type = nullableType;
             }
@@ -223,7 +222,7 @@ namespace HotChocolate.Types.Filters
                 && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 return typeof(IComparable).IsAssignableFrom(
-                    Nullable.GetUnderlyingType(type));
+                    System.Nullable.GetUnderlyingType(type));
             }
 
             return false;

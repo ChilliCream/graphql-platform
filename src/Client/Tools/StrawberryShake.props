@@ -3,12 +3,14 @@
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
     <GraphQLCompiler>$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "dotnet-graphql.dll"))</GraphQLCompiler>
-    <GraphQLCompileOnBuild>false</GraphQLCompileOnBuild>
+    <GraphQLCompileOnBuild>true</GraphQLCompileOnBuild>
+    <GraphQLGenerateOnBuild>true</GraphQLGenerateOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="**/*.graphql" />
     <GraphQL Include="**/*.graphql" />
+    <Watch Include="**/*.graphql" />
   </ItemGroup>
 
 </Project>

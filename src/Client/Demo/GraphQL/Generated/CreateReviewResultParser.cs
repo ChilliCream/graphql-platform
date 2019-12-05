@@ -3,22 +3,26 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client.GraphQL
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class CreateReviewResultParser
         : JsonResultParserBase<ICreateReview>
     {
         private readonly IValueSerializer _stringSerializer;
 
-        public CreateReviewResultParser(IValueSerializerResolver serializerResolver)
+        public CreateReviewResultParser(IValueSerializerCollection serializerResolver)
         {
-            if(serializerResolver is null)
+            if (serializerResolver is null)
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
+            _stringSerializer = serializerResolver.Get("String");
         }
 
         protected override ICreateReview ParserData(JsonElement data)

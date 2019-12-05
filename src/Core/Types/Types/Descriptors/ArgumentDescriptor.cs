@@ -1,8 +1,8 @@
-using System.Reflection;
 using System;
-using HotChocolate.Utilities;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -40,12 +40,21 @@ namespace HotChocolate.Types.Descriptors
             ParameterInfo parameter)
             : base(context)
         {
-            Definition.Name =
-                context.Naming.GetArgumentName(parameter);
-            Definition.Description =
-                context.Naming.GetArgumentDescription(parameter);
+            Definition.Name = context.Naming.GetArgumentName(parameter);
+            Definition.Description = context.Naming.GetArgumentDescription(parameter);
             Definition.Type = context.Inspector.GetArgumentType(parameter);
             Definition.DefaultValue = NullValueNode.Default;
+            Definition.Parameter = parameter;
+        }
+
+        protected override void OnCreateDefinition(ArgumentDefinition definition)
+        {
+            base.OnCreateDefinition(definition);
+
+            if (Definition.Parameter is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.Parameter);
+            }
         }
 
         public new IArgumentDescriptor SyntaxNode(

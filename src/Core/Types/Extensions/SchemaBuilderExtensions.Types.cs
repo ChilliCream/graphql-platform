@@ -269,6 +269,17 @@ namespace HotChocolate
         }
 
         public static ISchemaBuilder AddObjectType<T>(
+            this ISchemaBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddType(new ObjectType<T>());
+        }
+
+        public static ISchemaBuilder AddObjectType<T>(
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
@@ -300,6 +311,17 @@ namespace HotChocolate
             }
 
             return builder.AddType(new UnionType(configure));
+        }
+
+        public static ISchemaBuilder AddUnionType<T>(
+            this ISchemaBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddType(new UnionType<T>());
         }
 
         public static ISchemaBuilder AddUnionType<T>(
@@ -337,6 +359,17 @@ namespace HotChocolate
         }
 
         public static ISchemaBuilder AddEnumType<T>(
+            this ISchemaBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddType(new EnumType<T>());
+        }
+
+        public static ISchemaBuilder AddEnumType<T>(
             this ISchemaBuilder builder,
             Action<IEnumTypeDescriptor<T>> configure)
         {
@@ -371,6 +404,17 @@ namespace HotChocolate
         }
 
         public static ISchemaBuilder AddInterfaceType<T>(
+            this ISchemaBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddType(new InterfaceType<T>());
+        }
+
+        public static ISchemaBuilder AddInterfaceType<T>(
             this ISchemaBuilder builder,
             Action<IInterfaceTypeDescriptor<T>> configure)
         {
@@ -402,6 +446,17 @@ namespace HotChocolate
             }
 
             return builder.AddType(new InputObjectType(configure));
+        }
+
+        public static ISchemaBuilder AddInputObjectType<T>(
+            this ISchemaBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddType(new InputObjectType<T>());
         }
 
         public static ISchemaBuilder AddInputObjectType<T>(

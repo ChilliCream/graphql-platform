@@ -46,13 +46,20 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected override InterfaceFieldDefinition Definition { get; } =
+        internal protected override InterfaceFieldDefinition Definition { get; } =
             new InterfaceFieldDefinition();
 
         protected override void OnCreateDefinition(
             InterfaceFieldDefinition definition)
         {
+            base.OnCreateDefinition(definition);
+
             CompleteArguments(definition);
+
+            if (Definition.Member is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.Member);
+            }
         }
 
         private void CompleteArguments(InterfaceFieldDefinition definition)

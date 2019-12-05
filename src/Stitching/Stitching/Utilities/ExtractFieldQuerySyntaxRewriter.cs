@@ -179,7 +179,12 @@ namespace HotChocolate.Stitching.Utilities
 
             RemoveDelegationFields(current, context, selections);
             AddDependencies(context.TypeContext, selections, dependencies);
-            selections.Add(CreateField(WellKnownFieldNames.TypeName));
+
+            if (!selections.OfType<FieldNode>().Any(n => n.Name.Value == WellKnownFieldNames.TypeName))
+            {
+                selections.Add(CreateField(WellKnownFieldNames.TypeName));
+            }
+            
             current = current.WithSelections(selections);
             current = base.RewriteSelectionSet(current, context);
             current = OnRewriteSelectionSet(current, context);

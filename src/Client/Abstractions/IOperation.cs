@@ -9,6 +9,8 @@ namespace StrawberryShake
 
         IDocument Document { get; }
 
+        OperationKind Kind { get; }
+
         Type ResultType { get; }
 
         IReadOnlyList<VariableValue> GetVariableValues();
