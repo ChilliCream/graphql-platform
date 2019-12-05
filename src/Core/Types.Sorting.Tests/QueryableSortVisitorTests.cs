@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Sorting
@@ -94,6 +96,37 @@ namespace HotChocolate.Types.Sorting
                 foo => Assert.Equal("b", foo.Foo.Bar)
             );
         }
+        public void Sort_ComparableAsc_PrefilterInResolver()
+        {
+            // arrange
+            IQueryable<Foo> data = new[] {
+                    new Foo { Bar = "baz", Baz = "a" },
+                    new Foo { Bar = "aa", Baz = "b" },
+                    new Foo { Bar = "zz", Baz = "b" }
+                }.AsQueryable().OrderBy(x => x.Baz);
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(ctx =>
+                {
+                    ctx.Field("foo")
+                    .Resolver(data)
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
+                    .UseSorting();
+                })
+                .Create();
+
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo(order_by: { bar: DESC }) { bar } }")
+                    .Create();
+
+            // act
+            IExecutionResult result = schema.MakeExecutable().Execute(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
 
         [Fact]
         public void Sort_ComparableAsc_ShouldSortByStringAsc()
