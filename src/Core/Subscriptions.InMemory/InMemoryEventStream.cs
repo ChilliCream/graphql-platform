@@ -17,7 +17,7 @@ namespace HotChocolate.Subscriptions
 
         public event EventHandler Completed;
 
-        public bool IsCompleted { get; private set; }
+        public bool IsCompleted => _channel.Reader.Completion.IsCompleted;
 
         public ValueTask TriggerAsync(
             IEventMessage message,
@@ -27,7 +27,6 @@ namespace HotChocolate.Subscriptions
             {
                 throw new ArgumentNullException(nameof(message));
             }
-
             return _channel.Writer.WriteAsync(message, cancellationToken);
         }
 
@@ -39,7 +38,7 @@ namespace HotChocolate.Subscriptions
 
         public ValueTask CompleteAsync(CancellationToken cancellationToken = default)
         {
-            IsCompleted = true;
+            _channel.Writer.Complete();
             Completed?.Invoke(this, EventArgs.Empty);
             return default;
         }
@@ -54,7 +53,10 @@ namespace HotChocolate.Subscriptions
             {
                 if (disposing)
                 {
-                    IsCompleted = true;
+                    if (!_channel.Reader.Completion.IsCompleted)
+                    {
+                        _channel.Writer.Complete();
+                    }
                     Completed?.Invoke(this, EventArgs.Empty);
                 }
 

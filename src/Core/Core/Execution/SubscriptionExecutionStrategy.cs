@@ -103,7 +103,7 @@ namespace HotChocolate.Execution
         {
             var eventRegistry = services.GetService<IEventRegistry>();
 
-            if (eventRegistry == null)
+            if (eventRegistry is null)
             {
                 throw new QueryException(
                     ErrorBuilder.New()

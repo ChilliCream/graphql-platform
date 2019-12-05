@@ -26,7 +26,7 @@ namespace HotChocolate.Subscriptions
                 {
                     foreach (InMemoryEventStream stream in subscribers)
                     {
-                        await stream.TriggerAsync(message, cancellationToken);
+                        await stream.TriggerAsync(message, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -40,7 +40,7 @@ namespace HotChocolate.Subscriptions
             IEventDescription eventDescription,
             CancellationToken cancellationToken = default)
         {
-            if (eventDescription == null)
+            if (eventDescription is null)
             {
                 throw new ArgumentNullException(nameof(eventDescription));
             }
