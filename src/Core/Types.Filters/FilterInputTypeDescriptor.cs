@@ -25,12 +25,11 @@ namespace HotChocolate.Types.Filters
                 throw new ArgumentNullException(nameof(entityType));
             }
 
+            IFilterNamingConvention convention = context.GetFilterNamingConvention();
+
             Definition.EntityType = entityType;
             Definition.ClrType = typeof(object);
-
-            // TODO : should we rework get type name?
-            Definition.Name = context.Naming.GetTypeName(
-                entityType, TypeKind.Object) + "Filter";
+            Definition.Name = convention.GetFilterTypeName(context, entityType);
             // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);

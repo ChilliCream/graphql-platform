@@ -19,8 +19,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context)
         {
-            _namingConvention = context.GetConventionOrDefault<IFilterNamingConvention>(
-                FilterNamingConventionSnakeCase.Default);
+            _namingConvention = context.GetFilterNamingConvention();
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -211,6 +210,10 @@ namespace HotChocolate.Types.Filters
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
+            if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
+            {
+                Definition.Name = _namingConvention.ArrayFilterPropertyName;
+            }
             return _namingConvention.CreateFieldName(Definition, kind);
         }
 
