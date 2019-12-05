@@ -9,6 +9,8 @@ namespace HotChocolate.Types.Sorting
         protected override void Configure(IEnumTypeDescriptor<SortOperationKind> descriptor)
         {
             base.Configure(descriptor);
+            descriptor.Value(SortOperationKind.Asc);
+            descriptor.Value(SortOperationKind.Desc);
         }
 
         protected override EnumTypeDefinition CreateDefinition(IInitializationContext context)

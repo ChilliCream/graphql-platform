@@ -680,6 +680,20 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Include_TypeWithOneField_And_Update_FieldDefinition()
+        {
+            // arrange
+            // act
+            ObjectType<object> fooType =
+                CreateType(new ObjectType<object>(d => d
+                    .Include<Foo>()
+                    .Field<Foo>(t => t.Description).Name("desc")));
+
+            // assert
+            Assert.True(fooType.Fields.ContainsField("desc"));
+        }
+
+        [Fact]
         public void NonNullAttribute_StringIsRewritten_NonNullStringType()
         {
             // arrange
@@ -1267,7 +1281,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Argument_Type_IsInfered_From_Parameter()
+        public void Argument_Type_IsInferred_From_Parameter()
         {
             // arrange
             // act

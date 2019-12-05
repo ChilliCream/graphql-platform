@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = new T();
         }
 
-        protected override T Definition { get; }
+        internal protected override T Definition { get; }
 
         protected void SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)

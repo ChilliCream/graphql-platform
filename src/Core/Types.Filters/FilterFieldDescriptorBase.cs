@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected sealed override FilterFieldDefintion Definition { get; } =
+        internal protected sealed override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
@@ -170,10 +170,10 @@ namespace HotChocolate.Types.Filters
                     return clrRef;
                 }
                 else
-                {
+                { 
                     Type type = clrRef.Type;
-                    if(type.IsGenericType &&
-                        Nullable.GetUnderlyingType(type) is Type nullableType)
+                    if (type.IsGenericType &&
+                        System.Nullable.GetUnderlyingType(type) is Type nullableType) 
                     {
                         type = nullableType;
                     }

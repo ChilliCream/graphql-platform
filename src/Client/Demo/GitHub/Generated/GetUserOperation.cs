@@ -3,38 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.GitHub
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public class GetUserOperation
         : IOperation<IGetUser>
     {
-        private bool _modified_login;
-
-        private string _value_login;
-
         public string Name => "getUser";
 
         public IDocument Document => Queries.Default;
 
+        public OperationKind Kind => OperationKind.Query;
+
         public Type ResultType => typeof(IGetUser);
 
-        public string Login
-        {
-            get => _value_login;
-            set
-            {
-                _value_login = value;
-                _modified_login = true;
-            }
-        }
+        public Optional<string> Login { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
 
-            if(_modified_login)
+            if (Login.HasValue)
             {
-                variables.Add(new VariableValue("login", "String", Login));
+                variables.Add(new VariableValue("login", "String", Login.Value));
             }
 
             return variables;

@@ -6,9 +6,9 @@ namespace StrawberryShake.Http.Pipelines
 {
     public class ExceptionMiddleware
     {
-        private readonly OperationDelegate _next;
+        private readonly OperationDelegate<IHttpOperationContext> _next;
 
-        public ExceptionMiddleware(OperationDelegate next)
+        public ExceptionMiddleware(OperationDelegate<IHttpOperationContext> next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }

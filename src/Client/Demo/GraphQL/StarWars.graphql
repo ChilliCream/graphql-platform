@@ -123,12 +123,6 @@ input ReviewInput {
   commentary: String
   "The number of stars given for this review."
   stars: Int!
-
-  author: Author
-}
-
-input Author {
-  name: String!
 }
 
 "The Star Wars episodes."

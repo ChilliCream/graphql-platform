@@ -7,6 +7,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GraphQL
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public interface IStarWarsClient
     {
         Task<IOperationResult<IGetHero>> GetHeroAsync(
@@ -40,6 +41,14 @@ namespace StrawberryShake.Client.GraphQL
 
         Task<IOperationResult<ICreateReview>> CreateReviewAsync(
             CreateReviewOperation operation,
+            CancellationToken cancellationToken = default);
+
+        Task<IResponseStream<IOnReview>> OnReviewAsync(
+            Optional<Episode> episode = default,
+            CancellationToken cancellationToken = default);
+
+        Task<IResponseStream<IOnReview>> OnReviewAsync(
+            OnReviewOperation operation,
             CancellationToken cancellationToken = default);
     }
 }
