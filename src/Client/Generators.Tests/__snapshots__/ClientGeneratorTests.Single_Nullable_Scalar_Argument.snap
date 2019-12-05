@@ -5,7 +5,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetBars
         : IGetBars
     {
@@ -27,7 +27,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetBars
     {
         string? Foo { get; }
@@ -47,7 +47,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetBarsResultParser
         : JsonResultParserBase<IGetBars>
     {
@@ -96,7 +96,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetBarsOperation
         : IOperation<IGetBars>
     {
@@ -134,7 +134,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISchemaClient
     {
         Task<IOperationResult<IGetBars>> GetBarsAsync(
@@ -157,7 +157,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class SchemaClient
         : ISchemaClient
     {
@@ -211,7 +211,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static class SchemaClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaClient";

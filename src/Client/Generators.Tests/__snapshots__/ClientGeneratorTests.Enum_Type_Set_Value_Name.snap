@@ -5,7 +5,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetEpisode
         : IGetEpisode
     {
@@ -27,7 +27,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetEpisode
     {
         IReadOnlyList<Episode?>? AppearsIn { get; }
@@ -47,7 +47,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetEpisodeResultParser
         : JsonResultParserBase<IGetEpisode>
     {
@@ -109,7 +109,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetEpisodeOperation
         : IOperation<IGetEpisode>
     {
@@ -138,7 +138,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISchemaClient
     {
         Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
@@ -160,7 +160,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class SchemaClient
         : ISchemaClient
     {
@@ -204,7 +204,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Episode
     {
         NewHope,
@@ -221,7 +221,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class EpisodeValueSerializer
         : IValueSerializer
     {
@@ -297,7 +297,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static class SchemaClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaClient";

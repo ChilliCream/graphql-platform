@@ -5,7 +5,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetFoo
         : IGetFoo
     {
@@ -31,7 +31,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class FooInput
     {
         public Optional<BarInput?> Bar { get; set; }
@@ -46,7 +46,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class BarInput
     {
         public Optional<int?> Baz { get; set; }
@@ -61,7 +61,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class FooInputSerializer
         : IInputSerializer
     {
@@ -137,7 +137,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class BarInputSerializer
         : IInputSerializer
     {
@@ -213,7 +213,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo
     {
         string? A { get; }
@@ -235,7 +235,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetFooResultParser
         : JsonResultParserBase<IGetFoo>
     {
@@ -285,7 +285,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetFooOperation
         : IOperation<IGetFoo>
     {
@@ -330,7 +330,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISchemaClient
     {
         Task<IOperationResult<IGetFoo>> GetFooAsync(
@@ -354,7 +354,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class SchemaClient
         : ISchemaClient
     {
@@ -422,7 +422,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Client
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static class SchemaClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaClient";
