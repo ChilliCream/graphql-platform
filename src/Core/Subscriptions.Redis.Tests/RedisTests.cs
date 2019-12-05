@@ -35,8 +35,7 @@ namespace HotChocolate.Subscriptions.Redis
                     Guid.NewGuid().ToString());
 
                 // act
-                IEventStream consumer = await _registry
-                    .SubscribeAsync(eventDescription);
+                IEventStream consumer = await _registry.SubscribeAsync(eventDescription);
                 var outgoing = new EventMessage(eventDescription, "bar");
                 await _sender.SendAsync(outgoing);
 
@@ -56,8 +55,7 @@ namespace HotChocolate.Subscriptions.Redis
                     Guid.NewGuid().ToString());
 
                 // act
-                IEventStream consumer = await _registry
-                    .SubscribeAsync(eventDescription);
+                IEventStream consumer = await _registry.SubscribeAsync(eventDescription);
                 await consumer.CompleteAsync();
 
                 // assert
@@ -78,8 +76,7 @@ namespace HotChocolate.Subscriptions.Redis
                 // act
                 IEventStream consumerOne = await _registry
                     .SubscribeAsync(eventDescription);
-                IEventStream consumerTwo = await _registry
-                    .SubscribeAsync(eventDescription);
+                IEventStream consumerTwo = await _registry.SubscribeAsync(eventDescription);
                 var outgoing = new EventMessage(eventDescription, "bar");
                 await _sender.SendAsync(outgoing);
 
@@ -107,21 +104,17 @@ namespace HotChocolate.Subscriptions.Redis
                     name, new ArgumentNode("b", "y"));
 
                 // act
-                IEventStream consumerOne = await _registry
-                    .SubscribeAsync(eventDescriptionOne);
+                IEventStream consumerOne = await _registry.SubscribeAsync(eventDescriptionOne);
                 var outgoingOne = new EventMessage(eventDescriptionOne, "foo");
                 await _sender.SendAsync(outgoingOne);
 
-                IEventStream consumerTwo = await _registry
-                    .SubscribeAsync(eventDescriptionTwo);
+                IEventStream consumerTwo = await _registry.SubscribeAsync(eventDescriptionTwo);
                 var outgoingTwo = new EventMessage(eventDescriptionTwo, "bar");
                 await _sender.SendAsync(outgoingTwo);
 
                 // assert
-                IEventMessage incomingOne =
-                    await consumerOne.ReadAsync(cts.Token);
-                IEventMessage incomingTwo =
-                    await consumerTwo.ReadAsync(cts.Token);
+                IEventMessage incomingOne = await consumerOne.ReadAsync(cts.Token);
+                IEventMessage incomingTwo = await consumerTwo.ReadAsync(cts.Token);
                 Assert.Equal(outgoingOne.Payload, incomingOne.Payload);
                 Assert.Equal(outgoingTwo.Payload, incomingTwo.Payload);
                 Assert.NotEqual(incomingOne.Event, incomingTwo.Event);

@@ -24,10 +24,10 @@ namespace StrawberryShake.Http.Subscriptions
 
         public abstract IResultParser ResultParser { get; }
 
-        public abstract Task OnCompletedAsync(
+        public abstract ValueTask OnCompletedAsync(
             CancellationToken cancellationToken);
 
-        public abstract Task OnReceiveResultAsync(
+        public abstract ValueTask OnReceiveResultAsync(
             DataResultMessage message,
             CancellationToken cancellationToken);
 

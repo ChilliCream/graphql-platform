@@ -157,21 +157,24 @@ namespace StrawberryShake.Generators.CSharp
                         "OperationExecutorPool>();")
                         .ConfigureAwait(false);
 
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddEnumerable(new ServiceDescriptor(")
-                        .ConfigureAwait(false);
-
-                    using (writer.IncreaseIndent())
+                    if (descriptor.OperationTypes.Contains(OperationType.Subscription))
                     {
                         await writer.WriteIndentedLineAsync(
-                            "typeof(ISocketConnectionInterceptor),")
+                            "serviceCollection.TryAddEnumerable(new ServiceDescriptor(")
                             .ConfigureAwait(false);
-                        await writer.WriteIndentedLineAsync(
-                            "typeof(MessagePipelineHandler),")
-                            .ConfigureAwait(false);
-                        await writer.WriteIndentedLineAsync(
-                            "ServiceLifetime.Singleton));")
-                            .ConfigureAwait(false);
+
+                        using (writer.IncreaseIndent())
+                        {
+                            await writer.WriteIndentedLineAsync(
+                                "typeof(ISocketConnectionInterceptor),")
+                                .ConfigureAwait(false);
+                            await writer.WriteIndentedLineAsync(
+                                "typeof(MessagePipelineHandler),")
+                                .ConfigureAwait(false);
+                            await writer.WriteIndentedLineAsync(
+                                "ServiceLifetime.Singleton));")
+                                .ConfigureAwait(false);
+                        }
                     }
                 }).ConfigureAwait(false);
         }

@@ -25,26 +25,20 @@ namespace HotChocolate.Subscriptions.Redis
 
         public bool IsCompleted => _isCompleted;
 
-        public Task<IEventMessage> ReadAsync() =>
-            ReadAsync(CancellationToken.None);
-
-        public async Task<IEventMessage> ReadAsync(
+        public async ValueTask<IEventMessage> ReadAsync(
             CancellationToken cancellationToken)
         {
-            ChannelMessage message = await _channel
-                .ReadAsync(cancellationToken);
-
+            ChannelMessage message = await _channel.ReadAsync(cancellationToken);
             var payload = _serializer.Deserialize(message.Message);
-
             return new EventMessage(message.Channel, payload);
         }
 
-        public async Task CompleteAsync()
+        public async ValueTask CompleteAsync(
+            CancellationToken cancellationToken)
         {
             if (!_isCompleted)
             {
-                await _channel.UnsubscribeAsync()
-                    .ConfigureAwait(false);
+                await _channel.UnsubscribeAsync().ConfigureAwait(false);
                 _isCompleted = true;
             }
         }

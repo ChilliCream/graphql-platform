@@ -7,7 +7,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GitHub
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGitHubClient
     {
         Task<IOperationResult<IGetUser>> GetUserAsync(

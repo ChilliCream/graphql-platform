@@ -3,7 +3,8 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": [{
+  "configurations": [
+    {
       "name": ".NET Core Launch (console)",
       "type": "coreclr",
       "request": "launch",
@@ -12,10 +13,10 @@
       // "args": ["generate", "-d", "-n StrawberryShake.Client.GraphQL", "-f"],
       "args": [
         "generate",
-        "-p ./GraphQL",
+        "-p ./StarWarsQuery",
         "-l 8.0",
         "-d",
-        "-n StrawberryShake.Client.GraphQL",
+        "-n StrawberryShake.Client.StarWarsQuery",
         "-f"
       ],
       /*"args": [
