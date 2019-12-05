@@ -27,4 +27,8 @@
     <ProjectReference Include="..\..\Core\Language\Language.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Threading.Channels" Version="4.6.0" />
+  </ItemGroup>
+
 </Project>

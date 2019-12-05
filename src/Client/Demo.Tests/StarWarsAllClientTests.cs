@@ -61,12 +61,14 @@ namespace StrawberryShake.Demo
                 "StarWarsClient", port,
                 s => s.AddStarWarsClient());
             IStarWarsClient client = services.GetRequiredService<IStarWarsClient>();
-            using var cts = new CancellationTokenSource(15000);
+            using var cts = new CancellationTokenSource(30000);
 
             // act
             var stream = await client.OnReviewAsync(Episode.Empire, cts.Token);
 
             // assert
+            await Task.Delay(5000).ConfigureAwait(false);
+
             await client.CreateReviewAsync(
                 Episode.Empire,
                 new ReviewInput
