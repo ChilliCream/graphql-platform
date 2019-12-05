@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Sorting
             if (!OrderingMethodFinder.OrderMethodExists(source.Expression))
             {
                 sortedSource = source.AddInitialSortOperation(
-                    Instance.Dequeue(), _parameter);
+                    SortOperations.Dequeue());
             }
             else
             {
