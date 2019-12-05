@@ -113,7 +113,7 @@ namespace HotChocolate.Types.Sorting
             {
                 Closure.Instance.Pop();
             }
-            return VisitorAction.Continue;
+            return base.Leave(node, parent, path, ancestors);
         }
 
         #endregion
