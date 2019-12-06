@@ -17,24 +17,28 @@ namespace HotChocolate.Types.Sorting
         {
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
-        public new ISortObjectOperationDescriptor Ignore()
+        /// <inheritdoc/>
+        public new ISortObjectOperationDescriptor Ignore(bool ignore = true)
         {
-            base.Ignore();
+            base.Ignore(ignore);
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Description(string value)
         {
             base.Description(value);
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
@@ -42,6 +46,7 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Directive<T>()
             where T : class, new()
         {
@@ -49,6 +54,7 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)

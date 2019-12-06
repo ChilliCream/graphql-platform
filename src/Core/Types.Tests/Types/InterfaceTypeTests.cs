@@ -162,6 +162,42 @@ namespace HotChocolate.Types
                 });
         }
 
+
+        [Fact]
+        public void UnignoreFieldsFromClrInterface()
+        {
+            // arrange
+            // act
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(t => {
+                    t.Ignore(p => p.Bar);
+                    t.Field(p => p.Bar).Ignore(false);
+                }),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
+
+            // assert
+            Assert.Collection(
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                t =>
+                {
+                    Assert.Equal("baz", t.Name);
+                    Assert.IsType<StringType>(t.Type);
+                },
+                t =>
+                {
+                    Assert.Equal("bar", t.Name);
+                    Assert.IsType<BooleanType>(t.Type);
+                },
+                t =>
+                {
+                    Assert.Equal("qux", t.Name);
+                    Assert.IsType<IntType>(
+                        Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.Collection(t.Arguments,
+                        a => Assert.Equal("a", a.Name));
+                });
+        }
+
         [Fact]
         public void ExplicitInterfaceFieldDeclaration()
         {
