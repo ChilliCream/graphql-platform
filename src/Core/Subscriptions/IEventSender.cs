@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
 {
@@ -19,6 +20,11 @@ namespace HotChocolate.Subscriptions
         /// <param name="message">
         /// The event message.
         /// </param>
-        Task SendAsync(IEventMessage message);
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        ValueTask SendAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -7,12 +7,17 @@ using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class ObjectField
         : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
+        private readonly static FieldDelegate _empty = c =>
+            throw new InvalidOperationException();
+
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
 
@@ -20,7 +25,9 @@ namespace HotChocolate.Types
             : base(definition)
         {
             Member = definition.Member;
+            Middleware = _empty;
             Resolver = definition.Resolver;
+            SubscribeResolver = definition.SubscribeResolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
 
@@ -35,6 +42,11 @@ namespace HotChocolate.Types
         /// Gets the field resolver.
         /// </summary>
         public FieldResolverDelegate Resolver { get; private set; }
+
+        /// <summary>
+        /// Gets the subscription resolver.
+        /// </summary>
+        public FieldResolverDelegate? SubscribeResolver { get; }
 
         /// <summary>
         /// Gets all executable directives that are associated with this field.
@@ -76,11 +88,9 @@ namespace HotChocolate.Types
             ISet<string> processed,
             IEnumerable<IDirective> directives)
         {
-            foreach (IDirective directive in
-                directives.Where(t => t.IsExecutable))
+            foreach (IDirective directive in directives.Where(t => t.IsExecutable))
             {
-                if (!processed.Add(directive.Name)
-                    && !directive.Type.IsRepeatable)
+                if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
                 {
                     IDirective remove = _executableDirectives
                         .First(t => t.Name.Equals(directive.Name));
@@ -104,10 +114,8 @@ namespace HotChocolate.Types
                 // gets resolvers that were provided via type extensions,
                 // explicit resolver results or are provided through the
                 // resolver compiler.
-                FieldResolver resolver =
-                    context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(
-                    context.Type.Name, Resolver, resolver);
+                FieldResolver resolver = context.GetResolver(definition.Name);
+                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver);
             }
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;

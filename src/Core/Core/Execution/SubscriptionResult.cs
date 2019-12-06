@@ -10,12 +10,12 @@ namespace HotChocolate.Execution
         IExecutionContext executionContext,
         CancellationToken cancellationToken);
 
-    internal class SubscriptionResult
+    internal sealed class SubscriptionResult
         : ISubscriptionExecutionResult
     {
         private readonly Dictionary<string, object> _contextData =
             new Dictionary<string, object>();
-        private readonly IEventStream _eventStream;
+        private readonly IAsyncEnumerable<object> _sourceStream;
         private readonly Func<IEventMessage, IExecutionContext> _contextFactory;
         private readonly ExecuteSubscriptionQuery _executeQuery;
         private readonly IRequestServiceScope _serviceScope;
@@ -24,13 +24,13 @@ namespace HotChocolate.Execution
         private bool _isCompleted;
 
         public SubscriptionResult(
-            IEventStream eventStream,
+            IAsyncEnumerable<object> sourceStream,
             Func<IEventMessage, IExecutionContext> contextFactory,
             ExecuteSubscriptionQuery executeQuery,
             IRequestServiceScope serviceScope)
         {
-            _eventStream = eventStream
-                ?? throw new ArgumentNullException(nameof(eventStream));
+            _eventStream = sourceStream
+                ?? throw new ArgumentNullException(nameof(sourceStream));
             _contextFactory = contextFactory
                 ?? throw new ArgumentNullException(nameof(contextFactory));
             _executeQuery = executeQuery

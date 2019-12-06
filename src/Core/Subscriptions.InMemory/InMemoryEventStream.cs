@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
@@ -7,92 +9,91 @@ namespace HotChocolate.Subscriptions
     public class InMemoryEventStream
         : IEventStream
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private TaskCompletionSource<IEventMessage> _taskCompletionSource =
-            new TaskCompletionSource<IEventMessage>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly Channel<IEventMessage> _channel;
+
+        public InMemoryEventStream()
+        {
+            _channel = Channel.CreateUnbounded<IEventMessage>();
+        }
 
         public event EventHandler Completed;
 
-        public bool IsCompleted { get; private set; }
-
-        public void Trigger(IEventMessage message)
+        public IAsyncEnumerator<IEventMessage> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
-            if (message == null)
+            return new InMemoryEventStreamEnumerator(
+                _channel,
+                () => Completed?.Invoke(this, EventArgs.Empty),
+                cancellationToken);
+        }
+
+        public async ValueTask TriggerAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            if (message is null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            _semaphore.Wait();
-
-            try
+            if (await _channel.Writer.WaitToWriteAsync(cancellationToken).ConfigureAwait(false))
             {
-                _taskCompletionSource.TrySetResult(message);
-            }
-            finally
-            {
-                _semaphore.Release();
+                await _channel.Writer.WriteAsync(message, cancellationToken);
             }
         }
 
-        public Task<IEventMessage> ReadAsync()
+        public ValueTask CompleteAsync(CancellationToken cancellationToken = default)
         {
-            return ReadAsync(CancellationToken.None);
-        }
-
-        public async Task<IEventMessage> ReadAsync(
-            CancellationToken cancellationToken)
-        {
-            IEventMessage message = await _taskCompletionSource.Task
-                .ConfigureAwait(false);
-
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-
-            try
-            {
-                _taskCompletionSource = new TaskCompletionSource<IEventMessage>(
-                    TaskCreationOptions.RunContinuationsAsynchronously);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-
-            return message;
-        }
-
-        public Task CompleteAsync()
-        {
-            IsCompleted = true;
+            _channel.Writer.Complete();
             Completed?.Invoke(this, EventArgs.Empty);
-            return Task.CompletedTask;
+            return default;
         }
 
-        #region IDisposable
-
-        private bool _disposedValue;
-
-        protected virtual void Dispose(bool disposing)
+        private class InMemoryEventStreamEnumerator
+            : IAsyncEnumerator<IEventMessage>
         {
-            if (!_disposedValue)
+            private readonly Channel<IEventMessage> _channel;
+            private readonly Action _completed;
+            private readonly CancellationToken _cancellationToken;
+            private bool _disposedValue;
+
+            public InMemoryEventStreamEnumerator(
+                Channel<IEventMessage> channel,
+                Action completed,
+                CancellationToken cancellationToken)
             {
-                if (disposing)
+                _channel = channel;
+                _completed = completed;
+                _cancellationToken = cancellationToken;
+            }
+
+            public IEventMessage Current { get; private set; }
+
+            public async ValueTask<bool> MoveNextAsync()
+            {
+                if (await _channel.Reader.WaitToReadAsync(_cancellationToken).ConfigureAwait(false))
                 {
-                    IsCompleted = true;
-                    Completed?.Invoke(this, EventArgs.Empty);
+                    Current = await _channel.Reader.ReadAsync(_cancellationToken);
+                    return true;
                 }
 
-                _disposedValue = true;
+                Current = null;
+                return false;
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                if (!_disposedValue)
+                {
+                    if (!_channel.Reader.Completion.IsCompleted)
+                    {
+                        _channel.Writer.Complete();
+                    }
+                    _completed();
+                    _disposedValue = true;
+                }
+                return default;
             }
         }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion
     }
 }
-

@@ -25,11 +25,8 @@ namespace HotChocolate.Subscriptions.Redis
 
         public bool IsCompleted => _isCompleted;
 
-        public Task<IEventMessage> ReadAsync() =>
-            ReadAsync(CancellationToken.None);
-
-        public async Task<IEventMessage> ReadAsync(
-            CancellationToken cancellationToken)
+        public async ValueTask<IEventMessage> ReadAsync(
+            CancellationToken cancellationToken = default)
         {
             ChannelMessage message = await _channel
                 .ReadAsync(cancellationToken);
@@ -39,7 +36,8 @@ namespace HotChocolate.Subscriptions.Redis
             return new EventMessage(message.Channel, payload);
         }
 
-        public async Task CompleteAsync()
+        public async ValueTask CompleteAsync(
+            CancellationToken cancellationToken = default)
         {
             if (!_isCompleted)
             {

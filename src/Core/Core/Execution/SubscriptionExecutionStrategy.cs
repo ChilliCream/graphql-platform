@@ -1,3 +1,6 @@
+using System.Linq.Expressions;
+using System.Collections.Concurrent;
+using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
 using System.IO;
 using System;
@@ -10,6 +13,10 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Subscriptions;
 using HotChocolate.Language;
+using System.Collections.Immutable;
+using HotChocolate.Resolvers;
+using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution
 {
@@ -39,6 +46,61 @@ namespace HotChocolate.Execution
 
         private async Task<IExecutionResult> ExecuteInternalAsync(
             IExecutionContext executionContext)
+        {
+            FieldSelection fieldSelection = executionContext.CollectFields(
+                executionContext.Schema.SubscriptionType,
+                executionContext.Operation.Definition.SelectionSet,
+                null)
+                .Single();
+
+            ImmutableStack<object> source = ImmutableStack<object>.Empty
+                .Push(executionContext.Operation.RootValue);
+
+            var subscribeContext = ResolverContext.Rent(
+                executionContext,
+                fieldSelection,
+                source,
+                new Dictionary<string, object>());
+
+            FieldResolverDelegate subscribeResolver =
+                fieldSelection.Field.SubscribeResolver
+                ?? SubscribeDefaultResolverAsync;
+
+
+            try
+            {
+                object result = await subscribeResolver(subscribeContext);
+                IAsyncEnumerable<object> asyncEnumerable = null;
+
+                if (result is IEventStream a)
+                {
+                    asyncEnumerable = a.ToSourceStream(executionContext.RequestAborted);
+                }
+                else if (result is IAsyncEnumerable<object> b)
+                {
+                    asyncEnumerable = b.ToSourceStream(executionContext.RequestAborted);
+                }
+                else
+                {
+                    asyncEnumerable = result.ToSourceStream(executionContext.RequestAborted);
+                }
+
+                if (asyncEnumerable is null)
+                {
+                    throw new QueryException(
+                        ErrorBuilder.New()
+                            .SetMessage("The event stream is not compatible.")
+                            .Build());
+                }
+            }
+            finally
+            {
+                ResolverContext.Return(subscribeContext);
+            }
+        }
+
+        private async Task<object> SubscribeDefaultResolverAsync(
+            IResolverContext resolverContext)
         {
             EventDescription eventDescription = CreateEvent(executionContext);
 
@@ -96,7 +158,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static Task<IEventStream> SubscribeAsync(
+        private static ValueTask<IEventStream> SubscribeAsync(
             IServiceProvider services,
             IEventDescription @event)
         {
@@ -142,6 +204,59 @@ namespace HotChocolate.Execution
             {
                 batchOperationHandler?.Dispose();
                 requestTimeoutCts.Dispose();
+            }
+        }
+
+
+
+    }
+
+    internal static class SourceStreamHelper
+    {
+        private static readonly MethodInfo _convert = typeof(SourceStreamHelper)
+            .GetMethods(BindingFlags.Static)
+            .First(m => m.Name == "ToSourceStream" && m.IsGenericMethod);
+
+        private static ConcurrentDictionary<Type, Func<object, IAsyncEnumerable<object>>> _cache =
+            new ConcurrentDictionary<Type, Func<object, IAsyncEnumerable<object>>>();
+
+        public static async IAsyncEnumerable<object> ToSourceStream(
+            this IEventStream stream,
+            [EnumeratorCancellation]CancellationToken cancellationToken)
+        {
+            await foreach (IEventMessage message in stream.WithCancellation(cancellationToken))
+            {
+                yield return message;
+            }
+        }
+
+        public static IAsyncEnumerable<object> ToSourceStream(
+            this object stream,
+            CancellationToken cancellationToken)
+        {
+            Type type = stream.GetType();
+            Func<object, IAsyncEnumerable<object>> func = _cache.GetOrAdd(type, o =>
+            {
+                Type enumerable = type.GetInterfaces().FirstOrDefault(t =>
+                    t.IsGenericType
+                    && t.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>));
+
+                MethodInfo method = _convert.MakeGenericMethod(
+                    enumerable.GetGenericArguments()[0]);
+
+                return new Func<object, IAsyncEnumerable<object>>(o =>
+                    (IAsyncEnumerable<object>)method.Invoke(null, new[] { o, cancellationToken }));
+            });
+            return func?.Invoke(stream);
+        }
+
+        public static async IAsyncEnumerable<object> ToSourceStream<T>(
+            this IAsyncEnumerable<T> stream,
+            [EnumeratorCancellation]CancellationToken cancellationToken)
+        {
+            await foreach (IEventMessage message in stream.WithCancellation(cancellationToken))
+            {
+                yield return message;
             }
         }
     }
