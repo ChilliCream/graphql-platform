@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Sorting
                 entityType, TypeKind.Object);
         }
 
-        protected sealed override SortInputTypeDefinition Definition { get; } =
+        internal protected sealed override SortInputTypeDefinition Definition { get; } =
             new SortInputTypeDefinition();
 
         protected ICollection<SortOperationDescriptor> Fields { get; } =
@@ -179,16 +179,15 @@ namespace HotChocolate.Types.Sorting
             PropertyInfo property,
             out SortOperationDefintion definition)
         {
-            if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
+            Type type = property.PropertyType;
+            if (typeof(IComparable).IsAssignableFrom(type))
             {
                 definition = SortOperationDescriptor
                     .CreateOperation(property, Context)
                     .CreateDefinition();
                 return true;
             }
-            if (
-                property.PropertyType.IsClass &&
-                !typeof(IEnumerable<>).IsAssignableFrom(property.PropertyType))
+            if (type.IsClass && !DotNetTypeInfoFactory.IsListType(type))
             {
                 definition = SortObjectOperationDescriptor
                     .CreateOperation(property, Context)
