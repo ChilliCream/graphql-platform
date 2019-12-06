@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -11,24 +12,49 @@ namespace HotChocolate.Types.Sorting
         {
             Parameter = Expression.Parameter(type, parameterName);
             Instance = new Stack<Expression>();
+            Property = new Stack<PropertyInfo>();
 
             Instance.Push(Parameter);
         }
 
         public ParameterExpression Parameter { get; }
 
-        public Stack<Expression> Instance { get; }
+        private Stack<Expression> Instance { get; }
+        private Stack<PropertyInfo> Property { get; }
 
         public SortOperationInvocation CreateSortOperation(SortOperationKind kind)
         {
             return new SortOperationInvocation(kind, Parameter, Instance.Peek());
         }
 
+        public SortOperationInvocation CreateInMemorySortOperation(SortOperationKind kind)
+        {
+            Expression nextExpression = Instance.Peek();
+            if (Property.Count > 0)
+            {
+                DefaultExpression constant =
+                    Expression.Default(Property.Peek().PropertyType);
+                Stack<Expression>.Enumerator enumerator = Instance.GetEnumerator();
+                enumerator.MoveNext();
+                while (enumerator.MoveNext())
+                {
+                    nextExpression =
+                        SortExpressionBuilder.IfNullThenDefault(enumerator.Current, nextExpression, constant);
+                }
+            }
+            return new SortOperationInvocation(kind, Parameter, nextExpression);
+        }
+
         public void EnqueueProperty(PropertyInfo property)
         {
-            Instance.Push(Expression.Property(
-                Instance.Peek(),
-                property));
+            Property.Push(property);
+            Instance.Push(Expression.Property(Instance.Peek(), property));
+        }
+
+        public Expression Pop()
+        {
+            Property.Pop();
+            return Instance.Pop();
         }
     }
 }

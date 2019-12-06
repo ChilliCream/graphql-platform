@@ -180,6 +180,12 @@ namespace HotChocolate.Types.Sorting
             out SortOperationDefintion definition)
         {
             Type type = property.PropertyType;
+
+            if (type.IsGenericType
+                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
+            {
+                type = nullableType;
+            }
             if (typeof(IComparable).IsAssignableFrom(type))
             {
                 definition = SortOperationDescriptor

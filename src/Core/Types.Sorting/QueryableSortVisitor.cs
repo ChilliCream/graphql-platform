@@ -27,6 +27,11 @@ namespace HotChocolate.Types.Sorting
             new Queue<SortOperationInvocation>();
         protected SortQueryableClosure Closure { get; }
 
+        protected virtual SortOperationInvocation CreateSortOperation(SortOperationKind kind)
+        {
+            return Closure.CreateSortOperation(kind);
+        }
+
 
         public IQueryable<TSource> Sort<TSource>(
             IQueryable<TSource> source)
@@ -95,7 +100,7 @@ namespace HotChocolate.Types.Sorting
                 if (!sortField.Operation.IsObject)
                 {
                     var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value);
-                    SortOperations.Enqueue(Closure.CreateSortOperation(kind));
+                    SortOperations.Enqueue(CreateSortOperation(kind));
                 }
             }
 
@@ -111,7 +116,7 @@ namespace HotChocolate.Types.Sorting
 
             if (Operations.Peek() is SortOperationField)
             {
-                Closure.Instance.Pop();
+                Closure.Pop();
             }
             return base.Leave(node, parent, path, ancestors);
         }
