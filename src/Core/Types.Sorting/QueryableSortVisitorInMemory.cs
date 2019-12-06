@@ -18,7 +18,8 @@ namespace HotChocolate.Types.Sorting
 
         }
 
-        protected override SortOperationInvocation CreateSortOperation(SortOperationKind kind)
+        protected override SortOperationInvocation CreateSortOperation(
+            SortOperationKind kind)
         {
             return Closure.CreateInMemorySortOperation(kind);
         }

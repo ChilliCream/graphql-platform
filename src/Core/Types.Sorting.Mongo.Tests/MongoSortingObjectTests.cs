@@ -67,9 +67,15 @@ namespace HotChocolate.Types.Sorting
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
                 {
-                    new Parent { Model = new Model { Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
-                    new Parent { Model = new Model { Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
-                    new Parent { Model = new Model { Foo = "abc", Bar = 2, Baz = false, BazNullable= null } }
+                    new Parent {
+                        Model = new Model {
+                            Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
+                    new Parent {
+                        Model = new Model {
+                            Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
+                    new Parent {
+                        Model = new Model {
+                            Foo = "abc", Bar = 2, Baz = false, BazNullable= null } }
                 });
                 return collection;
             });
@@ -82,7 +88,8 @@ namespace HotChocolate.Types.Sorting
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(order_by: { model: { bazNullable: DESC } }) { model { bazNullable } } }")
+                .SetQuery(
+                "{ items(order_by: { model: { bazNullable: DESC } }) { model { bazNullable } } }")
                 .Create();
 
             // act
@@ -104,8 +111,12 @@ namespace HotChocolate.Types.Sorting
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
                 {
-                    new Parent { Model = new Model { Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
-                    new Parent { Model = new Model { Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
+                    new Parent {
+                        Model = new Model {
+                            Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
+                    new Parent {
+                        Model = new Model {
+                            Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
                     new Parent {   }
                 });
                 return collection;
@@ -119,7 +130,8 @@ namespace HotChocolate.Types.Sorting
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(order_by: { model: { bazNullable: DESC } }) { model { bazNullable } } }")
+                .SetQuery(
+                 "{ items(order_by: { model: { bazNullable: DESC } }) { model { bazNullable } } }")
                 .Create();
 
             // act

@@ -20,7 +20,6 @@ namespace HotChocolate.Types.Sorting
             Expression right,
             DefaultExpression defaultExpression)
         {
-            Expression<Func<Expression, string>> ex = x => x.Type.FullName ?? default;
             return Expression.Condition(IsNull(left), defaultExpression, right);
         }
     }

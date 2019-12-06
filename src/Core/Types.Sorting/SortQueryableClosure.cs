@@ -27,19 +27,21 @@ namespace HotChocolate.Types.Sorting
             return new SortOperationInvocation(kind, Parameter, Instance.Peek());
         }
 
-        public SortOperationInvocation CreateInMemorySortOperation(SortOperationKind kind)
+        public SortOperationInvocation CreateInMemorySortOperation(
+            SortOperationKind kind)
         {
             Expression nextExpression = Instance.Peek();
             if (Property.Count > 0)
             {
-                DefaultExpression constant =
+                DefaultExpression defaultOfType =
                     Expression.Default(Property.Peek().PropertyType);
                 Stack<Expression>.Enumerator enumerator = Instance.GetEnumerator();
                 enumerator.MoveNext();
                 while (enumerator.MoveNext())
                 {
                     nextExpression =
-                        SortExpressionBuilder.IfNullThenDefault(enumerator.Current, nextExpression, constant);
+                        SortExpressionBuilder.IfNullThenDefault(
+                            enumerator.Current, nextExpression, defaultOfType);
                 }
             }
             return new SortOperationInvocation(kind, Parameter, nextExpression);
