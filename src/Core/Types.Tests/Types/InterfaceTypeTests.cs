@@ -180,13 +180,14 @@ namespace HotChocolate.Types
                 fooType.Fields.Where(t => !t.IsIntrospectionField),
                 t =>
                 {
-                    Assert.Equal("baz", t.Name);
-                    Assert.IsType<StringType>(t.Type);
+                    Assert.Equal("bar", t.Name);
+                    Assert.IsType<BooleanType>(
+                        Assert.IsType<NonNullType>(t.Type).Type);
                 },
                 t =>
                 {
-                    Assert.Equal("bar", t.Name);
-                    Assert.IsType<BooleanType>(t.Type);
+                    Assert.Equal("baz", t.Name);
+                    Assert.IsType<StringType>(t.Type);
                 },
                 t =>
                 {
