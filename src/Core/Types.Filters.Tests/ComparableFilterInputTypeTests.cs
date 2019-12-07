@@ -29,6 +29,66 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_Override()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.BarShort)
+                        .BindFiltersImplicitly();
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.BarShort)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.BarShort)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                    descriptor.Ignore(x => x.BarShort);
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstIgnoreThenAdd()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor.Ignore(x => x.BarShort);
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.BarShort)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         /// <summary>
         /// This test checks if the binding of all allow methods are correct
         /// </summary>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -56,12 +57,12 @@ namespace HotChocolate.Types.Filters
         public IObjectFilterOperationDescriptor<TObject> AllowObject(
             Action<IFilterInputTypeDescriptor<TObject>> descriptor)
         {
+            ObjectFilterOperationDescriptor<TObject> field =
+                Filters.GetOrAddOperation(FilterOperationKind.Object,
+                    () => CreateOperation(FilterOperationKind.Object));
             var type = new FilterInputType<TObject>(descriptor);
             var typeReference = new SchemaTypeReference(type);
-            ObjectFilterOperationDescriptor<TObject> field =
-                CreateOperation(FilterOperationKind.Object);
             field.Type(typeReference);
-            Filters.Add(field);
             return field;
         }
 
@@ -69,7 +70,8 @@ namespace HotChocolate.Types.Filters
             where TFilter : FilterInputType<TObject>
         {
             ObjectFilterOperationDescriptor<TObject> field =
-                CreateOperation(FilterOperationKind.Object);
+                Filters.GetOrAddOperation(FilterOperationKind.Object,
+                    () => CreateOperation(FilterOperationKind.Object));
             field.Type<TFilter>();
             Filters.Add(field);
 

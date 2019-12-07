@@ -39,6 +39,66 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Bind_Filter_FilterDescirptor_Override()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<FooSimple>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .List(x => x.BarBool)
+                        .BindImplicitly();
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .List(x => x.BarBool)
+                        .BindExplicitly().AllowAny();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<FooSimple>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .List(x => x.BarBool)
+                        .BindExplicitly().AllowAny();
+                    descriptor.Ignore(x => x.BarBool);
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstIgnoreThenAdd()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<FooSimple>(descriptor =>
+                {
+                    descriptor.Ignore(x => x.BarBool);
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .List(x => x.BarBool)
+                        .BindExplicitly().AllowAny();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Create_ArraySimpleFilterDouble_FooExplicitBarExplicit()
         {
             // arrange
