@@ -26,7 +26,6 @@ namespace HotChocolate.Types.Filters.Extensions
                 throw new ArgumentNullException(nameof(valueFactory));
             }
 
-
             FilterFieldDescriptorBase fieldDescriptor =
                 fields.FirstOrDefault(t => t.Definition.Property.Equals(propertyInfo));
 
@@ -60,7 +59,6 @@ namespace HotChocolate.Types.Filters.Extensions
             {
                 throw new ArgumentNullException(nameof(valueFactory));
             }
-
 
             FilterOperationDescriptorBase operationDescriptor =
                 fields.FirstOrDefault(t => t.Definition.Operation.Kind.Equals(operationKind));

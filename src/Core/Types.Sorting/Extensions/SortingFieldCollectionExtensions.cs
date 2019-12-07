@@ -27,7 +27,8 @@ namespace HotChocolate.Types.Sorting.Extensions
             }
 
             SortOperationDescriptor fieldDescriptor =
-                fields.FirstOrDefault(t => t.Definition.Operation.Property.Equals(propertyInfo));
+                fields.FirstOrDefault(
+                    t => t.Definition.Operation.Property.Equals(propertyInfo));
 
             if (fieldDescriptor is { })
             {
