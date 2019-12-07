@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Filters.Extensions
 {
     public static class FilterFieldCollectionExtensions
     {
-        public static T GetOrAddDescirptor<T>(
+        public static T GetOrAddDescriptor<T>(
             this List<FilterFieldDescriptorBase> fields,
             PropertyInfo propertyInfo,
             Func<T> valueFactory) where T : FilterFieldDescriptorBase

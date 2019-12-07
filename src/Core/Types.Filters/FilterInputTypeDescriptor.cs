@@ -247,7 +247,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescirptor(p,
+                return Fields.GetOrAddDescriptor(p,
                     () => new StringFilterFieldDescriptor(Context, p));
             }
 
@@ -261,7 +261,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescirptor(p,
+                return Fields.GetOrAddDescriptor(p,
                     () => new BooleanFilterFieldDescriptor(Context, p));
             }
 
@@ -275,7 +275,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescirptor(p,
+                return Fields.GetOrAddDescriptor(p,
                     () => new ComparableFilterFieldDescriptor(Context, p));
             }
 
@@ -289,7 +289,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                Fields.GetOrAddDescirptor(p,
+                Fields.GetOrAddDescriptor(p,
                     () => new IgnoredFilterFieldDescriptor(Context, p));
                 return this;
             }
@@ -304,7 +304,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescirptor(p,
+                return Fields.GetOrAddDescriptor(p,
                     () => new ObjectFilterFieldDescriptor<TObject>(Context, p));
             }
 
@@ -318,7 +318,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescirptor(p,
+                return Fields.GetOrAddDescriptor(p,
                     () => new ArrayFilterFieldDescriptor<TObject>(Context, p));
             }
 
