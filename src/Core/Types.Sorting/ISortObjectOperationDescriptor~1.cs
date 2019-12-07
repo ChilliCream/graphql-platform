@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Sorting
 {
     public interface ISortObjectOperationDescriptor<TObject>
         : IDescriptor<SortOperationDefintion>
-        , IFluent
+        , IFluent, ISortObjectOperationDescriptor
     {
         /// <summary>
         /// Specify the name of the sort operation.
@@ -13,13 +13,13 @@ namespace HotChocolate.Types.Sorting
         /// <param name="value">
         ///  The sort operation name.
         /// </param>
-        ISortObjectOperationDescriptor<TObject> Name(NameString value);
+        new ISortObjectOperationDescriptor<TObject> Name(NameString value);
 
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
         /// <param name="property">The property that shall be ignored.</param>
-        ISortObjectOperationDescriptor<TObject> Ignore();
+        new ISortObjectOperationDescriptor<TObject> Ignore();
 
         /// <summary>
         /// Specifies the type of the filter operation
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Sorting
         /// <param name="value">
         ///  The operation description.
         /// </param>
-        ISortObjectOperationDescriptor<TObject> Description(string value);
+        new ISortObjectOperationDescriptor<TObject> Description(string value);
 
         /// <summary>
         /// Annotate the operation filter field with a directive.
@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Sorting
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        ISortObjectOperationDescriptor<TObject> Directive<T>(T directiveInstance)
+        new ISortObjectOperationDescriptor<TObject> Directive<T>(T directiveInstance)
             where T : class;
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Sorting
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        ISortObjectOperationDescriptor<TObject> Directive<T>()
+        new ISortObjectOperationDescriptor<TObject> Directive<T>()
             where T : class, new();
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Sorting
         /// <param name="arguments">
         /// The argument values of the directive.
         /// </param>
-        ISortObjectOperationDescriptor<TObject> Directive(
+        new ISortObjectOperationDescriptor<TObject> Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }

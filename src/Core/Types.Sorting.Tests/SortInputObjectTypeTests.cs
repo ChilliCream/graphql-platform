@@ -30,6 +30,59 @@ namespace HotChocolate.Types.Sorting
             schema.ToString().MatchSnapshot();
         }
 
+
+        [Fact]
+        public void Bind_Sort_SortDescirptor_OverrideDescriptor()
+        {
+            // arrange
+            // act
+            ISortOperationDescriptor first = null;
+            ISortOperationDescriptor second = null;
+            ISchema schema = CreateSchema(
+                new SortInputType<Bar>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .Sortable(x => x.BarProperty);
+                    first.Name("this_should_not_be_visible");
+
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .Sortable(x => x.BarProperty);
+                    second.Name("bar");
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
+        [Fact]
+        public void Bind_Sort_SortDescirptor_OverrideObjectDescriptor()
+        {
+            // arrange
+            // act
+            ISortOperationDescriptor first = null;
+            ISortOperationDescriptor second = null;
+            ISchema schema = CreateSchema(
+                new SortInputType<Bar>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .SortableObject(x => x.Baz);
+                    first.Name("this_should_not_be_visible");
+
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .SortableObject(x => x.Baz);
+                    second.Name("bar");
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
         [Fact]
         public void Create_Implicit_Sorting_WithIgnoredField()
         {

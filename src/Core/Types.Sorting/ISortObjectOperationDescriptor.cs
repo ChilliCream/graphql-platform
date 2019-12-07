@@ -4,7 +4,7 @@ namespace HotChocolate.Types.Sorting
 {
     public interface ISortObjectOperationDescriptor
         : IDescriptor<SortOperationDefintion>
-        , IFluent
+        , IFluent, ISortOperationDescriptor
     {
         /// <summary>
         /// Specify the name of the sort operation.
@@ -12,13 +12,13 @@ namespace HotChocolate.Types.Sorting
         /// <param name="value">
         ///  The sort operation name.
         /// </param>
-        ISortObjectOperationDescriptor Name(NameString value);
+        new ISortObjectOperationDescriptor Name(NameString value);
 
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
         /// <param name="property">The property that shall be ignored.</param>
-        ISortObjectOperationDescriptor Ignore();
+        new ISortObjectOperationDescriptor Ignore();
 
         /// <summary>
         /// Specify the description of the filter operation.
@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Sorting
         /// <param name="value">
         ///  The operation description.
         /// </param>
-        ISortObjectOperationDescriptor Description(string value);
+        new ISortObjectOperationDescriptor Description(string value);
 
         /// <summary>
         /// Annotate the operation filter field with a directive.
@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Sorting
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        ISortObjectOperationDescriptor Directive<T>(T directiveInstance)
+        new ISortObjectOperationDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace HotChocolate.Types.Sorting
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        ISortObjectOperationDescriptor Directive<T>()
+        new ISortObjectOperationDescriptor Directive<T>()
             where T : class, new();
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Sorting
         /// <param name="arguments">
         /// The argument values of the directive.
         /// </param>
-        ISortObjectOperationDescriptor Directive(
+        new ISortObjectOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }
