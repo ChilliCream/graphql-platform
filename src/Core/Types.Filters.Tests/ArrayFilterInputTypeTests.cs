@@ -39,6 +39,41 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
+        {
+            // arrange
+            // act
+            IArrayFilterFieldDescriptor<ISingleFilter<bool>> first = null;
+            IArrayFilterFieldDescriptor<ISingleFilter<bool>> second = null;
+            ISchema schema = CreateSchema(
+                new FilterInputType<FooSimple>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .List(x => x.BarBool)
+                        .BindExplicitly()
+                        .AllowAll().Name("this_should_not_be_visible").And()
+                        .AllowNone().Name("this_should_not_be_visible").And()
+                        .AllowSome().Name("this_should_not_be_visible").And();
+                    first.AllowAny().Name("this_should_not_be_visible");
+
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .List(x => x.BarBool)
+                        .BindExplicitly()
+                        .AllowAll().Name("all").And()
+                        .AllowNone().Name("none").And()
+                        .AllowSome().Name("some").And();
+                    second.AllowAny().Name("any");
+
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
+        [Fact]
         public void Bind_Filter_FilterDescirptor_Override()
         {
             // arrange

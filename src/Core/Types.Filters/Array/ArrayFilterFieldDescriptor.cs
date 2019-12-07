@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -48,7 +49,7 @@ namespace HotChocolate.Types.Filters
         public IArrayFilterOperationDescriptor AllowSome()
         {
             ArrayFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.ArraySome);
+                GetOrCreateOperation(FilterOperationKind.ArraySome);
             Filters.Add(field);
             return field;
         }
@@ -56,7 +57,7 @@ namespace HotChocolate.Types.Filters
         public IArrayFilterOperationDescriptor AllowNone()
         {
             ArrayFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.ArrayNone);
+                GetOrCreateOperation(FilterOperationKind.ArrayNone);
             Filters.Add(field);
             return field;
         }
@@ -64,7 +65,7 @@ namespace HotChocolate.Types.Filters
         public IArrayFilterOperationDescriptor AllowAll()
         {
             ArrayFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.ArrayAll);
+                GetOrCreateOperation(FilterOperationKind.ArrayAll);
             Filters.Add(field);
             return field;
         }
@@ -72,7 +73,7 @@ namespace HotChocolate.Types.Filters
         public IArrayBooleanFilterOperationDescriptor AllowAny()
         {
             ArrayBooleanFilterOperationDescriptor field =
-                CreateBooleanOperation(FilterOperationKind.ArrayAny);
+                GetOrCreateBooleanOperation(FilterOperationKind.ArrayAny);
             Filters.Add(field);
             return field;
         }
@@ -101,6 +102,20 @@ namespace HotChocolate.Types.Filters
                     Definition.Type.Context,
                     true,
                     true);
+        }
+
+        private ArrayFilterOperationDescriptor GetOrCreateOperation(
+            FilterOperationKind operationKind)
+        {
+            return Filters.GetOrAddOperation(operationKind,
+                    () => CreateOperation(operationKind));
+        }
+
+        private ArrayBooleanFilterOperationDescriptor GetOrCreateBooleanOperation(
+            FilterOperationKind operationKind)
+        {
+            return Filters.GetOrAddOperation(operationKind,
+                    () => CreateBooleanOperation(operationKind));
         }
 
         private ArrayFilterOperationDescriptor CreateOperation(

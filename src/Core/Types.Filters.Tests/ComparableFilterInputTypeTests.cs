@@ -30,6 +30,55 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
+        {
+            // arrange
+            // act
+            IComparableFilterFieldDescriptor first = null;
+            IComparableFilterFieldDescriptor second = null;
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.BarShort)
+                        .BindFiltersExplicitly()
+                        .AllowEquals().Name("this_should_not_be_visible").And()
+                        .AllowNotEquals().Name("this_should_not_be_visible").And()
+                        .AllowIn().Name("this_should_not_be_visible").And()
+                        .AllowNotIn().Name("this_should_not_be_visible").And()
+                        .AllowGreaterThan().Name("this_should_not_be_visible").And()
+                        .AllowNotGreaterThan().Name("this_should_not_be_visible").And()
+                        .AllowGreaterThanOrEquals().Name("this_should_not_be_visible").And()
+                        .AllowNotGreaterThanOrEquals().Name("this_should_not_be_visible").And()
+                        .AllowLowerThan().Name("this_should_not_be_visible").And()
+                        .AllowNotLowerThan().Name("this_should_not_be_visible").And()
+                        .AllowLowerThanOrEquals().Name("this_should_not_be_visible").And()
+                        .AllowNotLowerThanOrEquals().Name("this_should_not_be_visible").And();
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.BarShort)
+                        .AllowEquals().Name("eq").And()
+                        .AllowNotEquals().Name("neq").And()
+                        .AllowIn().Name("in").And()
+                        .AllowNotIn().Name("nin").And()
+                        .AllowGreaterThan().Name("gt").And()
+                        .AllowNotGreaterThan().Name("ngt").And()
+                        .AllowGreaterThanOrEquals().Name("gte").And()
+                        .AllowNotGreaterThanOrEquals().Name("ngte").And()
+                        .AllowLowerThan().Name("lt").And()
+                        .AllowNotLowerThan().Name("nlt").And()
+                        .AllowLowerThanOrEquals().Name("lte").And()
+                        .AllowNotLowerThanOrEquals().Name("nlte").And();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
+
+        [Fact]
         public void Bind_Filter_FilterDescirptor_Override()
         {
             // arrange

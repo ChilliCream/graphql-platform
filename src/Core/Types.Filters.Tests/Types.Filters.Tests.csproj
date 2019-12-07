@@ -17,14 +17,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="__snapshots__\__mismatch__\**" />
+    <EmbeddedResource Remove="__snapshots__\__mismatch__\**" />
+    <None Remove="__snapshots__\__mismatch__\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Types\Types.csproj" />
     <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
     <ProjectReference Include="..\Types.Tests\Types.Tests.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

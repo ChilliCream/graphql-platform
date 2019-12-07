@@ -103,6 +103,35 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
+        {
+            // arrange
+            // act
+            IObjectFilterFieldDescriptor<Bar> first = null;
+            IObjectFilterFieldDescriptor<Bar> second = null;
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly()
+                        .AllowObject().Name("this_should_not_be_visible").And();
+
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly()
+                        .AllowObject().Name("obj").And();
+
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
+        [Fact]
         public void Bind_Filter_FilterDescirptor_OverrideString()
         {
             // arrange

@@ -209,7 +209,36 @@ namespace HotChocolate.Types.Filters
 
             // assert
             schema.ToString().MatchSnapshot();
-        } 
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
+        {
+            // arrange
+            // act
+            IBooleanFilterFieldDescriptor first = null;
+            IBooleanFilterFieldDescriptor second = null;
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly()
+                        .AllowEquals().Name("this_should_not_be_visible").And()
+                        .AllowNotEquals().Name("this_should_not_be_visible_not").And();
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly()
+                        .AllowEquals().Name("equals").And()
+                        .AllowNotEquals().Name("not_equals").And();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
 
         [Fact]
         public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()

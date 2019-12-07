@@ -54,12 +54,18 @@ namespace HotChocolate.Types.Filters
                 operation);
         }
 
+        private ObjectFilterOperationDescriptor<TObject> GetOrCreateOperation(
+            FilterOperationKind operationKind)
+        {
+            return Filters.GetOrAddOperation(operationKind,
+                    () => CreateOperation(operationKind));
+        }
+
         public IObjectFilterOperationDescriptor<TObject> AllowObject(
             Action<IFilterInputTypeDescriptor<TObject>> descriptor)
         {
             ObjectFilterOperationDescriptor<TObject> field =
-                Filters.GetOrAddOperation(FilterOperationKind.Object,
-                    () => CreateOperation(FilterOperationKind.Object));
+                GetOrCreateOperation(FilterOperationKind.Object);
             var type = new FilterInputType<TObject>(descriptor);
             var typeReference = new SchemaTypeReference(type);
             field.Type(typeReference);
@@ -70,8 +76,7 @@ namespace HotChocolate.Types.Filters
             where TFilter : FilterInputType<TObject>
         {
             ObjectFilterOperationDescriptor<TObject> field =
-                Filters.GetOrAddOperation(FilterOperationKind.Object,
-                    () => CreateOperation(FilterOperationKind.Object));
+                GetOrCreateOperation(FilterOperationKind.Object);
             field.Type<TFilter>();
             Filters.Add(field);
 
