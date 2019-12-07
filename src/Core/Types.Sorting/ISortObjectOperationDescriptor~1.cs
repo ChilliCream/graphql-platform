@@ -3,9 +3,8 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Sorting
 {
-    public interface ISortObjectOperationDescriptor<TObject>
-        : IDescriptor<SortOperationDefintion>
-        , IFluent, ISortObjectOperationDescriptor
+    public interface ISortObjectOperationDescriptor<TObject> :
+        ISortObjectOperationDescriptor
     {
         /// <summary>
         /// Specify the name of the sort operation.
