@@ -109,12 +109,11 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType<SimpleInput>(
-                d =>
-                {
-                    d.Field(f => f.Id).Ignore();
-                    d.Field(f => f.Id).Ignore(false);
-                });
+            var fooType = new InputObjectType<SimpleInput>(d =>
+               {
+                   d.Field(f => f.Id).Ignore();
+                   d.Field(f => f.Id).Ignore(false);
+               });
 
             // assert
             fooType = CreateType(fooType);
@@ -478,12 +477,11 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<StringType>()
                     .Resolver("bar"))
-                .AddType(new InputObjectType<SimpleInput>(
-                    d =>
-                    {
-                        d.Ignore(t => t.Id);
-                        d.Field(t => t.Id).Ignore(false);
-                    }))
+                .AddType(new InputObjectType<SimpleInput>(d =>
+                {
+                    d.Ignore(t => t.Id);
+                    d.Field(t => t.Id).Ignore(false);
+                }))
                 .Create();
 
             // assert
