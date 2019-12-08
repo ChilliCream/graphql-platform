@@ -163,9 +163,9 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IComparableFilterFieldDescriptor Ignore()
+        public IComparableFilterFieldDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

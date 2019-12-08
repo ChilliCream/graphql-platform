@@ -26,9 +26,9 @@ namespace HotChocolate.Types.Sorting
         internal protected sealed override SortOperationDefintion Definition { get; } =
             new SortOperationDefintion();
 
-        public ISortOperationDescriptor Ignore()
+        public ISortOperationDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

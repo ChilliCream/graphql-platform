@@ -18,8 +18,8 @@ namespace HotChocolate.Types.Sorting
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="property">The property that shall be ignored.</param>
-        ISortObjectOperationDescriptor<TObject> Ignore();
+        /// <param name="ignore">If set to true the field is ignored</param> 
+        ISortObjectOperationDescriptor<TObject> Ignore(bool ignore = true);
 
         /// <summary>
         /// Specifies the type of the filter operation
