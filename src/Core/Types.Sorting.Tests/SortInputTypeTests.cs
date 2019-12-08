@@ -366,6 +366,7 @@ namespace HotChocolate.Types.Sorting
 
         private class Foo
         {
+            public bool? NullableBoolean { get; set; }
             public string Bar { get; set; }
             public string Baz { get; set; }
         }
