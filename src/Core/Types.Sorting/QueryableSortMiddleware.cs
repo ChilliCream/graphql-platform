@@ -57,7 +57,16 @@ namespace HotChocolate.Types.Sorting
                 && context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot
                 && iot is ISortInputType fit)
             {
-                var visitor = new QueryableSortVisitor(iot, fit.EntityType);
+                QueryableSortVisitor visitor;
+                if (source is EnumerableQuery)
+                {
+                    visitor = new QueryableSortVisitorInMemory(iot, fit.EntityType);
+                }
+                else
+                {
+                    visitor = new QueryableSortVisitor(iot, fit.EntityType);
+                }
+
                 sortArgument.Accept(visitor);
 
                 source = visitor.Sort(source);
