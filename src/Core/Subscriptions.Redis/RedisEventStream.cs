@@ -83,17 +83,25 @@ namespace HotChocolate.Subscriptions.Redis
 
             public async ValueTask<bool> MoveNextAsync()
             {
-                if (_isCompleted)
+                if (_isCompleted || _channel.Completion.IsCompleted)
                 {
                     Current = null;
                     return false;
                 }
 
-                ChannelMessage message =
-                    await _channel.ReadAsync(_cancellationToken).ConfigureAwait(false);
-                object payload = _serializer.Deserialize(message.Message);
-                Current = new EventMessage(message.Channel, payload);
-                return true;
+                try
+                {
+                    ChannelMessage message =
+                        await _channel.ReadAsync(_cancellationToken).ConfigureAwait(false);
+                    object payload = _serializer.Deserialize(message.Message);
+                    Current = new EventMessage(message.Channel, payload);
+                    return true;
+                }
+                catch
+                {
+                    Current = null;
+                    return false;
+                }
             }
 
             public async ValueTask DisposeAsync()

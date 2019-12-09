@@ -90,14 +90,29 @@ namespace HotChocolate.Subscriptions
 
             public async ValueTask<bool> MoveNextAsync()
             {
-                if (await _channel.Reader.WaitToReadAsync(_cancellationToken).ConfigureAwait(false))
+                if (_isCompleted || _channel.Reader.Completion.IsCompleted)
                 {
-                    Current = await _channel.Reader.ReadAsync(_cancellationToken);
-                    return true;
+                    return false;
                 }
 
-                Current = null;
-                return false;
+                try
+                {
+                    if (await _channel.Reader.WaitToReadAsync(_cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        Current = await _channel.Reader.ReadAsync(_cancellationToken)
+                            .ConfigureAwait(false);
+                        return true;
+                    }
+
+                    Current = null;
+                    return false;
+                }
+                catch
+                {
+                    Current = null;
+                    return false;
+                }
             }
 
             public ValueTask DisposeAsync()
