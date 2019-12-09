@@ -43,7 +43,7 @@ namespace HotChocolate.Types
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor);
 
-        IObjectFieldDescriptor Ignore();
+        IObjectFieldDescriptor Ignore(bool ignore = true);
 
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver);

@@ -142,9 +142,9 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IStringFilterFieldDescriptor Ignore()
+        public IStringFilterFieldDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

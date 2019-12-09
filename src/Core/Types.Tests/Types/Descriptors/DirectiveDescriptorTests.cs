@@ -201,6 +201,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void UnignoreArgumentBinding()
+        {
+            // arrange
+            var descriptor =
+                DirectiveTypeDescriptor.New<CustomDirective>(Context);
+
+            // act
+            descriptor.Argument(t => t.FieldA).Ignore();
+            descriptor.Argument(t => t.FieldA).Ignore(false);
+
+            // assert
+            DirectiveTypeDefinition description =
+                descriptor.CreateDefinition();
+            Assert.Collection(description.Arguments,
+                t => Assert.Equal("fieldA", t.Name),
+                t => Assert.Equal("fieldB", t.Name));
+        }
+
+        [Fact]
         public void MethodsAreNotAllowedAsArguments()
         {
             // arrange

@@ -1208,6 +1208,26 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void UnignoreFieldWithShortcut()
+        {
+            // arrange
+            // act
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d =>
+            {
+                d.Ignore(t => t.Description);
+                d.Field("foo").Type<StringType>().Resolver("abc");
+                d.Field(t => t.Description).Ignore(false);
+            }));
+
+            // assert
+            Assert.Collection(
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                t => Assert.Equal("description", t.Name),
+                t => Assert.Equal("foo", t.Name));
+
+        }
+
+        [Fact]
         public void IgnoreField_DescriptorIsNull_ArgumentNullException()
         {
             // arrange

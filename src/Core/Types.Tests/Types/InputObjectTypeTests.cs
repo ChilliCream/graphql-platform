@@ -103,6 +103,25 @@ namespace HotChocolate.Types
                 t => Assert.Equal("name", t.Name));
         }
 
+
+        [Fact]
+        public void Initialize_UnignoreProperty_PropertyIsInSchemaType()
+        {
+            // arrange
+            // act
+            var fooType = new InputObjectType<SimpleInput>(d =>
+               {
+                   d.Field(f => f.Id).Ignore();
+                   d.Field(f => f.Id).Ignore(false);
+               });
+
+            // assert
+            fooType = CreateType(fooType);
+            Assert.Collection(fooType.Fields,
+                t => Assert.Equal("id", t.Name),
+                t => Assert.Equal("name", t.Name));
+        }
+
         [Fact]
         public void ParseLiteral()
         {
@@ -441,6 +460,28 @@ namespace HotChocolate.Types
                     .Resolver("bar"))
                 .AddType(new InputObjectType<SimpleInput>(d => d
                     .Ignore(t => t.Id)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Unignore_Id_Property()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d =>
+                {
+                    d.Ignore(t => t.Id);
+                    d.Field(t => t.Id).Ignore(false);
+                }))
                 .Create();
 
             // assert
