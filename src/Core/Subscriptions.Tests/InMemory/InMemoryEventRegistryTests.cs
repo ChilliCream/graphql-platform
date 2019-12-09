@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using Xunit;
 
@@ -10,24 +12,26 @@ namespace HotChocolate.Subscriptions.InMemory
         public async Task Subscribe_Send_MessageReceived()
         {
             // arrange
+            using var cts = new CancellationTokenSource(30000);
             var eventDescription = new EventDescription("foo");
             var eventRegistry = new InMemoryEventRegistry();
 
             // act
-            IEventStream stream =
-                await eventRegistry.SubscribeAsync(eventDescription);
+            IEventStream stream = await eventRegistry.SubscribeAsync(eventDescription);
+            IAsyncEnumerator<IEventMessage> enumerator = stream.GetAsyncEnumerator(cts.Token);
 
             // assert
             var incoming = new EventMessage("foo");
             await eventRegistry.SendAsync(incoming);
-            IEventMessage outgoing = await stream.ReadAsync();
-            Assert.Equal(incoming, outgoing);
+            Assert.True(await enumerator.MoveNextAsync());
+            Assert.Equal(incoming, enumerator.Current);
         }
 
         [Fact]
         public async Task Subscribe_ObjectValueArgument_Send_MessageReceived()
         {
             // arrange
+            using var cts = new CancellationTokenSource(30000);
             var eventRegistry = new InMemoryEventRegistry();
 
             var a = new EventDescription("event",
@@ -43,14 +47,14 @@ namespace HotChocolate.Subscriptions.InMemory
                 new ObjectFieldNode("c", "abc"))));
 
             // act
-            IEventStream stream =
-                await eventRegistry.SubscribeAsync(a);
+            IEventStream stream = await eventRegistry.SubscribeAsync(a);
+            IAsyncEnumerator<IEventMessage> enumerator = stream.GetAsyncEnumerator(cts.Token);
 
             // assert
             var incoming = new EventMessage(b, "foo");
             await eventRegistry.SendAsync(incoming);
-            IEventMessage outgoing = await stream.ReadAsync();
-            Assert.Equal(incoming, outgoing);
+            Assert.True(await enumerator.MoveNextAsync());
+            Assert.Equal(incoming, enumerator.Current);
         }
     }
 }

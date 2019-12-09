@@ -29,9 +29,13 @@ namespace HotChocolate.Types.Descriptors
             {
                 FieldDescriptorUtilities.AddImplicitFields(
                     this,
-                    p => ObjectFieldDescriptor
-                        .New(Context, p)
-                        .CreateDefinition(),
+                    p =>
+                    {
+                        // how to fix the field declaration issue
+                        ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(Context, p);
+                        Fields.Add(descriptor);
+                        return descriptor.CreateDefinition();
+                    },
                     fields,
                     handledMembers);
             }

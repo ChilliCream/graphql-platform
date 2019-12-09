@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumValueDefinition>
         , IEnumValueDescriptor
     {
-        private bool _deprecatedDependecySet;
+        private bool _deprecatedDependencySet;
         private DirectiveDefinition _deprecatedDirective;
 
         public EnumValueDescriptor(IDescriptorContext context, object value)
@@ -21,8 +21,8 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = context.Naming.GetEnumValueName(value);
             Definition.Value = value;
-            Definition.Description =
-                context.Naming.GetEnumValueDescription(value);
+            Definition.Description = context.Naming.GetEnumValueDescription(value);
+            Definition.Member = context.Inspector.GetEnumValueMember(value);
 
             if (context.Naming.IsDeprecated(value, out string reason))
             {
@@ -30,8 +30,18 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected override EnumValueDefinition Definition { get; } =
+        internal protected override EnumValueDefinition Definition { get; } =
             new EnumValueDefinition();
+
+        protected override void OnCreateDefinition(EnumValueDefinition definition)
+        {
+            base.OnCreateDefinition(definition);
+
+            if (Definition.Member is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.Member);
+            }
+        }
 
         public IEnumValueDescriptor SyntaxNode(
             EnumValueDefinitionNode enumValueDefinition)
@@ -89,14 +99,14 @@ namespace HotChocolate.Types.Descriptors
                 new DeprecatedDirective(reason));
             Definition.Directives.Add(_deprecatedDirective);
 
-            if (!_deprecatedDependecySet)
+            if (!_deprecatedDependencySet)
             {
                 Definition.Dependencies.Add(new TypeDependency(
                     new ClrTypeReference(
                         typeof(DeprecatedDirectiveType),
                         TypeContext.None),
                     TypeDependencyKind.Completed));
-                _deprecatedDependecySet = true;
+                _deprecatedDependencySet = true;
             }
         }
 

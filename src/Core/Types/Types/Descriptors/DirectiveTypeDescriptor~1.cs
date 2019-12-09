@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -88,7 +89,14 @@ namespace HotChocolate.Types.Descriptors
 
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var descriptor = new DirectiveArgumentDescriptor(Context, p);
+                DirectiveArgumentDescriptor descriptor =
+                Arguments.FirstOrDefault(t => t.Definition.Property == p);
+                if (descriptor is { })
+                {
+                    return descriptor;
+                }
+
+                descriptor = new DirectiveArgumentDescriptor(Context, p);
                 Arguments.Add(descriptor);
                 return descriptor;
             }
