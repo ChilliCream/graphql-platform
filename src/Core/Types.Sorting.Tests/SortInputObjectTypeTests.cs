@@ -62,8 +62,8 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             // act
-            ISortOperationDescriptor first = null;
-            ISortOperationDescriptor second = null;
+            ISortObjectOperationDescriptor<Baz> first = null;
+            ISortObjectOperationDescriptor<Baz> second = null;
             ISchema schema = CreateSchema(
                 new SortInputType<Bar>(descriptor =>
                 {

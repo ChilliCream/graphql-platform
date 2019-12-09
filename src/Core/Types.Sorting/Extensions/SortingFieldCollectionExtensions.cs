@@ -9,9 +9,9 @@ namespace HotChocolate.Types.Sorting.Extensions
     public static class SortingFieldCollectionExtensions
     {
         public static T GetOrAddDescriptor<T>(
-            this ICollection<SortOperationDescriptor> fields,
+            this ICollection<SortOperationDescriptorBase> fields,
             PropertyInfo propertyInfo,
-            Func<T> valueFactory) where T : SortOperationDescriptor
+            Func<T> valueFactory) where T : SortOperationDescriptorBase
         {
             if (fields == null)
             {
@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Sorting.Extensions
                 throw new ArgumentNullException(nameof(valueFactory));
             }
 
-            SortOperationDescriptor fieldDescriptor =
+            SortOperationDescriptorBase fieldDescriptor =
                 fields.FirstOrDefault(
                     t => t.Definition.Operation.Property.Equals(propertyInfo));
 

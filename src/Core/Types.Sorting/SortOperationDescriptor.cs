@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Sorting
 {
     public class SortOperationDescriptor
-        : ArgumentDescriptorBase<SortOperationDefintion>
+        : SortOperationDescriptorBase
         , ISortOperationDescriptor
     {
         protected SortOperationDescriptor(
@@ -14,13 +14,8 @@ namespace HotChocolate.Types.Sorting
             NameString name,
             ITypeReference type,
             SortOperation operation)
-            : base(context)
+            : base(context, name, type, operation)
         {
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-            Definition.Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Definition.Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
         }
 
         internal protected sealed override SortOperationDefintion Definition { get; } =
@@ -32,7 +27,7 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public ISortOperationDescriptor Name(NameString value)
+        public new ISortOperationDescriptor Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
