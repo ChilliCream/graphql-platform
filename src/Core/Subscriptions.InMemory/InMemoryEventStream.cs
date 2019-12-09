@@ -40,7 +40,7 @@ namespace HotChocolate.Subscriptions
             return _enumerator;
         }
 
-        public async ValueTask TriggerAsync(
+        public ValueTask TriggerAsync(
             IEventMessage message,
             CancellationToken cancellationToken = default)
         {
@@ -49,6 +49,13 @@ namespace HotChocolate.Subscriptions
                 throw new ArgumentNullException(nameof(message));
             }
 
+            return TriggerInternalAsync(message, cancellationToken);
+        }
+
+        private async ValueTask TriggerInternalAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default)
+        {
             if (await _channel.Writer.WaitToWriteAsync(cancellationToken).ConfigureAwait(false))
             {
                 await _channel.Writer.WriteAsync(message, cancellationToken);
