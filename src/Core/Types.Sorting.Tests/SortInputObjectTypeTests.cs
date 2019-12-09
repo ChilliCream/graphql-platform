@@ -28,8 +28,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             schema.ToString().MatchSnapshot();
-        }
-
+        } 
 
         [Fact]
         public void Bind_Sort_SortDescirptor_OverrideDescriptor()
@@ -83,6 +82,42 @@ namespace HotChocolate.Types.Sorting
             Assert.Equal(first, second);
         }
 
+
+        [Fact]
+        public void Bind_Sort_SortDescirptor_FirstAddThenIgnoreBar()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new SortInputType<Baz>(descriptor =>
+                {
+                    descriptor.Sortable(x => x.BazProperty);
+                    descriptor.BindFieldsExplicitly();
+                    descriptor.Sortable(x => x.BarProperty);
+                    descriptor.Ignore(x => x.BarProperty);
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Sort_SortDescirptor_FirstIgnoreThenAddBar()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new SortInputType<Baz>(descriptor =>
+                {
+                    descriptor.BindFieldsExplicitly();
+                    descriptor.Ignore(x => x.BarProperty);
+                    descriptor.Sortable(x => x.BarProperty);
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         [Fact]
         public void Create_Implicit_Sorting_WithIgnoredField()
         {
@@ -91,6 +126,18 @@ namespace HotChocolate.Types.Sorting
             ISchema schema = CreateSchema(
                 new SortInputType<Baz>(d => d.BindFieldsImplicitly()
                     .SortableObject(f => f.BarProperty).Ignore()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Implicit_Sorting_WithIgnoredField2()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new SortInputType<Baz>(d => d.BindFieldsImplicitly().Ignore(f => f.BarProperty)));
 
             // assert
             schema.ToString().MatchSnapshot();
