@@ -57,7 +57,7 @@ namespace HotChocolate.Subscriptions
 
         public ValueTask CompleteAsync(CancellationToken cancellationToken = default)
         {
-            if (_isCompleted)
+            if (!_isCompleted)
             {
                 _channel.Writer.Complete();
                 Completed?.Invoke(this, EventArgs.Empty);
