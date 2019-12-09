@@ -78,21 +78,23 @@ namespace HotChocolate.Types
                 try
                 {
                     _wait = new TaskCompletionSource<object>();
-                    _wait.TrySetCanceled(cancellationToken);
+                    cancellationToken.Register(() => _wait.TrySetCanceled());
 
-                    while (!cancellationToken.IsCancellationRequested
-                        || !_isCompleted)
+                    while (!cancellationToken.IsCancellationRequested)
                     {
-                        if (!_queue.TryDequeue(out T item))
+                        if (_queue.TryDequeue(out T item))
                         {
                             yield return item;
+                        }
+                        else if (_isCompleted)
+                        {
+                            break;
                         }
                         else if (_wait.Task.IsCompleted)
                         {
                             _wait = new TaskCompletionSource<object>();
-                            _wait.TrySetCanceled(cancellationToken);
                         }
-                        else
+                        else if (_queue.Count == 0)
                         {
                             await _wait.Task.ConfigureAwait(false);
                         }
@@ -113,13 +115,21 @@ namespace HotChocolate.Types
             public void OnCompleted()
             {
                 _isCompleted = true;
-                _wait.SetResult(null);
+
+                if (_wait != null && !_wait.Task.IsCompleted)
+                {
+                    _wait.SetResult(null);
+                }
             }
 
             public void OnError(Exception error)
             {
                 _exception = error;
-                _wait.SetResult(null);
+
+                if (_wait != null && !_wait.Task.IsCompleted)
+                {
+                    _wait.SetResult(null);
+                }
             }
 
             public void OnNext(T value)

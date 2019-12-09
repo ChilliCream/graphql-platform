@@ -1,6 +1,6 @@
+using System;
 using System.Threading;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
@@ -29,7 +29,8 @@ namespace HotChocolate.Types
 
             // assert
             IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync("subscription { test }");
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
             await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
@@ -59,7 +60,8 @@ namespace HotChocolate.Types
 
             // assert
             IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync("subscription { test }");
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
             await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
@@ -70,5 +72,99 @@ namespace HotChocolate.Types
             results.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Subscribe_With_Observable()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+            var observable = new TestObservable();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType(t => t
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Subscribe(ctx => observable))
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { test }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            Assert.True(observable.DisposeRaised);
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_With_Observable_Async()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+            var observable = new TestObservable();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType(t => t
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Subscribe(ctx => Task.FromResult<IObservable<string>>(observable)))
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { test }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            Assert.True(observable.DisposeRaised);
+            results.MatchSnapshot();
+        }
+
+        public class TestObservable
+            : IObservable<string>
+            , IDisposable
+
+        {
+            public bool DisposeRaised { get; private set; }
+
+            public IDisposable Subscribe(IObserver<string> observer)
+            {
+                Task.Run(async () =>
+                {
+                    await Task.Delay(250);
+
+                    foreach (var s in new[] { "a", "b", "c" })
+                    {
+                        observer.OnNext(s);
+                    }
+
+                    observer.OnCompleted();
+                });
+
+                return this;
+            }
+
+            public void Dispose()
+            {
+                DisposeRaised = true;
+            }
+        }
     }
 }
+
