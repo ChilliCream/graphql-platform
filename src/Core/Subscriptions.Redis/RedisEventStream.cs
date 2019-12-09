@@ -31,7 +31,7 @@ namespace HotChocolate.Subscriptions.Redis
             if (_isCompleted || (_enumerator is { IsCompleted: true }))
             {
                 throw new InvalidOperationException(
-                    "The stream has be completed and cannot be replayed");
+                    "The stream has been completed and cannot be replayed.");
             }
 
             if (_enumerator is null)

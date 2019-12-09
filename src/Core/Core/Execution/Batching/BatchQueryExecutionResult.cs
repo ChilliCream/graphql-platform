@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Batching
             if (_enumerator.IsCompleted)
             {
                 throw new InvalidOperationException(
-                    "The stream has be completed and cannot be replayed");
+                    "The stream has been completed and cannot be replayed.");
             }
 
             return _enumerator;
