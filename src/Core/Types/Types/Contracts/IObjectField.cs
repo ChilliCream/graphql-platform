@@ -14,6 +14,6 @@ namespace HotChocolate.Types
 
         FieldResolverDelegate Resolver { get; }
 
-        FieldResolverDelegate? SubscribeResolver { get; }
+        SubscribeResolverDelegate? SubscribeResolver { get; }
     }
 }

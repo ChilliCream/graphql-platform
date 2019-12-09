@@ -46,7 +46,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the subscription resolver.
         /// </summary>
-        public FieldResolverDelegate? SubscribeResolver { get; }
+        public SubscribeResolverDelegate? SubscribeResolver { get; }
 
         /// <summary>
         /// Gets all executable directives that are associated with this field.
@@ -154,9 +154,9 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the most relevant overwrite of a resolver.
         /// </summary>
-        private static FieldResolverDelegate GetMostSpecificResolver(
+        private static FieldResolverDelegate? GetMostSpecificResolver(
             NameString typeName,
-            FieldResolverDelegate currentResolver,
+            FieldResolverDelegate? currentResolver,
             FieldResolver externalCompiledResolver)
         {
             // if there is no external compiled resolver then we will pick

@@ -65,9 +65,8 @@ namespace HotChocolate.Execution.Batching
                 await executor.ExecuteAsync(batch, CancellationToken.None);
 
             var results = new List<IReadOnlyQueryResult>();
-            while (!stream.IsCompleted)
+            await foreach (IReadOnlyQueryResult result in stream)
             {
-                IReadOnlyQueryResult result = await stream.ReadAsync();
                 if (result != null)
                 {
                     results.Add(result);
@@ -138,9 +137,8 @@ namespace HotChocolate.Execution.Batching
                 await executor.ExecuteAsync(batch, CancellationToken.None);
 
             var results = new List<IReadOnlyQueryResult>();
-            while (!stream.IsCompleted)
+            await foreach (IReadOnlyQueryResult result in stream)
             {
-                IReadOnlyQueryResult result = await stream.ReadAsync();
                 if (result != null)
                 {
                     results.Add(result);
@@ -214,9 +212,8 @@ namespace HotChocolate.Execution.Batching
                 await executor.ExecuteAsync(batch, CancellationToken.None);
 
             var results = new List<IReadOnlyQueryResult>();
-            while (!stream.IsCompleted)
+            await foreach (IReadOnlyQueryResult result in stream)
             {
-                IReadOnlyQueryResult result = await stream.ReadAsync();
                 if (result != null)
                 {
                     results.Add(result);
@@ -324,9 +321,8 @@ namespace HotChocolate.Execution.Batching
                 await executor.ExecuteAsync(batch, CancellationToken.None);
 
             var results = new List<IReadOnlyQueryResult>();
-            while (!stream.IsCompleted)
+            await foreach (IReadOnlyQueryResult result in stream)
             {
-                IReadOnlyQueryResult result = await stream.ReadAsync();
                 if (result != null)
                 {
                     results.Add(result);
@@ -390,9 +386,8 @@ namespace HotChocolate.Execution.Batching
                 await executor.ExecuteAsync(batch, CancellationToken.None);
 
             var results = new List<IReadOnlyQueryResult>();
-            while (!stream.IsCompleted)
+            await foreach (IReadOnlyQueryResult result in stream)
             {
-                IReadOnlyQueryResult result = await stream.ReadAsync();
                 if (result != null)
                 {
                     results.Add(result);
@@ -464,9 +459,8 @@ namespace HotChocolate.Execution.Batching
                 await executor.ExecuteAsync(batch, CancellationToken.None);
 
             var results = new List<IReadOnlyQueryResult>();
-            while (!stream.IsCompleted)
+            await foreach (IReadOnlyQueryResult result in stream)
             {
-                IReadOnlyQueryResult result = await stream.ReadAsync();
                 if (result != null)
                 {
                     results.Add(result);

@@ -10,6 +10,8 @@ namespace HotChocolate.Subscriptions
         : IEventStream
     {
         private readonly Channel<IEventMessage> _channel;
+        private InMemoryEventStreamEnumerator _enumerator;
+        private bool _isCompleted;
 
         public InMemoryEventStream()
         {
@@ -21,10 +23,21 @@ namespace HotChocolate.Subscriptions
         public IAsyncEnumerator<IEventMessage> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            return new InMemoryEventStreamEnumerator(
-                _channel,
-                () => Completed?.Invoke(this, EventArgs.Empty),
-                cancellationToken);
+            if (_isCompleted || (_enumerator is { IsCompleted: true }))
+            {
+                throw new InvalidOperationException(
+                    "The stream has be completed and cannot be replayed");
+            }
+
+            if (_enumerator is null)
+            {
+                _enumerator = new InMemoryEventStreamEnumerator(
+                    _channel,
+                    () => Completed?.Invoke(this, EventArgs.Empty),
+                    cancellationToken);
+            }
+
+            return _enumerator;
         }
 
         public async ValueTask TriggerAsync(
@@ -44,8 +57,12 @@ namespace HotChocolate.Subscriptions
 
         public ValueTask CompleteAsync(CancellationToken cancellationToken = default)
         {
-            _channel.Writer.Complete();
-            Completed?.Invoke(this, EventArgs.Empty);
+            if (_isCompleted)
+            {
+                _channel.Writer.Complete();
+                Completed?.Invoke(this, EventArgs.Empty);
+                _isCompleted = true;
+            }
             return default;
         }
 
@@ -55,7 +72,7 @@ namespace HotChocolate.Subscriptions
             private readonly Channel<IEventMessage> _channel;
             private readonly Action _completed;
             private readonly CancellationToken _cancellationToken;
-            private bool _disposedValue;
+            private bool _isCompleted;
 
             public InMemoryEventStreamEnumerator(
                 Channel<IEventMessage> channel,
@@ -68,6 +85,8 @@ namespace HotChocolate.Subscriptions
             }
 
             public IEventMessage Current { get; private set; }
+
+            internal bool IsCompleted => _isCompleted;
 
             public async ValueTask<bool> MoveNextAsync()
             {
@@ -83,14 +102,14 @@ namespace HotChocolate.Subscriptions
 
             public ValueTask DisposeAsync()
             {
-                if (!_disposedValue)
+                if (!_isCompleted)
                 {
                     if (!_channel.Reader.Completion.IsCompleted)
                     {
                         _channel.Writer.Complete();
                     }
                     _completed();
-                    _disposedValue = true;
+                    _isCompleted = true;
                 }
                 return default;
             }

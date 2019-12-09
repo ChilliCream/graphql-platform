@@ -55,7 +55,7 @@ namespace HotChocolate.Types
             Type resultType);
 
         IObjectFieldDescriptor Subscribe(
-            FieldResolverDelegate fieldResolver);
+            SubscribeResolverDelegate subscribeResolver);
 
         IObjectFieldDescriptor Use(
             FieldMiddleware middleware);

@@ -210,9 +210,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectFieldDescriptor Subscribe(FieldResolverDelegate fieldResolver)
+        public IObjectFieldDescriptor Subscribe(SubscribeResolverDelegate subscribeResolver)
         {
-            Definition.SubscribeResolver = fieldResolver;
+            Definition.SubscribeResolver = subscribeResolver;
             return this;
         }
 

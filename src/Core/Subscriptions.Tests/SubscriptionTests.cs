@@ -49,9 +49,12 @@ namespace HotChocolate.Subscriptions
             // assert
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
-                IReadOnlyQueryResult result = await responseStream.ReadAsync(cts.Token);
-                Assert.False(responseStream.IsCompleted);
-                Assert.Equal("bar", result.Data["foo"]);
+                await foreach (IReadOnlyQueryResult result in
+                    responseStream.WithCancellation(cts.Token))
+                {
+                    Assert.Equal("bar", result.Data["foo"]);
+                    break;
+                }
             }
         }
 
@@ -93,9 +96,12 @@ namespace HotChocolate.Subscriptions
             // assert
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
-                IReadOnlyQueryResult result = await responseStream.ReadAsync(cts.Token);
-                Assert.False(responseStream.IsCompleted);
-                Assert.Equal("123", result.Data["bar"]);
+                await foreach (IReadOnlyQueryResult result in
+                    responseStream.WithCancellation(cts.Token))
+                {
+                    Assert.Equal("123", result.Data["bar"]);
+                    break;
+                }
             }
         }
 
@@ -143,9 +149,11 @@ namespace HotChocolate.Subscriptions
             // assert
             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             {
-                IReadOnlyQueryResult result = await responseStream.ReadAsync(cts.Token);
-                Assert.False(responseStream.IsCompleted);
-                Assert.Equal("123", result.Data["bar"]);
+                await foreach (IReadOnlyQueryResult result in
+                    responseStream.WithCancellation(cts.Token))
+                {
+                    Assert.Equal("123", result.Data["bar"]);
+                }
             }
         }
 
