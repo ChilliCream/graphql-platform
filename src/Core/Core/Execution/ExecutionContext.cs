@@ -134,7 +134,7 @@ namespace HotChocolate.Execution
         {
             if (_trackedContextBuffer is null)
             {
-                _trackedContextBuffer = ExecutionPools.ContextListPool.Get();
+                _trackedContextBuffer = ExecutionPools.ResolverContextList.Rent();
             }
 
             if (resolverContext is ResolverContext c)
@@ -150,7 +150,7 @@ namespace HotChocolate.Execution
 
         public void ClearTrackedContexts()
         {
-            ExecutionPools.ContextListPool.Return(_trackedContextBuffer);
+            ExecutionPools.ResolverContextList.Return(_trackedContextBuffer);
         }
 
         public IExecutionContext Clone()

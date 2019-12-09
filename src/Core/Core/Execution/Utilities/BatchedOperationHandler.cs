@@ -35,19 +35,19 @@ namespace HotChocolate.Execution
         }
 
         public async Task CompleteAsync(
-            ReadOnlyMemory<Task> tasks,
+            IReadOnlyList<Task> tasks,
             CancellationToken cancellationToken)
         {
-            if (tasks.Length == 0 || All(tasks.Span, IsFinished))
+            if (tasks.Count == 0 || All(tasks, IsFinished))
             {
                 return;
             }
 
-            SubscribeToTasks(tasks.Span);
+            SubscribeToTasks(tasks);
             await InvokeBatchOperationsAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            if (Any(tasks.Span, IsInProgress))
+            if (Any(tasks, IsInProgress))
             {
                 _completed = new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
@@ -57,19 +57,19 @@ namespace HotChocolate.Execution
         }
 
         private void StartCompleteTask(
-            ReadOnlyMemory<Task> tasks,
+            IReadOnlyList<Task> tasks,
             CancellationToken cancellationToken)
         {
             Task.Run(() => CompleteTasksAsync(tasks, cancellationToken));
         }
 
         private async Task CompleteTasksAsync(
-            ReadOnlyMemory<Task> tasks,
+            IReadOnlyList<Task> tasks,
             CancellationToken cancellationToken)
         {
             try
             {
-                while (Any(tasks.Span, IsInProgress))
+                while (Any(tasks, IsInProgress))
                 {
                     await _processSync.WaitAsync(cancellationToken)
                         .ConfigureAwait(false);
@@ -118,7 +118,7 @@ namespace HotChocolate.Execution
         }
 
         private void SubscribeToTasks(
-            in ReadOnlySpan<Task> tasks)
+            in IReadOnlyList<Task> tasks)
         {
             foreach (Task task in tasks)
             {
@@ -166,10 +166,10 @@ namespace HotChocolate.Execution
         }
 
         private static bool All(
-            ReadOnlySpan<Task> tasks,
+            IReadOnlyList<Task> tasks,
             Func<Task, bool> predicate)
         {
-            for (int i = 0; i < tasks.Length; i++)
+            for (int i = 0; i < tasks.Count; i++)
             {
                 if (!predicate(tasks[i]))
                 {
@@ -180,10 +180,10 @@ namespace HotChocolate.Execution
         }
 
         private static bool Any(
-            ReadOnlySpan<Task> tasks,
+            IReadOnlyList<Task> tasks,
             Func<Task, bool> predicate)
         {
-            for (int i = 0; i < tasks.Length; i++)
+            for (int i = 0; i < tasks.Count; i++)
             {
                 if (predicate(tasks[i]))
                 {

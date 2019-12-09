@@ -1,21 +1,13 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
     internal partial class ResolverContext
-        : IShared
     {
-        private static readonly DefaultObjectPool<ResolverContext> _pool =
-            new DefaultObjectPool<ResolverContext>(new ResolverContextPolicy(), 1024);
-        private static readonly ConcurrentBag<ResolverContext> _pool2 =
-            new ConcurrentBag<ResolverContext>();
-
         public void Clean()
         {
             _executionContext = null;
@@ -114,17 +106,16 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
-            if (!_pool2.TryTake(out ResolverContext context))
-            {
-                context = new ResolverContext();
-            }
-            // var context = new ResolverContext(); // = _pool.Get();
+
+            var context = ExecutionPools.ResolverContext.Rent();
+
             context.Initialize(
                 executionContext,
                 fieldSelection,
                 source,
                 serializedResult);
             executionContext.TrackContext(context);
+
             return context;
         }
 
@@ -137,11 +128,8 @@ namespace HotChocolate.Execution
             Path path,
             Action propagateNonNullViolation)
         {
-            if (!_pool2.TryTake(out ResolverContext context))
-            {
-                context = new ResolverContext();
-            }
-            // var context = new ResolverContext();  // _pool.Get();
+            var context = ExecutionPools.ResolverContext.Rent();
+
             context.Initialize(
                 fieldSelection,
                 source,
@@ -151,17 +139,13 @@ namespace HotChocolate.Execution
                 path,
                 propagateNonNullViolation);
             sourceContext._executionContext.TrackContext(context);
+
             return context;
         }
 
         public static void Return(ResolverContext rentedContext)
         {
-            rentedContext.Clean();
-            if (_pool2.Count < 1024)
-            {
-                _pool2.Add(rentedContext);
-            }
-            // _pool.Return(rentedContext);
+            ExecutionPools.ResolverContext.Return(rentedContext);
         }
     }
 }

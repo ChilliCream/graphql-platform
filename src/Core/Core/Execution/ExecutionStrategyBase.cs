@@ -41,7 +41,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                ExecutionPools.ContextListPool.Return(initialBatch);
+                ExecutionPools.ResolverContextList.Return(initialBatch);
             }
         }
 
@@ -51,8 +51,8 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            List<ResolverContext> batch = ExecutionPools.ContextListPool.Get();
-            List<ResolverContext> next = ExecutionPools.ContextListPool.Get();
+            List<ResolverContext> batch = ExecutionPools.ResolverContextList.Rent();
+            List<ResolverContext> next = ExecutionPools.ResolverContextList.Rent();
             List<ResolverContext> swap = null;
 
             batch.AddRange(initialBatch);
@@ -97,8 +97,8 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                ExecutionPools.ContextListPool.Return(batch);
-                ExecutionPools.ContextListPool.Return(next);
+                ExecutionPools.ResolverContextList.Return(batch);
+                ExecutionPools.ResolverContextList.Return(next);
             }
         }
 
@@ -138,29 +138,29 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            Task[] tasks = ExecutionPools.TaskPool.Rent(batch.Count);
+            List<Task> tasks = ExecutionPools.TaskList.Rent();
             CopyContextTasks(batch, tasks);
 
             try
             {
                 await batchOperationHandler.CompleteAsync(
-                    tasks.AsMemory().Slice(0, batch.Count),
+                    tasks,
                     cancellationToken)
                     .ConfigureAwait(false);
             }
             finally
             {
-                ExecutionPools.TaskPool.Return(tasks);
+                ExecutionPools.TaskList.Return(tasks);
             }
         }
 
         private static void CopyContextTasks(
             IReadOnlyList<ResolverContext> batch,
-            Span<Task> tasks)
+            List<Task> tasks)
         {
             for (int i = 0; i < batch.Count; i++)
             {
-                tasks[i] = batch[i].Task;
+                tasks.Add(batch[i].Task);
             }
         }
 
@@ -197,7 +197,7 @@ namespace HotChocolate.Execution
                     executionContext.Operation.Definition.SelectionSet,
                     null);
 
-            List<ResolverContext> batch = ExecutionPools.ContextListPool.Get();
+            List<ResolverContext> batch = ExecutionPools.ResolverContextList.Rent();
 
             for (int i = 0; i < fieldSelections.Count; i++)
             {

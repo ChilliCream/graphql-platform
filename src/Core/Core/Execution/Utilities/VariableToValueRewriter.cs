@@ -147,8 +147,7 @@ namespace HotChocolate.Execution
 
                 if (current.Items.Count > 0)
                 {
-                    IValueNode[] rented = ArrayPool<IValueNode>.Shared.Rent(
-                        current.Items.Count);
+                    IValueNode[] rented = ArrayPool<IValueNode>.Shared.Rent(current.Items.Count);
                     Span<IValueNode> copy = rented;
                     copy = copy.Slice(0, current.Items.Count);
                     bool rewrite = false;

@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
             {
                 batchOperationHandler?.Dispose();
                 ReleaseTrackedContextObjects(executionContext);
-                ExecutionPools.ContextListPool.Return(initialBatch);
+                ExecutionPools.ResolverContextList.Return(initialBatch);
             }
         }
 
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            List<ResolverContext> next = ExecutionPools.ContextListPool.Get();
+            List<ResolverContext> next = ExecutionPools.ResolverContextList.Rent();
 
             try
             {
@@ -97,7 +97,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                ExecutionPools.ContextListPool.Return(next);
+                ExecutionPools.ResolverContextList.Return(next);
             }
         }
 
