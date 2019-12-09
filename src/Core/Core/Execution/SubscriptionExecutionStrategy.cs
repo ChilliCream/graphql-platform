@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async ValueTask<IAsyncEnumerable<object>> DefaultSubscribeResolverAsync(
+        private static async ValueTask<IAsyncEnumerable<object>> DefaultSubscribeResolverAsync(
             IResolverContext resolverContext)
         {
             EventDescription eventDescription = CreateEvent(resolverContext);
@@ -99,8 +99,7 @@ namespace HotChocolate.Execution
                         .Build());
             }
 
-            IEventStream eventStream = await eventRegistry.SubscribeAsync(eventDescription);
-            return eventStream.ToSourceStream(resolverContext.RequestAborted);
+            return await eventRegistry.SubscribeAsync(eventDescription);
         }
 
         private static EventDescription CreateEvent(
