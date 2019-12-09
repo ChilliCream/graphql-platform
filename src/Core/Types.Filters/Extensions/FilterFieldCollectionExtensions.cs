@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types.Filters.Extensions
 {
@@ -71,7 +72,16 @@ namespace HotChocolate.Types.Filters.Extensions
                 }
                 else
                 {
-                    fields.Remove(operationDescriptor);
+                    throw new SchemaException(
+                        SchemaErrorBuilder.New()
+                        .SetMessage(
+                            string.Format(
+                               FilterResources.FilterFieldOperationDescriptor_InvalidDescriptorType
+                               , operationDescriptor.GetType().Name
+                               , typeof(T).Name))
+                        .SetCode(ErrorCodes.Filtering.FilterFieldDescriptorType)
+                        .Build());
+
                 }
             }
 
