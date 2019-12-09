@@ -1,15 +1,15 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -41,6 +41,8 @@ namespace HotChocolate.Execution
             _executionContext.RequestAborted;
 
         public bool IsRoot { get; private set; }
+
+        public ObjectType RootType => _executionContext.Operation.RootType;
 
         public ObjectType ObjectType => _fieldSelection.Field.DeclaringType;
 
@@ -227,19 +229,27 @@ namespace HotChocolate.Execution
             return (T)_cachedResolverResult;
         }
 
-        public IReadOnlyCollection<FieldSelection> CollectFields(
+        public IReadOnlyList<FieldSelection> CollectFields(
             ObjectType typeContext) =>
             CollectFields(typeContext, FieldSelection.SelectionSet);
 
-        public IReadOnlyCollection<FieldSelection> CollectFields(
+        public IReadOnlyList<FieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _executionContext.CollectFields(typeContext, selectionSet, Path);
+            CollectFields(typeContext, selectionSet, Path);
 
-        IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
+        public IReadOnlyList<FieldSelection> CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet, Path path) =>
+            _executionContext.CollectFields(typeContext, selectionSet, path);
+
+        IReadOnlyList<IFieldSelection> IResolverContext.CollectFields(
             ObjectType typeContext) => CollectFields(typeContext);
 
-        IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
+        IReadOnlyList<IFieldSelection> IResolverContext.CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
             CollectFields(typeContext, selectionSet);
+
+        IReadOnlyList<IFieldSelection> IResolverContext.CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet, Path path) =>
+            CollectFields(typeContext, selectionSet, path);
     }
 }

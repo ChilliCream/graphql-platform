@@ -62,9 +62,14 @@ namespace HotChocolate.Subscriptions.Redis
 
                 // assert
                 var stream = (IResponseStream)result;
-                IReadOnlyQueryResult message = await stream.ReadAsync(cts.Token);
+                IReadOnlyQueryResult message = null;
+                await foreach (IReadOnlyQueryResult item in stream.WithCancellation(cts.Token))
+                {
+                    message = item;
+                    break;
+                }
+
                 Assert.Equal("baz", message.Data.First().Value);
-                stream.Dispose();
             });
         }
 
@@ -108,9 +113,13 @@ namespace HotChocolate.Subscriptions.Redis
 
                 // assert
                 var stream = (IResponseStream)result;
-                IReadOnlyQueryResult message = await stream.ReadAsync(cts.Token);
+                IReadOnlyQueryResult message = null;
+                await foreach (IReadOnlyQueryResult item in stream.WithCancellation(cts.Token))
+                {
+                    message = item;
+                    break;
+                }
                 Assert.Equal("baz", message.Data.First().Value);
-                stream.Dispose();
             });
         }
 

@@ -31,37 +31,28 @@ namespace HotChocolate.Execution.Batching
             Stream outputStream,
             CancellationToken cancellationToken)
         {
+            bool delimiter = false;
+
             outputStream.WriteByte(_leftBracket);
 
-            await WriteNextResultAsync(
-                responseStream, outputStream, false, cancellationToken)
-                .ConfigureAwait(false);
-
-            while (!responseStream.IsCompleted)
+            await foreach (IReadOnlyQueryResult result in
+                responseStream.WithCancellation(cancellationToken))
             {
                 await WriteNextResultAsync(
-                    responseStream, outputStream, true, cancellationToken)
+                    result, outputStream, delimiter, cancellationToken)
                     .ConfigureAwait(false);
+                delimiter = true;
             }
 
             outputStream.WriteByte(_rightBracket);
         }
 
         private async Task WriteNextResultAsync(
-            IResponseStream responseStream,
+            IReadOnlyQueryResult result,
             Stream outputStream,
             bool delimiter,
             CancellationToken cancellationToken)
         {
-            IReadOnlyQueryResult result =
-                await responseStream.ReadAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-            if (result == null)
-            {
-                return;
-            }
-
             if (delimiter)
             {
                 outputStream.WriteByte(_comma);
