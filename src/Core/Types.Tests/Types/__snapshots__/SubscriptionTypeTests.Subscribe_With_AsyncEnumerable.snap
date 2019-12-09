@@ -1,0 +1,26 @@
+﻿[
+  {
+    "Data": {
+      "test": "a"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "test": "b"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "test": "c"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  }
+]

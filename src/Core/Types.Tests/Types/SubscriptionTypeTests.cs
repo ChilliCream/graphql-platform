@@ -136,6 +136,67 @@ namespace HotChocolate.Types
             results.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Subscribe_With_AsyncEnumerable()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType(t => t
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Subscribe(ctx => new TestAsyncEnumerable()))
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { test }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_With_AsyncEnumerable_Async()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType(t => t
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Subscribe(ctx => Task.FromResult<IAsyncEnumerable<string>>(
+                        new TestAsyncEnumerable())))
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { test }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
         public class TestObservable
             : IObservable<string>
             , IDisposable
@@ -163,6 +224,19 @@ namespace HotChocolate.Types
             public void Dispose()
             {
                 DisposeRaised = true;
+            }
+        }
+
+        public class TestAsyncEnumerable
+            : IAsyncEnumerable<string>
+        {
+            public async IAsyncEnumerator<string> GetAsyncEnumerator(
+                 CancellationToken cancellationToken = default)
+            {
+                await Task.Delay(50, cancellationToken);
+                yield return "a";
+                yield return "b";
+                yield return "c";
             }
         }
     }
