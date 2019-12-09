@@ -153,6 +153,7 @@ namespace HotChocolate.Subscriptions
                     responseStream.WithCancellation(cts.Token))
                 {
                     Assert.Equal("123", result.Data["bar"]);
+                    break;
                 }
             }
         }
