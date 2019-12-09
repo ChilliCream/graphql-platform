@@ -32,9 +32,9 @@ namespace HotChocolate.Types.Filters.Extensions
 
             if (fieldDescriptor is { })
             {
-                if (fieldDescriptor is T descritorOfT)
+                if (fieldDescriptor is T descriptorOfT)
                 {
-                    return descritorOfT;
+                    return descriptorOfT;
                 }
                 else
                 {
@@ -66,9 +66,9 @@ namespace HotChocolate.Types.Filters.Extensions
 
             if (operationDescriptor is { })
             {
-                if (operationDescriptor is T descritorOfT)
+                if (operationDescriptor is T descriptorOfT)
                 {
-                    return descritorOfT;
+                    return descriptorOfT;
                 }
                 else
                 {
