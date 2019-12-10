@@ -1,37 +1,35 @@
 using System;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class ConcurrentObjectPool<T>
+    internal sealed class ConcurrentObjectPool<T> where T : class, new()
     {
-        private readonly ConcurrentBag<T> _concurrentBag = new ConcurrentBag<T>();
+        private readonly Microsoft.Extensions.ObjectPool.DefaultObjectPool<T> _concurrentBag =
+            new Microsoft.Extensions.ObjectPool.DefaultObjectPool<T>(
+                new DefaultPooledObjectPolicy<T>());
         private readonly Func<T> _create;
         private readonly Action<T> _clean;
-        private readonly int _capacity;
+        private readonly int _size;
 
-        public ConcurrentObjectPool(Func<T> create, Action<T> clean, int capacity)
+        public ConcurrentObjectPool(Func<T> create, Action<T> clean, int size)
         {
+            _create = create;
             _clean = clean;
-            _capacity = capacity;
+            _size = size;
         }
 
         public T Rent()
         {
-            if (_concurrentBag.TryTake(out T item))
-            {
-                return item;
-            }
-            return _create();
+            return _concurrentBag.Get();
         }
 
         public void Return(T rented)
         {
             // note: we do not mind if there are a view more objects in our cache.
-            if (_concurrentBag.Count < _capacity)
-            {
-                _concurrentBag.Add(rented);
-            }
+            _clean(rented);
+            _concurrentBag.Return(rented);
         }
     }
 }

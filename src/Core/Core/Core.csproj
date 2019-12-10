@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
