@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -5,9 +6,10 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Sorting
 {
     public class SortObjectOperationDescriptor
-        : SortOperationDescriptor
+        : SortOperationDescriptorBase
         , ISortObjectOperationDescriptor
     {
+
         protected SortObjectOperationDescriptor(
             IDescriptorContext context,
             NameString name,
@@ -25,9 +27,9 @@ namespace HotChocolate.Types.Sorting
         }
 
         /// <inheritdoc/>
-        public new ISortObjectOperationDescriptor Ignore(bool ignore = true)
+        public ISortObjectOperationDescriptor Ignore(bool ignore = true)
         {
-            base.Ignore(ignore);
+            Definition.Ignore = ignore;
             return this;
         }
 
@@ -63,14 +65,14 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public new static SortObjectOperationDescriptor New(
+        public static SortObjectOperationDescriptor New(
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
             SortOperation operation) =>
             new SortObjectOperationDescriptor(context, name, type, operation);
 
-        public new static SortObjectOperationDescriptor CreateOperation(
+        public static SortObjectOperationDescriptor CreateOperation(
             PropertyInfo property,
             IDescriptorContext context)
         {

@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Sorting.Extensions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
@@ -36,8 +37,8 @@ namespace HotChocolate.Types.Sorting
         internal protected sealed override SortInputTypeDefinition Definition { get; } =
             new SortInputTypeDefinition();
 
-        protected ICollection<SortOperationDescriptor> Fields { get; } =
-            new List<SortOperationDescriptor>();
+        protected ICollection<SortOperationDescriptorBase> Fields { get; } =
+            new List<SortOperationDescriptorBase>();
 
 
         public ISortInputTypeDescriptor<T> Name(NameString value)
@@ -95,9 +96,8 @@ namespace HotChocolate.Types.Sorting
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = SortOperationDescriptor.CreateOperation(p, Context);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                   () => SortOperationDescriptor.CreateOperation(p, Context));
             }
 
             // TODO : resources
@@ -112,9 +112,23 @@ namespace HotChocolate.Types.Sorting
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = SortObjectOperationDescriptor<TObject>.CreateOperation(p, Context);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                    () => SortObjectOperationDescriptor<TObject>.CreateOperation(p, Context));
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(property));
+        }
+
+        public ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                Fields.GetOrAddDescriptor(p,
+                    () => IgnoredSortingFieldDescriptor.CreateOperation(p, Context));
+                return this;
             }
 
             // TODO : resources
@@ -209,5 +223,6 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context,
             Type entityType) =>
             new SortInputTypeDescriptor<T>(context, entityType);
+
     }
 }

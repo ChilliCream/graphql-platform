@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Filters.Extensions;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
@@ -246,9 +247,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new StringFilterFieldDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                    () => new StringFilterFieldDescriptor(Context, p));
             }
 
             throw new ArgumentException(
@@ -261,9 +261,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new BooleanFilterFieldDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                    () => new BooleanFilterFieldDescriptor(Context, p));
             }
 
             throw new ArgumentException(
@@ -276,9 +275,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new ComparableFilterFieldDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                    () => new ComparableFilterFieldDescriptor(Context, p));
             }
 
             throw new ArgumentException(
@@ -291,7 +289,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                Fields.Add(new IgnoredFilterFieldDescriptor(Context, p));
+                Fields.GetOrAddDescriptor(p,
+                    () => new IgnoredFilterFieldDescriptor(Context, p));
                 return this;
             }
 
@@ -305,9 +304,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new ObjectFilterFieldDescriptor<TObject>(Context, p);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                    () => new ObjectFilterFieldDescriptor<TObject>(Context, p));
             }
 
             throw new ArgumentException(
@@ -320,9 +318,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new ArrayFilterFieldDescriptor<TObject>(Context, p);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                    () => new ArrayFilterFieldDescriptor<TObject>(Context, p));
             }
 
             throw new ArgumentException(
