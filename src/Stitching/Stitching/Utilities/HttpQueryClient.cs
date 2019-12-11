@@ -11,6 +11,7 @@ using HotChocolate.Server;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Text.Json;
 
 namespace HotChocolate.Stitching.Utilities
 {

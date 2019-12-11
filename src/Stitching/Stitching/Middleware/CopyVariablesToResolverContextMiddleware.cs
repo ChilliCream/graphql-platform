@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -15,7 +18,16 @@ namespace HotChocolate.Stitching
 
         public Task InvokeAsync(IQueryContext context)
         {
-            context.SetVariables(context.Request.VariableValues);
+            IVariableValueCollection variables = context.Operation.Variables;
+            var dict = new Dictionary<string, IValueNode>();
+
+            foreach (string key in context.Request.VariableValues.Keys)
+            {
+                dict.Add(key, variables.GetVariable<IValueNode>(key));
+            }
+
+            context.SetVariables(dict);
+
             return _next.Invoke(context);
         }
     }

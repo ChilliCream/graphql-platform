@@ -100,11 +100,11 @@ namespace HotChocolate.Stitching
                 schemaName, context.Document, context.Operation,
                 context.FieldSelection, context.ObjectType);
 
-            IEnumerable<VariableValue> scopedVariables =
+            IEnumerable<Delegation.VariableValue> scopedVariables =
                 ResolveScopedVariables(
                     context, schemaName, operationType, path);
 
-            IReadOnlyCollection<VariableValue> variableValues =
+            IReadOnlyCollection<Delegation.VariableValue> variableValues =
                 CreateVariableValues(
                     context, scopedVariables, extractedField);
 
@@ -195,7 +195,8 @@ namespace HotChocolate.Stitching
                     builder.SetPath(path)
                         .ClearLocations()
                         .AddLocation(context.FieldSelection);
-                } else if (IsHttpError(error))
+                }
+                else if (IsHttpError(error))
                 {
                     builder.SetPath(context.Path)
                         .ClearLocations()
@@ -233,22 +234,21 @@ namespace HotChocolate.Stitching
 
         private static bool IsHttpError(IError error) => error.Code == ErrorCodes.HttpRequestException;
 
-        private static IReadOnlyCollection<VariableValue> CreateVariableValues(
+        private static IReadOnlyCollection<Delegation.VariableValue> CreateVariableValues(
             IMiddlewareContext context,
-            IEnumerable<VariableValue> scopedVaribles,
+            IEnumerable<Delegation.VariableValue> scopedVariables,
             ExtractedField extractedField)
         {
-            var values = new Dictionary<string, VariableValue>();
+            var values = new Dictionary<string, Delegation.VariableValue>();
 
-            foreach (VariableValue value in scopedVaribles)
+            foreach (Delegation.VariableValue value in scopedVariables)
             {
                 values[value.Name] = value;
             }
 
-            IReadOnlyDictionary<string, object> requestVariables =
-                context.GetVariables();
+            IReadOnlyDictionary<string, IValueNode> requestVariables = context.GetVariables();
 
-            foreach (VariableValue value in ResolveUsedRequestVariables(
+            foreach (Delegation.VariableValue value in ResolveUsedRequestVariables(
                 extractedField, requestVariables))
             {
                 values[value.Name] = value;
@@ -257,7 +257,7 @@ namespace HotChocolate.Stitching
             return values.Values;
         }
 
-        private static IReadOnlyList<VariableValue> ResolveScopedVariables(
+        private static IReadOnlyList<Delegation.VariableValue> ResolveScopedVariables(
             IResolverContext context,
             NameString schemaName,
             OperationType operationType,
@@ -272,7 +272,7 @@ namespace HotChocolate.Stitching
             IComplexOutputType type =
                 remoteSchema.GetOperationType(operationType);
 
-            var variables = new List<VariableValue>();
+            var variables = new List<Delegation.VariableValue>();
             SelectionPathComponent[] comps = components.Reverse().ToArray();
 
             for (int i = 0; i < comps.Length; i++)
@@ -286,15 +286,13 @@ namespace HotChocolate.Stitching
                     {
                         Message = string.Format(
                             CultureInfo.InvariantCulture,
-                            StitchingResources
-                                .DelegationMiddleware_PathElementInvalid,
+                            StitchingResources.DelegationMiddleware_PathElementInvalid,
                             component.Name.Value,
                             type.Name)
                     });
                 }
 
-                ResolveScopedVariableArguments(
-                    context, component, field, variables);
+                ResolveScopedVariableArguments(context, component, field, variables);
 
                 if (i + 1 < comps.Length)
                 {
@@ -317,90 +315,42 @@ namespace HotChocolate.Stitching
             IResolverContext context,
             SelectionPathComponent component,
             IOutputField field,
-            ICollection<VariableValue> variables)
+            ICollection<Delegation.VariableValue> variables)
         {
-            ITypeConversion typeConversion =
-                context.Service<IServiceProvider>()
-                    .GetTypeConversion();
+            ITypeConversion converter = context.Service<IServiceProvider>().GetTypeConversion();
 
             foreach (ArgumentNode argument in component.Arguments)
             {
-                if (!field.Arguments.TryGetField(argument.Name.Value,
-                    out IInputField arg))
+                if (!field.Arguments.TryGetField(argument.Name.Value, out IInputField arg))
                 {
-                    throw new QueryException(new Error
-                    {
-                        Message = string.Format(
-                            CultureInfo.InvariantCulture,
-                            StitchingResources
-                                .DelegationMiddleware_ArgumentNotFound,
-                            argument.Name.Value)
-                    });
+                    throw new QueryException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                StitchingResources.DelegationMiddleware_ArgumentNotFound,
+                                argument.Name.Value)
+                            .SetExtension("argument", argument.Name.Value)
+                            .SetCode(ErrorCodes.ArgumentNotFound)
+                            .Build());
                 }
 
                 if (argument.Value is ScopedVariableNode sv)
                 {
-                    VariableValue variable =
-                        _resolvers.Resolve(context, sv, arg.Type.ToTypeNode());
-
-                    object value = variable.Value;
-
-                    if (!arg.Type.IsInstanceOfType(value))
-                    {
-                        value = ConvertValue(typeConversion, arg.Type, value);
-                    }
-
-                    variable = new VariableValue
-                    (
-                        variable.Name,
-                        variable.Type,
-                        arg.Type.Serialize(value),
-                        variable.DefaultValue
-                    );
-
+                    Delegation.VariableValue variable = _resolvers.Resolve(context, sv, arg.Type);
                     variables.Add(variable);
                 }
             }
         }
 
-        private static object ConvertValue(
-            ITypeConversion converter,
-            IInputType type,
-            object value)
-        {
-            Type sourceType = typeof(object);
-
-            if (type.IsListType() && value is IEnumerable<object> e)
-            {
-                if (e.Any())
-                {
-                    Type elementType = e.FirstOrDefault()?.GetType();
-                    if (elementType != null)
-                    {
-                        sourceType =
-                            typeof(IEnumerable<>).MakeGenericType(elementType);
-                    }
-                }
-                else
-                {
-                    return Activator.CreateInstance(type.ClrType);
-                }
-            }
-
-            return converter.Convert(sourceType, type.ClrType, value);
-        }
-
-        private static IEnumerable<VariableValue> ResolveUsedRequestVariables(
+        private static IEnumerable<Delegation.VariableValue> ResolveUsedRequestVariables(
             ExtractedField extractedField,
-            IReadOnlyDictionary<string, object> requestVariables)
+            IReadOnlyDictionary<string, IValueNode> requestVariables)
         {
-            foreach (VariableDefinitionNode variable in
-                extractedField.Variables)
+            foreach (VariableDefinitionNode variable in extractedField.Variables)
             {
                 string name = variable.Variable.Name.Value;
-                requestVariables.TryGetValue(name, out object value);
+                requestVariables.TryGetValue(name, out IValueNode value);
 
-                yield return new VariableValue
+                yield return new Delegation.VariableValue
                 (
                     name,
                     variable.Type,
@@ -415,30 +365,20 @@ namespace HotChocolate.Stitching
             NameString schemaName,
             IQueryRequestBuilder builder,
             DocumentNode query,
-            IEnumerable<VariableValue> variableValues)
+            IEnumerable<Delegation.VariableValue> variableValues)
         {
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().First();
+
             var usedVariables = new HashSet<string>(
                 operation.VariableDefinitions.Select(t =>
                     t.Variable.Name.Value));
 
-            foreach (VariableValue variableValue in variableValues)
+            foreach (Delegation.VariableValue variableValue in variableValues)
             {
                 if (usedVariables.Contains(variableValue.Name))
                 {
-                    object value = variableValue.Value;
-
-                    if (context.Schema.TryGetType(
-                        variableValue.Type.NamedType().Name.Value,
-                        out InputObjectType inputType))
-                    {
-                        IInputType wrapped = WrapType(inputType, variableValue.Type);
-                        value = ObjectVariableRewriter.RewriteVariable(
-                            schemaName, wrapped, value);
-                    }
-
-                    builder.AddVariableValue(variableValue.Name, value);
+                    builder.AddVariableValue(variableValue.Name, variableValue.Value);
                 }
             }
         }
@@ -462,11 +402,11 @@ namespace HotChocolate.Stitching
         }
 
         private static IReadOnlyList<VariableDefinitionNode> CreateVariableDefs(
-            IReadOnlyCollection<VariableValue> variableValues)
+            IReadOnlyCollection<Delegation.VariableValue> variableValues)
         {
             var definitions = new List<VariableDefinitionNode>();
 
-            foreach (VariableValue variableValue in variableValues)
+            foreach (Delegation.VariableValue variableValue in variableValues)
             {
                 definitions.Add(new VariableDefinitionNode(
                     null,

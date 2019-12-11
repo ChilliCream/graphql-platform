@@ -2,34 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
+using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Delegation
 {
     internal class RootScopedVariableResolver
         : IScopedVariableResolver
     {
-        public RootScopedVariableResolver()
-        {
-            Resolvers[ScopeNames.Arguments] =
-                new ArgumentScopedVariableResolver();
-            Resolvers[ScopeNames.Fields] =
-                new FieldScopedVariableResolver();
-            Resolvers[ScopeNames.ContextData] =
-                new ContextDataScopedVariableResolver();
-            Resolvers[ScopeNames.ScopedContextData] =
-                new ScopedContextDataScopedVariableResolver();
-        }
-
-        private Dictionary<string, IScopedVariableResolver> Resolvers { get; } =
-            new Dictionary<string, IScopedVariableResolver>();
+        private readonly Dictionary<string, IScopedVariableResolver> _resolvers =
+            new Dictionary<string, IScopedVariableResolver>
+            {
+                { ScopeNames.Arguments, new ArgumentScopedVariableResolver() },
+                { ScopeNames.Fields, new FieldScopedVariableResolver() },
+                { ScopeNames.ContextData, new ContextDataScopedVariableResolver() },
+                { ScopeNames.ScopedContextData, new ScopedContextDataScopedVariableResolver() }
+            };
 
         public VariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
-            ITypeNode targetType)
+            IInputType targetType)
         {
             if (context == null)
             {
@@ -41,20 +35,20 @@ namespace HotChocolate.Stitching.Delegation
                 throw new ArgumentNullException(nameof(variable));
             }
 
-            if (Resolvers.TryGetValue(variable.Scope.Value,
+            if (_resolvers.TryGetValue(variable.Scope.Value,
                 out IScopedVariableResolver resolver))
             {
                 return resolver.Resolve(context, variable, targetType);
             }
 
-            throw new QueryException(QueryError.CreateFieldError(
-                string.Format(CultureInfo.InvariantCulture,
-                    StitchingResources
-                        .RootScopedVariableResolver_ScopeNotSupported,
-                    variable.Scope.Value),
-                context.Path,
-                context.FieldSelection)
-                .WithCode(ErrorCodes.ScopeNotDefined));
+            throw new QueryException(ErrorBuilder.New()
+                .SetMessage(
+                    StitchingResources.RootScopedVariableResolver_ScopeNotSupported,
+                    variable.Scope.Value)
+                .SetCode(ErrorCodes.ScopeNotDefined)
+                .SetPath(context.Path)
+                .AddLocation(context.FieldSelection)
+                .Build());
         }
     }
 }
