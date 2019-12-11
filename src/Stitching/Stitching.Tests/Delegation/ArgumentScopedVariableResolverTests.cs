@@ -165,7 +165,7 @@ namespace HotChocolate.Stitching.Delegation
             var context = new Mock<IMiddlewareContext>();
             ObjectField field = schema.GetType<ObjectType>("Query").Fields["foo"];
             context.SetupGet(t => t.Field).Returns(field);
-            context.Setup(t => t.Argument<object>(It.IsAny<string>())).Returns("Baz");
+            context.Setup(t => t.Argument<object>(It.IsAny<NameString>())).Returns("Baz");
 
             var scopedVariable = new ScopedVariableNode(
                 null,

@@ -48,65 +48,25 @@ namespace HotChocolate.Stitching.Schemas.SpecialCases
         public string Text { get; set; }
     }
 
-    public class MyCustomScalarType
-        : ScalarType
+    public class MyCustomScalarType : ScalarType<MyCustomScalarValue, StringValueNode>
     {
-        public MyCustomScalarType()
-            : base(nameof(MyCustomScalarValue))
+        public MyCustomScalarType() : base(nameof(MyCustomScalarValue))
         {
         }
 
-        public override Type ClrType => typeof(MyCustomScalarValue);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        protected override MyCustomScalarValue ParseLiteral(StringValueNode literal)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            return new MyCustomScalarValue {Text = literal.Value};
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        protected override StringValueNode ParseValue(MyCustomScalarValue value)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is StringValueNode stringLiteral)
-            {
-                return new MyCustomScalarValue { Text = stringLiteral.Value };
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new ScalarSerializationException("some text");
-        }
-
-        public override IValueNode ParseValue(object value)
-        {
-            if (value == null)
-            {
-                return new NullValueNode(null);
-            }
-
-            if (value is MyCustomScalarValue s)
-            {
-                return new StringValueNode(null, s.Text, false);
-            }
-
-            throw new ScalarSerializationException("some text");
+            return new StringValueNode(null, value.Text, false);
         }
 
         public override bool TrySerialize(object value, out object serialized)
         {
-            if (value == null)
+            if (value is null)
             {
                 serialized = null;
                 return true;
@@ -114,7 +74,8 @@ namespace HotChocolate.Stitching.Schemas.SpecialCases
 
             if (value is MyCustomScalarValue s)
             {
-                return s.Text;
+                serialized=  s.Text;
+                return true;
             }
 
             serialized = null;
