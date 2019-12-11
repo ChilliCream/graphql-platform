@@ -66,6 +66,18 @@ namespace HotChocolate.Stitching.Utilities
                 context.Fragments.Values.ToList());
         }
 
+        public IValueNode RewriteValueNode(
+            NameString sourceSchema,
+            IInputType inputType,
+            IValueNode value)
+        {
+            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
+
+            var context = new Context(sourceSchema, null, null, null);
+            context.InputType = inputType;
+            return RewriteValue(value, context);
+        }
+
         protected override FieldNode RewriteField(
             FieldNode node,
             Context context)
@@ -184,7 +196,7 @@ namespace HotChocolate.Stitching.Utilities
             {
                 selections.Add(CreateField(WellKnownFieldNames.TypeName));
             }
-            
+
             current = current.WithSelections(selections);
             current = base.RewriteSelectionSet(current, context);
             current = OnRewriteSelectionSet(current, context);
@@ -296,7 +308,7 @@ namespace HotChocolate.Stitching.Utilities
         private static bool IsDelegationField(IDirectiveCollection directives)
         {
             return directives.Contains(DirectiveNames.Delegate)
-            || directives.Contains(DirectiveNames.Computed);
+                || directives.Contains(DirectiveNames.Computed);
         }
 
         private static void AddDependencies(
