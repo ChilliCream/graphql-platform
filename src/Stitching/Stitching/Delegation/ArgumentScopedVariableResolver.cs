@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -16,7 +15,7 @@ namespace HotChocolate.Stitching.Delegation
         public VariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
-            ITypeNode targetType)
+            IInputType targetType)
         {
             if (context == null)
             {
@@ -30,8 +29,8 @@ namespace HotChocolate.Stitching.Delegation
 
             if (!ScopeNames.Arguments.Equals(variable.Scope.Value))
             {
-                throw new ArgumentException(StitchingResources
-                    .ArgumentScopedVariableResolver_CannotHandleVariable,
+                throw new ArgumentException(
+                    StitchingResources.ArgumentScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 
@@ -40,23 +39,22 @@ namespace HotChocolate.Stitching.Delegation
 
             if (argument == null)
             {
-                throw new QueryException(QueryError.CreateFieldError(
-                    string.Format(CultureInfo.InvariantCulture,
-                        StitchingResources
-                            .ArgumentScopedVariableResolver_InvalidArgumentName,
-                        variable.Name.Value),
-                    context.Path,
-                    context.FieldSelection)
-                    .WithCode(ErrorCodes.ArgumentNotDefined));
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage(
+                        StitchingResources.ArgumentScopedVariableResolver_InvalidArgumentName,
+                        variable.Name.Value)
+                    .SetCode(ErrorCodes.ArgumentNotDefined)
+                    .SetPath(context.Path)
+                    .AddLocation(context.FieldSelection)
+                    .Build());
             }
 
             return new VariableValue
             (
                 variable.ToVariableName(),
                 argument.Type.ToTypeNode(),
-                context.Argument<object>(variable.Name.Value),
-                argument.Type.IsNonNullType()
-                    && argument.DefaultValue.IsNull()
+                context.Argument<IValueNode>(variable.Name.Value),
+                argument.Type.IsNonNullType() && argument.DefaultValue.IsNull()
                     ? null
                     : argument.DefaultValue
             );

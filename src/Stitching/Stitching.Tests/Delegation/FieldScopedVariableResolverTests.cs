@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -40,14 +39,15 @@ namespace HotChocolate.Stitching.Delegation
             // act
             var resolver = new FieldScopedVariableResolver();
             VariableValue value = resolver.Resolve(
-                context.Object, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+                context.Object,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
             Assert.Null(value.DefaultValue);
             Assert.Equal("fields_a", value.Name);
             Assert.IsType<NamedTypeNode>(value.Type);
-            Assert.Equal("baz", value.Value);
+            Assert.Equal("baz", value.Value.Value);
         }
 
         [Fact]
@@ -86,8 +86,10 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+            Action a = () => resolver.Resolve(
+                context.Object,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
             Assert.Collection(
@@ -114,12 +116,13 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(null, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+            Action a = () => resolver.Resolve(
+                null,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("context",
-                Assert.Throws<ArgumentNullException>(a).ParamName);
+            Assert.Equal("context", Assert.Throws<ArgumentNullException>(a).ParamName);
         }
 
         [Fact]
@@ -142,12 +145,13 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, null,
-                new NamedTypeNode(new NameNode("abc")));
+            Action a = () => resolver.Resolve(
+                context.Object,
+                null,
+                schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("variable",
-                Assert.Throws<ArgumentNullException>(a).ParamName);
+            Assert.Equal("variable", Assert.Throws<ArgumentNullException>(a).ParamName);
         }
 
         [Fact]
@@ -175,12 +179,13 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+            Action a = () => resolver.Resolve(
+                context.Object,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("variable",
-                Assert.Throws<ArgumentException>(a).ParamName);
+            Assert.Equal("variable", Assert.Throws<ArgumentException>(a).ParamName);
         }
     }
 }

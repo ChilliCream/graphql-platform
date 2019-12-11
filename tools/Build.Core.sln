@@ -73,9 +73,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpGet", "..\sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpPost", "..\src\Server\AspNetCore.HttpPost\AspNetCore.HttpPost.csproj", "{CBD7536C-543D-4E10-8FB5-196895FC761B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem", "..\src\Core\PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{61EDA3F4-1184-4CDB-927D-F0A02C45C550}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.FileSystem", "..\src\Core\PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{61EDA3F4-1184-4CDB-927D-F0A02C45C550}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis", "..\src\Core\PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{EAB3DACC-27D1-405E-9C97-4DD651C69C56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.Redis", "..\src\Core\PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{EAB3DACC-27D1-405E-9C97-4DD651C69C56}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.FileSystem.Tests", "..\src\Core\PersistedQueries.FileSystem.Tests\PersistedQueries.FileSystem.Tests.csproj", "{DD1345AC-A55D-4E41-8F2A-0EE2ECA74B2D}"
 EndProject
@@ -91,11 +91,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.Tests", "..\src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.DiagnosticSource.Tests", "..\src\DataLoader\DiagnosticSource.Tests\GreenDonut.DiagnosticSource.Tests.csproj", "{1D789F92-E049-47A9-8220-D0919082DA47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting", "..\src\Core\Types.Sorting\Types.Sorting.csproj", "{1AE961BF-3BDA-44D2-BC58-F01FF86E27DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting", "..\src\Core\Types.Sorting\Types.Sorting.csproj", "{1AE961BF-3BDA-44D2-BC58-F01FF86E27DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting.Mongo.Tests", "..\src\Core\Types.Sorting.Mongo.Tests\Types.Sorting.Mongo.Tests.csproj", "{C1A847C5-C2DF-4602-9E15-8BB01EA434A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Mongo.Tests", "..\src\Core\Types.Sorting.Mongo.Tests\Types.Sorting.Mongo.Tests.csproj", "{C1A847C5-C2DF-4602-9E15-8BB01EA434A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting.Tests", "..\src\Core\Types.Sorting.Tests\Types.Sorting.Tests.csproj", "{F2C3763D-4331-4E38-968E-2DD38953F4EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Tests", "..\src\Core\Types.Sorting.Tests\Types.Sorting.Tests.csproj", "{F2C3763D-4331-4E38-968E-2DD38953F4EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
