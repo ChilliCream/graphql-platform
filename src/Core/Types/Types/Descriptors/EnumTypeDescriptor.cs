@@ -14,24 +14,19 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.ClrType = typeof(object);
-            Definition.Values.BindingBehavior =
-                context.Options.DefaultBindingBehavior;
+            Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
         protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
-            Definition.ClrType = clrType
-                ?? throw new ArgumentNullException(nameof(clrType));
-            Definition.Name = context.Naming.GetTypeName(
-                clrType, TypeKind.Enum);
-            Definition.Description = context.Naming.GetTypeDescription(
-                clrType, TypeKind.Enum);
-            Definition.Values.BindingBehavior =
-                context.Options.DefaultBindingBehavior;
+            Definition.ClrType = clrType ?? throw new ArgumentNullException(nameof(clrType));
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
+            Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
-        protected override EnumTypeDefinition Definition { get; } =
+        internal protected override EnumTypeDefinition Definition { get; } =
             new EnumTypeDefinition();
 
         protected ICollection<EnumValueDescriptor> Values { get; } =
@@ -40,9 +35,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             EnumTypeDefinition definition)
         {
-            var values =
-                Values.Select(t => t.CreateDefinition())
-                   .ToDictionary(t => t.Value);
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
+
+            var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.Value);
             AddImplicitValues(definition, values);
 
             definition.Values.Clear();
@@ -59,8 +57,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeDefinition.Values.IsImplicitBinding())
             {
-                foreach (object value in Context.Inspector
-                    .GetEnumValues(typeDefinition.ClrType))
+                foreach (object value in Context.Inspector.GetEnumValues(typeDefinition.ClrType))
                 {
                     EnumValueDefinition valueDefinition =
                         EnumValueDescriptor.New(Context, value)
@@ -112,7 +109,14 @@ namespace HotChocolate.Types.Descriptors
 
         public IEnumValueDescriptor Item<T>(T value)
         {
-            var descriptor = new EnumValueDescriptor(Context, value);
+            EnumValueDescriptor descriptor = Values.FirstOrDefault(t =>
+                t.Definition.Value.Equals(value));
+            if (descriptor is { })
+            {
+                return descriptor;
+            }
+
+            descriptor = new EnumValueDescriptor(Context, value);
             Values.Add(descriptor);
             return descriptor;
         }
