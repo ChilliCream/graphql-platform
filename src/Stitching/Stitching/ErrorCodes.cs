@@ -8,5 +8,6 @@ namespace HotChocolate.Stitching
         public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
         public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
         public const string HttpRequestException = "STITCHING_HTTP_REQUEST_EXCEPTION";
+        public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
     }
 }

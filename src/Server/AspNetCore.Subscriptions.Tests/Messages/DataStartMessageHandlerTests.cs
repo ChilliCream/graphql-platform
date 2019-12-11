@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Subscriptions;
 using Moq;
 using HotChocolate.Server;
+using System.Collections.Generic;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
@@ -205,7 +206,9 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     }
                 }");
 
-            IReadOnlyQueryResult result = await stream.ReadAsync();
+            using var cts = new CancellationTokenSource(15000);
+            IAsyncEnumerator<IReadOnlyQueryResult> enumerator = stream.GetAsyncEnumerator(cts.Token);
+            Assert.True(await enumerator.MoveNextAsync());
 
             await Task.Delay(2000);
 
@@ -213,7 +216,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 t =>
                 {
                     Assert.True(t.SequenceEqual(
-                        new DataResultMessage(message.Id, result).Serialize()));
+                        new DataResultMessage(message.Id, enumerator.Current).Serialize()));
                 });
         }
     }

@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using Squadron;
-using StackExchange.Redis;
 using Xunit;
 
 namespace HotChocolate.Subscriptions.Redis
@@ -40,7 +40,12 @@ namespace HotChocolate.Subscriptions.Redis
                 await _sender.SendAsync(outgoing);
 
                 // assert
-                IEventMessage incoming = await consumer.ReadAsync(cts.Token);
+                IEventMessage incoming = null;
+                await foreach (IEventMessage item in consumer.WithCancellation(cts.Token))
+                {
+                    incoming = item;
+                    break;
+                }
                 Assert.Equal(outgoing.Payload, incoming.Payload);
             });
         }
@@ -51,15 +56,17 @@ namespace HotChocolate.Subscriptions.Redis
             return TestHelper.TryTest(async () =>
             {
                 // arrange
+                var cts = new CancellationTokenSource(30000);
                 var eventDescription = new EventDescription(
                     Guid.NewGuid().ToString());
 
                 // act
                 IEventStream consumer = await _registry.SubscribeAsync(eventDescription);
+                IAsyncEnumerator<IEventMessage> enumerator = consumer.GetAsyncEnumerator(cts.Token);
                 await consumer.CompleteAsync();
 
                 // assert
-                Assert.True(consumer.IsCompleted);
+                Assert.False(await enumerator.MoveNextAsync());
             });
         }
 
@@ -74,19 +81,22 @@ namespace HotChocolate.Subscriptions.Redis
                     Guid.NewGuid().ToString());
 
                 // act
-                IEventStream consumerOne = await _registry
-                    .SubscribeAsync(eventDescription);
-                IEventStream consumerTwo = await _registry.SubscribeAsync(eventDescription);
+                IEventStream consumerOne =
+                    await _registry.SubscribeAsync(eventDescription);
+                IAsyncEnumerator<IEventMessage> enumeratorOne =
+                    consumerOne.GetAsyncEnumerator(cts.Token);
+                IEventStream consumerTwo =
+                    await _registry.SubscribeAsync(eventDescription);
+                IAsyncEnumerator<IEventMessage> enumeratorTwo =
+                    consumerTwo.GetAsyncEnumerator(cts.Token);
                 var outgoing = new EventMessage(eventDescription, "bar");
                 await _sender.SendAsync(outgoing);
 
                 // assert
-                IEventMessage incomingOne =
-                    await consumerOne.ReadAsync(cts.Token);
-                IEventMessage incomingTwo =
-                    await consumerTwo.ReadAsync(cts.Token);
-                Assert.Equal(outgoing.Payload, incomingOne.Payload);
-                Assert.Equal(outgoing.Payload, incomingTwo.Payload);
+                Assert.True(await enumeratorOne.MoveNextAsync());
+                Assert.True(await enumeratorTwo.MoveNextAsync());
+                Assert.Equal(outgoing.Payload, enumeratorOne.Current.Payload);
+                Assert.Equal(outgoing.Payload, enumeratorTwo.Current.Payload);
             });
         }
 
@@ -104,20 +114,26 @@ namespace HotChocolate.Subscriptions.Redis
                     name, new ArgumentNode("b", "y"));
 
                 // act
-                IEventStream consumerOne = await _registry.SubscribeAsync(eventDescriptionOne);
+                IEventStream consumerOne =
+                   await _registry.SubscribeAsync(eventDescriptionOne);
+                IAsyncEnumerator<IEventMessage> enumeratorOne =
+                    consumerOne.GetAsyncEnumerator(cts.Token);
                 var outgoingOne = new EventMessage(eventDescriptionOne, "foo");
                 await _sender.SendAsync(outgoingOne);
 
-                IEventStream consumerTwo = await _registry.SubscribeAsync(eventDescriptionTwo);
+                IEventStream consumerTwo =
+                    await _registry.SubscribeAsync(eventDescriptionTwo);
+                IAsyncEnumerator<IEventMessage> enumeratorTwo =
+                    consumerTwo.GetAsyncEnumerator(cts.Token);
                 var outgoingTwo = new EventMessage(eventDescriptionTwo, "bar");
                 await _sender.SendAsync(outgoingTwo);
 
                 // assert
-                IEventMessage incomingOne = await consumerOne.ReadAsync(cts.Token);
-                IEventMessage incomingTwo = await consumerTwo.ReadAsync(cts.Token);
-                Assert.Equal(outgoingOne.Payload, incomingOne.Payload);
-                Assert.Equal(outgoingTwo.Payload, incomingTwo.Payload);
-                Assert.NotEqual(incomingOne.Event, incomingTwo.Event);
+                Assert.True(await enumeratorOne.MoveNextAsync());
+                Assert.True(await enumeratorTwo.MoveNextAsync());
+                Assert.Equal(outgoingOne.Payload, enumeratorOne.Current.Payload);
+                Assert.Equal(outgoingTwo.Payload, enumeratorTwo.Current.Payload);
+                Assert.NotEqual(enumeratorOne.Current.Event, enumeratorTwo.Current.Event);
             });
         }
     }

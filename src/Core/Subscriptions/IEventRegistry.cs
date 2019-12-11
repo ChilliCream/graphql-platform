@@ -19,6 +19,9 @@ namespace HotChocolate.Subscriptions
         /// <param name="eventDescription">
         /// The event description.
         /// </param>
+        /// <param name="eventDescription">
+        /// The cancellation token.
+        /// </param>
         ValueTask<IEventStream> SubscribeAsync(
             IEventDescription eventDescription,
             CancellationToken cancellationToken = default);

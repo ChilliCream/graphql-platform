@@ -61,7 +61,7 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; }
 
-        IReadOnlyCollection<FieldSelection> CollectFields(
+        IReadOnlyList<FieldSelection> CollectFields(
             ObjectType objectType,
             SelectionSetNode selectionSet,
             Path path);

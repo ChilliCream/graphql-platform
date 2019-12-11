@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
@@ -38,40 +40,79 @@ namespace HotChocolate.Execution
         private async Task<IExecutionResult> ExecuteInternalAsync(
             IExecutionContext executionContext)
         {
-            EventDescription eventDescription = CreateEvent(executionContext);
+            object rootValue = executionContext.Operation.RootValue;
 
-            IEventStream eventStream = await SubscribeAsync(
-                executionContext.Services,
-                eventDescription,
-                executionContext.RequestAborted)
-                .ConfigureAwait(false);
+            FieldSelection fieldSelection = executionContext.CollectFields(
+                executionContext.Schema.SubscriptionType,
+                executionContext.Operation.Definition.SelectionSet,
+                null)
+                .Single();
 
-            return new SubscriptionResult(
-                eventStream,
-                msg =>
-                {
-                    IExecutionContext cloned = executionContext.Clone();
+            ImmutableStack<object> source = ImmutableStack.Create(rootValue);
 
-                    cloned.ContextData[typeof(IEventMessage).FullName] = msg;
+            var subscribeContext = ResolverContext.Rent(
+                executionContext,
+                fieldSelection,
+                source,
+                new Dictionary<string, object>());
 
-                    return cloned;
-                },
-                ExecuteSubscriptionQueryAsync,
-                executionContext.ServiceScope);
+            SubscribeResolverDelegate subscribeResolver =
+                fieldSelection.Field.SubscribeResolver
+                ?? DefaultSubscribeResolverAsync;
+
+            try
+            {
+                IAsyncEnumerable<object> sourceStream =
+                    await subscribeResolver(subscribeContext)
+                        .ConfigureAwait(false);
+
+                return new SubscriptionResult(
+                    sourceStream,
+                    message =>
+                    {
+                        IExecutionContext cloned = executionContext.Clone();
+                        cloned.ContextData[WellKnownContextData.EventMessage] = message;
+                        return cloned;
+                    },
+                    ExecuteSubscriptionQueryAsync,
+                    executionContext.ServiceScope,
+                    executionContext.RequestAborted);
+            }
+            finally
+            {
+                ResolverContext.Return(subscribeContext);
+            }
+        }
+
+        private static async ValueTask<IAsyncEnumerable<object>> DefaultSubscribeResolverAsync(
+            IResolverContext resolverContext)
+        {
+            EventDescription eventDescription = CreateEvent(resolverContext);
+            IServiceProvider services = resolverContext.Service<IServiceProvider>();
+            IEventRegistry eventRegistry = services.GetService<IEventRegistry>();
+
+            if (eventRegistry == null)
+            {
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources.SubscriptionExecutionStrategy_NoEventRegistry)
+                        .Build());
+            }
+
+            return await eventRegistry.SubscribeAsync(eventDescription);
         }
 
         private static EventDescription CreateEvent(
-            IExecutionContext executionContext)
+            IResolverContext executionContext)
         {
-            IReadOnlyCollection<FieldSelection> selections = executionContext
-                .CollectFields(
-                    executionContext.Operation.RootType,
-                    executionContext.Operation.Definition.SelectionSet,
-                    null);
+            IReadOnlyList<IFieldSelection> selections =
+                executionContext.CollectFields(
+                    executionContext.RootType,
+                    executionContext.Operation.SelectionSet);
 
             if (selections.Count == 1)
             {
-                FieldSelection selection = selections.Single();
+                IFieldSelection selection = selections[0];
                 var arguments = new List<ArgumentNode>();
                 IVariableValueCollection variables = executionContext.Variables;
 
@@ -96,25 +137,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static ValueTask<IEventStream> SubscribeAsync(
-            IServiceProvider services,
-            IEventDescription @event,
-            CancellationToken cancellationToken)
-        {
-            var eventRegistry = services.GetService<IEventRegistry>();
-
-            if (eventRegistry is null)
-            {
-                throw new QueryException(
-                    ErrorBuilder.New()
-                        .SetMessage(CoreResources.SubscriptionExecutionStrategy_NoEventRegistry)
-                        .Build());
-            }
-
-            return eventRegistry.SubscribeAsync(@event, cancellationToken);
-        }
-
-        private async Task<IReadOnlyQueryResult> ExecuteSubscriptionQueryAsync(
+        private async ValueTask<IReadOnlyQueryResult> ExecuteSubscriptionQueryAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {

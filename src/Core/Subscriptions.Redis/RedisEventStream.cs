@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using StackExchange.Redis;
@@ -11,6 +12,7 @@ namespace HotChocolate.Subscriptions.Redis
         private readonly IEventDescription _eventDescription;
         private readonly ChannelMessageQueue _channel;
         private readonly IPayloadSerializer _serializer;
+        private RedisEventStreamEnumerator _enumerator;
         private bool _isCompleted;
 
         public RedisEventStream(
@@ -23,18 +25,29 @@ namespace HotChocolate.Subscriptions.Redis
             _serializer = serializer;
         }
 
-        public bool IsCompleted => _isCompleted;
-
-        public async ValueTask<IEventMessage> ReadAsync(
-            CancellationToken cancellationToken)
+        public IAsyncEnumerator<IEventMessage> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
-            ChannelMessage message = await _channel.ReadAsync(cancellationToken);
-            var payload = _serializer.Deserialize(message.Message);
-            return new EventMessage(message.Channel, payload);
+            if (_isCompleted || (_enumerator is { IsCompleted: true }))
+            {
+                throw new InvalidOperationException(
+                    "The stream has been completed and cannot be replayed.");
+            }
+
+            if (_enumerator is null)
+            {
+                _enumerator = new RedisEventStreamEnumerator(
+                    _eventDescription,
+                    _channel,
+                    _serializer,
+                    cancellationToken);
+            }
+
+            return _enumerator;
         }
 
         public async ValueTask CompleteAsync(
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (!_isCompleted)
             {
@@ -43,20 +56,57 @@ namespace HotChocolate.Subscriptions.Redis
             }
         }
 
-        public void Dispose()
+        private class RedisEventStreamEnumerator
+            : IAsyncEnumerator<IEventMessage>
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+            private readonly IEventDescription _eventDescription;
+            private readonly ChannelMessageQueue _channel;
+            private readonly IPayloadSerializer _serializer;
+            private readonly CancellationToken _cancellationToken;
+            private bool _isCompleted;
 
-        public void Dispose(bool disposing)
-        {
-            if (!_isCompleted)
+            public RedisEventStreamEnumerator(
+                IEventDescription eventDescription,
+                ChannelMessageQueue channel,
+                IPayloadSerializer serializer,
+                CancellationToken cancellationToken)
             {
-                if (disposing)
+                _eventDescription = eventDescription;
+                _channel = channel;
+                _serializer = serializer;
+                _cancellationToken = cancellationToken;
+            }
+
+            public IEventMessage Current { get; private set; }
+
+            internal bool IsCompleted => _isCompleted;
+
+            public async ValueTask<bool> MoveNextAsync()
+            {
+                if (_isCompleted || _channel.Completion.IsCompleted)
                 {
-                    _channel.Unsubscribe();
+                    Current = null;
+                    return false;
                 }
+
+                try
+                {
+                    ChannelMessage message =
+                        await _channel.ReadAsync(_cancellationToken).ConfigureAwait(false);
+                    object payload = _serializer.Deserialize(message.Message);
+                    Current = new EventMessage(message.Channel, payload);
+                    return true;
+                }
+                catch
+                {
+                    Current = null;
+                    return false;
+                }
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                await _channel.UnsubscribeAsync().ConfigureAwait(false);
                 _isCompleted = true;
             }
         }
