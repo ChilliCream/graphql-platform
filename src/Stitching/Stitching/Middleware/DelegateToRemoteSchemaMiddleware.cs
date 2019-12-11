@@ -50,8 +50,7 @@ namespace HotChocolate.Stitching
 
                 UpdateContextData(context, result, delegateDirective);
 
-                context.Result = new SerializedData(
-                    ExtractData(result.Data, path.Count()));
+                context.Result = new SerializedData(ExtractData(result.Data, path.Count()));
                 ReportErrors(delegateDirective.Schema, context, result.Errors);
             }
 
@@ -105,7 +104,8 @@ namespace HotChocolate.Stitching
 
             IReadOnlyCollection<Delegation.VariableValue> variableValues =
                 CreateVariableValues(
-                    context, scopedVariables, extractedField);
+                    context, schemaName, scopedVariables,
+                    extractedField, fieldRewriter);
 
             DocumentNode query = RemoteQueryBuilder.New()
                 .SetOperation(context.Operation.Name, operationType)
@@ -235,8 +235,10 @@ namespace HotChocolate.Stitching
 
         private static IReadOnlyCollection<Delegation.VariableValue> CreateVariableValues(
             IMiddlewareContext context,
+            NameString schemaName,
             IEnumerable<Delegation.VariableValue> scopedVariables,
-            ExtractedField extractedField)
+            ExtractedField extractedField,
+            ExtractFieldQuerySyntaxRewriter rewriter)
         {
             var values = new Dictionary<string, Delegation.VariableValue>();
 
@@ -248,7 +250,8 @@ namespace HotChocolate.Stitching
             IReadOnlyDictionary<string, IValueNode> requestVariables = context.GetVariables();
 
             foreach (Delegation.VariableValue value in ResolveUsedRequestVariables(
-                extractedField, requestVariables))
+                context.Schema, schemaName, extractedField,
+                requestVariables, rewriter))
             {
                 values[value.Name] = value;
             }
@@ -343,17 +346,27 @@ namespace HotChocolate.Stitching
         }
 
         private static IEnumerable<Delegation.VariableValue> ResolveUsedRequestVariables(
+            ISchema schema,
+            NameString schemaName,
             ExtractedField extractedField,
-            IReadOnlyDictionary<string, IValueNode> requestVariables)
+            IReadOnlyDictionary<string, IValueNode> requestVariables,
+            ExtractFieldQuerySyntaxRewriter rewriter)
         {
             foreach (VariableDefinitionNode variable in extractedField.Variables)
             {
                 string name = variable.Variable.Name.Value;
+                INamedInputType namedType = schema.GetType<INamedInputType>(
+                    variable.Type.NamedType().Name.Value);
 
                 if (!requestVariables.TryGetValue(name, out IValueNode value))
                 {
                     value = NullValueNode.Default;
                 }
+
+                value = rewriter.RewriteValueNode(
+                    schemaName,
+                    (IInputType)variable.Type.ToType(namedType),
+                    value);
 
                 yield return new Delegation.VariableValue
                 (

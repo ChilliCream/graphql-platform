@@ -85,22 +85,16 @@ namespace HotChocolate.Stitching.Utilities
             FieldNode current = node;
 
             if (context.TypeContext is IComplexOutputType type
-                && type.Fields.TryGetField(current.Name.Value,
-                    out IOutputField field))
+                && type.Fields.TryGetField(current.Name.Value, out IOutputField field))
             {
                 Context cloned = context.Clone();
                 cloned.OutputField = field;
 
-                current = RewriteFieldName(
-                    current, field, context);
-
+                current = RewriteFieldName(current, field, context);
                 current = Rewrite(current, current.Arguments, cloned,
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
-
-                current = RewriteFieldSelectionSet(
-                    current, field, context);
-
+                current = RewriteFieldSelectionSet(current, field, context);
                 current = OnRewriteField(current, cloned);
             }
 
@@ -292,11 +286,9 @@ namespace HotChocolate.Stitching.Utilities
         {
             if (context.TypeContext is IComplexOutputType type)
             {
-                foreach (FieldNode selection in node.Selections
-                    .OfType<FieldNode>())
+                foreach (FieldNode selection in node.Selections.OfType<FieldNode>())
                 {
-                    if (type.Fields.TryGetField(selection.Name.Value,
-                        out IOutputField field)
+                    if (type.Fields.TryGetField(selection.Name.Value, out IOutputField field)
                         && IsDelegationField(field.Directives))
                     {
                         selections.Remove(selection);
@@ -316,13 +308,11 @@ namespace HotChocolate.Stitching.Utilities
             List<ISelectionNode> selections,
             IEnumerable<FieldDependency> dependencies)
         {
-
             foreach (var typeGroup in dependencies.GroupBy(t => t.TypeName))
             {
                 var fields = new List<FieldNode>();
 
-                foreach (NameString fieldName in typeGroup
-                    .Select(t => t.FieldName))
+                foreach (NameString fieldName in typeGroup.Select(t => t.FieldName))
                 {
                     fields.Add(CreateField(fieldName));
                 }
@@ -378,8 +368,7 @@ namespace HotChocolate.Stitching.Utilities
             Context context)
         {
             string name = node.Name.Value;
-            if (!context.Fragments.TryGetValue(name,
-                out FragmentDefinitionNode fragment))
+            if (!context.Fragments.TryGetValue(name, out FragmentDefinitionNode fragment))
             {
                 fragment = context.Document.Definitions
                     .OfType<FragmentDefinitionNode>()
@@ -403,17 +392,13 @@ namespace HotChocolate.Stitching.Utilities
                 return node;
             }
 
-            if (_schema.TryGetType(
-                current.TypeCondition.Name.Value,
-                out IComplexOutputType type))
+            if (_schema.TryGetType(current.TypeCondition.Name.Value, out IComplexOutputType type))
             {
                 currentContext = currentContext.Clone();
                 currentContext.TypeContext = type;
-                currentContext.FragmentPath =
-                    currentContext.FragmentPath.Add(current.Name.Value);
+                currentContext.FragmentPath = currentContext.FragmentPath.Add(current.Name.Value);
 
-                if (type.TryGetSourceDirective(context.Schema,
-                    out SourceDirective sourceDirective))
+                if (type.TryGetSourceDirective(context.Schema, out SourceDirective sourceDirective))
                 {
                     current = current.WithTypeCondition(
                         current.TypeCondition.WithName(
@@ -431,15 +416,12 @@ namespace HotChocolate.Stitching.Utilities
             Context currentContext = context;
             InlineFragmentNode current = node;
 
-            if (_schema.TryGetType(
-                current.TypeCondition.Name.Value,
-                out IComplexOutputType type))
+            if (_schema.TryGetType(current.TypeCondition.Name.Value, out IComplexOutputType type))
             {
                 currentContext = currentContext.Clone();
                 currentContext.TypeContext = type;
 
-                if (type.TryGetSourceDirective(context.Schema,
-                    out SourceDirective sourceDirective))
+                if (type.TryGetSourceDirective(context.Schema, out SourceDirective sourceDirective))
                 {
                     current = current.WithTypeCondition(
                         current.TypeCondition.WithName(
