@@ -65,6 +65,7 @@ namespace HotChocolate.Stitching.Client
             return DispatchRequestsAsync(
                 requests,
                 rewriter.Merge(),
+                rewriter.OperationName,
                 variableValues,
                 cancellationToken);
         }
@@ -93,6 +94,7 @@ namespace HotChocolate.Stitching.Client
         private async Task DispatchRequestsAsync(
             IList<BufferedRequest> requests,
             DocumentNode mergedQuery,
+            NameNode operationName,
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken)
         {
@@ -102,6 +104,7 @@ namespace HotChocolate.Stitching.Client
                 IReadOnlyQueryRequest mergedRequest =
                     QueryRequestBuilder.New()
                         .SetQuery(mergedQuery)
+                        .SetOperation(operationName.Value)
                         .SetVariableValues(variableValues)
                         .SetServices(_services)
                         .Create();
@@ -109,7 +112,6 @@ namespace HotChocolate.Stitching.Client
                 var mergedResult = (IReadOnlyQueryResult)await _queryExecutor
                     .ExecuteAsync(mergedRequest, cancellationToken)
                     .ConfigureAwait(false);
-
                 var handledErrors = new HashSet<IError>();
 
                 for (int i = 0; i < requests.Count; i++)
@@ -124,7 +126,8 @@ namespace HotChocolate.Stitching.Client
                     if (handledErrors.Count < mergedResult.Errors.Count
                         && i == requests.Count - 1)
                     {
-                        foreach (IError error in mergedResult.Errors.Except(handledErrors))
+                        foreach (IError error in mergedResult.Errors
+                            .Except(handledErrors))
                         {
                             result.Errors.Add(error);
                         }

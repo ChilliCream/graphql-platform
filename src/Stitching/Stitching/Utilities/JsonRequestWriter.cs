@@ -5,10 +5,11 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Stitching.Utilities
 {
-    internal sealed class RequestWriter
+    internal sealed class JsonRequestWriter
         : IBufferWriter<byte>
         , IDisposable
     {
+        private const int _initialBufferSize = 256;
         private static readonly JsonWriterOptions _options =
             new JsonWriterOptions { SkipValidation = true };
         private readonly Utf8JsonWriter _writer;
@@ -17,9 +18,9 @@ namespace HotChocolate.Stitching.Utilities
         private int _start;
         private bool _disposed;
 
-        public RequestWriter()
+        public JsonRequestWriter()
         {
-            _buffer = ArrayPool<byte>.Shared.Rent(1024);
+            _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
             _capacity = _buffer.Length;
             _writer = new Utf8JsonWriter(this, _options);
         }
@@ -27,6 +28,8 @@ namespace HotChocolate.Stitching.Utilities
         public int Length => _start;
 
         public ReadOnlyMemory<byte> Body => _buffer.AsMemory().Slice(0, _start);
+
+        public Utf8JsonWriter JsonWriter => _writer;
 
         public byte[] GetInternalBuffer() => _buffer;
 
@@ -117,14 +120,14 @@ namespace HotChocolate.Stitching.Utilities
 
         public Memory<byte> GetMemory(int sizeHint = 0)
         {
-            var size = sizeHint < 1 ? 256 : sizeHint;
+            var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
             EnsureBufferCapacity(size);
             return _buffer.AsMemory().Slice(_start, size);
         }
 
         public Span<byte> GetSpan(int sizeHint = 0)
         {
-            var size = sizeHint < 1 ? 256 : sizeHint;
+            var size = sizeHint < 1 ? _initialBufferSize : sizeHint;
             EnsureBufferCapacity(size);
             return _buffer.AsSpan().Slice(_start, size);
         }
@@ -144,7 +147,7 @@ namespace HotChocolate.Stitching.Utilities
         public void Clear()
         {
             ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = ArrayPool<byte>.Shared.Rent(1024);
+            _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
             _capacity = _buffer.Length;
         }
 

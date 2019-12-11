@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+
+#nullable enable
 
 namespace HotChocolate.Stitching.Utilities
 {
@@ -18,20 +18,21 @@ namespace HotChocolate.Stitching.Utilities
         private static readonly KeyValuePair<string, string> _contentTypeJson =
             new KeyValuePair<string, string>("Content-Type", "application/json");
 
-        private readonly JsonSerializerSettings _jsonSettings =
-            new JsonSerializerSettings
+        private static readonly JsonSerializerOptions _options =
+            new JsonSerializerOptions
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                DateParseHandling = DateParseHandling.None
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                IgnoreNullValues = true,
+                IgnoreReadOnlyProperties = false
             };
 
         public Task<QueryResult> FetchAsync(
             IReadOnlyQueryRequest request,
             HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
-            CancellationToken cancellationToken)
+            IEnumerable<IHttpQueryRequestInterceptor>? interceptors = default,
+            CancellationToken cancellationToken = default)
         {
-            using var writer = new RequestWriter();
+            using var writer = new JsonRequestWriter();
             WriteJsonRequest(writer, request);
             var content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
             content.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
@@ -48,7 +49,7 @@ namespace HotChocolate.Stitching.Utilities
             IReadOnlyQueryRequest request,
             HttpContent requestContent,
             HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
+            IEnumerable<IHttpQueryRequestInterceptor>? interceptors,
             CancellationToken cancellationToken)
         {
             HttpResponseMessage message =
@@ -111,23 +112,22 @@ namespace HotChocolate.Stitching.Utilities
             HttpQueryRequest request,
             HttpClient httpClient)
         {
-            var content = new StringContent(
-                SerializeRemoteRequest(request),
-                Encoding.UTF8,
-                _contentTypeJson.Value);
+            byte[] json = JsonSerializer.SerializeToUtf8Bytes(request, _options);
+            var content = new ByteArrayContent(json, 0, json.Length);
+            content.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
 
             HttpResponseMessage response =
                 await httpClient.PostAsync(default(Uri), content)
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            string json = await response.Content.ReadAsStringAsync()
+            string responseContent = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
 
-            return (json, response);
+            return (responseContent, response);
         }
 
-        private async Task<HttpResponseMessage> FetchInternalAsync(
+        private static async Task<HttpResponseMessage> FetchInternalAsync(
             HttpContent requestContent,
             HttpClient httpClient)
         {
@@ -135,12 +135,11 @@ namespace HotChocolate.Stitching.Utilities
                 await httpClient.PostAsync(default(Uri), requestContent)
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-
             return response;
         }
 
         private void WriteJsonRequest(
-            RequestWriter writer,
+            JsonRequestWriter writer,
             IReadOnlyQueryRequest request)
         {
             writer.WriteStartObject();
@@ -150,8 +149,8 @@ namespace HotChocolate.Stitching.Utilities
             writer.WriteEndObject();
         }
 
-        private void WriteJsonRequestVariables(
-            RequestWriter writer,
+        private static void WriteJsonRequestVariables(
+            JsonRequestWriter writer,
             IReadOnlyDictionary<string, object> variables)
         {
             if (variables is { } && variables.Count > 0)
@@ -170,7 +169,7 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
-        private static void WriteValue(RequestWriter writer, object value)
+        private static void WriteValue(JsonRequestWriter writer, object value)
         {
             if (value is null || value is NullValueNode)
             {
@@ -228,13 +227,6 @@ namespace HotChocolate.Stitching.Utilities
                             "Unknown variable value kind.");
                 }
             }
-        }
-
-        private string SerializeRemoteRequest(
-            HttpQueryRequest remoteRequest)
-        {
-            return JsonConvert.SerializeObject(
-                remoteRequest, _jsonSettings);
         }
     }
 }
