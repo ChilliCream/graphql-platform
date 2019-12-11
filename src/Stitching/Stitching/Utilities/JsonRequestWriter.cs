@@ -9,7 +9,7 @@ namespace HotChocolate.Stitching.Utilities
         : IBufferWriter<byte>
         , IDisposable
     {
-        private const int _initialBufferSize = 256;
+        private const int _initialBufferSize = 512;
         private static readonly JsonWriterOptions _options =
             new JsonWriterOptions { SkipValidation = true };
         private readonly Utf8JsonWriter _writer;
@@ -132,13 +132,21 @@ namespace HotChocolate.Stitching.Utilities
             return _buffer.AsSpan().Slice(_start, size);
         }
 
-        private void EnsureBufferCapacity(int size)
+        private void EnsureBufferCapacity(int neededCapacity)
         {
-            if (_capacity < size)
+            if (_capacity < neededCapacity)
             {
                 byte[] buffer = _buffer;
-                _buffer = ArrayPool<byte>.Shared.Rent(size + _buffer.Length);
-                _capacity += _buffer.Length;
+
+                int newSize = _buffer.Length * 2;
+                if (neededCapacity > buffer.Length)
+                {
+                    newSize += neededCapacity;
+                }
+
+                _buffer = ArrayPool<byte>.Shared.Rent(newSize);
+                _capacity += _buffer.Length - buffer.Length;
+
                 buffer.AsSpan().CopyTo(_buffer);
                 ArrayPool<byte>.Shared.Return(buffer);
             }
