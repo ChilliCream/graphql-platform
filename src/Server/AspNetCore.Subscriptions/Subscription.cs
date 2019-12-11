@@ -7,12 +7,11 @@ using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal class Subscription
+    internal sealed class Subscription
         : ISubscription
     {
         internal const byte _delimiter = 0x07;
-        private readonly CancellationTokenSource _cts =
-            new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
         private bool _disposed;
@@ -44,24 +43,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             try
             {
-                while (!_responseStream.IsCompleted
-                    && !_cts.IsCancellationRequested)
+                await foreach (IReadOnlyQueryResult result in
+                    _responseStream.WithCancellation(_cts.Token))
                 {
-                    IReadOnlyQueryResult result =
-                        await _responseStream.ReadAsync(_cts.Token)
-                            .ConfigureAwait(false);
-
-                    if (result != null)
-                    {
-                        await _connection.SendAsync(
-                            new DataResultMessage(Id, result).Serialize(),
-                            _cts.Token)
-                            .ConfigureAwait(false);
-                    }
+                    await _connection.SendAsync(
+                        new DataResultMessage(Id, result).Serialize(),
+                        _cts.Token)
+                        .ConfigureAwait(false);
                 }
 
-                if (_responseStream.IsCompleted
-                    && !_cts.IsCancellationRequested)
+
+                if (!_cts.IsCancellationRequested)
                 {
                     await _connection.SendAsync(
                         new DataCompleteMessage(Id).Serialize(),
@@ -82,23 +74,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
             if (!_disposed)
             {
-                if (disposing)
+                if (!_cts.IsCancellationRequested)
                 {
-                    if (!_cts.IsCancellationRequested)
-                    {
-                        _cts.Cancel();
-                    }
-                    _responseStream.Dispose();
-                    _cts.Dispose();
+                    _cts.Cancel();
                 }
+                _cts.Dispose();
                 _disposed = true;
             }
         }

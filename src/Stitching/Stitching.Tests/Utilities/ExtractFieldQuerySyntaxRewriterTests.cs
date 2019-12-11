@@ -22,6 +22,7 @@ namespace HotChocolate.Stitching
         [InlineData("Stitching.graphql", "StitchingQueryWithUnion.graphql")]
         [InlineData("Stitching.graphql", "StitchingQueryWithVariables.graphql")]
         [InlineData("Stitching.graphql", "StitchingQueryWithArguments.graphql")]
+        [InlineData("Stitching.graphql", "StitchingQueryWithTypename.graphql")]
         [InlineData("StitchingComputed.graphql", "StitchingQueryComputedField.graphql")]
         [Theory]
         public void ExtractField(string schemaFile, string queryFile)

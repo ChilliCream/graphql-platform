@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = context.Naming.GetTypeName(type);
         }
 
-        protected override SchemaTypeDefinition Definition { get; } =
+        internal protected override SchemaTypeDefinition Definition { get; } =
             new SchemaTypeDefinition();
 
         public ISchemaTypeDescriptor Name(NameString value)

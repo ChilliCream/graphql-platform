@@ -31,6 +31,16 @@ namespace HotChocolate.Types.Descriptors
             Definition.Property = property;
         }
 
+        protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
+        {
+            base.OnCreateDefinition(definition);
+
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.Property);
+            }
+        }
+
         public new IDirectiveArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {

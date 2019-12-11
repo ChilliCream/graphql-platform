@@ -23,10 +23,8 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name =
-                context.Naming.GetTypeName(clrType, TypeKind.Object);
-            Definition.Description =
-                context.Naming.GetTypeDescription(clrType, TypeKind.Object);
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
 
         public ObjectTypeDescriptor(IDescriptorContext context)
@@ -35,7 +33,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override ObjectTypeDefinition Definition { get; } =
+        internal protected override ObjectTypeDefinition Definition { get; } =
             new ObjectTypeDefinition();
 
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
@@ -47,6 +45,11 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+            }
+
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
@@ -98,8 +101,7 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType)
         {
-            foreach (MemberInfo member in Context.Inspector
-                .GetMembers(resolverType))
+            foreach (MemberInfo member in Context.Inspector.GetMembers(resolverType))
             {
                 if (IsResolverRelevant(sourceType, member))
                 {
@@ -227,7 +229,14 @@ namespace HotChocolate.Types.Descriptors
 
         public IObjectFieldDescriptor Field(NameString name)
         {
-            var fieldDescriptor = ObjectFieldDescriptor.New(Context, name);
+            ObjectFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = ObjectFieldDescriptor.New(Context, name);
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -247,7 +256,14 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                var fieldDescriptor = ObjectFieldDescriptor.New(
+                ObjectFieldDescriptor fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Member == member);
+                if (fieldDescriptor is { })
+                {
+                    return fieldDescriptor;
+                }
+
+                fieldDescriptor = ObjectFieldDescriptor.New(
                     Context, member, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
