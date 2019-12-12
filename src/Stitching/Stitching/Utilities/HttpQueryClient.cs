@@ -30,7 +30,8 @@ namespace HotChocolate.Stitching.Utilities
         private static readonly JsonWriterOptions _jsonWriterOptions =
             new JsonWriterOptions
             {
-                SkipValidation = true
+                SkipValidation = true,
+                Indented = false
             };
 
         public Task<QueryResult> FetchAsync(
@@ -145,7 +146,7 @@ namespace HotChocolate.Stitching.Utilities
         private ByteArrayContent CreateRequestBody(IReadOnlyQueryRequest request)
         {
             using var writer = new ArrayWriter();
-            using var jsonWriter = new Utf8JsonWriter(writer);
+            using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
             WriteJsonRequest(writer, jsonWriter, request);
             jsonWriter.Flush();
 
