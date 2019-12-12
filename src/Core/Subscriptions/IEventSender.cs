@@ -6,7 +6,7 @@ namespace HotChocolate.Subscriptions
     /// <summary>
     /// The event sender sends event messages to the pub/sub-system.
     /// Typically a mutation would use the event sender to raise events
-    /// after some changes were commited to the backend system.
+    /// after some changes were committed to the backend system.
     ///
     /// Moreover, the <see cref="IEventSender"/> could also be used from outside
     /// the GraphQL schema process to raise events that than will trigger
@@ -20,6 +20,11 @@ namespace HotChocolate.Subscriptions
         /// <param name="message">
         /// The event message.
         /// </param>
-        ValueTask SendAsync(IEventMessage message, CancellationToken cancellationToken = default);
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        ValueTask SendAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default);
     }
 }

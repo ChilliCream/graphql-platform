@@ -10,6 +10,7 @@ using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Resolvers.Expressions
 {
@@ -493,7 +494,7 @@ namespace HotChocolate.Resolvers.Expressions
             context.Setup(t => t.Parent<Resolvers>())
                 .Returns(new Resolvers());
             context.Setup(t => t.CustomProperty<IEventMessage>(
-                typeof(IEventMessage).FullName))
+                WellKnownContextData.EventMessage))
                 .Returns(new Mock<IEventMessage>().Object);
             bool result = (bool)await resolver.Resolver(context.Object);
             Assert.True(result);

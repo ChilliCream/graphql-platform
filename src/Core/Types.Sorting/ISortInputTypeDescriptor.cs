@@ -68,6 +68,12 @@ namespace HotChocolate.Types.Sorting
         ISortOperationDescriptor Sortable(
             Expression<Func<T, IComparable>> property);
 
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        ISortInputTypeDescriptor<T> Ignore(
+            Expression<Func<T, object>> property);
 
 
         ISortInputTypeDescriptor<T> Directive<TDirective>(

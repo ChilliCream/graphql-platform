@@ -190,6 +190,95 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Bind_Filter_FilterDescirptor_Override()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersImplicitly();
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
+        {
+            // arrange
+            // act
+            IBooleanFilterFieldDescriptor first = null;
+            IBooleanFilterFieldDescriptor second = null;
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly()
+                        .AllowEquals().Name("this_should_not_be_visible").And()
+                        .AllowNotEquals().Name("this_should_not_be_visible_not").And();
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly()
+                        .AllowEquals().Name("equals").And()
+                        .AllowNotEquals().Name("not_equals").And();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                    descriptor.Ignore(x => x.Bar);
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstIgnoreThenAdd()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor.Ignore(x => x.Bar);
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Ignore_Field_Fields()
         {
             // arrange

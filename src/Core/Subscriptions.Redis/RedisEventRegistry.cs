@@ -1,5 +1,4 @@
 using System.Threading;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using StackExchange.Redis;
 

@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,49 +11,55 @@ namespace HotChocolate.Subscriptions.InMemory
         public async Task Trigger_Message_IsDelivered()
         {
             // arrange
+            using var cts = new CancellationTokenSource(30000);
             var sent = new EventMessage("foo", "bar");
             var eventStream = new InMemoryEventStream();
+            IAsyncEnumerator<IEventMessage> enumerator = eventStream.GetAsyncEnumerator(cts.Token);
 
             // act
-            await eventStream.TriggerAsync(sent);
+            await eventStream.TriggerAsync(sent, cts.Token);
 
             // assert
-            IEventMessage received = await eventStream.ReadAsync();
-            Assert.Equal(sent, received);
+            Assert.True(await enumerator.MoveNextAsync());
+            Assert.Equal(sent, enumerator.Current);
         }
 
         [Fact]
         public async Task Complete_CompletedEventIsRaised()
         {
             // arrange
+            using var cts = new CancellationTokenSource(30000);
             var sent = new EventMessage("foo", "bar");
             var eventStream = new InMemoryEventStream();
+            IAsyncEnumerator<IEventMessage> enumerator = eventStream.GetAsyncEnumerator(cts.Token);
             bool eventRaised = false;
             eventStream.Completed += (s, e) => eventRaised = true;
 
             // act
-            await eventStream.CompleteAsync();
+            await eventStream.CompleteAsync(cts.Token);
 
             // assert
             Assert.True(eventRaised);
-            Assert.True(eventStream.IsCompleted);
+            Assert.False(await enumerator.MoveNextAsync());
         }
 
         [Fact]
-        public void Dispose_CompletedEventIsRaised()
+        public async Task Dispose_CompletedEventIsRaised()
         {
             // arrange
+            using var cts = new CancellationTokenSource(30000);
             var sent = new EventMessage("foo", "bar");
             var eventStream = new InMemoryEventStream();
+            IAsyncEnumerator<IEventMessage> enumerator = eventStream.GetAsyncEnumerator(cts.Token);
             bool eventRaised = false;
             eventStream.Completed += (s, e) => eventRaised = true;
 
             // act
-            eventStream.Dispose();
+            await enumerator.DisposeAsync();
 
             // assert
             Assert.True(eventRaised);
-            Assert.True(eventStream.IsCompleted);
+            Assert.False(await enumerator.MoveNextAsync());
         }
     }
 }

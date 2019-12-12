@@ -214,7 +214,7 @@ namespace HotChocolate.Types.Filters
                 {
                     fieldArrayDescriptor.BindExplicitly().AllowAny().Name(ArrayField);
                 }
-                if (d is IArrayFilterFieldDescriptor<Foo> fieldObjectArrayDescriptor)
+                if (d is IArrayFilterFieldDescriptor<FooFields> fieldObjectArrayDescriptor)
                 {
                     fieldObjectArrayDescriptor.BindExplicitly().AllowAny().Name(ObjectArrayField);
                 }

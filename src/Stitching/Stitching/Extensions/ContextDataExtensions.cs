@@ -1,40 +1,32 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
+
+#nullable enable
 
 namespace HotChocolate.Stitching
 {
     internal static class ContextDataExtensions
     {
-        private const string _variables = "__hc_variables";
+        private const string _variables = "HotChocolate.Stitching.Variables";
+        private static readonly Dictionary<string, IValueNode> _empty =
+            new Dictionary<string, IValueNode>();
 
-        public static IReadOnlyDictionary<string, object> GetVariables(
+        public static IReadOnlyDictionary<string, IValueNode> GetVariables(
             this IMiddlewareContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (context.ContextData.TryGetValue(_variables, out object obj)
-                && obj is IReadOnlyDictionary<string, object> variables)
+                && obj is IReadOnlyDictionary<string, IValueNode> variables)
             {
                 return variables;
             }
-            return new Dictionary<string, object>();
+            return _empty;
         }
 
         public static void SetVariables(
             this IQueryContext context,
-            IReadOnlyDictionary<string, object> variables)
-        {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
+            IReadOnlyDictionary<string, IValueNode> variables) =>
             context.ContextData[_variables] = variables;
-        }
     }
 }
