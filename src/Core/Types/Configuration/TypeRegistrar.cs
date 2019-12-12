@@ -161,7 +161,7 @@ namespace HotChocolate.Configuration
                 {
                     if (BaseTypes.IsNonGenericBaseType(tso.GetType()))
                     {
-                        RegisterTypeSystemObject(tso, str);
+                        RegisterTypeSystemObject(tso, false, str);
                     }
                     else
                     {
@@ -169,7 +169,7 @@ namespace HotChocolate.Configuration
                             tso.GetType(),
                             SchemaTypeReference.InferTypeContext(tso));
 
-                        RegisterTypeSystemObject(tso, str, secondaryRef);
+                        RegisterTypeSystemObject(tso, false, str, secondaryRef);
                     }
                 }
                 else if (typeReference is ISyntaxTypeReference sr
@@ -229,12 +229,13 @@ namespace HotChocolate.Configuration
             if (!Registered.ContainsKey(new ClrTypeReference(type, typeContext)))
             {
                 TypeSystemObjectBase typeSystemObject = CreateInstance(type);
-                RegisterTypeSystemObject(typeSystemObject);
+                RegisterTypeSystemObject(typeSystemObject, BaseTypes.IsGenericBaseType(type));
             }
         }
 
         private void RegisterTypeSystemObject(
-            TypeSystemObjectBase typeSystemObject)
+            TypeSystemObjectBase typeSystemObject,
+            bool isAutoInferred)
         {
             TypeContext typeContext = SchemaTypeReference.InferTypeContext(typeSystemObject);
 
@@ -242,19 +243,22 @@ namespace HotChocolate.Configuration
                 typeSystemObject.GetType(),
                 typeContext);
 
-            RegisterTypeSystemObject(typeSystemObject, internalReference);
+            RegisterTypeSystemObject(typeSystemObject, isAutoInferred, internalReference);
         }
 
         private void RegisterTypeSystemObject(
             TypeSystemObjectBase typeSystemObject,
+            bool isAutoInferred,
             params ITypeReference[] internalReferences)
         {
             TypeContext typeContext = SchemaTypeReference.InferTypeContext(typeSystemObject);
 
             if (internalReferences.Length > 0 && !Registered.ContainsKey(internalReferences[0]))
             {
-                RegisteredType registeredType =
-                    InitializeAndRegister(typeSystemObject, internalReferences);
+                RegisteredType registeredType = InitializeAndRegister(
+                    typeSystemObject,
+                    isAutoInferred,
+                    internalReferences);
 
                 if (registeredType.ClrType != typeof(object))
                 {
@@ -278,15 +282,14 @@ namespace HotChocolate.Configuration
 
             if (clrTypeRef.Context == TypeContext.None)
             {
-                Unresolved.Remove(new ClrTypeReference(
-                    clrTypeRef.Type, TypeContext.Input));
-                Unresolved.Remove(new ClrTypeReference(
-                    clrTypeRef.Type, TypeContext.Output));
+                Unresolved.Remove(new ClrTypeReference(clrTypeRef.Type, TypeContext.Input));
+                Unresolved.Remove(new ClrTypeReference(clrTypeRef.Type, TypeContext.Output));
             }
         }
 
         private RegisteredType InitializeAndRegister(
             TypeSystemObjectBase typeSystemObject,
+            bool isAutoInferred,
             params ITypeReference[] internalReferences)
         {
             ITypeReference[] references = internalReferences
@@ -315,7 +318,8 @@ namespace HotChocolate.Configuration
                 var registeredType = new RegisteredType(
                     references,
                     typeSystemObject,
-                    initializationContext.TypeDependencies);
+                    initializationContext.TypeDependencies,
+                    isAutoInferred);
 
                 foreach (ITypeReference reference in references)
                 {

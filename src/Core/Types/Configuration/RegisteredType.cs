@@ -5,6 +5,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
     internal sealed class RegisteredType
@@ -13,7 +15,8 @@ namespace HotChocolate.Configuration
         public RegisteredType(
             ITypeReference reference,
             TypeSystemObjectBase type,
-            IReadOnlyList<TypeDependency> dependencies)
+            IReadOnlyList<TypeDependency> dependencies,
+            bool isAutoInferred)
         {
             if (reference == null)
             {
@@ -25,12 +28,14 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(type));
             Dependencies = dependencies
                 ?? throw new ArgumentNullException(nameof(dependencies));
+            IsAutoInferred = isAutoInferred;
         }
 
         public RegisteredType(
             IReadOnlyList<ITypeReference> references,
             TypeSystemObjectBase type,
-            IReadOnlyList<TypeDependency> dependencies)
+            IReadOnlyList<TypeDependency> dependencies,
+            bool isAutoInferred)
         {
             References = references
                 ?? throw new ArgumentNullException(nameof(references));
@@ -38,11 +43,14 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(type));
             Dependencies = dependencies
                 ?? throw new ArgumentNullException(nameof(dependencies));
+            IsAutoInferred = isAutoInferred;
         }
 
         public IReadOnlyList<ITypeReference> References { get; }
 
         public TypeSystemObjectBase Type { get; }
+
+        public bool IsAutoInferred { get; }
 
         public Type ClrType
         {
@@ -66,7 +74,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(dependencies));
             }
 
-            return new RegisteredType(References, Type, dependencies);
+            return new RegisteredType(References, Type, dependencies, IsAutoInferred);
         }
 
         public RegisteredType AddDependencies(
@@ -80,7 +88,7 @@ namespace HotChocolate.Configuration
             var merged = Dependencies.ToList();
             merged.AddRange(dependencies);
 
-            return new RegisteredType(References, Type, merged);
+            return new RegisteredType(References, Type, merged, IsAutoInferred);
         }
 
         public void Update(IDictionary<ITypeReference, RegisteredType> types)
