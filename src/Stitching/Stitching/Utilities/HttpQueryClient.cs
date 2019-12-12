@@ -55,7 +55,8 @@ namespace HotChocolate.Stitching.Utilities
                 requestBody,
                 httpClient,
                 interceptors,
-                cancellationToken);
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private async Task<QueryResult> FetchAsync(
