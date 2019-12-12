@@ -6,29 +6,47 @@ using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using System.Globalization;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public abstract class TypeSystemObjectBase<TDefinition>
         : TypeSystemObjectBase
         where TDefinition : DefinitionBase
     {
-        private TDefinition _definition;
-        private Dictionary<string, object> _contextData;
-        private IReadOnlyCollection<ILazyTypeConfiguration> _configrations;
+        private TDefinition? _definition;
+        private Dictionary<string, object?>? _contextData;
+        private IReadOnlyCollection<ILazyTypeConfiguration>? _configrations;
 
         protected TypeSystemObjectBase() { }
 
-        public override IReadOnlyDictionary<string, object> ContextData =>
-            _contextData;
+        public override IReadOnlyDictionary<string, object?> ContextData
+        {
+            get
+            {
+                if (_contextData is null)
+                {
+                    throw new InvalidOperationException(
+                        "The type system object is not correctly initialized.");
+                }
+                return _contextData;
+            }
+        }
 
-        internal TDefinition Definition => _definition;
+        internal TDefinition? Definition
+        {
+            get
+            {
+                return _definition;
+            }
+        }
 
         internal sealed override void Initialize(IInitializationContext context)
         {
             _definition = CreateDefinition(context);
             _configrations = _definition?.GetConfigurations().ToList();
 
-            if (_definition == null)
+            if (_definition is null)
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
@@ -50,6 +68,12 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
+            if (_definition is null)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+
             ExecuteConfigurations(context, ApplyConfigurationOn.Naming);
             OnCompleteName(context, _definition);
 
@@ -80,14 +104,19 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
+            if (_definition is null)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+
             ExecuteConfigurations(context, ApplyConfigurationOn.Completion);
 
             Description = _definition.Description;
 
             OnCompleteType(context, _definition);
 
-            _contextData = new Dictionary<string, object>(
-                _definition.ContextData);
+            _contextData = new Dictionary<string, object?>(_definition.ContextData);
             _definition = null;
             _configrations = null;
 

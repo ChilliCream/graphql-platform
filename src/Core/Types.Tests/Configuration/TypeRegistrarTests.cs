@@ -34,7 +34,7 @@ namespace HotChocolate
             typeRegistrar.Complete();
 
             // assert
-            typeRegistrar.Registerd
+            typeRegistrar.Registered
                 .Select(t => t.Value.Type)
                 .OfType<IHasClrType>()
                 .ToDictionary(
@@ -70,7 +70,7 @@ namespace HotChocolate
             typeRegistrar.Complete();
 
             // assert
-            typeRegistrar.Registerd
+            typeRegistrar.Registered
                 .Select(t => t.Value.Type)
                 .OfType<IHasClrType>()
                 .ToDictionary(

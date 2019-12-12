@@ -9,6 +9,8 @@ using HotChocolate.Types.Introspection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
     internal sealed class TypeRegistrar
@@ -59,14 +61,13 @@ namespace HotChocolate.Configuration
             _contextData = contextData;
         }
 
-        public ICollection<InitializationContext> InitializationContexts =>
-            _initContexts;
+        public ICollection<InitializationContext> InitializationContexts => _initContexts;
 
         public ICollection<IClrTypeReference> Unresolved { get; } =
             new List<IClrTypeReference>();
 
-        public IDictionary<ITypeReference, RegisteredType> Registerd
-        { get; } = new Dictionary<ITypeReference, RegisteredType>();
+        public IDictionary<ITypeReference, RegisteredType> Registered { get; } =
+            new Dictionary<ITypeReference, RegisteredType>();
 
         public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; }
 
@@ -113,7 +114,7 @@ namespace HotChocolate.Configuration
 
         private void CompleteSchemaTypes()
         {
-            while (_unregistered.Any())
+            while (_unregistered.Count > 0)
             {
                 InitializeTypes();
                 EnqueueUnhandled();
@@ -126,8 +127,7 @@ namespace HotChocolate.Configuration
 
             foreach (IClrTypeReference unresolvedType in Unresolved.ToList())
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type,
-                    out IClrTypeReference schemaType))
+                if (Scalars.TryGetScalar(unresolvedType.Type, out IClrTypeReference schemaType))
                 {
                     resolved = true;
                     _unregistered.Add(schemaType);
@@ -137,8 +137,7 @@ namespace HotChocolate.Configuration
                         ClrTypes.Add(unresolvedType, schemaType);
                     }
                 }
-                else if (SchemaTypeResolver.TryInferSchemaType(unresolvedType,
-                    out schemaType))
+                else if (SchemaTypeResolver.TryInferSchemaType(unresolvedType, out schemaType))
                 {
                     resolved = true;
                     _unregistered.Add(schemaType);
@@ -174,9 +173,7 @@ namespace HotChocolate.Configuration
                     }
                 }
                 else if (typeReference is ISyntaxTypeReference sr
-                    && Scalars.TryGetScalar(
-                        sr.Type.NamedType().Name.Value,
-                        out ctr))
+                    && Scalars.TryGetScalar(sr.Type.NamedType().Name.Value, out ctr))
                 {
                     RegisterClrType(ctr);
                 }
@@ -191,8 +188,7 @@ namespace HotChocolate.Configuration
             {
                 if (_handledContexts.Add(context))
                 {
-                    _unregistered.AddRange(
-                        context.TypeDependencies.Select(t => t.TypeReference));
+                    _unregistered.AddRange(context.TypeDependencies.Select(t => t.TypeReference));
                 }
             }
         }
@@ -200,14 +196,11 @@ namespace HotChocolate.Configuration
         private void RegisterClrType(IClrTypeReference typeReference)
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
-                && _typeInspector.TryCreate(typeReference.Type,
-                    out TypeInfo typeInfo))
+                && _typeInspector.TryCreate(typeReference.Type, out TypeInfo typeInfo))
             {
                 if (IsTypeSystemObject(typeInfo.ClrType))
                 {
-                    RegisterSchemaType(
-                        typeInfo.ClrType,
-                        typeReference.Context);
+                    RegisterSchemaType(typeInfo.ClrType, typeReference.Context);
                 }
                 else
                 {
@@ -233,7 +226,7 @@ namespace HotChocolate.Configuration
 
         private void RegisterSchemaType(Type type, TypeContext typeContext)
         {
-            if (!Registerd.ContainsKey(new ClrTypeReference(type, typeContext)))
+            if (!Registered.ContainsKey(new ClrTypeReference(type, typeContext)))
             {
                 TypeSystemObjectBase typeSystemObject = CreateInstance(type);
                 RegisterTypeSystemObject(typeSystemObject);
@@ -243,8 +236,7 @@ namespace HotChocolate.Configuration
         private void RegisterTypeSystemObject(
             TypeSystemObjectBase typeSystemObject)
         {
-            TypeContext typeContext =
-                SchemaTypeReference.InferTypeContext(typeSystemObject);
+            TypeContext typeContext = SchemaTypeReference.InferTypeContext(typeSystemObject);
 
             var internalReference = new ClrTypeReference(
                 typeSystemObject.GetType(),
@@ -257,11 +249,9 @@ namespace HotChocolate.Configuration
             TypeSystemObjectBase typeSystemObject,
             params ITypeReference[] internalReferences)
         {
-            TypeContext typeContext =
-                SchemaTypeReference.InferTypeContext(typeSystemObject);
+            TypeContext typeContext = SchemaTypeReference.InferTypeContext(typeSystemObject);
 
-            if (internalReferences.Length > 0
-                && !Registerd.ContainsKey(internalReferences[0]))
+            if (internalReferences.Length > 0 && !Registered.ContainsKey(internalReferences[0]))
             {
                 RegisteredType registeredType =
                     InitializeAndRegister(typeSystemObject, internalReferences);
@@ -300,7 +290,7 @@ namespace HotChocolate.Configuration
             params ITypeReference[] internalReferences)
         {
             ITypeReference[] references = internalReferences
-                .Where(t => !Registerd.ContainsKey(t)).ToArray();
+                .Where(t => !Registered.ContainsKey(t)).ToArray();
 
             if (references.Length == 0)
             {
@@ -329,7 +319,7 @@ namespace HotChocolate.Configuration
 
                 foreach (ITypeReference reference in references)
                 {
-                    Registerd.Add(reference, registeredType);
+                    Registered.Add(reference, registeredType);
                 }
 
                 return registeredType;
@@ -359,8 +349,7 @@ namespace HotChocolate.Configuration
         {
             try
             {
-                return
-                    (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);
+                return (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);
             }
             catch (Exception ex)
             {

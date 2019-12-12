@@ -186,9 +186,9 @@ namespace HotChocolate.Configuration
                     _initContexts.Add(context);
                 }
 
-                foreach (ITypeReference key in typeRegistrar.Registerd.Keys)
+                foreach (ITypeReference key in typeRegistrar.Registered.Keys)
                 {
-                    _types[key] = typeRegistrar.Registerd[key];
+                    _types[key] = typeRegistrar.Registered[key];
                 }
 
                 return true;
