@@ -13,14 +13,12 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(options));
             }
 
-            QueryTypeName = options.QueryTypeName
-                ?? "Query";
-            MutationTypeName = options.MutationTypeName
-                ?? "Mutation";
-            SubscriptionTypeName = options.SubscriptionTypeName
-                ?? "Subscription";
+            QueryTypeName = options.QueryTypeName ?? "Query";
+            MutationTypeName = options.MutationTypeName ?? "Mutation";
+            SubscriptionTypeName = options.SubscriptionTypeName ?? "Subscription";
             StrictValidation = options.StrictValidation;
             UseXmlDocumentation = options.UseXmlDocumentation;
+            RemoveUnreachableTypes = options.RemoveUnreachableTypes;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
             FieldMiddleware = options.FieldMiddleware;
         }
@@ -34,6 +32,8 @@ namespace HotChocolate.Configuration
         public bool StrictValidation { get; }
 
         public bool UseXmlDocumentation { get; }
+
+        public bool RemoveUnreachableTypes { get; }
 
         public BindingBehavior DefaultBindingBehavior { get; }
 

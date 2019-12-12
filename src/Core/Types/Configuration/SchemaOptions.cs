@@ -15,14 +15,23 @@ namespace HotChocolate.Configuration
 
         public bool UseXmlDocumentation { get; set; } = true;
 
+        /// <summary>
+        /// Defines if types shall be removed from the schema that are
+        /// unreachable from the root types.
+        /// </summary>
+        public bool RemoveUnreachableTypes { get; set; } = true;
+
+        /// <summary>
+        /// Defines the default binding behavior.
+        /// </summary>
         public BindingBehavior DefaultBindingBehavior { get; set; } =
             BindingBehavior.Implicit;
 
-        public FieldMiddlewareApplication FieldMiddleware
-        {
-            get;
-            set;
-        } = FieldMiddlewareApplication.UserDefinedFields;
+        /// <summary>
+        /// Defines on which fields a middleware pipeline can be applied on.
+        /// </summary>
+        public FieldMiddlewareApplication FieldMiddleware { get; set; } =
+            FieldMiddlewareApplication.UserDefinedFields;
 
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {

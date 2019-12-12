@@ -26,8 +26,7 @@ namespace HotChocolate.Types
             {
                 if (_contextData is null)
                 {
-                    throw new InvalidOperationException(
-                        "The type system object is not correctly initialized.");
+                    throw new TypeInitializationException();
                 }
                 return _contextData;
             }

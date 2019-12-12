@@ -69,6 +69,8 @@ namespace HotChocolate.Types
             context.RegisterDependencyRange(
                 definition.Directives.Select(t => t.TypeReference),
                 TypeDependencyKind.Completed);
+
+            SetTypeIdentity(typeof(EnumType<>));
         }
 
         protected override void OnCompleteType(
