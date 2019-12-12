@@ -34,15 +34,23 @@ namespace HotChocolate.Stitching.Utilities
                 Indented = false
             };
 
-        public Task<QueryResult> FetchAsync(
+        public async Task<QueryResult> FetchAsync(
             IReadOnlyQueryRequest request,
             HttpClient httpClient,
             IEnumerable<IHttpQueryRequestInterceptor>? interceptors = default,
             CancellationToken cancellationToken = default)
         {
-            ByteArrayContent requestBody = CreateRequestBody(request);
+            using var writer = new ArrayWriter();
+            using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+            WriteJsonRequest(writer, jsonWriter, request);
+            jsonWriter.Flush();
 
-            return FetchAsync(
+            var requestBody = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
+            requestBody.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
+
+            // note: this one has to be awaited since byte array content uses a rented buffer
+            // which is released as soon as writer is disposed.
+            return await FetchAsync(
                 request,
                 requestBody,
                 httpClient,
@@ -141,18 +149,6 @@ namespace HotChocolate.Stitching.Utilities
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return response;
-        }
-
-        private ByteArrayContent CreateRequestBody(IReadOnlyQueryRequest request)
-        {
-            using var writer = new ArrayWriter();
-            using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
-            WriteJsonRequest(writer, jsonWriter, request);
-            jsonWriter.Flush();
-
-            var content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
-            content.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
-            return content;
         }
 
         private void WriteJsonRequest(
