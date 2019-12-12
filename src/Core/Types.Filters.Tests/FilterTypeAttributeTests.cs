@@ -149,6 +149,7 @@ namespace HotChocolate.Types.Filters
             public string StringFilterTest { get; set; }
         }
 
+        [FilterFieldAttributeTest]
         public class FooFields
         {
             [FilterFieldAttributeTest]
@@ -210,11 +211,15 @@ namespace HotChocolate.Types.Filters
 
             protected override void TryConfigure(IDescriptor d)
             {
+                if (d is FilterInputTypeDescriptor<FooFields> typeDescrptor)
+                {
+                    typeDescrptor.List(x => x.ObjectArray);
+                }
                 if (d is IArrayFilterFieldDescriptor fieldArrayDescriptor)
                 {
                     fieldArrayDescriptor.BindExplicitly().AllowAny().Name(ArrayField);
                 }
-                if (d is IArrayFilterFieldDescriptor<FooFields> fieldObjectArrayDescriptor)
+                if (d is IArrayFilterFieldDescriptor<Foo> fieldObjectArrayDescriptor)
                 {
                     fieldObjectArrayDescriptor.BindExplicitly().AllowAny().Name(ObjectArrayField);
                 }
