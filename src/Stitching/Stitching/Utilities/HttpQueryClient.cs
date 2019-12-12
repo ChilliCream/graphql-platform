@@ -1,3 +1,4 @@
+using System.Buffers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +19,7 @@ namespace HotChocolate.Stitching.Utilities
         private static readonly KeyValuePair<string, string> _contentTypeJson =
             new KeyValuePair<string, string>("Content-Type", "application/json");
 
-        private static readonly JsonSerializerOptions _options =
+        private static readonly JsonSerializerOptions _jsonSerializerOptions =
             new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -26,23 +27,36 @@ namespace HotChocolate.Stitching.Utilities
                 IgnoreReadOnlyProperties = false
             };
 
-        public Task<QueryResult> FetchAsync(
+        private static readonly JsonWriterOptions _jsonWriterOptions =
+            new JsonWriterOptions
+            {
+                SkipValidation = true,
+                Indented = false
+            };
+
+        public async Task<QueryResult> FetchAsync(
             IReadOnlyQueryRequest request,
             HttpClient httpClient,
             IEnumerable<IHttpQueryRequestInterceptor>? interceptors = default,
             CancellationToken cancellationToken = default)
         {
-            using var writer = new JsonRequestWriter();
-            WriteJsonRequest(writer, request);
-            var content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
-            content.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
+            using var writer = new ArrayWriter();
+            using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+            WriteJsonRequest(writer, jsonWriter, request);
+            jsonWriter.Flush();
 
-            return FetchAsync(
+            var requestBody = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
+            requestBody.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
+
+            // note: this one has to be awaited since byte array content uses a rented buffer
+            // which is released as soon as writer is disposed.
+            return await FetchAsync(
                 request,
-                content,
+                requestBody,
                 httpClient,
                 interceptors,
-                cancellationToken);
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private async Task<QueryResult> FetchAsync(
@@ -112,7 +126,7 @@ namespace HotChocolate.Stitching.Utilities
             HttpQueryRequest request,
             HttpClient httpClient)
         {
-            byte[] json = JsonSerializer.SerializeToUtf8Bytes(request, _options);
+            byte[] json = JsonSerializer.SerializeToUtf8Bytes(request, _jsonSerializerOptions);
             var content = new ByteArrayContent(json, 0, json.Length);
             content.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
 
@@ -139,87 +153,99 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         private void WriteJsonRequest(
-            JsonRequestWriter writer,
+            IBufferWriter<byte> writer,
+            Utf8JsonWriter jsonWriter,
             IReadOnlyQueryRequest request)
         {
-            writer.WriteStartObject();
-            writer.WriteQuery(request.Query);
-            writer.WriteOperationName(request.OperationName);
-            WriteJsonRequestVariables(writer, request.VariableValues);
-            writer.WriteEndObject();
+            jsonWriter.WriteStartObject();
+            jsonWriter.WriteString("query", request.Query.ToString());
+
+            if (request.OperationName is { })
+            {
+                jsonWriter.WriteString("operationName", request.OperationName);
+            }
+
+            WriteJsonRequestVariables(writer, jsonWriter, request.VariableValues);
+            jsonWriter.WriteEndObject();
         }
 
         private static void WriteJsonRequestVariables(
-            JsonRequestWriter writer,
+            IBufferWriter<byte> writer,
+            Utf8JsonWriter jsonWriter,
             IReadOnlyDictionary<string, object> variables)
         {
             if (variables is { } && variables.Count > 0)
             {
-                writer.WritePropertyName("variables");
+                jsonWriter.WritePropertyName("variables");
 
-                writer.WriteStartObject();
+                jsonWriter.WriteStartObject();
 
                 foreach (KeyValuePair<string, object> variable in variables)
                 {
-                    writer.WritePropertyName(variable.Key);
-                    WriteValue(writer, variable.Value);
+                    jsonWriter.WritePropertyName(variable.Key);
+                    WriteValue(writer, jsonWriter, variable.Value);
                 }
 
-                writer.WriteEndObject();
+                jsonWriter.WriteEndObject();
             }
         }
 
-        private static void WriteValue(JsonRequestWriter writer, object value)
+        private static void WriteValue(
+            IBufferWriter<byte> writer,
+            Utf8JsonWriter jsonWriter,
+            object value)
         {
             if (value is null || value is NullValueNode)
             {
-                writer.WriteNullValue();
+                jsonWriter.WriteNullValue();
             }
             else
             {
                 switch (value)
                 {
                     case ObjectValueNode obj:
-                        writer.WriteStartObject();
+                        jsonWriter.WriteStartObject();
 
                         foreach (ObjectFieldNode field in obj.Fields)
                         {
-                            writer.WritePropertyName(field.Name.Value);
-                            WriteValue(writer, field.Value);
+                            jsonWriter.WritePropertyName(field.Name.Value);
+                            WriteValue(writer, jsonWriter, field.Value);
                         }
 
-                        writer.WriteEndObject();
+                        jsonWriter.WriteEndObject();
                         break;
 
                     case ListValueNode list:
-                        writer.WriteStartArray();
+                        jsonWriter.WriteStartArray();
 
                         foreach (IValueNode item in list.Items)
                         {
-                            WriteValue(writer, item);
+                            WriteValue(writer, jsonWriter, item);
                         }
 
-                        writer.WriteEndArray();
+                        jsonWriter.WriteEndArray();
                         break;
 
                     case StringValueNode s:
-                        writer.WriteStringValue(s.Value);
+                        jsonWriter.WriteStringValue(s.Value);
                         break;
 
                     case EnumValueNode e:
-                        writer.WriteStringValue(e.Value);
+                        jsonWriter.WriteStringValue(e.Value);
                         break;
 
                     case IntValueNode i:
-                        writer.WriteNumberValue(i.Value);
+                        jsonWriter.Flush();
+                        WriteNumberValue(writer, i.Value);
                         break;
 
                     case FloatValueNode f:
-                        writer.WriteNumberValue(f.Value);
+                        jsonWriter.Flush();
+                        WriteNumberValue(writer, f.Value);
                         break;
 
                     case BooleanValueNode b:
-                        writer.WriteBooleanValue(b.Value);
+                        jsonWriter.WriteBooleanValue(b.Value);
                         break;
 
                     default:
@@ -227,6 +253,18 @@ namespace HotChocolate.Stitching.Utilities
                             "Unknown variable value kind.");
                 }
             }
+        }
+
+        private static void WriteNumberValue(IBufferWriter<byte> writer, string value)
+        {
+            Span<byte> span = writer.GetSpan(value.Length);
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                span[i] = (byte)value[i];
+            }
+
+            writer.Advance(value.Length);
         }
     }
 }
