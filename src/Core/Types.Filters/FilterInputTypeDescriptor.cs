@@ -11,9 +11,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterInputTypeDescriptor<T>
+    public abstract class FilterInputTypeDescriptor
         : DescriptorBase<FilterInputTypeDefinition>
-        , IFilterInputTypeDescriptor<T>
+        , IFilterInputTypeDescriptor
     {
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
@@ -28,8 +28,8 @@ namespace HotChocolate.Types.Filters
             IFilterNamingConvention convention = context.GetFilterNamingConvention();
 
             Definition.EntityType = entityType;
-            Definition.ClrType = typeof(object);
             Definition.Name = convention.GetFilterTypeName(context, entityType);
+            Definition.ClrType = typeof(object);
             // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
@@ -43,20 +43,20 @@ namespace HotChocolate.Types.Filters
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
 
-        public IFilterInputTypeDescriptor<T> Name(NameString value)
+        public IFilterInputTypeDescriptor Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Description(
+        public IFilterInputTypeDescriptor Description(
             string value)
         {
             Definition.Description = value;
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>(
+        public IFilterInputTypeDescriptor Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class
         {
@@ -64,14 +64,14 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>()
+        public IFilterInputTypeDescriptor Directive<TDirective>()
             where TDirective : class, new()
         {
             Definition.AddDirective(new TDirective());
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive(
+        public IFilterInputTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
@@ -82,6 +82,11 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
         {
+            if (Definition.EntityType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.EntityType);
+            }
+
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
@@ -228,145 +233,17 @@ namespace HotChocolate.Types.Filters
             return false;
         }
 
-        public IFilterInputTypeDescriptor<T> BindFields(
+        public IFilterInputTypeDescriptor BindFields(
             BindingBehavior bindingBehavior)
         {
             Definition.Fields.BindingBehavior = bindingBehavior;
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> BindFieldsExplicitly() =>
+        public IFilterInputTypeDescriptor BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public IFilterInputTypeDescriptor<T> BindFieldsImplicitly() =>
+        public IFilterInputTypeDescriptor BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
-
-        public IStringFilterFieldDescriptor Filter(
-            Expression<Func<T, string>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var field = new StringFilterFieldDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IBooleanFilterFieldDescriptor Filter(
-            Expression<Func<T, bool>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var field = new BooleanFilterFieldDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IComparableFilterFieldDescriptor Filter(
-            Expression<Func<T, IComparable>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var field = new ComparableFilterFieldDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IFilterInputTypeDescriptor<T> Ignore(
-            Expression<Func<T, object>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                Fields.Add(new IgnoredFilterFieldDescriptor(Context, p));
-                return this;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IObjectFilterFieldDescriptor<TObject> Object<TObject>(
-            Expression<Func<T, TObject>> property) where TObject : class
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var field = new ObjectFilterFieldDescriptor<TObject>(Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IArrayFilterFieldDescriptor<TObject> ListFilter<TObject, TListType>(
-            Expression<Func<T, TListType>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var field = new ArrayFilterFieldDescriptor<TObject>(Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IArrayFilterFieldDescriptor<TObject> List<TObject>(
-            Expression<Func<T, IEnumerable<TObject>>> property)
-            where TObject : class
-        {
-            return ListFilter<TObject, IEnumerable<TObject>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<string>> List(
-            Expression<Func<T, IEnumerable<string>>> property)
-        {
-            return ListFilter<ISingleFilter<string>, IEnumerable<string>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> List(
-            Expression<Func<T, IEnumerable<bool>>> property)
-        {
-            return ListFilter<ISingleFilter<bool>, IEnumerable<bool>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
-            where TStruct : struct
-        {
-            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct?>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
-            where TStruct : struct
-        {
-            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
-        }
-
-        public static FilterInputTypeDescriptor<T> New(
-            IDescriptorContext context, Type entityType) =>
-            new FilterInputTypeDescriptor<T>(context, entityType);
     }
 }

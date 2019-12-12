@@ -52,6 +52,11 @@ namespace HotChocolate.Types.Filters
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledOperations = new HashSet<FilterOperationKind>();
 
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.Property);
+            }
+
             AddExplicitFilters(fields, handledOperations);
             OnCompleteFilters(fields, handledOperations);
 
