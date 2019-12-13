@@ -24,6 +24,7 @@ namespace HotChocolate.Configuration
                     && _typeInspector.TryCreate(typeReference.Type, out TypeInfo typeInfo))
                 {
                     Type type = typeInfo.ClrType;
+
                     if (IsTypeSystemObject(type))
                     {
                         var namedTypeReference = new ClrTypeReference(

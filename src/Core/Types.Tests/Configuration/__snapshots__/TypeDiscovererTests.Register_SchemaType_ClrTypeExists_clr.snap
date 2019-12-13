@@ -13,6 +13,5 @@
   "None: HotChocolate.Types.DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
   "None: System.Int32": "None: HotChocolate.Types.IntType",
   "None: HotChocolate.Types.MultiplierPathString": "None: HotChocolate.Types.MultiplierPathType",
-  "Output: HotChocolate.Configuration.TypeDiscovererTests.Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType",
-  "Output: System.String": "None: HotChocolate.Types.StringType"
+  "Output: HotChocolate.Configuration.TypeDiscovererTests.Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType"
 }

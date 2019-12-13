@@ -19,7 +19,7 @@ namespace HotChocolate.Configuration
         /// Defines if types shall be removed from the schema that are
         /// unreachable from the root types.
         /// </summary>
-        public bool RemoveUnreachableTypes { get; set; } = true;
+        public bool RemoveUnreachableTypes { get; set; } = false;
 
         /// <summary>
         /// Defines the default binding behavior.

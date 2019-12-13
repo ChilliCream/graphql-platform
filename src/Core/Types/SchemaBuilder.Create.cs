@@ -36,9 +36,9 @@ namespace HotChocolate
                     descriptorContext,
                     bindingLookup,
                     types);
-            DiscoveredTypes discoverdTypes = initializer.Initialize(() => lazy.Schema, _options);
+            DiscoveredTypes discoveredTypes = initializer.Initialize(() => lazy.Schema, _options);
 
-            SchemaTypesDefinition definition = CreateSchemaDefinition(initializer, discoverdTypes);
+            SchemaTypesDefinition definition = CreateSchemaDefinition(initializer, discoveredTypes);
             if (definition.QueryType == null && _options.StrictValidation)
             {
                 throw new SchemaException(
@@ -47,7 +47,7 @@ namespace HotChocolate
                         .Build());
             }
 
-            Schema schema = discoverdTypes.Types
+            Schema schema = discoveredTypes.Types
                 .Select(t => t.Type)
                 .OfType<Schema>()
                 .First();
@@ -180,7 +180,7 @@ namespace HotChocolate
 
         private SchemaTypesDefinition CreateSchemaDefinition(
             TypeInitializer typeInitializer,
-            DiscoveredTypes discoverdTypes)
+            DiscoveredTypes discoveredTypes)
         {
             var definition = new SchemaTypesDefinition();
 
@@ -195,19 +195,49 @@ namespace HotChocolate
             definition.SubscriptionType = ResolveOperation(
                 typeInitializer, OperationType.Subscription);
 
-            definition.Types = discoverdTypes.Types
-                .Select(t => t.Type)
+            IReadOnlyCollection<TypeSystemObjectBase> types =
+                RemoveUnreachableTypes(discoveredTypes, definition);
+
+            definition.Types = types
                 .OfType<INamedType>()
                 .Distinct()
                 .ToArray();
 
-            definition.DirectiveTypes = discoverdTypes.Types
-                .Select(t => t.Type)
+            definition.DirectiveTypes = types
                 .OfType<DirectiveType>()
                 .Distinct()
                 .ToArray();
 
             return definition;
+        }
+
+        private IReadOnlyCollection<TypeSystemObjectBase> RemoveUnreachableTypes(
+            DiscoveredTypes discoveredTypes,
+            SchemaTypesDefinition definition)
+        {
+            if (_options.RemoveUnreachableTypes)
+            {
+                var trimmer = new TypeTrimmer(discoveredTypes);
+
+                if (definition.QueryType is { })
+                {
+                    trimmer.VisitRoot(definition.QueryType);
+                }
+
+                if (definition.MutationType is { })
+                {
+                    trimmer.VisitRoot(definition.MutationType);
+                }
+
+                if (definition.SubscriptionType is { })
+                {
+                    trimmer.VisitRoot(definition.SubscriptionType);
+                }
+
+                return trimmer.Types;
+            }
+
+            return discoveredTypes.Types.Select(t => t.Type).ToList();
         }
 
         private ObjectType ResolveOperation(
@@ -225,7 +255,6 @@ namespace HotChocolate
             else if (_operations.TryGetValue(operation,
                 out ITypeReference reference))
             {
-
                 if (reference is ISchemaTypeReference sr)
                 {
                     return (ObjectType)sr.Type;

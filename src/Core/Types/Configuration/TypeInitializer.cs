@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -65,9 +66,6 @@ namespace HotChocolate.Configuration
         public TypeInspector TypeInspector => _typeInspector;
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
-
-        public IDictionary<ITypeReference, ITypeReference> DependencyLookup =>
-            _dependencyLookup;
 
         public DiscoveredTypes? DiscoveredTypes => _discoveredTypes;
 
@@ -598,8 +596,7 @@ namespace HotChocolate.Configuration
                     break;
 
                 case ISchemaTypeReference r:
-                    var internalReference = new ClrTypeReference(
-                        r.Type.GetType(), r.Context);
+                    var internalReference = new ClrTypeReference(r.Type.GetType(), r.Context);
                     _dependencyLookup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
