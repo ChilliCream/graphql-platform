@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -13,7 +14,8 @@ namespace HotChocolate.Configuration
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
-            foreach (ISchemaTypeReference typeReference in typeReferences)
+            foreach (ISchemaTypeReference typeReference in
+                typeReferences.OfType<ISchemaTypeReference>())
             {
                 typeRegistrar.Register((TypeSystemObjectBase)typeReference.Type);
             }

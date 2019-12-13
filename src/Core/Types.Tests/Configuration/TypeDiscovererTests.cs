@@ -1,14 +1,13 @@
 using System.Linq;
 using System.Collections.Generic;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Xunit;
 using Snapshooter.Xunit;
 using Snapshooter;
-using HotChocolate.Configuration;
+using HotChocolate.Types;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public class TypeRegistrarTests
     {
@@ -16,33 +15,37 @@ namespace HotChocolate
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
+            var initialTypes = new HashSet<ITypeReference>();
             initialTypes.Add(new ClrTypeReference(
                 typeof(FooType),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var typeRegistrar = new TypeRegistrar(
-                serviceProvider,
-                DescriptorContext.Create(),
+            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+
+            var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
-                new Dictionary<ITypeReference, ITypeReference>(),
-                new Dictionary<string, object>());
+                clrTypeReferences,
+                DescriptorContext.Create(),
+                new Dictionary<string, object>(),
+                serviceProvider);
 
             // act
-            typeRegistrar.Complete();
+            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
 
             // assert
-            typeRegistrar.Registered
-                .Select(t => t.Value.Type)
+            Assert.Empty(result.Errors);
+
+            result.Types
+                .Select(t => t.Type)
                 .OfType<IHasClrType>()
                 .ToDictionary(
                     t => t.GetType().GetTypeName(),
                     t => t.ClrType.GetTypeName())
                 .MatchSnapshot(new SnapshotNameExtension("registered"));
 
-            typeRegistrar.ClrTypes.ToDictionary(
+            clrTypeReferences.ToDictionary(
                 t => t.Key.ToString(),
                 t => t.Value.ToString())
                 .MatchSnapshot(new SnapshotNameExtension("clr"));
@@ -52,33 +55,37 @@ namespace HotChocolate
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
+            var initialTypes = new HashSet<ITypeReference>();
             initialTypes.Add(new ClrTypeReference(
                 typeof(Foo),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var typeRegistrar = new TypeRegistrar(
-                serviceProvider,
-                DescriptorContext.Create(),
+            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+
+            var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
-                new Dictionary<ITypeReference, ITypeReference>(),
-                new Dictionary<string, object>());
+                clrTypeReferences,
+                DescriptorContext.Create(),
+                new Dictionary<string, object>(),
+                serviceProvider);
 
             // act
-            typeRegistrar.Complete();
+            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
 
             // assert
-            typeRegistrar.Registered
-                .Select(t => t.Value.Type)
+            Assert.Empty(result.Errors);
+
+            result.Types
+                .Select(t => t.Type)
                 .OfType<IHasClrType>()
                 .ToDictionary(
                     t => t.GetType().GetTypeName(),
                     t => t.ClrType.GetTypeName())
                 .MatchSnapshot(new SnapshotNameExtension("registered"));
 
-            typeRegistrar.ClrTypes.ToDictionary(
+            clrTypeReferences.ToDictionary(
                 t => t.Key.ToString(),
                 t => t.Value.ToString())
                 .MatchSnapshot(new SnapshotNameExtension("clr"));

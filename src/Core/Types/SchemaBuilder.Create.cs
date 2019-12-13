@@ -31,16 +31,14 @@ namespace HotChocolate
             var lazy = new LazySchema();
 
             TypeInitializer initializer =
-                InitializeTypes(
+                CreateTypeInitializer(
                     services,
                     descriptorContext,
                     bindingLookup,
-                    types,
-                    () => lazy.Schema);
+                    types);
+            DiscoveredTypes discoverdTypes = initializer.Initialize(() => lazy.Schema, _options);
 
-            SchemaTypesDefinition definition =
-                CreateSchemaDefinition(initializer);
-
+            SchemaTypesDefinition definition = CreateSchemaDefinition(initializer, discoverdTypes);
             if (definition.QueryType == null && _options.StrictValidation)
             {
                 throw new SchemaException(
@@ -49,7 +47,7 @@ namespace HotChocolate
                         .Build());
             }
 
-            Schema schema = initializer.Types.Values
+            Schema schema = discoverdTypes.Types
                 .Select(t => t.Type)
                 .OfType<Schema>()
                 .First();
@@ -141,12 +139,11 @@ namespace HotChocolate
             }
         }
 
-        private TypeInitializer InitializeTypes(
+        private TypeInitializer CreateTypeInitializer(
             IServiceProvider services,
             IDescriptorContext descriptorContext,
             IBindingLookup bindingLookup,
-            IEnumerable<ITypeReference> types,
-            Func<ISchema> schemaResolver)
+            IEnumerable<ITypeReference> types)
         {
             var initializer = new TypeInitializer(
                 services, descriptorContext, types, _resolverTypes,
@@ -172,46 +169,43 @@ namespace HotChocolate
                 initializer.Resolvers[reference] = resolver;
             }
 
-            foreach (KeyValuePair<ITypeReference, ITypeReference> binding in
+            foreach (KeyValuePair<IClrTypeReference, ITypeReference> binding in
                 _clrTypes)
             {
                 initializer.ClrTypes[binding.Key] = binding.Value;
             }
 
-            initializer.Initialize(schemaResolver, _options);
             return initializer;
         }
 
         private SchemaTypesDefinition CreateSchemaDefinition(
-            TypeInitializer initializer)
+            TypeInitializer typeInitializer,
+            DiscoveredTypes discoverdTypes)
         {
             var definition = new SchemaTypesDefinition();
 
-            definition.Types = initializer.Types.Values
+            RegisterOperationName(OperationType.Query, _options.QueryTypeName);
+            RegisterOperationName(OperationType.Mutation, _options.MutationTypeName);
+            RegisterOperationName(OperationType.Subscription, _options.SubscriptionTypeName);
+
+            definition.QueryType = ResolveOperation(
+                typeInitializer, OperationType.Query);
+            definition.MutationType = ResolveOperation(
+                typeInitializer, OperationType.Mutation);
+            definition.SubscriptionType = ResolveOperation(
+                typeInitializer, OperationType.Subscription);
+
+            definition.Types = discoverdTypes.Types
                 .Select(t => t.Type)
                 .OfType<INamedType>()
                 .Distinct()
                 .ToArray();
 
-            definition.DirectiveTypes = initializer.Types.Values
+            definition.DirectiveTypes = discoverdTypes.Types
                 .Select(t => t.Type)
                 .OfType<DirectiveType>()
                 .Distinct()
                 .ToArray();
-
-            RegisterOperationName(OperationType.Query,
-                _options.QueryTypeName);
-            RegisterOperationName(OperationType.Mutation,
-                _options.MutationTypeName);
-            RegisterOperationName(OperationType.Subscription,
-                _options.SubscriptionTypeName);
-
-            definition.QueryType = ResolveOperation(
-                initializer, OperationType.Query);
-            definition.MutationType = ResolveOperation(
-                initializer, OperationType.Mutation);
-            definition.SubscriptionType = ResolveOperation(
-                initializer, OperationType.Subscription);
 
             return definition;
         }
@@ -223,7 +217,7 @@ namespace HotChocolate
             if (!_operations.ContainsKey(operation))
             {
                 NameString typeName = operation.ToString();
-                return initializer.Types.Values
+                return initializer.DiscoveredTypes!.Types
                     .Select(t => t.Type)
                     .OfType<ObjectType>()
                     .FirstOrDefault(t => t.Name.Equals(typeName));
@@ -247,7 +241,7 @@ namespace HotChocolate
                 if (reference is ISyntaxTypeReference str)
                 {
                     NamedTypeNode namedType = str.Type.NamedType();
-                    return initializer.Types.Values
+                    return initializer.DiscoveredTypes!.Types
                         .Select(t => t.Type)
                         .OfType<ObjectType>()
                         .FirstOrDefault(t => t.Name.Equals(

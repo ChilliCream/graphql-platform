@@ -9,7 +9,7 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public class TypeInitializerTests
     {

@@ -17,13 +17,13 @@ namespace HotChocolate.Configuration
             TypeSystemObjectBase type,
             InitializationContext initializationContext,
             IReadOnlyList<TypeDependency> dependencies,
-            bool isInferred)
+            bool isAutoInferred)
         {
             References = new[] { reference };
             Type = type;
             InitializationContext = initializationContext;
             Dependencies = dependencies;
-            IsInferred = isInferred;
+            IsInferred = isAutoInferred;
         }
 
         public RegisteredType(
@@ -85,14 +85,6 @@ namespace HotChocolate.Configuration
                 InitializationContext,
                 merged,
                 IsInferred);
-        }
-
-        public void Update(IDictionary<ITypeReference, RegisteredType> types)
-        {
-            foreach (ITypeReference reference in References)
-            {
-                types[reference] = this;
-            }
         }
     }
 }

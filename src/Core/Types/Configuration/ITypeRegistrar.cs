@@ -13,10 +13,14 @@ namespace HotChocolate.Configuration
 
         void MarkUnresolved(ITypeReference typeReference);
 
+        void MarkResolved(ITypeReference typeReference);
+
         bool IsResolved(IClrTypeReference typeReference);
 
         TypeSystemObjectBase CreateInstance(Type namedSchemaType);
 
         IReadOnlyCollection<ITypeReference> GetUnresolved();
+
+        IReadOnlyCollection<ITypeReference> GetUnhandled();
     }
 }

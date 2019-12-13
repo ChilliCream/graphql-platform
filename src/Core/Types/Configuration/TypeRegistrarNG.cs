@@ -14,6 +14,7 @@ namespace HotChocolate.Configuration
     {
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
+        private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
         private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
@@ -66,6 +67,11 @@ namespace HotChocolate.Configuration
             _unresolved.Add(typeReference);
         }
 
+        public void MarkResolved(ITypeReference typeReference)
+        {
+            _unresolved.Remove(typeReference);
+        }
+
         public bool IsResolved(IClrTypeReference typeReference)
         {
             return _registered.ContainsKey(typeReference)
@@ -95,6 +101,23 @@ namespace HotChocolate.Configuration
         public IReadOnlyCollection<ITypeReference> GetUnresolved()
         {
             return _unresolved.ToList();
+        }
+
+        public IReadOnlyCollection<ITypeReference> GetUnhandled()
+        {
+            var unhandled = new List<ITypeReference>();
+
+            foreach (RegisteredType type in _registered.Values)
+            {
+                if (_handled.Add(type))
+                {
+                    unhandled.AddRange(
+                        type.InitializationContext
+                            .TypeDependencies.Select(t => t.TypeReference));
+                }
+            }
+
+            return unhandled;
         }
 
         private RegisteredType InitializeType(
@@ -156,97 +179,6 @@ namespace HotChocolate.Configuration
                         .SetTypeSystemObject(typeSystemObject)
                         .Build());
             }
-        }
-    }
-
-    internal sealed class TypeDiscoverer
-    {
-        private readonly Dictionary<ITypeReference, RegisteredType> _registeredTypes;
-        private readonly TypeRegistrarNG _typeRegistrar;
-
-        public TypeRegistrarNG(
-            IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences,
-            IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData,
-            IServiceProvider services)
-        {
-            _typeRegistrar = new TypeRegistrarNG(
-                _registeredTypes,
-                clrTypeReferences,
-                descriptorContext,
-                contextData,
-                services);
-        }
-
-        public DiscoveredTypes DiscoverTypes()
-        {
-
-        }
-
-        private void InitializeTypes()
-        {
-            foreach (ITypeReference typeReference in _unregistered.ToList())
-            {
-                if (typeReference is IClrTypeReference ctr)
-                {
-                    RegisterClrType(ctr);
-                }
-                else if (typeReference is ISchemaTypeReference str
-                    && str.Type is TypeSystemObjectBase tso)
-                {
-                    if (BaseTypes.IsNonGenericBaseType(tso.GetType()))
-                    {
-                        RegisterTypeSystemObject(tso, false, str);
-                    }
-                    else
-                    {
-                        var secondaryRef = new ClrTypeReference(
-                            tso.GetType(),
-                            SchemaTypeReference.InferTypeContext(tso));
-
-                        RegisterTypeSystemObject(tso, false, str, secondaryRef);
-                    }
-                }
-                else if (typeReference is ISyntaxTypeReference sr
-                    && Scalars.TryGetScalar(sr.Type.NamedType().Name.Value, out ctr))
-                {
-                    RegisterClrType(ctr);
-                }
-
-                _unregistered.Remove(typeReference);
-            }
-        }
-    }
-
-    internal sealed class DiscoveredTypes
-    {
-        private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
-
-        public DiscoveredTypes(
-            IDictionary<ITypeReference, RegisteredType> registered,
-            IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences)
-        {
-            _registered = registered;
-            _clrTypeReferences = clrTypeReferences;
-            Types = new HashSet<RegisteredType>(registered.Values);
-        }
-
-        public ISet<RegisteredType> Types { get; }
-
-        public bool TryGetType(
-            ITypeReference typeReference,
-            out RegisteredType registeredType)
-        {
-            ITypeReference typeRef = typeReference;
-
-            if (typeRef is IClrTypeReference clrTypeRef
-                && _clrTypeReferences.TryGetValue(clrTypeRef, out ITypeReference t))
-            {
-                typeRef = t;
-            }
-
-            return _registered.TryGetValue(typeRef, out registeredType);
         }
     }
 }

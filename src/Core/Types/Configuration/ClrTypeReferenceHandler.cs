@@ -13,16 +13,10 @@ namespace HotChocolate.Configuration
         : ITypeRegistrarHandler
     {
         private readonly TypeInspector _typeInspector = TypeInspector.Default;
-        private readonly ServiceFactory _serviceFactory;
-
-        public ClrTypeReferenceHandler(ServiceFactory serviceFactory)
-        {
-            _serviceFactory = serviceFactory;
-        }
-
         public void Register(
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
+
         {
             foreach (IClrTypeReference typeReference in typeReferences.OfType<IClrTypeReference>())
             {
