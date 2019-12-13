@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Introspection;
 
 #nullable enable
 
@@ -26,7 +27,10 @@ namespace HotChocolate.Configuration
             IDictionary<string, object> contextData,
             IServiceProvider services)
         {
+            _unregistered.AddRange(IntrospectionTypes.All);
+            _unregistered.AddRange(Directives.All);
             _unregistered.AddRange(initialTypes);
+
             _clrTypeReferences = clrTypeReferences;
 
             _typeRegistrar = new TypeRegistrarNG(

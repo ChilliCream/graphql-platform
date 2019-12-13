@@ -20,9 +20,12 @@ namespace HotChocolate.Configuration
             {
                 if (Scalars.TryGetScalar(
                     typeReference.Type.NamedType().Name.Value,
-                    out IClrTypeReference ctr))
+                    out IClrTypeReference namedTypeReference))
                 {
-                    typeRegistrar.Register(typeRegistrar.CreateInstance(ctr.Type));
+                    if (!typeRegistrar.IsResolved(namedTypeReference))
+                    {
+                        typeRegistrar.Register(typeRegistrar.CreateInstance(namedTypeReference.Type));
+                    }
                 }
             }
         }

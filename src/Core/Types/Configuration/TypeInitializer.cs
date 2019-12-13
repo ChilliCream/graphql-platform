@@ -1,16 +1,16 @@
-using System.Linq;
 using System;
 using System.Collections.Generic;
-using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Configuration.Validation;
-using System.Reflection;
 using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using HotChocolate.Configuration.Validation;
+using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -470,7 +470,9 @@ namespace HotChocolate.Configuration
             var batch = new List<RegisteredType>(GetInitialBatch(discoveredTypes, kind));
             bool failed = false;
 
-            while (!failed && processed.Count < discoveredTypes.Types.Count && batch.Count > 0)
+            while (!failed
+                && processed.Count < discoveredTypes.TypeReferenceCount
+                && batch.Count > 0)
             {
                 foreach (RegisteredType registeredType in batch)
                 {
@@ -480,8 +482,7 @@ namespace HotChocolate.Configuration
                         break;
                     }
 
-                    foreach (ITypeReference reference in
-                        registeredType.References)
+                    foreach (ITypeReference reference in registeredType.References)
                     {
                         processed.Add(reference);
                     }
@@ -494,7 +495,7 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            if (!failed && processed.Count < discoveredTypes.Types.Count)
+            if (!failed && processed.Count < discoveredTypes.TypeReferenceCount)
             {
                 foreach (RegisteredType type in discoveredTypes.Types
                     .Where(t => !processed.Contains(t.References[0])))

@@ -37,7 +37,7 @@ namespace HotChocolate.Configuration
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.Types.TryGetValue(
+            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(FooType), TypeContext.Output),
                 out RegisteredType type);
 
@@ -47,7 +47,7 @@ namespace HotChocolate.Configuration
                 t => TypeVisualizer.Visualize(t.Type))
                 .MatchSnapshot(new SnapshotNameExtension("FooType"));
 
-            exists = typeInitializer.Types.TryGetValue(
+            exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(BarType), TypeContext.Output),
                 out type);
 
@@ -82,7 +82,7 @@ namespace HotChocolate.Configuration
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.Types.TryGetValue(
+            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(
                     typeof(ObjectType<Foo>),
                     TypeContext.Output),
@@ -94,7 +94,7 @@ namespace HotChocolate.Configuration
                 t => TypeVisualizer.Visualize(t.Type))
                 .MatchSnapshot(new SnapshotNameExtension("FooType"));
 
-            exists = typeInitializer.Types.TryGetValue(
+            exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 

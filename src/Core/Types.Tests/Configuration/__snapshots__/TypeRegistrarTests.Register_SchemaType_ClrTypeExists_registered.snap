@@ -1,5 +1,0 @@
-﻿{
-  "HotChocolate.Configuration.TypeRegistrarTests.FooType": "HotChocolate.Configuration.TypeRegistrarTests.Foo",
-  "HotChocolate.Configuration.TypeRegistrarTests.BarType": "HotChocolate.Configuration.TypeRegistrarTests.Bar",
-  "HotChocolate.Types.StringType": "System.String"
-}

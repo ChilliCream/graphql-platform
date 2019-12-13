@@ -1,15 +1,15 @@
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Xunit;
-using Snapshooter.Xunit;
 using Snapshooter;
-using HotChocolate.Types;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Configuration
 {
-    public class TypeRegistrarTests
+    public class TypeDiscovererTests
     {
         [Fact]
         public void Register_SchemaType_ClrTypeExists()

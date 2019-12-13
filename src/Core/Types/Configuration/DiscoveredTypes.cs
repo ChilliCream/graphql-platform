@@ -23,6 +23,8 @@ namespace HotChocolate.Configuration
             Types = new HashSet<RegisteredType>(registered.Values);
         }
 
+        public int TypeReferenceCount => _registered.Count;
+
         public ISet<RegisteredType> Types { get; private set; }
 
         public IReadOnlyCollection<ISchemaError> Errors { get; }

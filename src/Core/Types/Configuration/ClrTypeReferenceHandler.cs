@@ -26,9 +26,16 @@ namespace HotChocolate.Configuration
                     Type type = typeInfo.ClrType;
                     if (IsTypeSystemObject(type))
                     {
-                        typeRegistrar.Register(
-                            typeRegistrar.CreateInstance(type),
-                            BaseTypes.IsGenericBaseType(type));
+                        var namedTypeReference = new ClrTypeReference(
+                            type,
+                            SchemaTypeReference.InferTypeContext(type));
+
+                        if (!typeRegistrar.IsResolved(namedTypeReference))
+                        {
+                            typeRegistrar.Register(
+                                typeRegistrar.CreateInstance(type),
+                                BaseTypes.IsGenericBaseType(type));
+                        }
                     }
                     else
                     {
