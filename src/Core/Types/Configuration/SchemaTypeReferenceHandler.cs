@@ -17,7 +17,10 @@ namespace HotChocolate.Configuration
             foreach (ISchemaTypeReference typeReference in
                 typeReferences.OfType<ISchemaTypeReference>())
             {
-                typeRegistrar.Register((TypeSystemObjectBase)typeReference.Type);
+                if (!typeRegistrar.IsResolved(typeReference))
+                {
+                    typeRegistrar.Register((TypeSystemObjectBase)typeReference.Type);
+                }
             }
         }
     }

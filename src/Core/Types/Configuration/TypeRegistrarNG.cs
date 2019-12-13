@@ -72,10 +72,19 @@ namespace HotChocolate.Configuration
             _unresolved.Remove(typeReference);
         }
 
-        public bool IsResolved(IClrTypeReference typeReference)
+        public bool IsResolved(ITypeReference typeReference)
         {
-            return _registered.ContainsKey(typeReference)
-                || _clrTypeReferences.ContainsKey(typeReference);
+            if (_registered.ContainsKey(typeReference))
+            {
+                return true;
+            }
+
+            if (typeReference is IClrTypeReference clrTypeReference)
+            {
+                return _clrTypeReferences.ContainsKey(clrTypeReference);
+            }
+
+            return false;
         }
 
         public TypeSystemObjectBase CreateInstance(Type namedSchemaType)

@@ -15,7 +15,7 @@ namespace HotChocolate.Configuration
 
         void MarkResolved(ITypeReference typeReference);
 
-        bool IsResolved(IClrTypeReference typeReference);
+        bool IsResolved(ITypeReference typeReference);
 
         TypeSystemObjectBase CreateInstance(Type namedSchemaType);
 
