@@ -58,7 +58,7 @@ namespace HotChocolate.Subscriptions.Redis
                     "subscription { " + name + " }");
 
                 // act
-                await _sender.SendAsync(outgoing);
+                await _sender.SendAsync(outgoing, cts.Token);
 
                 // assert
                 var stream = (IResponseStream)result;
@@ -109,7 +109,7 @@ namespace HotChocolate.Subscriptions.Redis
                     "subscription { " + name + "(a: { def: \"xyz\" }) }");
 
                 // act
-                await _sender.SendAsync(outgoing);
+                await _sender.SendAsync(outgoing, cts.Token);
 
                 // assert
                 var stream = (IResponseStream)result;
