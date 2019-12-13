@@ -33,7 +33,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 // arrange
                 var services = new ServiceCollection();
-                services.AddRedisSubscriptionProvider(_connection);
+                services.AddRedisSubscriptionProvider(sp => _connection);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
 
@@ -80,7 +80,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 // arrange
                 var services = new ServiceCollection();
-                services.AddRedisSubscriptionProvider(_connection);
+                services.AddRedisSubscriptionProvider(sp => _connection);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
 

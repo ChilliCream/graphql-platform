@@ -9,17 +9,17 @@ namespace HotChocolate.Subscriptions
     {
         public static IServiceCollection AddRedisSubscriptionProvider(
             this IServiceCollection services,
-            ConfigurationOptions options) =>
-            services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(options);
+            Func<IServiceProvider, ConfigurationOptions> optionsFactory) =>
+            services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(optionsFactory);
 
         public static IServiceCollection AddRedisSubscriptionProvider(
             this IServiceCollection services,
-            ConnectionMultiplexer connection) =>
-            services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(connection);
+            Func<IServiceProvider, ConnectionMultiplexer> connectionFactory) =>
+            services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(connectionFactory);
 
         public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
             this IServiceCollection services,
-            ConfigurationOptions options)
+            Func<IServiceProvider, ConfigurationOptions> optionsFactory)
             where TSerializer : class, IPayloadSerializer
         {
             if (services == null)
@@ -28,14 +28,14 @@ namespace HotChocolate.Subscriptions
             }
 
             services.AddSingleton<IConnectionMultiplexer>(sp =>
-                ConnectionMultiplexer.Connect(options));
+                ConnectionMultiplexer.Connect(optionsFactory(sp)));
             AddServices<TSerializer>(services);
             return services;
         }
 
         public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
             this IServiceCollection services,
-            ConnectionMultiplexer connection)
+            Func<IServiceProvider, ConnectionMultiplexer> connectionFactory)
             where TSerializer : class, IPayloadSerializer
         {
             if (services == null)
@@ -43,7 +43,7 @@ namespace HotChocolate.Subscriptions
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<IConnectionMultiplexer>(sp => connection);
+            services.AddSingleton<IConnectionMultiplexer>(connectionFactory);
             AddServices<TSerializer>(services);
             return services;
         }
