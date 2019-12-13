@@ -15,42 +15,38 @@ namespace HotChocolate.Configuration
         public RegisteredType(
             ITypeReference reference,
             TypeSystemObjectBase type,
+            InitializationContext initializationContext,
             IReadOnlyList<TypeDependency> dependencies,
-            bool isAutoInferred)
+            bool isInferred)
         {
-            if (reference == null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
             References = new[] { reference };
-            Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Dependencies = dependencies
-                ?? throw new ArgumentNullException(nameof(dependencies));
-            IsAutoInferred = isAutoInferred;
+            Type = type;
+            InitializationContext = initializationContext;
+            Dependencies = dependencies;
+            IsInferred = isInferred;
         }
 
         public RegisteredType(
             IReadOnlyList<ITypeReference> references,
             TypeSystemObjectBase type,
+            InitializationContext initializationContext,
             IReadOnlyList<TypeDependency> dependencies,
-            bool isAutoInferred)
+            bool isInferred)
         {
-            References = references
-                ?? throw new ArgumentNullException(nameof(references));
-            Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Dependencies = dependencies
-                ?? throw new ArgumentNullException(nameof(dependencies));
-            IsAutoInferred = isAutoInferred;
+            References = references;
+            Type = type;
+            InitializationContext = initializationContext;
+            Dependencies = dependencies;
+            IsInferred = isInferred;
         }
 
         public IReadOnlyList<ITypeReference> References { get; }
 
         public TypeSystemObjectBase Type { get; }
 
-        public bool IsAutoInferred { get; }
+        public InitializationContext InitializationContext { get; }
+
+        public bool IsInferred { get; }
 
         public Type ClrType
         {
@@ -69,26 +65,26 @@ namespace HotChocolate.Configuration
         public RegisteredType WithDependencies(
             IReadOnlyList<TypeDependency> dependencies)
         {
-            if (dependencies == null)
-            {
-                throw new ArgumentNullException(nameof(dependencies));
-            }
-
-            return new RegisteredType(References, Type, dependencies, IsAutoInferred);
+            return new RegisteredType(
+                References,
+                Type,
+                InitializationContext,
+                dependencies,
+                IsInferred);
         }
 
         public RegisteredType AddDependencies(
             IReadOnlyList<TypeDependency> dependencies)
         {
-            if (dependencies == null)
-            {
-                throw new ArgumentNullException(nameof(dependencies));
-            }
-
             var merged = Dependencies.ToList();
             merged.AddRange(dependencies);
 
-            return new RegisteredType(References, Type, merged, IsAutoInferred);
+            return new RegisteredType(
+                References,
+                Type,
+                InitializationContext,
+                merged,
+                IsInferred);
         }
 
         public void Update(IDictionary<ITypeReference, RegisteredType> types)
