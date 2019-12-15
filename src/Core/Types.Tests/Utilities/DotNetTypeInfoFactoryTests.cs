@@ -199,11 +199,14 @@ namespace HotChocolate.Utilities
         [Fact]
         public void Create_TypeInfo_From_RewrittenType()
         {
+            // arrange
             Type type = typeof(ListType<NonNullType<NativeType<string>>>);
             var factory = new DotNetTypeInfoFactory();
 
+            // act
             bool success = factory.TryCreate(type, out TypeInfo typeInfo);
 
+            // assert
             Assert.True(success);
 
             Assert.Collection(typeInfo.Components,
