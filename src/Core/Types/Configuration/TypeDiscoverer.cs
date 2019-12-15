@@ -17,7 +17,7 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
         private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
-        private readonly TypeRegistrarNG _typeRegistrar;
+        private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
 
         public TypeDiscoverer(
@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration
 
             _clrTypeReferences = clrTypeReferences;
 
-            _typeRegistrar = new TypeRegistrarNG(
+            _typeRegistrar = new TypeRegistrar(
                 _registeredTypes,
                 clrTypeReferences,
                 descriptorContext,

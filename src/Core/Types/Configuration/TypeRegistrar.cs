@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class TypeRegistrarNG
+    internal sealed class TypeRegistrar
         : ITypeRegistrar
     {
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
@@ -20,7 +20,7 @@ namespace HotChocolate.Configuration
         private readonly IDescriptorContext _descriptorContext;
         private readonly IDictionary<string, object> _contextData;
 
-        public TypeRegistrarNG(
+        public TypeRegistrar(
             IDictionary<ITypeReference, RegisteredType> registeredTypes,
             IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,

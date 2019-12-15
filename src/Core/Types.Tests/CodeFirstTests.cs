@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -18,6 +19,19 @@ namespace HotChocolate
                 .Create()
                 .ToString()
                 .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Type_Is_Correctly_Upgraded()
+        {
+            SchemaBuilder.New()
+               .AddQueryType<Query>()
+               .AddType<Dog>()
+               .AddType<ObjectType<Dog>>()
+               .AddType<DogType>()
+               .Create()
+               .ToString()
+               .MatchSnapshot();
         }
 
         public class Query
@@ -43,6 +57,10 @@ namespace HotChocolate
         public interface IPet
         {
             string? Name { get; }
+        }
+
+        public class DogType : ObjectType<Dog>
+        {
         }
 
         public class Dog : IPet
