@@ -31,12 +31,21 @@ namespace HotChocolate.Types.Sorting
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            SortInputTypeDescriptor<T> descriptor = 
+            SortInputTypeDescriptor<T> descriptor =
                 SortInputTypeDescriptor<T>.New(
                     context.DescriptorContext,
                     typeof(T));
             _configure(descriptor);
             return descriptor.CreateDefinition();
+        }
+
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+
+            SetTypeIdentity(typeof(SortInputType<>));
         }
 
         protected virtual void Configure(
