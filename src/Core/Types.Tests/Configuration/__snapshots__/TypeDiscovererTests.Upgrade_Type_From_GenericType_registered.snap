@@ -10,7 +10,6 @@
   "HotChocolate.Types.SkipDirectiveType": "System.Object",
   "HotChocolate.Types.IncludeDirectiveType": "System.Object",
   "HotChocolate.Types.CostDirectiveType": "HotChocolate.Types.CostDirective",
-  "HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Foo>": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
   "HotChocolate.Configuration.TypeDiscovererTests.FooType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
   "HotChocolate.Types.StringType": "System.String",
   "HotChocolate.Types.BooleanType": "System.Boolean",
