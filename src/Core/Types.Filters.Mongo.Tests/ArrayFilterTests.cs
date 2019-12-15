@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FooBar()
+        public async Task Array_Filter_On_Scalar_Types()
         {
             // arrange
             var serviceCollection = new ServiceCollection();
@@ -53,7 +53,145 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ a: foos(where: { bars_some: { element: \"e\" } }) { bars } b: foos(where: { quux: \"abc\" }) { bars } }")
+                .SetQuery(
+                    "{" +
+                    "foos(where: { bars_some: { element: \"e\" } }) { bars } " +
+                    "}")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Array_Filter_On_Objects_Types()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+                return database.GetCollection<Foo>("col");
+            });
+
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
+
+            await collection.InsertOneAsync(new Foo
+            {
+                BarCollection = new List<string> { "a", "b", "c" },
+                BazCollection = new List<Baz> { new Baz { Quux = "a" }, new Baz { Quux = "b" } },
+                Bars = new[] { "d", "e", "f" },
+                Bazs = new[] { new Baz { Quux = "c" }, new Baz { Quux = "d" } },
+                Quux = "abc"
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(services)
+                .BindClrType<ObjectId, IdType>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    "{" +
+                    "a: foos(where: { bazs_some: { quux: \"c\" } }) { bars } " +
+                    "}")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Collection_Filter_On_Scalar_Types()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+                return database.GetCollection<Foo>("col");
+            });
+
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
+
+            await collection.InsertOneAsync(new Foo
+            {
+                BarCollection = new List<string> { "a", "b", "c" },
+                BazCollection = new List<Baz> { new Baz { Quux = "a" }, new Baz { Quux = "b" } },
+                Bars = new[] { "d", "e", "f" },
+                Bazs = new[] { new Baz { Quux = "c" }, new Baz { Quux = "d" } },
+                Quux = "abc"
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(services)
+                .BindClrType<ObjectId, IdType>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    "{" +
+                    "foos(where: { barCollection_some: { element: \"b\" } }) { bars } " +
+                    "}")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Collection_Filter_On_Objects_Types()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+                return database.GetCollection<Foo>("col");
+            });
+
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
+
+            await collection.InsertOneAsync(new Foo
+            {
+                BarCollection = new List<string> { "a", "b", "c" },
+                BazCollection = new List<Baz> { new Baz { Quux = "a" }, new Baz { Quux = "b" } },
+                Bars = new[] { "d", "e", "f" },
+                Bazs = new[] { new Baz { Quux = "c" }, new Baz { Quux = "d" } },
+                Quux = "abc"
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(services)
+                .BindClrType<ObjectId, IdType>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    "{" +
+                    "a: foos(where: { bazCollection_some: { quux: \"a\" } }) { bars } " +
+                    "}")
                 .Create();
 
             // act
