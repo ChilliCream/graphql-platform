@@ -59,7 +59,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Abstractions", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Tests.Utilities", "AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj", "{AF440449-DBE1-40AB-B155-87C3B31E7378}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarWars", "..\Core\StarWars\StarWars.csproj", "{9CA71125-2837-4F92-9822-CB41B64E2E43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StarWars", "..\Core\StarWars\StarWars.csproj", "{9CA71125-2837-4F92-9822-CB41B64E2E43}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Abstractions", "AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj", "{B930D413-E013-4DE6-B1AB-C88BE946E615}"
 EndProject

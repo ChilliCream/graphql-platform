@@ -3,12 +3,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Delegation
 {
-    internal class VariableValue
+    internal readonly struct VariableValue
     {
         internal VariableValue(
             string name,
             ITypeNode type,
-            object value,
+            IValueNode value,
             IValueNode defaultValue)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -21,8 +21,11 @@ namespace HotChocolate.Stitching.Delegation
 
         public ITypeNode Type { get; }
 
-        public object Value { get; }
+        public IValueNode Value { get; }
 
         public IValueNode DefaultValue { get; }
+
+        public VariableValue WithValue(IValueNode value) =>
+            new VariableValue(Name, Type, value, DefaultValue);
     }
 }
