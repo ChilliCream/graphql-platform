@@ -80,7 +80,15 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            if (!TryGetType(reference, out T type))
+            bool b = TryGetType(reference, out T type);
+
+            if (!b)
+            {
+
+            }
+
+
+            if (!TryGetType(reference, out type))
             {
                 throw new SchemaException(
                     SchemaErrorBuilder.New()

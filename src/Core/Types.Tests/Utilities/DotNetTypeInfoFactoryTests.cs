@@ -196,6 +196,28 @@ namespace HotChocolate.Utilities
             Assert.Equal(expectedReducedType, reducedType);
         }
 
+        [Fact]
+        public void Create_TypeInfo_From_RewrittenType()
+        {
+            Type type = typeof(ListType<NonNullType<NativeType<string>>>);
+            var factory = new DotNetTypeInfoFactory();
+
+            bool success = factory.TryCreate(type, out TypeInfo typeInfo);
+
+            Assert.True(success);
+
+            Assert.Collection(typeInfo.Components,
+                t => Assert.Equal(typeof(ListType<NonNullType<NativeType<string>>>), t),
+                t => Assert.Equal(typeof(NonNullType<NativeType<string>>), t),
+                t => Assert.Equal(typeof(string), t));
+
+            IType schemaType = typeInfo.TypeFactory(new StringType());
+
+            Assert.IsType<StringType>(
+                Assert.IsType<NonNullType>(
+                    Assert.IsType<ListType>(schemaType).ElementType).Type);
+        }
+
         private class CustomStringList
             : CustomStringListBase
         {
