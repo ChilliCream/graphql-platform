@@ -69,7 +69,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
             context.RegisterDependencies(definition);
-            SetTypeIdentity(typeof(EnumType<>));
+            SetTypeIdentity(typeof(ObjectType<>));
         }
 
         protected override void OnCompleteType(

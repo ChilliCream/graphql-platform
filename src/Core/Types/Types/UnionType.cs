@@ -70,7 +70,7 @@ namespace HotChocolate.Types
                 definition.Directives.Select(t => t.TypeReference),
                 TypeDependencyKind.Completed);
 
-            SetTypeIdentity(typeof(EnumType<>));
+            SetTypeIdentity(typeof(UnionType<>));
         }
 
         protected override void OnCompleteType(

@@ -61,6 +61,10 @@ namespace HotChocolate
 
         public class DogType : ObjectType<Dog>
         {
+            protected override void Configure(IObjectTypeDescriptor<Dog> descriptor)
+            {
+                descriptor.Field("isMale").Resolver(true);
+            }
         }
 
         public class Dog : IPet
