@@ -81,5 +81,4 @@ namespace HotChocolate
 
         public static SchemaErrorBuilder New() => new SchemaErrorBuilder();
     }
-
 }

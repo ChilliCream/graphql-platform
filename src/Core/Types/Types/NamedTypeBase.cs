@@ -3,6 +3,8 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public abstract class NamedTypeBase<TDefinition>
@@ -10,13 +12,39 @@ namespace HotChocolate.Types
         , INamedType
         , IHasDirectives
         , IHasClrType
+        , IHasTypeIdentity
         where TDefinition : DefinitionBase, IHasDirectiveDefinition
     {
+        private IDirectiveCollection? _directives;
+        private Type? _clrType;
+
         public abstract TypeKind Kind { get; }
 
-        public IDirectiveCollection Directives { get; private set; }
+        public IDirectiveCollection Directives
+        {
+            get
+            {
+                if (_directives is null)
+                {
+                    throw new TypeInitializationException();
+                }
+                return _directives;
+            }
+        }
 
-        public Type ClrType { get; private set; }
+        public Type ClrType
+        {
+            get
+            {
+                if (_clrType is null)
+                {
+                    throw new TypeInitializationException();
+                }
+                return _clrType;
+            }
+        }
+
+        public Type? TypeIdentity { get; private set; }
 
         protected override void OnRegisterDependencies(
             IInitializationContext context,
@@ -24,7 +52,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            ClrType = definition is IHasClrType clr && clr.ClrType != GetType()
+            _clrType = definition is IHasClrType clr && clr.ClrType != GetType()
                 ? clr.ClrType
                 : typeof(object);
 
@@ -41,7 +69,27 @@ namespace HotChocolate.Types
             var directives = new DirectiveCollection(
                 this, definition.Directives);
             directives.CompleteCollection(context);
-            Directives = directives;
+            _directives = directives;
+        }
+
+        protected void SetTypeIdentity(Type typeDefinition)
+        {
+            if (typeDefinition is null)
+            {
+                throw new ArgumentNullException(nameof(typeDefinition));
+            }
+
+            if (!typeDefinition.IsGenericTypeDefinition)
+            {
+                throw new ArgumentException(
+                    "The type definition must be a generic type definition.",
+                    nameof(typeDefinition));
+            }
+
+            if (ClrType != typeof(object))
+            {
+                TypeIdentity = typeDefinition.MakeGenericType(ClrType);
+            }
         }
     }
 }
