@@ -13,6 +13,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
             Stack<QueryableClosure> closures,
+            bool inMemory,
             out VisitorAction action)
         {
             if (field.Operation.Kind == FilterOperationKind.Object)

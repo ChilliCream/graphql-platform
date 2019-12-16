@@ -76,8 +76,7 @@ namespace HotChocolate.Configuration
 
             if (!isComplexType && unresolvedType.Type.IsGenericType)
             {
-                Type typeDefinition =
-                    unresolvedType.Type.GetGenericTypeDefinition();
+                Type typeDefinition = unresolvedType.Type.GetGenericTypeDefinition();
                 return typeDefinition == _keyValuePair;
             }
 

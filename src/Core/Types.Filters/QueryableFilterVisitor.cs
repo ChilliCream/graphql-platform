@@ -14,19 +14,22 @@ namespace HotChocolate.Types.Filters
         private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
         private readonly IReadOnlyList<IExpressionFieldHandler> _fieldHandlers;
         private readonly ITypeConversion _converter;
+        private readonly bool _inMemory;
 
         protected Stack<QueryableClosure> Closures { get; } = new Stack<QueryableClosure>();
 
         public QueryableFilterVisitor(
             InputObjectType initialType,
             Type source,
-            ITypeConversion converter)
+            ITypeConversion converter,
+            bool inMemory)
             : this(
-                initialType, 
-                source, 
-                converter, 
-                ExpressionOperationHandlers.All, 
-                ExpressionFieldHandlers.All)
+                initialType,
+                source,
+                converter,
+                ExpressionOperationHandlers.All,
+                ExpressionFieldHandlers.All,
+                inMemory)
         {
         }
 
@@ -35,7 +38,8 @@ namespace HotChocolate.Types.Filters
             Type source,
             ITypeConversion converter,
             IEnumerable<IExpressionOperationHandler> operationHandlers,
-            IEnumerable<IExpressionFieldHandler> fieldHandlers)
+            IEnumerable<IExpressionFieldHandler> fieldHandlers,
+            bool inMemory)
             : base(initialType)
         {
             if (initialType is null)
@@ -58,17 +62,13 @@ namespace HotChocolate.Types.Filters
             _opHandlers = operationHandlers.ToArray();
             _fieldHandlers = fieldHandlers.ToArray();
             _converter = converter;
-            Closures.Push(new QueryableClosure(source, "r"));
+            _inMemory = inMemory;
+            Closures.Push(new QueryableClosure(source, "r", _inMemory));
         }
 
         public Expression<Func<TSource, bool>> CreateFilter<TSource>()
         {
             return Closures.Peek().CreateLambda<Func<TSource, bool>>();
-        }
-
-        public Expression<Func<TSource, bool>> CreateFilterInMemory<TSource>()
-        {
-            return Closures.Peek().CreateLambdaWithNullCheck<Func<TSource, bool>>();
         }
 
         #region Object Value
@@ -124,6 +124,7 @@ namespace HotChocolate.Types.Filters
                         path,
                         ancestors,
                         Closures,
+                        _inMemory,
                         out VisitorAction action))
                     {
                         return action;
