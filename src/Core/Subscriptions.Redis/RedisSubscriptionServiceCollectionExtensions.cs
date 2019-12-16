@@ -14,7 +14,7 @@ namespace HotChocolate.Subscriptions
 
         public static IServiceCollection AddRedisSubscriptionProvider(
             this IServiceCollection services,
-            Func<IServiceProvider, ConnectionMultiplexer> connectionFactory) =>
+            Func<IServiceProvider, IConnectionMultiplexer> connectionFactory) =>
             services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(connectionFactory);
 
         public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
@@ -35,7 +35,7 @@ namespace HotChocolate.Subscriptions
 
         public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
             this IServiceCollection services,
-            Func<IServiceProvider, ConnectionMultiplexer> connectionFactory)
+            Func<IServiceProvider, IConnectionMultiplexer> connectionFactory)
             where TSerializer : class, IPayloadSerializer
         {
             if (services == null)
