@@ -22,10 +22,8 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name =
-                context.Naming.GetTypeName(clrType, TypeKind.Interface);
-            Definition.Description =
-                context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
 
         protected InterfaceTypeDescriptor(
