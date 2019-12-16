@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -40,7 +41,7 @@ namespace HotChocolate.Types.Filters
             var type = new FilterInputType<TArray>(descriptor);
             var typeReference = new SchemaTypeReference(type);
             ArrayFilterOperationDescriptor<TArray> field =
-                CreateOperation(FilterOperationKind.ArraySome);
+                GetOrCreateOperation(FilterOperationKind.ArraySome);
             field.Type(typeReference);
             Filters.Add(field);
             return field;
@@ -50,7 +51,7 @@ namespace HotChocolate.Types.Filters
             where TFilter : FilterInputType<TArray>
         {
             ArrayFilterOperationDescriptor<TArray> field =
-                CreateOperation(FilterOperationKind.ArraySome);
+                GetOrCreateOperation(FilterOperationKind.ArraySome);
             field.Type<TFilter>();
             Filters.Add(field);
 
@@ -68,7 +69,7 @@ namespace HotChocolate.Types.Filters
             var type = new FilterInputType<TArray>(descriptor);
             var typeReference = new SchemaTypeReference(type);
             ArrayFilterOperationDescriptor<TArray> field =
-                CreateOperation(FilterOperationKind.ArrayNone);
+                GetOrCreateOperation(FilterOperationKind.ArrayNone);
             field.Type(typeReference);
             Filters.Add(field);
             return field;
@@ -78,7 +79,7 @@ namespace HotChocolate.Types.Filters
             where TFilter : FilterInputType<TArray>
         {
             ArrayFilterOperationDescriptor<TArray> field =
-                CreateOperation(FilterOperationKind.ArrayNone);
+                GetOrCreateOperation(FilterOperationKind.ArrayNone);
             field.Type<TFilter>();
             Filters.Add(field);
 
@@ -96,7 +97,7 @@ namespace HotChocolate.Types.Filters
             var type = new FilterInputType<TArray>(descriptor);
             var typeReference = new SchemaTypeReference(type);
             ArrayFilterOperationDescriptor<TArray> field =
-                CreateOperation(FilterOperationKind.ArrayAll);
+                GetOrCreateOperation(FilterOperationKind.ArrayAll);
             field.Type(typeReference);
             Filters.Add(field);
             return field;
@@ -106,7 +107,7 @@ namespace HotChocolate.Types.Filters
             where TFilter : FilterInputType<TArray>
         {
             ArrayFilterOperationDescriptor<TArray> field =
-                CreateOperation(FilterOperationKind.ArrayAll);
+                GetOrCreateOperation(FilterOperationKind.ArrayAll);
             field.Type<TFilter>();
             Filters.Add(field);
 
@@ -116,6 +117,13 @@ namespace HotChocolate.Types.Filters
         public new IArrayFilterOperationDescriptor<TArray> AllowAll()
         {
             return AllowAll<FilterInputType<TArray>>();
+        }
+
+        private ArrayFilterOperationDescriptor<TArray> GetOrCreateOperation(
+            FilterOperationKind operationKind)
+        {
+            return Filters.GetOrAddOperation(operationKind,
+                    () => CreateOperation(operationKind));
         }
 
         private ArrayFilterOperationDescriptor<TArray> CreateOperation(

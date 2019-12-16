@@ -170,9 +170,9 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected void Ignore()
+        protected void Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
         }
 
         protected void Directive<T>(T directive)

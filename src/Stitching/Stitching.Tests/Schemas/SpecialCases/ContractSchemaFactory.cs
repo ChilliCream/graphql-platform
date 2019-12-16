@@ -29,80 +29,52 @@ namespace HotChocolate.Stitching.Schemas.SpecialCases
             descriptor.Field("custom_scalar")
                 .Type<MyCustomScalarType>()
                 .Argument("bar", a => a.Type<MyCustomScalarType>())
-                .Resolver(ctx => ctx.Argument<string>("bar"));
+                .Resolver(ctx => ctx.Argument<MyCustomScalarValue>("bar"));
+
+            descriptor.Field("custom_scalar_complex")
+                .Type<MyCustomScalarType>()
+                .Argument("bar", a => a.Type<CustomInputValueType>())
+                .Resolver(ctx =>
+                {
+                    CustomInputValue input = ctx.Argument<CustomInputValue>("bar");
+
+                    return new MyCustomScalarValue { Text = $"{input.From.Text}-{input.To.Text}" };
+                });
         }
     }
 
-    public class MyCustomScalarType
-        : ScalarType
+    public class MyCustomScalarValue
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StringType"/> class.
-        /// </summary>
-        public MyCustomScalarType()
-            : base("Custom")
+        public string Text { get; set; }
+    }
+
+    public class MyCustomScalarType : ScalarType<MyCustomScalarValue, StringValueNode>
+    {
+        public MyCustomScalarType() : base(nameof(MyCustomScalarValue))
         {
         }
 
-        public override Type ClrType => typeof(string);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        protected override MyCustomScalarValue ParseLiteral(StringValueNode literal)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            return new MyCustomScalarValue {Text = literal.Value};
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        protected override StringValueNode ParseValue(MyCustomScalarValue value)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is StringValueNode stringLiteral)
-            {
-                return stringLiteral.Value;
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new ScalarSerializationException("some text");
-        }
-
-        public override IValueNode ParseValue(object value)
-        {
-            if (value == null)
-            {
-                return new NullValueNode(null);
-            }
-
-            if (value is string s)
-            {
-                return new StringValueNode(null, s, false);
-            }
-
-            throw new ScalarSerializationException("some text");
+            return new StringValueNode(null, value.Text, false);
         }
 
         public override bool TrySerialize(object value, out object serialized)
         {
-            if (value == null)
+            if (value is null)
             {
                 serialized = null;
                 return true;
             }
 
-            if (value is string s)
+            if (value is MyCustomScalarValue s)
             {
-                serialized =  s;
+                serialized=  s.Text;
                 return true;
             }
 
@@ -120,12 +92,33 @@ namespace HotChocolate.Stitching.Schemas.SpecialCases
 
             if (serialized is string s)
             {
-                value = s;
+                value = new MyCustomScalarValue { Text = s };
                 return true;
             }
 
             value = null;
             return false;
+        }
+    }
+
+    public class CustomInputValue
+    {
+        public MyCustomScalarValue From { get; set; }
+
+        public MyCustomScalarValue To { get; set; }
+    }
+
+    public class CustomInputValueType : InputObjectType<CustomInputValue>
+    {
+        protected override void Configure(IInputObjectTypeDescriptor<CustomInputValue> descriptor)
+        {
+            base.Configure(descriptor);
+
+            descriptor.Field(i => i.From)
+                .Type<NonNullType<MyCustomScalarType>>();
+
+            descriptor.Field(i => i.To)
+                .Type<NonNullType<MyCustomScalarType>>();
         }
     }
 }

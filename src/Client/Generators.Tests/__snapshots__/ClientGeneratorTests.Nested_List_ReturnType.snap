@@ -237,10 +237,6 @@ namespace StrawberryShake.Client
                 .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
-            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
-                typeof(ISocketConnectionInterceptor),
-                typeof(MessagePipelineHandler),
-                ServiceLifetime.Singleton));
             return builder;
         }
 

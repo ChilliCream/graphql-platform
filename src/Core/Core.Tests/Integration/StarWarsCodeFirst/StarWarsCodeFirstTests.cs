@@ -693,10 +693,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     }
                 }");
 
-            IReadOnlyQueryResult eventResult;
+            IReadOnlyQueryResult eventResult = null;
             using (var cts = new CancellationTokenSource(2000))
             {
-                eventResult = await responseStream.ReadAsync(cts.Token);
+                await foreach (IReadOnlyQueryResult item in
+                    responseStream.WithCancellation(cts.Token))
+                {
+                    eventResult = item;
+                    break;
+                }
             }
 
             eventResult.MatchSnapshot();

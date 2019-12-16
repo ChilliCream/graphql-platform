@@ -1,7 +1,9 @@
-﻿namespace HotChocolate.Types
+﻿#nullable enable
+
+namespace HotChocolate.Types
 {
     public interface IHasDescription
     {
-        string Description { get; }
+        string? Description { get; }
     }
 }

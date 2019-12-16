@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Transport;
@@ -15,7 +14,7 @@ namespace StrawberryShake.Http.Subscriptions.Messages
             _subscriptionManager = subscriptionManager;
         }
 
-        protected override Task HandleAsync(
+        protected override ValueTask HandleAsync(
             ISocketConnection connection,
             DataResultMessage message,
             CancellationToken cancellationToken)
@@ -27,7 +26,7 @@ namespace StrawberryShake.Http.Subscriptions.Messages
                 return subscription!.OnReceiveResultAsync(message, cancellationToken);
             }
 
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

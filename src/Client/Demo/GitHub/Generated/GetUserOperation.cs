@@ -5,7 +5,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GitHub
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetUserOperation
         : IOperation<IGetUser>
     {

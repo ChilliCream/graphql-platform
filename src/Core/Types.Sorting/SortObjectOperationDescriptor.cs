@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -5,9 +6,10 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Sorting
 {
     public class SortObjectOperationDescriptor
-        : SortOperationDescriptor
+        : SortOperationDescriptorBase
         , ISortObjectOperationDescriptor
     {
+
         protected SortObjectOperationDescriptor(
             IDescriptorContext context,
             NameString name,
@@ -17,24 +19,28 @@ namespace HotChocolate.Types.Sorting
         {
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
-        public new ISortObjectOperationDescriptor Ignore()
+        /// <inheritdoc/>
+        public ISortObjectOperationDescriptor Ignore(bool ignore = true)
         {
-            base.Ignore();
+            Definition.Ignore = ignore;
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Description(string value)
         {
             base.Description(value);
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
@@ -42,6 +48,7 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Directive<T>()
             where T : class, new()
         {
@@ -49,6 +56,7 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
+        /// <inheritdoc/>
         public new ISortObjectOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
@@ -57,14 +65,14 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public new static SortObjectOperationDescriptor New(
+        public static SortObjectOperationDescriptor New(
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
             SortOperation operation) =>
             new SortObjectOperationDescriptor(context, name, type, operation);
 
-        public new static SortObjectOperationDescriptor CreateOperation(
+        public static SortObjectOperationDescriptor CreateOperation(
             PropertyInfo property,
             IDescriptorContext context)
         {

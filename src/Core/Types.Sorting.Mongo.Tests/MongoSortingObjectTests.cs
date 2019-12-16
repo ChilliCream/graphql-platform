@@ -57,6 +57,93 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
+        public async Task GetItems_DescSorting_AllItems_Are_Returned_DescSortedOnNullable()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                collection.InsertMany(new[]
+                {
+                    new Parent {
+                        Model = new Model {
+                            Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
+                    new Parent {
+                        Model = new Model {
+                            Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
+                    new Parent {
+                        Model = new Model {
+                            Foo = "abc", Bar = 2, Baz = false, BazNullable= null } }
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                "{ items(order_by: { model: { bazNullable: DESC } }) { model { bazNullable } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task GetItems_DescSorting_AllItems_Are_Returned_DescSortedOnNullableObject()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                collection.InsertMany(new[]
+                {
+                    new Parent {
+                        Model = new Model {
+                            Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
+                    new Parent {
+                        Model = new Model {
+                            Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
+                    new Parent {   }
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                 "{ items(order_by: { model: { bazNullable: DESC } }) { model { bazNullable } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
+
+        [Fact]
         public async Task GetItems_DescSorting_AllItems_Are_Returned_DescSorted()
         {
             // arrange
@@ -234,6 +321,7 @@ namespace HotChocolate.Types.Sorting
             public string Foo { get; set; }
             public int Bar { get; set; }
             public bool Baz { get; set; }
+            public int? BazNullable { get; set; }
         }
     }
 }
