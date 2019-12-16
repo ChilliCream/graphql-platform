@@ -309,6 +309,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context) =>
             new ObjectTypeDescriptor<T>(context);
 
+        public static ObjectTypeExtensionDescriptor<T> NewExtension<T>(
+            IDescriptorContext context) =>
+            new ObjectTypeExtensionDescriptor<T>(context);
+
         public static ObjectTypeDescriptor FromSchemaType(
             IDescriptorContext context,
             Type schemaType)

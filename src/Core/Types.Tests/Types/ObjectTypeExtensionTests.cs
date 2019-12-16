@@ -30,6 +30,57 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void ObjectTypeExtension_Infer_Field()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType<GenericFooTypeExtension>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields.ContainsField("test"));
+        }
+
+        [Fact]
+        public void ObjectTypeExtension_Declare_Field()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension<FooExtension>(d =>
+                {
+                    d.Name("Foo");
+                    d.Field(t => t.Test).Type<IntType>();
+                }))
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields.ContainsField("test"));
+            Assert.IsType<IntType>(type.Fields["test"].Type);
+        }
+
+        [Fact]
+        public async Task ObjectTypeExtension_Execute_Infer_Field()
+        {
+            // arrange
+            // act
+            IQueryExecutor executor = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType<GenericFooTypeExtension>()
+                .Create()
+                .MakeExecutable();
+
+            // assert
+            IExecutionResult result = await executor.ExecuteAsync("{ test }");
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public void ObjectTypeExtension_OverrideResolver()
         {
             // arrange
@@ -124,7 +175,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_DepricateField_With_Reason()
+        public void ObjectTypeExtension_DeprecateField_With_Reason()
         {
             // arrange
             FieldResolverDelegate resolver =
@@ -148,7 +199,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_DepricateField_Without_Reason()
+        public void ObjectTypeExtension_DeprecateField_Without_Reason()
         {
             // arrange
             FieldResolverDelegate resolver =
@@ -484,6 +535,16 @@ namespace HotChocolate.Types
             }
         }
 
+        public class GenericFooTypeExtension
+            : ObjectTypeExtension<FooExtension>
+        {
+            protected override void Configure(
+                IObjectTypeDescriptor<FooExtension> descriptor)
+            {
+                descriptor.Name("Foo");
+            }
+        }
+
         public class Foo
         {
             public string Description { get; } = "hello";
@@ -492,6 +553,11 @@ namespace HotChocolate.Types
             {
                 return null;
             }
+        }
+
+        public class FooExtension
+        {
+            public string Test { get; set; } = "Test123";
         }
 
         public class FooResolver
