@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.Linq;
@@ -7,12 +8,18 @@ namespace MarshmallowPie.Repositories
 {
     public interface IEnvironmentRepository
     {
-        Task AddEnvironmentAsync(Environment environment);
-
-        Task UpdateEnvironmentAsync(Environment environment);
-
-        Task<Environment> GetEnvironmentAsync(Guid id);
-
         IQueryable<Environment> GetEnvironments();
+
+        Task<Environment> GetEnvironmentAsync(
+            Guid id,
+            CancellationToken cancellationToken = default);
+
+        Task AddEnvironmentAsync(
+            Environment environment,
+            CancellationToken cancellationToken = default);
+
+        Task UpdateEnvironmentAsync(
+            Environment environment,
+            CancellationToken cancellationToken = default);
     }
 }

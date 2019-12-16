@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System;
 
 namespace MarshmallowPie
@@ -7,7 +6,7 @@ namespace MarshmallowPie
     {
         public Schema(
             string name,
-            string? description)
+            string? description = null)
         {
             Id = Guid.NewGuid();
             Name = name;
@@ -17,7 +16,7 @@ namespace MarshmallowPie
         public Schema(
             Guid id,
             string name,
-            string? description)
+            string? description = null)
         {
             Id = id;
             Name = name;
@@ -29,48 +28,5 @@ namespace MarshmallowPie
         public string Name { get; }
 
         public string? Description { get; }
-    }
-
-
-    public class SchemaVersion
-    {
-        public Guid Id { get; }
-
-        public Guid SchemaId { get; }
-
-        public DateTime Published { get; }
-
-        public string SourceText { get; }
-
-        public IReadOnlyList<Tag> Tags { get; }
-
-    }
-
-    public class Tag
-    {
-        public string Key { get; }
-
-        public string Value { get; }
-
-        public DateTime Published { get; }
-    }
-
-    public class SchemaVersionPublishReport
-    {
-        public Guid Id { get; }
-
-        public Guid EnvironmentId { get; }
-
-        public Guid SchemaVersionId { get; }
-
-        public DateTime Published { get; }
-
-        public PublishState State { get; }
-    }
-
-    public enum PublishState
-    {
-        Rejected,
-        Published
     }
 }

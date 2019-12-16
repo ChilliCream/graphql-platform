@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphQL", "GraphQL\GraphQL.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphQL.Tests", "GraphQL.Tests\GraphQL.Tests.csproj", "{86FD41DA-A727-42AF-AF80-8BAF452FA37F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories.Mongo", "Repositories.Mongo\Repositories.Mongo.csproj", "{F2B76575-5832-4699-A190-0D61E1CE55A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories.Mongo.Tests", "Repositories.Mongo.Tests\Repositories.Mongo.Tests.csproj", "{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,5 +62,29 @@ Global
 		{86FD41DA-A727-42AF-AF80-8BAF452FA37F}.Release|x64.Build.0 = Release|Any CPU
 		{86FD41DA-A727-42AF-AF80-8BAF452FA37F}.Release|x86.ActiveCfg = Release|Any CPU
 		{86FD41DA-A727-42AF-AF80-8BAF452FA37F}.Release|x86.Build.0 = Release|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Debug|x64.Build.0 = Debug|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Debug|x86.Build.0 = Debug|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Release|x64.ActiveCfg = Release|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Release|x64.Build.0 = Release|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Release|x86.ActiveCfg = Release|Any CPU
+		{F2B76575-5832-4699-A190-0D61E1CE55A1}.Release|x86.Build.0 = Release|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Debug|x64.Build.0 = Debug|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Debug|x86.Build.0 = Debug|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Release|x64.ActiveCfg = Release|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Release|x64.Build.0 = Release|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Release|x86.ActiveCfg = Release|Any CPU
+		{62CD9F01-93E4-44B6-BC8A-DBB0EC14C7EA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

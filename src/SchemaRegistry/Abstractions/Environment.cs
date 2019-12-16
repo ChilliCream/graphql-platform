@@ -5,9 +5,16 @@ namespace MarshmallowPie
     public class Environment
     {
         public Environment(
+            string name,
+            string? description = null)
+            : this(Guid.NewGuid(), name, description)
+        {
+        }
+
+        public Environment(
             Guid id,
             string name,
-            string? description)
+            string? description = null)
         {
             Id = id;
             Name = name;
