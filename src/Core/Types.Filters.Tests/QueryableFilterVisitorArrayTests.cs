@@ -29,7 +29,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(FooSimple),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
 
@@ -61,7 +62,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(FooSimple),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
 
@@ -93,30 +95,31 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo 
-            { 
-                FooNested = new[] 
-                { 
+            var a = new Foo
+            {
+                FooNested = new[]
+                {
                     new FooNested { Bar = "c" },
-                    null, 
-                    new FooNested { Bar = "a" } 
-                } 
+                    null,
+                    new FooNested { Bar = "a" }
+                }
             };
             Assert.True(func(a));
 
-            var b = new Foo 
+            var b = new Foo
             {
-                FooNested = new[] 
-                { 
+                FooNested = new[]
+                {
                     new FooNested { Bar = "c" },
-                    null, 
-                    new FooNested { Bar = "b" } 
-                } 
+                    null,
+                    new FooNested { Bar = "b" }
+                }
             };
             Assert.False(func(b));
         }
@@ -140,30 +143,31 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "a" } 
-                } 
+            var a = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "a" }
+                }
             };
             Assert.True(func(a));
 
-            var b = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "b" } 
-                } 
+            var b = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
             };
             Assert.False(func(b));
         }
@@ -188,30 +192,31 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "a" } 
-                } 
+            var a = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "a" }
+                }
             };
             Assert.False(func(a));
 
-            var b = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "b" } 
-                } 
+            var b = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
             };
             Assert.True(func(b));
         }
@@ -236,52 +241,53 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "a" }, 
-                    new FooNested { Bar = "a" }, 
-                    new FooNested { Bar = "a" } 
-                } 
+            var a = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" }
+                }
             };
             Assert.True(func(a));
 
-            var b = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "a" }, 
-                    new FooNested { Bar = "a" } 
-                } 
+            var b = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" }
+                }
             };
             Assert.False(func(b));
 
-            var c = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "a" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "b" } 
-                } 
+            var c = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
             };
             Assert.False(func(c));
 
-            var d = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "b" } 
-                } 
+            var d = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
             };
             Assert.False(func(d));
         }
@@ -302,19 +308,20 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "a" } 
-                } 
+            var a = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "a" }
+                }
             };
             Assert.True(func(a));
 
@@ -336,19 +343,20 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo 
-            { 
-                FooNested = new[] 
-                { 
-                    new FooNested { Bar = "c" }, 
-                    new FooNested { Bar = "d" }, 
-                    new FooNested { Bar = "a" } 
-                } 
+            var a = new Foo
+            {
+                FooNested = new[]
+                {
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "a" }
+                }
             };
             Assert.False(func(a));
 

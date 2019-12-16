@@ -4,6 +4,7 @@
   "SubscriptionTypeName": "C",
   "StrictValidation": false,
   "UseXmlDocumentation": false,
+  "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Explicit",
   "FieldMiddleware": "AllFields"
 }

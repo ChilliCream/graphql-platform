@@ -28,7 +28,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -60,9 +61,10 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilterInMemory<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { FooNested = new FooNested { Bar = "a" } };
@@ -96,7 +98,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
@@ -132,7 +135,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Recursive),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Recursive, bool> func = filter.CreateFilter<Recursive>().Compile();
 
@@ -170,7 +174,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
@@ -222,7 +227,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 

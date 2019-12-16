@@ -343,19 +343,24 @@ namespace HotChocolate.Utilities
 
         private static bool IsTypeStackValid(List<Type> components)
         {
+            if (components.Count == 0)
+            {
+                return false;
+            }
+
             foreach (Type type in components)
             {
                 if (typeof(Task).IsAssignableFrom(type))
                 {
                     return false;
                 }
-
-                if (typeof(IType).IsAssignableFrom(type)
-                    && !IsNonNullType(type))
-                {
-                    return false;
-                }
             }
+
+            if (typeof(IType).IsAssignableFrom(components[components.Count - 1]))
+            {
+                return false;
+            }
+
             return true;
         }
 

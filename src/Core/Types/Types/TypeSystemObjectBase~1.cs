@@ -6,41 +6,59 @@ using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using System.Globalization;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public abstract class TypeSystemObjectBase<TDefinition>
         : TypeSystemObjectBase
         where TDefinition : DefinitionBase
     {
-        private Dictionary<string, object> _contextData;
-        private IReadOnlyCollection<ILazyTypeConfiguration> _configrations;
+        private TDefinition? _definition;
+        private Dictionary<string, object?>? _contextData;
+        private IReadOnlyCollection<ILazyTypeConfiguration>? _configrations;
 
         protected TypeSystemObjectBase() { }
 
-        public override IReadOnlyDictionary<string, object> ContextData =>
-            _contextData;
+        public override IReadOnlyDictionary<string, object?> ContextData
+        {
+            get
+            {
+                if (_contextData is null)
+                {
+                    throw new TypeInitializationException();
+                }
+                return _contextData;
+            }
+        }
 
-        internal TDefinition Definition { get; private set; }
+        internal TDefinition? Definition
+        {
+            get
+            {
+                return _definition;
+            }
+        }
 
         internal sealed override void Initialize(IInitializationContext context)
         {
-            Definition = CreateDefinition(context);
-            _configrations = Definition?.GetConfigurations().ToList();
+            _definition = CreateDefinition(context);
+            _configrations = _definition?.GetConfigurations().ToList();
 
-            if (Definition == null)
+            if (_definition is null)
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
             context.Interceptor.OnBeforeRegisterDependencies(
-                context, Definition, Definition.ContextData);
+                context, _definition, _definition.ContextData);
 
             RegisterConfigurationDependencies(context);
-            OnRegisterDependencies(context, Definition);
+            OnRegisterDependencies(context, _definition);
 
             context.Interceptor.OnAfterRegisterDependencies(
-                context, Definition, Definition.ContextData);
+                context, _definition, _definition.ContextData);
 
             base.Initialize(context);
         }
@@ -56,11 +74,17 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
+            if (_definition is null)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+
             context.Interceptor.OnBeforeCompleteName(
-                context, Definition, Definition.ContextData);
+                context, _definition, _definition.ContextData);
 
             ExecuteConfigurations(context, ApplyConfigurationOn.Naming);
-            OnCompleteName(context, Definition);
+            OnCompleteName(context, _definition);
 
             if (Name.IsEmpty)
             {
@@ -77,7 +101,7 @@ namespace HotChocolate.Types
             base.CompleteName(context);
 
             context.Interceptor.OnAfterCompleteName(
-                context, Definition, Definition.ContextData);
+                context, _definition, _definition.ContextData);
         }
 
         protected virtual void OnCompleteName(
@@ -92,21 +116,25 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
-            DefinitionBase definition = Definition;
+            if (_definition is null)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+
+            DefinitionBase? definition = _definition;
 
             context.Interceptor.OnBeforeCompleteType(
-                context, definition, definition.ContextData);
+                context, definition, _definition.ContextData);
 
             ExecuteConfigurations(context, ApplyConfigurationOn.Completion);
 
-            Description = Definition.Description;
+            Description = _definition.Description;
 
-            OnCompleteType(context, Definition);
+            OnCompleteType(context, _definition);
 
-            _contextData = new Dictionary<string, object>(
-                Definition.ContextData);
-            
-            Definition = null;
+            _contextData = new Dictionary<string, object?>(_definition.ContextData);
+            _definition = null;
             _configrations = null;
 
             base.CompleteType(context);

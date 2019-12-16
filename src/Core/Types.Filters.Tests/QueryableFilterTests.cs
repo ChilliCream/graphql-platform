@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterTests
     {
         [Fact]
-        public void Create_Schema_With_FilteType()
+        public void Create_Schema_With_FilterType()
         {
             // arrange
             // act
@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_Schema_With_FilteType_With_Fluent_API()
+        public void Create_Schema_With_FilterType_With_Fluent_API()
         {
             // arrange
             // act
@@ -138,7 +138,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public async Task Execute_ObjectStringEqualWithNull_Expression_Array()
         {
-            // arrange 
+            // arrange
 
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(x =>
@@ -171,7 +171,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public async Task Execute_ObjectStringEqualWithNull_Expression_InMemoryQueryable()
         {
-            // arrange 
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     x => x.Field("list")

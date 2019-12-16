@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using FileResource = ChilliCream.Testing.FileResource;
+using System.Text.Json;
 
 namespace HotChocolate.Stitching
 {
