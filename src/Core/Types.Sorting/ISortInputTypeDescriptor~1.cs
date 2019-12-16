@@ -4,9 +4,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Sorting
 {
-    public interface ISortInputTypeDescriptor
+    public interface ISortInputTypeDescriptor<T>
         : IDescriptor<SortInputTypeDefinition>
-        , IFluent
+        , IFluent, ISortInputTypeDescriptor
     {
 
         /// <summary>
@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Sorting
         /// <paramref name="value"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </exception>
-        ISortInputTypeDescriptor Name(NameString value);
+        new ISortInputTypeDescriptor<T> Name(NameString value);
 
         /// <summary>
         /// Adds explanatory text of the <see cref="SortInputType{T}"/>
@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Sorting
         /// </summary>
         /// <param name="value">The sort type description.</param>
         /// 
-        ISortInputTypeDescriptor Description(string value);
+        new ISortInputTypeDescriptor<T> Description(string value);
 
         /// <summary>
         /// Defines the sort binding behavior.
@@ -44,32 +44,56 @@ namespace HotChocolate.Types.Sorting
         /// All sortable fields have to be specified explicitly by specifying
         /// which field is sortable.
         /// </param>
-        ISortInputTypeDescriptor BindFields(
+        new ISortInputTypeDescriptor<T> BindFields(
             BindingBehavior behavior);
 
         /// <summary>
         /// Defines that all sortable fields have to be specified explicitly by specifying
         /// which field is sortable.
         /// </summary>
-        ISortInputTypeDescriptor BindFieldsExplicitly();
+        new ISortInputTypeDescriptor<T> BindFieldsExplicitly();
 
         /// <summary>
         /// Defines that the sort type descriptor will try to infer the sortable fields
         /// from the specified <typeparamref name="T"/>.
         /// </summary>
-        ISortInputTypeDescriptor BindFieldsImplicitly();
+        new ISortInputTypeDescriptor<T> BindFieldsImplicitly();
+
+        /// <summary>
+        /// Defines that the selected property is sortable.
+        /// </summary>
+        /// <param name="property">
+        /// The property that is sortable.
+        /// </param>
+        ISortOperationDescriptor Sortable(
+            Expression<Func<T, IComparable>> property);
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        ISortInputTypeDescriptor<T> Ignore(
+            Expression<Func<T, object>> property);
 
 
-        ISortInputTypeDescriptor Directive<TDirective>(
+        new ISortInputTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;
 
-        ISortInputTypeDescriptor Directive<TDirective>()
+        new ISortInputTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new();
 
-        ISortInputTypeDescriptor Directive(
+        new ISortInputTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
 
+        /// <summary>
+        /// Defines that the selected property is sortable.
+        /// </summary>
+        /// <param name="property">
+        /// The property that is sortable.
+        /// </param>
+        ISortObjectOperationDescriptor<TObject> SortableObject<TObject>(
+            Expression<Func<T, TObject>> property) where TObject : class;
     }
 }

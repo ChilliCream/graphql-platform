@@ -25,6 +25,18 @@ namespace HotChocolate.Types.Sorting
         internal protected override SortOperationDefintion Definition { get; } =
             new SortOperationDefintion();
 
+
+        protected override void OnCreateDefinition(
+            SortOperationDefintion definition)
+        {
+            if (Definition.Operation.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.Operation.Property);
+            }
+
+            base.OnCreateDefinition(definition);
+        }
+
         protected void Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));

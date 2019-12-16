@@ -11,9 +11,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
 {
-    public class SortInputTypeDescriptor<T>
+    public class SortInputTypeDescriptor
         : DescriptorBase<SortInputTypeDefinition>
-        , ISortInputTypeDescriptor<T>
+        , ISortInputTypeDescriptor
     {
         protected SortInputTypeDescriptor(
             IDescriptorContext context,
@@ -41,20 +41,20 @@ namespace HotChocolate.Types.Sorting
             new List<SortOperationDescriptorBase>();
 
 
-        public ISortInputTypeDescriptor<T> Name(NameString value)
+        public ISortInputTypeDescriptor Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        public ISortInputTypeDescriptor<T> Description(
+        public ISortInputTypeDescriptor Description(
             string value)
         {
             Definition.Description = value;
             return this;
         }
 
-        public ISortInputTypeDescriptor<T> Directive<TDirective>(
+        public ISortInputTypeDescriptor Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class
         {
@@ -62,14 +62,14 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public ISortInputTypeDescriptor<T> Directive<TDirective>()
+        public ISortInputTypeDescriptor Directive<TDirective>()
             where TDirective : class, new()
         {
             Definition.AddDirective(new TDirective());
             return this;
         }
 
-        public ISortInputTypeDescriptor<T> Directive(
+        public ISortInputTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
@@ -78,70 +78,30 @@ namespace HotChocolate.Types.Sorting
         }
 
 
-        public ISortInputTypeDescriptor<T> BindFields(
+        public ISortInputTypeDescriptor BindFields(
             BindingBehavior behavior)
         {
             Definition.Fields.BindingBehavior = behavior;
             return this;
         }
 
-        public ISortInputTypeDescriptor<T> BindFieldsImplicitly() =>
+        public ISortInputTypeDescriptor BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
-        public ISortInputTypeDescriptor<T> BindFieldsExplicitly() =>
+        public ISortInputTypeDescriptor BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public ISortOperationDescriptor Sortable(
-            Expression<Func<T, IComparable>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                return Fields.GetOrAddDescriptor(p,
-                   () => SortOperationDescriptor.CreateOperation(p, Context));
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(property));
-        }
-
-        public ISortObjectOperationDescriptor<TObject> SortableObject<TObject>(
-            Expression<Func<T, TObject>> property)
-            where TObject : class
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                return Fields.GetOrAddDescriptor(p,
-                    () => SortObjectOperationDescriptor<TObject>.CreateOperation(p, Context));
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(property));
-        }
-
-        public ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                Fields.GetOrAddDescriptor(p,
-                    () => IgnoredSortingFieldDescriptor.CreateOperation(p, Context));
-                return this;
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(property));
-        }
 
         protected override void OnCreateDefinition(
             SortInputTypeDefinition definition)
         {
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
+
+            if (Definition.EntityType is { })
+            {
+                Context.Inspector.ApplyAttributes(this, Definition.EntityType);
+            }
 
             List<SortOperationDefintion> explicitFields =
                 Fields.Select(x => x.CreateDefinition()).ToList();
@@ -218,11 +178,6 @@ namespace HotChocolate.Types.Sorting
             definition = null;
             return false;
         }
-
-        public static SortInputTypeDescriptor<T> New(
-            IDescriptorContext context,
-            Type entityType) =>
-            new SortInputTypeDescriptor<T>(context, entityType);
 
     }
 }
