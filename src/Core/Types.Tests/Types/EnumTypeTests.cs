@@ -489,6 +489,16 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void EnumType_That_Is_Bound_To_String_Should_Not_Interfere_With_Scalar()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<SomeQueryType>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
         public enum Foo
         {
             Bar1,
@@ -510,6 +520,26 @@ namespace HotChocolate.Types
             Bar1,
             [GraphQLDeprecated("Baz.")]
             Bar2
+        }
+
+        public class SomeQueryType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+                descriptor.Field("a").Type<SomeEnumType>().Resolver("DEF");
+                descriptor.Field("b").Type<StringType>().Resolver("StringResolver");
+            }
+        }
+
+        public class SomeEnumType
+            : EnumType<string>
+        {
+            protected override void Configure(IEnumTypeDescriptor<string> descriptor)
+            {
+                descriptor.Name("Some");
+                descriptor.Value("ABC").Name("DEF");
+            }
         }
     }
 }
