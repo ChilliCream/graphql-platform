@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Net.NetworkInformation;
 using System;
 using System.Collections.Generic;
@@ -285,6 +286,10 @@ namespace HotChocolate.Utilities
                         return new NullableAttribute(b);
                     case byte[] a:
                         return new NullableAttribute(a);
+                    case CustomAttributeTypedArgument b:
+                        return new NullableAttribute((byte)b.Value);
+                    case ReadOnlyCollection<CustomAttributeTypedArgument> a:
+                        return new NullableAttribute(a.Select(t => (byte)t.Value).ToArray());
                     default:
                         throw new InvalidOperationException(
                             "Unexpected nullable attribute data.");
