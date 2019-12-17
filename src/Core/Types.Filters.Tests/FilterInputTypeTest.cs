@@ -191,7 +191,6 @@ namespace HotChocolate.Types.Filters
                     d => d.Name("Test").Field(x => x.Books()).UseFiltering()));
                 s.AddType(new ObjectType<Book>());
                 s.AddType(new ObjectType<Author>());
-
             });
             // assert
             schema.ToString().MatchSnapshot();
@@ -218,7 +217,6 @@ namespace HotChocolate.Types.Filters
 
         private class Query
         {
-
             [GraphQLNonNullType]
             public List<Book> Books() => new List<Book>();
         }
@@ -236,7 +234,6 @@ namespace HotChocolate.Types.Filters
 
         private class Author
         {
-
             [GraphQLType(typeof(NonNullType<IdType>))]
             public int Id { get; set; }
             [GraphQLNonNullType]
