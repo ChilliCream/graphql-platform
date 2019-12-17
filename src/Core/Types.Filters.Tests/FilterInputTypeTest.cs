@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
@@ -179,6 +180,23 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void FilterAttribute_NonNullType()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(s =>
+            {
+                s.AddType(new ObjectType<Query>(
+                    d => d.Name("Test").Field(x => x.Books()).UseFiltering()));
+                s.AddType(new ObjectType<Book>());
+                s.AddType(new ObjectType<Author>());
+
+            });
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         private class FooDirectiveType
             : DirectiveType<FooDirective>
         {
@@ -196,6 +214,33 @@ namespace HotChocolate.Types.Filters
         private class Foo
         {
             public string Bar { get; set; }
+        }
+
+        private class Query
+        {
+
+            [GraphQLNonNullType]
+            public List<Book> Books() => new List<Book>();
+        }
+
+        private class Book
+        {
+            public int Id { get; set; }
+            [GraphQLNonNullType]
+            public string Title { get; set; }
+            public int Pages { get; set; }
+            public int Chapters { get; set; }
+            [GraphQLNonNullType]
+            public Author Author { get; set; }
+        }
+
+        private class Author
+        {
+
+            [GraphQLType(typeof(NonNullType<IdType>))]
+            public int Id { get; set; }
+            [GraphQLNonNullType]
+            public string Name { get; set; }
         }
     }
 }
