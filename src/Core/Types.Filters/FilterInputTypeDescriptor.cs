@@ -10,7 +10,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
-    public abstract class FilterInputTypeDescriptor
+    public class FilterInputTypeDescriptor
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor
     {

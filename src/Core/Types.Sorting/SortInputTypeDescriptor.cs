@@ -11,7 +11,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
 {
-    public abstract class SortInputTypeDescriptor
+    public class SortInputTypeDescriptor
         : DescriptorBase<SortInputTypeDefinition>
         , ISortInputTypeDescriptor
     {

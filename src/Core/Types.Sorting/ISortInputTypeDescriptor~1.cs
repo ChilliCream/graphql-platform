@@ -5,8 +5,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Sorting
 {
     public interface ISortInputTypeDescriptor<T>
-        : IDescriptor<SortInputTypeDefinition>
-        , IFluent, ISortInputTypeDescriptor
+        : ISortInputTypeDescriptor
     {
 
         /// <summary>
