@@ -15,6 +15,14 @@ namespace HotChocolate.Types
         /// <summary>
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
+        public UuidType()
+            : this('\0')
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UuidType"/> class.
+        /// </summary>
         public UuidType(char format = '\0')
             : this(ScalarNames.Uuid, format)
         {
