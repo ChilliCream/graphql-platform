@@ -61,6 +61,15 @@ namespace HotChocolate.Types.Sorting.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Only properties are allowed for input types..
+        /// </summary>
+        internal static string SortObjectTypeDescriptor_OnlyProperties {
+            get {
+                return ResourceManager.GetString("SortObjectTypeDescriptor_OnlyProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The visited field is of a invalid type. Only IInputField is allowed..
         /// </summary>
         internal static string SortObjectTypeFieldVisitor_InvalidType {

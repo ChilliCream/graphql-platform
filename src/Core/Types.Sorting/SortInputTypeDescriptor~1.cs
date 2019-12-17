@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Sorting.Extensions;
+using HotChocolate.Types.Sorting.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
@@ -82,9 +83,8 @@ namespace HotChocolate.Types.Sorting
                    () => SortOperationDescriptor.CreateOperation(p, Context));
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+               SortingResources.SortObjectTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -98,9 +98,8 @@ namespace HotChocolate.Types.Sorting
                     () => SortObjectOperationDescriptor<TObject>.CreateOperation(p, Context));
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+               SortingResources.SortObjectTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -113,9 +112,8 @@ namespace HotChocolate.Types.Sorting
                 return this;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+               SortingResources.SortObjectTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
