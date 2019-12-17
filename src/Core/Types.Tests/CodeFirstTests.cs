@@ -45,6 +45,23 @@ namespace HotChocolate
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Remove_ClrType_Bindings_That_Are_Not_Used()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithDateTimeType>()
+                .BindClrType<DateTime, DateTimeType>()
+                .BindClrType<int, UrlType>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .Create();
+
+            // assert
+            bool exists = schema.TryGetType("Url", out INamedType _);
+            Assert.False(exists);
+        }
+
         public class Query
         {
             public string SayHello(string name) =>
