@@ -29,6 +29,7 @@ namespace HotChocolate.Configuration
         {
             _unregistered.AddRange(IntrospectionTypes.All);
             _unregistered.AddRange(Directives.All);
+            _unregistered.AddRange(clrTypeReferences.Values);
             _unregistered.AddRange(initialTypes);
 
             _clrTypeReferences = clrTypeReferences;
