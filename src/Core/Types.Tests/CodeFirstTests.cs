@@ -34,6 +34,17 @@ namespace HotChocolate
                .MatchSnapshot();
         }
 
+        [Fact]
+        public void Change_DefaultBinding_For_DateTime()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithDateTimeType>()
+                .BindClrType<DateTime, DateTimeType>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
         public class Query
         {
             public string SayHello(string name) =>
@@ -71,6 +82,34 @@ namespace HotChocolate
         {
             public string? Name =>
                 throw new NotImplementedException();
+        }
+
+        public class QueryWithDateTimeType : ObjectType<QueryWithDateTime>
+        {
+            protected override void Configure(IObjectTypeDescriptor<QueryWithDateTime> descriptor)
+            {
+                descriptor.Field(t => t.GetModel()).Type<ModelWithDateTimeType>();
+            }
+        }
+
+        public class QueryWithDateTime
+        {
+            public ModelWithDateTime GetModel() => new ModelWithDateTime();
+        }
+
+        public class ModelWithDateTimeType : ObjectType<ModelWithDateTime>
+        {
+            protected override void Configure(IObjectTypeDescriptor<ModelWithDateTime> descriptor)
+            {
+                descriptor.Field(t => t.Foo).Type<DateType>();
+            }
+        }
+
+        public class ModelWithDateTime
+        {
+            public DateTime Foo { get; set; }
+
+            public DateTime Bar { get; set; }
         }
     }
 }
