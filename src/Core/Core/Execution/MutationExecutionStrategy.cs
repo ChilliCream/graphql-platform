@@ -61,7 +61,7 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            List<ResolverContext> next = ExecutionPools.ResolverContextList.Rent();
+            List<ResolverContext> next = ExecutionPools.ResolverContextList.Get();
 
             try
             {

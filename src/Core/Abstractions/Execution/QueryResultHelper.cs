@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
         private const string _line = "line";
         private const string _column = "column";
 
-        public static IReadOnlyDictionary<string, object> ToDictionary(
+        public static OrderedDictionary ToDictionary(
             IReadOnlyQueryResult result)
         {
             var formatted = new OrderedDictionary();
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
 
             foreach (IError error in errors)
             {
-                var formattedError = new OrderedDictionary();
+                OrderedDictionary formattedError = new OrderedDictionary();
                 formattedError[_message] = error.Message;
 
                 if (error.Locations != null && error.Locations.Count > 0)

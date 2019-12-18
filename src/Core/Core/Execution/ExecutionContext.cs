@@ -134,7 +134,7 @@ namespace HotChocolate.Execution
         {
             if (_trackedContextBuffer is null)
             {
-                _trackedContextBuffer = ExecutionPools.ResolverContextList.Rent();
+                _trackedContextBuffer = ExecutionPools.ResolverContextList.Get();
             }
 
             if (resolverContext is ResolverContext c)

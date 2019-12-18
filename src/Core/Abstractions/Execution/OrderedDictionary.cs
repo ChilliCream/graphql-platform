@@ -1,11 +1,53 @@
-﻿using System.Collections;
+﻿using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
     public class OrderedDictionary
         : OrderedDictionary<string, object>
     {
+        private static readonly DefaultObjectPool<OrderedDictionary> _pool =
+            new DefaultObjectPool<OrderedDictionary>(
+                new OrderedDictionaryPooledObjectPolicy(),
+                128);
+
+        public static OrderedDictionary Rent() => _pool.Get();
+
+        public static void Return(OrderedDictionary dictionary)
+        {
+            var queue = new Queue<OrderedDictionary>();
+            var processed = new HashSet<OrderedDictionary>();
+
+            queue.Enqueue(dictionary);
+
+            while (queue.Count > 0)
+            {
+                OrderedDictionary current = queue.Dequeue();
+
+                foreach (object child in current.Values)
+                {
+                    if (child is OrderedDictionary o)
+                    {
+                        queue.Enqueue(o);
+                    }
+
+                    if (child is List<object> l)
+                    {
+                        for (int i = 0; i < l.Count; i++)
+                        {
+                            if (l[i] is OrderedDictionary ol)
+                            {
+                                queue.Enqueue(ol);
+                            }
+                        }
+                    }
+                }
+
+                _pool.Return(current);
+            }
+        }
     }
 
     public class OrderedDictionary<TKey, TValue>
@@ -168,5 +210,16 @@ namespace HotChocolate.Execution
 
         public OrderedDictionary<TKey, TValue> Clone() =>
             new OrderedDictionary<TKey, TValue>(this);
+    }
+
+    internal class OrderedDictionaryPooledObjectPolicy : PooledObjectPolicy<OrderedDictionary>
+    {
+        public override OrderedDictionary Create() => new OrderedDictionary();
+
+        public override bool Return(OrderedDictionary obj)
+        {
+            obj.Clear();
+            return true;
+        }
     }
 }

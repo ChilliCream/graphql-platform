@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace HotChocolate.Execution
 {
@@ -12,7 +11,12 @@ namespace HotChocolate.Execution
         : IQueryResultSerializer
     {
         private const string _contentType = "application/json";
-        private readonly UTF8Encoding _encoding = new UTF8Encoding();
+        private static readonly JsonSerializerOptions _options =
+            new JsonSerializerOptions
+            {
+                IgnoreNullValues = false,
+                WriteIndented = false
+            };
 
         public string ContentType => _contentType;
 
@@ -37,9 +41,7 @@ namespace HotChocolate.Execution
             }
 
             IReadOnlyDictionary<string, object> dict = result.ToDictionary();
-            string json = JsonConvert.SerializeObject(dict);
-            byte[] buffer = _encoding.GetBytes(json);
-            return stream.WriteAsync(buffer, 0, buffer.Length);
+            return JsonSerializer.SerializeAsync(stream, dict, _options, cancellationToken);
         }
     }
 }

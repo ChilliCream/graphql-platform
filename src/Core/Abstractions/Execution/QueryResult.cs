@@ -5,13 +5,11 @@ namespace HotChocolate.Execution
 {
     public sealed class QueryResult
         : IQueryResult
+
     {
-        private readonly OrderedDictionary _data =
-            new OrderedDictionary();
-        private readonly OrderedDictionary _extensions =
-            new OrderedDictionary();
-        private readonly List<IError> _errors =
-            new List<IError>();
+        private readonly OrderedDictionary _data = OrderedDictionary.Rent();
+        private readonly OrderedDictionary _extensions = OrderedDictionary.Rent();
+        private readonly List<IError> _errors = new List<IError>();
         private readonly Dictionary<string, object> _contextData =
             new Dictionary<string, object>();
 
@@ -67,6 +65,12 @@ namespace HotChocolate.Execution
         public IReadOnlyDictionary<string, object> ToDictionary()
         {
             return QueryResultHelper.ToDictionary(this);
+        }
+
+        public void Dispose()
+        {
+            OrderedDictionary.Return(_data);
+            OrderedDictionary.Return(_extensions);
         }
     }
 }

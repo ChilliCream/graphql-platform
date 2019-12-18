@@ -107,7 +107,7 @@ namespace HotChocolate.Execution
             IDictionary<string, object> serializedResult)
         {
 
-            var context = ExecutionPools.ResolverContext.Rent();
+            var context = ExecutionPools.ResolverContext.Get();
 
             context.Initialize(
                 executionContext,
@@ -128,7 +128,7 @@ namespace HotChocolate.Execution
             Path path,
             Action propagateNonNullViolation)
         {
-            var context = ExecutionPools.ResolverContext.Rent();
+            var context = ExecutionPools.ResolverContext.Get();
 
             context.Initialize(
                 fieldSelection,

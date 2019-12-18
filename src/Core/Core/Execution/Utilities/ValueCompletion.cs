@@ -181,7 +181,7 @@ namespace HotChocolate.Execution
             }
             else
             {
-                var objectResult = new OrderedDictionary();
+                var objectResult = OrderedDictionary.Rent();
                 context.Value = objectResult;
                 context.EnqueueForProcessing(objectType, objectResult, result);
             }

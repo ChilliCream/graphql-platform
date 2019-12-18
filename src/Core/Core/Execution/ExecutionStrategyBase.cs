@@ -51,8 +51,8 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            List<ResolverContext> batch = ExecutionPools.ResolverContextList.Rent();
-            List<ResolverContext> next = ExecutionPools.ResolverContextList.Rent();
+            List<ResolverContext> batch = ExecutionPools.ResolverContextList.Get();
+            List<ResolverContext> next = ExecutionPools.ResolverContextList.Get();
             List<ResolverContext> swap = null;
 
             batch.AddRange(initialBatch);
@@ -138,7 +138,7 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            List<Task> tasks = ExecutionPools.TaskList.Rent();
+            List<Task> tasks = ExecutionPools.TaskList.Get();
             CopyContextTasks(batch, tasks);
 
             try
@@ -197,7 +197,7 @@ namespace HotChocolate.Execution
                     executionContext.Operation.Definition.SelectionSet,
                     null);
 
-            List<ResolverContext> batch = ExecutionPools.ResolverContextList.Rent();
+            List<ResolverContext> batch = ExecutionPools.ResolverContextList.Get();
 
             for (int i = 0; i < fieldSelections.Count; i++)
             {
