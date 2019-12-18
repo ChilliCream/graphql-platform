@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using System.Linq;
-using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {

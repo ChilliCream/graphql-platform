@@ -22,8 +22,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Get access to context data that are copied to the type
         /// and can be used for customizations.
         /// </summary>
-        public IDictionary<string, object> ContextData { get; } =
-            new Dictionary<string, object>();
+        public IDictionary<string, object?> ContextData { get; } =
+            new Dictionary<string, object?>();
 
         /// <summary>
         /// Gets access to additional type dependencies.

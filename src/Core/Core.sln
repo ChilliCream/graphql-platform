@@ -41,13 +41,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Filters.Tests", "Type
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Tests.Documentation", "Types.Tests.Documentation\Types.Tests.Documentation.csproj", "{38537BB2-BDD9-4842-BD2D-0B84B371F1D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem", "PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.FileSystem", "PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Redis", "Subscriptions.Redis\Subscriptions.Redis.csproj", "{85660981-4992-49A8-A786-D6FB82E01463}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.Redis", "Subscriptions.Redis\Subscriptions.Redis.csproj", "{85660981-4992-49A8-A786-D6FB82E01463}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarWars", "StarWars\StarWars.csproj", "{6D66B162-D2F6-411E-8F9C-F0B3AB5A9289}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StarWars", "StarWars\StarWars.csproj", "{6D66B162-D2F6-411E-8F9C-F0B3AB5A9289}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis", "PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{B4CC72E4-C93E-4AFB-8381-BFF6F4B06CC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.Redis", "PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{B4CC72E4-C93E-4AFB-8381-BFF6F4B06CC9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.FileSystem.Tests", "PersistedQueries.FileSystem.Tests\PersistedQueries.FileSystem.Tests.csproj", "{F3657CF0-6B18-4021-8CCF-A7C131E4F745}"
 EndProject
@@ -63,9 +63,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "..\DataLoader
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting", "Types.Sorting\Types.Sorting.csproj", "{F3B8AE0B-C6D9-4B45-8131-40E93CFE6BB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting.Tests", "Types.Sorting.Tests\Types.Sorting.Tests.csproj", "{A23C8758-6173-46F8-B132-28E5B75846B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Tests", "Types.Sorting.Tests\Types.Sorting.Tests.csproj", "{A23C8758-6173-46F8-B132-28E5B75846B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Sorting.Mongo.Tests", "Types.Sorting.Mongo.Tests\Types.Sorting.Mongo.Tests.csproj", "{E8843255-77EB-471F-B682-528BB4B5D1D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Mongo.Tests", "Types.Sorting.Mongo.Tests\Types.Sorting.Mongo.Tests.csproj", "{E8843255-77EB-471F-B682-528BB4B5D1D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -122,7 +122,6 @@ namespace HotChocolate.Types.Descriptors
             unchecked
             {
                 int hash = Type.GetHashCode() * 397;
-                hash = hash ^ (Context.GetHashCode() * 7);
                 hash = hash ^ (IsTypeNullable?.GetHashCode() ?? 0 * 11);
                 hash = hash ^ (IsElementTypeNullable?.GetHashCode() ?? 0 * 13);
                 return hash;

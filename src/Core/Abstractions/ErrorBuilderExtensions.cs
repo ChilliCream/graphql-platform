@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using HotChocolate.Language;
 
@@ -27,5 +28,14 @@ namespace HotChocolate
             }
             return builder;
         }
+
+        public static IErrorBuilder SetMessage(
+            this IErrorBuilder builder,
+            string format,
+            params object[] args) =>
+            builder.SetMessage(string.Format(
+                CultureInfo.InvariantCulture,
+                format,
+                args));
     }
 }

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Utilities
 {
     public static class BaseTypes
@@ -11,14 +13,16 @@ namespace HotChocolate.Utilities
             typeof(ScalarType),
             typeof(InputObjectType),
             typeof(InputObjectType<>),
-            typeof(ObjectType),
-            typeof(ObjectType<>),
             typeof(EnumType),
             typeof(EnumType<>),
+            typeof(ObjectType),
+            typeof(ObjectType<>),
             typeof(InterfaceType),
+            typeof(InterfaceType<>),
             typeof(UnionType),
-            typeof(DirectiveType<>),
-            typeof(DirectiveType)
+            typeof(UnionType<>),
+            typeof(DirectiveType),
+            typeof(DirectiveType<>)
         };
 
         public static bool IsSchemaType(Type type)
@@ -43,6 +47,21 @@ namespace HotChocolate.Utilities
                     || typeDefinition == typeof(NonNullType<>);
             }
 
+            return false;
+        }
+
+        public static bool IsGenericBaseType(Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.IsGenericType
+                && _baseTypes.Contains(type.GetGenericTypeDefinition()))
+            {
+                return true;
+            }
             return false;
         }
 
