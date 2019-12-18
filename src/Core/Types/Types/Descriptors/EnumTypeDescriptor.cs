@@ -52,6 +52,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 definition.Values.Add(value);
             }
+
+            base.OnCreateDefinition(definition);
         }
 
         protected void AddImplicitValues(

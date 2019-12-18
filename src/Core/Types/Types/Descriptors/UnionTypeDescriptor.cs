@@ -39,6 +39,7 @@ namespace HotChocolate.Types.Descriptors
                     this,
                     Definition.ClrType);
             }
+
             base.OnCreateDefinition(definition);
         }
 

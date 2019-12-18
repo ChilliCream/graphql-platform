@@ -52,10 +52,6 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceFieldDefinition definition)
         {
-            base.OnCreateDefinition(definition);
-
-            CompleteArguments(definition);
-
             if (Definition.Member is { })
             {
                 Context.Inspector.ApplyAttributes(
@@ -63,6 +59,10 @@ namespace HotChocolate.Types.Descriptors
                     this,
                     Definition.Member);
             }
+
+            base.OnCreateDefinition(definition);
+
+            CompleteArguments(definition);
         }
 
         private void CompleteArguments(InterfaceFieldDefinition definition)

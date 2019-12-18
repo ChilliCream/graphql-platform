@@ -63,6 +63,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledProperties);
 
             Definition.Fields.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteFields(

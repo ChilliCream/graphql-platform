@@ -9,9 +9,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
 {
-    public sealed class UsePagingAttribute : ObjectFieldDescriptorAttribute
+    public sealed class UsePagingAttribute : DescriptorAttribute
     {
-        private static readonly MethodInfo _generic = typeof(PagingObjectFieldDescriptorExtensions)
+        private static readonly MethodInfo _off = typeof(PagingObjectFieldDescriptorExtensions)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Single(m => m.Name.Equals(
                 nameof(PagingObjectFieldDescriptorExtensions.UsePaging),
@@ -20,11 +20,35 @@ namespace HotChocolate.Types.Relay
                 && m.GetParameters().Length == 1
                 && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
+        private static readonly MethodInfo _iff = typeof(PagingObjectFieldDescriptorExtensions)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Single(m => m.Name.Equals(
+                nameof(PagingObjectFieldDescriptorExtensions.UsePaging),
+                StringComparison.Ordinal)
+                && m.GetGenericArguments().Length == 1
+                && m.GetParameters().Length == 1
+                && m.GetParameters()[0].ParameterType == typeof(IInterfaceFieldDescriptor));
+
         public Type? SchemaType { get; set; }
 
-        public override void OnConfigure(
+        protected internal override void TryConfigure(IDescriptorContext context, IDescriptor descriptor, ICustomAttributeProvider element)
+        {
+            if (element is MemberInfo m)
+            {
+                Type schemaType = GetSchemaType(context, m);
+                if (descriptor is IObjectFieldDescriptor ofd)
+                {
+                    _off.MakeGenericMethod(schemaType).Invoke(null, new[] { ofd });
+                }
+                else if (descriptor is IInterfaceFieldDescriptor ifd)
+                {
+                    _iff.MakeGenericMethod(schemaType).Invoke(null, new[] { ifd });
+                }
+            }
+        }
+
+        private Type GetSchemaType(
             IDescriptorContext context,
-            IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
             Type? type = SchemaType;
@@ -39,7 +63,7 @@ namespace HotChocolate.Types.Relay
                 {
                     type = typeInfo.ClrType;
                 }
-                else if(SchemaTypeResolver.TryInferSchemaType(
+                else if (SchemaTypeResolver.TryInferSchemaType(
                     clr.WithType(typeInfo.ClrType),
                     out IClrTypeReference schemaType))
                 {
@@ -56,7 +80,9 @@ namespace HotChocolate.Types.Relay
                         .Build());
             }
 
-            _generic.MakeGenericMethod(type).Invoke(null, new[] { descriptor });
+            return type;
         }
+
+
     }
 }

@@ -67,6 +67,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteArguments(arguments, handledMembers);
 
             definition.Arguments.AddRange(arguments.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteArguments(

@@ -33,8 +33,6 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
         {
-            base.OnCreateDefinition(definition);
-
             if (Definition.Property is { })
             {
                 Context.Inspector.ApplyAttributes(
@@ -42,6 +40,8 @@ namespace HotChocolate.Types.Descriptors
                     this,
                     Definition.Property);
             }
+
+            base.OnCreateDefinition(definition);
         }
 
         public new IDirectiveArgumentDescriptor SyntaxNode(
