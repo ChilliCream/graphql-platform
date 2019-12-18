@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Types.Descriptors;
+using Snapshooter.Xunit;
 using Xunit;
 
 #nullable enable
@@ -22,6 +23,20 @@ namespace HotChocolate.Types
             Assert.NotNull(schema.GetType<UnionType>("Abc"));
         }
 
+        [Fact]
+        public void UnionTypeAttribute_Infer_Union()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType<IUnion2>()
+                .AddType<Union2Type1>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         [SetName]
         public interface IUnion1 { }
 
@@ -37,5 +52,11 @@ namespace HotChocolate.Types
                 descriptor.Name("Abc");
             }
         }
+
+        [UnionType(Name = "Union")]
+        public interface IUnion2 { }
+
+        [ObjectType(Name = "Type")]
+        public class Union2Type1 : IUnion2 { }
     }
 }
