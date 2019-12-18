@@ -39,7 +39,10 @@ namespace HotChocolate.Types.Descriptors
 
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.Member);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Member);
             }
         }
 

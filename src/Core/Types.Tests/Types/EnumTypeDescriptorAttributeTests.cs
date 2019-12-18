@@ -1,4 +1,7 @@
+using System;
 using System.Linq;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -43,7 +46,10 @@ namespace HotChocolate.Types
         public class RenameValueAttribute
             : EnumValueDescriptorAttribute
         {
-            public override void OnConfigure(IEnumValueDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IEnumValueDescriptor descriptor,
+                FieldInfo field)
             {
                 descriptor.Name("ABC");
             }
@@ -60,7 +66,10 @@ namespace HotChocolate.Types
         public class RenameTypeAttribute
             : EnumTypeDescriptorAttribute
         {
-            public override void OnConfigure(IEnumTypeDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IEnumTypeDescriptor descriptor,
+                Type type)
             {
                 descriptor.Name("Abc");
             }

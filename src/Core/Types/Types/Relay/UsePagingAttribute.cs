@@ -1,6 +1,11 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types.Relay
 {
@@ -15,16 +20,34 @@ namespace HotChocolate.Types.Relay
                 && m.GetParameters().Length == 1
                 && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
-        public UsePagingAttribute(Type schemaType)
-        {
-            SchemaType = schemaType;
-        }
+        public Type? SchemaType { get; set; }
 
-        public Type SchemaType { get; }
-
-        public override void OnConfigure(IObjectFieldDescriptor descriptor)
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
         {
-            if (SchemaType is null || !typeof(IType).IsAssignableFrom(SchemaType))
+            Type? type = SchemaType;
+            ITypeReference returnType = context.Inspector.GetReturnType(
+                member, TypeContext.Output);
+
+            if (type is null
+                && returnType is IClrTypeReference clr
+                && TypeInspector.Default.TryCreate(clr.Type, out var typeInfo))
+            {
+                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
+                {
+                    type = typeInfo.ClrType;
+                }
+                else if(SchemaTypeResolver.TryInferSchemaType(
+                    clr.WithType(typeInfo.ClrType),
+                    out IClrTypeReference schemaType))
+                {
+                    type = schemaType.Type;
+                }
+            }
+
+            if (type is null || !typeof(IType).IsAssignableFrom(type))
             {
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
@@ -32,7 +55,8 @@ namespace HotChocolate.Types.Relay
                         .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
                         .Build());
             }
-            _generic.MakeGenericMethod(SchemaType).Invoke(null, new[] { descriptor });
+
+            _generic.MakeGenericMethod(type).Invoke(null, new[] { descriptor });
         }
     }
 }

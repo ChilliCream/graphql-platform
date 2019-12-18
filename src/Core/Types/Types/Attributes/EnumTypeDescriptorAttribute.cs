@@ -1,4 +1,8 @@
 using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -9,14 +13,21 @@ namespace HotChocolate.Types
     public abstract class EnumTypeDescriptorAttribute
         : DescriptorAttribute
     {
-        internal protected sealed override void TryConfigure(IDescriptor descriptor)
+        internal protected sealed override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
         {
-            if (descriptor is IEnumTypeDescriptor d)
+            if (descriptor is IEnumTypeDescriptor d
+                && element is Type t)
             {
-                OnConfigure(d);
+                OnConfigure(context, d, t);
             }
         }
 
-        public abstract void OnConfigure(IEnumTypeDescriptor descriptor);
+        public abstract void OnConfigure(
+            IDescriptorContext context,
+            IEnumTypeDescriptor descriptor,
+            Type type);
     }
 }

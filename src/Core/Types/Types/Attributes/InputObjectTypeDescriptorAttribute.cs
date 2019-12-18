@@ -1,4 +1,8 @@
 using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -9,14 +13,21 @@ namespace HotChocolate.Types
     public abstract class InputObjectTypeDescriptorAttribute
         : DescriptorAttribute
     {
-        internal protected sealed override void TryConfigure(IDescriptor descriptor)
+        internal protected sealed override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
         {
-            if (descriptor is IInputObjectTypeDescriptor d)
+            if (descriptor is IInputObjectTypeDescriptor d
+                && element is Type t)
             {
-                OnConfigure(d);
+                OnConfigure(context, d, t);
             }
         }
 
-        public abstract void OnConfigure(IInputObjectTypeDescriptor descriptor);
+        public abstract void OnConfigure(
+            IDescriptorContext context,
+            IInputObjectTypeDescriptor descriptor,
+            Type type);
     }
 }

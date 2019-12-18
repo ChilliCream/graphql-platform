@@ -1,3 +1,6 @@
+using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -45,7 +48,10 @@ namespace HotChocolate.Types
         public class RenameFieldAttribute
             : InputFieldDescriptorAttribute
         {
-            public override void OnConfigure(IInputFieldDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IInputFieldDescriptor descriptor,
+                MemberInfo member)
             {
                 descriptor.Name("bar");
             }
@@ -60,7 +66,10 @@ namespace HotChocolate.Types
         public class RenameTypeAttribute
             : InputObjectTypeDescriptorAttribute
         {
-            public override void OnConfigure(IInputObjectTypeDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IInputObjectTypeDescriptor descriptor,
+                Type type)
             {
                 descriptor.Name("Bar");
             }
