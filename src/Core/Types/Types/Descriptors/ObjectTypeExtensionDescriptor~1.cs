@@ -16,6 +16,20 @@ namespace HotChocolate.Types.Descriptors
             Definition.FieldBindingType = typeof(T);
         }
 
+        protected override void OnCreateDefinition(
+            ObjectTypeDefinition definition)
+        {
+            if (definition.FieldBindingType is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.FieldBindingType);
+            }
+
+            base.OnCreateDefinition(definition);
+        }
+
         protected override void OnCompleteFields(
             IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
