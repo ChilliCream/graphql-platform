@@ -1,3 +1,5 @@
+using System;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 #nullable enable
@@ -27,7 +29,10 @@ namespace HotChocolate.Types
 
         public class SetNameAttribute : UnionTypeDescriptorAttribute
         {
-            public override void OnConfigure(IUnionTypeDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IUnionTypeDescriptor descriptor,
+                Type type)
             {
                 descriptor.Name("Abc");
             }

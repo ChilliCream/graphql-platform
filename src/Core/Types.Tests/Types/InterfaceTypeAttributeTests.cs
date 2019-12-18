@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 #nullable enable
@@ -92,7 +94,10 @@ namespace HotChocolate.Types
 
             public object DefaultValue { get; }
 
-            public override void OnConfigure(IArgumentDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IArgumentDescriptor descriptor,
+                ParameterInfo parameter)
             {
                 descriptor.DefaultValue(DefaultValue);
             }
@@ -107,7 +112,10 @@ namespace HotChocolate.Types
         public class PropertyAddContextDataAttribute
             : InterfaceFieldDescriptorAttribute
         {
-            public override void OnConfigure(IInterfaceFieldDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IInterfaceFieldDescriptor descriptor,
+                MemberInfo member)
             {
                 descriptor.Extend().OnBeforeCompletion(
                     (c, d) => d.ContextData.Add("abc", "def"));
@@ -123,7 +131,10 @@ namespace HotChocolate.Types
         public class InterfaceAddFieldAttribute
             : InterfaceTypeDescriptorAttribute
         {
-            public override void OnConfigure(IInterfaceTypeDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IInterfaceTypeDescriptor descriptor,
+                Type type)
             {
                 descriptor.Field("abc").Type<StringType>();
             }
