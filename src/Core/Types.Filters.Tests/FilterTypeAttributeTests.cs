@@ -25,7 +25,8 @@ namespace HotChocolate.Types.Filters
             // assert
             Assert.Equal(
                 GenericTypeFilterAttribute.TypeName,
-                schema.GetType<FilterInputType<FooGeneric>>(GenericTypeFilterAttribute.TypeName).TypeName().Value);
+                schema.GetType<FilterInputType<FooGeneric>>(
+                    GenericTypeFilterAttribute.TypeName).TypeName().Value);
         }
 
         [Fact]
