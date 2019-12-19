@@ -9,7 +9,7 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public class TypeInitializerTests
     {
@@ -27,10 +27,10 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
+                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitilizationInterceptor(),
+                new AggregateTypeInitializationInterceptor(),
                 null,
                 t => t is FooType);
 
@@ -38,7 +38,7 @@ namespace HotChocolate
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.Types.TryGetValue(
+            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(FooType), TypeContext.Output),
                 out RegisteredType type);
 
@@ -48,7 +48,7 @@ namespace HotChocolate
                 t => TypeVisualizer.Visualize(t.Type))
                 .MatchSnapshot(new SnapshotNameExtension("FooType"));
 
-            exists = typeInitializer.Types.TryGetValue(
+            exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(BarType), TypeContext.Output),
                 out type);
 
@@ -73,10 +73,10 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
+                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitilizationInterceptor(),
+                new AggregateTypeInitializationInterceptor(),
                 null,
                 t => t is ObjectType<Foo>);
 
@@ -84,7 +84,7 @@ namespace HotChocolate
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.Types.TryGetValue(
+            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(
                     typeof(ObjectType<Foo>),
                     TypeContext.Output),
@@ -96,7 +96,7 @@ namespace HotChocolate
                 t => TypeVisualizer.Visualize(t.Type))
                 .MatchSnapshot(new SnapshotNameExtension("FooType"));
 
-            exists = typeInitializer.Types.TryGetValue(
+            exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 
@@ -121,10 +121,10 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
+                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitilizationInterceptor(),
+                new AggregateTypeInitializationInterceptor(),
                 null,
                 t => t is ObjectType<Foo>);
 
@@ -150,10 +150,10 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
+                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitilizationInterceptor(),
+                new AggregateTypeInitializationInterceptor(),
                 null,
                 t => t is ObjectType<Foo>);
 

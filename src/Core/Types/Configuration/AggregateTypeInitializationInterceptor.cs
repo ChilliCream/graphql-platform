@@ -4,17 +4,17 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class AggregateTypeInitilizationInterceptor
+    internal sealed class AggregateTypeInitializationInterceptor
         : ITypeInitializationInterceptor
     {
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _interceptors;
 
-        public AggregateTypeInitilizationInterceptor()
+        public AggregateTypeInitializationInterceptor()
         {
             _interceptors = Array.Empty<ITypeInitializationInterceptor>();
         }
 
-        public AggregateTypeInitilizationInterceptor(
+        public AggregateTypeInitializationInterceptor(
             IReadOnlyCollection<ITypeInitializationInterceptor> interceptors)
         {
             _interceptors = interceptors

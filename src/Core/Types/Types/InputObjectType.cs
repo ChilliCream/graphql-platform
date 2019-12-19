@@ -191,6 +191,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
             context.RegisterDependencies(definition);
+            SetTypeIdentity(typeof(InputObjectType<>));
         }
 
         protected override void OnCompleteType(

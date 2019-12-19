@@ -45,6 +45,7 @@ namespace HotChocolate.Types.Descriptors
         bool IsSchemaType(Type type);
 
         void ApplyAttributes(
+            IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider);
     }

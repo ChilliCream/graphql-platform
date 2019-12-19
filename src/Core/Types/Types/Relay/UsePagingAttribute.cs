@@ -1,12 +1,17 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types.Relay
 {
-    public sealed class UsePagingAttribute : ObjectFieldDescriptorAttribute
+    public sealed class UsePagingAttribute : DescriptorAttribute
     {
-        private static readonly MethodInfo _generic = typeof(PagingObjectFieldDescriptorExtensions)
+        private static readonly MethodInfo _off = typeof(PagingObjectFieldDescriptorExtensions)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Single(m => m.Name.Equals(
                 nameof(PagingObjectFieldDescriptorExtensions.UsePaging),
@@ -15,16 +20,61 @@ namespace HotChocolate.Types.Relay
                 && m.GetParameters().Length == 1
                 && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
-        public UsePagingAttribute(Type schemaType)
+        private static readonly MethodInfo _iff = typeof(PagingObjectFieldDescriptorExtensions)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Single(m => m.Name.Equals(
+                nameof(PagingObjectFieldDescriptorExtensions.UsePaging),
+                StringComparison.Ordinal)
+                && m.GetGenericArguments().Length == 1
+                && m.GetParameters().Length == 1
+                && m.GetParameters()[0].ParameterType == typeof(IInterfaceFieldDescriptor));
+
+        public Type? SchemaType { get; set; }
+
+        protected internal override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
         {
-            SchemaType = schemaType;
+            if (element is MemberInfo m)
+            {
+                Type schemaType = GetSchemaType(context, m);
+                if (descriptor is IObjectFieldDescriptor ofd)
+                {
+                    _off.MakeGenericMethod(schemaType).Invoke(null, new[] { ofd });
+                }
+                else if (descriptor is IInterfaceFieldDescriptor ifd)
+                {
+                    _iff.MakeGenericMethod(schemaType).Invoke(null, new[] { ifd });
+                }
+            }
         }
 
-        public Type SchemaType { get; }
-
-        public override void OnConfigure(IObjectFieldDescriptor descriptor)
+        private Type GetSchemaType(
+            IDescriptorContext context,
+            MemberInfo member)
         {
-            if (SchemaType is null || !typeof(IType).IsAssignableFrom(SchemaType))
+            Type? type = SchemaType;
+            ITypeReference returnType = context.Inspector.GetReturnType(
+                member, TypeContext.Output);
+
+            if (type is null
+                && returnType is IClrTypeReference clr
+                && TypeInspector.Default.TryCreate(clr.Type, out var typeInfo))
+            {
+                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
+                {
+                    type = typeInfo.ClrType;
+                }
+                else if (SchemaTypeResolver.TryInferSchemaType(
+                    clr.WithType(typeInfo.ClrType),
+                    out IClrTypeReference schemaType))
+                {
+                    type = schemaType.Type;
+                }
+            }
+
+            if (type is null || !typeof(IType).IsAssignableFrom(type))
             {
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
@@ -32,7 +82,10 @@ namespace HotChocolate.Types.Relay
                         .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
                         .Build());
             }
-            _generic.MakeGenericMethod(SchemaType).Invoke(null, new[] { descriptor });
+
+            return type;
         }
+
+
     }
 }

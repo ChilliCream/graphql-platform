@@ -15,6 +15,12 @@ namespace HotChocolate.Configuration
         bool UseXmlDocumentation { get; }
 
         /// <summary>
+        /// Defines if types shall be removed from the schema that are
+        /// unreachable from the root types.
+        /// </summary>
+        bool RemoveUnreachableTypes { get; }
+
+        /// <summary>
         /// Defines the default binding behavior.
         /// </summary>
         BindingBehavior DefaultBindingBehavior { get; }
