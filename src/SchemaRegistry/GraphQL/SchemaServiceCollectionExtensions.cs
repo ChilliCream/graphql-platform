@@ -10,9 +10,9 @@ namespace MarshmallowPie.GraphQL
             this ISchemaBuilder builder)
         {
             return builder
-                .AddQueryType<Query>()
-                .AddMutationType<Mutation>()
-                .AddType<SchemaType>();
+                .AddQueryType<Query>();
+            // .AddMutationType<Mutation>()
+            // .AddType<SchemaType>();
         }
     }
 }

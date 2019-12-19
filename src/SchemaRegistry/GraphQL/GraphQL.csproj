@@ -22,6 +22,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Core\Types.Filters\Types.Filters.csproj" />
+    <ProjectReference Include="..\..\Core\Types.Sorting\Types.Sorting.csproj" />
   </ItemGroup>
 
 </Project>
