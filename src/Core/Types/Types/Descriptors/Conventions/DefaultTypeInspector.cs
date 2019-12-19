@@ -256,13 +256,14 @@ namespace HotChocolate.Types.Descriptors
         public bool IsSchemaType(Type type) => BaseTypes.IsSchemaType(type);
 
         public void ApplyAttributes(
+            IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider)
         {
             foreach (var attribute in attributeProvider.GetCustomAttributes(true)
                 .OfType<DescriptorAttribute>())
             {
-                attribute.TryConfigure(descriptor);
+                attribute.TryConfigure(context, descriptor, attributeProvider);
             }
         }
     }
