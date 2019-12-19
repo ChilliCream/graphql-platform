@@ -9,13 +9,29 @@ namespace HotChocolate.Subscriptions
     {
         public static IServiceCollection AddRedisSubscriptionProvider(
             this IServiceCollection services,
+            ConfigurationOptions options) =>
+            services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(sp => options);
+
+        public static IServiceCollection AddRedisSubscriptionProvider(
+            this IServiceCollection services,
             Func<IServiceProvider, ConfigurationOptions> optionsFactory) =>
             services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(optionsFactory);
 
         public static IServiceCollection AddRedisSubscriptionProvider(
             this IServiceCollection services,
+            ConnectionMultiplexer connection) =>
+            services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(sp => connection);
+
+        public static IServiceCollection AddRedisSubscriptionProvider(
+            this IServiceCollection services,
             Func<IServiceProvider, IConnectionMultiplexer> connectionFactory) =>
             services.AddRedisSubscriptionProvider<JsonPayloadSerializer>(connectionFactory);
+
+        public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
+            this IServiceCollection services,
+            ConfigurationOptions options)
+            where TSerializer : class, IPayloadSerializer =>
+            services.AddRedisSubscriptionProvider<TSerializer>(sp => options);
 
         public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
             this IServiceCollection services,
@@ -32,6 +48,12 @@ namespace HotChocolate.Subscriptions
             AddServices<TSerializer>(services);
             return services;
         }
+
+        public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
+            this IServiceCollection services,
+            ConnectionMultiplexer connection)
+            where TSerializer : class, IPayloadSerializer =>
+            services.AddRedisSubscriptionProvider<TSerializer>(sp => connection);
 
         public static IServiceCollection AddRedisSubscriptionProvider<TSerializer>(
             this IServiceCollection services,
