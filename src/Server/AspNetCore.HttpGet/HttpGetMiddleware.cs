@@ -36,12 +36,14 @@ namespace HotChocolate.AspNetCore
             IHttpGetMiddlewareOptions options,
             OwinContextAccessor owinContextAccessor,
             IQueryExecutor queryExecutor,
-            IQueryResultSerializer resultSerializer)
+            IQueryResultSerializer resultSerializer,
+            IErrorHandler errorHandler)
             : base(next,
                 options,
                 owinContextAccessor,
                 queryExecutor.Schema.Services,
-                resultSerializer)
+                resultSerializer,
+                errorHandler)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
@@ -53,8 +55,9 @@ namespace HotChocolate.AspNetCore
             RequestDelegate next,
             IHttpGetMiddlewareOptions options,
             IQueryExecutor queryExecutor,
-            IQueryResultSerializer resultSerializer)
-            : base(next, options, resultSerializer)
+            IQueryResultSerializer resultSerializer,
+            IErrorHandler errorHandler)
+            : base(next, options, resultSerializer, errorHandler)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
