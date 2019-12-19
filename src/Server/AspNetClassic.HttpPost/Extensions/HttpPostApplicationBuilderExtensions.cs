@@ -56,6 +56,9 @@ namespace HotChocolate.AspNetClassic
             IDocumentHashProvider documentHashProvider = serviceProvider
                 .GetRequiredService<IDocumentHashProvider>();
 
+            IErrorHandler errorHandler = serviceProvider
+                .GetRequiredService<IErrorHandler>();
+
             OwinContextAccessor contextAccessor =
                 serviceProvider.GetService<OwinContextAccessor>();
 
@@ -63,7 +66,8 @@ namespace HotChocolate.AspNetClassic
                 options, contextAccessor,
                 executor, batchQueryExecutor,
                 resultSerializer, streamSerializer,
-                documentCache, documentHashProvider);
+                documentCache, documentHashProvider,
+                errorHandler);
         }
     }
 }
