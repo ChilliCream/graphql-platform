@@ -1,7 +1,7 @@
-using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Buffers;
 using HotChocolate.Execution;
@@ -54,6 +54,16 @@ namespace HotChocolate.Server
                 stream,
                 (buffer, bytesBuffered) =>
                 {
+                    if (bytesBuffered == 0)
+                    {
+                        // TODO : resources
+                        throw new QueryException(
+                            ErrorBuilder.New()
+                                .SetMessage("The GraphQL request is empty.")
+                                .SetCode(ErrorCodes.Server.RequestInvalid)
+                                .Build());
+                    }
+
                     return isGraphQLQuery
                         ? ParseQuery(buffer, bytesBuffered)
                         : ParseRequest(buffer, bytesBuffered);
@@ -65,7 +75,7 @@ namespace HotChocolate.Server
                         // TODO : resources
                         throw new QueryException(
                             ErrorBuilder.New()
-                                .SetMessage("Max request size reached.")
+                                .SetMessage("Max GraphQL request size reached.")
                                 .SetCode(ErrorCodes.Server.MaxRequestSize)
                                 .Build());
                     }

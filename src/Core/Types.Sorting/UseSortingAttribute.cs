@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
 {
@@ -21,7 +22,10 @@ namespace HotChocolate.Types
         /// <value>The sort type</value>
         public Type SortType { get; set; }
 
-        public override void OnConfigure(IObjectFieldDescriptor descriptor)
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
         {
             if (SortType is null)
             {

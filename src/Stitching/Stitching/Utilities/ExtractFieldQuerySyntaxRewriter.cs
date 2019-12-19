@@ -95,6 +95,9 @@ namespace HotChocolate.Stitching.Utilities
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
                 current = RewriteFieldSelectionSet(current, field, context);
+                current = Rewrite(current, current.Directives, context,
+                    (p, c) => RewriteMany(p, c, RewriteDirective),
+                    current.WithDirectives);
                 current = OnRewriteField(current, cloned);
             }
 
@@ -295,6 +298,19 @@ namespace HotChocolate.Stitching.Utilities
                     }
                 }
             }
+        }
+
+        protected override DirectiveNode RewriteDirective(
+            DirectiveNode node,
+            Context context)
+        {
+            DirectiveNode current = node;
+
+            current = Rewrite(current, current.Arguments, context,
+                (p, c) => RewriteMany(p, c, RewriteArgument),
+                current.WithArguments);
+
+            return current;
         }
 
         private static bool IsDelegationField(IDirectiveCollection directives)
