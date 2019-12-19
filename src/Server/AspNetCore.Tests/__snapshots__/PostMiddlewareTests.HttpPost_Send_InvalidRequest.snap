@@ -2,11 +2,11 @@
   "Data": null,
   "Errors": [
     {
-      "message": "Unexpected character `Ã` (195).",
+      "message": "The query field must be a string or null.",
       "locations": [
         {
-          "line": 3,
-          "column": 25
+          "line": 1,
+          "column": 15
         }
       ],
       "extensions": {

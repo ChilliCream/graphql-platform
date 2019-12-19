@@ -42,11 +42,15 @@ namespace HotChocolate.AspNetClassic
             IQueryResultSerializer serializer = serviceProvider
                 .GetRequiredService<IQueryResultSerializer>();
 
+            IErrorHandler errorHandler = serviceProvider
+                .GetRequiredService<IErrorHandler>();
+
             OwinContextAccessor contextAccessor =
                 serviceProvider.GetService<OwinContextAccessor>();
 
             return applicationBuilder.Use<HttpGetMiddleware>(
-                options, contextAccessor, executor, serializer);
+                options, contextAccessor, executor, serializer,
+                errorHandler);
         }
     }
 }
