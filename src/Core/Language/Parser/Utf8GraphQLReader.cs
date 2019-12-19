@@ -22,6 +22,11 @@ namespace HotChocolate.Language
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
         {
+            if (graphQLData.Length == 0)
+            {
+                throw new ArgumentException("The graphQLData is empty.", nameof(graphQLData));
+            }
+
             _kind = TokenKind.StartOfFile;
             _start = 0;
             _end = 0;
