@@ -1,4 +1,8 @@
 using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -9,14 +13,21 @@ namespace HotChocolate.Types
     public abstract class ArgumentDescriptorAttribute
         : DescriptorAttribute
     {
-        internal protected sealed override void TryConfigure(IDescriptor descriptor)
+        internal protected sealed override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
         {
-            if (descriptor is IArgumentDescriptor d)
+            if (descriptor is IArgumentDescriptor d
+                && element is ParameterInfo p)
             {
-                OnConfigure(d);
+                OnConfigure(context, d, p);
             }
         }
 
-        public abstract void OnConfigure(IArgumentDescriptor descriptor);
+        public abstract void OnConfigure(
+            IDescriptorContext context,
+            IArgumentDescriptor descriptor,
+            ParameterInfo parameter);
     }
 }

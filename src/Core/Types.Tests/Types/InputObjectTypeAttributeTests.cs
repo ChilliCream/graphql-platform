@@ -1,3 +1,6 @@
+using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -36,6 +39,22 @@ namespace HotChocolate.Types
                     .ContainsField("foo"));
         }
 
+        [Fact]
+        public void Annotated_Struct1_With_InputObjectTypeAttribute()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType<Struct1>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.True(
+                schema.GetType<InputObjectType>("Foo")
+                    .Fields
+                    .ContainsField("foo"));
+        }
+
         public class Object1
         {
             [RenameField]
@@ -45,7 +64,10 @@ namespace HotChocolate.Types
         public class RenameFieldAttribute
             : InputFieldDescriptorAttribute
         {
-            public override void OnConfigure(IInputFieldDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IInputFieldDescriptor descriptor,
+                MemberInfo member)
             {
                 descriptor.Name("bar");
             }
@@ -57,10 +79,19 @@ namespace HotChocolate.Types
             public string Foo { get; set; }
         }
 
+        [InputObjectType(Name = "Foo")]
+        public struct Struct1
+        {
+            public string Foo { get; set; }
+        }
+
         public class RenameTypeAttribute
             : InputObjectTypeDescriptorAttribute
         {
-            public override void OnConfigure(IInputObjectTypeDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IInputObjectTypeDescriptor descriptor,
+                Type type)
             {
                 descriptor.Name("Bar");
             }
