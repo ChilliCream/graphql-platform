@@ -35,6 +35,19 @@ namespace HotChocolate.Types
             Assert.NotNull(schema.GetType<EnumType>("Abc"));
         }
 
+        [Fact]
+        public void Annotated_Enum3_With_EnumTypeAttribute()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType<Enum3>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.NotNull(schema.GetType<EnumType>("Foo"));
+        }
+
         public enum Enum1
         {
 
@@ -57,6 +70,14 @@ namespace HotChocolate.Types
 
         [RenameType]
         public enum Enum2
+        {
+
+            Value1,
+            Value2
+        }
+
+        [EnumType(Name = "Foo")]
+        public enum Enum3
         {
 
             Value1,

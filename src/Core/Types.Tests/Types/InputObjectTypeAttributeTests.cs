@@ -39,6 +39,22 @@ namespace HotChocolate.Types
                     .ContainsField("foo"));
         }
 
+        [Fact]
+        public void Annotated_Struct1_With_InputObjectTypeAttribute()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType<Struct1>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.True(
+                schema.GetType<InputObjectType>("Foo")
+                    .Fields
+                    .ContainsField("foo"));
+        }
+
         public class Object1
         {
             [RenameField]
@@ -59,6 +75,12 @@ namespace HotChocolate.Types
 
         [RenameType]
         public class Object2
+        {
+            public string Foo { get; set; }
+        }
+
+        [InputObjectType(Name = "Foo")]
+        public struct Struct1
         {
             public string Foo { get; set; }
         }

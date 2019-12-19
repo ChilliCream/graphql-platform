@@ -79,6 +79,21 @@ namespace HotChocolate.Types
                     .Fields.ContainsField("abc"));
         }
 
+        [Fact]
+        public void Annotated_Class_With_InterfaceTypeAttribute()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType<Object1>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.True(
+                schema.GetType<InterfaceType>("Foo")
+                    .Fields.ContainsField("bar"));
+        }
+
         public interface Interface1
         {
             string GetField([ArgumentDefaultValue("abc")]string argument);
@@ -138,6 +153,12 @@ namespace HotChocolate.Types
             {
                 descriptor.Field("abc").Type<StringType>();
             }
+        }
+
+        [InterfaceType(Name = "Foo")]
+        public class Object1
+        {
+            public string? Bar { get; set; }
         }
     }
 }
