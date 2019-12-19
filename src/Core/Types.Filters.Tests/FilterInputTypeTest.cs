@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -185,18 +186,18 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s =>
-            {
-                s.AddType(new ObjectType<Query>(
-                    d => d.Name("Test").Field(x => x.Books()).UseFiltering()));
-                s.AddType(new ObjectType<Book>());
-                s.AddType(new ObjectType<Author>());
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d
+                    .Name("Test")
+                    .Field(x => x.Books())
+                    .UseFiltering())
+                .Create();
+
             // assert
             schema.ToString().MatchSnapshot();
         }
 
-        private class FooDirectiveType
+        public class FooDirectiveType
             : DirectiveType<FooDirective>
         {
             protected override void Configure(
@@ -208,20 +209,20 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        private class FooDirective { }
+        public class FooDirective { }
 
-        private class Foo
+        public class Foo
         {
             public string Bar { get; set; }
         }
 
-        private class Query
+        public class Query
         {
             [GraphQLNonNullType]
-            public List<Book> Books() => new List<Book>();
+            public IQueryable<Book> Books() => new List<Book>().AsQueryable();
         }
 
-        private class Book
+        public class Book
         {
             public int Id { get; set; }
             [GraphQLNonNullType]
@@ -232,7 +233,7 @@ namespace HotChocolate.Types.Filters
             public Author Author { get; set; }
         }
 
-        private class Author
+        public class Author
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
             public int Id { get; set; }
