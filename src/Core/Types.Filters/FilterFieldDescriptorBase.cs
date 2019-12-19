@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
-        {
+        { 
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -46,6 +46,11 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+            }
+
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledOperations = new HashSet<FilterOperationKind>();
 

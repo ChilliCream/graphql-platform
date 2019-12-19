@@ -6,6 +6,7 @@ namespace HotChocolate.Types.Sorting
     public class SortOperationDescriptor
         : ArgumentDescriptorBase<SortOperationDefintion>
     {
+
         protected SortOperationDescriptor(
             IDescriptorContext context,
             NameString name,
@@ -23,7 +24,17 @@ namespace HotChocolate.Types.Sorting
         protected sealed override SortOperationDefintion Definition { get; } =
             new SortOperationDefintion();
 
-        protected void Name(NameString value)
+        protected override void OnCreateDefinition(
+            SortOperationDefintion definition)
+        {
+            if (Definition.Operation.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Operation.Property);
+            }
+            base.OnCreateDefinition(definition);
+        }
+
+        public void Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
         }
