@@ -31,12 +31,6 @@ namespace HotChocolate.Configuration
                     .MakeGenericType(unresolvedType.Type),
                     TypeContext.Output);
             }
-            else if (IsObjectTypeExtension(unresolvedType))
-            {
-                schemaType = new ClrTypeReference(typeof(ObjectTypeExtension<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
-            }
             else if (IsObjectType(unresolvedType))
             {
                 schemaType = new ClrTypeReference(typeof(ObjectType<>)

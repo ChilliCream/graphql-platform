@@ -31,7 +31,10 @@ namespace HotChocolate.Types.Relay
 
         public Type? SchemaType { get; set; }
 
-        protected internal override void TryConfigure(IDescriptorContext context, IDescriptor descriptor, ICustomAttributeProvider element)
+        protected internal override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
         {
             if (element is MemberInfo m)
             {

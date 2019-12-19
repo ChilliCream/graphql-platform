@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         AttributeTargets.Class | AttributeTargets.Interface,
         Inherited = true,
         AllowMultiple = false)]
-    public class UnionTypeAttribute
+    public sealed class UnionTypeAttribute
         : UnionTypeDescriptorAttribute
     {
         public string? Name { get; set; }
