@@ -1,4 +1,7 @@
 using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+using Snapshooter.Xunit;
 using Xunit;
 
 #nullable enable
@@ -76,6 +79,33 @@ namespace HotChocolate.Types
             Assert.True(schema.GetType<ObjectType>("Object3").Fields.ContainsField("abc"));
         }
 
+        [Fact]
+        public void ObjectTypeAttribute_Mark_Struct_As_ObjectType()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType<StructQuery>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void ExtendObjectTypeAttribute_Extend_Query_Type()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType<StructQuery>()
+                .AddType<StructQueryExtension>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class Object1
         {
             public string GetField([ArgumentDefaultValue("abc")]string argument)
@@ -94,7 +124,10 @@ namespace HotChocolate.Types
 
             public object DefaultValue { get; }
 
-            public override void OnConfigure(IArgumentDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IArgumentDescriptor descriptor,
+                ParameterInfo parameterInfo)
             {
                 descriptor.DefaultValue(DefaultValue);
             }
@@ -112,7 +145,10 @@ namespace HotChocolate.Types
         public class PropertyAddContextDataAttribute
             : ObjectFieldDescriptorAttribute
         {
-            public override void OnConfigure(IObjectFieldDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IObjectFieldDescriptor descriptor,
+                MemberInfo member)
             {
                 descriptor.Extend().OnBeforeCompletion(
                     (c, d) => d.ContextData.Add("abc", "def"));
@@ -131,10 +167,25 @@ namespace HotChocolate.Types
         public class ObjectAddFieldAttribute
             : ObjectTypeDescriptorAttribute
         {
-            public override void OnConfigure(IObjectTypeDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IObjectTypeDescriptor descriptor,
+                Type type)
             {
                 descriptor.Field("abc").Resolver<string>("def");
             }
+        }
+
+        [ObjectType(Name = "Query")]
+        public struct StructQuery
+        {
+            public string? Foo { get; }
+        }
+
+        [ExtendObjectType(Name = "Query")]
+        public class StructQueryExtension
+        {
+            public string? Bar { get; }
         }
     }
 }
