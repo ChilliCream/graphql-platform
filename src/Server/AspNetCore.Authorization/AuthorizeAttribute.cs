@@ -14,7 +14,10 @@ namespace HotChocolate.AspNetCore.Authorization
 #endif
 {
     [AttributeUsage(
-        AttributeTargets.Class | AttributeTargets.Class,
+        AttributeTargets.Class
+        | AttributeTargets.Struct
+        | AttributeTargets.Property
+        | AttributeTargets.Method,
         Inherited = true,
         AllowMultiple = true)]
     public sealed class AuthorizeAttribute : DescriptorAttribute
