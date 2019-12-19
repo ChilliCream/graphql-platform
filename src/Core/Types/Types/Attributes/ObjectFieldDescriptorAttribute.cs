@@ -1,4 +1,8 @@
 using System;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -9,14 +13,21 @@ namespace HotChocolate.Types
     public abstract class ObjectFieldDescriptorAttribute
         : DescriptorAttribute
     {
-        internal protected sealed override void TryConfigure(IDescriptor descriptor)
+        internal protected sealed override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
         {
-            if (descriptor is IObjectFieldDescriptor d)
+            if (descriptor is IObjectFieldDescriptor d
+                && element is MemberInfo m)
             {
-                OnConfigure(d);
+                OnConfigure(context, d, m);
             }
         }
 
-        public abstract void OnConfigure(IObjectFieldDescriptor descriptor);
+        public abstract void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member);
     }
 }

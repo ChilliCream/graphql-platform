@@ -48,7 +48,10 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.ClrType is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.ClrType);
             }
 
             var arguments =
@@ -64,6 +67,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteArguments(arguments, handledMembers);
 
             definition.Arguments.AddRange(arguments.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteArguments(

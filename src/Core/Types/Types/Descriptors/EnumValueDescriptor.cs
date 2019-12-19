@@ -35,12 +35,15 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(EnumValueDefinition definition)
         {
-            base.OnCreateDefinition(definition);
-
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.Member);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Member);
             }
+
+            base.OnCreateDefinition(definition);
         }
 
         public IEnumValueDescriptor SyntaxNode(
