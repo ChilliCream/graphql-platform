@@ -12,11 +12,14 @@ namespace HotChocolate.Types.Filters
     public abstract class FilterFieldDescriptorBase
         : DescriptorBase<FilterFieldDefintion>
     {
+        private readonly IDescriptorContext _context;
+
         protected FilterFieldDescriptorBase(
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
         {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -46,6 +49,11 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(_context, this, Definition.Property);
+            }
+
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledOperations = new HashSet<FilterOperationKind>();
 

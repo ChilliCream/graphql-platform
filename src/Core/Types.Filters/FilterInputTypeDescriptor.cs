@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
+        private readonly IDescriptorContext _context;
+
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
@@ -23,6 +25,7 @@ namespace HotChocolate.Types.Filters
             {
                 throw new ArgumentNullException(nameof(entityType));
             }
+            _context = context;
 
             Definition.EntityType = entityType;
             Definition.ClrType = typeof(object);
@@ -82,6 +85,11 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
         {
+            if (Definition.EntityType is { })
+            {
+                Context.Inspector.ApplyAttributes(_context, this, Definition.EntityType);
+            }
+
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 

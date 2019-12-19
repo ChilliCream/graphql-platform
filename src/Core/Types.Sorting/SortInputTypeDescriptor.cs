@@ -14,17 +14,16 @@ namespace HotChocolate.Types.Sorting
         : DescriptorBase<SortInputTypeDefinition>
         , ISortInputTypeDescriptor<T>
     {
+        private readonly IDescriptorContext _context;
+
         protected SortInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
             : base(context)
         {
-            if (entityType is null)
-            {
-                throw new ArgumentNullException(nameof(entityType));
-            }
-
-            Definition.EntityType = entityType;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            Definition.EntityType = entityType
+                ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
             Definition.Name = context.Naming.GetTypeName(
                 entityType, TypeKind.Object) + "Sort";
@@ -107,6 +106,11 @@ namespace HotChocolate.Types.Sorting
         protected override void OnCreateDefinition(
             SortInputTypeDefinition definition)
         {
+            if (Definition.EntityType is { })
+            {
+                Context.Inspector.ApplyAttributes(_context, this, Definition.EntityType);
+            }
+
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
