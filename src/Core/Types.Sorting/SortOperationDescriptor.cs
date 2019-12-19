@@ -6,7 +6,6 @@ namespace HotChocolate.Types.Sorting
     public class SortOperationDescriptor
         : ArgumentDescriptorBase<SortOperationDefintion>
     {
-        private readonly IDescriptorContext _context;
 
         protected SortOperationDescriptor(
             IDescriptorContext context,
@@ -15,7 +14,6 @@ namespace HotChocolate.Types.Sorting
             SortOperation operation)
             : base(context)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
             Definition.Name = name.EnsureNotEmpty(nameof(name));
             Definition.Type = type
                 ?? throw new ArgumentNullException(nameof(type));
@@ -31,7 +29,7 @@ namespace HotChocolate.Types.Sorting
         {
             if (Definition.Operation.Property is { })
             {
-                Context.Inspector.ApplyAttributes(_context, this, Definition.Operation.Property);
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Operation.Property);
             }
             base.OnCreateDefinition(definition);
         }

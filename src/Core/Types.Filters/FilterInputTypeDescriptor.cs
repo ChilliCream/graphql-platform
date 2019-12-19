@@ -14,14 +14,12 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
-        private readonly IDescriptorContext _context;
 
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
             : base(context)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
@@ -83,7 +81,7 @@ namespace HotChocolate.Types.Filters
         {
             if (Definition.EntityType is { })
             {
-                Context.Inspector.ApplyAttributes(_context, this, Definition.EntityType);
+                Context.Inspector.ApplyAttributes(Context, this, Definition.EntityType);
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
