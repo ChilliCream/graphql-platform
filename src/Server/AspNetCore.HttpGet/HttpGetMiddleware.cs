@@ -92,7 +92,7 @@ namespace HotChocolate.AspNetCore
 
             string variables = requestQuery[_variablesIdentifier];
             if (variables != null
-                && variables.Any()
+                && variables.Length > 0
                 && Utf8GraphQLRequestParser.ParseJson(variables)
                     is IReadOnlyDictionary<string, object> v)
             {

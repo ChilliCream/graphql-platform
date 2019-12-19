@@ -31,6 +31,7 @@ namespace HotChocolate.AspNetCore
         private readonly IBatchQueryExecutor _batchExecutor;
         private readonly IQueryResultSerializer _resultSerializer;
         private readonly IResponseStreamSerializer _streamSerializer;
+        private readonly IErrorHandler _errorHandler;
 
 #if ASPNETCLASSIC
         public HttpPostMiddleware(
@@ -42,7 +43,8 @@ namespace HotChocolate.AspNetCore
             IQueryResultSerializer resultSerializer,
             IResponseStreamSerializer streamSerializer,
             IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider)
+            IDocumentHashProvider documentHashProvider,
+            IErrorHandler errorHandler)
             : base(next,
                 options,
                 owinContextAccessor,
@@ -57,6 +59,8 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             _streamSerializer = streamSerializer
                 ?? throw new ArgumentNullException(nameof(streamSerializer));
+            _errorHandler = errorHandler
+                ?? throw new ArgumentNullException(nameof(errorHandler));
 
             _requestHelper = new RequestHelper(
                 documentCache,
@@ -73,7 +77,8 @@ namespace HotChocolate.AspNetCore
             IQueryResultSerializer resultSerializer,
             IResponseStreamSerializer streamSerializer,
             IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider)
+            IDocumentHashProvider documentHashProvider,
+            IErrorHandler errorHandler)
             : base(next, options, resultSerializer)
         {
             _queryExecutor = queryExecutor
@@ -84,6 +89,8 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             _streamSerializer = streamSerializer
                 ?? throw new ArgumentNullException(nameof(streamSerializer));
+            _errorHandler = errorHandler
+                ?? throw new ArgumentNullException(nameof(errorHandler));
 
             _requestHelper = new RequestHelper(
                 documentCache,
@@ -129,10 +136,11 @@ namespace HotChocolate.AspNetCore
                 {
                     // TODO : resources
                     var result = QueryResult.CreateError(
-                        ErrorBuilder.New()
-                            .SetMessage("Invalid GraphQL Request.")
-                            .SetCode(ErrorCodes.Server.RequestInvalid)
-                            .Build());
+                        _errorHandler.Handle(
+                            ErrorBuilder.New()
+                                .SetMessage("Invalid GraphQL Request.")
+                                .SetCode(ErrorCodes.Server.RequestInvalid)
+                                .Build()));
 
                     SetResponseHeaders(
                         context.Response,
