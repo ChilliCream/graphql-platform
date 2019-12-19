@@ -49,6 +49,11 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+            }
+
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledOperations = new HashSet<FilterOperationKind>();
 
@@ -56,6 +61,8 @@ namespace HotChocolate.Types.Filters
             OnCompleteFilters(fields, handledOperations);
 
             Definition.Filters.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         private void AddExplicitFilters(
@@ -169,10 +176,10 @@ namespace HotChocolate.Types.Filters
                     return clrRef;
                 }
                 else
-                { 
+                {
                     Type type = clrRef.Type;
                     if (type.IsGenericType &&
-                        System.Nullable.GetUnderlyingType(type) is Type nullableType) 
+                        System.Nullable.GetUnderlyingType(type) is Type nullableType)
                     {
                         type = nullableType;
                     }
