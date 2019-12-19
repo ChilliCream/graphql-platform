@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Relay
             public string Bar { get; set; }
         }
 
-        public class IHasFoos
+        public interface IHasFoos
         {
             [UsePaging]
             IQueryable<Foo> Foos { get; }
