@@ -115,6 +115,50 @@ namespace HotChocolate.Stitching
                     .MatchSnapshot();
         }
 
+        [InlineData("Stitching.graphql", "StitchingQueryWithSkip.graphql")]
+        [Theory]
+        public void ExtractFieldWithDirective(string schemaFile, string queryFile)
+        {
+            // arrange
+            ISchema schema = Schema.Create(
+                FileResource.Open(schemaFile),
+                c =>
+                {
+                    c.RegisterType<DateTimeType>();
+                    c.RegisterDirective<DelegateDirectiveType>();
+                    c.RegisterDirective<ComputedDirectiveType>();
+                    c.Use(next => context => Task.CompletedTask);
+                });
+
+            DocumentNode query = Utf8GraphQLParser.Parse(
+                FileResource.Open(queryFile));
+
+            OperationDefinitionNode operation = query.Definitions
+                .OfType<OperationDefinitionNode>().Single();
+
+            FieldNode selection = operation
+                .SelectionSet.Selections
+                .OfType<FieldNode>().First();
+
+            // act
+            var rewriter = new ExtractFieldQuerySyntaxRewriter(schema,
+                Array.Empty<IQueryDelegationRewriter>());
+            ExtractedField extractedField = rewriter.ExtractField(
+                "customer", query, operation, selection,
+                schema.GetType<ObjectType>("Query"));
+
+            // assert
+            DocumentNode document = RemoteQueryBuilder.New()
+                .SetRequestField(extractedField.Field)
+                .AddFragmentDefinitions(extractedField.Fragments)
+                .AddVariables(extractedField.Variables)
+                .Build();
+
+            QuerySyntaxSerializer.Serialize(document)
+                .MatchSnapshot(new SnapshotNameExtension(
+                    schemaFile, queryFile));
+        }
+
         private class DummyRewriter
             : QueryDelegationRewriterBase
         {

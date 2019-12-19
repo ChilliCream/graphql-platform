@@ -41,10 +41,28 @@ namespace HotChocolate.Types.Descriptors
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
-            if (descriptor.ClrType != typeof(object))
+            AddImplicitFields<TDescriptor, TMember, TField>(
+                descriptor,
+                descriptor.ClrType,
+                createdFieldDefinition,
+                fields,
+                handledMembers);
+        }
+
+        public static void AddImplicitFields<TDescriptor, TMember, TField>(
+            TDescriptor descriptor,
+            Type fieldBindingType,
+            Func<TMember, TField> createdFieldDefinition,
+            IDictionary<NameString, TField> fields,
+            ISet<TMember> handledMembers)
+            where TDescriptor : IHasDescriptorContext
+            where TMember : MemberInfo
+            where TField : FieldDefinitionBase
+        {
+            if (fieldBindingType != typeof(object))
             {
                 foreach (TMember member in descriptor.Context.Inspector
-                    .GetMembers(descriptor.ClrType)
+                    .GetMembers(fieldBindingType)
                     .OfType<TMember>())
                 {
                     TField fieldDefinition = createdFieldDefinition(member);

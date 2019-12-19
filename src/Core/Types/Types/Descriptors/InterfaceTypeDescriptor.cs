@@ -22,10 +22,8 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name =
-                context.Naming.GetTypeName(clrType, TypeKind.Interface);
-            Definition.Description =
-                context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
 
         protected InterfaceTypeDescriptor(
@@ -46,7 +44,10 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.ClrType is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.ClrType);
             }
 
             var fields = new Dictionary<NameString, InterfaceFieldDefinition>();
@@ -61,6 +62,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledMembers);
 
             Definition.Fields.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteFields(

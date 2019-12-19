@@ -33,12 +33,15 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(InputFieldDefinition definition)
         {
-            base.OnCreateDefinition(definition);
-
             if (Definition.Property is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.Property);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Property);
             }
+
+            base.OnCreateDefinition(definition);
         }
 
         public new IInputFieldDescriptor SyntaxNode(

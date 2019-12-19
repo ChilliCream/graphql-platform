@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
 {
@@ -21,7 +22,10 @@ namespace HotChocolate.Types
         /// <value>The filter type</value>
         public Type FilterType { get; set; }
 
-        public override void OnConfigure(IObjectFieldDescriptor descriptor)
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
         {
             if (FilterType is null)
             {

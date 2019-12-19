@@ -31,8 +31,7 @@ namespace HotChocolate.Stitching.Utilities
 
             public OperationDefinitionNode Operation { get; }
 
-            public IDictionary<string, VariableDefinitionNode> Variables
-            { get; }
+            public IDictionary<string, VariableDefinitionNode> Variables { get; }
 
             public INamedOutputType TypeContext { get; set; }
 
