@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -17,6 +19,17 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public void UsePagingAttribute_Execute_Query()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foos(first: 1) { nodes { bar } } }")
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void UsePagingAttribute_Infer_Types_On_Interface()
         {
             SchemaBuilder.New()
@@ -30,7 +43,11 @@ namespace HotChocolate.Types.Relay
         public class Query
         {
             [UsePaging]
-            public IQueryable<Foo> Foos { get; set; }
+            public IQueryable<Foo> Foos { get; set; } = new List<Foo>
+            {
+                new Foo { Bar = "first" },
+                new Foo { Bar = "second" },
+            }.AsQueryable();
         }
 
         public class Foo
