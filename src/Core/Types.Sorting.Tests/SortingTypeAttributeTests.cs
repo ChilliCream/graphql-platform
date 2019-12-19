@@ -8,7 +8,6 @@ using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
-
     public class SortTypeAttributeTests
         : TypeTestBase
     {
@@ -82,7 +81,6 @@ namespace HotChocolate.Types.Sorting
                 }
             }
         }
-
 
         public class SortFieldAttributeTest
             : DescriptorAttribute

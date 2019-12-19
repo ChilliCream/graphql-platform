@@ -33,7 +33,6 @@ namespace HotChocolate.Types.Sorting
             {
                 Context.Inspector.ApplyAttributes(_context, this, Definition.Operation.Property);
             }
-
             base.OnCreateDefinition(definition);
         }
 

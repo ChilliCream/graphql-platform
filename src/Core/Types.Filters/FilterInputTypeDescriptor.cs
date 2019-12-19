@@ -21,13 +21,9 @@ namespace HotChocolate.Types.Filters
             Type entityType)
             : base(context)
         {
-            if (entityType is null)
-            {
-                throw new ArgumentNullException(nameof(entityType));
-            }
-            _context = context;
-
-            Definition.EntityType = entityType;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            Definition.EntityType = entityType
+                ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
 
             // TODO : should we rework get type name?

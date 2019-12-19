@@ -8,11 +8,9 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
-
     public class FilterTypeAttributeTests
         : TypeTestBase
     {
-
         [Fact]
         public void GenericTypeDescriptorAttribute_Changes_Name()
         {
@@ -110,7 +108,6 @@ namespace HotChocolate.Types.Filters
                 }
             }
         }
-
 
         public class FilterFieldAttributeTest
             : DescriptorAttribute
