@@ -19,5 +19,4 @@ namespace MarshmallowPie.GraphQL.Types
                 });
         }
     }
-
 }
