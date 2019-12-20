@@ -196,5 +196,15 @@ namespace HotChocolate.Types
                 }
             }
         }
+
+        public static void MergeConfigurations(
+            ICollection<ILazyTypeConfiguration> extensionConfigurations,
+            ICollection<ILazyTypeConfiguration> typeConfigurations)
+        {
+            foreach (ILazyTypeConfiguration configuration in extensionConfigurations)
+            {
+                typeConfigurations.Add(configuration);
+            }
+        }
     }
 }

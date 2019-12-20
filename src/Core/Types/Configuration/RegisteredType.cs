@@ -38,6 +38,9 @@ namespace HotChocolate.Configuration
             InitializationContext = initializationContext;
             Dependencies = dependencies;
             IsInferred = isInferred;
+            IsExtension = Type is INamedTypeExtensionMerger;
+            IsNamedType = Type is INamedType;
+            IsDirectiveType = Type is DirectiveType;
         }
 
         public IReadOnlyList<ITypeReference> References { get; }
@@ -61,6 +64,12 @@ namespace HotChocolate.Configuration
         }
 
         public IReadOnlyList<TypeDependency> Dependencies { get; }
+
+        public bool IsExtension { get; }
+
+        public bool IsNamedType { get; }
+
+        public bool IsDirectiveType { get; }
 
         public RegisteredType WithDependencies(
             IReadOnlyList<TypeDependency> dependencies)

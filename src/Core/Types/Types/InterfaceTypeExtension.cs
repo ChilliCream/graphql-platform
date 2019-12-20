@@ -63,6 +63,10 @@ namespace HotChocolate.Types
                     context,
                     Definition.Fields,
                     interfaceType.Definition.Fields);
+
+                TypeExtensionHelper.MergeConfigurations(
+                    Definition.Configurations,
+                    interfaceType.Definition.Configurations);
             }
             else
             {

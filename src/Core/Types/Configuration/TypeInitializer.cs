@@ -79,7 +79,7 @@ namespace HotChocolate.Configuration
         public bool TryGetType(NameString typeName, out IType? type)
         {
             if (_discoveredTypes is { }
-                && _named.TryGetValue(typeName, out ITypeReference reference)
+                && _named.TryGetValue(typeName, out ITypeReference? reference)
                 && _discoveredTypes.TryGetType(reference, out RegisteredType registered)
                 && registered.Type is IType t)
             {
@@ -182,13 +182,13 @@ namespace HotChocolate.Configuration
         private void MergeTypeExtensions(DiscoveredTypes discoveredTypes)
         {
             var extensions = discoveredTypes.Types
-                .Where(t => t.Type is INamedTypeExtensionMerger)
+                .Where(t => t.IsExtension)
                 .ToList();
 
             if (extensions.Count > 0)
             {
                 var types = discoveredTypes.Types
-                    .Where(t => t.Type is INamedType)
+                    .Where(t => t.IsNamedType)
                     .ToList();
 
                 foreach (RegisteredType extension in extensions)
@@ -261,22 +261,21 @@ namespace HotChocolate.Configuration
 
             foreach (Type type in _externalResolverTypes)
             {
-                GraphQLResolverOfAttribute attribute =
+                GraphQLResolverOfAttribute? attribute =
                     type.GetCustomAttribute<GraphQLResolverOfAttribute>();
 
-                if (attribute.TypeNames != null)
+                if (attribute?.TypeNames != null)
                 {
                     foreach (string typeName in attribute.TypeNames)
                     {
-                        if (types.TryGetValue(typeName,
-                            out ObjectType objectType))
+                        if (types.TryGetValue(typeName, out ObjectType? objectType))
                         {
                             AddResolvers(_descriptorContext, objectType, type);
                         }
                     }
                 }
 
-                if (attribute.Types != null)
+                if (attribute?.Types != null)
                 {
                     foreach (Type sourceType in attribute.Types
                         .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
@@ -452,10 +451,13 @@ namespace HotChocolate.Configuration
                 TypeDependencyKind.Completed,
                 registeredType =>
                 {
-                    CompletionContext context = _completionContext[registeredType];
-                    context.Status = TypeStatus.Named;
-                    context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                    registeredType.Type.CompleteType(context);
+                    if (!registeredType.IsExtension)
+                    {
+                        CompletionContext context = _completionContext[registeredType];
+                        context.Status = TypeStatus.Named;
+                        context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                        registeredType.Type.CompleteType(context);
+                    }
                     return true;
                 });
 
@@ -581,7 +583,7 @@ namespace HotChocolate.Configuration
             ITypeReference typeReference,
             out ITypeReference? normalized)
         {
-            if (_dependencyLookup.TryGetValue(typeReference, out ITypeReference nr))
+            if (_dependencyLookup.TryGetValue(typeReference, out ITypeReference? nr))
             {
                 normalized = nr;
                 return true;
