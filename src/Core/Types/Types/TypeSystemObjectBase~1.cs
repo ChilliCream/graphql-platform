@@ -16,7 +16,6 @@ namespace HotChocolate.Types
     {
         private TDefinition? _definition;
         private Dictionary<string, object?>? _contextData;
-        private IReadOnlyCollection<ILazyTypeConfiguration>? _configrations;
 
         protected TypeSystemObjectBase() { }
 
@@ -43,7 +42,6 @@ namespace HotChocolate.Types
         internal sealed override void Initialize(IInitializationContext context)
         {
             _definition = CreateDefinition(context);
-            _configrations = _definition?.GetConfigurations().ToList();
 
             if (_definition is null)
             {
@@ -51,7 +49,7 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            RegisterConfigurationDependencies(context);
+            RegisterConfigurationDependencies(context, _definition);
             OnRegisterDependencies(context, _definition);
             base.Initialize(context);
         }
@@ -73,7 +71,7 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            ExecuteConfigurations(context, ApplyConfigurationOn.Naming);
+            ExecuteConfigurations(context, _definition, ApplyConfigurationOn.Naming);
             OnCompleteName(context, _definition);
 
             if (Name.IsEmpty)
@@ -109,7 +107,7 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            ExecuteConfigurations(context, ApplyConfigurationOn.Completion);
+            ExecuteConfigurations(context, _definition, ApplyConfigurationOn.Completion);
 
             Description = _definition.Description;
 
@@ -117,7 +115,6 @@ namespace HotChocolate.Types
 
             _contextData = new Dictionary<string, object?>(_definition.ContextData);
             _definition = null;
-            _configrations = null;
 
             base.CompleteType(context);
         }
@@ -128,12 +125,13 @@ namespace HotChocolate.Types
         {
         }
 
-        private void RegisterConfigurationDependencies(
-            IInitializationContext context)
+        private static void RegisterConfigurationDependencies(
+            IInitializationContext context,
+            TDefinition definition)
         {
-            foreach (var group in
-                _configrations.SelectMany(t => t.Dependencies)
-                    .GroupBy(t => t.Kind))
+            foreach (var group in definition.GetConfigurations()
+                .SelectMany(t => t.Dependencies)
+                .GroupBy(t => t.Kind))
             {
                 context.RegisterDependencyRange(
                     group.Select(t => t.TypeReference),
@@ -141,12 +139,13 @@ namespace HotChocolate.Types
             }
         }
 
-        private void ExecuteConfigurations(
+        private static void ExecuteConfigurations(
             ICompletionContext context,
+            TDefinition definition,
             ApplyConfigurationOn kind)
         {
             foreach (ILazyTypeConfiguration configuration in
-                _configrations.Where(t => t.On == kind))
+                definition.GetConfigurations().Where(t => t.On == kind))
             {
                 configuration.Configure(context);
             }
