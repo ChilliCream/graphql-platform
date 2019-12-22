@@ -139,7 +139,7 @@ namespace HotChocolate.Types
             }
         }
 
-        private void ExecuteConfigurations(
+        private static void ExecuteConfigurations(
             ICompletionContext context,
             TDefinition definition,
             ApplyConfigurationOn kind)
