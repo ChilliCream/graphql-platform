@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Language;
 using Xunit;
 
 namespace Types.Tests.Types
@@ -16,11 +17,6 @@ namespace Types.Tests.Types
                 t => t.Name,
                 StringComparer.OrdinalIgnoreCase);
             ConstructorInfo constructor = GetCompatibleConstructor(typeof(Test), properties);
-
-            Func<object[], object> d;
-
-            d(new[] { "a" });
-
         }
 
         private static ConstructorInfo GetCompatibleConstructor(
