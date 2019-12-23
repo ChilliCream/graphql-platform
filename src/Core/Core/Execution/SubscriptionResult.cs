@@ -1,43 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Execution
 {
-    internal delegate Task<IReadOnlyQueryResult> ExecuteSubscriptionQuery(
+    internal delegate ValueTask<IReadOnlyQueryResult> ExecuteSubscriptionQuery(
         IExecutionContext executionContext,
         CancellationToken cancellationToken);
 
-    internal class SubscriptionResult
+    internal sealed class SubscriptionResult
         : ISubscriptionExecutionResult
     {
         private readonly Dictionary<string, object> _contextData =
             new Dictionary<string, object>();
-        private readonly IEventStream _eventStream;
-        private readonly Func<IEventMessage, IExecutionContext> _contextFactory;
-        private readonly ExecuteSubscriptionQuery _executeQuery;
-        private readonly IRequestServiceScope _serviceScope;
-        private readonly CancellationTokenSource _cancellationTokenSource =
-            new CancellationTokenSource();
-        private bool _isCompleted;
+        private readonly SubscriptionResultEnumerator _enumerator;
 
         public SubscriptionResult(
-            IEventStream eventStream,
-            Func<IEventMessage, IExecutionContext> contextFactory,
+            IAsyncEnumerable<object> sourceStream,
+            Func<object, IExecutionContext> contextFactory,
             ExecuteSubscriptionQuery executeQuery,
-            IRequestServiceScope serviceScope)
+            IRequestServiceScope serviceScope,
+            CancellationToken cancellationToken)
         {
-            _eventStream = eventStream
-                ?? throw new ArgumentNullException(nameof(eventStream));
-            _contextFactory = contextFactory
-                ?? throw new ArgumentNullException(nameof(contextFactory));
-            _executeQuery = executeQuery
-                ?? throw new ArgumentNullException(nameof(executeQuery));
-            _serviceScope = serviceScope
-                ?? throw new ArgumentNullException(nameof(serviceScope));
-            _serviceScope.HandleLifetime();
+            _enumerator = new SubscriptionResultEnumerator(
+                sourceStream,
+                contextFactory,
+                executeQuery,
+                serviceScope,
+                cancellationToken);
         }
 
         public IReadOnlyCollection<IError> Errors { get; }
@@ -50,62 +42,79 @@ namespace HotChocolate.Execution
         IReadOnlyDictionary<string, object> IExecutionResult.ContextData =>
             _contextData;
 
-        public bool IsCompleted => _isCompleted && _eventStream.IsCompleted;
-
-        public Task<IReadOnlyQueryResult> ReadAsync()
+        public IAsyncEnumerator<IReadOnlyQueryResult> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
-            return ReadAsync(CancellationToken.None);
-        }
-
-        public async Task<IReadOnlyQueryResult> ReadAsync(
-            CancellationToken cancellationToken)
-        {
-            if (IsCompleted)
+            if (_enumerator.IsCompleted)
             {
                 throw new InvalidOperationException(
-                    "The response stream has already been completed.");
+                    "The stream has been completed and cannot be replayed");
+            }
+            return _enumerator;
+        }
+
+        private sealed class SubscriptionResultEnumerator
+            : IAsyncEnumerator<IReadOnlyQueryResult>
+        {
+            private readonly ConfiguredCancelableAsyncEnumerable<object>.Enumerator _sourceStream;
+            private readonly CancellationToken _cancellationToken;
+            private readonly Func<object, IExecutionContext> _contextFactory;
+            private readonly ExecuteSubscriptionQuery _executeQuery;
+            private readonly IRequestServiceScope _serviceScope;
+            private bool _disposed;
+
+            public SubscriptionResultEnumerator(
+                IAsyncEnumerable<object> sourceStream,
+                Func<object, IExecutionContext> contextFactory,
+                ExecuteSubscriptionQuery executeQuery,
+                IRequestServiceScope serviceScope,
+                CancellationToken cancellationToken)
+            {
+                _sourceStream = sourceStream
+                    .WithCancellation(cancellationToken)
+                    .GetAsyncEnumerator();
+                _contextFactory = contextFactory;
+                _executeQuery = executeQuery;
+                _serviceScope = serviceScope;
+                _cancellationToken = cancellationToken;
+                serviceScope.HandleLifetime();
             }
 
-            using (var ct = CancellationTokenSource.CreateLinkedTokenSource(
-                _cancellationTokenSource.Token, cancellationToken))
+            public IReadOnlyQueryResult Current { get; private set; }
+
+            internal bool IsCompleted => _disposed;
+
+            public async ValueTask<bool> MoveNextAsync()
             {
-                IEventMessage message = await _eventStream.ReadAsync(ct.Token)
-                    .ConfigureAwait(false);
-
-                return await ExecuteQueryAsync(message, ct.Token)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        private async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
-            IEventMessage message,
-            CancellationToken cancellationToken)
-        {
-            IExecutionContext context = _contextFactory(message);
-
-            return await _executeQuery(context, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_isCompleted)
-            {
-                if (disposing)
+                if (_disposed)
                 {
-                    _cancellationTokenSource.Cancel();
-                    _serviceScope.Dispose();
-                    _eventStream.Dispose();
-                    _cancellationTokenSource.Dispose();
+                    return false;
                 }
 
-                _isCompleted = true;
+                bool hasResult = await _sourceStream.MoveNextAsync();
+
+                if (hasResult)
+                {
+                    Current = await ExecuteQueryAsync(_sourceStream.Current).ConfigureAwait(false);
+                }
+
+                return hasResult;
+            }
+
+            private async ValueTask<IReadOnlyQueryResult> ExecuteQueryAsync(object message)
+            {
+                IExecutionContext context = _contextFactory(message);
+                return await _executeQuery(context, _cancellationToken).ConfigureAwait(false);
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (!_disposed)
+                {
+                    await _sourceStream.DisposeAsync();
+                    _serviceScope.Dispose();
+                    _disposed = true;
+                }
             }
         }
     }

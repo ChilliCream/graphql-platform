@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -14,8 +16,6 @@ using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Utilities;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -66,15 +66,15 @@ namespace HotChocolate.Stitching
         {
             // arrange
             StitchingBuilder stitchingBuilder = StitchingBuilder.New();
-            NameString schemName = "abc";
+            NameString schemaName = "abc";
 
             stitchingBuilder.AddSchema(
-                schemName,
+                schemaName,
                 sp => new DocumentNode(new List<IDefinitionNode>()));
 
             // act
             Action action = () => stitchingBuilder.AddSchema(
-                schemName,
+                schemaName,
                 sp => new DocumentNode(new List<IDefinitionNode>()));
 
             // assert
@@ -87,15 +87,15 @@ namespace HotChocolate.Stitching
         {
             // arrange
             StitchingBuilder stitchingBuilder = StitchingBuilder.New();
-            NameString schemName = "abc";
+            NameString schemaName = "abc";
 
             stitchingBuilder.AddQueryExecutor(
-                schemName,
+                schemaName,
                 sp => default(IQueryExecutor));
 
             // act
             Action action = () => stitchingBuilder.AddSchema(
-                schemName,
+                schemaName,
                 sp => new DocumentNode(new List<IDefinitionNode>()));
 
             // assert
@@ -108,7 +108,7 @@ namespace HotChocolate.Stitching
         {
             // arrange
             StitchingBuilder stitchingBuilder = StitchingBuilder.New();
-            NameString schemName = "abc";
+            NameString schemaName = "abc";
 
             // act
             Action action = () => stitchingBuilder.AddSchema(
@@ -124,11 +124,11 @@ namespace HotChocolate.Stitching
         {
             // arrange
             StitchingBuilder stitchingBuilder = StitchingBuilder.New();
-            NameString schemName = "abc";
+            NameString schemaName = "abc";
 
             // act
             Action action = () => stitchingBuilder.AddSchema(
-                schemName, (LoadSchemaDocument)null);
+                schemaName, (LoadSchemaDocument)null);
 
             // assert
             Assert.Equal("loadSchema",

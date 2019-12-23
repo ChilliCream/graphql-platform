@@ -60,6 +60,10 @@ namespace HotChocolate.Types
                     Definition.Directives,
                     enumType.Definition.Directives);
 
+                TypeExtensionHelper.MergeConfigurations(
+                    Definition.Configurations,
+                    enumType.Definition.Configurations);
+
                 MergeValues(context, Definition, enumType.Definition);
             }
             else

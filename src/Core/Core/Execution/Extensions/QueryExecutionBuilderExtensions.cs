@@ -22,8 +22,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder
-                .UseDefaultPipeline(new QueryExecutionOptions());
+            return builder.UseDefaultPipeline(new QueryExecutionOptions());
         }
 
         public static IQueryExecutionBuilder UseDefaultPipeline(
@@ -119,7 +118,7 @@ namespace HotChocolate.Execution
                 .UseWritePersistedQuery();
         }
 
-        private static IQueryExecutionBuilder AddDefaultServices(
+        public static IQueryExecutionBuilder AddDefaultServices(
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options)
         {
@@ -134,7 +133,7 @@ namespace HotChocolate.Execution
                 .AddDefaultDocumentHashProvider();
         }
 
-        private static IQueryExecutionBuilder UseDefaultDiagnostics(
+        public static IQueryExecutionBuilder UseDefaultDiagnostics(
             this IQueryExecutionBuilder builder,
             IInstrumentationOptionsAccessor options)
         {

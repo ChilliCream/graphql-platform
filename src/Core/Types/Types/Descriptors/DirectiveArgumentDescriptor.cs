@@ -33,12 +33,15 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
         {
-            base.OnCreateDefinition(definition);
-
             if (Definition.Property is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.Property);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Property);
             }
+
+            base.OnCreateDefinition(definition);
         }
 
         public new IDirectiveArgumentDescriptor SyntaxNode(
@@ -103,9 +106,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IDirectiveArgumentDescriptor Ignore()
+        public IDirectiveArgumentDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

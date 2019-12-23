@@ -499,17 +499,14 @@ namespace HotChocolate.Types.Descriptors
             Assert.True(result);
         }
 
-        [InlineData(typeof(string), TypeContext.None, null, false)]
-        [InlineData(typeof(string), TypeContext.None, true, true)]
-        [InlineData(typeof(string), TypeContext.None, false, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
-        [InlineData(typeof(int), TypeContext.None, true, false)]
-        [InlineData(typeof(object), TypeContext.None, true, false)]
+        [InlineData(typeof(string), null, false)]
+        [InlineData(typeof(string), true, true)]
+        [InlineData(typeof(string), false, false)]
+        [InlineData(typeof(int), true, false)]
+        [InlineData(typeof(object), true, false)]
         [Theory]
         public void ClrTypeReference_GetHashCode_NotEquals(
             Type clrType,
-            TypeContext context,
             bool? isTypeNullable,
             bool? isElementTypeNullable)
         {
@@ -522,7 +519,7 @@ namespace HotChocolate.Types.Descriptors
 
             var y = new ClrTypeReference(
                 clrType,
-                context,
+                TypeContext.Input,
                 isTypeNullable,
                 isElementTypeNullable);
 

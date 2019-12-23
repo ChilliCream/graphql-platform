@@ -5,6 +5,6 @@ namespace StrawberryShake
     public interface IInputSerializer
         : IValueSerializer
     {
-        void Initialize(IValueSerializerResolver serializerResolver);
+        void Initialize(IValueSerializerCollection serializerResolver);
     }
 }

@@ -52,14 +52,17 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceFieldDefinition definition)
         {
+            if (Definition.Member is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Member);
+            }
+
             base.OnCreateDefinition(definition);
 
             CompleteArguments(definition);
-
-            if (Definition.Member is { })
-            {
-                Context.Inspector.ApplyAttributes(this, Definition.Member);
-            }
         }
 
         private void CompleteArguments(InterfaceFieldDefinition definition)
@@ -146,9 +149,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IInterfaceFieldDescriptor Ignore()
+        public new IInterfaceFieldDescriptor Ignore(bool ignore = true)
         {
-            base.Ignore();
+            base.Ignore(ignore);
             return this;
         }
 

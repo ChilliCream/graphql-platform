@@ -47,7 +47,10 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.ClrType is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.ClrType);
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
@@ -62,6 +65,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledMembers);
 
             Definition.Fields.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteFields(
@@ -308,6 +313,10 @@ namespace HotChocolate.Types.Descriptors
         public static ObjectTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new ObjectTypeDescriptor<T>(context);
+
+        public static ObjectTypeExtensionDescriptor<T> NewExtension<T>(
+            IDescriptorContext context) =>
+            new ObjectTypeExtensionDescriptor<T>(context);
 
         public static ObjectTypeDescriptor FromSchemaType(
             IDescriptorContext context,

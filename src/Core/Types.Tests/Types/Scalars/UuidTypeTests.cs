@@ -1,5 +1,6 @@
 ﻿using System;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -277,6 +278,91 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
+
+        [InlineData('N')]
+        [InlineData('D')]
+        [InlineData('B')]
+        [InlineData('P')]
+        [Theory]
+        public void Serialize_With_Format(char format)
+        {
+            // arrange
+            var uuidType = new UuidType(format: format);
+            Guid guid = Guid.Empty;
+
+            // act
+            string s = (string)uuidType.Serialize(guid);
+
+            // assert
+            Assert.Equal(guid.ToString(format.ToString()), s);
+        }
+
+        [InlineData('N')]
+        [InlineData('D')]
+        [InlineData('B')]
+        [InlineData('P')]
+        [Theory]
+        public void Deserialize_With_Format(char format)
+        {
+            // arrange
+            var uuidType = new UuidType(format: format);
+            Guid guid = Guid.Empty;
+            string serialized = guid.ToString(format.ToString());
+
+            // act
+            Guid deserialized = (Guid)uuidType.Deserialize(serialized);
+
+            // assert
+            Assert.Equal(guid, deserialized);
+        }
+
+        [InlineData('N')]
+        [InlineData('D')]
+        [InlineData('B')]
+        [InlineData('P')]
+        [Theory]
+        public void ParseValue_With_Format(char format)
+        {
+            // arrange
+            var uuidType = new UuidType(format: format);
+            Guid guid = Guid.Empty;
+
+            // act
+            var s = (StringValueNode)uuidType.ParseValue(guid);
+
+            // assert
+            Assert.Equal(guid.ToString(format.ToString()), s.Value);
+        }
+
+        [InlineData('N')]
+        [InlineData('D')]
+        [InlineData('B')]
+        [InlineData('P')]
+        [Theory]
+        public void ParseLiteral_With_Format(char format)
+        {
+            // arrange
+            var uuidType = new UuidType(format: format);
+            Guid guid = Guid.Empty;
+            var literal = new StringValueNode(guid.ToString(format.ToString()));
+
+            // act
+            Guid deserialized = (Guid)uuidType.ParseLiteral(literal);
+
+            // assert
+            Assert.Equal(guid, deserialized);
+        }
+
+        [Fact]
+        public void Specify_Invalid_Format()
+        {
+            // arrange
+            // act
+            Action action = () => new UuidType(format: 'z');
+
+            // assert
+            Assert.Throws<ArgumentException>(action).Message.MatchSnapshot();
         }
     }
 }

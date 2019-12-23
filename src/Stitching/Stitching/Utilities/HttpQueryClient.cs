@@ -1,59 +1,79 @@
-using System.Threading;
+using System.Buffers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Server;
 using HotChocolate.Utilities;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+
+#nullable enable
 
 namespace HotChocolate.Stitching.Utilities
 {
     internal class HttpQueryClient
     {
-        private const string _json = "application/json";
+        private static readonly KeyValuePair<string, string> _contentTypeJson =
+            new KeyValuePair<string, string>("Content-Type", "application/json");
 
-        private readonly JsonSerializerSettings _jsonSettings =
-            new JsonSerializerSettings
+        private static readonly JsonSerializerOptions _jsonSerializerOptions =
+            new JsonSerializerOptions
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                DateParseHandling = DateParseHandling.None,
-                NullValueHandling = NullValueHandling.Ignore
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                IgnoreNullValues = true,
+                IgnoreReadOnlyProperties = false
             };
 
-        public Task<QueryResult> FetchAsync(
-            IReadOnlyQueryRequest request,
-            HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
-            CancellationToken cancellationToken) =>
-            FetchAsync(
-                CreateRemoteRequest(request),
-                httpClient,
-                interceptors,
-                cancellationToken);
+        private static readonly JsonWriterOptions _jsonWriterOptions =
+            new JsonWriterOptions
+            {
+                SkipValidation = true,
+                Indented = false
+            };
 
         public async Task<QueryResult> FetchAsync(
-            HttpQueryRequest request,
+            IReadOnlyQueryRequest request,
             HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
+            IEnumerable<IHttpQueryRequestInterceptor>? interceptors = default,
+            CancellationToken cancellationToken = default)
+        {
+            using var writer = new ArrayWriter();
+            using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+            WriteJsonRequest(writer, jsonWriter, request);
+            jsonWriter.Flush();
+
+            var requestBody = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
+            requestBody.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
+
+            // note: this one has to be awaited since byte array content uses a rented buffer
+            // which is released as soon as writer is disposed.
+            return await FetchAsync(
+                request,
+                requestBody,
+                httpClient,
+                interceptors,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<QueryResult> FetchAsync(
+            IReadOnlyQueryRequest request,
+            HttpContent requestContent,
+            HttpClient httpClient,
+            IEnumerable<IHttpQueryRequestInterceptor>? interceptors,
             CancellationToken cancellationToken)
         {
             HttpResponseMessage message =
-                await FetchInternalAsync(request, httpClient)
-                    .ConfigureAwait(false);
+                await FetchInternalAsync(requestContent, httpClient).ConfigureAwait(false);
 
-            using (Stream stream = await message.Content.ReadAsStreamAsync()
-                .ConfigureAwait(false))
+            using (Stream stream = await message.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
                 object response = await BufferHelper.ReadAsync(
                     stream,
-                    (buffer, bytesBuffered) =>
-                        ParseJson(buffer, bytesBuffered),
+                    (buffer, bytesBuffered) => ParseJson(buffer, bytesBuffered),
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -62,14 +82,12 @@ namespace HotChocolate.Stitching.Utilities
                         ? HttpResponseDeserializer.Deserialize(d)
                         : QueryResult.CreateError(
                             ErrorBuilder.New()
-                                .SetMessage(
-                                    "Could not deserialize query response.")
+                                .SetMessage("Could not deserialize query response.")
                                 .Build());
 
-                if (interceptors != null)
+                if (interceptors is { })
                 {
-                    foreach (IHttpQueryRequestInterceptor interceptor in
-                        interceptors)
+                    foreach (IHttpQueryRequestInterceptor interceptor in interceptors)
                     {
                         await interceptor.OnResponseReceivedAsync(
                             request, message, queryResult)
@@ -83,8 +101,8 @@ namespace HotChocolate.Stitching.Utilities
 
         private static object ParseJson(byte[] buffer, int bytesBuffered)
         {
-            return Utf8GraphQLRequestParser.ParseJson(
-                new ReadOnlySpan<byte>(buffer, 0, bytesBuffered));
+            var json = new ReadOnlySpan<byte>(buffer, 0, bytesBuffered);
+            return Utf8GraphQLRequestParser.ParseJson(json);
         }
 
         public Task<(string, HttpResponseMessage)> FetchStringAsync(
@@ -108,55 +126,145 @@ namespace HotChocolate.Stitching.Utilities
             HttpQueryRequest request,
             HttpClient httpClient)
         {
-            var content = new StringContent(
-                SerializeRemoteRequest(request),
-                Encoding.UTF8,
-                _json);
+            byte[] json = JsonSerializer.SerializeToUtf8Bytes(request, _jsonSerializerOptions);
+            var content = new ByteArrayContent(json, 0, json.Length);
+            content.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
 
             HttpResponseMessage response =
                 await httpClient.PostAsync(httpClient.BaseAddress, content)
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            string json = await response.Content.ReadAsStringAsync()
+            string responseContent = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
 
-            return (json, response);
+            return (responseContent, response);
         }
 
-        private async Task<HttpResponseMessage> FetchInternalAsync(
-            HttpQueryRequest request,
+        private static async Task<HttpResponseMessage> FetchInternalAsync(
+            HttpContent requestContent,
             HttpClient httpClient)
         {
-            var content = new StringContent(
-                SerializeRemoteRequest(request),
-                Encoding.UTF8,
-                _json);
-
             HttpResponseMessage response =
-                await httpClient.PostAsync(default(Uri), content)
+                await httpClient.PostAsync(default(Uri), requestContent)
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-
             return response;
         }
 
-        private HttpQueryRequest CreateRemoteRequest(
+        private void WriteJsonRequest(
+            IBufferWriter<byte> writer,
+            Utf8JsonWriter jsonWriter,
             IReadOnlyQueryRequest request)
         {
-            return new HttpQueryRequest
+            jsonWriter.WriteStartObject();
+            jsonWriter.WriteString("query", request.Query.ToString());
+
+            if (request.OperationName is { })
             {
-                Query = request.Query.ToString(),
-                OperationName = request.OperationName,
-                Variables = request.VariableValues
-            };
+                jsonWriter.WriteString("operationName", request.OperationName);
+            }
+
+            WriteJsonRequestVariables(writer, jsonWriter, request.VariableValues);
+            jsonWriter.WriteEndObject();
         }
 
-        private string SerializeRemoteRequest(
-            HttpQueryRequest remoteRequest)
+        private static void WriteJsonRequestVariables(
+            IBufferWriter<byte> writer,
+            Utf8JsonWriter jsonWriter,
+            IReadOnlyDictionary<string, object> variables)
         {
-            return JsonConvert.SerializeObject(
-                remoteRequest, _jsonSettings);
+            if (variables is { } && variables.Count > 0)
+            {
+                jsonWriter.WritePropertyName("variables");
+
+                jsonWriter.WriteStartObject();
+
+                foreach (KeyValuePair<string, object> variable in variables)
+                {
+                    jsonWriter.WritePropertyName(variable.Key);
+                    WriteValue(writer, jsonWriter, variable.Value);
+                }
+
+                jsonWriter.WriteEndObject();
+            }
+        }
+
+        private static void WriteValue(
+            IBufferWriter<byte> writer,
+            Utf8JsonWriter jsonWriter,
+            object value)
+        {
+            if (value is null || value is NullValueNode)
+            {
+                jsonWriter.WriteNullValue();
+            }
+            else
+            {
+                switch (value)
+                {
+                    case ObjectValueNode obj:
+                        jsonWriter.WriteStartObject();
+
+                        foreach (ObjectFieldNode field in obj.Fields)
+                        {
+                            jsonWriter.WritePropertyName(field.Name.Value);
+                            WriteValue(writer, jsonWriter, field.Value);
+                        }
+
+                        jsonWriter.WriteEndObject();
+                        break;
+
+                    case ListValueNode list:
+                        jsonWriter.WriteStartArray();
+
+                        foreach (IValueNode item in list.Items)
+                        {
+                            WriteValue(writer, jsonWriter, item);
+                        }
+
+                        jsonWriter.WriteEndArray();
+                        break;
+
+                    case StringValueNode s:
+                        jsonWriter.WriteStringValue(s.Value);
+                        break;
+
+                    case EnumValueNode e:
+                        jsonWriter.WriteStringValue(e.Value);
+                        break;
+
+                    case IntValueNode i:
+                        jsonWriter.Flush();
+                        WriteNumberValue(writer, i.Value);
+                        break;
+
+                    case FloatValueNode f:
+                        jsonWriter.Flush();
+                        WriteNumberValue(writer, f.Value);
+                        break;
+
+                    case BooleanValueNode b:
+                        jsonWriter.WriteBooleanValue(b.Value);
+                        break;
+
+                    default:
+                        throw new NotSupportedException(
+                            "Unknown variable value kind.");
+                }
+            }
+        }
+
+        private static void WriteNumberValue(IBufferWriter<byte> writer, string value)
+        {
+            Span<byte> span = writer.GetSpan(value.Length);
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                span[i] = (byte)value[i];
+            }
+
+            writer.Advance(value.Length);
         }
     }
 }

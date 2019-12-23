@@ -1,4 +1,7 @@
+using System;
 using System.Linq;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -32,6 +35,19 @@ namespace HotChocolate.Types
             Assert.NotNull(schema.GetType<EnumType>("Abc"));
         }
 
+        [Fact]
+        public void Annotated_Enum3_With_EnumTypeAttribute()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType<Enum3>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.NotNull(schema.GetType<EnumType>("Foo"));
+        }
+
         public enum Enum1
         {
 
@@ -43,7 +59,10 @@ namespace HotChocolate.Types
         public class RenameValueAttribute
             : EnumValueDescriptorAttribute
         {
-            public override void OnConfigure(IEnumValueDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IEnumValueDescriptor descriptor,
+                FieldInfo field)
             {
                 descriptor.Name("ABC");
             }
@@ -57,10 +76,21 @@ namespace HotChocolate.Types
             Value2
         }
 
+        [EnumType(Name = "Foo")]
+        public enum Enum3
+        {
+
+            Value1,
+            Value2
+        }
+
         public class RenameTypeAttribute
             : EnumTypeDescriptorAttribute
         {
-            public override void OnConfigure(IEnumTypeDescriptor descriptor)
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IEnumTypeDescriptor descriptor,
+                Type type)
             {
                 descriptor.Name("Abc");
             }

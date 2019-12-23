@@ -13,12 +13,20 @@
       // "args": ["generate", "-d", "-n StrawberryShake.Client.GraphQL", "-f"],
       "args": [
         "generate",
-        "-p ./GraphQL",
+        "-p ./StarWarsQuery",
         "-l 8.0",
         "-d",
-        "-n StrawberryShake.Client.GraphQL",
+        "-n StrawberryShake.Client.StarWarsQuery",
         "-f"
       ],
+      /*"args": [
+        "generate",
+        "-p ./GitHub",
+        "-l 8.0",
+        "-d",
+        "-n StrawberryShake.Client.GitHub",
+        "-f"
+      ],*/
       "cwd": "${workspaceFolder}/Demo",
       "console": "internalConsole",
       "stopAtEntry": false

@@ -118,7 +118,8 @@ namespace HotChocolate.Configuration
             if (reference is IClrTypeReference clrRef
                 && _typeInitializer.TryNormalizeReference(
                     clrRef, out ITypeReference normalized)
-                && _typeInitializer.Types.TryGetValue(
+                && _typeInitializer.DiscoveredTypes is { }
+                && _typeInitializer.DiscoveredTypes.TryGetType(
                     normalized, out RegisteredType registered)
                 && registered.Type is IType t
                 && _typeInitializer.TypeInspector.TryCreate(
@@ -141,7 +142,8 @@ namespace HotChocolate.Configuration
             if (reference.Type is IType schemaType)
             {
                 INamedType namedType = schemaType.NamedType();
-                if (_typeInitializer.Types.Any(t => t.Value.Type == namedType)
+                if (_typeInitializer.DiscoveredTypes is { }
+                    && _typeInitializer.DiscoveredTypes.Types.Any(t => t.Type == namedType)
                     && schemaType is T casted)
                 {
                     type = casted;
@@ -197,7 +199,7 @@ namespace HotChocolate.Configuration
 
             if (reference is ClrTypeDirectiveReference cr)
             {
-                ITypeReference clrTypeReference = new ClrTypeReference(
+                var clrTypeReference = new ClrTypeReference(
                     cr.ClrType, TypeContext.None);
                 if (!_typeInitializer.ClrTypes.TryGetValue(
                     clrTypeReference,
@@ -214,9 +216,10 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            if (reference is NameDirectiveReference nr)
+            if (reference is NameDirectiveReference nr
+                && _typeInitializer.DiscoveredTypes is { })
             {
-                return _typeInitializer.Types.Values
+                return _typeInitializer.DiscoveredTypes.Types
                     .Select(t => t.Type)
                     .OfType<DirectiveType>()
                     .FirstOrDefault(t => t.Name.Equals(nr.Name));
@@ -282,12 +285,13 @@ namespace HotChocolate.Configuration
         public IEnumerable<T> GetTypes<T>()
             where T : IType
         {
-            if (Status == TypeStatus.Initialized)
+            if (Status == TypeStatus.Initialized
+                || _typeInitializer.DiscoveredTypes is null)
             {
                 throw new NotSupportedException();
             }
 
-            return _typeInitializer.Types.Values
+            return _typeInitializer.DiscoveredTypes.Types
                 .Select(t => t.Type)
                 .OfType<T>()
                 .Distinct();

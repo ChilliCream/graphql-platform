@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -15,7 +16,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(new FilterInputType<Foo>());
+            ISchema schema = CreateSchema(new FilterInputType<Foo>());
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -26,7 +27,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(
+            ISchema schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterNamingConvention, FilterNamingConventionPascalCase>());
 
@@ -40,12 +41,41 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(
+            ISchema schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterNamingConvention, FilterNamingConventionSnakeCase>());
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Convention_Custom()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(x =>
+                x.AddConvention<IFilterNamingConvention, CustomConvention>()
+                .AddObjectType(x => x.Name("Test")
+                .Field("foo") 
+                .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
+                .UseFiltering<FilterInputType<Foo>>())
+            );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        private class CustomConvention : FilterNamingConventionSnakeCase
+        {
+            public override NameString ArgumentName => "test";
+
+            public override NameString ArrayFilterPropertyName => "TESTelement";
+
+            public override NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
+            {
+                return base.GetFilterTypeName(context, entityType) + "Test";
+            }
         }
 
         public class Foo

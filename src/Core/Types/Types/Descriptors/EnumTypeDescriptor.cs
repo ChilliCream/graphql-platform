@@ -37,7 +37,10 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.ClrType is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.ClrType);
             }
 
             var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.Value);
@@ -49,6 +52,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 definition.Values.Add(value);
             }
+
+            base.OnCreateDefinition(definition);
         }
 
         protected void AddImplicitValues(

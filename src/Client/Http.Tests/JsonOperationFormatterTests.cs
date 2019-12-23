@@ -15,7 +15,7 @@ namespace StrawberryShake.Http
         public void Serialize_To_Json_With_Document()
         {
             // arrange
-            var serializerResolver = new Mock<IValueSerializerResolver>();
+            var serializerResolver = new Mock<IValueSerializerCollection>();
             var formatter = new JsonOperationFormatter(serializerResolver.Object);
             var formatterOptions = new OperationFormatterOptions(includeDocument: true);
             var operation = new Operation();
@@ -32,7 +32,7 @@ namespace StrawberryShake.Http
         public void Serialize_To_Json_Without_Document()
         {
             // arrange
-            var serializerResolver = new Mock<IValueSerializerResolver>();
+            var serializerResolver = new Mock<IValueSerializerCollection>();
             var formatter = new JsonOperationFormatter(serializerResolver.Object);
             var formatterOptions = new OperationFormatterOptions(includeDocument: false);
             var operation = new Operation();
@@ -49,7 +49,7 @@ namespace StrawberryShake.Http
         public void Serialize_To_Json_With_Id()
         {
             // arrange
-            var serializerResolver = new Mock<IValueSerializerResolver>();
+            var serializerResolver = new Mock<IValueSerializerCollection>();
             var formatter = new JsonOperationFormatter(serializerResolver.Object);
             var formatterOptions = new OperationFormatterOptions(includeId: true);
             var operation = new Operation();
@@ -66,7 +66,7 @@ namespace StrawberryShake.Http
         public void Serialize_To_Json_Without_Id()
         {
             // arrange
-            var serializerResolver = new Mock<IValueSerializerResolver>();
+            var serializerResolver = new Mock<IValueSerializerCollection>();
             var formatter = new JsonOperationFormatter(serializerResolver.Object);
             var formatterOptions = new OperationFormatterOptions(includeId: false);
             var operation = new Operation();
@@ -83,7 +83,7 @@ namespace StrawberryShake.Http
         public void Serialize_To_Json_With_Extensions()
         {
             // arrange
-            var serializerResolver = new Mock<IValueSerializerResolver>();
+            var serializerResolver = new Mock<IValueSerializerCollection>();
             var formatter = new JsonOperationFormatter(serializerResolver.Object);
             var formatterOptions = new OperationFormatterOptions(
                 new Dictionary<string, object?>
@@ -104,8 +104,8 @@ namespace StrawberryShake.Http
         public void Serialize_To_Json_With_Variables()
         {
             // arrange
-            var serializerResolver = new Mock<IValueSerializerResolver>();
-            serializerResolver.Setup(t => t.GetValueSerializer(It.IsAny<string>()))
+            var serializerResolver = new Mock<IValueSerializerCollection>();
+            serializerResolver.Setup(t => t.Get(It.IsAny<string>()))
                 .Returns(new StringValueSerializer());
             var formatter = new JsonOperationFormatter(serializerResolver.Object);
             var formatterOptions = new OperationFormatterOptions();

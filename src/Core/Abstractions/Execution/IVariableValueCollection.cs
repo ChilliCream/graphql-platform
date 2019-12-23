@@ -6,7 +6,7 @@
     public interface IVariableValueCollection
     {
         /// <summary>
-        /// Gets a coreced variable value from the collection.
+        /// Gets a coerced variable value from the collection.
         /// </summary>
         /// <param name="name">The variable name.</param>
         /// <returns></returns>
@@ -22,7 +22,7 @@
         T GetVariable<T>(NameString name);
 
         /// <summary>
-        /// Tries to get a coreced variable value from the collection.
+        /// Tries to get a coerced variable value from the collection.
         /// </summary>
         /// <param name="name">The variable name.</param>
         /// <param name="value">The coerced variable value.</param>

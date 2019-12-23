@@ -9,6 +9,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [10.3.0]
+
+### Added
+
+- Infer non-nullability from C# ref types enhancement. [#1236](https://github.com/ChilliCream/hotchocolate/pull/1236)
+- Descriptor Attributes. [#1238](https://github.com/ChilliCream/hotchocolate/pull/1238)
+- Introduced Subscribe Resolver for IAsyncEnumerable [#1262](https://github.com/ChilliCream/hotchocolate/pull/1262)
+- Added support for generic object type extensions. [#1297](https://github.com/ChilliCream/hotchocolate/pull/1297)
+- Added authorize attribute. [#1238](https://github.com/ChilliCream/hotchocolate/pull/1307)
+- Added paging attribute. [#1306](https://github.com/ChilliCream/hotchocolate/pull/1306)
+- Added filter attribute. [#1306](https://github.com/ChilliCream/hotchocolate/pull/1306)
+- Added sorting attribute. [#1306](https://github.com/ChilliCream/hotchocolate/pull/1306)
+
+### Changed
+
+- Stop adding the __typename field when it's in selection on schema stitching. [#1248](https://github.com/ChilliCream/hotchocolate/pull/1248)
+- Improved Type Discovery. [#1281](https://github.com/ChilliCream/hotchocolate/pull/1281)
+
+### Fixed
+
+- Create a new service scope when cloning RequestContext in subscriptions. [#1211](https://github.com/ChilliCream/hotchocolate/pull/1211)
+- Explicit binding of sorting types lead to errors. [#1055](https://github.com/ChilliCream/hotchocolate/pull/1055)
+- Detect if an `IQueryable` already has a sorting. [#1253](https://github.com/ChilliCream/hotchocolate/pull/1253)
+- Fixed issue with custom scalar types in delegated fields (schema stitching). [#1221](https://github.com/ChilliCream/hotchocolate/pull/1221)
+- Fixed issue where the rented buffer was too early returned. [#1277](https://github.com/ChilliCream/hotchocolate/pull/1277)
+- Fixed handling of rewritten non-null reference types. [#1288](https://github.com/ChilliCream/hotchocolate/pull/1288)
+- Fixed clr type binding for issue with new type discovery. [#1304](https://github.com/ChilliCream/hotchocolate/pull/1304)
+- Fixed parser error handling in middleware. [#1028](https://github.com/ChilliCream/hotchocolate/pull/1028)
+- Fixed directive delegation (@skip/@include) in stitching. [#937](https://github.com/ChilliCream/hotchocolate/pull/937)
+
+## [10.2.0]
+
+### Added
+
+- Added `Any` type. [#1055](https://github.com/ChilliCream/hotchocolate/pull/1055)
+- Added non-generic `Type(Type type)` methods on field descriptors to allow for more dynamic schema generation. [#1079](https://github.com/ChilliCream/hotchocolate/issues/1079)
+- Added `ArgumentKind(name)` to resolver context (#1134)
+- Added FilterInputType customization methods. (#1150)
+
+### Changed
+
+- Made filter operation fields public and introduced interfaces.
+- Use original operation name in stitched queries. [#1124](https://github.com/ChilliCream/hotchocolate/pull/1124)
+
+### Fixed
+
+- FilterTypes produce schema errors when filters properties are nullable. [#1034](https://github.com/ChilliCream/hotchocolate/pull/1034)
+- MongoDB & Filter on `Boolean` property: the "_not" filter throws an exception. [#1033](https://github.com/ChilliCream/hotchocolate/pull/1033)
+- Input object is not validated when given entirely as a variable [#1074](https://github.com/ChilliCream/hotchocolate/pull/1074)
+- Variables parsing: Issue with nested `DateTime` fields in variables [#1037](https://github.com/ChilliCream/hotchocolate/pull/1037)
+- DateTime Filters not working. [#1036](https://github.com/ChilliCream/hotchocolate/pull/1036)
+- Date Filters not returning any result for equals filter [#1035](https://github.com/ChilliCream/hotchocolate/pull/1035)
+- Subscription is not working with variables [#1176](https://github.com/ChilliCream/hotchocolate/pull/1176)
+- Relay node field did not show in SDL [#1175](https://github.com/ChilliCream/hotchocolate/pull/1175)
+- Filter issues and added more filter tests. [#1170](https://github.com/ChilliCream/hotchocolate/pull/1170)
+- SelectionSetNode.AddSelections() did not add the new selections but duplicated the old ones. [#1142](https://github.com/ChilliCream/hotchocolate/pull/1142)
+- The complecity middleware when multiplier where activated did only take the firs level into account. [#1137](https://github.com/ChilliCream/hotchocolate/pull/1137)
+- Errors when attempting to filter on nullable types. [#1121](https://github.com/ChilliCream/hotchocolate/pull/1121)
+
 ## [10.1.0]
 
 ### Added
@@ -18,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Distinguish between HTTP and remote schema errors with schema stitching. [#1063](https://github.com/ChilliCream/hotchocolate/pull/1063)
+- Distinguish between HTTP and remote schema errors with schema stitching. [#1063](https://github.com/ChilliCream/hotchocolate/pull/1063)
 
 ### Fixed
 

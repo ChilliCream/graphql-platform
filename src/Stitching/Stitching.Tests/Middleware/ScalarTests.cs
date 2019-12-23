@@ -118,6 +118,121 @@ namespace HotChocolate.Stitching
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Custom_Scalar_Delegated_Argument()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder => builder
+                .AddSchemaFromHttp("special")
+                .AddExtensionsFromString("extend type Query { custom_scalar_stitched(bar: MyCustomScalarValue): MyCustomScalarValue @delegate(schema: \"special\", path: \"custom_scalar(bar: $arguments:bar)\") }")
+                .AddSchemaConfiguration(c => {
+                    c.RegisterType<MyCustomScalarType>();
+                }));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery("{ custom_scalar_stitched(bar: \"2019-11-11\") }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Custom_Scalar_Delegated_Input_Argument()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder => builder
+                .AddSchemaFromHttp("special")
+                .AddExtensionsFromString("extend type Query { custom_scalar_complex_stitched(bar: CustomInputValueInput): MyCustomScalarValue @delegate(schema: \"special\", path: \"custom_scalar_complex(bar: $arguments:bar)\") }")
+                .AddSchemaConfiguration(c => {
+                    c.RegisterType<MyCustomScalarType>();
+                }));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery("query ($bar: CustomInputValueInput) { custom_scalar_complex_stitched(bar: $bar) }")
+                        .SetVariableValue("bar", new Dictionary<string, object> { { "from", "2019-11-11" }, { "to", "2019-11-17" } })
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Custom_Scalar_Delegated_Input_Argument_Unstitched()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder => builder
+                .AddSchemaFromHttp("special")
+                .AddSchemaConfiguration(c => {
+                    c.RegisterType<MyCustomScalarType>();
+                }));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery("query ($bar: CustomInputValueInput) { custom_scalar_complex(bar: $bar) }")
+                        .SetVariableValue("bar", new Dictionary<string, object> { { "from", "2019-11-11" }, { "to", "2019-11-17" } })
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         protected override IHttpClientFactory CreateRemoteSchemas(
             Dictionary<string, HttpClient> connections)
         {

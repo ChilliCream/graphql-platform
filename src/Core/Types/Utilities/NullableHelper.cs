@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Net.NetworkInformation;
 using System;
 using System.Collections.Generic;
@@ -141,7 +142,7 @@ namespace HotChocolate.Utilities
                     var arguments = new IExtendedType[]
                     {
                         CreateExtendedType(
-                            context, flags, type.GetElementType(), ref position)
+                            context, flags, type.GetElementType()!, ref position)
                     };
 
                     return new ExtendedType(
@@ -232,7 +233,7 @@ namespace HotChocolate.Utilities
             if (data is { })
             {
                 return new NullableContextAttribute(
-                    (byte)data.ConstructorArguments[0].Value);
+                    (byte)data.ConstructorArguments[0].Value!);
             }
 
             return null;
@@ -253,8 +254,8 @@ namespace HotChocolate.Utilities
             try
             {
                 var flags = (byte[])attribute.GetType()
-                    .GetField("NullableFlags")
-                    .GetValue(attribute);
+                    .GetField("NullableFlags")!
+                    .GetValue(attribute)!;
                 return new NullableAttribute(flags);
             }
             catch
@@ -285,6 +286,10 @@ namespace HotChocolate.Utilities
                         return new NullableAttribute(b);
                     case byte[] a:
                         return new NullableAttribute(a);
+                    case CustomAttributeTypedArgument b:
+                        return new NullableAttribute((byte)b.Value);
+                    case ReadOnlyCollection<CustomAttributeTypedArgument> a:
+                        return new NullableAttribute(a.Select(t => (byte)t.Value).ToArray());
                     default:
                         throw new InvalidOperationException(
                             "Unexpected nullable attribute data.");

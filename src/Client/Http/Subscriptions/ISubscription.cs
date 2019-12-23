@@ -11,12 +11,16 @@ namespace StrawberryShake.Http.Subscriptions
 
         IOperation Operation { get; }
 
+        IOperationFormatter OperationFormatter { get; }
+
         IResultParser ResultParser { get; }
 
         void OnRegister(Func<Task> unregister);
 
-        Task OnReceiveResultAsync(DataResultMessage message, CancellationToken cancellationToken);
+        ValueTask OnReceiveResultAsync(
+            DataResultMessage message,
+            CancellationToken cancellationToken);
 
-        Task OnCompletedAsync(CancellationToken cancellationToken);
+        ValueTask OnCompletedAsync(CancellationToken cancellationToken);
     }
 }

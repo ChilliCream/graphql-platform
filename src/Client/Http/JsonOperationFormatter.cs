@@ -12,17 +12,13 @@ namespace StrawberryShake.Http
     public class JsonOperationFormatter
         : IOperationFormatter
     {
-        private IValueSerializerResolver _valueSerializerResolver;
+        private readonly IValueSerializerCollection _valueSerializers;
 
         public JsonOperationFormatter(
-            IValueSerializerResolver valueSerializerResolver)
+            IValueSerializerCollection valueSerializers)
         {
-            if (valueSerializerResolver is null)
-            {
-                throw new ArgumentNullException(nameof(valueSerializerResolver));
-            }
-
-            _valueSerializerResolver = valueSerializerResolver;
+            _valueSerializers = valueSerializers
+                ?? throw new ArgumentNullException(nameof(valueSerializers));
         }
 
         public Task SerializeAsync(
@@ -44,8 +40,8 @@ namespace StrawberryShake.Http
             OperationFormatterOptions opt = options ?? OperationFormatterOptions.Default;
 
             return SerializeInternalAsync(
-                operation, stream, opt.Extensions, opt.IncludeId,
-                opt.IncludeDocument, cancellationToken);
+                operation, stream, opt.Extensions,
+                opt.IncludeId, opt.IncludeDocument);
         }
 
         private async Task SerializeInternalAsync(
@@ -53,20 +49,18 @@ namespace StrawberryShake.Http
             Stream stream,
             IReadOnlyDictionary<string, object?>? extensions,
             bool includeId,
-            bool includeDocument,
-            CancellationToken cancellationToken = default)
+            bool includeDocument)
         {
             await using var jsonWriter = new Utf8JsonWriter(stream);
             WriteJsonRequest(
-                operation, jsonWriter, extensions, includeId,
-                includeDocument, cancellationToken);
+                operation, jsonWriter, extensions,
+                includeId, includeDocument);
         }
 
         public void Serialize(
             IOperation operation,
             IBufferWriter<byte> writer,
-            OperationFormatterOptions? options = null,
-            CancellationToken cancellationToken = default)
+            OperationFormatterOptions? options = null)
         {
             if (operation is null)
             {
@@ -81,8 +75,8 @@ namespace StrawberryShake.Http
             var opt = options ?? OperationFormatterOptions.Default;
 
             SerializeInternal(
-                operation, writer, opt.Extensions, opt.IncludeId,
-                opt.IncludeDocument, cancellationToken);
+                operation, writer, opt.Extensions,
+                opt.IncludeId, opt.IncludeDocument);
         }
 
         private void SerializeInternal(
@@ -90,13 +84,12 @@ namespace StrawberryShake.Http
             IBufferWriter<byte> writer,
             IReadOnlyDictionary<string, object?>? extensions,
             bool includeId,
-            bool includeDocument,
-            CancellationToken cancellationToken = default)
+            bool includeDocument)
         {
             using var jsonWriter = new Utf8JsonWriter(writer);
             WriteJsonRequest(
-                operation, jsonWriter, extensions, includeId,
-                includeDocument, cancellationToken);
+                operation, jsonWriter, extensions,
+                includeId, includeDocument);
         }
 
         private void WriteJsonRequest(
@@ -104,8 +97,7 @@ namespace StrawberryShake.Http
             Utf8JsonWriter writer,
             IReadOnlyDictionary<string, object?>? extensions,
             bool includeId,
-            bool includeDocument,
-            CancellationToken cancellationToken)
+            bool includeDocument)
         {
             writer.WriteStartObject();
 
@@ -154,7 +146,7 @@ namespace StrawberryShake.Http
                 foreach (VariableValue variableValue in variableValues)
                 {
                     IValueSerializer serializer =
-                        _valueSerializerResolver.GetValueSerializer(variableValue.TypeName);
+                        _valueSerializers.Get(variableValue.TypeName);
 
                     map.Add(
                         variableValue.Name,
