@@ -22,23 +22,8 @@ namespace HotChocolate.Utilities.Serialization
 
             try
             {
-                for (int i = 0; i < value.Fields.Count; i++)
-                {
-                    ObjectFieldNode fieldValue = value.Fields[i];
-                    if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
-                    {
-                        dict[field.Name] = field.Type.ParseLiteral(fieldValue.Value);
-                    }
-                    else
-                    {
-                        throw new InputObjectSerializationException(
-                            $"The field `{fieldValue.Name.Value}` does not exist on " +
-                            $"the type `{type.Name}`.");
-                    }
-                }
-
+                Parse(type, value, dict, converter);
                 SetDefaultValues(type, dict);
-
                 return factory(dict, converter);
             }
             finally
@@ -54,12 +39,24 @@ namespace HotChocolate.Utilities.Serialization
         {
             var dict = new Dictionary<string, object>();
 
-            for (int i = 0; i < value.Fields.Count; i++)
+            Parse(type, value, dict, converter);
+            SetDefaultValues(type, dict);
+
+            return dict;
+        }
+
+        private static void Parse(
+            InputObjectType type,
+            ObjectValueNode source,
+            IDictionary<string, object> target,
+            ITypeConversion converter)
+        {
+            for (int i = 0; i < source.Fields.Count; i++)
             {
-                ObjectFieldNode fieldValue = value.Fields[i];
+                ObjectFieldNode fieldValue = source.Fields[i];
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
-                    dict[field.Name] = field.Type.ParseLiteral(fieldValue.Value);
+                    target[field.Name] = field.Type.ParseLiteral(fieldValue.Value);
                 }
                 else
                 {
@@ -68,10 +65,6 @@ namespace HotChocolate.Utilities.Serialization
                         $"the type `{type.Name}`.");
                 }
             }
-
-            SetDefaultValues(type, dict);
-
-            return dict;
         }
 
         public static object Deserialize(
@@ -84,22 +77,8 @@ namespace HotChocolate.Utilities.Serialization
 
             try
             {
-                foreach (KeyValuePair<string, object> fieldValue in value)
-                {
-                    if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
-                    {
-                        dict[field.Name] = field.Type.Deserialize(fieldValue.Value);
-                    }
-                    else
-                    {
-                        throw new InputObjectSerializationException(
-                            $"The field `{fieldValue.Key}` does not exist on " +
-                            $"the type `{type.Name}`.");
-                    }
-                }
-
+                Deserialize(type, value, dict, converter);
                 SetDefaultValues(type, dict);
-
                 return factory(dict, converter);
             }
             finally
@@ -115,11 +94,23 @@ namespace HotChocolate.Utilities.Serialization
         {
             var dict = new Dictionary<string, object>();
 
-            foreach (KeyValuePair<string, object> fieldValue in value)
+            Deserialize(type, value, dict, converter);
+            SetDefaultValues(type, dict);
+
+            return dict;
+        }
+
+        private static void Deserialize(
+            InputObjectType type,
+            IReadOnlyDictionary<string, object> source,
+            IDictionary<string, object> target,
+            ITypeConversion converter)
+        {
+            foreach (KeyValuePair<string, object> fieldValue in source)
             {
                 if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
                 {
-                    dict[field.Name] = field.Type.Deserialize(fieldValue.Value);
+                    target[field.Name] = field.Type.Deserialize(fieldValue.Value);
                 }
                 else
                 {
@@ -128,15 +119,11 @@ namespace HotChocolate.Utilities.Serialization
                         $"the type `{type.Name}`.");
                 }
             }
-
-            SetDefaultValues(type, dict);
-
-            return dict;
         }
 
         private static void SetDefaultValues(
             InputObjectType type,
-            Dictionary<string, object> dict)
+            IDictionary<string, object> dict)
         {
             foreach (InputField field in type.Fields)
             {
