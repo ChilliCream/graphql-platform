@@ -2,24 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Language;
-using Xunit;
 
-namespace Types.Tests.Types
+#nullable enable
+
+namespace HotChocolate.Utilities.Serialization
 {
-    public class Foo
+    internal static class InputObjectConstructorResolver
     {
-        [Fact]
-        public void Bar()
+        public static ConstructorInfo? GetConstructor(
+            Type type,
+            IEnumerable<PropertyInfo> properties)
         {
-            PropertyInfo[] props = typeof(Test).GetProperties();
-            Dictionary<string, PropertyInfo> properties = props.ToDictionary(
+            Dictionary<string, PropertyInfo> propertyMap = properties.ToDictionary(
                 t => t.Name,
                 StringComparer.OrdinalIgnoreCase);
-            ConstructorInfo constructor = GetCompatibleConstructor(typeof(Test), properties);
+            return GetCompatibleConstructor(type, propertyMap);
         }
 
-        private static ConstructorInfo GetCompatibleConstructor(
+        private static ConstructorInfo? GetCompatibleConstructor(
             Type type,
             IReadOnlyDictionary<string, PropertyInfo> properties)
         {
@@ -30,7 +30,14 @@ namespace Types.Tests.Types
 
             if (properties.Values.All(t => t.CanWrite))
             {
-                return defaultConstructor;
+                if (defaultConstructor is { })
+                {
+                    return defaultConstructor;
+                }
+                else if (constructors.Length == 0)
+                {
+                    return null;
+                }
             }
 
             var required = new HashSet<string>();
@@ -44,7 +51,8 @@ namespace Types.Tests.Types
                 }
             }
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(
+                $"No compatible constructor found for input type type `{type.FullName}`.");
         }
 
         private static bool IsCompatibleConstructor(
@@ -72,6 +80,10 @@ namespace Types.Tests.Types
                 {
                     required.Remove(property.Name);
                 }
+                else
+                {
+                    return false;
+                }
             }
 
             return required.Count == 0;
@@ -90,23 +102,6 @@ namespace Types.Tests.Types
                     required.Add(item.Key);
                 }
             }
-        }
-
-        public class Test
-        {
-            public Test()
-            {
-
-            }
-
-            private Test(string a)
-            {
-
-            }
-
-            public string A { get; }
-
-            public string B { get; set; }
         }
     }
 }

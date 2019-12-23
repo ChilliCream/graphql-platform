@@ -1489,6 +1489,13 @@ namespace HotChocolate.Types
         public class Foo
             : IFoo
         {
+            public Foo() { }
+
+            public Foo(string description)
+            {
+                Description = description;
+            }
+
             public string Description { get; } = "hello";
         }
 

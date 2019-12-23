@@ -228,8 +228,18 @@ namespace HotChocolate.Types
 
         public class Foo
         {
-            public string Description { get; } = "hello";
+            public Foo()
+            {
+            }
+
+            public Foo(string name, string description)
+            {
+                Name = name;
+                Description = description;
+            }
+
             public string Name { get; } = "hello";
+            public string Description { get; } = "hello";
         }
 
         public class DummyDirective
