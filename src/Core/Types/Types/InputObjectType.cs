@@ -223,9 +223,8 @@ namespace HotChocolate.Types
 
             if (ClrType == typeof(object) || Fields.Any(t => t.Property is null))
             {
-                var visitor = new ObjectValueToInputObjectConverter(converter);
-                _parseLiteral = ov => visitor.Convert(ov, this);
-                _deserialize = map => map;
+                _parseLiteral = ov => InputObjectParserHelper.Parse(this, ov, converter);
+                _deserialize = map => InputObjectParserHelper.Deserialize(this, map, converter);
             }
             else
             {

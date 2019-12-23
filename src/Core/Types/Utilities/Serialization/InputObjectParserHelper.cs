@@ -47,6 +47,33 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
+        public static object Parse(
+            InputObjectType type,
+            ObjectValueNode value,
+            ITypeConversion converter)
+        {
+            var dict = new Dictionary<string, object>();
+
+            for (int i = 0; i < value.Fields.Count; i++)
+            {
+                ObjectFieldNode fieldValue = value.Fields[i];
+                if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
+                {
+                    dict[field.Name] = field.Type.ParseLiteral(fieldValue.Value);
+                }
+                else
+                {
+                    throw new InputObjectSerializationException(
+                        $"The field `{fieldValue.Name.Value}` does not exist on " +
+                        $"the type `{type.Name}`.");
+                }
+            }
+
+            SetDefaultValues(type, dict);
+
+            return dict;
+        }
+
         public static object Deserialize(
             InputObjectType type,
             IReadOnlyDictionary<string, object> value,
@@ -79,6 +106,32 @@ namespace HotChocolate.Utilities.Serialization
             {
                 _dictionaryPool.Return(dict);
             }
+        }
+
+        public static Dictionary<string, object> Deserialize(
+            InputObjectType type,
+            IReadOnlyDictionary<string, object> value,
+            ITypeConversion converter)
+        {
+            var dict = new Dictionary<string, object>();
+
+            foreach (KeyValuePair<string, object> fieldValue in value)
+            {
+                if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
+                {
+                    dict[field.Name] = field.Type.Deserialize(fieldValue.Value);
+                }
+                else
+                {
+                    throw new InputObjectSerializationException(
+                        $"The field `{fieldValue.Key}` does not exist on " +
+                        $"the type `{type.Name}`.");
+                }
+            }
+
+            SetDefaultValues(type, dict);
+
+            return dict;
         }
 
         private static void SetDefaultValues(
