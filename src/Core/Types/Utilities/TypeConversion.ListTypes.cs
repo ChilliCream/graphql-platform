@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace HotChocolate.Utilities
 {
     public partial class TypeConversion
     {
+        private static readonly MethodInfo _dictionaryConvert =
+            typeof(TypeConversion).GetMethod(
+                "GenericDictionaryConverter",
+                BindingFlags.Static | BindingFlags.NonPublic);
+
         private bool TryCreateListTypeConverter(Type from, Type to,
             out ChangeType listConverter)
         {
@@ -20,6 +26,15 @@ namespace HotChocolate.Utilities
                 {
                     listConverter = source => GenericArrayConverter(
                         toElement, (ICollection)source, converter);
+                    Register(from, to, listConverter);
+                }
+                else if (to.IsGenericType
+                    && to.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                {
+                    MethodInfo converterMethod =
+                        _dictionaryConvert.MakeGenericMethod(toElement.GetGenericArguments());
+                    listConverter = source => converterMethod.Invoke(
+                        null, new[] { source, converter });
                     Register(from, to, listConverter);
                 }
                 else
@@ -60,12 +75,22 @@ namespace HotChocolate.Utilities
         }
 
         private static object GenericListConverter(
-            Type listType, ICollection source,
+            Type listType,
+            ICollection source,
             ChangeType converter)
         {
             var list = (IList)Activator.CreateInstance(listType);
-            ChangeListType(source, (item, index) =>
-                list.Add(converter(item)));
+            ChangeListType(source, (item, index) => list.Add(converter(item)));
+            return list;
+        }
+
+        private static object GenericDictionaryConverter<TKey, TValue>(
+            ICollection source,
+            ChangeType converter)
+        {
+            var list = (ICollection<KeyValuePair<TKey, TValue>>)new Dictionary<TKey, TValue>();
+            ChangeListType(source, (item, index) => list.Add(
+                (KeyValuePair<TKey, TValue>)converter(item)));
             return list;
         }
     }

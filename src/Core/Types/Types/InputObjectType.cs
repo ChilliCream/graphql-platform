@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using HotChocolate.Utilities.Serialization;
 
 namespace HotChocolate.Types
 {
@@ -15,9 +18,9 @@ namespace HotChocolate.Types
     {
         private readonly Action<IInputObjectTypeDescriptor> _configure;
         private InputObjectToObjectValueConverter _objectToValueConverter;
-        private ObjectValueToInputObjectConverter _valueToObjectConverter;
         private InputObjectToDictionaryConverter _objectToDictionary;
-        private DictionaryToInputObjectConverter _dictionaryToObject;
+        private Func<ObjectValueNode, object> _parseLiteral;
+        private Func<IReadOnlyDictionary<string, object>, object> _deserialize;
 
         protected InputObjectType()
         {
@@ -52,14 +55,14 @@ namespace HotChocolate.Types
 
         public object ParseLiteral(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
 
             if (literal is ObjectValueNode ov)
             {
-                return _valueToObjectConverter.Convert(ov, this);
+                return _parseLiteral(ov);
             }
 
             if (literal is NullValueNode)
@@ -67,9 +70,8 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            throw new ArgumentException(
-                TypeResources.InputObjectType_CannotParseLiteral,
-                nameof(literal));
+            throw new InputObjectSerializationException(
+                TypeResources.InputObjectType_CannotParseLiteral);
         }
 
         public bool IsInstanceOfType(object value)
@@ -98,7 +100,7 @@ namespace HotChocolate.Types
             {
                 return serialized;
             }
-            throw new InvalidOperationException(
+            throw new InputObjectSerializationException(
                 "The specified value is not a valid input object.");
         }
 
@@ -131,11 +133,17 @@ namespace HotChocolate.Types
 
         public object Deserialize(object serialized)
         {
-            if (TryDeserialize(serialized, out object value))
+            if (serialized is null)
             {
-                return value;
+                return null;
             }
-            throw new InvalidOperationException(
+
+            if (serialized is IReadOnlyDictionary<string, object> dict)
+            {
+                return _deserialize(dict);
+            }
+
+            throw new InputObjectSerializationException(
                 "The specified value is not a serialized input object.");
         }
 
@@ -149,16 +157,14 @@ namespace HotChocolate.Types
                     return true;
                 }
 
-                if ((serialized is IReadOnlyDictionary<string, object>
-                    || serialized is IDictionary<string, object>)
-                    && ClrType == typeof(object))
+                if (serialized is IReadOnlyDictionary<string, object> dict)
                 {
-                    value = serialized;
+                    value = _deserialize(dict);
                     return true;
                 }
 
-                value = _dictionaryToObject.Convert(serialized, this);
-                return true;
+                value = null;
+                return false;
             }
             catch
             {
@@ -200,16 +206,12 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            ITypeConversion typeConversion =
-                context.Services.GetTypeConversion();
+            ITypeConversion converter = context.Services.GetTypeConversion();
+
             _objectToValueConverter =
-                new InputObjectToObjectValueConverter(typeConversion);
-            _valueToObjectConverter =
-                new ObjectValueToInputObjectConverter(typeConversion);
+                new InputObjectToObjectValueConverter(converter);
             _objectToDictionary =
-                new InputObjectToDictionaryConverter(typeConversion);
-            _dictionaryToObject =
-                new DictionaryToInputObjectConverter(typeConversion);
+                new InputObjectToDictionaryConverter(converter);
 
             SyntaxNode = definition.SyntaxNode;
 
@@ -218,6 +220,25 @@ namespace HotChocolate.Types
 
             Fields = new FieldCollection<InputField>(fields);
             FieldInitHelper.CompleteFields(context, definition, Fields);
+
+            if (ClrType == typeof(object) || Fields.Any(t => t.Property is null))
+            {
+                _parseLiteral = ov => InputObjectParserHelper.Parse(this, ov, converter);
+                _deserialize = map => InputObjectParserHelper.Deserialize(this, map, converter);
+            }
+            else
+            {
+                ConstructorInfo constructor = InputObjectConstructorResolver.GetConstructor(
+                    this.ClrType,
+                    Fields.Select(t => t.Property));
+                InputObjectFactory factory = InputObjectFactoryCompiler.Compile(this, constructor);
+
+                _parseLiteral = ov => InputObjectParserHelper.Parse(
+                    this, ov, factory, converter);
+
+                _deserialize = map => InputObjectParserHelper.Deserialize(
+                    this, map, factory, converter);
+            }
         }
 
         protected virtual void OnCompleteFields(

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -36,6 +37,28 @@ namespace HotChocolate.Execution
                 IError error = _errorHandler.CreateUnexpectedError(ex)
                     .SetMessage(ex.Message)
                     .AddLocation(ex.Line, ex.Column)
+                    .Build();
+
+                error = _errorHandler.Handle(error);
+
+                context.Exception = ex;
+                context.Result = QueryResult.CreateError(error);
+            }
+            catch (ScalarSerializationException ex)
+            {
+                IError error = _errorHandler.CreateUnexpectedError(ex)
+                    .SetMessage(ex.Message)
+                    .Build();
+
+                error = _errorHandler.Handle(error);
+
+                context.Exception = ex;
+                context.Result = QueryResult.CreateError(error);
+            }
+            catch (InputObjectSerializationException ex)
+            {
+                IError error = _errorHandler.CreateUnexpectedError(ex)
+                    .SetMessage(ex.Message)
                     .Build();
 
                 error = _errorHandler.Handle(error);
