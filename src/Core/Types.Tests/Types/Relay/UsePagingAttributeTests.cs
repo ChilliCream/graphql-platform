@@ -40,6 +40,37 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void UsePagingAttribute_On_Extension_Infer_Types()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddType<QueryExtension>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void UsePagingAttribute_On_Extension_Execute_Query()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddType<QueryExtension>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foos(first: 1) { nodes { bar } } }")
+                .MatchSnapshot();
+        }
+
+        public class QueryType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+            }
+        }
+
         public class Query
         {
             [UsePaging]
@@ -48,6 +79,11 @@ namespace HotChocolate.Types.Relay
                 new Foo { Bar = "first" },
                 new Foo { Bar = "second" },
             }.AsQueryable();
+        }
+
+        [ExtendObjectType(Name = "Query")]
+        public class QueryExtension : Query
+        {
         }
 
         public class Foo

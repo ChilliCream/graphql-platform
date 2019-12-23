@@ -19,7 +19,6 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context)
         {
-            _namingConvention = context.GetFilterNamingConvention();
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -29,6 +28,7 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
+            _namingConvention = context.GetFilterNamingConvention();
         }
 
         internal protected sealed override FilterFieldDefintion Definition { get; } =
