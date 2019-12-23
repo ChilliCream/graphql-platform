@@ -14,7 +14,7 @@ namespace StrawberryShake
         /// Configures the client options that will be used to create a operation client.
         /// </summary>
         /// <param name="builder">
-        /// The <see cref="IServiceCollection"/>.
+        /// The <see cref="IOperationClientBuilder"/>.
         /// </param>
         /// <param name="configure">
         /// A delegate that is used to configure the <see cref="ClientOptions"/>.
@@ -47,7 +47,7 @@ namespace StrawberryShake
         /// Adds a delegate that will be used to configure a named <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="builder">
-        /// The <see cref="IServiceCollection"/>.
+        /// The <see cref="IOperationClientBuilder"/>.
         /// </param>
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
