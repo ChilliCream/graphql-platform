@@ -76,10 +76,15 @@ namespace HotChocolate.Execution
             foreach (KeyValuePair<NameString, ArgumentVariableValue> var in _vars)
             {
                 IError error = null;
+                object value = null;
 
-                if (!variables.TryGetVariable(
+                if (variables.TryGetVariable(
                     var.Value.VariableName,
-                    out object value))
+                    out IValueNode variableLiteral))
+                {
+                    value = variableLiteral;
+                }
+                else
                 {
                     value = var.Value.DefaultValue;
 
