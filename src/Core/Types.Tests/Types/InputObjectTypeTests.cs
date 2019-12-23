@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -976,6 +977,62 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Input_With_Optionals_Not_Set()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithOptionals>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [InlineData("null")]
+        [InlineData("\"abc\"")]
+        [Theory]
+        public async Task Input_With_Optionals_Set(string value)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithOptionals>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ do(input: { bar: " + value + " }) { isBarSet } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Input_With_Immutable_ClrType()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithImmutables>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ do(input: { bar: \"abc\" baz: \"def\" }) { bar baz } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class SimpleInput
         {
             public int Id { get; set; }
@@ -1060,6 +1117,57 @@ namespace HotChocolate.Types
         public class Baz
         {
             public string Text { get; set; }
+        }
+
+        public class QueryWithOptionals
+        {
+            public FooPayload Do(FooInput input)
+            {
+                return new FooPayload
+                {
+                    IsBarSet = input.Bar.HasValue,
+                    Bar = input.Bar,
+                    Baz = input.Baz
+                };
+            }
+        }
+
+        public class FooInput
+        {
+            public Optional<string> Bar { get; set; }
+            public string Baz { get; set; }
+        }
+
+        public class FooPayload
+        {
+            public bool IsBarSet { get; set; }
+            public string Bar { get; set; }
+            public string Baz { get; set; }
+        }
+
+        public class QueryWithImmutables
+        {
+            public FooImmutable Do(FooImmutable input)
+            {
+                return input;
+            }
+        }
+
+        public class FooImmutable
+        {
+            public FooImmutable()
+            {
+                Bar = "default";
+            }
+
+            public FooImmutable(string bar, string baz)
+            {
+                Bar = bar;
+                Baz = baz;
+            }
+
+            public string Bar { get; }
+            public string Baz { get; set; }
         }
     }
 }
