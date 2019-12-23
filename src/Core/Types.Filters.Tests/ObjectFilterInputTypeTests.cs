@@ -72,6 +72,126 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Bind_Filter_FilterDescirptor_Override()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly()
+                        .AllowObject(
+                            x => x.BindFieldsExplicitly()
+                                .Filter(f => f.Baz)
+                                .BindFiltersExplicitly()
+                                .AllowNotEquals());
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly().AllowObject(
+                            x => x.BindFieldsExplicitly()
+                                .Filter(f => f.Baz)
+                                .BindFiltersExplicitly()
+                                .AllowEquals());
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
+        {
+            // arrange
+            // act
+            IObjectFilterFieldDescriptor<Bar> first = null;
+            IObjectFilterFieldDescriptor<Bar> second = null;
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly()
+                        .AllowObject().Name("this_should_not_be_visible").And();
+
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly()
+                        .AllowObject().Name("obj").And();
+
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_OverrideString()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.Bar)
+                        .BindImplicitly();
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly().AllowEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly().AllowObject();
+                    descriptor.Ignore(x => x.BarNested);
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstIgnoreThenAdd()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor.Ignore(x => x.BarNested);
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Object(x => x.BarNested)
+                        .BindExplicitly().AllowObject();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Create_ObjectFilter_FooExplicitBarExplicit()
         {
             // arrange

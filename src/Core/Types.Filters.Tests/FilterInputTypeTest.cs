@@ -1,4 +1,6 @@
+using System.Linq;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
@@ -15,7 +17,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                  d => d
                      .Name(dep => dep.Name + "Foo")
                      .DependsOn<StringType>()
@@ -37,7 +39,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                  d => d
                      .Name(dep => dep.Name + "Foo")
                      .DependsOn(typeof(StringType))
@@ -58,7 +60,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
              .AddType(new FilterInputType<Foo>(
                  d => d.Directive("foo")
                      .Filter(x => x.Bar)
@@ -77,7 +79,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
              .AddType(new FilterInputType<Foo>(
                d => d.Directive(new NameString("foo"))
                     .Filter(x => x.Bar)
@@ -96,7 +98,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
              .AddType(new FilterInputType<Foo>(
                 d => d
                     .Directive(new DirectiveNode("foo"))
@@ -116,7 +118,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive(new FooDirective())
                     .Filter(x => x.Bar)
@@ -132,7 +134,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
+            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive<FooDirective>()
                     .Filter(x => x.Bar)
@@ -148,7 +150,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                 d => d.Description("Test")
                  .Filter(x => x.Bar)
                  .BindFiltersExplicitly()
@@ -166,7 +168,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
+            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                 d => d.Name("Test")
                  .Filter(x => x.Bar)
                  .BindFiltersExplicitly()
@@ -179,7 +181,23 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        private class FooDirectiveType
+        [Fact]
+        public void FilterAttribute_NonNullType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d
+                    .Name("Test")
+                    .Field(x => x.Books())
+                    .UseFiltering())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        public class FooDirectiveType
             : DirectiveType<FooDirective>
         {
             protected override void Configure(
@@ -191,11 +209,36 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        private class FooDirective { }
+        public class FooDirective { }
 
-        private class Foo
+        public class Foo
         {
             public string Bar { get; set; }
+        }
+
+        public class Query
+        {
+            [GraphQLNonNullType]
+            public IQueryable<Book> Books() => new List<Book>().AsQueryable();
+        }
+
+        public class Book
+        {
+            public int Id { get; set; }
+            [GraphQLNonNullType]
+            public string Title { get; set; }
+            public int Pages { get; set; }
+            public int Chapters { get; set; }
+            [GraphQLNonNullType]
+            public Author Author { get; set; }
+        }
+
+        public class Author
+        {
+            [GraphQLType(typeof(NonNullType<IdType>))]
+            public int Id { get; set; }
+            [GraphQLNonNullType]
+            public string Name { get; set; }
         }
     }
 }

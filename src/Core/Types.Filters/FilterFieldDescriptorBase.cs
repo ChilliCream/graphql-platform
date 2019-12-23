@@ -19,8 +19,6 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context)
         {
-            _namingConvention = context.GetConventionOrDefault<IFilterNamingConvention>(
-                FilterNamingConventionSnakeCase.Default);
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -30,6 +28,7 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
+            _namingConvention = context.GetFilterNamingConvention();
         }
 
         internal protected sealed override FilterFieldDefintion Definition { get; } =
@@ -50,6 +49,11 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+            }
+
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledOperations = new HashSet<FilterOperationKind>();
 
@@ -57,6 +61,8 @@ namespace HotChocolate.Types.Filters
             OnCompleteFilters(fields, handledOperations);
 
             Definition.Filters.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         private void AddExplicitFilters(
@@ -171,7 +177,7 @@ namespace HotChocolate.Types.Filters
                 }
                 else
                 {
-                    var type = clrRef.Type;
+                    Type type = clrRef.Type;
                     if (type.IsGenericType &&
                         System.Nullable.GetUnderlyingType(type) is Type nullableType)
                     {
@@ -211,6 +217,10 @@ namespace HotChocolate.Types.Filters
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
+            if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
+            {
+                Definition.Name = _namingConvention.ArrayFilterPropertyName;
+            }
             return _namingConvention.CreateFieldName(Definition, kind);
         }
 

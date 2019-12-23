@@ -120,6 +120,9 @@
   <data name="FilterArrayFieldDescriptor_InvalidType" xml:space="preserve">
     <value>Cannot handle the specified type.</value>
   </data>
+  <data name="FilterFieldOperationDescriptor_InvalidDescriptorType" xml:space="preserve">
+    <value>The operation descriptor type {0} does not match the requested type {1}.</value>
+  </data>
   <data name="FilterInputTypeDescriptor_OnlyProperties" xml:space="preserve">
     <value>Only properties are allowed for input types.</value>
   </data>

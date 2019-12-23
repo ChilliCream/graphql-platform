@@ -13,11 +13,6 @@ namespace HotChocolate.Execution
     {
         public IValueNode Convert(object from, IInputType type, VariableDefinitionNode variable)
         {
-            if (from == null)
-            {
-                throw new ArgumentNullException(nameof(from));
-            }
-
             if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
@@ -35,7 +30,28 @@ namespace HotChocolate.Execution
                 Name = "$" + variable.Variable.Name.Value
             };
             Visit(from, context);
-            return (IValueNode)context.Object;
+            return from is null ? NullValueNode.Default : (IValueNode)context.Object;
+        }
+
+        public IValueNode Convert(object from, IInputType type, string variableName)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (variableName is null)
+            {
+                throw new ArgumentNullException(nameof(variableName));
+            }
+
+            var context = new ConverterContext
+            {
+                InputType = type,
+                Name = "$" + variableName
+            };
+            Visit(from, context);
+            return from is null ? NullValueNode.Default : (IValueNode)context.Object;
         }
 
         protected override void VisitObject(

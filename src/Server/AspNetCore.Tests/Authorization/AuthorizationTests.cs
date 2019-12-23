@@ -25,6 +25,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public void AuthorizeDirective_Defined(ISchema schema)
         {
             // arrange
@@ -36,6 +37,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task DefaultPolicy_NotFound(ISchema schema)
         {
             // arrange
@@ -74,7 +76,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task NoAuthServices_Autheticated_True(
+        [ClassData(typeof(AuthorizationAttributeTestData))]
+        public async Task NoAuthServices_Authenticated_True(
             ISchema schema)
         {
             // arrange
@@ -108,7 +111,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task NoAuthServices_Autheticated_False(
+        [ClassData(typeof(AuthorizationAttributeTestData))]
+        public async Task NoAuthServices_Authenticated_False(
             ISchema schema)
         {
             // arrange
@@ -142,6 +146,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Policy_NotFound(ISchema schema)
         {
             // arrange
@@ -183,6 +188,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Policy_NotAuthorized(ISchema schema)
         {
             // arrange
@@ -224,6 +230,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Policy_Resources_Is_IResolverContext(ISchema schema)
         {
             // arrange
@@ -264,6 +271,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Policy_Authorized(ISchema schema)
         {
             // arrange
@@ -308,6 +316,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Roles_UserHasNoRoles_NotAuthorized(
             ISchema schema)
         {
@@ -342,6 +351,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Roles_UserHasDifferentRoles_NotAuthorized(
             ISchema schema)
         {
@@ -379,6 +389,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Roles_UserHasNoneOfTheRoles_NotAuthorized(
             ISchema schema)
         {
@@ -416,6 +427,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Roles_UserHasAllOfTheRoles_Authorized(
             ISchema schema)
         {
@@ -456,6 +468,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Roles_UserHasOneOfTheRoles_Authorized(
             ISchema schema)
         {
@@ -493,6 +506,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task Roles_Authorized(ISchema schema)
         {
             // arrange
@@ -529,6 +543,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task PipedAuthorizeDirectives_Authorized(
             ISchema schema)
         {
@@ -582,6 +597,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
         public async Task PipedAuthorizeDirectives_SecondFails_NotAuthorized(
             ISchema schema)
         {

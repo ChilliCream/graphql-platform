@@ -1,0 +1,17 @@
+﻿{
+  "None: HotChocolate.Types.DirectiveLocation": "None: HotChocolate.Types.Introspection.__DirectiveLocation",
+  "Output: HotChocolate.Types.EnumValue": "Output: HotChocolate.Types.Introspection.__EnumValue",
+  "Output: HotChocolate.Types.IOutputField": "Output: HotChocolate.Types.Introspection.__Field",
+  "Output: HotChocolate.Types.IInputField": "Output: HotChocolate.Types.Introspection.__InputValue",
+  "Output: HotChocolate.ISchema": "Output: HotChocolate.Types.Introspection.__Schema",
+  "Output: HotChocolate.Types.IType": "Output: HotChocolate.Types.Introspection.__Type",
+  "None: HotChocolate.Types.TypeKind": "None: HotChocolate.Types.Introspection.__TypeKind",
+  "None: HotChocolate.Types.CostDirective": "None: HotChocolate.Types.CostDirectiveType",
+  "Output: HotChocolate.Configuration.TypeDiscovererTests.Foo": "Output: HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Foo>",
+  "None: System.String": "None: HotChocolate.Types.StringType",
+  "None: System.Boolean": "None: HotChocolate.Types.BooleanType",
+  "None: HotChocolate.Types.DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
+  "None: System.Int32": "None: HotChocolate.Types.IntType",
+  "None: HotChocolate.Types.MultiplierPathString": "None: HotChocolate.Types.MultiplierPathType",
+  "Output: HotChocolate.Configuration.TypeDiscovererTests.Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType"
+}

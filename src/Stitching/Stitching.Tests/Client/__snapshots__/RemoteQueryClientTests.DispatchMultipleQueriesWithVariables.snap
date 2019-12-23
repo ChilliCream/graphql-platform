@@ -189,7 +189,7 @@
   },
   "QueryName": null,
   "QueryHash": null,
-  "OperationName": null,
+  "OperationName": "exec_batch",
   "VariableValues": {
     "__0__a": "foo"
   },

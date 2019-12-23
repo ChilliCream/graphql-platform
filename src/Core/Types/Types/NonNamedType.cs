@@ -2,12 +2,17 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public abstract class NonNamedType
         : IOutputType
         , IInputType
     {
+        private Type? _innerClrType;
+        private Type? _clrType;
+
         protected NonNamedType(IType innerType)
         {
             if (innerType == null)
@@ -18,21 +23,38 @@ namespace HotChocolate.Types
             IsInputType = innerType.IsInputType();
             InnerInputType = innerType as IInputType;
             InnerType = innerType;
-            InnerClrType = innerType.ToClrType();
-            ClrType = this.ToClrType();
         }
 
         public abstract TypeKind Kind { get; }
 
         protected bool IsInputType { get; }
 
-        protected IInputType InnerInputType { get; }
+        protected IInputType? InnerInputType { get; }
 
         protected IType InnerType { get; }
 
-        protected Type InnerClrType { get; }
-
-        public Type ClrType { get; }
+        protected Type InnerClrType
+        {
+            get
+            {
+                if (_innerClrType is null)
+                {
+                    _innerClrType = InnerType.ToClrType();
+                }
+                return _innerClrType;
+            }
+        }
+        public Type ClrType
+        {
+            get
+            {
+                if (_clrType is null)
+                {
+                    _clrType = this.ToClrType();
+                }
+                return _clrType;
+            }
+        }
 
         bool IInputType.IsInstanceOfType(IValueNode literal)
         {

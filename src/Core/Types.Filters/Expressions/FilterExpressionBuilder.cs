@@ -166,7 +166,7 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression body,
             params ParameterExpression[] parameterExpression)
         {
-            var lambda = Expression.Lambda(body, parameterExpression);
+            LambdaExpression lambda = Expression.Lambda(body, parameterExpression);
             return Any(type, property, lambda);
         }
 

@@ -24,6 +24,114 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
+        public void Sort_ComparableAsc_ShouldSortByStringNullableAsc()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("baz",
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+                )
+            ));
+
+            FooSortType sortType = CreateType(new FooSortType());
+
+            IQueryable<Foo> a = new[]
+            {
+                new Foo {Bar =new Bar{Baz= "b" } },
+                new Foo {Bar =new Bar{Baz= null}},
+                new Foo {Bar =new Bar{Baz= "c"}}
+            }.AsQueryable();
+
+            // act
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+
+            // assert
+            Assert.Collection(aFiltered,
+                foo => Assert.Null(foo.Bar.Baz),
+                foo => Assert.Equal("b", foo.Bar.Baz),
+                foo => Assert.Equal("c", foo.Bar.Baz)
+            );
+        }
+
+        [Fact]
+        public void Sort_ComparableAsc_ShouldSortByStringNullableObjectAsc()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("baz",
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+                )
+            ));
+
+            FooSortType sortType = CreateType(new FooSortType());
+
+            IQueryable<Foo> a = new[]
+            {
+                new Foo {Bar =new Bar{Baz= "b" } },
+                new Foo {},
+                new Foo {Bar =new Bar{Baz= "c"}}
+            }.AsQueryable();
+
+            // act
+            var filter = new QueryableSortVisitorInMemory(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+
+            // assert
+            Assert.Collection(aFiltered,
+                foo => Assert.Null(foo.Bar),
+                foo => Assert.Equal("b", foo.Bar.Baz),
+                foo => Assert.Equal("c", foo.Bar.Baz)
+            );
+        }
+
+        [Fact]
+        public void Sort_ComparableAsc_ShouldSortByStringWithNullableObjectInRootAsc()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("baz",
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+                )
+            ));
+
+            FooSortType sortType = CreateType(new FooSortType());
+
+            IQueryable<Foo> a = new[]
+            {
+                new Foo {Bar =new Bar{Baz= "c"}},
+                new Foo {Bar =new Bar{Baz= "b" }},
+                null
+            }.AsQueryable();
+
+            // act
+            var filter = new QueryableSortVisitorInMemory(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+
+            // assert
+            Assert.Collection(aFiltered,
+                foo => Assert.Null(foo),
+                foo => Assert.Equal("b", foo.Bar.Baz),
+                foo => Assert.Equal("c", foo.Bar.Baz)
+            );
+        }
+
+        [Fact]
         public void Sort_ComparableAsc_ShouldSortByStringAsc()
         {
             // arrange
@@ -141,7 +249,7 @@ namespace HotChocolate.Types.Sorting
         }
         public class Bar
         {
-            public string Baz { get; set; }
+            public string? Baz { get; set; }
         }
     }
 }

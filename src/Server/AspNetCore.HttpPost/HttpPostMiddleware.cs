@@ -42,12 +42,14 @@ namespace HotChocolate.AspNetCore
             IQueryResultSerializer resultSerializer,
             IResponseStreamSerializer streamSerializer,
             IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider)
+            IDocumentHashProvider documentHashProvider,
+            IErrorHandler errorHandler)
             : base(next,
                 options,
                 owinContextAccessor,
                 queryExecutor.Schema.Services,
-                resultSerializer)
+                resultSerializer,
+                errorHandler)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
@@ -73,8 +75,9 @@ namespace HotChocolate.AspNetCore
             IQueryResultSerializer resultSerializer,
             IResponseStreamSerializer streamSerializer,
             IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider)
-            : base(next, options, resultSerializer)
+            IDocumentHashProvider documentHashProvider,
+            IErrorHandler errorHandler)
+            : base(next, options, resultSerializer, errorHandler)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
@@ -109,7 +112,21 @@ namespace HotChocolate.AspNetCore
                 await ReadRequestAsync(context)
                     .ConfigureAwait(false);
 
-            if (batch.Count == 1)
+            if (batch.Count == 0)
+            {
+                // TODO : resources
+                var result = QueryResult.CreateError(
+                    ErrorHandler.Handle(
+                        ErrorBuilder.New()
+                            .SetMessage("The GraphQL batch request has no elements.")
+                            .SetCode(ErrorCodes.Server.RequestInvalid)
+                            .Build()));
+
+                await _resultSerializer.SerializeAsync(
+                    result, context.Response.Body)
+                    .ConfigureAwait(false);
+            }
+            else if (batch.Count == 1)
             {
                 string operations = context.Request.Query[_batchOperations];
 
@@ -129,10 +146,11 @@ namespace HotChocolate.AspNetCore
                 {
                     // TODO : resources
                     var result = QueryResult.CreateError(
-                        ErrorBuilder.New()
-                            .SetMessage("Invalid GraphQL Request.")
-                            .SetCode(ErrorCodes.Server.RequestInvalid)
-                            .Build());
+                        ErrorHandler.Handle(
+                            ErrorBuilder.New()
+                                .SetMessage("Invalid GraphQL Request.")
+                                .SetCode(ErrorCodes.Server.RequestInvalid)
+                                .Build()));
 
                     SetResponseHeaders(
                         context.Response,
@@ -213,13 +231,13 @@ namespace HotChocolate.AspNetCore
                 await BuildBatchRequestAsync(context, services, batch)
                     .ConfigureAwait(false);
 
-            IResponseStream responseStream = await _batchExecutor
-                .ExecuteAsync(requestBatch, context.GetCancellationToken())
-                .ConfigureAwait(false);
-
             SetResponseHeaders(
                 context.Response,
                 _streamSerializer.ContentType);
+
+            IResponseStream responseStream = await _batchExecutor
+                .ExecuteAsync(requestBatch, context.GetCancellationToken())
+                .ConfigureAwait(false);
 
             await _streamSerializer.SerializeAsync(
                 responseStream,

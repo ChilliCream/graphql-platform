@@ -7,7 +7,7 @@ namespace StrawberryShake.Http.Subscriptions
 {
     public interface IMessageHandler
     {
-        Task HandleAsync(
+        ValueTask HandleAsync(
             ISocketConnection connection,
             OperationMessage message,
             CancellationToken cancellationToken);

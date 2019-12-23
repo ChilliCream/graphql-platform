@@ -12,10 +12,13 @@ namespace HotChocolate.Stitching.Delegation
     internal class FieldScopedVariableResolver
         : IScopedVariableResolver
     {
+        private readonly DictionaryToObjectValueConverter _converter =
+            new DictionaryToObjectValueConverter();
+
         public VariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
-            ITypeNode targetType)
+            IInputType targetType)
         {
             if (context == null)
             {
@@ -44,20 +47,20 @@ namespace HotChocolate.Stitching.Delegation
                 return new VariableValue
                 (
                     variable.ToVariableName(),
-                    field.Type.ToTypeNode(),
-                    obj[field.Name],
+                    targetType.ToTypeNode(),
+                    _converter.Convert(obj[field.Name], targetType, variable.Value),
                     null
                 );
             }
 
-            throw new QueryException(QueryError.CreateFieldError(
-                string.Format(CultureInfo.InvariantCulture,
-                    StitchingResources
-                        .FieldScopedVariableResolver_InvalidFieldName,
-                    variable.Name.Value),
-                context.Path,
-                context.FieldSelection)
-                .WithCode(ErrorCodes.FieldNotDefined));
+            throw new QueryException(ErrorBuilder.New()
+                .SetMessage(
+                    StitchingResources.FieldScopedVariableResolver_InvalidFieldName,
+                    variable.Name.Value)
+                .SetCode(ErrorCodes.FieldNotDefined)
+                .SetPath(context.Path)
+                .AddLocation(context.FieldSelection)
+                .Build());
         }
     }
 }

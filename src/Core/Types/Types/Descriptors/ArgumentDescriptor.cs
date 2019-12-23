@@ -49,12 +49,15 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(ArgumentDefinition definition)
         {
-            base.OnCreateDefinition(definition);
-
             if (Definition.Parameter is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.Parameter);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Parameter);
             }
+
+            base.OnCreateDefinition(definition);
         }
 
         public new IArgumentDescriptor SyntaxNode(

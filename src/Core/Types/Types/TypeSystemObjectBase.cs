@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public abstract class TypeSystemObjectBase
@@ -10,7 +12,7 @@ namespace HotChocolate.Types
     {
         private TypeStatus _status;
         private NameString _name;
-        private string _description;
+        private string? _description;
 
         protected TypeSystemObjectBase() { }
 
@@ -34,7 +36,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the optional description of this scalar type.
         /// </summary>
-        public string Description
+        public string? Description
         {
             get => _description;
             protected set
@@ -48,7 +50,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public abstract IReadOnlyDictionary<string, object> ContextData { get; }
+        public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
         protected bool IsCompleted =>
             _status == TypeStatus.Completed;

@@ -33,7 +33,7 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor Type(Type type);
 
-        IInterfaceFieldDescriptor Ignore();
+        IInterfaceFieldDescriptor Ignore(bool ignore = true);
 
         IInterfaceFieldDescriptor Argument(
             NameString name,

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
@@ -45,7 +45,10 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.ClrType is { })
             {
-                Context.Inspector.ApplyAttributes(this, Definition.ClrType);
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.ClrType);
             }
 
             var fields = new Dictionary<NameString, InputFieldDefinition>();
@@ -60,6 +63,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledProperties);
 
             Definition.Fields.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteFields(

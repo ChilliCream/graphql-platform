@@ -1,27 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public interface IResponseStream
-        : IDisposable
+    public interface IResponseStream : IAsyncEnumerable<IReadOnlyQueryResult>
     {
-        /// <summary>
-        /// Defines if this stream is completed.
-        /// A completed response stream does not yield any new results.
-        /// </summary>
-        bool IsCompleted { get; }
-
-        /// <summary>
-        /// Reads the next result from the current response stream.
-        /// </summary>
-        Task<IReadOnlyQueryResult> ReadAsync();
-
-        /// <summary>
-        /// Reads the next result from the current response stream.
-        /// </summary>
-        Task<IReadOnlyQueryResult> ReadAsync(
-            CancellationToken cancellationToken);
     }
 }

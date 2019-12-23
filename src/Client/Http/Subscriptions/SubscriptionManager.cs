@@ -14,13 +14,7 @@ namespace StrawberryShake.Http.Subscriptions
     {
         private readonly ConcurrentDictionary<string, Sub> _subs =
             new ConcurrentDictionary<string, Sub>();
-        private readonly IOperationFormatter _operationFormatter;
         private bool _disposed;
-
-        public SubscriptionManager(IOperationFormatter operationFormatter)
-        {
-            _operationFormatter = operationFormatter;
-        }
 
         public bool TryGetSubscription(string subscriptionId, out ISubscription? subscription)
         {
@@ -71,7 +65,7 @@ namespace StrawberryShake.Http.Subscriptions
                 writer.WriteType(MessageTypes.Subscription.Start);
                 writer.WriteId(subscription.Id);
                 writer.WriteStartPayload();
-                _operationFormatter.Serialize(subscription.Operation, writer);
+                subscription.OperationFormatter.Serialize(subscription.Operation, writer);
                 writer.WriteEndObject();
 
                 await connection.SendAsync(writer.Body).ConfigureAwait(false);
