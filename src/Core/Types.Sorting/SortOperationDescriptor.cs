@@ -9,6 +9,7 @@ namespace HotChocolate.Types.Sorting
         : SortOperationDescriptorBase
         , ISortOperationDescriptor
     {
+
         protected SortOperationDescriptor(
             IDescriptorContext context,
             NameString name,
@@ -20,6 +21,16 @@ namespace HotChocolate.Types.Sorting
 
         internal protected sealed override SortOperationDefintion Definition { get; } =
             new SortOperationDefintion();
+
+        protected override void OnCreateDefinition(
+            SortOperationDefintion definition)
+        {
+            if (Definition.Operation.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Operation.Property);
+            }
+            base.OnCreateDefinition(definition);
+        }
 
         public ISortOperationDescriptor Ignore(bool ignore = true)
         {

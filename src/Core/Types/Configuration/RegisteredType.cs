@@ -17,13 +17,9 @@ namespace HotChocolate.Configuration
             TypeSystemObjectBase type,
             InitializationContext initializationContext,
             IReadOnlyList<TypeDependency> dependencies,
-            bool isAutoInferred)
+            bool isInferred)
+            : this(new[] { reference }, type, initializationContext, dependencies, isInferred)
         {
-            References = new[] { reference };
-            Type = type;
-            InitializationContext = initializationContext;
-            Dependencies = dependencies;
-            IsInferred = isAutoInferred;
         }
 
         public RegisteredType(
@@ -38,6 +34,9 @@ namespace HotChocolate.Configuration
             InitializationContext = initializationContext;
             Dependencies = dependencies;
             IsInferred = isInferred;
+            IsExtension = Type is INamedTypeExtensionMerger;
+            IsNamedType = Type is INamedType;
+            IsDirectiveType = Type is DirectiveType;
         }
 
         public IReadOnlyList<ITypeReference> References { get; }
@@ -47,6 +46,12 @@ namespace HotChocolate.Configuration
         public InitializationContext InitializationContext { get; }
 
         public bool IsInferred { get; }
+
+        public bool IsExtension { get; }
+
+        public bool IsNamedType { get; }
+
+        public bool IsDirectiveType { get; }
 
         public Type ClrType
         {

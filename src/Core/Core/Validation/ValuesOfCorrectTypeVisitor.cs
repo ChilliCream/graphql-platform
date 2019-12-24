@@ -174,9 +174,23 @@ namespace HotChocolate.Validation
 
             IInputType internalType = inputType;
 
-            if (inputType.IsNonNullType())
+            if (internalType.IsNonNullType())
             {
-                internalType = (IInputType)inputType.InnerType();
+                internalType = (IInputType)internalType.InnerType();
+            }
+
+            if (internalType is ListType listType
+                && listType.ElementType is IInputType elementType
+                && value is ListValueNode list)
+            {
+                for (int i = 0; i < list.Items.Count; i++)
+                {
+                    if (!IsInstanceOfType(elementType, list.Items[i]))
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
 
             return internalType.IsInstanceOfType(value);
