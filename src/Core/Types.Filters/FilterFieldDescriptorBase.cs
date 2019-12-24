@@ -32,6 +32,8 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
+
+            AllowedOperations = context.GetFilterConvention().GetAllowedOperations(Definition);
         }
 
         internal protected sealed override FilterFieldDefintion Definition { get; } =
@@ -40,7 +42,7 @@ namespace HotChocolate.Types.Filters
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
 
-        protected abstract ISet<FilterOperationKind> AllowedOperations { get; }
+        protected ISet<FilterOperationKind> AllowedOperations { get; }
 
         protected virtual ISet<FilterOperationKind> ListOperations { get; } =
             new HashSet<FilterOperationKind>

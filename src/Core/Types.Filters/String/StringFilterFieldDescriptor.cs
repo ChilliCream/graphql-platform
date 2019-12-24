@@ -14,26 +14,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(FilterKind.String, context, property)
         {
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.Equals,
-                FilterOperationKind.NotEquals,
-
-                FilterOperationKind.Contains,
-                FilterOperationKind.NotContains,
-
-                FilterOperationKind.StartsWith,
-                FilterOperationKind.NotStartsWith,
-
-                FilterOperationKind.EndsWith,
-                FilterOperationKind.NotEndsWith,
-
-                FilterOperationKind.In,
-                FilterOperationKind.NotIn
-            };
         }
-
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IStringFilterFieldDescriptor BindFilters(

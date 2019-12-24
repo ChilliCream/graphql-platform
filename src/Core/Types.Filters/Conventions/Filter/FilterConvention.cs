@@ -45,6 +45,17 @@ namespace HotChocolate.Types.Filters.Conventions
             return GetOrCreateConfiguration().ArrayFilterPropertyName;
         }
 
+        public ISet<FilterOperationKind> GetAllowedOperations(FilterFieldDefintion definition)
+        {
+            if (GetOrCreateConfiguration().TypeDefinitions.TryGetValue(
+                definition.Kind,
+                out FilterConventionTypeDefinition typeDefinition))
+            {
+                return typeDefinition.AllowedOperations;
+            }
+            return new HashSet<FilterOperationKind>();
+        }
+
         public NameString CreateFieldName(
             FilterFieldDefintion definition, FilterOperationKind kind)
         {

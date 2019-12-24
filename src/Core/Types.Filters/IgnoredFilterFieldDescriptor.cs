@@ -16,9 +16,6 @@ namespace HotChocolate.Types.Filters
             Definition.Ignore = true;
         }
 
-        protected override ISet<FilterOperationKind> AllowedOperations { get; } =
-            new HashSet<FilterOperationKind>();
-
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind)
         {

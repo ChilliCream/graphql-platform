@@ -49,8 +49,8 @@ namespace HotChocolate.Types
 
             configure(builder);
 
-            builder.Create();
-
+            var schema = builder.Create();
+            var schemaString = schema.ToString();
             return type;
         }
 

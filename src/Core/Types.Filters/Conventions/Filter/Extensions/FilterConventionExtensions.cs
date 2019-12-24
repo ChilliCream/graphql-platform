@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Filters.Conventions
                     .Operation(FilterOperationKind.NotLowerThanOrEquals).And()
                     .And()
                 .Type(FilterKind.Object)
-                    .Operation(FilterOperationKind.Equals).And()
+                    .Operation(FilterOperationKind.Object).And()
                     .And()
                 .Type(FilterKind.String)
                     .Operation(FilterOperationKind.Equals).And()

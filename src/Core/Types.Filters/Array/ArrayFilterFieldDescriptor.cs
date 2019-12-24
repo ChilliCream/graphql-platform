@@ -19,16 +19,7 @@ namespace HotChocolate.Types.Filters
             : base(FilterKind.Array, context, property)
         {
             _type = type;
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.ArraySome,
-                FilterOperationKind.ArrayNone,
-                FilterOperationKind.ArrayAll,
-                FilterOperationKind.ArrayAny
-            };
         }
-
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IArrayFilterFieldDescriptor BindFilters(
