@@ -64,18 +64,21 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(defaultConvention));
             }
 
-            if (!TryGetConvention<T>(out T convention))
+            lock (this)
             {
-                convention = _services.GetService(typeof(T)) as T;
+                if (!TryGetConvention<T>(out T convention))
+                {
+                    convention = _services.GetService(typeof(T)) as T;
+                }
+
+                if (convention is null)
+                {
+                    convention = defaultConvention();
+                    _conventions[typeof(T)] = convention;
+                }
+                return convention;
             }
 
-            if (convention is null)
-            {
-                convention = defaultConvention();
-                _conventions[typeof(T)] = convention;
-            }
-
-            return convention;
         }
 
         private bool TryGetConvention<T>(out T convention)

@@ -15,7 +15,9 @@ namespace HotChocolate.Types.Filters.Conventions
             = new HashSet<FilterOperationKind>();
 
         public IDictionary<FilterOperationKind, CreateFieldName> OperationNames { get; set; }
+            = new Dictionary<FilterOperationKind, CreateFieldName>();
 
         public IDictionary<FilterOperationKind, NameString> OperationDescriptions { get; set; }
+            = new Dictionary<FilterOperationKind, NameString>();
     }
 }

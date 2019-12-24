@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
@@ -12,14 +13,16 @@ namespace HotChocolate.Types.Filters
     public abstract class FilterFieldDescriptorBase
         : DescriptorBase<FilterFieldDefintion>
     {
-        private readonly IFilterNamingConvention _namingConvention;
+        private readonly IFilterConvention _filterConventions;
 
         protected FilterFieldDescriptorBase(
+            FilterKind filterKind,
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
         {
-            _namingConvention = context.GetFilterNamingConvention();
+            _filterConventions = context.GetFilterConvention();
+            Definition.Kind = filterKind;
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -219,9 +222,9 @@ namespace HotChocolate.Types.Filters
         {
             if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
             {
-                Definition.Name = _namingConvention.ArrayFilterPropertyName;
+                Definition.Name = _filterConventions.GetArrayFilterPropertyName();
             }
-            return _namingConvention.CreateFieldName(Definition, kind);
+            return _filterConventions.CreateFieldName(Definition, kind);
         }
 
         protected virtual ITypeReference RewriteType(

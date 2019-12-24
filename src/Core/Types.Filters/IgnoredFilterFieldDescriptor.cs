@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Filters
         public IgnoredFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
-            : base(context, property)
+            : base(FilterKind.Ignored, context, property)
         {
             Definition.Ignore = true;
         }

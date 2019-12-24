@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
@@ -141,14 +142,14 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            IFilterNamingConvention convention = context.DescriptorContext.GetFilterNamingConvention();
+            IFilterConvention convention = context.DescriptorContext.GetFilterConvention();
             IFilterInputType type =
                 context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
                 .MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType,
-                    FilterMiddlewareContext.Create(convention.ArgumentName));
+                    FilterMiddlewareContext.Create(convention.GetArgumentName()));
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
@@ -195,8 +196,9 @@ namespace HotChocolate.Types
                     .Definition(definition)
                     .Configure((context, definition) =>
                     {
-                        IFilterNamingConvention convention = context.DescriptorContext.GetFilterNamingConvention();
-                        definition.Name = convention.ArgumentName;
+                        IFilterConvention convention
+                            = context.DescriptorContext.GetFilterConvention();
+                        definition.Name = convention.GetArgumentName();
                     })
                    .On(ApplyConfigurationOn.Completion)
                    .Build();

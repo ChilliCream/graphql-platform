@@ -79,7 +79,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddConvention<TConvetion, TConcreteConvention>(
             this ISchemaBuilder builder)
             where TConvetion : IConvention
-            where TConcreteConvention : IConvention
+            where TConcreteConvention : TConvetion
         {
             builder.AddConvention(
                 typeof(TConvetion),

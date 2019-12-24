@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -11,6 +12,9 @@ namespace HotChocolate.Types.Filters.Conventions
         {
             return descriptor.ArgumentName("where")
                 .ArrayFilterPropertyName("element")
+                .GetFilterTypeName(
+                    (IDescriptorContext context, Type entityType) =>
+                        context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter")
                 .Type(FilterKind.Array)
                     .Operation(FilterOperationKind.ArrayAll).And()
                     .Operation(FilterOperationKind.ArrayAny).And()

@@ -18,15 +18,21 @@ namespace HotChocolate.Types.Filters.Conventions
         IDescriptorContext context,
         Type entityType);
 
-    public class FilterConventionBase : IFilterConvention
+    public class FilterConvention : IFilterConvention
     {
         private readonly Action<IFilterConventionDescriptor> _configure;
         private FilterConventionDefinition _definition;
 
-        public FilterConventionBase()
+        public FilterConvention()
         {
             _configure = Configure;
         }
+
+        public FilterConvention(Action<IFilterConventionDescriptor> descriptor)
+        {
+            _configure = descriptor;
+        }
+
         public NameString GetArgumentName()
         {
             return GetOrCreateConfiguration().ArgumentName;
@@ -38,11 +44,11 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
         public NameString CreateFieldName(
-            FilterKind filterKind, FilterFieldDefintion definition, FilterOperationKind kind)
+            FilterFieldDefintion definition, FilterOperationKind kind)
         {
             FilterConventionDefinition configuration = GetOrCreateConfiguration();
 
-            if (configuration.TypeDefinitions.TryGetValue(filterKind,
+            if (configuration.TypeDefinitions.TryGetValue(definition.Kind,
                     out FilterConventionTypeDefinition typeDefinition) &&
                     typeDefinition.OperationNames.TryGetValue(kind,
                         out CreateFieldName createFieldName)
@@ -65,7 +71,7 @@ namespace HotChocolate.Types.Filters.Conventions
                         "No operation name for {0} in filter type {1} found. Add operation"
                         + "name to filter conventions",
                         kind,
-                        filterKind))
+                        definition.Kind))
                 .Build());
         }
 
@@ -94,7 +100,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         private FilterConventionDefinition GetOrCreateConfiguration()
         {
-            lock (_definition)
+            lock (this)
             {
                 if (_definition == null)
                 {
@@ -103,5 +109,7 @@ namespace HotChocolate.Types.Filters.Conventions
                 return _definition;
             }
         }
+
+        public static IFilterConvention Default = new FilterConvention();
     }
 }

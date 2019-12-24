@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -29,7 +30,8 @@ namespace HotChocolate.Types.Filters
             // act
             ISchema schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
-                    .AddConvention<IFilterNamingConvention, FilterNamingConventionPascalCase>());
+                    .AddConvention<IFilterConvention>(
+                        new FilterConvention(x => x.UsePascalCase())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -43,7 +45,8 @@ namespace HotChocolate.Types.Filters
             // act
             ISchema schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
-                    .AddConvention<IFilterNamingConvention, FilterNamingConventionSnakeCase>());
+                    .AddConvention<IFilterConvention>(
+                        new FilterConvention(x => x.UseSnakeCase())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -55,9 +58,9 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             ISchema schema = CreateSchema(x =>
-                x.AddConvention<IFilterNamingConvention, CustomConvention>()
+                x.AddConvention<IFilterConvention, CustomConvention>()
                 .AddObjectType(x => x.Name("Test")
-                .Field("foo") 
+                .Field("foo")
                 .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
                 .UseFiltering<FilterInputType<Foo>>())
             );
@@ -66,15 +69,17 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        private class CustomConvention : FilterNamingConventionSnakeCase
+        private class CustomConvention : FilterConvention
         {
-            public override NameString ArgumentName => "test";
-
-            public override NameString ArrayFilterPropertyName => "TESTelement";
-
-            public override NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
+            protected override void Configure(IFilterConventionDescriptor descriptor)
             {
-                return base.GetFilterTypeName(context, entityType) + "Test";
+                base.Configure(descriptor);
+                descriptor.ArgumentName("test")
+                    .ArrayFilterPropertyName("TESTelement")
+                    .GetFilterTypeName(
+                        (IDescriptorContext context, Type entityType) =>
+                            context.Naming.GetTypeName(entityType, TypeKind.Object)
+                                + "FilterTest");
             }
         }
 

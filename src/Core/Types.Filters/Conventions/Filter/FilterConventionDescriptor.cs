@@ -16,10 +16,13 @@ namespace HotChocolate.Types.Filters.Conventions
             new FilterConventionDefinition();
 
         private readonly ConcurrentDictionary<FilterOperationKind,
-            FilterConventionDefaultOperationDescriptor> _defaultOperations;
+            FilterConventionDefaultOperationDescriptor> _defaultOperations
+            = new ConcurrentDictionary<FilterOperationKind,
+                FilterConventionDefaultOperationDescriptor>();
 
         private readonly ConcurrentDictionary<FilterKind,
-            FilterConventionTypeDescriptor> _configurations;
+            FilterConventionTypeDescriptor> _configurations
+            = new ConcurrentDictionary<FilterKind, FilterConventionTypeDescriptor>();
 
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
@@ -58,7 +61,6 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public FilterConventionDefinition CreateDefinition()
         {
-            Array values = Enum.GetValues(typeof(FilterKind));
             foreach (FilterConventionTypeDescriptor descriptor in _configurations.Values)
             {
                 FilterConventionTypeDefinition definition = descriptor.CreateDefinition();
@@ -67,7 +69,10 @@ namespace HotChocolate.Types.Filters.Conventions
                     Definition.TypeDefinitions[definition.FilterKind] = definition;
                     Definition.AllowedOperations[definition.FilterKind]
                         = definition.AllowedOperations;
-                    Definition.ImplicitFilters.Add(definition.TryCreateFilter);
+                    if (definition.TryCreateFilter != null)
+                    {
+                        Definition.ImplicitFilters.Add(definition.TryCreateFilter);
+                    }
                 }
             }
 
@@ -77,9 +82,17 @@ namespace HotChocolate.Types.Filters.Conventions
                 FilterConventionOperationDefinition definition = descriptor.CreateDefinition();
                 if (!definition.Ignore)
                 {
-                    Definition.DefaultOperationDescriptions[definition.OperationKind]
-                        = definition.Description;
-                    Definition.DefaultOperationNames[definition.OperationKind] = definition.Name;
+                    if (definition.Description != null)
+                    {
+                        Definition.DefaultOperationDescriptions[definition.OperationKind]
+                            = definition.Description;
+                    }
+
+                    if (definition.Name != null)
+                    {
+                        Definition.DefaultOperationNames[definition.OperationKind]
+                            = definition.Name;
+                    }
                 }
             }
             return Definition;

@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context,
             PropertyInfo property,
             Type type)
-            : base(context, property)
+            : base(FilterKind.Object, context, property)
         {
             _type = type;
             AllowedOperations = new HashSet<FilterOperationKind>

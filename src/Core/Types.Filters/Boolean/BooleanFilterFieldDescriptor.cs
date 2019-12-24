@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters
         public BooleanFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
-            : base(context, property)
+            : base(FilterKind.Boolean, context, property)
         {
             AllowedOperations = new HashSet<FilterOperationKind>
             {

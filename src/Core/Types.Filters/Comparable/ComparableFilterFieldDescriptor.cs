@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters
         public ComparableFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
-            : base(context, property)
+            : base(FilterKind.Comparable, context, property)
         {
             AllowedOperations = new HashSet<FilterOperationKind>
             {

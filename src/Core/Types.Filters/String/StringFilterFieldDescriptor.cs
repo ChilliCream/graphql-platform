@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters
         public StringFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
-            : base(context, property)
+            : base(FilterKind.String, context, property)
         {
             AllowedOperations = new HashSet<FilterOperationKind>
             {

@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
@@ -22,7 +23,7 @@ namespace HotChocolate.Types.Filters
             Type entityType)
             : base(context)
         {
-            IFilterNamingConvention convention = context.GetFilterNamingConvention();
+            IFilterConvention convention = context.GetFilterConvention();
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
