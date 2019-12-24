@@ -87,7 +87,7 @@ namespace HotChocolate.Types.Filters.Conventions
         protected FilterConventionDefinition CreateDefinition()
         {
             var descriptor = FilterConventionDescriptor.New();
-            ApplyDefaultConfiguration(descriptor);
+            descriptor.UseDefault();
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -102,50 +102,6 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
                 return _definition;
             }
-        }
-
-        private void ApplyDefaultConfiguration(IFilterConventionDescriptor descriptor)
-        {
-            descriptor.ArgumentName("where")
-                .ArrayFilterPropertyName("element")
-                .Type(FilterKind.Array)
-                    .Operation(FilterOperationKind.ArrayAll).And()
-                    .Operation(FilterOperationKind.ArrayAny).And()
-                    .Operation(FilterOperationKind.ArraySome).And()
-                    .Operation(FilterOperationKind.ArrayNone).And()
-                    .And()
-                .Type(FilterKind.Boolean)
-                    .Operation(FilterOperationKind.Equals).And()
-                    .Operation(FilterOperationKind.NotEquals).And()
-                    .And()
-                .Type(FilterKind.Comparable)
-                    .Operation(FilterOperationKind.Equals).And()
-                    .Operation(FilterOperationKind.NotEquals).And()
-                    .Operation(FilterOperationKind.In).And()
-                    .Operation(FilterOperationKind.NotIn).And()
-                    .Operation(FilterOperationKind.GreaterThan).And()
-                    .Operation(FilterOperationKind.NotGreaterThan).And()
-                    .Operation(FilterOperationKind.GreaterThanOrEquals).And()
-                    .Operation(FilterOperationKind.NotGreaterThanOrEquals).And()
-                    .Operation(FilterOperationKind.LowerThan).And()
-                    .Operation(FilterOperationKind.NotLowerThan).And()
-                    .Operation(FilterOperationKind.LowerThanOrEquals).And()
-                    .Operation(FilterOperationKind.NotLowerThanOrEquals).And()
-                    .And()
-                .Type(FilterKind.Object)
-                    .Operation(FilterOperationKind.Equals).And()
-                    .And()
-                .Type(FilterKind.String)
-                    .Operation(FilterOperationKind.Equals).And()
-                    .Operation(FilterOperationKind.NotEquals).And()
-                    .Operation(FilterOperationKind.Contains).And()
-                    .Operation(FilterOperationKind.NotContains).And()
-                    .Operation(FilterOperationKind.StartsWith).And()
-                    .Operation(FilterOperationKind.NotStartsWith).And()
-                    .Operation(FilterOperationKind.EndsWith).And()
-                    .Operation(FilterOperationKind.NotEndsWith).And()
-                    .Operation(FilterOperationKind.In).And()
-                    .Operation(FilterOperationKind.NotIn).And();
         }
     }
 }
