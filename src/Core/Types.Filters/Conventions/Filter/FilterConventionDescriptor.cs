@@ -44,7 +44,16 @@ namespace HotChocolate.Types.Filters.Conventions
         {
             return _configurations.GetOrAdd(
                 kind, (FilterKind kind) =>
-                FilterConventionTypeDescriptor.New(this, kind));
+                    FilterConventionTypeDescriptor.New(this, kind));
+        }
+
+        public IFilterConventionDescriptor Ignore(FilterKind kind, bool ignore = true)
+        {
+            _configurations.GetOrAdd(
+                kind, (FilterKind kind) =>
+                    FilterConventionTypeDescriptor.New(this, kind))
+                .Ignore(ignore);
+            return this;
         }
 
         public FilterConventionDefinition CreateDefinition()

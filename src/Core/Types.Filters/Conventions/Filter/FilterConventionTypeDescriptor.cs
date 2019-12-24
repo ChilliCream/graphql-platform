@@ -47,11 +47,21 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
+        public IFilterConventionTypeDescriptor Ignore(FilterOperationKind kind, bool ignore = true)
+        {
+            _operations.GetOrAdd(
+                    kind, (FilterOperationKind kind) =>
+                        FilterConventionOperationDescriptor.New(this, kind))
+                .Ignore(true);
+
+            return this;
+        }
+
         public IFilterConventionOperationDescriptor Operation(FilterOperationKind kind)
         {
             return _operations.GetOrAdd(
                 kind, (FilterOperationKind kind) =>
-                FilterConventionOperationDescriptor.New(this, kind));
+                    FilterConventionOperationDescriptor.New(this, kind));
         }
 
         public IFilterConventionTypeDescriptor TryCreateImplicitFilter(
@@ -84,6 +94,5 @@ namespace HotChocolate.Types.Filters.Conventions
         public static FilterConventionTypeDescriptor New(
             FilterConventionDescriptor descriptor, FilterKind kind) =>
                 new FilterConventionTypeDescriptor(descriptor, kind);
-
     }
 }

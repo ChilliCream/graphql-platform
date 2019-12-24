@@ -11,10 +11,16 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterConventionTypeDescriptor Description(string value);
 
         /// <summary>
-        /// Ignores the filter if true
+        /// Ignores the filter type if true
         /// </summary> 
         /// 
         IFilterConventionTypeDescriptor Ignore(bool ignore = true);
+
+        /// <summary>
+        /// Ignores the filter operation if true
+        /// </summary> 
+        /// 
+        IFilterConventionTypeDescriptor Ignore(FilterOperationKind kind, bool ignore = true);
 
         IFilterConventionDescriptor And();
 
@@ -22,6 +28,7 @@ namespace HotChocolate.Types.Filters.Conventions
             TryCreateImplicitFilter factory);
 
         IFilterConventionOperationDescriptor Operation(FilterOperationKind kind);
+
 
     }
 }
