@@ -120,16 +120,16 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            DefinitionBase definition = _definition;
+            TDefinition definition = _definition;
 
             context.Interceptor.OnBeforeCompleteType(
-                context, definition, _definition.ContextData);
+                context, definition, definition.ContextData);
 
-            ExecuteConfigurations(context, _definition, ApplyConfigurationOn.Completion);
-            Description = _definition.Description;
-            OnCompleteType(context, _definition);
+            ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
+            Description = definition.Description;
+            OnCompleteType(context, definition);
 
-            _contextData = new Dictionary<string, object?>(_definition.ContextData);
+            _contextData = new Dictionary<string, object?>(definition.ContextData);
             _definition = null;
 
             base.CompleteType(context);

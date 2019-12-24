@@ -223,6 +223,5 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context,
             Type entityType) =>
             new SortInputTypeDescriptor<T>(context, entityType);
-
     }
 }
