@@ -16,7 +16,10 @@ namespace HotChocolate.Types.Filters.Conventions
             new FilterConventionDefinition();
 
         private readonly ConcurrentDictionary<FilterOperationKind,
-            FilterConventionOperationDescriptor> _configurations;
+            FilterConventionDefaultOperationDescriptor> _defaultOperations;
+
+        private readonly ConcurrentDictionary<FilterKind,
+            FilterConventionTypeDescriptor> _configurations;
 
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
@@ -37,33 +40,49 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public IFilterConventionOperationDescriptor Filter(FilterOperationKind kind)
+        public IFilterConventionTypeDescriptor Type(FilterKind kind)
         {
             return _configurations.GetOrAdd(
-                kind, (FilterOperationKind kind) =>
-                FilterConventionOperationDescriptor.New(this, kind));
+                kind, (FilterKind kind) =>
+                FilterConventionTypeDescriptor.New(this, kind));
         }
 
         public FilterConventionDefinition CreateDefinition()
         {
-            Array values = Enum.GetValues(typeof(AllowedFilterType));
-            foreach (FilterConventionOperationDescriptor descriptor in _configurations.Values)
+            Array values = Enum.GetValues(typeof(FilterKind));
+            foreach (FilterConventionTypeDescriptor descriptor in _configurations.Values)
             {
-                FilterConventionOperationDefinition defintion = descriptor.CreateDefinition();
-                if (!defintion.Ignore)
+                FilterConventionTypeDefinition definition = descriptor.CreateDefinition();
+                if (!definition.Ignore)
                 {
-                    Definition.Descriptions[defintion.OperationKind] = defintion.Description;
-                    Definition.Names[defintion.OperationKind] = defintion.Name;
-                    Definition.ImplicitFilters.Add(defintion.TryCreateFilter);
-                    foreach (AllowedFilterType item in defintion.AllowedFilters)
-                    {
-                        Definition.AllowedOperations[item] = defintion.OperationKind;
-                    }
+                    Definition.TypeDefinitions[definition.FilterKind] = definition;
+                    Definition.AllowedOperations[definition.FilterKind]
+                        = definition.AllowedOperations;
+                    Definition.ImplicitFilters.Add(definition.TryCreateFilter);
+                }
+            }
+
+            foreach (FilterConventionDefaultOperationDescriptor descriptor
+                in _defaultOperations.Values)
+            {
+                FilterConventionOperationDefinition definition = descriptor.CreateDefinition();
+                if (!definition.Ignore)
+                {
+                    Definition.DefaultOperationDescriptions[definition.OperationKind]
+                        = definition.Description;
+                    Definition.DefaultOperationNames[definition.OperationKind] = definition.Name;
                 }
             }
             return Definition;
         }
 
         public static FilterConventionDescriptor New() => new FilterConventionDescriptor();
+
+        public IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind)
+        {
+            return _defaultOperations.GetOrAdd(
+                kind, (FilterOperationKind kind) =>
+                FilterConventionDefaultOperationDescriptor.New(this, kind));
+        }
     }
 }

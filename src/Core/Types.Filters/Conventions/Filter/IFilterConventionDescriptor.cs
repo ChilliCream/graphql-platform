@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterConventionDescriptor GetFilterTypeName(
             GetFilterTypeName getFilterTypeName);
 
-        IFilterConventionOperationDescriptor Filter(FilterOperationKind kind);
+        IFilterConventionTypeDescriptor Type(FilterKind kind);
+
+        IFilterDefaultOperationDescriptor Operation(FilterOperationKind kind);
     }
 }

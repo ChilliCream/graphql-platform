@@ -10,7 +10,5 @@ namespace HotChocolate.Types.Filters.Conventions
         public string Description { get; set; }
         public bool Ignore { get; set; }
         public FilterOperationKind OperationKind { get; set; }
-        public TryCreateImplicitFilter TryCreateFilter { get; set; }
-        public HashSet<AllowedFilterType> AllowedFilters { get; set; }
     }
 }

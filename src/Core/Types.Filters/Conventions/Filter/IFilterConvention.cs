@@ -11,7 +11,10 @@ namespace HotChocolate.Types.Filters.Conventions
 
         NameString GetArrayFilterPropertyName();
 
-        NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind);
+        NameString CreateFieldName(
+            FilterKind filterKind,
+            FilterFieldDefintion definition,
+            FilterOperationKind kind);
 
         NameString GetFilterTypeName(IDescriptorContext context, Type entityType);
 

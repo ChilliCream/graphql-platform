@@ -4,24 +4,20 @@ using System.Text;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public interface IFilterConventionOperationDescriptor : IFluent
+    public interface IFilterConventionOperationDescriptor
+        : IFilterConventionOperationDescriptorBase
     {
-        IFilterConventionOperationDescriptor Name(CreateFieldName factory);
+        new IFilterConventionOperationDescriptor Name(CreateFieldName factory);
 
-        IFilterConventionOperationDescriptor Description(string value);
+        new IFilterConventionOperationDescriptor Description(string value);
 
         /// <summary>
         /// Ignores the filter if true
         /// </summary> 
         /// 
-        IFilterConventionOperationDescriptor Ignore(bool ignore = true);
+        new IFilterConventionOperationDescriptor Ignore(bool ignore = true);
 
-        IFilterConventionDescriptor And();
-
-        IFilterConventionOperationDescriptor AllowedFilter(AllowedFilterType value);
-
-        IFilterConventionOperationDescriptor TryCreateImplicitFilter(
-            TryCreateImplicitFilter factory);
+        IFilterConventionTypeDescriptor And();
 
     }
 }

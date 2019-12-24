@@ -37,9 +37,36 @@ namespace HotChocolate.Types.Filters.Conventions
             return GetOrCreateConfiguration().ArrayFilterPropertyName;
         }
 
-        public NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind)
+        public NameString CreateFieldName(
+            FilterKind filterKind, FilterFieldDefintion definition, FilterOperationKind kind)
         {
-            return GetOrCreateConfiguration().Names[kind](definition, kind);
+            FilterConventionDefinition configuration = GetOrCreateConfiguration();
+
+            if (configuration.TypeDefinitions.TryGetValue(filterKind,
+                    out FilterConventionTypeDefinition typeDefinition) &&
+                    typeDefinition.OperationNames.TryGetValue(kind,
+                        out CreateFieldName createFieldName)
+                )
+            {
+                return createFieldName(definition, kind);
+            }
+
+            if (configuration.DefaultOperationNames.TryGetValue(kind,
+                        out CreateFieldName createDefaultFieldName))
+            {
+                return createDefaultFieldName(definition, kind);
+            }
+
+            // Todo resources && set code
+            throw new SchemaException(
+                SchemaErrorBuilder.New()
+                .SetMessage(
+                    string.Format(
+                        "No operation name for {0} in filter type {1} found. Add operation"
+                        + "name to filter conventions",
+                        kind,
+                        filterKind))
+                .Build());
         }
 
         public virtual NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
@@ -52,8 +79,6 @@ namespace HotChocolate.Types.Filters.Conventions
             return GetOrCreateConfiguration().ImplicitFilters;
         }
 
-
-
         protected virtual void Configure(
             IFilterConventionDescriptor descriptor)
         {
@@ -62,6 +87,7 @@ namespace HotChocolate.Types.Filters.Conventions
         protected FilterConventionDefinition CreateDefinition()
         {
             var descriptor = FilterConventionDescriptor.New();
+            ApplyDefaultConfiguration(descriptor);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -76,6 +102,50 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
                 return _definition;
             }
+        }
+
+        private void ApplyDefaultConfiguration(IFilterConventionDescriptor descriptor)
+        {
+            descriptor.ArgumentName("where")
+                .ArrayFilterPropertyName("element")
+                .Type(FilterKind.Array)
+                    .Operation(FilterOperationKind.ArrayAll).And()
+                    .Operation(FilterOperationKind.ArrayAny).And()
+                    .Operation(FilterOperationKind.ArraySome).And()
+                    .Operation(FilterOperationKind.ArrayNone).And()
+                    .And()
+                .Type(FilterKind.Boolean)
+                    .Operation(FilterOperationKind.Equals).And()
+                    .Operation(FilterOperationKind.NotEquals).And()
+                    .And()
+                .Type(FilterKind.Comparable)
+                    .Operation(FilterOperationKind.Equals).And()
+                    .Operation(FilterOperationKind.NotEquals).And()
+                    .Operation(FilterOperationKind.In).And()
+                    .Operation(FilterOperationKind.NotIn).And()
+                    .Operation(FilterOperationKind.GreaterThan).And()
+                    .Operation(FilterOperationKind.NotGreaterThan).And()
+                    .Operation(FilterOperationKind.GreaterThanOrEquals).And()
+                    .Operation(FilterOperationKind.NotGreaterThanOrEquals).And()
+                    .Operation(FilterOperationKind.LowerThan).And()
+                    .Operation(FilterOperationKind.NotLowerThan).And()
+                    .Operation(FilterOperationKind.LowerThanOrEquals).And()
+                    .Operation(FilterOperationKind.NotLowerThanOrEquals).And()
+                    .And()
+                .Type(FilterKind.Object)
+                    .Operation(FilterOperationKind.Equals).And()
+                    .And()
+                .Type(FilterKind.String)
+                    .Operation(FilterOperationKind.Equals).And()
+                    .Operation(FilterOperationKind.NotEquals).And()
+                    .Operation(FilterOperationKind.Contains).And()
+                    .Operation(FilterOperationKind.NotContains).And()
+                    .Operation(FilterOperationKind.StartsWith).And()
+                    .Operation(FilterOperationKind.NotStartsWith).And()
+                    .Operation(FilterOperationKind.EndsWith).And()
+                    .Operation(FilterOperationKind.NotEndsWith).And()
+                    .Operation(FilterOperationKind.In).And()
+                    .Operation(FilterOperationKind.NotIn).And();
         }
     }
 }

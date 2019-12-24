@@ -7,11 +7,16 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         public IList<TryCreateImplicitFilter> ImplicitFilters { get; set; }
 
-        public IDictionary<AllowedFilterType, FilterOperationKind> AllowedOperations { get; set; }
+        public IDictionary<FilterKind, ISet<FilterOperationKind>> AllowedOperations { get; set; }
 
-        public IDictionary<FilterOperationKind, CreateFieldName> Names { get; set; }
+        public IDictionary<FilterKind, FilterConventionTypeDefinition> TypeDefinitions
+        { get; set; }
 
-        public IDictionary<FilterOperationKind, NameString> Descriptions { get; set; }
+        public IDictionary<FilterOperationKind, CreateFieldName> DefaultOperationNames
+        { get; set; }
+
+        public IDictionary<FilterOperationKind, NameString> DefaultOperationDescriptions
+        { get; set; }
 
         public NameString ArgumentName { get; set; }
 

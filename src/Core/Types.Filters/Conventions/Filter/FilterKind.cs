@@ -4,11 +4,7 @@ using System.Text;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    /// <summary>
-    /// Specifies where the filter kind should be infered
-    /// </summary>
-    [Flags]
-    public enum AllowedFilterType
+    public enum FilterKind : byte
     {
         /// <summary>
         /// This filter is allowed for string filters
