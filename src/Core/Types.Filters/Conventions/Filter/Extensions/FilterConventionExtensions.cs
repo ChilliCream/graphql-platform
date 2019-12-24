@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -54,7 +57,8 @@ namespace HotChocolate.Types.Filters.Conventions
                     .Operation(FilterOperationKind.In).And()
                     .Operation(FilterOperationKind.NotIn).And()
                     .And()
-                .UseSnakeCase();
+                .UseSnakeCase()
+                .UseImplicitFilters();
         }
 
         public static IFilterConventionDescriptor UseSnakeCase(

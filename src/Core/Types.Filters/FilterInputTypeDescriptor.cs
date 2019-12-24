@@ -23,17 +23,19 @@ namespace HotChocolate.Types.Filters
             Type entityType)
             : base(context)
         {
-            IFilterConvention convention = context.GetFilterConvention();
+            _convention = context.GetFilterConvention();
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
-            Definition.Name = convention.GetFilterTypeName(context, entityType);
+            Definition.Name = _convention.GetFilterTypeName(context, entityType);
             // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
             Definition.Fields.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
         }
+
+        private readonly IFilterConvention _convention;
 
         internal protected override FilterInputTypeDefinition Definition { get; } =
             new FilterInputTypeDefinition();
@@ -140,6 +142,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             out FilterFieldDefintion definition)
         {
+
             Type type = property.PropertyType;
 
             if (type.IsGenericType
@@ -148,87 +151,16 @@ namespace HotChocolate.Types.Filters
                 type = nullableType;
             }
 
-            if (type == typeof(string))
-            {
-                var field = new StringFilterFieldDescriptor(Context, property);
-                definition = field.CreateDefinition();
-                return true;
-            }
+            IEnumerator<TryCreateImplicitFilter> enumerator
+                = _convention.GetImplicitFilterFactories().GetEnumerator();
 
-            if (type == typeof(bool))
-            {
-                var field = new BooleanFilterFieldDescriptor(
-                    Context, property);
-                definition = field.CreateDefinition();
-                return true;
-            }
+            enumerator.MoveNext();
 
-            if (IsComparable(property.PropertyType))
-            {
-                var field = new ComparableFilterFieldDescriptor(
-                    Context, property);
-                definition = field.CreateDefinition();
-                return true;
-            }
+            while (!enumerator.Current(Context, type, property, out definition) &&
+                    enumerator.MoveNext())
+            { }
 
-            if (DotNetTypeInfoFactory.IsListType(type))
-            {
-                if (!TypeInspector.Default.TryCreate(type, out Utilities.TypeInfo typeInfo))
-                {
-                    throw new ArgumentException(
-                        FilterResources.FilterArrayFieldDescriptor_InvalidType,
-                        nameof(property));
-                }
-
-                Type elementType = typeInfo.ClrType;
-                ArrayFilterFieldDescriptor field;
-
-                if (elementType == typeof(string)
-                    || elementType == typeof(bool)
-                    || typeof(IComparable).IsAssignableFrom(elementType))
-                {
-                    field = new ArrayFilterFieldDescriptor(
-                        Context,
-                        property,
-                        typeof(ISingleFilter<>).MakeGenericType(elementType));
-                }
-                else
-                {
-                    field = new ArrayFilterFieldDescriptor(Context, property, elementType);
-                }
-
-                definition = field.CreateDefinition();
-                return true;
-            }
-
-            if (type.IsClass)
-            {
-                var field = new ObjectFilterFieldDescriptor(
-                    Context, property, property.PropertyType);
-                definition = field.CreateDefinition();
-                return true;
-            }
-
-            definition = null;
-            return false;
-        }
-
-        private bool IsComparable(Type type)
-        {
-            if (typeof(IComparable).IsAssignableFrom(type))
-            {
-                return true;
-            }
-
-            if (type.IsValueType
-                && type.IsGenericType
-                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                return typeof(IComparable).IsAssignableFrom(
-                    System.Nullable.GetUnderlyingType(type));
-            }
-
-            return false;
+            return definition != null;
         }
 
         public IFilterInputTypeDescriptor<T> BindFields(

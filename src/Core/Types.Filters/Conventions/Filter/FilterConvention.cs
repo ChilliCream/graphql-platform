@@ -7,6 +7,8 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Filters.Conventions
 {
     public delegate bool TryCreateImplicitFilter(
+            IDescriptorContext context,
+            Type type,
             PropertyInfo property,
             out FilterFieldDefintion definition);
 

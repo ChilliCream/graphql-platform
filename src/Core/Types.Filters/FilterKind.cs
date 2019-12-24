@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Filters
     public enum FilterKind : byte
     {
         /// <summary>
-        /// All Object Filters
+        /// Ignored Filters
         /// </summary>
         Ignored = 0x0,
 
