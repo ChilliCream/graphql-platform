@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         public FieldDefinitionNode(
-            Location? location,
+            Location location,
             NameNode name,
             StringValueNode? description,
             IReadOnlyList<InputValueDefinitionNode> arguments,
@@ -30,7 +30,7 @@ namespace HotChocolate.Language
 
         public ITypeNode Type { get; }
 
-        public FieldDefinitionNode WithLocation(Location? location)
+        public FieldDefinitionNode WithLocation(Location location)
         {
             return new FieldDefinitionNode(
                 location, Name, Description,

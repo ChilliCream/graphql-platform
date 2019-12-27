@@ -23,7 +23,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public IntValueNode(Location? location, byte value)
+        public IntValueNode(Location location, byte value)
         {
             Location = location;
             _byteValue = value;
@@ -35,7 +35,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public IntValueNode(Location? location, short value)
+        public IntValueNode(Location location, short value)
         {
             Location = location;
             _shortValue = value;
@@ -46,7 +46,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public IntValueNode(Location? location, int value)
+        public IntValueNode(Location location, int value)
         {
             Location = location;
             _intValue = value;
@@ -57,7 +57,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public IntValueNode(Location? location, long value)
+        public IntValueNode(Location location, long value)
         {
             Location = location;
             _longValue = value;
@@ -68,7 +68,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public IntValueNode(Location? location, ReadOnlyMemory<byte> value)
+        public IntValueNode(Location location, ReadOnlyMemory<byte> value)
         {
             if (value.IsEmpty)
             {
@@ -81,14 +81,14 @@ namespace HotChocolate.Language
             _memory = value;
         }
 
-        private IntValueNode(Location? location)
+        private IntValueNode(Location location)
         {
             Location = location;
         }
 
         public NodeKind Kind { get; } = NodeKind.IntValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public string Value
         {
@@ -362,7 +362,7 @@ namespace HotChocolate.Language
             return _memory.Span;
         }
 
-        public IntValueNode WithLocation(Location? location)
+        public IntValueNode WithLocation(Location location)
         {
             return new IntValueNode(location)
             {

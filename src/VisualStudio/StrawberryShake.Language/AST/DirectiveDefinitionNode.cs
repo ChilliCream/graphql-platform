@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : ITypeSystemDefinitionNode
     {
         public DirectiveDefinitionNode(
-            Location? location,
+            Location location,
             NameNode name,
             StringValueNode? description,
             bool isRepeatable,
@@ -27,7 +27,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.DirectiveDefinition;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public NameNode Name { get; }
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<NameNode> Locations { get; }
 
-        public DirectiveDefinitionNode WithLocation(Location? location)
+        public DirectiveDefinitionNode WithLocation(Location location)
         {
             return new DirectiveDefinitionNode
             (

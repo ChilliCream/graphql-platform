@@ -12,14 +12,14 @@ namespace HotChocolate.Language
         {
         }
 
-        public NullValueNode(Location? location)
+        public NullValueNode(Location location)
         {
             Location = location;
         }
 
         public NodeKind Kind { get; } = NodeKind.NullValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public object? Value { get; }
 
@@ -115,7 +115,7 @@ namespace HotChocolate.Language
 
         public static NullValueNode Default { get; } = new NullValueNode();
 
-        public NullValueNode WithLocation(Location? location)
+        public NullValueNode WithLocation(Location location)
         {
             return new NullValueNode(location);
         }

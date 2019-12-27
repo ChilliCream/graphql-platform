@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Fragments section.
-    public ref partial struct Utf8GraphQLParser
+    public ref partial struct TextGraphQLParser
     {
         /// <summary>
         /// Parses a fragment spred or inline fragment within a selection set.
@@ -62,7 +62,7 @@ namespace HotChocolate.Language
                 NamedTypeNode typeCondition = ParseNamedType();
                 List<DirectiveNode> directives = ParseDirectives(false);
                 SelectionSetNode selectionSet = ParseSelectionSet();
-                Location? location = CreateLocation(in start);
+                Location location = CreateLocation(in start);
 
                 return new FragmentDefinitionNode
                 (
@@ -81,7 +81,7 @@ namespace HotChocolate.Language
                 NamedTypeNode typeCondition = ParseNamedType();
                 List<DirectiveNode> directives = ParseDirectives(false);
                 SelectionSetNode selectionSet = ParseSelectionSet();
-                Location? location = CreateLocation(in start);
+                Location location = CreateLocation(in start);
 
                 return new FragmentDefinitionNode
                 (
@@ -108,7 +108,7 @@ namespace HotChocolate.Language
         {
             NameNode name = ParseFragmentName();
             List<DirectiveNode> directives = ParseDirectives(false);
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new FragmentSpreadNode
             (
@@ -136,7 +136,7 @@ namespace HotChocolate.Language
         {
             List<DirectiveNode> directives = ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new InlineFragmentNode
             (

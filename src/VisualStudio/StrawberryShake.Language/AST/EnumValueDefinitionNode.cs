@@ -6,7 +6,7 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         public EnumValueDefinitionNode(
-            Location? location,
+            Location location,
             NameNode name,
             StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives)
@@ -19,7 +19,7 @@ namespace HotChocolate.Language
 
         public StringValueNode? Description { get; }
 
-        public EnumValueDefinitionNode WithLocation(Location? location)
+        public EnumValueDefinitionNode WithLocation(Location location)
         {
             return new EnumValueDefinitionNode(
                 location, Name, Description, Directives);

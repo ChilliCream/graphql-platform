@@ -13,7 +13,7 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         public InputValueDefinitionNode(
-            Location? location,
+            Location location,
             NameNode name,
             StringValueNode? description,
             ITypeNode type,
@@ -34,7 +34,7 @@ namespace HotChocolate.Language
 
         public IValueNode? DefaultValue { get; }
 
-        public InputValueDefinitionNode WithLocation(Location? location)
+        public InputValueDefinitionNode WithLocation(Location location)
         {
             return new InputValueDefinitionNode(
                 location, Name, Description,

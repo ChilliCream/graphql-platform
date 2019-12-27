@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Values section.
-    public ref partial struct Utf8GraphQLParser
+    public ref partial struct TextGraphQLParser
     {
         /// <summary>
         /// Parses a value.
@@ -66,8 +66,8 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
-            ReadOnlyMemory<byte> value = ExpectString();
-            Location? location = CreateLocation(in start);
+            string value = ExpectString();
+            Location location = CreateLocation(in start);
 
             return new StringValueNode(location, value, isBlock);
         }
@@ -111,7 +111,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBracket);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ListValueNode
             (
@@ -159,7 +159,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBrace);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ObjectValueNode
             (
@@ -179,7 +179,7 @@ namespace HotChocolate.Language
 
             IValueNode value = ParseValueLiteral(isConstant);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ObjectFieldNode
             (
@@ -212,7 +212,7 @@ namespace HotChocolate.Language
             FloatFormat? format = _reader.FloatFormat;
             MoveNext();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             if (kind == TokenKind.Float)
             {
@@ -241,7 +241,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            Location? location;
+            Location location;
 
             if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
             {

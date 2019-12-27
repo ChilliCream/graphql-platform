@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public NameNode(Location? location, string value)
+        public NameNode(Location location, string value)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.Name;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public string Value { get; }
 
@@ -115,7 +115,7 @@ namespace HotChocolate.Language
             return Value;
         }
 
-        public NameNode WithLocation(Location? location)
+        public NameNode WithLocation(Location location)
         {
             return new NameNode(location, Value);
         }

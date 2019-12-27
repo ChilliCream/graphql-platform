@@ -10,25 +10,8 @@ namespace HotChocolate.Language
     /// </summary>
     public sealed class StringValueNode
         : IValueNode<string>
-        , IHasSpan
         , IEquatable<StringValueNode>
     {
-        private ReadOnlyMemory<byte> _memory;
-        private string? _value;
-
-        /// <summary>
-        /// Initializes a new instance of the
-        /// <see cref="StringValueNode"/> class.
-        /// </summary>
-        /// <param name="value">The string value.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c>.
-        /// </exception>
-        public StringValueNode(string value)
-            : this(null, value, false)
-        {
-        }
-
         /// <summary>
         /// Initializes a new instance of the
         /// <see cref="StringValueNode"/> class.
@@ -42,40 +25,20 @@ namespace HotChocolate.Language
         /// <paramref name="value"/> is <c>null</c>.
         /// </exception>
         public StringValueNode(
-            Location? location,
+            Location location,
             string value,
             bool block)
         {
             Location = location;
-            _value = value ?? throw new ArgumentNullException(nameof(value));
-            Block = block;
-        }
-
-        public StringValueNode(
-            Location? location,
-            ReadOnlyMemory<byte> value,
-            bool block)
-        {
-            Location = location;
-            _memory = value;
+            Value = value ?? throw new ArgumentNullException(nameof(value));
             Block = block;
         }
 
         public NodeKind Kind { get; } = NodeKind.StringValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
-        public string Value
-        {
-            get
-            {
-                if (_value is null)
-                {
-                    _value = Utf8GraphQLReader.GetString(_memory.Span, Block);
-                }
-                return _value;
-            }
-        }
+        public string Value { get; }
 
         object IValueNode.Value => Value;
 
@@ -207,16 +170,7 @@ namespace HotChocolate.Language
             return Value;
         }
 
-        public ReadOnlySpan<byte> AsSpan()
-        {
-            if (_memory.IsEmpty)
-            {
-                _memory = Encoding.UTF8.GetBytes(_value!);
-            }
-            return _memory.Span;
-        }
-
-        public StringValueNode WithLocation(Location? location)
+        public StringValueNode WithLocation(Location location)
         {
             return new StringValueNode(location, Value, Block);
         }

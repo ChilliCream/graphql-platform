@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         , ITypeExtensionNode
     {
         public ObjectTypeExtensionNode(
-            Location? location,
+            Location location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<NamedTypeNode> interfaces,
@@ -17,7 +17,7 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.ObjectTypeExtension;
 
-        public ObjectTypeExtensionNode WithLocation(Location? location)
+        public ObjectTypeExtensionNode WithLocation(Location location)
         {
             return new ObjectTypeExtensionNode(
                 location, Name, Directives,

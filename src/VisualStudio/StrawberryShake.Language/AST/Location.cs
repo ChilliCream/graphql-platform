@@ -1,11 +1,12 @@
 ﻿namespace HotChocolate.Language
 {
-    public sealed class Location
+    public readonly struct Location
     {
         public Location(int start, int end, int line, int column)
         {
             Start = start;
             End = end;
+            Length = end - start;
             Line = line;
             Column = column;
         }
@@ -21,6 +22,12 @@
         /// <see cref="ISyntaxNode" /> ends.
         /// </summary>
         public int End { get; }
+
+        /// <summary>
+        /// Gets the length of the <see cref="ISyntaxNode" />.
+        /// </summary>
+        /// <value></value>
+        public int Length { get; }
 
         /// <summary>
         /// Gets the 1-indexed line number on which this

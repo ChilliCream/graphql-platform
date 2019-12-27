@@ -9,70 +9,19 @@ namespace HotChocolate.Language
     /// </summary>
     public sealed class EnumValueNode
         : IValueNode<string>
-        , IHasSpan
         , IEquatable<EnumValueNode?>
     {
-        private ReadOnlyMemory<byte> _memory;
-        private string? _value;
-
-        public EnumValueNode(object value)
-        {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            string? stringValue = value.ToString()?.ToUpperInvariant();
-
-            if (stringValue is null)
-            {
-                throw new ArgumentException(
-                    "The value string representation mustn't be null.",
-                    nameof(value));
-            }
-
-            _value = stringValue;
-        }
-
-        public EnumValueNode(string value)
-            : this(null, value)
-        {
-        }
-
-        public EnumValueNode(Location? location, string value)
+        public EnumValueNode(Location location, string value)
         {
             Location = location;
-            _value = value ?? throw new ArgumentNullException(nameof(value));
-        }
-
-        public EnumValueNode(Location? location, ReadOnlyMemory<byte> value)
-        {
-            if (value.IsEmpty)
-            {
-                throw new ArgumentNullException(
-                    "The value mustn't be empty.",
-                    nameof(value));
-            }
-
-            Location = location;
-            _memory = value;
+            Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         public NodeKind Kind { get; } = NodeKind.EnumValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
-        public string Value
-        {
-            get
-            {
-                if (_value is null)
-                {
-                    _value = Utf8GraphQLReader.GetScalarValue(_memory.Span);
-                }
-                return _value;
-            }
-        }
+        public string Value { get; }
 
         object IValueNode.Value => Value;
 
@@ -194,31 +143,12 @@ namespace HotChocolate.Language
             return Value;
         }
 
-        public ReadOnlySpan<byte> AsSpan()
-        {
-            if (_memory.IsEmpty)
-            {
-                int length = checked(_value!.Length * 4);
-                Memory<byte> memory = new byte[length];
-                Span<byte> span = memory.Span;
-                int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);
-                _memory = memory.Slice(0, buffered);
-            }
-
-            return _memory.Span;
-        }
-
-        public EnumValueNode WithLocation(Location? location)
+        public EnumValueNode WithLocation(Location location)
         {
             return new EnumValueNode(location, Value);
         }
 
         public EnumValueNode WithValue(string value)
-        {
-            return new EnumValueNode(Location, value);
-        }
-
-        public EnumValueNode WithValue(Memory<byte> value)
         {
             return new EnumValueNode(Location, value);
         }

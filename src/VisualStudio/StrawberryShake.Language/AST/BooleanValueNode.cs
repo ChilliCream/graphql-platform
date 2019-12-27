@@ -7,14 +7,7 @@ namespace HotChocolate.Language
         : IValueNode<bool>
         , IEquatable<BooleanValueNode?>
     {
-        public BooleanValueNode(bool value)
-            : this(null, value)
-        {
-        }
-
-        public BooleanValueNode(
-            Location? location,
-            bool value)
+        public BooleanValueNode(Location location, bool value)
         {
             Location = location;
             Value = value;
@@ -22,7 +15,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.BooleanValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public bool Value { get; }
 
@@ -143,21 +136,13 @@ namespace HotChocolate.Language
         /// </returns>
         public override string? ToString()
         {
-#if NETSTANDARD1_4
-            return Value.ToString();
-#else
             return Value.ToString(CultureInfo.InvariantCulture);
-#endif
         }
 
-        public BooleanValueNode WithLocation(Location? location) =>
+        public BooleanValueNode WithLocation(Location location) =>
             new BooleanValueNode(location, Value);
 
         public BooleanValueNode WithValue(bool value) =>
             new BooleanValueNode(Location, value);
-
-        public static BooleanValueNode TrueLiteral { get; } = new BooleanValueNode(true);
-
-        public static BooleanValueNode FalseLiteral { get; } = new BooleanValueNode(false);
     }
 }

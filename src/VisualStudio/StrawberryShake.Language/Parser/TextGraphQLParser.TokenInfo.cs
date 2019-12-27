@@ -6,7 +6,7 @@ using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
-    public ref partial struct Utf8GraphQLParser
+    public ref partial struct TextGraphQLParser
     {
         private ref partial struct TokenInfo
         {

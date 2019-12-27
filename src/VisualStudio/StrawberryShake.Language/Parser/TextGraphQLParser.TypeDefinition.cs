@@ -5,7 +5,7 @@ using HotChocolate.Language.Properties;
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Type Definition section.
-    public ref partial struct Utf8GraphQLParser
+    public ref partial struct TextGraphQLParser
     {
         private static readonly List<EnumValueDefinitionNode> emptyEnumValues =
             new List<EnumValueDefinitionNode>();
@@ -68,7 +68,7 @@ namespace HotChocolate.Language
             // skip closing token
             ExpectRightBrace();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new SchemaDefinitionNode
             (
@@ -93,7 +93,7 @@ namespace HotChocolate.Language
             ExpectColon();
             NamedTypeNode type = ParseNamedType();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new OperationTypeDefinitionNode
             (
@@ -120,7 +120,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName();
             List<DirectiveNode> directives = ParseDirectives(true);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ScalarTypeDefinitionNode
             (
@@ -150,7 +150,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives = ParseDirectives(true);
             List<FieldDefinitionNode> fields = ParseFieldsDefinition();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new ObjectTypeDefinitionNode
             (
@@ -232,13 +232,12 @@ namespace HotChocolate.Language
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
-            List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions();
+            List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
             List<DirectiveNode> directives = ParseDirectives(true);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new FieldDefinitionNode
             (
@@ -300,7 +299,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new InputValueDefinitionNode
             (
@@ -332,7 +331,7 @@ namespace HotChocolate.Language
             List<FieldDefinitionNode> fields =
                 ParseFieldsDefinition();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new InterfaceTypeDefinitionNode
             (
@@ -362,7 +361,7 @@ namespace HotChocolate.Language
                 ParseDirectives(true);
             List<NamedTypeNode> types = ParseUnionMemberTypes();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new UnionTypeDefinitionNode
             (
@@ -415,7 +414,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives = ParseDirectives(true);
             List<EnumValueDefinitionNode> values = ParseEnumValuesDefinition();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new EnumTypeDefinitionNode
             (
@@ -473,7 +472,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new EnumValueDefinitionNode
             (
@@ -496,7 +495,7 @@ namespace HotChocolate.Language
             List<InputValueDefinitionNode> fields =
                 ParseInputFieldsDefinition();
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new InputObjectTypeDefinitionNode
             (

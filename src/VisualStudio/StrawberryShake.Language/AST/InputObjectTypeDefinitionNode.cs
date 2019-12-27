@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         , ITypeDefinitionNode
     {
         public InputObjectTypeDefinitionNode(
-            Location? location,
+            Location location,
             NameNode name,
             StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives,
@@ -22,7 +22,7 @@ namespace HotChocolate.Language
 
         public StringValueNode? Description { get; }
 
-        public InputObjectTypeDefinitionNode WithLocation(Location? location)
+        public InputObjectTypeDefinitionNode WithLocation(Location location)
         {
             return new InputObjectTypeDefinitionNode(
                 location, Name, Description,

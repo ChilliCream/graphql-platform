@@ -8,14 +8,13 @@ namespace HotChocolate.Language
         , IEquatable<ListValueNode>
     {
         private int? _hash;
-        private string? _stringValue;
 
         public ListValueNode(IValueNode item)
             : this(null, item)
         {
         }
 
-        public ListValueNode(Location? location, IValueNode item)
+        public ListValueNode(Location location, IValueNode item)
         {
             if (item == null)
             {
@@ -36,7 +35,7 @@ namespace HotChocolate.Language
         }
 
         public ListValueNode(
-            Location? location,
+            Location location,
             IReadOnlyList<IValueNode> items)
         {
             Location = location;
@@ -45,7 +44,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.ListValue;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public IReadOnlyList<IValueNode> Items { get; }
 
@@ -181,7 +180,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public ListValueNode WithLocation(Location? location)
+        public ListValueNode WithLocation(Location location)
         {
             return new ListValueNode(location, Items);
         }

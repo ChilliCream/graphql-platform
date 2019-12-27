@@ -8,7 +8,7 @@ namespace HotChocolate.Language
         , IHasDirectives
     {
         public OperationDefinitionNode(
-            Location? location,
+            Location location,
             NameNode? name,
             OperationType operation,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
@@ -28,7 +28,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.OperationDefinition;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public NameNode? Name { get; }
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
 
         public SelectionSetNode SelectionSet { get; }
 
-        public OperationDefinitionNode WithLocation(Location? location)
+        public OperationDefinitionNode WithLocation(Location location)
         {
             return new OperationDefinitionNode(
                 location, Name, Operation,

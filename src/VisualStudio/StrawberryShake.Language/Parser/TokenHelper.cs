@@ -20,19 +20,19 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsDescription(in Utf8GraphQLReader reader)
+        public static bool IsDescription(in TextGraphQLReader reader)
         {
             return _isString[(int)reader.Kind];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsString(in Utf8GraphQLReader reader)
+        public static bool IsString(in TextGraphQLReader reader)
         {
             return _isString[(int)reader.Kind];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsScalarValue(in Utf8GraphQLReader reader)
+        public static bool IsScalarValue(in TextGraphQLReader reader)
         {
             return _isScalar[(int)reader.Kind];
         }

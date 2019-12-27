@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
 {
-    public ref partial struct Utf8GraphQLParser
+    public ref partial struct TextGraphQLParser
     {
         private static readonly List<DirectiveNode> _emptyDirectives =
             new List<DirectiveNode>();
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
             List<NameNode> locations = ParseDirectiveLocations();
 
-            Location? location = CreateLocation(in start);
+             Location location = CreateLocation(in start);
 
             return new DirectiveDefinitionNode
             (
@@ -94,7 +94,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName();
             List<ArgumentNode> arguments = ParseArguments(isConstant);
 
-            Location? location = CreateLocation(in start);
+             Location location = CreateLocation(in start);
 
             return new DirectiveNode
             (

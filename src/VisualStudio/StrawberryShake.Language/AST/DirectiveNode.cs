@@ -7,47 +7,24 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public DirectiveNode(
-            string name,
-            params ArgumentNode[] arguments)
-            : this(new NameNode(name), arguments)
-        {
-        }
-
-        public DirectiveNode(
-            string name,
-            IReadOnlyList<ArgumentNode> arguments)
-            : this(new NameNode(name), arguments)
-        {
-        }
-
-        public DirectiveNode(
-            NameNode name,
-            IReadOnlyList<ArgumentNode> arguments)
-            : this(null, name, arguments)
-        {
-        }
-
-        public DirectiveNode(
-            Location? location,
+            Location location,
             NameNode name,
             IReadOnlyList<ArgumentNode> arguments)
         {
             Location = location;
-            Name = name
-                ?? throw new ArgumentNullException(nameof(name));
-            Arguments = arguments
-                ?? throw new ArgumentNullException(nameof(arguments));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
         }
 
         public NodeKind Kind { get; } = NodeKind.Directive;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public NameNode Name { get; }
 
         public IReadOnlyList<ArgumentNode> Arguments { get; }
 
-        public DirectiveNode WithLocation(Location? location)
+        public DirectiveNode WithLocation(Location location)
         {
             return new DirectiveNode(location, Name, Arguments);
         }

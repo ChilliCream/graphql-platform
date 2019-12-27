@@ -6,7 +6,7 @@ using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
-    public ref partial struct Utf8GraphQLParser
+    public ref partial struct TextGraphQLParser
     {
         internal TokenKind Kind => _reader.Kind;
 
@@ -15,7 +15,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
             string name = ExpectName();
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new NameNode
             (
@@ -38,21 +38,15 @@ namespace HotChocolate.Language
                 : default;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Location? CreateLocation(in TokenInfo start) =>
-            _createLocation
-                ? new Location(
-                    start.Start,
-                    _reader.End,
-                    start.Line,
-                    start.Column)
-                : null;
+        private Location CreateLocation(in TokenInfo start) =>
+            new Location(start.Start, _reader.End, start.Line, start.Column);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string ExpectName()
         {
             if (_reader.Kind == TokenKind.Name)
             {
-                string name = _reader.GetName();
+                string name = new string(_reader.Value);
                 MoveNext();
                 return name;
             }
@@ -77,11 +71,11 @@ namespace HotChocolate.Language
             Expect(TokenKind.RightBracket);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ReadOnlyMemory<byte> ExpectString()
+        private string ExpectString()
         {
             if (TokenHelper.IsString(in _reader))
             {
-                ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+                string value = new string(_reader.Value);
                 MoveNext();
                 return value;
             }
@@ -94,11 +88,11 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Memory<byte> ExpectScalarValue()
+        private string ExpectScalarValue()
         {
             if (TokenHelper.IsScalarValue(in _reader))
             {
-                Memory<byte> value = _reader.Value.ToArray();
+                string value = new string(_reader.Value);
                 MoveNext();
                 return value;
             }
@@ -109,14 +103,11 @@ namespace HotChocolate.Language
                     _reader.Kind));
         }
 
-        private void ExpectSpread() =>
-            Expect(TokenKind.Spread);
+        private void ExpectSpread() => Expect(TokenKind.Spread);
 
-        internal void ExpectRightParenthesis() =>
-            Expect(TokenKind.RightParenthesis);
+        internal void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
 
-        private void ExpectRightBrace() =>
-            Expect(TokenKind.RightBrace);
+        private void ExpectRightBrace() => Expect(TokenKind.RightBrace);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Expect(TokenKind kind)
@@ -131,28 +122,25 @@ namespace HotChocolate.Language
             }
         }
 
-        private void ExpectDirectiveKeyword() =>
-            ExpectKeyword(GraphQLKeywords.Directive);
+        private void ExpectDirectiveKeyword() => ExpectKeyword(GraphQLKeywords.Directive);
 
-        private void ExpectOnKeyword() =>
-            ExpectKeyword(GraphQLKeywords.On);
+        private void ExpectOnKeyword() => ExpectKeyword(GraphQLKeywords.On);
 
-        private void ExpectFragmentKeyword() =>
-            ExpectKeyword(GraphQLKeywords.Fragment);
+        private void ExpectFragmentKeyword() => ExpectKeyword(GraphQLKeywords.Fragment);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ExpectKeyword(ReadOnlySpan<byte> keyword)
+        private void ExpectKeyword(string keyword)
         {
             if (!SkipKeyword(keyword))
             {
                 string found = _reader.Kind == TokenKind.Name
-                    ? _reader.GetName()
+                    ? new string(_reader.Value)
                     : _reader.Kind.ToString();
 
                 throw new SyntaxException(_reader,
                     string.Format(CultureInfo.InvariantCulture,
                         LangResources.Parser_InvalidToken,
-                        Utf8GraphQLReader.GetString(keyword),
+                        keyword,
                         found));
             }
         }
@@ -165,14 +153,12 @@ namespace HotChocolate.Language
 
         private bool SkipAmpersand() => _reader.Skip(TokenKind.Ampersand);
 
-        private bool SkipRepeatableKeyword() =>
-            SkipKeyword(GraphQLKeywords.Repeatable);
+        private bool SkipRepeatableKeyword() => SkipKeyword(GraphQLKeywords.Repeatable);
 
-        private bool SkipImplementsKeyword() =>
-            SkipKeyword(GraphQLKeywords.Implements);
+        private bool SkipImplementsKeyword() => SkipKeyword(GraphQLKeywords.Implements);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool SkipKeyword(ReadOnlySpan<byte> keyword)
+        private bool SkipKeyword(string keyword)
         {
             if (_reader.Kind == TokenKind.Name
                 && _reader.Value.SequenceEqual(keyword))

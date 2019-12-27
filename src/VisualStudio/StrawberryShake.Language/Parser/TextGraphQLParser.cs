@@ -5,7 +5,7 @@ using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
-    public ref partial struct Utf8GraphQLParser
+    public ref partial struct TextGraphQLParser
     {
         private readonly ParserOptions _options;
         private readonly bool _createLocation;
@@ -13,13 +13,13 @@ namespace HotChocolate.Language
         private TextGraphQLReader _reader;
         private StringValueNode? _description;
 
-        public Utf8GraphQLParser(
+        public TextGraphQLParser(
             ReadOnlySpan<char> graphQLData)
             : this(graphQLData, ParserOptions.Default)
         {
         }
 
-        public Utf8GraphQLParser(
+        public TextGraphQLParser(
             ReadOnlySpan<char> graphQLData,
             ParserOptions options)
         {
@@ -42,8 +42,8 @@ namespace HotChocolate.Language
             _description = null;
         }
 
-        internal Utf8GraphQLParser(
-            Utf8GraphQLReader reader,
+        internal TextGraphQLParser(
+            TextGraphQLReader reader,
             ParserOptions options)
         {
             if (options == null)
@@ -78,7 +78,7 @@ namespace HotChocolate.Language
                 definitions.Add(ParseDefinition());
             }
 
-            Location? location = CreateLocation(in start);
+            Location location = CreateLocation(in start);
 
             return new DocumentNode(location, definitions);
         }
@@ -166,12 +166,12 @@ namespace HotChocolate.Language
 
         public static DocumentNode Parse(
             ReadOnlySpan<byte> graphQLData) =>
-            new Utf8GraphQLParser(graphQLData).Parse();
+            new TextGraphQLParser(graphQLData).Parse();
 
         public static DocumentNode Parse(
             ReadOnlySpan<byte> graphQLData,
             ParserOptions options) =>
-            new Utf8GraphQLParser(graphQLData, options).Parse();
+            new TextGraphQLParser(graphQLData, options).Parse();
 
         public static DocumentNode Parse(string sourceText) =>
             Parse(sourceText, ParserOptions.Default);
@@ -205,7 +205,7 @@ namespace HotChocolate.Language
             try
             {
                 ConvertToBytes(sourceText, ref sourceSpan);
-                var parser = new Utf8GraphQLParser(sourceSpan, options);
+                var parser = new TextGraphQLParser(sourceSpan, options);
                 return parser.Parse();
             }
             finally

@@ -20,7 +20,7 @@ namespace HotChocolate.Language
         }
 
         public VariableNode(
-            Location? location,
+            Location location,
             NameNode name)
         {
             Location = location;
@@ -29,7 +29,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.Variable;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public NameNode Name { get; }
 
@@ -164,7 +164,7 @@ namespace HotChocolate.Language
             return _memory.Span;
         }
 
-        public VariableNode WithLocation(Location? location)
+        public VariableNode WithLocation(Location location)
         {
             return new VariableNode(location, Name);
         }

@@ -6,13 +6,8 @@ namespace HotChocolate.Language
     public sealed class DocumentNode
         : ISyntaxNode
     {
-        public DocumentNode(IReadOnlyList<IDefinitionNode> definitions)
-            : this(null, definitions)
-        {
-        }
-
         public DocumentNode(
-            Location? location,
+            Location location,
             IReadOnlyList<IDefinitionNode> definitions)
         {
             Location = location;
@@ -22,11 +17,11 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.Document;
 
-        public Location? Location { get; }
+        public Location Location { get; }
 
         public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
-        public DocumentNode WithLocation(Location? location)
+        public DocumentNode WithLocation(Location location)
         {
             return new DocumentNode(location, Definitions);
         }
@@ -36,8 +31,5 @@ namespace HotChocolate.Language
         {
             return new DocumentNode(Location, definitions);
         }
-
-        public static DocumentNode Empty { get; } =
-            new DocumentNode(null, Array.Empty<IDefinitionNode>());
     }
 }
