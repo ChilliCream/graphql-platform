@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -19,8 +19,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context)
         {
-            _namingConvention = context.GetConventionOrDefault<IFilterNamingConvention>(
-                FilterNamingConventionSnakeCase.Default);
+            _namingConvention = context.GetFilterNamingConvention();
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -30,9 +29,10 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
+            _namingConvention = context.GetFilterNamingConvention();
         }
 
-        protected sealed override FilterFieldDefintion Definition { get; } =
+        internal protected sealed override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
@@ -50,6 +50,11 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+            }
+
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledOperations = new HashSet<FilterOperationKind>();
 
@@ -57,6 +62,8 @@ namespace HotChocolate.Types.Filters
             OnCompleteFilters(fields, handledOperations);
 
             Definition.Filters.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         private void AddExplicitFilters(
@@ -171,9 +178,9 @@ namespace HotChocolate.Types.Filters
                 }
                 else
                 {
-                    var type = clrRef.Type;
-                    if(type.IsGenericType &&
-                        Nullable.GetUnderlyingType(type) is Type nullableType)
+                    Type type = clrRef.Type;
+                    if (type.IsGenericType &&
+                        System.Nullable.GetUnderlyingType(type) is Type nullableType)
                     {
                         type = nullableType;
                     }
@@ -211,6 +218,10 @@ namespace HotChocolate.Types.Filters
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
+            if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
+            {
+                Definition.Name = _namingConvention.ArrayFilterPropertyName;
+            }
             return _namingConvention.CreateFieldName(Definition, kind);
         }
 

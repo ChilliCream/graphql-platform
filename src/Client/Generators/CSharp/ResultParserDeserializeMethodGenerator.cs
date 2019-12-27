@@ -1,6 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
@@ -40,7 +40,7 @@ namespace StrawberryShake.Generators.CSharp
                 { typeof(double?), "GetDouble" }
             };
 
-        private LanguageVersion _languageVersion;
+        private readonly LanguageVersion _languageVersion;
 
         public ResultParserDeserializeMethodGenerator(LanguageVersion languageVersion)
         {
@@ -96,7 +96,7 @@ namespace StrawberryShake.Generators.CSharp
                     else if (type.IsListType()
                         && type.ListType().ElementType.IsLeafType())
                     {
-                        await WriteDeserializeLeafList(
+                        await WriteDeserializeLeafListAsync(
                             writer,
                             typeLookup,
                             methodName,
@@ -139,13 +139,14 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteAsync("return ").ConfigureAwait(false);
                     await WriteSerializerAsync(
                         writer, clrTypeName, schemaTypeName,
-                        "value", serializerMethod);
+                        "value", serializerMethod)
+                        .ConfigureAwait(false);
                     await writer.WriteAsync(';').ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }).ConfigureAwait(false);
         }
 
-        private async Task WriteDeserializeLeafList(
+        private async Task WriteDeserializeLeafListAsync(
             CodeWriter writer,
             ITypeLookup typeLookup,
             string methodName,
@@ -174,7 +175,7 @@ namespace StrawberryShake.Generators.CSharp
             ;
         }
 
-        private Task WriteDeserializeNestedLeafList(
+        private Task WriteDeserializeNestedLeafListAsync(
             CodeWriter writer,
             string methodName,
             ITypeInfo typeInfo,
@@ -183,7 +184,7 @@ namespace StrawberryShake.Generators.CSharp
             throw new NotImplementedException();
         }
 
-        private async Task WriteDeserializerMethodAsync(
+        private static async Task WriteDeserializerMethodAsync(
             CodeWriter writer,
             string methodName,
             string clrTypeName,
@@ -204,7 +205,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
-        private async Task WriteDeserializeListAsync(
+        private static async Task WriteDeserializeListAsync(
             CodeWriter writer,
             string listName,
             string listIndex,
@@ -221,7 +222,7 @@ namespace StrawberryShake.Generators.CSharp
                 $"var {listName}List = new {clrElementTypeName}[{listName}Length];")
                 .ConfigureAwait(false);
 
-            await writer.WriteLineAsync();
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             await writer.WriteIndentedLineAsync(
                 $"for (int {listIndex} = 0; {listIndex} < {listName}Length; {listIndex}++)")
@@ -274,7 +275,7 @@ namespace StrawberryShake.Generators.CSharp
                 .ConfigureAwait(false);
         }
 
-        private async Task WriteNullHandlingAsync(
+        private static async Task WriteNullHandlingAsync(
             CodeWriter writer,
             string parameterName,
             string valueName,
@@ -290,34 +291,36 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentedLineAsync(
                     $"if (!{parameterName}.TryGetProperty(fieldName, " +
-                    $"out JsonElement {valueName}))");
+                    $"out JsonElement {valueName}))")
+                    .ConfigureAwait(false);
 
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("return null;");
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return null;").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await writer.WriteIndentedLineAsync("}");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
-                    $"if ({valueName}.ValueKind == JsonValueKind.Null)");
+                    $"if ({valueName}.ValueKind == JsonValueKind.Null)")
+                    .ConfigureAwait(false);
 
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("return null;");
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return null;").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await writer.WriteIndentedLineAsync("}");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
         }
 

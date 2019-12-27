@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Sorting.Extensions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
@@ -19,24 +20,20 @@ namespace HotChocolate.Types.Sorting
             Type entityType)
             : base(context)
         {
-            if (entityType is null)
-            {
-                throw new ArgumentNullException(nameof(entityType));
-            }
-
-            Definition.EntityType = entityType;
+            ISortingNamingConvention convention = context.GetSortingNamingConvention();
+            Definition.EntityType = entityType
+                ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
-            Definition.Name = context.Naming.GetTypeName(
-                entityType, TypeKind.Object) + "Sort";
+            Definition.Name = convention.GetSortingTypeName(context, entityType);
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
         }
 
-        protected sealed override SortInputTypeDefinition Definition { get; } =
+        internal protected sealed override SortInputTypeDefinition Definition { get; } =
             new SortInputTypeDefinition();
 
-        protected ICollection<SortOperationDescriptor> Fields { get; } =
-            new List<SortOperationDescriptor>();
+        protected ICollection<SortOperationDescriptorBase> Fields { get; } =
+            new List<SortOperationDescriptorBase>();
 
 
         public ISortInputTypeDescriptor<T> Name(NameString value)
@@ -94,9 +91,8 @@ namespace HotChocolate.Types.Sorting
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = SortOperationDescriptor.CreateOperation(p, Context);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                   () => SortOperationDescriptor.CreateOperation(p, Context));
             }
 
             // TODO : resources
@@ -111,9 +107,23 @@ namespace HotChocolate.Types.Sorting
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = SortObjectOperationDescriptor<TObject>.CreateOperation(p, Context);
-                Fields.Add(field);
-                return field;
+                return Fields.GetOrAddDescriptor(p,
+                    () => SortObjectOperationDescriptor<TObject>.CreateOperation(p, Context));
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(property));
+        }
+
+        public ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                Fields.GetOrAddDescriptor(p,
+                    () => IgnoredSortingFieldDescriptor.CreateOperation(p, Context));
+                return this;
             }
 
             // TODO : resources
@@ -125,6 +135,11 @@ namespace HotChocolate.Types.Sorting
         protected override void OnCreateDefinition(
             SortInputTypeDefinition definition)
         {
+            if (Definition.EntityType is { })
+            {
+                Context.Inspector.ApplyAttributes(Context, this, Definition.EntityType);
+            }
+
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
@@ -178,16 +193,21 @@ namespace HotChocolate.Types.Sorting
             PropertyInfo property,
             out SortOperationDefintion definition)
         {
-            if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
+            Type type = property.PropertyType;
+
+            if (type.IsGenericType
+                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
+            {
+                type = nullableType;
+            }
+            if (typeof(IComparable).IsAssignableFrom(type))
             {
                 definition = SortOperationDescriptor
                     .CreateOperation(property, Context)
                     .CreateDefinition();
                 return true;
             }
-            if (
-                property.PropertyType.IsClass &&
-                !typeof(IEnumerable<>).IsAssignableFrom(property.PropertyType))
+            if (type.IsClass && !DotNetTypeInfoFactory.IsListType(type))
             {
                 definition = SortObjectOperationDescriptor
                     .CreateOperation(property, Context)

@@ -11,7 +11,6 @@ namespace HotChocolate.Types
 {
     public static class SortObjectFieldDescriptorExtensions
     {
-        internal const string OrderByArgumentName = "order_by";
         private static readonly Type _middlewareDefinition =
             typeof(QueryableSortMiddleware<>);
 
@@ -84,17 +83,31 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Name = OrderByArgumentName,
                         Type = new ClrTypeReference(
                             argumentType, TypeContext.Input)
                     };
+
+                    ILazyTypeConfiguration lazyArgumentConfiguration =
+                        LazyTypeConfigurationBuilder
+                            .New<ArgumentDefinition>()
+                            .Definition(argumentDefinition)
+                            .Configure((context, definition) =>
+                                {
+                                    ISortingNamingConvention convention =
+                                        context.DescriptorContext.GetSortingNamingConvention();
+                                    definition.Name = convention.ArgumentName;
+                                })
+                           .On(ApplyConfigurationOn.Completion)
+                           .Build();
+
+                    argumentDefinition.Configurations.Add(lazyArgumentConfiguration);
                     definition.Arguments.Add(argumentDefinition);
 
                     ILazyTypeConfiguration lazyConfiguration =
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, defintion) =>
+                            .Configure((context, definition) =>
                                 CompileMiddleware(
                                     context,
                                     definition,
@@ -152,12 +165,18 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
+            ISortingNamingConvention convention =
+                context.DescriptorContext.GetSortingNamingConvention();
             ISortInputType type =
+
                 context.GetType<ISortInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
                 .MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(middlewareType);
+                FieldClassMiddlewareFactory.Create(
+                    middlewareType,
+                    SortMiddlewareContext.Create(convention.ArgumentName));
+
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

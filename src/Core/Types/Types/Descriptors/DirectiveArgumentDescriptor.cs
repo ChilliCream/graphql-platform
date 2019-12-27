@@ -31,6 +31,19 @@ namespace HotChocolate.Types.Descriptors
             Definition.Property = property;
         }
 
+        protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
+        {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Property);
+            }
+
+            base.OnCreateDefinition(definition);
+        }
+
         public new IDirectiveArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
@@ -93,9 +106,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IDirectiveArgumentDescriptor Ignore()
+        public IDirectiveArgumentDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

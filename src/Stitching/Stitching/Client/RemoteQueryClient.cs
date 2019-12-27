@@ -14,8 +14,7 @@ namespace HotChocolate.Stitching.Client
     {
         private readonly object _sync = new object();
         private readonly RemoteRequestDispatcher _dispatcher;
-        private List<BufferedRequest> _bufferedRequests =
-            new List<BufferedRequest>();
+        private List<BufferedRequest> _bufferedRequests = new List<BufferedRequest>();
         private int _bufferSize;
 
         public event RequestBufferedEventHandler BufferedRequest;
@@ -29,8 +28,7 @@ namespace HotChocolate.Stitching.Client
                 throw new ArgumentNullException(nameof(services));
             }
 
-            Executor = executor
-                ?? throw new ArgumentNullException(nameof(executor));
+            Executor = executor ?? throw new ArgumentNullException(nameof(executor));
             _dispatcher = new RemoteRequestDispatcher(services, executor);
         }
 
@@ -38,8 +36,7 @@ namespace HotChocolate.Stitching.Client
 
         public int BufferSize => _bufferSize;
 
-        public Task<IExecutionResult> ExecuteAsync(
-            IReadOnlyQueryRequest request)
+        public Task<IExecutionResult> ExecuteAsync(IReadOnlyQueryRequest request)
         {
             var bufferRequest = new BufferedRequest(request);
 

@@ -3,6 +3,8 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public interface IObjectFieldDescriptor
@@ -10,19 +12,19 @@ namespace HotChocolate.Types
         , IFluent
     {
         IObjectFieldDescriptor SyntaxNode(
-            FieldDefinitionNode fieldDefinition);
+            FieldDefinitionNode? fieldDefinition);
 
         IObjectFieldDescriptor Name(
             NameString value);
 
         IObjectFieldDescriptor Description(
-            string value);
+            string? value);
 
         [Obsolete("Use `Deprecated`.")]
         IObjectFieldDescriptor DeprecationReason(
-            string reason);
+            string? reason);
 
-        IObjectFieldDescriptor Deprecated(string reason);
+        IObjectFieldDescriptor Deprecated(string? reason);
 
         IObjectFieldDescriptor Deprecated();
 
@@ -43,7 +45,7 @@ namespace HotChocolate.Types
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor);
 
-        IObjectFieldDescriptor Ignore();
+        IObjectFieldDescriptor Ignore(bool ignore = true);
 
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver);
@@ -51,6 +53,9 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
             Type resultType);
+
+        IObjectFieldDescriptor Subscribe(
+            SubscribeResolverDelegate subscribeResolver);
 
         IObjectFieldDescriptor Use(
             FieldMiddleware middleware);

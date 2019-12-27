@@ -66,6 +66,18 @@ namespace HotChocolate.Stitching.Utilities
                 context.Fragments.Values.ToList());
         }
 
+        public IValueNode RewriteValueNode(
+            NameString sourceSchema,
+            IInputType inputType,
+            IValueNode value)
+        {
+            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
+
+            var context = new Context(sourceSchema, null, null, null);
+            context.InputType = inputType;
+            return RewriteValue(value, context);
+        }
+
         protected override FieldNode RewriteField(
             FieldNode node,
             Context context)
@@ -73,22 +85,19 @@ namespace HotChocolate.Stitching.Utilities
             FieldNode current = node;
 
             if (context.TypeContext is IComplexOutputType type
-                && type.Fields.TryGetField(current.Name.Value,
-                    out IOutputField field))
+                && type.Fields.TryGetField(current.Name.Value, out IOutputField field))
             {
                 Context cloned = context.Clone();
                 cloned.OutputField = field;
 
-                current = RewriteFieldName(
-                    current, field, context);
-
+                current = RewriteFieldName(current, field, context);
                 current = Rewrite(current, current.Arguments, cloned,
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
-
-                current = RewriteFieldSelectionSet(
-                    current, field, context);
-
+                current = RewriteFieldSelectionSet(current, field, context);
+                current = Rewrite(current, current.Directives, context,
+                    (p, c) => RewriteMany(p, c, RewriteDirective),
+                    current.WithDirectives);
                 current = OnRewriteField(current, cloned);
             }
 
@@ -179,7 +188,12 @@ namespace HotChocolate.Stitching.Utilities
 
             RemoveDelegationFields(current, context, selections);
             AddDependencies(context.TypeContext, selections, dependencies);
-            selections.Add(CreateField(WellKnownFieldNames.TypeName));
+
+            if (!selections.OfType<FieldNode>().Any(n => n.Name.Value == WellKnownFieldNames.TypeName))
+            {
+                selections.Add(CreateField(WellKnownFieldNames.TypeName));
+            }
+
             current = current.WithSelections(selections);
             current = base.RewriteSelectionSet(current, context);
             current = OnRewriteSelectionSet(current, context);
@@ -275,11 +289,9 @@ namespace HotChocolate.Stitching.Utilities
         {
             if (context.TypeContext is IComplexOutputType type)
             {
-                foreach (FieldNode selection in node.Selections
-                    .OfType<FieldNode>())
+                foreach (FieldNode selection in node.Selections.OfType<FieldNode>())
                 {
-                    if (type.Fields.TryGetField(selection.Name.Value,
-                        out IOutputField field)
+                    if (type.Fields.TryGetField(selection.Name.Value, out IOutputField field)
                         && IsDelegationField(field.Directives))
                     {
                         selections.Remove(selection);
@@ -288,10 +300,23 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
+        protected override DirectiveNode RewriteDirective(
+            DirectiveNode node,
+            Context context)
+        {
+            DirectiveNode current = node;
+
+            current = Rewrite(current, current.Arguments, context,
+                (p, c) => RewriteMany(p, c, RewriteArgument),
+                current.WithArguments);
+
+            return current;
+        }
+
         private static bool IsDelegationField(IDirectiveCollection directives)
         {
             return directives.Contains(DirectiveNames.Delegate)
-            || directives.Contains(DirectiveNames.Computed);
+                || directives.Contains(DirectiveNames.Computed);
         }
 
         private static void AddDependencies(
@@ -299,13 +324,11 @@ namespace HotChocolate.Stitching.Utilities
             List<ISelectionNode> selections,
             IEnumerable<FieldDependency> dependencies)
         {
-
             foreach (var typeGroup in dependencies.GroupBy(t => t.TypeName))
             {
                 var fields = new List<FieldNode>();
 
-                foreach (NameString fieldName in typeGroup
-                    .Select(t => t.FieldName))
+                foreach (NameString fieldName in typeGroup.Select(t => t.FieldName))
                 {
                     fields.Add(CreateField(fieldName));
                 }
@@ -361,8 +384,7 @@ namespace HotChocolate.Stitching.Utilities
             Context context)
         {
             string name = node.Name.Value;
-            if (!context.Fragments.TryGetValue(name,
-                out FragmentDefinitionNode fragment))
+            if (!context.Fragments.TryGetValue(name, out FragmentDefinitionNode fragment))
             {
                 fragment = context.Document.Definitions
                     .OfType<FragmentDefinitionNode>()
@@ -386,17 +408,13 @@ namespace HotChocolate.Stitching.Utilities
                 return node;
             }
 
-            if (_schema.TryGetType(
-                current.TypeCondition.Name.Value,
-                out IComplexOutputType type))
+            if (_schema.TryGetType(current.TypeCondition.Name.Value, out IComplexOutputType type))
             {
                 currentContext = currentContext.Clone();
                 currentContext.TypeContext = type;
-                currentContext.FragmentPath =
-                    currentContext.FragmentPath.Add(current.Name.Value);
+                currentContext.FragmentPath = currentContext.FragmentPath.Add(current.Name.Value);
 
-                if (type.TryGetSourceDirective(context.Schema,
-                    out SourceDirective sourceDirective))
+                if (type.TryGetSourceDirective(context.Schema, out SourceDirective sourceDirective))
                 {
                     current = current.WithTypeCondition(
                         current.TypeCondition.WithName(
@@ -414,15 +432,12 @@ namespace HotChocolate.Stitching.Utilities
             Context currentContext = context;
             InlineFragmentNode current = node;
 
-            if (_schema.TryGetType(
-                current.TypeCondition.Name.Value,
-                out IComplexOutputType type))
+            if (_schema.TryGetType(current.TypeCondition.Name.Value, out IComplexOutputType type))
             {
                 currentContext = currentContext.Clone();
                 currentContext.TypeContext = type;
 
-                if (type.TryGetSourceDirective(context.Schema,
-                    out SourceDirective sourceDirective))
+                if (type.TryGetSourceDirective(context.Schema, out SourceDirective sourceDirective))
                 {
                     current = current.WithTypeCondition(
                         current.TypeCondition.WithName(

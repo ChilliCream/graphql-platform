@@ -16,6 +16,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
             Stack<QueryableClosure> closures,
+            bool inMemory,
             out VisitorAction action
             )
         {
@@ -25,7 +26,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 field.Operation.Kind == FilterOperationKind.ArrayAll
                )
             {
-                var nestedProperty = Expression.Property(
+                MemberExpression nestedProperty = Expression.Property(
                     closures.Peek().Instance.Peek(),
                     field.Operation.Property
                 );
@@ -34,7 +35,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 Type closureType = GetTypeFor(field.Operation);
 
-                closures.Push(new QueryableClosure(closureType, "_s" + closures.Count));
+                closures.Push(new QueryableClosure(closureType, "_s" + closures.Count, inMemory));
                 action = VisitorAction.Continue;
                 return true;
             }
@@ -57,8 +58,8 @@ namespace HotChocolate.Types.Filters.Expressions
                field.Operation.Kind == FilterOperationKind.ArrayAll
               )
             {
-                var nestedClosure = closures.Pop();
-                var lambda = nestedClosure.CreateLambdaWithNullCheck();
+                QueryableClosure nestedClosure = closures.Pop();
+                LambdaExpression lambda = nestedClosure.CreateLambda();
                 Type closureType = GetTypeFor(field.Operation);
 
                 Expression expression;

@@ -5,7 +5,7 @@ namespace HotChocolate.Language
     /// <summary>
     /// This class provides internal char utilities
     /// that are used to tokenize a GraphQL source text.
-    /// These utilities are used by the lexer dfault implementation.
+    /// These utilities are used by the lexer default implementation.
     /// </summary>
     internal static partial class GraphQLConstants
     {

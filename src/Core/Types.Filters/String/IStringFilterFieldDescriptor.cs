@@ -88,7 +88,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="property">The property that shall be ignored.</param>
-        IStringFilterFieldDescriptor Ignore();
+        /// <param name="ignore">If set to true the field is ignored</param> 
+        IStringFilterFieldDescriptor Ignore(bool ignore = true);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Types
+﻿#nullable enable
+
+namespace HotChocolate.Types
 {
     public interface IOutputField
        : IField
@@ -7,7 +9,7 @@
 
         bool IsDeprecated { get; }
 
-        string DeprecationReason { get; }
+        string? DeprecationReason { get; }
 
         IOutputType Type { get; }
 

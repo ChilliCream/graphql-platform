@@ -584,6 +584,191 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Variable_In_Object_Structure_On_2nd_Level()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someObj: SecondInput
+                    }
+
+                    input SecondInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = QuerySyntaxSerializer.Serialize(
+                            ctx.Argument<IValueNode>("arg"));
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: String!) {
+                        x(arg: { someObj: { someField: $value } })
+                    }")
+                .AddVariableValue("value", "abc")
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+         [Fact]
+        public async Task Variable_In_Object_Structure_On_1st_Level()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someObj: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = QuerySyntaxSerializer.Serialize(
+                            ctx.Argument<IValueNode>("arg"));
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: String!) {
+                        x(arg: { someObj: $value })
+                    }")
+                .AddVariableValue("value", "abc")
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Variable_In_List_On_3rd_Level()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someObj: SecondInput
+                    }
+
+                    input SecondInput {
+                        someField: [String]
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = QuerySyntaxSerializer.Serialize(
+                            ctx.Argument<IValueNode>("arg"));
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: String!) {
+                        x(arg: { someObj: { someField: [$value $value] } })
+                    }")
+                .AddVariableValue("value", "abc")
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Variable_In_List_On_2nd_Level()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someList: [String]
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = QuerySyntaxSerializer.Serialize(
+                            ctx.Argument<IValueNode>("arg"));
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: String!) {
+                        x(arg: { someList: [$value $value] })
+                    }")
+                .AddVariableValue("value", "abc")
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Variable_In_List_On_1st_Level()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        x(arg: [String]): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = QuerySyntaxSerializer.Serialize(
+                            ctx.Argument<IValueNode>("arg"));
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: String!) {
+                        x(arg: [$value $value])
+                    }")
+                .AddVariableValue("value", "abc")
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
         public class Query
         {
             public Bar SingleFoo(Foo foo)
@@ -636,6 +821,10 @@ namespace HotChocolate.Execution
                 if (argument.Type is StringType && value is string s)
                 {
                     return s + "123";
+                }
+                else if (argument.Type is StringType && value is StringValueNode sn)
+                {
+                    return sn.Value + "123";
                 }
                 return value;
             }

@@ -10,7 +10,7 @@ namespace HotChocolate
             public const string PolicyNotFound = "AUTH_POLICY_NOT_FOUND";
         }
 
-        internal static class Execution
+        public static class Execution
         {
             public const string CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE";
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
@@ -21,9 +21,10 @@ namespace HotChocolate
             public const string CachedQueryNotFound = "CACHED_QUERY_NOT_FOUND";
             public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
             public const string InvalidType = "EXEC_INVALID_TYPE";
+            public const string SyntaxError = "EXEC_SYNTAX_ERROR";
         }
 
-        internal static class Schema
+        public static class Schema
         {
             public const string NoEnumValues = "TS_NO_ENUM_VALUES";
             public const string MissingType = "TS_MISSING_TYPE";
@@ -40,6 +41,7 @@ namespace HotChocolate
         public static class Filtering
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";
+            public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
         }
 
         public static class Sorting
@@ -63,7 +65,7 @@ namespace HotChocolate
             public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";
         }
 
-        internal static class Utilities
+        public static class Utilities
         {
             public const string UnknownField = "EXEC_VAR_UNKNOWN_FIELD";
             public const string NoConverter = "EXEC_VAR_NO_CONVERTER";

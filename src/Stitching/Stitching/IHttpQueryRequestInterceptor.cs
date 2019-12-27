@@ -7,7 +7,7 @@ namespace HotChocolate.Stitching
     public interface IHttpQueryRequestInterceptor
     {
         Task OnResponseReceivedAsync(
-            IHttpQueryRequest request,
+            IReadOnlyQueryRequest request,
             HttpResponseMessage response,
             IQueryResult result);
     }

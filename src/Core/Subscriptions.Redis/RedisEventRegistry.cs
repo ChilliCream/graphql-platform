@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using StackExchange.Redis;
 
@@ -18,8 +19,9 @@ namespace HotChocolate.Subscriptions.Redis
             _serializer = serializer;
         }
 
-        public async Task<IEventStream> SubscribeAsync(
-            IEventDescription eventDescription)
+        public async ValueTask<IEventStream> SubscribeAsync(
+            IEventDescription eventDescription,
+            CancellationToken cancellationToken = default)
         {
             ISubscriber subscriber = _connection.GetSubscriber();
 
@@ -30,7 +32,9 @@ namespace HotChocolate.Subscriptions.Redis
             return new RedisEventStream(eventDescription, channel, _serializer);
         }
 
-        public async Task SendAsync(IEventMessage message)
+        public async ValueTask SendAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default)
         {
             ISubscriber subscriber = _connection
                 .GetSubscriber();

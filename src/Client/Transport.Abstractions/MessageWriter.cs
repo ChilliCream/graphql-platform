@@ -4,7 +4,7 @@ using System.Buffers;
 namespace StrawberryShake.Transport
 {
     public class MessageWriter
-        : IMessageWriter
+        : IRequestWriter
     {
         private byte[] _buffer;
         private int _capacity;

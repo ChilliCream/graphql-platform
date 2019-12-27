@@ -95,7 +95,7 @@ namespace HotChocolate.Types
                     .Location(DirectiveLocation.Enum)));
 
                 c.RegisterType(new EnumType<Foo>(d => d
-                    .Directive(new DirectiveNode("bar"))));
+                    .Directive<DirectiveNode>(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
             });
@@ -170,7 +170,7 @@ namespace HotChocolate.Types
             Assert.Null(value);
         }
 
-         [Fact]
+        [Fact]
         public void ExplicitEnumType_OnlyContainDeclaredValues_2()
         {
             // act
@@ -298,7 +298,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
                     .Item("baz")
-                    .Directive(new DirectiveNode("bar"))));
+                    .Directive<DirectiveNode>(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
             });
@@ -348,7 +348,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
                     .Item("baz")
-                    .Directive(new DirectiveNode("bar"))));
+                    .Directive<DirectiveNode>(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
             });
@@ -395,7 +395,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
                     .Item("baz")
-                    .Directive(new Bar())));
+                    .Directive<Bar>(new Bar())));
 
                 c.Options.StrictValidation = false;
             });
@@ -464,7 +464,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolver<string>("bar"))
                 .AddType<FooObsolete>()
                 .Create();
 
@@ -481,12 +481,22 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolver<string>("bar"))
                 .AddType<FooDeprecated>()
                 .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void EnumType_That_Is_Bound_To_String_Should_Not_Interfere_With_Scalar()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<SomeQueryType>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
         }
 
         public enum Foo
@@ -510,6 +520,26 @@ namespace HotChocolate.Types
             Bar1,
             [GraphQLDeprecated("Baz.")]
             Bar2
+        }
+
+        public class SomeQueryType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+                descriptor.Field("a").Type<SomeEnumType>().Resolver("DEF");
+                descriptor.Field("b").Type<StringType>().Resolver("StringResolver");
+            }
+        }
+
+        public class SomeEnumType
+            : EnumType<string>
+        {
+            protected override void Configure(IEnumTypeDescriptor<string> descriptor)
+            {
+                descriptor.Name("Some");
+                descriptor.Value("ABC").Name("DEF");
+            }
         }
     }
 }

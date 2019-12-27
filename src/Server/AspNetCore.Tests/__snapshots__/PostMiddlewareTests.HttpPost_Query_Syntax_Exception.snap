@@ -8,7 +8,10 @@
           "line": 3,
           "column": 25
         }
-      ]
+      ],
+      "extensions": {
+        "code": "EXEC_SYNTAX_ERROR"
+      }
     }
   ],
   "Extensions": null

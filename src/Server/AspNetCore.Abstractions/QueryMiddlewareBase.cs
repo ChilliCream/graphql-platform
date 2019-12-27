@@ -47,7 +47,8 @@ namespace HotChocolate.AspNetCore
             IPathOptionAccessor options,
             OwinContextAccessor owinContextAccessor,
             IServiceProvider services,
-            IQueryResultSerializer serializer)
+            IQueryResultSerializer serializer,
+            IErrorHandler errorHandler)
             : base(next)
         {
             if (options == null)
@@ -60,6 +61,8 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(services));
             _serializer = serializer
                 ?? throw new ArgumentNullException(nameof(serializer));
+            ErrorHandler = errorHandler
+                ??  throw new ArgumentNullException(nameof(serializer));
 
             if (options.Path.Value.Length > 1)
             {
@@ -76,7 +79,8 @@ namespace HotChocolate.AspNetCore
         protected QueryMiddlewareBase(
             RequestDelegate next,
             IPathOptionAccessor options,
-            IQueryResultSerializer serializer)
+            IQueryResultSerializer serializer,
+            IErrorHandler errorHandler)
         {
             if (options == null)
             {
@@ -84,6 +88,8 @@ namespace HotChocolate.AspNetCore
             }
 
             _serializer = serializer
+                ?? throw new ArgumentNullException(nameof(serializer));
+            ErrorHandler = errorHandler
                 ?? throw new ArgumentNullException(nameof(serializer));
 
             Next = next;
@@ -102,6 +108,8 @@ namespace HotChocolate.AspNetCore
 
         protected RequestDelegate Next { get; }
 #endif
+
+        protected IErrorHandler ErrorHandler { get; }
 
 #if ASPNETCLASSIC
         /// <inheritdoc />
@@ -122,6 +130,10 @@ namespace HotChocolate.AspNetCore
                     await HandleRequestAsync(context)
                         .ConfigureAwait(false);
                 }
+                catch (ArgumentException)
+                {
+                    context.Response.StatusCode = _badRequest;
+                }
                 catch (NotSupportedException)
                 {
                     context.Response.StatusCode = _badRequest;
@@ -131,10 +143,20 @@ namespace HotChocolate.AspNetCore
                     IError error = ErrorBuilder.New()
                         .SetMessage(ex.Message)
                         .AddLocation(ex.Line, ex.Column)
+                        .SetCode(ErrorCodes.Execution.SyntaxError)
                         .Build();
+                    ErrorHandler.Handle(error);
 
                     var errorResult = QueryResult.CreateError(error);
 
+                    SetResponseHeaders(context.Response, _serializer.ContentType);
+                    await _serializer.SerializeAsync(errorResult, context.Response.Body)
+                        .ConfigureAwait(false);
+                }
+                catch (QueryException ex)
+                {
+                    var errorResult = QueryResult.CreateError(
+                        ErrorHandler.Handle(ex.Errors));
                     SetResponseHeaders(context.Response, _serializer.ContentType);
                     await _serializer.SerializeAsync(errorResult, context.Response.Body)
                         .ConfigureAwait(false);

@@ -5,9 +5,9 @@ namespace StrawberryShake.Http.Pipelines
 {
     public class SendHttpRequestMiddleware
     {
-        private readonly OperationDelegate _next;
+        private readonly OperationDelegate<IHttpOperationContext> _next;
 
-        public SendHttpRequestMiddleware(OperationDelegate next)
+        public SendHttpRequestMiddleware(OperationDelegate<IHttpOperationContext> next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }

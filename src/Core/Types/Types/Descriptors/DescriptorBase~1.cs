@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Descriptors
     public abstract class DescriptorBase<T>
         : IDescriptor<T>
         , IDescriptorExtension<T>
+        , IDescriptorExtension
         , IDefinitionFactory<T>
         , IHasDescriptorContext
         where T : DefinitionBase
@@ -24,7 +25,7 @@ namespace HotChocolate.Types.Descriptors
 
         IDescriptorContext IHasDescriptorContext.Context => Context;
 
-        protected abstract T Definition { get; }
+        internal protected abstract T Definition { get; }
 
         public IDescriptorExtension<T> Extend()
         {
@@ -50,7 +51,13 @@ namespace HotChocolate.Types.Descriptors
         DefinitionBase IDefinitionFactory.CreateDefinition() =>
             CreateDefinition();
 
-        void IDescriptorExtension<T>.OnBeforeCreate(Action<T> configure)
+        void IDescriptorExtension<T>.OnBeforeCreate(Action<T> configure) =>
+            OnBeforeCreate(configure);
+
+        void IDescriptorExtension.OnBeforeCreate(Action<DefinitionBase> configure) =>
+            OnBeforeCreate(c => configure(c));
+
+        private void OnBeforeCreate(Action<T> configure)
         {
             if (configure == null)
             {
@@ -61,7 +68,15 @@ namespace HotChocolate.Types.Descriptors
         }
 
         INamedDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
-            Action<ICompletionContext, T> configure)
+            Action<ICompletionContext, T> configure) =>
+            OnBeforeNaming(configure);
+
+        INamedDependencyDescriptor IDescriptorExtension.OnBeforeNaming(
+            Action<ICompletionContext, DefinitionBase> configure) =>
+            OnBeforeNaming(configure);
+
+        private INamedDependencyDescriptor OnBeforeNaming(
+           Action<ICompletionContext, T> configure)
         {
             if (configure == null)
             {
@@ -77,9 +92,16 @@ namespace HotChocolate.Types.Descriptors
             return new NamedDependencyDescriptor<T>(configuration);
         }
 
-        ICompletedDependencyDescriptor IDescriptorExtension<T>
-            .OnBeforeCompletion(
-                Action<ICompletionContext, T> configure)
+        ICompletedDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
+            Action<ICompletionContext, T> configure) =>
+            OnBeforeCompletion(configure);
+
+        ICompletedDependencyDescriptor IDescriptorExtension.OnBeforeCompletion(
+            Action<ICompletionContext, DefinitionBase> configure) =>
+            OnBeforeCompletion(configure);
+
+        private ICompletedDependencyDescriptor OnBeforeCompletion(
+            Action<ICompletionContext, T> configure)
         {
             var configuration = new TypeConfiguration<T>();
             configuration.Definition = Definition;

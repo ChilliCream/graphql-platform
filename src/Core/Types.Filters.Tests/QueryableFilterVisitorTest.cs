@@ -19,7 +19,12 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default, null, ExpressionFieldHandlers.All);
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default,
+                null,
+                ExpressionFieldHandlers.All,
+                true);
             };
 
             // act
@@ -37,7 +42,12 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default, ExpressionOperationHandlers.All, null);
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default,
+                ExpressionOperationHandlers.All,
+                null,
+                true);
             };
 
             // act
@@ -55,7 +65,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, typeof(Foo), null);
+                fooType, typeof(Foo), null, true);
             };
 
             // act
@@ -73,7 +83,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, null, TypeConversion.Default);
+                fooType, null, TypeConversion.Default, true);
             };
 
             // act
@@ -89,7 +99,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                null, typeof(Foo), TypeConversion.Default);
+                null, typeof(Foo), TypeConversion.Default, true);
             };
 
             // act

@@ -13,7 +13,9 @@ namespace HotChocolate.Subscriptions
         private readonly Dictionary<IEventDescription, List<InMemoryEventStream>> _streams =
             new Dictionary<IEventDescription, List<InMemoryEventStream>>();
 
-        public async Task SendAsync(IEventMessage message)
+        public async ValueTask SendAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync().ConfigureAwait(false);
 
@@ -24,7 +26,7 @@ namespace HotChocolate.Subscriptions
                 {
                     foreach (InMemoryEventStream stream in subscribers)
                     {
-                        stream.Trigger(message);
+                        await stream.TriggerAsync(message, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -34,10 +36,11 @@ namespace HotChocolate.Subscriptions
             }
         }
 
-        public Task<IEventStream> SubscribeAsync(
-            IEventDescription eventDescription)
+        public ValueTask<IEventStream> SubscribeAsync(
+            IEventDescription eventDescription,
+            CancellationToken cancellationToken = default)
         {
-            if (eventDescription == null)
+            if (eventDescription is null)
             {
                 throw new ArgumentNullException(nameof(eventDescription));
             }
@@ -45,7 +48,7 @@ namespace HotChocolate.Subscriptions
             return SubscribeInternalAsync(eventDescription);
         }
 
-        private async Task<IEventStream> SubscribeInternalAsync(
+        private async ValueTask<IEventStream> SubscribeInternalAsync(
             IEventDescription eventDescription)
         {
             await _semaphore.WaitAsync().ConfigureAwait(false);
@@ -92,4 +95,3 @@ namespace HotChocolate.Subscriptions
         }
     }
 }
-
