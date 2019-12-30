@@ -1,16 +1,22 @@
-namespace MarshmallowPie.GraphQL.Models
+using System;
+
+namespace MarshmallowPie.GraphQL
 {
-    public class CreateEnvironmentInput
+    public class UpdateEnvironmentInput
     {
-        public CreateEnvironmentInput(
+        public UpdateEnvironmentInput(
+            Guid id,
             string name,
             string? description,
             string? clientMutationId)
         {
+            Id = id;
             Name = name;
             Description = description;
             ClientMutationId = clientMutationId;
         }
+
+        public Guid Id { get; }
 
         public string Name { get; }
 

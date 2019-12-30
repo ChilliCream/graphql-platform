@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,20 @@ namespace MarshmallowPie.Repositories.Mongo
             return _environments.AsQueryable()
                 .Where(t => t.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyDictionary<Guid, Environment>> GetEnvironmentsAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken = default)
+        {
+            var list = new List<Guid>(ids);
+
+            List<Environment> result = await _environments.AsQueryable()
+                .Where(t => list.Contains(t.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Id);
         }
 
         public Task AddEnvironmentAsync(

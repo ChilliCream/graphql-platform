@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using GreenDonut;
 using MarshmallowPie.Repositories;
 
-namespace MarshmallowPie.GraphQL.DataLoader
+namespace MarshmallowPie.GraphQL.Schemas
 {
     public class SchemaDataLoader
         : DataLoaderBase<Guid, Schema?>

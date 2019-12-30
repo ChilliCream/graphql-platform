@@ -1,7 +1,8 @@
 using HotChocolate;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace MarshmallowPie.GraphQL.Types
+namespace MarshmallowPie.GraphQL.Environments
 {
     public class EnvironmentType : ObjectType<Environment>
     {
@@ -10,7 +11,9 @@ namespace MarshmallowPie.GraphQL.Types
         {
             descriptor
                 .AsNode()
-                .IdField(t => t.Id);
+                .IdField(t => t.Id)
+                .NodeResolver((ctx, id) =>
+                    ctx.DataLoader<EnvironmentDataLoader>().LoadAsync(id, ctx.RequestAborted));
         }
     }
 }

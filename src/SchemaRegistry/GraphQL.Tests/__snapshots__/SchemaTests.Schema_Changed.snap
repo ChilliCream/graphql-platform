@@ -3,12 +3,17 @@
   mutation: Mutation
 }
 
+"The node interface is implemented by entities that have a gloabl unique identifier."
+interface Node {
+  id: ID!
+}
+
 type CreateEnvironmentPayload {
   clientMutationId: String
   environment: Environment!
 }
 
-type Environment {
+type Environment implements Node {
   description: String
   id: ID!
   name: String!
@@ -51,7 +56,7 @@ type PageInfo {
 }
 
 type Query {
-  environment(id: ID!): Environment!
+  environmentById(id: ID!): Environment!
   environments(after: String before: String first: PaginationAmount last: PaginationAmount order_by: EnvironmentSort where: EnvironmentFilter): EnvironmentConnection
 }
 

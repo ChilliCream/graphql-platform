@@ -18,6 +18,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GraphQL\GraphQL.csproj" />
+    <ProjectReference Include="..\Repositories.Mongo\Repositories.Mongo.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
   </ItemGroup>
 
 </Project>

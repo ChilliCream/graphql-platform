@@ -1,9 +1,8 @@
 using HotChocolate;
-using MarshmallowPie.GraphQL;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace GraphQL.Tests
+namespace MarshmallowPie.GraphQL
 {
     public class SchemaTests
     {

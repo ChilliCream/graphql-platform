@@ -1,12 +1,10 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
-using MarshmallowPie.GraphQL.Models;
 using MarshmallowPie.Repositories;
 
-namespace MarshmallowPie.GraphQL.Resolvers
+namespace MarshmallowPie.GraphQL.Environments
 {
     [ExtendObjectType(Name = "Mutation")]
     public class EnvironmentMutations

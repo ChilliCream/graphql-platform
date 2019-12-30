@@ -67,12 +67,6 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyList<TypeDependency> Dependencies { get; }
 
-        public bool IsExtension { get; }
-
-        public bool IsNamedType { get; }
-
-        public bool IsDirectiveType { get; }
-
         public RegisteredType WithDependencies(
             IReadOnlyList<TypeDependency> dependencies)
         {

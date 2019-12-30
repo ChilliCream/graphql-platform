@@ -1,10 +1,8 @@
-﻿using System;
-using HotChocolate;
+﻿using HotChocolate;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using MarshmallowPie.GraphQL.DataLoader;
 
-namespace MarshmallowPie.GraphQL.Types
+namespace MarshmallowPie.GraphQL.Schemas
 {
     public class SchemaType : ObjectType<Schema>
     {

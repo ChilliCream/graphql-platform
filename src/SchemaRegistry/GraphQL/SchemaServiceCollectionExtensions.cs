@@ -1,8 +1,7 @@
 using System;
 using HotChocolate;
 using HotChocolate.Types;
-using MarshmallowPie.GraphQL.Resolvers;
-using MarshmallowPie.GraphQL.Types;
+using MarshmallowPie.GraphQL.Environments;
 
 namespace MarshmallowPie.GraphQL
 {
@@ -12,9 +11,9 @@ namespace MarshmallowPie.GraphQL
             this ISchemaBuilder builder)
         {
             return builder
-                .AddQueryType<QueryType>()
+                .AddQueryType(d => d.Name("Query"))
                 .AddType<EnvironmentQueries>()
-                .AddMutationType<MutationType>()
+                .AddMutationType(d => d.Name("Mutation"))
                 .AddType<EnvironmentMutations>()
                 .BindClrType<string, StringType>()
                 .BindClrType<Guid, IdType>();
