@@ -104,5 +104,36 @@ namespace MarshmallowPie.GraphQL.Environments
                 o.Assert(fo =>
                     Assert.Equal(id, fo.Field<string>("Data.environmentsById[0].id"))));
         }
+
+        [Fact]
+        public async Task GetEnvironmentsByName()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+            var environment = new Environment(Guid.NewGuid(), "abc", "def");
+            await EnvironmentRepository.AddEnvironmentAsync(environment);
+            string id = serializer.Serialize("Environment", environment.Id);
+
+            // act
+            IExecutionResult result = await Executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query($name: String!) {
+                            environments(where: { name: $name }) {
+                                nodes {
+                                    id
+                                    name
+                                    description
+                                }
+                            }
+                        }")
+                    .SetVariableValue("name", environment.Name)
+                    .Create());
+
+            // assert
+            result.MatchSnapshot(o =>
+                o.Assert(fo =>
+                    Assert.Equal(id, fo.Field<string>("Data.environments.nodes[0].id"))));
+        }
     }
 }
