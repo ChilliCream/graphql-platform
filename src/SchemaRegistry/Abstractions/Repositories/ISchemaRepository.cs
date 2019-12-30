@@ -23,7 +23,7 @@ namespace MarshmallowPie.Repositories
             CancellationToken cancellationToken = default);
 
         Task UpdateSchemaAsync(
-            SchemaVersion schema,
+            Schema schema,
             CancellationToken cancellationToken = default);
 
         IQueryable<SchemaVersion> GetSchemaVersions();

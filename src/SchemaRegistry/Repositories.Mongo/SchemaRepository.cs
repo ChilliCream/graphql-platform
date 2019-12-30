@@ -52,14 +52,21 @@ namespace MarshmallowPie.Repositories.Mongo
             Schema schema,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return _schemas.InsertOneAsync(
+                schema,
+                options: null,
+                cancellationToken);
         }
 
         public Task UpdateSchemaAsync(
-            SchemaVersion schema,
+            Schema schema,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return _schemas.ReplaceOneAsync(
+                Builders<Schema>.Filter.Eq(t => t.Id, schema.Id),
+                schema,
+                options: default(ReplaceOptions),
+                cancellationToken);
         }
 
         public Task AddSchemaVersionAsync(SchemaVersion schema, CancellationToken cancellationToken)
@@ -76,8 +83,6 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             throw new NotImplementedException();
         }
-
-
 
         public Task UpdateSchemaVersionAsync(SchemaVersion schema, CancellationToken cancellationToken)
         {
