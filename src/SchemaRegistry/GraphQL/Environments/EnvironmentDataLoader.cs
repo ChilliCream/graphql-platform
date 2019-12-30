@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MarshmallowPie.Repositories;
 
-namespace MarshmallowPie.GraphQL
+namespace MarshmallowPie.GraphQL.Environments
 {
     public sealed class EnvironmentDataLoader
         : BatchDataLoader<Guid, Environment>

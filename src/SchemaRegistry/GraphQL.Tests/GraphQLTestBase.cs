@@ -1,6 +1,8 @@
 using System;
 using HotChocolate;
 using HotChocolate.Execution;
+using MarshmallowPie.GraphQL.Environments;
+using MarshmallowPie.GraphQL.Schemas;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Repositories.Mongo;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,7 @@ namespace MarshmallowPie.GraphQL
                     .EnableRelaySupport());
             serviceCollection.AddQueryExecutor();
             serviceCollection.AddDataLoader<EnvironmentDataLoader>();
+            serviceCollection.AddDataLoader<SchemaDataLoader>();
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             EnvironmentRepository = services.GetRequiredService<IEnvironmentRepository>();

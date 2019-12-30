@@ -69,22 +69,44 @@ namespace MarshmallowPie.Repositories.Mongo
                 cancellationToken);
         }
 
-        public Task AddSchemaVersionAsync(SchemaVersion schema, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public IQueryable<SchemaVersion> GetSchemaVersions()
         {
-            throw new NotImplementedException();
+            return _schemaVersions.AsQueryable();
         }
 
-        public Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken)
+        public Task<SchemaVersion> GetSchemaVersionAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            return _schemaVersions.AsQueryable()
+                .Where(t => t.Id == id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken)
+        {
+            var list = new List<Guid>(ids);
+
+            List<SchemaVersion> result = await _schemaVersions.AsQueryable()
+                .Where(t => list.Contains(t.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Id);
+        }
+
+        public Task AddSchemaVersionAsync(
+            SchemaVersion schema,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task UpdateSchemaVersionAsync(SchemaVersion schema, CancellationToken cancellationToken)
+        public Task UpdateSchemaVersionAsync(
+            SchemaVersion schema,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

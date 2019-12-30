@@ -1,11 +1,11 @@
 using HotChocolate;
 using HotChocolate.Types;
 
-namespace MarshmallowPie.GraphQL.Environments
+namespace MarshmallowPie.GraphQL.Schemas
 {
-    public class UpdateEnvironmentInput
+    public class UpdateSchemaInput
     {
-        public UpdateEnvironmentInput(
+        public UpdateSchemaInput(
             string id,
             string name,
             string? description,

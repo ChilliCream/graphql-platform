@@ -1,4 +1,4 @@
-namespace MarshmallowPie.GraphQL
+namespace MarshmallowPie.GraphQL.Environments
 {
     public class UpdateEnvironmentPayload
     {
