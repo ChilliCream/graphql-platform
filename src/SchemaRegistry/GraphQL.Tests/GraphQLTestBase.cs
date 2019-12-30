@@ -21,10 +21,7 @@ namespace MarshmallowPie.GraphQL
 
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddSingleton<IMongoCollection<Environment>>(
-                MongoDatabase.GetCollection<Environment>(nameof(Environment)));
-
-            serviceCollection.AddSingleton<IEnvironmentRepository, EnvironmentRepository>();
+            serviceCollection.AddMongoRepositories(sp => MongoDatabase);
 
             serviceCollection.AddGraphQLSchema(builder =>
                 builder
@@ -35,6 +32,7 @@ namespace MarshmallowPie.GraphQL
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             EnvironmentRepository = services.GetRequiredService<IEnvironmentRepository>();
+            SchemaRepository = services.GetRequiredService<ISchemaRepository>();
             Schema = services.GetRequiredService<ISchema>();
             Executor = services.GetRequiredService<IQueryExecutor>();
         }
@@ -48,5 +46,7 @@ namespace MarshmallowPie.GraphQL
         protected IMongoDatabase MongoDatabase { get; }
 
         protected IEnvironmentRepository EnvironmentRepository { get; }
+
+        protected ISchemaRepository SchemaRepository { get; }
     }
 }

@@ -1,0 +1,16 @@
+﻿{
+  "Data": {
+    "schemas": {
+      "nodes": [
+        {
+          "id": "U2NoZW1hCmdjYmRmNjAwNDk5ZDk0M2UwOGQzMzdkYmZkYWNmYjFiMg==",
+          "name": "abc",
+          "description": "def"
+        }
+      ]
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}
