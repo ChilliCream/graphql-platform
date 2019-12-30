@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate;
 using Snapshooter.Xunit;
 using Xunit;

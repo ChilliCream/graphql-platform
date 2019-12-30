@@ -18,6 +18,8 @@ namespace MarshmallowPie.GraphQL
                 .AddMutationType(d => d.Name("Mutation"))
                 .AddType<EnvironmentMutations>()
                 .AddType<SchemaMutations>()
+                .AddType<SchemaExtension>()
+                .AddType<SchemaVersionExtension>()
                 .BindClrType<string, StringType>()
                 .BindClrType<Guid, IdType>();
         }

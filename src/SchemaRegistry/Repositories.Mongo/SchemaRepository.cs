@@ -20,6 +20,11 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             _schemas = schemas;
             _schemaVersions = schemaVersions;
+
+            _schemas.Indexes.CreateOne(
+                new CreateIndexModel<Schema>(
+                    Builders<Schema>.IndexKeys.Ascending(x => x.Name),
+                    new CreateIndexOptions { Unique = true }));
         }
 
         public IQueryable<Schema> GetSchemas() => _schemas.AsQueryable();
@@ -85,7 +90,7 @@ namespace MarshmallowPie.Repositories.Mongo
 
         public async Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
             IReadOnlyList<Guid> ids,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             var list = new List<Guid>(ids);
 
@@ -98,17 +103,24 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         public Task AddSchemaVersionAsync(
-            SchemaVersion schema,
-            CancellationToken cancellationToken)
+            SchemaVersion schemaVersion,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return _schemaVersions.InsertOneAsync(
+                schemaVersion,
+                options: null,
+                cancellationToken);
         }
 
         public Task UpdateSchemaVersionAsync(
-            SchemaVersion schema,
-            CancellationToken cancellationToken)
+            SchemaVersion schemaVersion,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return _schemaVersions.ReplaceOneAsync(
+                Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersion.Id),
+                schemaVersion,
+                options: default(ReplaceOptions),
+                cancellationToken);
         }
     }
 }

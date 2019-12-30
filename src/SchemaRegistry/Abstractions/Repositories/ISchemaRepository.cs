@@ -30,14 +30,14 @@ namespace MarshmallowPie.Repositories
 
         Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
             IReadOnlyList<Guid> ids,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         Task AddSchemaVersionAsync(
-            SchemaVersion schema,
-            CancellationToken cancellationToken);
+            SchemaVersion schemaVersion,
+            CancellationToken cancellationToken = default);
 
         Task UpdateSchemaVersionAsync(
-            SchemaVersion schema,
-            CancellationToken cancellationToken);
+            SchemaVersion schemaVersion,
+            CancellationToken cancellationToken = default);
     }
 }

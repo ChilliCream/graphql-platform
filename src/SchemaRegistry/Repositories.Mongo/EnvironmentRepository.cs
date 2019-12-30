@@ -16,6 +16,10 @@ namespace MarshmallowPie.Repositories.Mongo
         public EnvironmentRepository(IMongoCollection<Environment> environments)
         {
             _environments = environments;
+            _environments.Indexes.CreateOne(
+                new CreateIndexModel<Environment>(
+                    Builders<Environment>.IndexKeys.Ascending(x => x.Name),
+                    new CreateIndexOptions { Unique = true }));
         }
 
         public IQueryable<Environment> GetEnvironments() =>
