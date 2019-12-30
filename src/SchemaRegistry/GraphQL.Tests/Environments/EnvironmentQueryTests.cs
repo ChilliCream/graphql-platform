@@ -9,7 +9,7 @@ using Xunit;
 namespace MarshmallowPie.GraphQL.Environments
 {
     public class EnvironmentQueryTests
-            : GraphQLTestBase
+        : GraphQLTestBase
     {
         public EnvironmentQueryTests(MongoResource mongoResource)
             : base(mongoResource)

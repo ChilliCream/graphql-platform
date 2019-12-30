@@ -1,11 +1,12 @@
-using System;
+using HotChocolate;
+using HotChocolate.Types;
 
 namespace MarshmallowPie.GraphQL
 {
     public class UpdateEnvironmentInput
     {
         public UpdateEnvironmentInput(
-            Guid id,
+            string id,
             string name,
             string? description,
             string? clientMutationId)
@@ -16,7 +17,8 @@ namespace MarshmallowPie.GraphQL
             ClientMutationId = clientMutationId;
         }
 
-        public Guid Id { get; }
+        [GraphQLType(typeof(NonNullType<IdType>))]
+        public string Id { get; }
 
         public string Name { get; }
 

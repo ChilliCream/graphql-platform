@@ -1,7 +1,9 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using MarshmallowPie.Repositories;
 
 namespace MarshmallowPie.GraphQL.Environments
@@ -21,10 +23,22 @@ namespace MarshmallowPie.GraphQL.Environments
 
         public async Task<UpdateEnvironmentPayload?> UpdateEnvironmentAsync(
             UpdateEnvironmentInput input,
+            [Service]IIdSerializer idSerializer,
             [Service]IEnvironmentRepository repository,
             CancellationToken cancellationToken)
         {
-            var environment = new Environment(input.Id, input.Name, input.Description);
+            IdValue deserializedId = idSerializer.Deserialize(input.Id);
+
+            if (!deserializedId.TypeName.Equals(nameof(Environment), StringComparison.Ordinal))
+            {
+                throw new GraphQLException("The specified id type is invalid.");
+            }
+
+            var environment = new Environment(
+                (Guid)deserializedId.Value,
+                input.Name,
+                input.Description);
+
             await repository.UpdateEnvironmentAsync(environment, cancellationToken);
             return new UpdateEnvironmentPayload(environment, input.ClientMutationId);
         }
