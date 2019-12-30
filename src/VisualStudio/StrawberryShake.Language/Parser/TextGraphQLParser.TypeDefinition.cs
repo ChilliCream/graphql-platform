@@ -9,9 +9,9 @@ namespace HotChocolate.Language
     {
         private static readonly List<EnumValueDefinitionNode> emptyEnumValues =
             new List<EnumValueDefinitionNode>();
-        private static readonly List<InputValueDefinitionNode> _emptyInputVals =
+        private static readonly List<InputValueDefinitionNode> _emptyInputValues =
             new List<InputValueDefinitionNode>();
-        private static List<FieldDefinitionNode> _emptyFieldDefinitions =
+        private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions =
             new List<FieldDefinitionNode>();
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace HotChocolate.Language
 
             if (SkipImplementsKeyword())
             {
-                // skip optional leading amperdand.
+                // skip optional leading ampersand.
                 SkipAmpersand();
 
                 do
@@ -276,7 +276,7 @@ namespace HotChocolate.Language
                 return list;
             }
 
-            return _emptyInputVals;
+            return _emptyInputValues;
         }
 
         /// <summary>
@@ -527,7 +527,7 @@ namespace HotChocolate.Language
                 return list;
             }
 
-            return _emptyInputVals;
+            return _emptyInputValues;
         }
     }
 }

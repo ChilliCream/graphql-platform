@@ -190,7 +190,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IValueNode ParseScalarValue()
+        private unsafe IValueNode ParseScalarValue()
         {
             if (TokenHelper.IsString(in _reader))
             {
@@ -208,36 +208,39 @@ namespace HotChocolate.Language
                         _reader.Kind));
             }
 
-            ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-            FloatFormat? format = _reader.FloatFormat;
-            MoveNext();
-
-            Location location = CreateLocation(in start);
-
-            if (kind == TokenKind.Float)
+            fixed (char* c = _reader.Value)
             {
-                return new FloatValueNode
-                (
-                    location,
-                    value,
-                    format ?? FloatFormat.FixedPoint
-                );
-            }
+                string value = new string(c);
+                FloatFormat? format = _reader.FloatFormat;
+                MoveNext();
 
-            if (kind == TokenKind.Integer)
-            {
-                return new IntValueNode
-                (
-                    location,
-                    value
-                );
-            }
+                Location location = CreateLocation(in start);
 
-            throw Unexpected(kind);
+                if (kind == TokenKind.Float)
+                {
+                    return new FloatValueNode
+                    (
+                        location,
+                        value,
+                        format ?? FloatFormat.FixedPoint
+                    );
+                }
+
+                if (kind == TokenKind.Integer)
+                {
+                    return new IntValueNode
+                    (
+                        location,
+                        value
+                    );
+                }
+
+                throw Unexpected(kind);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IValueNode ParseEnumValue()
+        private unsafe IValueNode ParseEnumValue()
         {
             TokenInfo start = Start();
 
@@ -260,23 +263,23 @@ namespace HotChocolate.Language
             if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
             {
                 MoveNext();
-                if (_createLocation)
-                {
-                    location = CreateLocation(in start);
-                    return new NullValueNode(location);
-                }
-                return NullValueNode.Default;
+
+                location = CreateLocation(in start);
+                return new NullValueNode(location);
             }
 
-            ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-            MoveNext();
-            location = CreateLocation(in start);
+            fixed (char* c = _reader.Value)
+            {
+                var value = new string(c);
+                MoveNext();
+                location = CreateLocation(in start);
 
-            return new EnumValueNode
-            (
-                location,
-                value
-            );
+                return new EnumValueNode
+                (
+                    location,
+                    value
+                );
+            }
         }
     }
 }

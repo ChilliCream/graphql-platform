@@ -29,26 +29,27 @@ namespace HotChocolate.Language
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TokenInfo Start() =>
-            _createLocation
-                ? new TokenInfo(
-                    _reader.Start,
-                    _reader.End,
-                    _reader.Line,
-                    _reader.Column)
-                : default;
+            new TokenInfo(
+                _reader.Start,
+                _reader.End,
+                _reader.Line,
+                _reader.Column);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Location CreateLocation(in TokenInfo start) =>
             new Location(start.Start, _reader.End, start.Line, start.Column);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private string ExpectName()
+        private unsafe string ExpectName()
         {
             if (_reader.Kind == TokenKind.Name)
             {
-                string name = new string(_reader.Value);
-                MoveNext();
-                return name;
+                fixed (char* c = _reader.Value)
+                {
+                    string name = new string(c);
+                    MoveNext();
+                    return name;
+                }
             }
 
             throw new SyntaxException(_reader,
@@ -71,13 +72,16 @@ namespace HotChocolate.Language
             Expect(TokenKind.RightBracket);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private string ExpectString()
+        private unsafe string ExpectString()
         {
             if (TokenHelper.IsString(in _reader))
             {
-                string value = new string(_reader.Value);
-                MoveNext();
-                return value;
+                fixed (char* c = _reader.Value)
+                {
+                    string value = new string(c);
+                    MoveNext();
+                    return value;
+                }
             }
 
             throw new SyntaxException(_reader,
@@ -88,13 +92,16 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private string ExpectScalarValue()
+        private unsafe string ExpectScalarValue()
         {
             if (TokenHelper.IsScalarValue(in _reader))
             {
-                string value = new string(_reader.Value);
-                MoveNext();
-                return value;
+                fixed (char* c = _reader.Value)
+                {
+                    string value = new string(c);
+                    MoveNext();
+                    return value;
+                }
             }
 
             throw new SyntaxException(_reader,
@@ -129,19 +136,23 @@ namespace HotChocolate.Language
         private void ExpectFragmentKeyword() => ExpectKeyword(GraphQLKeywords.Fragment);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ExpectKeyword(string keyword)
+        private unsafe void ExpectKeyword(ReadOnlySpan<char> keyword)
         {
             if (!SkipKeyword(keyword))
             {
-                string found = _reader.Kind == TokenKind.Name
-                    ? new string(_reader.Value)
-                    : _reader.Kind.ToString();
+                fixed (char* c = _reader.Value)
+                fixed (char* k = keyword)
+                {
+                    string found = _reader.Kind == TokenKind.Name
+                        ? new string(c)
+                        : _reader.Kind.ToString();
 
-                throw new SyntaxException(_reader,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidToken,
-                        keyword,
-                        found));
+                    throw new SyntaxException(_reader,
+                        string.Format(CultureInfo.InvariantCulture,
+                            LangResources.Parser_InvalidToken,
+                            new string(k),
+                            found));
+                }
             }
         }
 
@@ -158,7 +169,7 @@ namespace HotChocolate.Language
         private bool SkipImplementsKeyword() => SkipKeyword(GraphQLKeywords.Implements);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool SkipKeyword(string keyword)
+        private bool SkipKeyword(ReadOnlySpan<char> keyword)
         {
             if (_reader.Kind == TokenKind.Name
                 && _reader.Value.SequenceEqual(keyword))

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {

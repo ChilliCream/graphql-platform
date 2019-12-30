@@ -1,30 +1,32 @@
-﻿namespace HotChocolate.Language
+﻿using System;
+
+namespace HotChocolate.Language
 {
     internal static class GraphQLKeywords
     {
         // type system
-        public const string Schema = "schema";
-        public const string Scalar = "scalar";
-        public const string Type = "type";
-        public const string Interface = "interface";
-        public const string Union = "union";
-        public const string Enum = "enum";
-        public const string Input = "input";
-        public const string Extend = "extend";
-        public const string Directive = "directive";
-        public const string Implements = "implements";
-        public const string Repeatable = "repeatable";
+        public static ReadOnlySpan<char> Schema => "schema".AsSpan();
+        public static ReadOnlySpan<char> Scalar => "scalar".AsSpan();
+        public static ReadOnlySpan<char> Type => "type".AsSpan();
+        public static ReadOnlySpan<char> Interface => "interface".AsSpan();
+        public static ReadOnlySpan<char> Union => "union".AsSpan();
+        public static ReadOnlySpan<char> Enum => "enum".AsSpan();
+        public static ReadOnlySpan<char> Input => "input".AsSpan();
+        public static ReadOnlySpan<char> Extend => "extend".AsSpan();
+        public static ReadOnlySpan<char> Directive => "directive".AsSpan();
+        public static ReadOnlySpan<char> Implements => "implements".AsSpan();
+        public static ReadOnlySpan<char> Repeatable => "repeatable".AsSpan();
 
         // query
-        public const string Query = "query";
-        public const string Mutation = "mutation";
-        public const string Subscription = "subscription";
-        public const string Fragment = "fragment";
+        public static ReadOnlySpan<char> Query => "query".AsSpan();
+        public static ReadOnlySpan<char> Mutation => "mutation".AsSpan();
+        public static ReadOnlySpan<char> Subscription => "subscription".AsSpan();
+        public static ReadOnlySpan<char> Fragment => "fragment".AsSpan();
 
         // general
-        public const string On = "on";
-        public const string True = "true";
-        public const string False = "false";
-        public const string Null = "null";
+        public static ReadOnlySpan<char> On => "on".AsSpan();
+        public static ReadOnlySpan<char> True => "true".AsSpan();
+        public static ReadOnlySpan<char> False => "false".AsSpan();
+        public static ReadOnlySpan<char> Null => "null".AsSpan();
     }
 }

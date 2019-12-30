@@ -6,11 +6,6 @@ namespace HotChocolate.Language
         : INullableTypeNode
         , IEquatable<ListTypeNode>
     {
-        public ListTypeNode(ITypeNode type)
-            : this(null, type)
-        {
-        }
-
         public ListTypeNode(Location location, ITypeNode type)
         {
             if (type == null)

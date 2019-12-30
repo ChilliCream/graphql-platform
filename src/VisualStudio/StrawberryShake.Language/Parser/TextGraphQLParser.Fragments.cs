@@ -8,7 +8,7 @@ namespace HotChocolate.Language
     public ref partial struct TextGraphQLParser
     {
         /// <summary>
-        /// Parses a fragment spred or inline fragment within a selection set.
+        /// Parses a fragment spread or inline fragment within a selection set.
         /// <see cref="ParseFragmentSpread" /> and
         /// <see cref="ParseInlineFragment" />.
         /// </summary>
@@ -49,50 +49,22 @@ namespace HotChocolate.Language
 
             ExpectFragmentKeyword();
 
-            // Experimental support for defining variables within fragments
-            // changesthe grammar of FragmentDefinition:
-            // fragment FragmentName VariableDefinitions? on
-            //    TypeCondition Directives? SelectionSet
-            if (_allowFragmentVars)
-            {
-                NameNode name = ParseFragmentName();
-                List<VariableDefinitionNode> variableDefinitions =
-                  ParseVariableDefinitions();
-                ExpectOnKeyword();
-                NamedTypeNode typeCondition = ParseNamedType();
-                List<DirectiveNode> directives = ParseDirectives(false);
-                SelectionSetNode selectionSet = ParseSelectionSet();
-                Location location = CreateLocation(in start);
+            NameNode name = ParseFragmentName();
+            ExpectOnKeyword();
+            NamedTypeNode typeCondition = ParseNamedType();
+            List<DirectiveNode> directives = ParseDirectives(false);
+            SelectionSetNode selectionSet = ParseSelectionSet();
+            Location location = CreateLocation(in start);
 
-                return new FragmentDefinitionNode
-                (
-                  location,
-                  name,
-                  variableDefinitions,
-                  typeCondition,
-                  directives,
-                  selectionSet
-                );
-            }
-            else
-            {
-                NameNode name = ParseFragmentName();
-                ExpectOnKeyword();
-                NamedTypeNode typeCondition = ParseNamedType();
-                List<DirectiveNode> directives = ParseDirectives(false);
-                SelectionSetNode selectionSet = ParseSelectionSet();
-                Location location = CreateLocation(in start);
-
-                return new FragmentDefinitionNode
-                (
-                  location,
-                  name,
-                  Array.Empty<VariableDefinitionNode>(),
-                  typeCondition,
-                  directives,
-                  selectionSet
-                );
-            }
+            return new FragmentDefinitionNode
+            (
+              location,
+              name,
+              Array.Empty<VariableDefinitionNode>(),
+              typeCondition,
+              directives,
+              selectionSet
+            );
         }
 
         /// <summary>

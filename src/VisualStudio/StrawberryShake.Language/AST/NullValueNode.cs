@@ -8,10 +8,6 @@ namespace HotChocolate.Language
     {
         private const string _null = "null";
 
-        private NullValueNode()
-        {
-        }
-
         public NullValueNode(Location location)
         {
             Location = location;
@@ -112,8 +108,6 @@ namespace HotChocolate.Language
         public override int GetHashCode() => 104729;
 
         public override string? ToString() => _null;
-
-        public static NullValueNode Default { get; } = new NullValueNode();
 
         public NullValueNode WithLocation(Location location)
         {

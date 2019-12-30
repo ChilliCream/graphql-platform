@@ -7,18 +7,6 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<VariableNode>
     {
-        private ReadOnlyMemory<byte> _memory;
-
-        public VariableNode(string name)
-            : this(null, new NameNode(name))
-        {
-        }
-
-        public VariableNode(NameNode name)
-            : this(null, name)
-        {
-        }
-
         public VariableNode(
             Location location,
             NameNode name)
@@ -153,15 +141,6 @@ namespace HotChocolate.Language
         public override string? ToString()
         {
             return Value;
-        }
-
-        public ReadOnlySpan<byte> AsSpan()
-        {
-            if (_memory.IsEmpty)
-            {
-                _memory = Encoding.UTF8.GetBytes(Value);
-            }
-            return _memory.Span;
         }
 
         public VariableNode WithLocation(Location location)

@@ -11,18 +11,6 @@ namespace HotChocolate.Language
         private int? _hash;
 
         public ObjectValueNode(
-            params ObjectFieldNode[] fields)
-            : this(null, fields)
-        {
-        }
-
-        public ObjectValueNode(
-            IReadOnlyList<ObjectFieldNode> fields)
-            : this(null, fields)
-        {
-        }
-
-        public ObjectValueNode(
             Location location,
             IReadOnlyList<ObjectFieldNode> fields)
         {
@@ -36,8 +24,7 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<ObjectFieldNode> Fields { get; }
 
-        IReadOnlyList<ObjectFieldNode>
-            IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
+        IReadOnlyList<ObjectFieldNode> IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
 
         object IValueNode.Value => Fields;
 

@@ -6,16 +6,6 @@ namespace HotChocolate.Language
         : INullableTypeNode
         , IEquatable<NamedTypeNode>
     {
-        public NamedTypeNode(string name)
-            : this(null, new NameNode(name))
-        {
-        }
-
-        public NamedTypeNode(NameNode name)
-            : this(null, name)
-        {
-        }
-
         public NamedTypeNode(Location location, NameNode name)
         {
             Location = location;

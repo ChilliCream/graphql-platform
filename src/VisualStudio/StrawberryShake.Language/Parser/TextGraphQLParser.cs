@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using HotChocolate.Language.Properties;
 
@@ -7,27 +6,11 @@ namespace HotChocolate.Language
 {
     public ref partial struct TextGraphQLParser
     {
-        private readonly ParserOptions _options;
-        private readonly bool _createLocation;
-        private readonly bool _allowFragmentVars;
         private TextGraphQLReader _reader;
         private StringValueNode? _description;
 
-        public TextGraphQLParser(
-            ReadOnlySpan<char> graphQLData)
-            : this(graphQLData, ParserOptions.Default)
+        public TextGraphQLParser(ReadOnlySpan<char> graphQLData)
         {
-        }
-
-        public TextGraphQLParser(
-            ReadOnlySpan<char> graphQLData,
-            ParserOptions options)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             if (graphQLData.Length == 0)
             {
                 throw new ArgumentException(
@@ -35,22 +18,12 @@ namespace HotChocolate.Language
                     nameof(graphQLData));
             }
 
-            _options = options;
-            _createLocation = !options.NoLocations;
-            _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = new TextGraphQLReader(graphQLData);
             _description = null;
         }
 
-        internal TextGraphQLParser(
-            TextGraphQLReader reader,
-            ParserOptions options)
+        internal TextGraphQLParser(TextGraphQLReader reader)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             if (reader.Kind == TokenKind.EndOfFile)
             {
                 throw new ArgumentException(
@@ -58,9 +31,6 @@ namespace HotChocolate.Language
                     nameof(reader));
             }
 
-            _options = options;
-            _createLocation = !options.NoLocations;
-            _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = reader;
             _description = null;
         }
@@ -162,77 +132,6 @@ namespace HotChocolate.Language
             }
 
             throw Unexpected(_reader.Kind);
-        }
-
-        public static DocumentNode Parse(
-            ReadOnlySpan<byte> graphQLData) =>
-            new TextGraphQLParser(graphQLData).Parse();
-
-        public static DocumentNode Parse(
-            ReadOnlySpan<byte> graphQLData,
-            ParserOptions options) =>
-            new TextGraphQLParser(graphQLData, options).Parse();
-
-        public static DocumentNode Parse(string sourceText) =>
-            Parse(sourceText, ParserOptions.Default);
-
-        public static unsafe DocumentNode Parse(
-            string sourceText,
-            ParserOptions options)
-        {
-            if (string.IsNullOrEmpty(sourceText))
-            {
-                throw new ArgumentException(
-                    LangResources.SourceText_Empty,
-                    nameof(sourceText));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            int length = checked(sourceText.Length * 4);
-            bool useStackalloc =
-                length <= GraphQLConstants.StackallocThreshold;
-
-            byte[]? source = null;
-
-            Span<byte> sourceSpan = useStackalloc
-                ? stackalloc byte[length]
-                : (source = ArrayPool<byte>.Shared.Rent(length));
-
-            try
-            {
-                ConvertToBytes(sourceText, ref sourceSpan);
-                var parser = new TextGraphQLParser(sourceSpan, options);
-                return parser.Parse();
-            }
-            finally
-            {
-                if (source != null)
-                {
-                    sourceSpan.Clear();
-                    ArrayPool<byte>.Shared.Return(source);
-                }
-            }
-        }
-
-        internal unsafe static int ConvertToBytes(
-            string text,
-            ref Span<byte> buffer)
-        {
-            fixed (byte* bytePtr = buffer)
-            {
-                fixed (char* stringPtr = text)
-                {
-                    int length = StringHelper.UTF8Encoding.GetBytes(
-                        stringPtr, text.Length,
-                        bytePtr, buffer.Length);
-                    buffer = buffer.Slice(0, length);
-                    return length;
-                }
-            }
         }
     }
 }

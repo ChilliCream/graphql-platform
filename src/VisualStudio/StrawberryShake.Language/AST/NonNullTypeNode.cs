@@ -6,11 +6,6 @@ namespace HotChocolate.Language
         : ITypeNode
         , IEquatable<NonNullTypeNode>
     {
-        public NonNullTypeNode(INullableTypeNode type)
-            : this(null, type)
-        {
-        }
-
         public NonNullTypeNode(Location location, INullableTypeNode type)
         {
             Location = location;

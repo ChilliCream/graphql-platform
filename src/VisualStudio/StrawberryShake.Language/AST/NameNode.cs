@@ -6,11 +6,6 @@ namespace HotChocolate.Language
         : ISyntaxNode
         , IEquatable<NameNode>
     {
-        public NameNode(string value)
-            : this(null, value)
-        {
-        }
-
         public NameNode(Location location, string value)
         {
             if (string.IsNullOrEmpty(value))
