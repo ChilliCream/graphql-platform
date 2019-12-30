@@ -120,18 +120,16 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            DefinitionBase definition = _definition;
+            TDefinition definition = _definition;
 
             context.Interceptor.OnBeforeCompleteType(
-                context, definition, _definition.ContextData);
+                context, definition, definition.ContextData);
 
             ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
+            Description = definition.Description;
+            OnCompleteType(context, definition);
 
-            Description = _definition.Description;
-
-            OnCompleteType(context, _definition);
-
-            _contextData = new Dictionary<string, object?>(_definition.ContextData);
+            _contextData = new Dictionary<string, object?>(definition.ContextData);
             _definition = null;
 
             base.CompleteType(context);
@@ -146,14 +144,13 @@ namespace HotChocolate.Types
         {
         }
 
-        private void RegisterConfigurationDependencies(
+        private static void RegisterConfigurationDependencies(
             IInitializationContext context,
-            DefinitionBase definition)
+            TDefinition definition)
         {
-            foreach (IGrouping<TypeDependencyKind, TypeDependency> group in
-                definition.GetConfigurations()
-                    .SelectMany(t => t.Dependencies)
-                    .GroupBy(t => t.Kind))
+            foreach (var group in definition.GetConfigurations()
+                .SelectMany(t => t.Dependencies)
+                .GroupBy(t => t.Kind))
             {
                 context.RegisterDependencyRange(
                     group.Select(t => t.TypeReference),
@@ -161,9 +158,9 @@ namespace HotChocolate.Types
             }
         }
 
-        private void ExecuteConfigurations(
+        private static void ExecuteConfigurations(
             ICompletionContext context,
-            DefinitionBase definition,
+            TDefinition definition,
             ApplyConfigurationOn kind)
         {
             foreach (ILazyTypeConfiguration configuration in

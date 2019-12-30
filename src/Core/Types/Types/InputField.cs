@@ -21,13 +21,24 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
             Property = definition.Property;
+
+            Type propertyType = definition.Property?.PropertyType;
+
+            if (propertyType is { }
+                && propertyType.IsGenericType
+                && propertyType.GetGenericTypeDefinition() == typeof(Optional<>))
+            {
+                IsOptional = true;
+            }
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
 
         public IValueNode DefaultValue { get; private set; }
 
-        protected PropertyInfo Property { get; private set; }
+        internal protected PropertyInfo Property { get; }
+
+        internal protected bool IsOptional { get; }
 
         public new InputObjectType DeclaringType =>
             (InputObjectType)base.DeclaringType;
@@ -147,7 +158,6 @@ namespace HotChocolate.Types
             base.OnCompleteField(context, definition);
             DefaultValue = FieldInitHelper.CreateDefaultValue(
                 context, definition, Type);
-            Property = definition.Property;
         }
     }
 }

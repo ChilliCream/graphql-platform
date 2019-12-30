@@ -338,6 +338,11 @@ namespace HotChocolate.Utilities
                 current = GetInnerType(current);
             }
 
+            if (IsOptional(type))
+            {
+                current = GetInnerType(current);
+            }
+
             return current;
         }
 
@@ -375,7 +380,8 @@ namespace HotChocolate.Utilities
                 || IsNonNullType(type)
                 || IsNullableType(type)
                 || IsWrapperType(type)
-                || IsResolverResultType(type))
+                || IsResolverResultType(type)
+                || IsOptional(type))
             {
                 return type.GetGenericArguments().First();
             }
@@ -449,6 +455,12 @@ namespace HotChocolate.Utilities
         {
             return type.IsGenericType
                 && typeof(Task<>) == type.GetGenericTypeDefinition();
+        }
+
+        private static bool IsOptional(Type type)
+        {
+            return type.IsGenericType
+                && typeof(Optional<>) == type.GetGenericTypeDefinition();
         }
 
         private static bool IsResolverResultType(Type type)
