@@ -17,7 +17,10 @@ namespace MarshmallowPie.GraphQL.Environments
             CancellationToken cancellationToken)
         {
             var environment = new Environment(input.Name, input.Description);
-            await repository.AddEnvironmentAsync(environment, cancellationToken);
+
+            await repository.AddEnvironmentAsync(environment, cancellationToken)
+                .ConfigureAwait(false);
+
             return new CreateEnvironmentPayload(environment, input.ClientMutationId);
         }
 
@@ -39,7 +42,9 @@ namespace MarshmallowPie.GraphQL.Environments
                 input.Name,
                 input.Description);
 
-            await repository.UpdateEnvironmentAsync(environment, cancellationToken);
+            await repository.UpdateEnvironmentAsync(environment, cancellationToken)
+                .ConfigureAwait(false);
+
             return new UpdateEnvironmentPayload(environment, input.ClientMutationId);
         }
     }

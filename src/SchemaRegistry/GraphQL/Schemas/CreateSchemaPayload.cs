@@ -1,10 +1,11 @@
-namespace MarshmallowPie.GraphQL.Models
+namespace MarshmallowPie.GraphQL.Schemas
 {
     public class CreateSchemaPayload
     {
-        public CreateSchemaPayload(Schema schema)
+        public CreateSchemaPayload(Schema schema, string? clientMutationId)
         {
             Schema = schema;
+            ClientMutationId = clientMutationId;
         }
 
         public Schema Schema { get; }

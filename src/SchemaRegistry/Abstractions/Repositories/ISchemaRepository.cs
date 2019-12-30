@@ -8,21 +8,25 @@ namespace MarshmallowPie.Repositories
 {
     public interface ISchemaRepository
     {
-        IQueryable<Schema> Schemas { get; }
+        IQueryable<Schema> GetSchemas();
 
-        IQueryable<SchemaVersion> SchemaVersions { get; }
+        Task<Schema> GetSchemaAsync(
+            Guid id,
+            CancellationToken cancellationToken = default);
 
         Task<IReadOnlyDictionary<Guid, Schema>> GetSchemasAsync(
             IReadOnlyList<Guid> ids,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         Task AddSchemaAsync(
             Schema schema,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         Task UpdateSchemaAsync(
             SchemaVersion schema,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
+
+        IQueryable<SchemaVersion> GetSchemaVersions();
 
         Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
             IReadOnlyList<Guid> ids,

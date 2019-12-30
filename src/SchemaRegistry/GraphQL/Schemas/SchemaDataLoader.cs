@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenDonut;
 using MarshmallowPie.Repositories;
 
 namespace MarshmallowPie.GraphQL.Schemas
 {
-    public class SchemaDataLoader
-        : DataLoaderBase<Guid, Schema?>
+    public sealed class SchemaDataLoader
+        : BatchDataLoader<Guid, Schema>
     {
         private readonly ISchemaRepository _repository;
 
@@ -17,21 +16,9 @@ namespace MarshmallowPie.GraphQL.Schemas
             _repository = repository;
         }
 
-        protected override async Task<IReadOnlyList<Result<Schema?>>> FetchAsync(
+        protected override Task<IReadOnlyDictionary<Guid, Schema>> FetchBatchAsync(
             IReadOnlyList<Guid> keys,
-            CancellationToken cancellationToken)
-        {
-            IReadOnlyDictionary<Guid, Schema> schemas =
-                await _repository.GetSchemasAsync(keys, cancellationToken);
-
-            var list = new List<Result<Schema?>>();
-            for (int i = 0; i < keys.Count; i++)
-            {
-                list[i] = schemas.TryGetValue(keys[i], out Schema? schema)
-                    ? Result<Schema?>.Resolve(schema)
-                    : Result<Schema?>.Resolve(null);
-            }
-            return list;
-        }
+            CancellationToken cancellationToken) =>
+            _repository.GetSchemasAsync(keys, cancellationToken);
     }
 }

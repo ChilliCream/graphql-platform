@@ -11,10 +11,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             descriptor.AsNode()
                 .IdField(t => t.Id)
                 .NodeResolver((context, id) =>
-                {
-                    SchemaDataLoader dataLoader = context.DataLoader<SchemaDataLoader>();
-                    return dataLoader.LoadAsync(id, context.RequestAborted)!;
-                });
+                context.DataLoader<SchemaDataLoader>().LoadAsync(id, context.RequestAborted));
         }
     }
 }

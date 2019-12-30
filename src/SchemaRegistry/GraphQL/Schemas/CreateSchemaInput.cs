@@ -1,4 +1,4 @@
-namespace MarshmallowPie.GraphQL.Models
+namespace MarshmallowPie.GraphQL.Schemas
 {
     public class CreateSchemaInput
     {
