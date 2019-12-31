@@ -142,7 +142,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             out FilterFieldDefintion definition)
         {
-
+            definition = null;
             Type type = property.PropertyType;
 
             if (type.IsGenericType
@@ -154,11 +154,9 @@ namespace HotChocolate.Types.Filters
             IEnumerator<TryCreateImplicitFilter> enumerator
                 = _convention.GetImplicitFilterFactories().GetEnumerator();
 
-            enumerator.MoveNext();
-
-            while (!enumerator.Current(Context, type, property, out definition) &&
-                    enumerator.MoveNext())
-            { }
+            while (enumerator.MoveNext()
+                && !enumerator.Current(Context, type, property, out definition))
+                ;
 
             return definition != null;
         }
