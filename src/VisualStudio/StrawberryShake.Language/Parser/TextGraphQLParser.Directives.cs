@@ -10,7 +10,7 @@ namespace HotChocolate.Language
 
         private DirectiveDefinitionNode ParseDirectiveDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             StringValueNode? description = ParseDescription();
 
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
             List<NameNode> locations = ParseDirectiveLocations();
 
-             Location location = CreateLocation(in start);
+             var location = new Location(start, _reader.Token);
 
             return new DirectiveDefinitionNode
             (
@@ -88,13 +88,13 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private DirectiveNode ParseDirective(bool isConstant)
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             ExpectAt();
             NameNode name = ParseName();
             List<ArgumentNode> arguments = ParseArguments(isConstant);
 
-             Location location = CreateLocation(in start);
+             var location = new Location(start, _reader.Token);
 
             return new DirectiveNode
             (

@@ -19,6 +19,7 @@ namespace HotChocolate.Language
         private int _line;
         private int _lineStart;
         private int _column;
+        private SyntaxToken _token;
 
         public TextGraphQLReader(ReadOnlySpan<char> graphQLData)
         {
@@ -33,6 +34,7 @@ namespace HotChocolate.Language
             _lineStart = 0;
             _line = 1;
             _column = 1;
+            _token = new SyntaxToken(TokenKind.StartOfFile, 0, 0, 1, 1, null, null);
             _graphQLData = graphQLData;
             _length = graphQLData.Length;
             _nextNewLines = 0;
@@ -86,7 +88,16 @@ namespace HotChocolate.Language
         /// </summary>
         public ReadOnlySpan<char> Value => _value;
 
+        /// <summary>
+        /// Gets the float token value format.
+        /// </summary>
         public FloatFormat? FloatFormat => _floatFormat;
+
+        /// <summary>
+        /// Gets the token.
+        /// </summary>
+        /// <value></value>
+        public ISyntaxToken Token => _token;
 
         public bool Read()
         {
@@ -101,6 +112,9 @@ namespace HotChocolate.Language
                 _end = _position;
                 _kind = TokenKind.EndOfFile;
                 _value = null;
+                _token = new SyntaxToken(
+                    TokenKind.EndOfFile, _position, _position,
+                    _line, _column, null, _token);
                 return false;
             }
 
@@ -109,24 +123,28 @@ namespace HotChocolate.Language
             if (_isPunctuator[code])
             {
                 ReadPunctuatorToken(code);
+                CreateToken();
                 return true;
             }
 
             if (_isLetterOrDigitOrUnderscore[code])
             {
                 ReadNameToken();
+                CreateToken();
                 return true;
             }
 
             if (_isDigitOrMinus[code])
             {
                 ReadNumberToken(code);
+                CreateToken();
                 return true;
             }
 
             if (code == GraphQLConstants.Hash)
             {
                 ReadCommentToken();
+                CreateToken();
                 return true;
             }
 
@@ -143,6 +161,7 @@ namespace HotChocolate.Language
                 {
                     ReadStringValueToken();
                 }
+                CreateToken();
                 return true;
             }
 
@@ -168,8 +187,7 @@ namespace HotChocolate.Language
             var position = _position;
 
             while (++position < _length
-                && GraphQLConstants.IsLetterOrDigitOrUnderscore(
-                    _graphQLData[position]))
+                && _isLetterOrDigitOrUnderscore[_graphQLData[position]])
             {
             }
 

@@ -39,7 +39,7 @@ namespace HotChocolate.Language
         {
             var definitions = new List<IDefinitionNode>();
 
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             MoveNext();
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
                 definitions.Add(ParseDefinition());
             }
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new DocumentNode(location, definitions);
         }

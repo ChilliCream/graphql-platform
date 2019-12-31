@@ -2,13 +2,17 @@
 {
     public readonly struct Location
     {
-        public Location(int start, int end, int line, int column)
+        public Location(
+            ISyntaxToken start,
+            ISyntaxToken end)
         {
-            Start = start;
-            End = end;
-            Length = end - start;
-            Line = line;
-            Column = column;
+            Start = start.Start;
+            StartToken = start;
+            End = end.End;
+            EndToken = end;
+            Length = end.End - start.Start;
+            Line = start.Line;
+            Column = start.Column;
         }
 
         /// <summary>
@@ -18,10 +22,23 @@
         public int Start { get; }
 
         /// <summary>
+        /// Gets the start token at which this
+        /// <see cref="ISyntaxNode" /> ends.
+        /// </summary>
+        public ISyntaxToken StartToken { get; }
+
+
+        /// <summary>
         /// Gets the character offset at which this
         /// <see cref="ISyntaxNode" /> ends.
         /// </summary>
         public int End { get; }
+
+        /// <summary>
+        /// Gets the end token at which this
+        /// <see cref="ISyntaxNode" /> ends.
+        /// </summary>
+        public ISyntaxToken EndToken { get; }
 
         /// <summary>
         /// Gets the length of the <see cref="ISyntaxNode" />.

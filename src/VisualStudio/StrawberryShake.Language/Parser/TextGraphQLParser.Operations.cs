@@ -24,7 +24,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OperationDefinitionNode ParseOperationDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             OperationType operation = ParseOperationType();
             NameNode? name = _reader.Kind == TokenKind.Name
@@ -35,7 +35,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new OperationDefinitionNode
             (
@@ -57,9 +57,9 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OperationDefinitionNode ParseShortOperationDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new OperationDefinitionNode
             (
@@ -142,7 +142,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private VariableDefinitionNode ParseVariableDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             VariableNode variable = ParseVariable();
             ExpectColon();
@@ -153,7 +153,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new VariableDefinitionNode
             (
@@ -174,10 +174,10 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private VariableNode ParseVariable()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
             ExpectDollar();
             NameNode name = ParseName();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new VariableNode
             (
@@ -195,7 +195,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private SelectionSetNode ParseSelectionSet()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             if (_reader.Kind != TokenKind.LeftBrace)
             {
@@ -220,7 +220,7 @@ namespace HotChocolate.Language
             // skip closing token
             ExpectRightBrace();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new SelectionSetNode
             (
@@ -256,7 +256,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private FieldNode ParseField()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             NameNode name = ParseName();
             NameNode? alias = null;
@@ -273,7 +273,7 @@ namespace HotChocolate.Language
                 ? ParseSelectionSet()
                 : null;
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new FieldNode
             (
@@ -325,13 +325,13 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ArgumentNode ParseArgument(bool isConstant)
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             NameNode name = ParseName();
             ExpectColon();
             IValueNode value = ParseValueLiteral(isConstant);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new ArgumentNode
             (

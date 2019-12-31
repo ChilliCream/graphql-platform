@@ -22,5 +22,38 @@ namespace HotChocolate.Language
             }
             return false;
         }
+
+        private unsafe void CreateToken()
+        {
+            SyntaxToken current;
+
+            if (_value.Length == 0)
+            {
+                current = new SyntaxToken(
+                    _kind,
+                    _start,
+                    _end,
+                    _line,
+                    _column,
+                    null,
+                    _token);
+            }
+            else
+            {
+                fixed (char* c = _value)
+                {
+                    current = new SyntaxToken(
+                        _kind,
+                        _start,
+                        _end,
+                        _line,
+                        _column,
+                        new string(c),
+                        _token);
+                }
+            }
+
+            _token = current;
+        }
     }
 }

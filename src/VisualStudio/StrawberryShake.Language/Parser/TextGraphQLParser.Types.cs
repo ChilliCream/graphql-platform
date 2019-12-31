@@ -18,13 +18,13 @@
 
             if (_reader.Kind == TokenKind.LeftBracket)
             {
-                TokenInfo start = Start();
+                ISyntaxToken start = _reader.Token;
 
                 MoveNext();
                 type = ParseTypeReference();
                 ExpectRightBracket();
 
-                location = CreateLocation(in start);
+                location = new Location(start, _reader.Token);
 
                 type = new ListTypeNode(location, type);
             }
@@ -37,9 +37,9 @@
             {
                 if (type is INullableTypeNode nt)
                 {
-                    TokenInfo start = Start();
+                    ISyntaxToken start = _reader.Token;
                     MoveNext();
-                    location = CreateLocation(in start);
+                    location = new Location(start, _reader.Token);
 
                     return new NonNullTypeNode
                     (
@@ -62,9 +62,9 @@
         /// <param name="context">The parser context.</param>
         private NamedTypeNode ParseNamedType()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
             NameNode name = ParseName();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new NamedTypeNode
             (

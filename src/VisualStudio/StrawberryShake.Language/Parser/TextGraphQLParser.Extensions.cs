@@ -10,7 +10,7 @@ namespace HotChocolate.Language
 
         private ITypeSystemExtensionNode ParseTypeExtension()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             // extensions do not have a description
             TakeDescription();
@@ -21,37 +21,37 @@ namespace HotChocolate.Language
             {
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
                 {
-                    return ParseSchemaExtension(in start);
+                    return ParseSchemaExtension(start);
                 }
 
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
                 {
-                    return ParseScalarTypeExtension(in start);
+                    return ParseScalarTypeExtension(start);
                 }
 
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Type))
                 {
-                    return ParseObjectTypeExtension(in start);
+                    return ParseObjectTypeExtension(start);
                 }
 
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Interface))
                 {
-                    return ParseInterfaceTypeExtension(in start);
+                    return ParseInterfaceTypeExtension(start);
                 }
 
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
                 {
-                    return ParseUnionTypeExtension(in start);
+                    return ParseUnionTypeExtension(start);
                 }
 
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Enum))
                 {
-                    return ParseEnumTypeExtension(in start);
+                    return ParseEnumTypeExtension(start);
                 }
 
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
                 {
-                    return ParseInputObjectTypeExtension(in start);
+                    return ParseInputObjectTypeExtension(start);
                 }
             }
 
@@ -65,7 +65,7 @@ namespace HotChocolate.Language
         /// * - extend schema Directives[Const]
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private SchemaExtensionNode ParseSchemaExtension(in TokenInfo start)
+        private SchemaExtensionNode ParseSchemaExtension(ISyntaxToken start)
         {
             MoveNext();
 
@@ -79,7 +79,7 @@ namespace HotChocolate.Language
                 throw Unexpected(_reader.Kind);
             }
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new SchemaExtensionNode
             (
@@ -113,7 +113,7 @@ namespace HotChocolate.Language
         }
 
         private ScalarTypeExtensionNode ParseScalarTypeExtension(
-            in TokenInfo start)
+            ISyntaxToken start)
         {
             MoveNext();
 
@@ -123,7 +123,7 @@ namespace HotChocolate.Language
             {
                 throw Unexpected(_reader.Kind);
             }
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new ScalarTypeExtensionNode
             (
@@ -134,7 +134,7 @@ namespace HotChocolate.Language
         }
 
         private ObjectTypeExtensionNode ParseObjectTypeExtension(
-            in TokenInfo start)
+            ISyntaxToken start)
         {
             MoveNext();
 
@@ -142,7 +142,7 @@ namespace HotChocolate.Language
             List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
             List<DirectiveNode> directives = ParseDirectives(true);
             List<FieldDefinitionNode> fields = ParseFieldsDefinition();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             if (interfaces.Count == 0
                 && directives.Count == 0
@@ -162,14 +162,14 @@ namespace HotChocolate.Language
         }
 
         private InterfaceTypeExtensionNode ParseInterfaceTypeExtension(
-            in TokenInfo start)
+            ISyntaxToken start)
         {
             MoveNext();
 
             NameNode name = ParseName();
             List<DirectiveNode> directives = ParseDirectives(true);
             List<FieldDefinitionNode> fields = ParseFieldsDefinition();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             if (directives.Count == 0
                 && fields.Count == 0)
@@ -187,14 +187,14 @@ namespace HotChocolate.Language
         }
 
         private UnionTypeExtensionNode ParseUnionTypeExtension(
-            in TokenInfo start)
+            ISyntaxToken start)
         {
             MoveNext();
 
             NameNode name = ParseName();
             List<DirectiveNode> directives = ParseDirectives(true);
             List<NamedTypeNode> types = ParseUnionMemberTypes();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             if (directives.Count == 0 && types.Count == 0)
             {
@@ -210,14 +210,14 @@ namespace HotChocolate.Language
             );
         }
 
-        private EnumTypeExtensionNode ParseEnumTypeExtension(in TokenInfo start)
+        private EnumTypeExtensionNode ParseEnumTypeExtension(ISyntaxToken start)
         {
             MoveNext();
 
             NameNode name = ParseName();
             List<DirectiveNode> directives = ParseDirectives(true);
             List<EnumValueDefinitionNode> values = ParseEnumValuesDefinition();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             if (directives.Count == 0 && values.Count == 0)
             {
@@ -234,7 +234,7 @@ namespace HotChocolate.Language
         }
 
         private InputObjectTypeExtensionNode ParseInputObjectTypeExtension(
-            in TokenInfo start)
+            ISyntaxToken start)
         {
             MoveNext();
 
@@ -242,7 +242,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives = ParseDirectives(true);
             List<InputValueDefinitionNode> fields =
                 ParseInputFieldsDefinition();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             if (directives.Count == 0 && fields.Count == 0)
             {

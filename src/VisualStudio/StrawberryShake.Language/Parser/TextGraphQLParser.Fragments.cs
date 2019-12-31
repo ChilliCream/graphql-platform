@@ -16,14 +16,14 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ISelectionNode ParseFragment()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             ExpectSpread();
             var isOnKeyword = _reader.Value.SequenceEqual(GraphQLKeywords.On);
 
             if (!isOnKeyword && _reader.Kind == TokenKind.Name)
             {
-                return ParseFragmentSpread(in start);
+                return ParseFragmentSpread(start);
             }
 
             NamedTypeNode? typeCondition = null;
@@ -34,7 +34,7 @@ namespace HotChocolate.Language
                 typeCondition = ParseNamedType();
             }
 
-            return ParseInlineFragment(in start, typeCondition);
+            return ParseInlineFragment(start, typeCondition);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private FragmentDefinitionNode ParseFragmentDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             ExpectFragmentKeyword();
 
@@ -54,7 +54,7 @@ namespace HotChocolate.Language
             NamedTypeNode typeCondition = ParseNamedType();
             List<DirectiveNode> directives = ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new FragmentDefinitionNode
             (
@@ -76,11 +76,11 @@ namespace HotChocolate.Language
         /// <param name="start">
         /// The start token of the current fragment node.
         /// </param>
-        private FragmentSpreadNode ParseFragmentSpread(in TokenInfo start)
+        private FragmentSpreadNode ParseFragmentSpread(ISyntaxToken start)
         {
             NameNode name = ParseFragmentName();
             List<DirectiveNode> directives = ParseDirectives(false);
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new FragmentSpreadNode
             (
@@ -103,12 +103,12 @@ namespace HotChocolate.Language
         /// The fragment type condition.
         /// </param>
         private InlineFragmentNode ParseInlineFragment(
-            in TokenInfo start,
+            ISyntaxToken start,
             NamedTypeNode? typeCondition)
         {
             List<DirectiveNode> directives = ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new InlineFragmentNode
             (

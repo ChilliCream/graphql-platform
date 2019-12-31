@@ -37,7 +37,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private SchemaDefinitionNode ParseSchemaDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             // skip schema keyword
             MoveNext();
@@ -68,7 +68,7 @@ namespace HotChocolate.Language
             // skip closing token
             ExpectRightBrace();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new SchemaDefinitionNode
             (
@@ -87,13 +87,13 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private OperationTypeDefinitionNode ParseOperationTypeDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             OperationType operation = ParseOperationType();
             ExpectColon();
             NamedTypeNode type = ParseNamedType();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new OperationTypeDefinitionNode
             (
@@ -112,7 +112,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private ScalarTypeDefinitionNode ParseScalarTypeDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             // skip scalar keyword
             MoveNext();
@@ -120,7 +120,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName();
             List<DirectiveNode> directives = ParseDirectives(true);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new ScalarTypeDefinitionNode
             (
@@ -140,7 +140,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private ObjectTypeDefinitionNode ParseObjectTypeDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             // skip type keyword
             MoveNext();
@@ -150,7 +150,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives = ParseDirectives(true);
             List<FieldDefinitionNode> fields = ParseFieldsDefinition();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new ObjectTypeDefinitionNode
             (
@@ -228,7 +228,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private FieldDefinitionNode ParseFieldDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
@@ -237,7 +237,7 @@ namespace HotChocolate.Language
             ITypeNode type = ParseTypeReference();
             List<DirectiveNode> directives = ParseDirectives(true);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new FieldDefinitionNode
             (
@@ -287,7 +287,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private InputValueDefinitionNode ParseInputValueDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
@@ -299,7 +299,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new InputValueDefinitionNode
             (
@@ -321,7 +321,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             MoveNext();
 
@@ -331,7 +331,7 @@ namespace HotChocolate.Language
             List<FieldDefinitionNode> fields =
                 ParseFieldsDefinition();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new InterfaceTypeDefinitionNode
             (
@@ -352,7 +352,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private UnionTypeDefinitionNode ParseUnionTypeDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             MoveNext();
 
@@ -361,7 +361,7 @@ namespace HotChocolate.Language
                 ParseDirectives(true);
             List<NamedTypeNode> types = ParseUnionMemberTypes();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new UnionTypeDefinitionNode
             (
@@ -406,7 +406,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private EnumTypeDefinitionNode ParseEnumTypeDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             MoveNext();
 
@@ -414,7 +414,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives = ParseDirectives(true);
             List<EnumValueDefinitionNode> values = ParseEnumValuesDefinition();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new EnumTypeDefinitionNode
             (
@@ -465,14 +465,14 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private EnumValueDefinitionNode ParseEnumValueDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new EnumValueDefinitionNode
             (
@@ -485,7 +485,7 @@ namespace HotChocolate.Language
 
         private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             MoveNext();
 
@@ -495,7 +495,7 @@ namespace HotChocolate.Language
             List<InputValueDefinitionNode> fields =
                 ParseInputFieldsDefinition();
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new InputObjectTypeDefinitionNode
             (

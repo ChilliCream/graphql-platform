@@ -13,9 +13,9 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NameNode ParseName()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
             string name = ExpectName();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new NameNode
             (
@@ -26,18 +26,6 @@ namespace HotChocolate.Language
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool MoveNext() => _reader.MoveNext();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private TokenInfo Start() =>
-            new TokenInfo(
-                _reader.Start,
-                _reader.End,
-                _reader.Line,
-                _reader.Column);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Location CreateLocation(in TokenInfo start) =>
-            new Location(start.Start, _reader.End, start.Line, start.Column);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe string ExpectName()

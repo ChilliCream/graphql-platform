@@ -63,11 +63,11 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StringValueNode ParseStringLiteral()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
             string value = ExpectString();
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new StringValueNode(location, value, isBlock);
         }
@@ -86,7 +86,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ListValueNode ParseList(bool isConstant)
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             if (_reader.Kind != TokenKind.LeftBracket)
             {
@@ -111,7 +111,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBracket);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new ListValueNode
             (
@@ -134,7 +134,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ObjectValueNode ParseObject(bool isConstant)
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             if (_reader.Kind != TokenKind.LeftBrace)
             {
@@ -159,7 +159,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBrace);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new ObjectValueNode
             (
@@ -171,7 +171,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ObjectFieldNode ParseObjectField(bool isConstant)
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             NameNode name = ParseName();
 
@@ -179,7 +179,7 @@ namespace HotChocolate.Language
 
             IValueNode value = ParseValueLiteral(isConstant);
 
-            Location location = CreateLocation(in start);
+            var location = new Location(start, _reader.Token);
 
             return new ObjectFieldNode
             (
@@ -197,7 +197,7 @@ namespace HotChocolate.Language
                 return ParseStringLiteral();
             }
 
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
             TokenKind kind = _reader.Kind;
 
             if (!TokenHelper.IsScalarValue(in _reader))
@@ -214,7 +214,7 @@ namespace HotChocolate.Language
                 FloatFormat? format = _reader.FloatFormat;
                 MoveNext();
 
-                Location location = CreateLocation(in start);
+                var location = new Location(start, _reader.Token);
 
                 if (kind == TokenKind.Float)
                 {
@@ -242,21 +242,21 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe IValueNode ParseEnumValue()
         {
-            TokenInfo start = Start();
+            ISyntaxToken start = _reader.Token;
 
             Location location;
 
             if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
             {
                 MoveNext();
-                location = CreateLocation(in start);
+                location = new Location(start, _reader.Token);
                 return new BooleanValueNode(location, true);
             }
 
             if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
             {
                 MoveNext();
-                location = CreateLocation(in start);
+                location = new Location(start, _reader.Token);
                 return new BooleanValueNode(location, false);
             }
 
@@ -264,7 +264,7 @@ namespace HotChocolate.Language
             {
                 MoveNext();
 
-                location = CreateLocation(in start);
+                location = new Location(start, _reader.Token);
                 return new NullValueNode(location);
             }
 
@@ -272,7 +272,7 @@ namespace HotChocolate.Language
             {
                 var value = new string(c);
                 MoveNext();
-                location = CreateLocation(in start);
+                location = new Location(start, _reader.Token);
 
                 return new EnumValueNode
                 (
