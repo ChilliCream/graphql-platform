@@ -1027,7 +1027,7 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ do(input: { bar: \"abc\" baz: \"def\" }) { bar baz } }");
+                "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }");
 
             // assert
             result.MatchSnapshot();
@@ -1168,6 +1168,7 @@ namespace HotChocolate.Types
 
             public string Bar { get; }
             public string Baz { get; set; }
+            public string Qux { get; private set; }
         }
     }
 }
