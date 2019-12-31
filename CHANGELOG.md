@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [10.3.1]
+
+- Fixed issue that private setters where not used during input deserialization.
+
 ## [10.3.0]
 
 ### Added
