@@ -8,7 +8,7 @@ namespace MarshmallowPie.GraphQL
 {
     public abstract class BatchDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
-        where TKey : struct
+        where TKey : notnull
         where TValue : class
     {
         protected override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(

@@ -6,12 +6,12 @@ using MarshmallowPie.Repositories;
 
 namespace MarshmallowPie.GraphQL.Schemas
 {
-    public sealed class SchemaDataLoader
+    public sealed class SchemaByIdDataLoader
         : BatchDataLoader<Guid, Schema>
     {
         private readonly ISchemaRepository _repository;
 
-        public SchemaDataLoader(ISchemaRepository repository)
+        public SchemaByIdDataLoader(ISchemaRepository repository)
         {
             _repository = repository;
         }

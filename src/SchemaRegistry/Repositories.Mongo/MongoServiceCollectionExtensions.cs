@@ -12,11 +12,16 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             return services
                 .AddSingleton<IMongoCollection<Environment>>(sp =>
-                    getMongoDatabase(sp).GetCollection<Environment>(nameof(Environment)))
+                    getMongoDatabase(sp).GetCollection<Environment>(
+                        nameof(Environment)))
                 .AddSingleton<IMongoCollection<Schema>>(sp =>
                     getMongoDatabase(sp).GetCollection<Schema>(nameof(Schema)))
                 .AddSingleton<IMongoCollection<SchemaVersion>>(sp =>
-                    getMongoDatabase(sp).GetCollection<SchemaVersion>(nameof(SchemaVersion)))
+                    getMongoDatabase(sp).GetCollection<SchemaVersion>(
+                        nameof(SchemaVersion)))
+                .AddSingleton<IMongoCollection<SchemaPublishReport>>(sp =>
+                    getMongoDatabase(sp).GetCollection<SchemaPublishReport>(
+                        nameof(SchemaPublishReport)))
                 .AddSingleton<IEnvironmentRepository, EnvironmentRepository>()
                 .AddSingleton<ISchemaRepository, SchemaRepository>();
         }

@@ -47,5 +47,7 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             return new UpdateSchemaPayload(schema, input.ClientMutationId);
         }
+
+
     }
 }

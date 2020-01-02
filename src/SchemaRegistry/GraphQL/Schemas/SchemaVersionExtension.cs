@@ -10,7 +10,7 @@ namespace MarshmallowPie.GraphQL.Schemas
     {
         public Task<Schema> GetSchemaAsync(
             [Parent]SchemaVersion schemaVersion,
-            [DataLoader]SchemaDataLoader dataLoader,
+            [DataLoader]SchemaByIdDataLoader dataLoader,
             CancellationToken cancellationToken) =>
             dataLoader.LoadAsync(schemaVersion.Id, cancellationToken);
     }

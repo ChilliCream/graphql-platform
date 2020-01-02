@@ -18,6 +18,10 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyDictionary<string, Schema>> GetSchemasAsync(
+            IReadOnlyList<string> names,
+            CancellationToken cancellationToken = default);
+
         Task AddSchemaAsync(
             Schema schema,
             CancellationToken cancellationToken = default);
@@ -38,6 +42,20 @@ namespace MarshmallowPie.Repositories
 
         Task UpdateSchemaVersionAsync(
             SchemaVersion schemaVersion,
+            CancellationToken cancellationToken = default);
+
+        IQueryable<SchemaPublishReport> GetPublishReports();
+
+        Task<IReadOnlyDictionary<Guid, SchemaPublishReport>> GetPublishReportsAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken = default);
+
+        Task AddPublishReportAsync(
+            SchemaPublishReport publishReport,
+            CancellationToken cancellationToken = default);
+
+        Task UpdatePublishReportAsync(
+            SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default);
     }
 }

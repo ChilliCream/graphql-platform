@@ -78,7 +78,7 @@ namespace MarshmallowPie.GraphQL.Environments
             // assert
             result.MatchSnapshot(o =>
                 o.Assert(fo =>
-                    Assert.NotNull(fo.Field<string>("Data.createEnvironment.environment.id"))));
+                    Assert.NotNull(fo.Field<string>("Data.updateEnvironment.environment.id"))));
         }
     }
 }

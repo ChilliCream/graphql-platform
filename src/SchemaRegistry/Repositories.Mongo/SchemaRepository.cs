@@ -12,18 +12,30 @@ namespace MarshmallowPie.Repositories.Mongo
         : ISchemaRepository
     {
         private readonly IMongoCollection<Schema> _schemas;
-        private readonly IMongoCollection<SchemaVersion> _schemaVersions;
+        private readonly IMongoCollection<SchemaVersion> _versions;
+        private readonly IMongoCollection<SchemaPublishReport> _publishReports;
 
         public SchemaRepository(
             IMongoCollection<Schema> schemas,
-            IMongoCollection<SchemaVersion> schemaVersions)
+            IMongoCollection<SchemaVersion> versions,
+            IMongoCollection<SchemaPublishReport> publishReports)
         {
             _schemas = schemas;
-            _schemaVersions = schemaVersions;
+            _versions = versions;
+            _publishReports = publishReports;
 
             _schemas.Indexes.CreateOne(
                 new CreateIndexModel<Schema>(
                     Builders<Schema>.IndexKeys.Ascending(x => x.Name),
+                    new CreateIndexOptions { Unique = true }));
+
+            _publishReports.Indexes.CreateOne(
+                new CreateIndexModel<SchemaPublishReport>(
+                    Builders<SchemaPublishReport>.IndexKeys.Combine(
+                        Builders<SchemaPublishReport>.IndexKeys.Ascending(x =>
+                            x.SchemaVersionId),
+                        Builders<SchemaPublishReport>.IndexKeys.Ascending(x =>
+                            x.EnvironmentId)),
                     new CreateIndexOptions { Unique = true }));
         }
 
@@ -52,6 +64,19 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
+        public async Task<IReadOnlyDictionary<string, Schema>> GetSchemasAsync(
+            IReadOnlyList<string> names,
+            CancellationToken cancellationToken = default)
+        {
+            var list = new List<string>(names);
+
+            List<Schema> result = await _schemas.AsQueryable()
+                .Where(t => list.Contains(t.Name))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Name);
+        }
 
         public Task AddSchemaAsync(
             Schema schema,
@@ -76,14 +101,14 @@ namespace MarshmallowPie.Repositories.Mongo
 
         public IQueryable<SchemaVersion> GetSchemaVersions()
         {
-            return _schemaVersions.AsQueryable();
+            return _versions.AsQueryable();
         }
 
         public Task<SchemaVersion> GetSchemaVersionAsync(
             Guid id,
             CancellationToken cancellationToken = default)
         {
-            return _schemaVersions.AsQueryable()
+            return _versions.AsQueryable()
                 .Where(t => t.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
         }
@@ -94,7 +119,7 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             var list = new List<Guid>(ids);
 
-            List<SchemaVersion> result = await _schemaVersions.AsQueryable()
+            List<SchemaVersion> result = await _versions.AsQueryable()
                 .Where(t => list.Contains(t.Id))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -106,7 +131,7 @@ namespace MarshmallowPie.Repositories.Mongo
             SchemaVersion schemaVersion,
             CancellationToken cancellationToken = default)
         {
-            return _schemaVersions.InsertOneAsync(
+            return _versions.InsertOneAsync(
                 schemaVersion,
                 options: null,
                 cancellationToken);
@@ -116,11 +141,42 @@ namespace MarshmallowPie.Repositories.Mongo
             SchemaVersion schemaVersion,
             CancellationToken cancellationToken = default)
         {
-            return _schemaVersions.ReplaceOneAsync(
+            return _versions.ReplaceOneAsync(
                 Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersion.Id),
                 schemaVersion,
                 options: default(ReplaceOptions),
                 cancellationToken);
+        }
+
+        public IQueryable<SchemaPublishReport> GetPublishReports() =>
+            _publishReports.AsQueryable();
+
+        public async Task<IReadOnlyDictionary<Guid, SchemaPublishReport>> GetPublishReportsAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken = default)
+        {
+            var list = new List<Guid>(ids);
+
+            List<SchemaPublishReport> result = await _publishReports.AsQueryable()
+                .Where(t => list.Contains(t.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Id);
+        }
+
+        public Task AddPublishReportAsync(
+            SchemaPublishReport publishReport,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdatePublishReportAsync(
+            SchemaPublishReport publishReport,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
         }
     }
 }

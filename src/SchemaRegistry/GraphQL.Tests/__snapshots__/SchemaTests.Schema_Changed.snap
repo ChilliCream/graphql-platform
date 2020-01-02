@@ -67,8 +67,12 @@ type Query {
   environments(after: String before: String first: PaginationAmount last: PaginationAmount order_by: EnvironmentSort where: EnvironmentFilter): EnvironmentConnection
   environmentsById(ids: [ID!]! order_by: EnvironmentSort): [Environment!]!
   schemaById(id: ID!): Schema!
+  schemaByName(name: String!): Schema!
   schemas(after: String before: String first: PaginationAmount last: PaginationAmount order_by: SchemaSort where: SchemaFilter): SchemaConnection
   schemasById(ids: [ID!]! order_by: SchemaSort): [Schema!]!
+  schemasByName(names: [String!]! order_by: SchemaSort): [Schema!]!
+  schemaVersions(after: String before: String first: PaginationAmount last: PaginationAmount order_by: SchemaVersionSort where: SchemaVersionFilter): SchemaVersionConnection
+  schemaVersionsById(id: ID!): SchemaVersion!
 }
 
 type Schema implements Node {

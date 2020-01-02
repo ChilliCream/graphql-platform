@@ -28,11 +28,13 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
             var initial = new Schema("foo", "bar");
             await schemas.InsertOneAsync(initial, options: null, default);
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
 
             // act
             Schema retrieved = repository.GetSchemas()
@@ -53,11 +55,13 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
             var initial = new Schema("foo", "bar");
             await schemas.InsertOneAsync(initial, options: null, default);
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
 
             // act
             Schema retrieved = await repository.GetSchemaAsync(initial.Id);
@@ -76,13 +80,15 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
             var a = new Schema("foo1", "bar");
             var b = new Schema("foo2", "bar");
             await schemas.InsertOneAsync(a, options: null, default);
             await schemas.InsertOneAsync(b, options: null, default);
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
 
             // act
             IReadOnlyDictionary<Guid, Schema> retrieved =
@@ -94,6 +100,34 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         [Fact]
+        public async Task GetMultipleSchemasByName()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var a = new Schema("foo1", "bar");
+            var b = new Schema("foo2", "bar");
+            await schemas.InsertOneAsync(a, options: null, default);
+            await schemas.InsertOneAsync(b, options: null, default);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            IReadOnlyDictionary<string, Schema> retrieved =
+                await repository.GetSchemasAsync(new[] { a.Name, b.Name });
+
+            // assert
+            Assert.True(retrieved.ContainsKey(a.Name));
+            Assert.True(retrieved.ContainsKey(b.Name));
+        }
+
+        [Fact]
         public async Task AddSchema()
         {
             // arrange
@@ -102,8 +136,10 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
             var schema = new Schema("foo", "bar");
 
             // act
@@ -127,11 +163,13 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
             var initial = new Schema("foo", "bar");
             await schemas.InsertOneAsync(initial, options: null, default);
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
 
             // act
             var updated = new Schema(initial.Id, initial.Name, "abc");
@@ -174,8 +212,10 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
 
             var schema = new Schema("foo", "bar");
             await repository.AddSchemaAsync(schema);
@@ -213,8 +253,10 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
 
             var schema = new Schema("foo", "bar");
             await repository.AddSchemaAsync(schema);
@@ -250,8 +292,10 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
 
             var schema = new Schema("foo", "bar");
             await repository.AddSchemaAsync(schema);
@@ -294,8 +338,10 @@ namespace MarshmallowPie.Repositories.Mongo
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
                 _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
 
-            var repository = new SchemaRepository(schemas, versions);
+            var repository = new SchemaRepository(schemas, versions, publishReports);
             var schema = new Schema("foo", "bar");
             await repository.AddSchemaAsync(schema);
 
