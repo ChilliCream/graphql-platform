@@ -1,8 +1,8 @@
 ﻿using HotChocolate.Language;
 using HotChocolate.Subscriptions;
-using StarWars.Models;
+using StarWars.Characters;
 
-namespace StarWars
+namespace StarWars.Reviews
 {
     public class OnReviewMessage
         : EventMessage

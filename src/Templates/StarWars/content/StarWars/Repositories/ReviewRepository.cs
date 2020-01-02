@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using StarWars.Models;
+using StarWars.Characters;
+using StarWars.Reviews;
 
-namespace StarWars.Data
+namespace StarWars.Repositories
 {
-    public class ReviewRepository
+    public class ReviewRepository : IReviewRepository
     {
         private readonly Dictionary<Episode, List<Review>> _data =
             new Dictionary<Episode, List<Review>>();
 
         public void AddReview(Episode episode, Review review)
         {
-            if (!_data.TryGetValue(episode, out List<Review> reviews))
+            if (!_data.TryGetValue(episode, out List<Review>? reviews))
             {
                 reviews = new List<Review>();
                 _data[episode] = reviews;
@@ -22,7 +23,7 @@ namespace StarWars.Data
 
         public IEnumerable<Review> GetReviews(Episode episode)
         {
-            if (_data.TryGetValue(episode, out List<Review> reviews))
+            if (_data.TryGetValue(episode, out List<Review>? reviews))
             {
                 return reviews;
             }
