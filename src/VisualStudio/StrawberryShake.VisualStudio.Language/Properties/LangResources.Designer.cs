@@ -10,8 +10,8 @@
 
 namespace StrawberryShake.VisualStudio.Language.Properties {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class LangResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal LangResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The graphQLData mustn&apos;t be empty..
         /// </summary>
@@ -68,7 +68,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("GraphQLData_Empty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Expected a {0} token but found `{1}`..
         /// </summary>
@@ -77,7 +77,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("ParseMany_InvalidOpenToken", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Expected a `Int`-, `Float`-, `String`- or `BlockString`-token, but found a `{0}`-token..
         /// </summary>
@@ -86,7 +86,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("Parser_InvalidScalarToken", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Expected a `{0}`-token, but found a `{1}`-token..
         /// </summary>
@@ -95,7 +95,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("Parser_InvalidToken", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The given syntax node is not supported by this rewriter..
         /// </summary>
@@ -104,7 +104,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("QuerySyntaxRewriter_NotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Expected a `{0}`-token..
         /// </summary>
@@ -113,7 +113,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("Reader_InvalidToken", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected punctuator token `{0}`..
         /// </summary>
@@ -122,7 +122,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("Reader_UnexpectedPunctuatorToken", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The source text mustn&apos;t be null or empty..
         /// </summary>
@@ -131,7 +131,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("SourceText_Empty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The escape char `{0}` is invalid..
         /// </summary>
@@ -140,7 +140,7 @@ namespace StrawberryShake.VisualStudio.Language.Properties {
                 return ResourceManager.GetString("Utf8Helper_InvalidEscapeChar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The quote escape string has to consist of three quotes `\&quot;&quot;&quot;`..
         /// </summary>

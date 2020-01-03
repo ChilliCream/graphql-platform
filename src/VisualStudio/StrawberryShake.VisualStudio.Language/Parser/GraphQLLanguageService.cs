@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public class GraphQLLanguageService
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     [Serializable]
     public class SyntaxException

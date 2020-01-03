@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Globalization;
 using StrawberryShake.Language.Properties;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public ref partial struct TextGraphQLReader
     {

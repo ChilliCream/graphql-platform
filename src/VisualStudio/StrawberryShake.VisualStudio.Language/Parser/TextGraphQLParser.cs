@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using StrawberryShake.Language.Properties;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public ref partial struct TextGraphQLParser
     {

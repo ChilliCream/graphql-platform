@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.Language
+﻿namespace StrawberryShake.VisualStudio.Language
 {
     // Implements the parsing rules in the Types section.
     public ref partial struct TextGraphQLParser

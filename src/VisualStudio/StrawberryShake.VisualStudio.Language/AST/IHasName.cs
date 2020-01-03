@@ -1,4 +1,4 @@
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// Represents types that containe a name node.

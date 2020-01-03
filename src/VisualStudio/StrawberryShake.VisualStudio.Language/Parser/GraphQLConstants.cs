@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// This class provides internal char utilities

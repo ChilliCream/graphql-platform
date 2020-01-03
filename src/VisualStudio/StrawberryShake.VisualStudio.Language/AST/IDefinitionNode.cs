@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.Language
+﻿namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// Document definition nodes represent root level syntax nodes.

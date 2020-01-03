@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using StrawberryShake.Language.Properties;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     // Implements the parsing rules in the Operations section.
     public ref partial struct TextGraphQLParser

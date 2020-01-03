@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace StrawberryShake
+namespace StrawberryShake.VisualStudio
 {
     [Export(typeof(IClassifierProvider))]
     [Name(nameof(GraphQLClassifier))]

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers.Text;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public sealed class FloatValueNode
         : IValueNode<string>

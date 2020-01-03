@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// Represents a string value literal.

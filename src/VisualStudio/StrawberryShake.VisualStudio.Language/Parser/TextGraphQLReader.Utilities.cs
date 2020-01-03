@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public ref partial struct TextGraphQLReader
     {

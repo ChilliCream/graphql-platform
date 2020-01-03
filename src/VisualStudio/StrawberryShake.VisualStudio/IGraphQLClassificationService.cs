@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace StrawberryShake
+namespace StrawberryShake.VisualStudio
 {
     public interface IGraphQLClassificationService
     {

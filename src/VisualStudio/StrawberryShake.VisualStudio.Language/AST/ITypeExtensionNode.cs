@@ -1,4 +1,4 @@
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// Represents type extensions that has a name like <see cref="ObjectTypeExtensionNode" />.

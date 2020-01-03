@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace StrawberryShake
+namespace StrawberryShake.VisualStudio
 {
 
     internal sealed class GraphQLClassifier : IClassifier

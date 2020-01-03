@@ -3,7 +3,7 @@ using System;
 using System.Runtime.Serialization;
 #endif
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
 #if netstandard1_4
     [Serializable]

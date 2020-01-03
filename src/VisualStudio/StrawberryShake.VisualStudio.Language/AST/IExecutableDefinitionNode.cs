@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.Language
+﻿namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// Executable definition nodes are root level syntax nodes

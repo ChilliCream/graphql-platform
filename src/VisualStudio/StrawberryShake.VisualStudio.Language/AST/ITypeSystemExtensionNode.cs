@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.Language
+﻿namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// Type system extensions are used to represent a GraphQL type system which

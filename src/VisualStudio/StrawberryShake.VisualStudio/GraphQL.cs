@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 
-namespace StrawberryShake
+namespace StrawberryShake.VisualStudio
 {
     internal static class GraphQL
     {

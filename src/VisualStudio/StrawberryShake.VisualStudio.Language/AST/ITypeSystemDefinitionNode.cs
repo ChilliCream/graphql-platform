@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.Language
+﻿namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// The GraphQL language includes an IDL used to describe a GraphQL service’s

@@ -1,4 +1,4 @@
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public enum FloatFormat : byte
     {

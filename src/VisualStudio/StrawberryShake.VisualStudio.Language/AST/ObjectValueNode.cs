@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public sealed class ObjectValueNode
         : IValueNode<IReadOnlyList<ObjectFieldNode>>

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System;
 
-namespace StrawberryShake.Language
+namespace StrawberryShake.VisualStudio.Language
 {
     public sealed class VariableNode
         : IValueNode<string>
