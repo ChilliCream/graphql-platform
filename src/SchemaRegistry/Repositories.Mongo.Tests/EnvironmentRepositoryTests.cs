@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Squadron;
@@ -107,6 +106,30 @@ namespace MarshmallowPie.Repositories.Mongo
             // assert
             Assert.True(retrieved.ContainsKey(a.Id));
             Assert.True(retrieved.ContainsKey(b.Id));
+        }
+
+        [Fact]
+        public async Task GetMultipleEnvironmentsByNames()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Environment> collection =
+                _mongoResource.CreateCollection<Environment>();
+
+            var a = new Environment("foo1", "bar");
+            var b = new Environment("foo2", "bar");
+            await collection.InsertOneAsync(a, options: null, default);
+            await collection.InsertOneAsync(b, options: null, default);
+
+            var repository = new EnvironmentRepository(collection);
+
+            // act
+            IReadOnlyDictionary<string, Environment> retrieved =
+                await repository.GetEnvironmentsAsync(new[] { a.Name, b.Name });
+
+            // assert
+            Assert.True(retrieved.ContainsKey(a.Name));
+            Assert.True(retrieved.ContainsKey(b.Name));
         }
 
         [Fact]

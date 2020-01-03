@@ -13,7 +13,7 @@ namespace MarshmallowPie.GraphQL.Environments
                 .AsNode()
                 .IdField(t => t.Id)
                 .NodeResolver((ctx, id) =>
-                    ctx.DataLoader<EnvironmentDataLoader>().LoadAsync(id, ctx.RequestAborted));
+                    ctx.DataLoader<EnvironmentByIdDataLoader>().LoadAsync(id, ctx.RequestAborted));
         }
     }
 }

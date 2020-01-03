@@ -22,6 +22,10 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyDictionary<string, Environment>> GetEnvironmentsAsync(
+            IReadOnlyList<string> names,
+            CancellationToken cancellationToken = default);
+
         Task AddEnvironmentAsync(
             Environment environment,
             CancellationToken cancellationToken = default);

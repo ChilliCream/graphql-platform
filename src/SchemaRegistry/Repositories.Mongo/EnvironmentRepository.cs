@@ -57,6 +57,20 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
+        public async Task<IReadOnlyDictionary<string, Environment>> GetEnvironmentsAsync(
+            IReadOnlyList<string> names,
+            CancellationToken cancellationToken = default)
+        {
+            var list = new List<string>(names);
+
+            List<Environment> result = await _environments.AsQueryable()
+                .Where(t => list.Contains(t.Name))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Name);
+        }
+
         public Task AddEnvironmentAsync(
             Environment environment,
             CancellationToken cancellationToken = default)

@@ -1,0 +1,29 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Argument `input` of non-null type `DateTime!` must not be null.",
+      "Code": null,
+      "Path": [
+        "publishSchema"
+      ],
+      "Locations": [
+        {
+          "Line": 6,
+          "Column": 29
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "argument": [
+          "input",
+          "tags",
+          0,
+          "published"
+        ]
+      }
+    }
+  ],
+  "ContextData": {}
+}

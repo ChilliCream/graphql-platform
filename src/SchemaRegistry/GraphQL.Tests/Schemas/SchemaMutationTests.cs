@@ -80,5 +80,53 @@ namespace MarshmallowPie.GraphQL.Schemas
                 o.Assert(fo =>
                     Assert.NotNull(fo.Field<string>("Data.updateSchema.schema.id"))));
         }
+
+        [Fact]
+        public async Task PublishSchema()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+
+            var schema = new Schema("abc", "def");
+            await SchemaRepository.AddSchemaAsync(schema);
+
+            var environment = new Environment("abc", "def");
+            await EnvironmentRepository.AddEnvironmentAsync(environment);
+
+            // act
+            IExecutionResult result = await Executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"mutation(
+                            $schemaName: String!
+                            $environmentName: String!
+                            $sourceText: String!
+                            $version: String!) {
+                            publishSchema(input: {
+                                schemaName: $schemaName
+                                environmentName: $environmentName
+                                sourceText: $sourceText
+                                tags: [ { key: ""version"" value: $version } ]
+                                clientMutationId: ""ghi"" }) {
+                                report {
+                                    environment {
+                                        name
+                                    }
+                                    schemaVersion {
+                                        hash
+                                    }
+                                }
+                                clientMutationId
+                            }
+                        }")
+                    .SetVariableValue("schemaName", "abc")
+                    .SetVariableValue("environmentName", "abc")
+                    .SetVariableValue("sourceText", "type Query { a: String }")
+                    .SetVariableValue("version", "1.0.0")
+                    .Create());
+
+            // assert
+            result.MatchSnapshot();
+        }
     }
 }

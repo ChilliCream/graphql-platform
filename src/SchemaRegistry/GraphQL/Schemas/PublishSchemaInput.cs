@@ -9,7 +9,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             string schemaName,
             string? sourceText,
             string? hash,
-            IReadOnlyList<Tag>? tags,
+            IReadOnlyList<TagInput>? tags,
             string? clientMutationId)
         {
             EnvironmentName = environmentName;
@@ -28,7 +28,7 @@ namespace MarshmallowPie.GraphQL.Schemas
 
         public string? Hash { get; }
 
-        public IReadOnlyList<Tag>? Tags { get; }
+        public IReadOnlyList<TagInput>? Tags { get; }
 
         public string? ClientMutationId { get; }
     }

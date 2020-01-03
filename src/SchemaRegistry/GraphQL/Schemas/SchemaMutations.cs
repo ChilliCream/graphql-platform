@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
+using MarshmallowPie.GraphQL.Environments;
 using MarshmallowPie.Repositories;
 
 namespace MarshmallowPie.GraphQL.Schemas
@@ -54,13 +56,19 @@ namespace MarshmallowPie.GraphQL.Schemas
             PublishSchemaInput input,
             [Service]ISchemaRepository schemaRepository,
             [Service]IEnvironmentRepository environmentRepository,
+            [DataLoader]SchemaByNameDataLoader schemaDataLoader,
+            [DataLoader]EnvironmentByNameDataLoader environmentDataLoader,
             CancellationToken cancellationToken)
         {
-            Schema schema = await schemaRepository.GetSchemaAsync(
+            Schema schema = await schemaDataLoader.LoadAsync(
                 input.SchemaName, cancellationToken)
                 .ConfigureAwait(false);
 
-            SchemaVersion schemaVersion;
+            Environment environment = await environmentDataLoader.LoadAsync(
+                input.EnvironmentName, cancellationToken)
+                .ConfigureAwait(false);
+
+            SchemaVersion? schemaVersion;
 
             if (input.Hash is null)
             {
@@ -70,67 +78,127 @@ namespace MarshmallowPie.GraphQL.Schemas
                         "The schema hash or the schem source text have to be provided.");
                 }
 
-                using var sha = SHA256.Create();
-                string hash = Convert.ToBase64String(sha.ComputeHash(
-                    Encoding.UTF8.GetBytes(input.SourceText)));
-
-                schemaVersion = new SchemaVersion(
-                    schema.Id,
+                schemaVersion = await CreateSchemaVersionAsync(
                     input.SourceText,
-                    hash,
-                    input.Tags ?? Array.Empty<Tag>(),
-                    DateTime.UtcNow);
-
-                await schemaRepository.AddSchemaVersionAsync(
-                    schemaVersion, cancellationToken)
+                    input.Tags ?? Array.Empty<TagInput>(),
+                    schema,
+                    schemaRepository,
+                    cancellationToken)
                     .ConfigureAwait(false);
             }
             else
             {
-                schemaVersion = await schemaRepository.GetSchemaVersionAsync(
-                    input.Hash, cancellationToken)
+                schemaVersion = await UpdateSchemaVersionAsync(
+                    input.Hash,
+                    input.Tags ?? Array.Empty<TagInput>(),
+                    schemaRepository,
+                    cancellationToken)
                     .ConfigureAwait(false);
-
-                if (input.Tags is { })
-                {
-                    var tags = new List<Tag>(schemaVersion.Tags);
-                    tags.AddRange(input.Tags);
-                    schemaVersion = new SchemaVersion(
-                        schemaVersion.Id,
-                        schemaVersion.SourceText,
-                        schemaVersion.Hash,
-                        tags,
-                        schemaVersion.Published);
-
-                    await schemaRepository.UpdateSchemaVersionAsync(
-                        schemaVersion, cancellationToken)
-                        .ConfigureAwait(false);
-                }
             }
 
-            Environment environment = await environmentRepository.GetEnvironmentAsync(
-                input.EnvironmentName, cancellationToken)
+            SchemaPublishReport report = await TryCreateReportAsync(
+                schema.Id,
+                schemaVersion.Id,
+                environment.Id,
+                schemaRepository,
+                cancellationToken)
                 .ConfigureAwait(false);
 
-            SchemaPublishReport? report = await schemaRepository.GetPublishReportAsync(
-                schemaVersion.Id, environment.Id, cancellationToken)
+            return new PublishSchemaPayload(schemaVersion, report, input.ClientMutationId);
+        }
+
+        private async Task<SchemaVersion> CreateSchemaVersionAsync(
+            string sourceText,
+            IReadOnlyList<TagInput> tags,
+            Schema schema,
+            ISchemaRepository repository,
+            CancellationToken cancellationToken)
+        {
+            using var sha = SHA256.Create();
+            string hash = Convert.ToBase64String(sha.ComputeHash(
+                Encoding.UTF8.GetBytes(sourceText)));
+
+            var schemaVersion = new SchemaVersion(
+                schema.Id,
+                sourceText,
+                hash,
+                tags.Select(t => new Tag(t.Key, t.Value, DateTime.UtcNow)).ToList(),
+                DateTime.UtcNow);
+
+            await repository.AddSchemaVersionAsync(
+                schemaVersion, cancellationToken)
                 .ConfigureAwait(false);
+
+            return schemaVersion;
+        }
+
+        private async Task<SchemaVersion> UpdateSchemaVersionAsync(
+            string hash,
+            IReadOnlyList<TagInput> tags,
+            ISchemaRepository repository,
+            CancellationToken cancellationToken)
+        {
+            SchemaVersion? schemaVersion =
+                await repository.GetSchemaVersionAsync(
+                    hash, cancellationToken)
+                    .ConfigureAwait(false);
+
+            if (schemaVersion is null)
+            {
+                throw new GraphQLException(
+                    "The specified schema hash is invalid.");
+            }
+
+            if (tags is { })
+            {
+                var list = new List<Tag>(schemaVersion.Tags);
+                list.AddRange(tags.Select(t => new Tag(
+                    t.Key, t.Value, DateTime.UtcNow)));
+
+                schemaVersion = new SchemaVersion(
+                    schemaVersion.Id,
+                    schemaVersion.SourceText,
+                    schemaVersion.Hash,
+                    list,
+                    schemaVersion.Published);
+
+                await repository.UpdateSchemaVersionAsync(
+                    schemaVersion, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return schemaVersion;
+        }
+
+        private async Task<SchemaPublishReport> TryCreateReportAsync(
+            Guid schemaId,
+            Guid schemaVersionId,
+            Guid environmentId,
+            ISchemaRepository repository,
+            CancellationToken cancellationToken)
+        {
+            SchemaPublishReport? report =
+                await repository.GetPublishReportAsync(
+                    schemaVersionId,
+                    environmentId,
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
             if (report is null)
             {
                 report = new SchemaPublishReport(
-                    schemaVersion.SchemaId,
-                    environment.Id,
+                    schemaId,
+                    environmentId,
                     Array.Empty<Issue>(),
                     PublishState.Published,
                     DateTime.UtcNow);
 
-                await schemaRepository.AddPublishReportAsync(
+                await repository.AddPublishReportAsync(
                     report, cancellationToken)
                     .ConfigureAwait(false);
             }
 
-            return new PublishSchemaPayload(schemaVersion, report, input.ClientMutationId);
+            return report;
         }
     }
 }

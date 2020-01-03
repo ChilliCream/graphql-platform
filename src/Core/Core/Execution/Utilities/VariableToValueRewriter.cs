@@ -180,6 +180,9 @@ namespace HotChocolate.Execution
                         current = current.WithItems(rewritten);
                     }
 
+                    current = RewriteMany(current, current.Items, context,
+                        RewriteValue, current.WithItems);
+
                     copy.Clear();
                     ArrayPool<IValueNode>.Shared.Return(rented);
                 }

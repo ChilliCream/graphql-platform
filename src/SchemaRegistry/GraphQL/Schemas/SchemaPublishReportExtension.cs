@@ -11,7 +11,7 @@ namespace MarshmallowPie.GraphQL.Schemas
     {
         public Task<Environment> GetEnvironmentAsync(
             [Parent]SchemaPublishReport report,
-            [DataLoader]EnvironmentDataLoader dataLoader,
+            [DataLoader]EnvironmentByIdDataLoader dataLoader,
             CancellationToken cancellationToken) =>
             dataLoader.LoadAsync(report.EnvironmentId, cancellationToken);
 

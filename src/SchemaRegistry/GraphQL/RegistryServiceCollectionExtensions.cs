@@ -11,7 +11,7 @@ namespace MarshmallowPie.GraphQL
             this IServiceCollection serviceCollection)
         {
             return serviceCollection
-                .AddDataLoader<EnvironmentDataLoader>()
+                .AddDataLoader<EnvironmentByIdDataLoader>()
                 .AddDataLoader<SchemaByIdDataLoader>()
                 .AddDataLoader<SchemaByNameDataLoader>();
         }

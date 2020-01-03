@@ -23,7 +23,7 @@ namespace MarshmallowPie.GraphQL.Environments
         public Task<Environment> GetEnvironmentByIdAsync(
             [GraphQLType(typeof(NonNullType<IdType>))]string id,
             [Service]IIdSerializer idSerializer,
-            [DataLoader]EnvironmentDataLoader dataLoader,
+            [DataLoader]EnvironmentByIdDataLoader dataLoader,
             CancellationToken cancellationToken)
         {
             IdValue deserializedId = idSerializer.Deserialize(id);
@@ -36,11 +36,17 @@ namespace MarshmallowPie.GraphQL.Environments
             return dataLoader.LoadAsync((Guid)deserializedId.Value, cancellationToken);
         }
 
+        public Task<Environment> GetEnvironmentByNameAsync(
+            string name,
+            [DataLoader]EnvironmentByNameDataLoader dataLoader,
+            CancellationToken cancellationToken) =>
+            dataLoader.LoadAsync(name, cancellationToken);
+
         [UseSorting]
         public Task<IReadOnlyList<Environment>> GetEnvironmentsByIdAsync(
             [GraphQLType(typeof(NonNullType<ListType<NonNullType<IdType>>>))]string[] ids,
             [Service]IIdSerializer idSerializer,
-            [DataLoader]EnvironmentDataLoader dataLoader,
+            [DataLoader]EnvironmentByIdDataLoader dataLoader,
             CancellationToken cancellationToken)
         {
             if (ids.Length == 0)
@@ -63,6 +69,20 @@ namespace MarshmallowPie.GraphQL.Environments
             }
 
             return dataLoader.LoadAsync(deserializedIds, cancellationToken);
+        }
+
+        [UseSorting]
+        public Task<IReadOnlyList<Environment>> GetEnvironmentsByNameAsync(
+            string[] names,
+            [DataLoader]EnvironmentByNameDataLoader dataLoader,
+            CancellationToken cancellationToken)
+        {
+            if (names.Length == 0)
+            {
+                throw new GraphQLException("No names where provided.");
+            }
+
+            return dataLoader.LoadAsync(names, cancellationToken);
         }
     }
 }
