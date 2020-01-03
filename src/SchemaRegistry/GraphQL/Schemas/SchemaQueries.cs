@@ -83,7 +83,7 @@ namespace MarshmallowPie.GraphQL.Schemas
         {
             if (names.Length == 0)
             {
-                throw new GraphQLException("No ids where provided.");
+                throw new GraphQLException("No names where provided.");
             }
 
             return dataLoader.LoadAsync(names, cancellationToken);
