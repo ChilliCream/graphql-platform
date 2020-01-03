@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using StrawberryShake.Language.Properties;
+using StrawberryShake.VisualStudio.Language.Properties;
 
 namespace StrawberryShake.VisualStudio.Language
 {

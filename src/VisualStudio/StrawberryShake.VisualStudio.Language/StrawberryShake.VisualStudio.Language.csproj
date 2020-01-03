@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <PackageId>StrawberryShake.Language</PackageId>
+    <PackageId>StrawberryShake.VisualStudio.Language</PackageId>
     <AssemblyName>StrawberryShake.VisualStudio.Language</AssemblyName>
     <RootNamespace>StrawberryShake.VisualStudio.Language</RootNamespace>
     <Description></Description>

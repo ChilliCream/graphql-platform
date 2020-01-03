@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using StrawberryShake.Language.Properties;
+using StrawberryShake.VisualStudio.Language.Properties;
 using System.Runtime.CompilerServices;
 
 namespace StrawberryShake.VisualStudio.Language
