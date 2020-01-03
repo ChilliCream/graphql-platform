@@ -1,8 +1,7 @@
-using System.Dynamic;
-using System.Threading;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MarshmallowPie.Repositories
@@ -13,6 +12,10 @@ namespace MarshmallowPie.Repositories
 
         Task<Environment> GetEnvironmentAsync(
             Guid id,
+            CancellationToken cancellationToken = default);
+
+        Task<Environment?> GetEnvironmentAsync(
+            string name,
             CancellationToken cancellationToken = default);
 
         Task<IReadOnlyDictionary<Guid, Environment>> GetEnvironmentsAsync(

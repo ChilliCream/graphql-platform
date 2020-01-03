@@ -21,6 +21,7 @@ namespace MarshmallowPie.GraphQL
                 //.AddSubscriptionType(d => d.Name("Subscription"))
                 .AddType<SchemaExtension>()
                 .AddType<SchemaVersionExtension>()
+                .AddType<SchemaPublishReportExtension>()
                 .BindClrType<string, StringType>()
                 .BindClrType<Guid, IdType>();
         }

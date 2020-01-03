@@ -66,6 +66,27 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         [Fact]
+        public async Task GetEnvironmentByName()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Environment> collection =
+                _mongoResource.CreateCollection<Environment>();
+
+            var initial = new Environment("foo", "bar");
+            await collection.InsertOneAsync(initial, options: null, default);
+
+            var repository = new EnvironmentRepository(collection);
+
+            // act
+            Environment retrieved = await repository.GetEnvironmentAsync("foo");
+
+            // assert
+            Assert.Equal(initial.Id, retrieved.Id);
+            Assert.Equal(initial.Description, retrieved.Description);
+        }
+
+        [Fact]
         public async Task GetMultipleEnvironments()
         {
             // arrange

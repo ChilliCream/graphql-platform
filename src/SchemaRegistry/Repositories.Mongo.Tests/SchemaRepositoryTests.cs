@@ -72,6 +72,31 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         [Fact]
+        public async Task GetSchemaByName()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var initial = new Schema("foo", "bar");
+            await schemas.InsertOneAsync(initial, options: null, default);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            Schema retrieved = await repository.GetSchemaAsync(initial.Name);
+
+            // assert
+            Assert.Equal(initial.Id, retrieved.Id);
+            Assert.Equal(initial.Description, retrieved.Description);
+        }
+
+        [Fact]
         public async Task GetMultipleSchemas()
         {
             // arrange
@@ -192,6 +217,7 @@ namespace MarshmallowPie.Repositories.Mongo
             Action action = () => new SchemaVersion(
                 Guid.NewGuid(),
                 "bar",
+                "baz",
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow),
@@ -223,6 +249,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var schemaVersion = new SchemaVersion(
                 schema.Id,
                 "bar",
+                "baz",
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -264,6 +291,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var schemaVersion = new SchemaVersion(
                 schema.Id,
                 "bar",
+                "baz",
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -303,6 +331,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var a = new SchemaVersion(
                 schema.Id,
                 "bar",
+                "baz",
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -313,6 +342,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var b = new SchemaVersion(
                 schema.Id,
                 "baz",
+                "bar",
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -348,6 +378,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var schemaVersion = new SchemaVersion(
                 schema.Id,
                 "bar",
+                "baz",
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -366,7 +397,243 @@ namespace MarshmallowPie.Repositories.Mongo
             Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
             Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
             Assert.Equal(schemaVersion.SourceText, retrieved.SourceText);
+            Assert.Equal(schemaVersion.Hash, retrieved.Hash);
             Assert.Equal(schemaVersion.Tags.Count, retrieved.Tags.Count);
+        }
+
+        [Fact]
+        public async Task UpdateSchemaVersion()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+            var schema = new Schema("foo", "bar");
+            await repository.AddSchemaAsync(schema);
+
+            var schemaVersion = new SchemaVersion(
+                schema.Id,
+                "bar",
+                "baz",
+                new[]
+                {
+                    new Tag("a", "b", DateTime.UtcNow)
+                },
+                DateTime.UtcNow);
+
+            await repository.AddSchemaVersionAsync(schemaVersion);
+
+            var updatedSchemaVersion = new SchemaVersion(
+                schemaVersion.Id,
+                schema.Id,
+                "baz",
+                "qux",
+                new[]
+                {
+                    new Tag("a", "b", DateTime.UtcNow)
+                },
+                DateTime.UtcNow);
+
+            // act
+            await repository.UpdateSchemaVersionAsync(updatedSchemaVersion);
+
+            // assert
+            SchemaVersion retrieved = await versions.AsQueryable()
+                .Where(t => t.Id == schemaVersion.Id)
+                .FirstOrDefaultAsync();
+            Assert.NotNull(retrieved);
+            Assert.Equal(schemaVersion.Id, retrieved.Id);
+            Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
+            Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
+            Assert.Equal(updatedSchemaVersion.SourceText, retrieved.SourceText);
+            Assert.Equal(updatedSchemaVersion.Hash, retrieved.Hash);
+            Assert.Equal(updatedSchemaVersion.Tags.Count, retrieved.Tags.Count);
+        }
+
+        [Fact]
+        public async Task GetPublishReports()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var initial = new Schema("foo", "bar");
+            await schemas.InsertOneAsync(initial, options: null, default);
+
+            var initialVersion = new SchemaVersion(
+                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                DateTime.UtcNow);
+            await versions.InsertOneAsync(initialVersion, options: null, default);
+
+            var initialReport = new SchemaPublishReport(
+                initialVersion.Id, Guid.NewGuid(), Array.Empty<Issue>(),
+                PublishState.Published, DateTime.UtcNow);
+            await publishReports.InsertOneAsync(initialReport, options: null, default);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            SchemaPublishReport retrieved = repository.GetPublishReports()
+                .Where(t => t.Id == initialReport.Id)
+                .FirstOrDefault();
+
+            // assert
+            Assert.Equal(initialReport.State, retrieved.State);
+        }
+
+        [Fact]
+        public async Task GetPublishReportBySchemaVersionIdAndEnvironmentId()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var initial = new Schema("foo", "bar");
+            await schemas.InsertOneAsync(initial, options: null, default);
+
+            var initialVersion = new SchemaVersion(
+                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                DateTime.UtcNow);
+            await versions.InsertOneAsync(initialVersion, options: null, default);
+
+            var initialReport = new SchemaPublishReport(
+                initialVersion.Id, Guid.NewGuid(), Array.Empty<Issue>(),
+                PublishState.Published, DateTime.UtcNow);
+            await publishReports.InsertOneAsync(initialReport, options: null, default);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            SchemaPublishReport retrieved = await repository.GetPublishReportAsync(
+                initialReport.SchemaVersionId, initialReport.EnvironmentId);
+
+            // assert
+            Assert.Equal(initialReport.Id, retrieved.Id);
+        }
+
+        [Fact]
+        public async Task GetPublishReportsById()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var initial = new Schema("foo", "bar");
+            await schemas.InsertOneAsync(initial, options: null, default);
+
+            var initialVersion = new SchemaVersion(
+                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                DateTime.UtcNow);
+            await versions.InsertOneAsync(initialVersion, options: null, default);
+
+            var initialReport = new SchemaPublishReport(
+                initialVersion.Id, Guid.NewGuid(), Array.Empty<Issue>(),
+                PublishState.Published, DateTime.UtcNow);
+            await publishReports.InsertOneAsync(initialReport, options: null, default);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            IReadOnlyDictionary<Guid, SchemaPublishReport> retrieved =
+                await repository.GetPublishReportsAsync(new[] { initialReport.Id });
+
+            // assert
+            Assert.True(retrieved.ContainsKey(initialReport.Id));
+        }
+
+        [Fact]
+        public async Task AddPublishReport()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var initial = new Schema("foo", "bar");
+            await schemas.InsertOneAsync(initial, options: null, default);
+
+            var initialVersion = new SchemaVersion(
+                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                DateTime.UtcNow);
+            await versions.InsertOneAsync(initialVersion, options: null, default);
+
+            var initialReport = new SchemaPublishReport(
+                initialVersion.Id, Guid.NewGuid(), Array.Empty<Issue>(),
+                PublishState.Published, DateTime.UtcNow);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            await repository.AddPublishReportAsync(initialReport);
+
+            // assert
+            IReadOnlyDictionary<Guid, SchemaPublishReport> retrieved =
+                await repository.GetPublishReportsAsync(new[] { initialReport.Id });
+            Assert.True(retrieved.ContainsKey(initialReport.Id));
+        }
+
+        [Fact]
+        public async Task UpdatePublishReport()
+        {
+            // arrange
+            var db = new MongoClient();
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var initial = new Schema("foo", "bar");
+            await schemas.InsertOneAsync(initial, options: null, default);
+
+            var initialVersion = new SchemaVersion(
+                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                DateTime.UtcNow);
+            await versions.InsertOneAsync(initialVersion, options: null, default);
+
+            var initialReport = new SchemaPublishReport(
+                initialVersion.Id, Guid.NewGuid(), Array.Empty<Issue>(),
+                PublishState.Published, DateTime.UtcNow);
+            await publishReports.InsertOneAsync(initialReport, options: null, default);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            await repository.UpdatePublishReportAsync(new SchemaPublishReport(
+                initialReport.Id, initialReport.SchemaVersionId,
+                initialReport.EnvironmentId, initialReport.Issues,
+                PublishState.Rejected, DateTime.UtcNow));
+
+            // assert
+            IReadOnlyDictionary<Guid, SchemaPublishReport> retrieved =
+                await repository.GetPublishReportsAsync(new[] { initialReport.Id });
+            Assert.Equal(PublishState.Rejected, retrieved[initialReport.Id].State);
         }
     }
 }

@@ -99,7 +99,7 @@ namespace MarshmallowPie.GraphQL.Schemas
         public Task<SchemaVersion> GetSchemaVersionsByIdAsync(
             [GraphQLType(typeof(NonNullType<IdType>))]string id,
             [Service]IIdSerializer idSerializer,
-            [DataLoader]SchemaVersionDataLoader dataLoader,
+            [DataLoader]SchemaVersionByIdDataLoader dataLoader,
             CancellationToken cancellationToken)
         {
             IdValue deserializedId = idSerializer.Deserialize(id);
@@ -116,7 +116,7 @@ namespace MarshmallowPie.GraphQL.Schemas
         public Task<IReadOnlyList<SchemaVersion>> GetSchemaVersionsByIdAsync(
             [GraphQLType(typeof(NonNullType<ListType<NonNullType<IdType>>>))]string[] ids,
             [Service]IIdSerializer idSerializer,
-            [DataLoader]SchemaVersionDataLoader dataLoader,
+            [DataLoader]SchemaVersionByIdDataLoader dataLoader,
             CancellationToken cancellationToken)
         {
             if (ids.Length == 0)

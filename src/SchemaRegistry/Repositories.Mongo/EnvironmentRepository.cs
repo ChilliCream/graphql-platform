@@ -31,7 +31,16 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             return _environments.AsQueryable()
                 .Where(t => t.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstAsync(cancellationToken);
+        }
+
+        public Task<Environment?> GetEnvironmentAsync(
+            string name,
+            CancellationToken cancellationToken = default)
+        {
+            return _environments.AsQueryable()
+                .Where(t => t.Name == name)
+                .FirstOrDefaultAsync(cancellationToken)!;
         }
 
         public async Task<IReadOnlyDictionary<Guid, Environment>> GetEnvironmentsAsync(

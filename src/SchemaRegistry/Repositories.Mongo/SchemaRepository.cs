@@ -47,7 +47,16 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             return _schemas.AsQueryable()
                 .Where(t => t.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstAsync(cancellationToken);
+        }
+
+        public Task<Schema?> GetSchemaAsync(
+            string name,
+            CancellationToken cancellationToken = default)
+        {
+            return _schemas.AsQueryable()
+                .Where(t => t.Name == name)
+                .FirstOrDefaultAsync(cancellationToken)!;
         }
 
         public async Task<IReadOnlyDictionary<Guid, Schema>> GetSchemasAsync(
@@ -104,13 +113,22 @@ namespace MarshmallowPie.Repositories.Mongo
             return _versions.AsQueryable();
         }
 
+        public Task<SchemaVersion?> GetSchemaVersionAsync(
+            string hash,
+            CancellationToken cancellationToken = default)
+        {
+            return _versions.AsQueryable()
+                .Where(t => t.Hash == hash)
+                .FirstOrDefaultAsync(cancellationToken)!;
+        }
+
         public Task<SchemaVersion> GetSchemaVersionAsync(
             Guid id,
             CancellationToken cancellationToken = default)
         {
             return _versions.AsQueryable()
                 .Where(t => t.Id == id)
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstAsync(cancellationToken);
         }
 
         public async Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
@@ -151,6 +169,17 @@ namespace MarshmallowPie.Repositories.Mongo
         public IQueryable<SchemaPublishReport> GetPublishReports() =>
             _publishReports.AsQueryable();
 
+        public Task<SchemaPublishReport?> GetPublishReportAsync(
+            Guid schemaVersionId,
+            Guid environmentId,
+            CancellationToken cancellationToken = default)
+        {
+            return _publishReports.AsQueryable()
+                .Where(t => t.SchemaVersionId == schemaVersionId
+                    && t.EnvironmentId == environmentId)
+                .FirstOrDefaultAsync(cancellationToken)!;
+        }
+
         public async Task<IReadOnlyDictionary<Guid, SchemaPublishReport>> GetPublishReportsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default)
@@ -169,14 +198,21 @@ namespace MarshmallowPie.Repositories.Mongo
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return _publishReports.InsertOneAsync(
+                publishReport,
+                options: null,
+                cancellationToken);
         }
 
         public Task UpdatePublishReportAsync(
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return _publishReports.ReplaceOneAsync(
+                Builders<SchemaPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
+                publishReport,
+                options: default(ReplaceOptions),
+                cancellationToken);
         }
     }
 }

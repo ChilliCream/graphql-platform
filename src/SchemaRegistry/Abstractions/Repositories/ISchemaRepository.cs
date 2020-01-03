@@ -1,7 +1,7 @@
-﻿using System.Threading;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MarshmallowPie.Repositories
@@ -12,6 +12,10 @@ namespace MarshmallowPie.Repositories
 
         Task<Schema> GetSchemaAsync(
             Guid id,
+            CancellationToken cancellationToken = default);
+
+        Task<Schema?> GetSchemaAsync(
+            string name,
             CancellationToken cancellationToken = default);
 
         Task<IReadOnlyDictionary<Guid, Schema>> GetSchemasAsync(
@@ -32,6 +36,10 @@ namespace MarshmallowPie.Repositories
 
         IQueryable<SchemaVersion> GetSchemaVersions();
 
+        Task<SchemaVersion?> GetSchemaVersionAsync(
+            string hash,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
@@ -45,6 +53,11 @@ namespace MarshmallowPie.Repositories
             CancellationToken cancellationToken = default);
 
         IQueryable<SchemaPublishReport> GetPublishReports();
+
+        Task<SchemaPublishReport?> GetPublishReportAsync(
+            Guid schemaVersionId,
+            Guid environmentId,
+            CancellationToken cancellationToken = default);
 
         Task<IReadOnlyDictionary<Guid, SchemaPublishReport>> GetPublishReportsAsync(
             IReadOnlyList<Guid> ids,

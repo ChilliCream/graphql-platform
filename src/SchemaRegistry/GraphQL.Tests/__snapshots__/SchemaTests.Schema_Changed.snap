@@ -43,9 +43,18 @@ type EnvironmentEdge {
   node: Environment!
 }
 
+type Issue {
+  code: String!
+  id: ID!
+  message: String!
+  resolution: ResolutionType
+  type: IssueType!
+}
+
 type Mutation {
   createEnvironment(input: CreateEnvironmentInput!): CreateEnvironmentPayload
   createSchema(input: CreateSchemaInput!): CreateSchemaPayload!
+  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
   updateEnvironment(input: UpdateEnvironmentInput!): UpdateEnvironmentPayload
   updateSchema(input: UpdateSchemaInput!): UpdateSchemaPayload!
 }
@@ -60,6 +69,12 @@ type PageInfo {
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
+}
+
+type PublishSchemaPayload {
+  clientMutationId: String
+  report: SchemaPublishReport!
+  version: SchemaVersion!
 }
 
 type Query {
@@ -101,9 +116,23 @@ type SchemaEdge {
   node: Schema!
 }
 
+type SchemaPublishReport {
+  environment: Environment!
+  environmentId: ID!
+  id: ID!
+  issues: [Issue!]!
+  published: DateTime!
+  schemaVersion: SchemaVersion!
+  schemaVersionId: ID!
+  state: PublishState!
+}
+
 type SchemaVersion implements Node {
+  hash: String!
   id: ID!
   published: DateTime!
+  publishReportByEnvironment(environmentName: String!): SchemaPublishReport
+  publishReports: [SchemaPublishReport!]!
   schema: Schema!
   sourceText: String!
   tags: [Tag!]!
@@ -199,6 +228,15 @@ input EnvironmentSort {
   name: SortOperationKind
 }
 
+input PublishSchemaInput {
+  clientMutationId: String
+  environmentName: String!
+  hash: String
+  schemaName: String!
+  sourceText: String
+  tags: [TagInput!]
+}
+
 input SchemaFilter {
   AND: [SchemaFilter!]
   description: String
@@ -244,6 +282,16 @@ input SchemaSort {
 
 input SchemaVersionFilter {
   AND: [SchemaVersionFilter!]
+  hash: String
+  hash_contains: String
+  hash_ends_with: String
+  hash_in: [String!]
+  hash_not: String
+  hash_not_contains: String
+  hash_not_ends_with: String
+  hash_not_in: [String!]
+  hash_not_starts_with: String
+  hash_starts_with: String
   id: ID
   id_gt: ID
   id_gte: ID
@@ -298,6 +346,7 @@ input SchemaVersionFilter {
 }
 
 input SchemaVersionSort {
+  hash: SortOperationKind
   id: SortOperationKind
   published: SortOperationKind
   schemaId: SortOperationKind
@@ -341,6 +390,12 @@ input TagFilter {
   value_starts_with: String
 }
 
+input TagInput {
+  key: String!
+  published: DateTime!
+  value: String!
+}
+
 input UpdateEnvironmentInput {
   clientMutationId: String
   description: String
@@ -353,6 +408,23 @@ input UpdateSchemaInput {
   description: String
   id: ID!
   name: String!
+}
+
+enum IssueType {
+  INFORMATION
+  WARNING
+  ERROR
+}
+
+enum PublishState {
+  REJECTED
+  PUBLISHED
+}
+
+enum ResolutionType {
+  OPEN
+  FIXED
+  WONTFIXED
 }
 
 enum SortOperationKind {

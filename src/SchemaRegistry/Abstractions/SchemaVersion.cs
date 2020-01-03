@@ -1,4 +1,3 @@
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Collections.Generic;
 using System;
@@ -10,9 +9,10 @@ namespace MarshmallowPie
         public SchemaVersion(
             Guid schemaId,
             string sourceText,
+            string hash,
             IReadOnlyList<Tag> tags,
             DateTime published)
-            : this(Guid.NewGuid(), schemaId, sourceText, tags, published)
+            : this(Guid.NewGuid(), schemaId, sourceText, hash, tags, published)
         {
         }
 
@@ -20,6 +20,7 @@ namespace MarshmallowPie
             Guid id,
             Guid schemaId,
             string sourceText,
+            string hash,
             IReadOnlyList<Tag> tags,
             DateTime published)
         {
@@ -35,6 +36,7 @@ namespace MarshmallowPie
             Id = id;
             SchemaId = schemaId;
             SourceText = sourceText;
+            Hash = hash;
             Tags = tags;
             Published = published;
         }
@@ -44,6 +46,8 @@ namespace MarshmallowPie
         public Guid SchemaId { get; }
 
         public string SourceText { get; }
+
+        public string Hash { get; }
 
         public IReadOnlyList<Tag> Tags { get; }
 
