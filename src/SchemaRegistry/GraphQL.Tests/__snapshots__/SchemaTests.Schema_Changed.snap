@@ -86,8 +86,9 @@ type Query {
   schemas(after: String before: String first: PaginationAmount last: PaginationAmount order_by: SchemaSort where: SchemaFilter): SchemaConnection
   schemasById(ids: [ID!]! order_by: SchemaSort): [Schema!]!
   schemasByName(names: [String!]! order_by: SchemaSort): [Schema!]!
+  schemaVersionById(id: ID!): SchemaVersion!
   schemaVersions(after: String before: String first: PaginationAmount last: PaginationAmount order_by: SchemaVersionSort where: SchemaVersionFilter): SchemaVersionConnection
-  schemaVersionsById(id: ID!): SchemaVersion!
+  schemaVersionsById(ids: [ID!]! order_by: SchemaVersionSort): [SchemaVersion!]!
 }
 
 type Schema implements Node {

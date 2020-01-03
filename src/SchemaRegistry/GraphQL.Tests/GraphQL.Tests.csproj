@@ -25,4 +25,8 @@
     <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

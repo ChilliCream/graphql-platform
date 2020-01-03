@@ -78,7 +78,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             // assert
             result.MatchSnapshot(o =>
                 o.Assert(fo =>
-                    Assert.NotNull(fo.Field<string>("Data.createSchema.schema.id"))));
+                    Assert.NotNull(fo.Field<string>("Data.updateSchema.schema.id"))));
         }
     }
 }

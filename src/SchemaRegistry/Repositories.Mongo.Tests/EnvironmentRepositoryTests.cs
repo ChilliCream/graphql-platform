@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +39,6 @@ namespace MarshmallowPie.Repositories.Mongo
                 .FirstOrDefault();
 
             // assert
-            var maps = BsonClassMap.GetRegisteredClassMaps();
             Assert.Equal(initial.Name, retrieved.Name);
             Assert.Equal(initial.Description, retrieved.Description);
         }
@@ -129,7 +128,6 @@ namespace MarshmallowPie.Repositories.Mongo
             Environment retrieved = await collection.AsQueryable()
                 .Where(t => t.Id == environment.Id)
                 .FirstOrDefaultAsync();
-            var maps = BsonClassMap.GetRegisteredClassMaps();
             Assert.Equal(environment.Name, retrieved.Name);
             Assert.Equal(environment.Description, retrieved.Description);
         }
@@ -155,7 +153,6 @@ namespace MarshmallowPie.Repositories.Mongo
             Environment retrieved = await collection.AsQueryable()
                 .Where(t => t.Id == initial.Id)
                 .FirstOrDefaultAsync();
-            var maps = BsonClassMap.GetRegisteredClassMaps();
             Assert.Equal(updated.Name, retrieved.Name);
             Assert.Equal(updated.Description, retrieved.Description);
         }

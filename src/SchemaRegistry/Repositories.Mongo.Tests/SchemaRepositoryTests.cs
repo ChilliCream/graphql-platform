@@ -50,7 +50,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetSchema()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -75,7 +74,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetSchemaByName()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -100,7 +98,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetMultipleSchemas()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -128,7 +125,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetMultipleSchemasByName()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -156,7 +152,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task AddSchema()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -183,7 +178,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task UpdateSchema()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -233,7 +227,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetSchemaVersions()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -275,7 +268,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetSchemaVersion()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -315,7 +307,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetMultipleSchemaVersions()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -363,7 +354,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task AddSchemaVersion()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -405,7 +395,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task UpdateSchemaVersion()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -460,7 +449,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetPublishReports()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -496,7 +484,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetPublishReportBySchemaVersionIdAndEnvironmentId()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -531,7 +518,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetPublishReportsById()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -566,7 +552,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task AddPublishReport()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -601,7 +586,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task UpdatePublishReport()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
