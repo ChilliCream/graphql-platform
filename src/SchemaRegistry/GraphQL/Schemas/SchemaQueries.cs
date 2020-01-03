@@ -96,7 +96,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             [Service]ISchemaRepository repository) =>
             repository.GetSchemaVersions();
 
-        public Task<SchemaVersion> GetSchemaVersionsByIdAsync(
+        public Task<SchemaVersion> GetSchemaVersionByIdAsync(
             [GraphQLType(typeof(NonNullType<IdType>))]string id,
             [Service]IIdSerializer idSerializer,
             [DataLoader]SchemaVersionByIdDataLoader dataLoader,
@@ -130,7 +130,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             {
                 IdValue deserializedId = idSerializer.Deserialize(ids[i]);
 
-                if (!deserializedId.TypeName.Equals(nameof(Schema), StringComparison.Ordinal))
+                if (!deserializedId.TypeName.Equals(nameof(SchemaVersion), StringComparison.Ordinal))
                 {
                     throw new GraphQLException("The specified id type is invalid.");
                 }
