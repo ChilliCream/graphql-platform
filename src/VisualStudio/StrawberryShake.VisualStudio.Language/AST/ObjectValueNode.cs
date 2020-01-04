@@ -28,6 +28,8 @@ namespace StrawberryShake.VisualStudio.Language
 
         object IValueNode.Value => Fields;
 
+        public IEnumerable<ISyntaxNode> GetNodes() => Fields;
+
         /// <summary>
         /// Determines whether the specified <see cref="ObjectValueNode"/>
         /// is equal to the current <see cref="ObjectValueNode"/>.

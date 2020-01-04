@@ -60,7 +60,6 @@ namespace StrawberryShake.VisualStudio.Language
             (
               location,
               name,
-              Array.Empty<VariableDefinitionNode>(),
               typeCondition,
               directives,
               selectionSet

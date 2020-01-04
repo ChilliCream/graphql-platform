@@ -30,10 +30,8 @@ namespace StrawberryShake.VisualStudio.Language
             NameNode? name = _reader.Kind == TokenKind.Name
                 ? ParseName()
                 : null;
-            List<VariableDefinitionNode> variableDefinitions =
-                ParseVariableDefinitions();
-            List<DirectiveNode> directives =
-                ParseDirectives(false);
+            List<VariableDefinitionNode> variableDefinitions = ParseVariableDefinitions();
+            List<DirectiveNode> directives = ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
             var location = new Location(start, _reader.Token);
 
@@ -150,8 +148,7 @@ namespace StrawberryShake.VisualStudio.Language
             IValueNode? defaultValue = SkipEqual()
                 ? ParseValueLiteral(true)
                 : null;
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
 
             var location = new Location(start, _reader.Token);
 

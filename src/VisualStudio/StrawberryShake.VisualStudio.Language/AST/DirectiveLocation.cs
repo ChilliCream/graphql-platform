@@ -28,7 +28,7 @@ namespace StrawberryShake.VisualStudio.Language
             _value = value;
         }
 
-        public bool Equals(DirectiveLocation other)
+        public bool Equals(DirectiveLocation? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -132,7 +132,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         public static bool TryParse(
             string value,
-            out DirectiveLocation location)
+            out DirectiveLocation? location)
         {
             return _cache.TryGetValue(value, out location);
         }

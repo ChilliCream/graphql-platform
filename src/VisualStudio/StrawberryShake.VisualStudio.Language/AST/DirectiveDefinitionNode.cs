@@ -43,9 +43,22 @@ namespace StrawberryShake.VisualStudio.Language
 
         public IEnumerable<ISyntaxNode> GetNodes()
         {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
             yield return Name;
-            yield return Description;
-            yield return
+
+            foreach (InputValueDefinitionNode argument in Arguments)
+            {
+                yield return argument;
+            }
+
+            foreach (NameNode location in Locations)
+            {
+                yield return location;
+            }
         }
 
         public DirectiveDefinitionNode WithLocation(Location location)

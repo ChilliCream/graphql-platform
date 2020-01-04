@@ -27,6 +27,9 @@ namespace StrawberryShake.VisualStudio.Language
 
         object IValueNode.Value => Items;
 
+        public IEnumerable<ISyntaxNode> GetNodes() => Items;
+
+
         /// <summary>
         /// Determines whether the specified <see cref="ListValueNode"/>
         /// is equal to the current <see cref="ListValueNode"/>.

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -17,6 +18,11 @@ namespace StrawberryShake.VisualStudio.Language
         public Location Location { get; }
 
         public INullableTypeNode Type { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Type;
+        }
 
         public bool Equals(NonNullTypeNode? other)
         {

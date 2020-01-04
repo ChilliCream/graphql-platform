@@ -18,8 +18,7 @@ namespace StrawberryShake.VisualStudio.Language
             ExpectAt();
 
             NameNode name = ParseName();
-            List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions();
+            List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
 
             bool isRepeatable = SkipRepeatableKeyword();
             ExpectOnKeyword();

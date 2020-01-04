@@ -22,6 +22,26 @@ namespace StrawberryShake.VisualStudio.Language
 
         public StringValueNode? Description { get; }
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (InputValueDefinitionNode field in Fields)
+            {
+                yield return field;
+            }
+        }
+
         public InputObjectTypeDefinitionNode WithLocation(Location location)
         {
             return new InputObjectTypeDefinitionNode(

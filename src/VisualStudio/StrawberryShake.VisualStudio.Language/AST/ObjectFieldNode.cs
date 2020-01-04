@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -25,6 +26,12 @@ namespace StrawberryShake.VisualStudio.Language
         public NameNode Name { get; }
 
         public IValueNode Value { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+            yield return Value;
+        }
 
         /// <summary>
         /// Determines whether the specified <see cref="ObjectFieldNode"/>

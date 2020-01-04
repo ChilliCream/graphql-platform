@@ -296,8 +296,7 @@ namespace StrawberryShake.VisualStudio.Language
             IValueNode? defaultValue = SkipEqual()
                 ? ParseValueLiteral(true)
                 : null;
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
 
             var location = new Location(start, _reader.Token);
 
@@ -326,10 +325,8 @@ namespace StrawberryShake.VisualStudio.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
-            List<FieldDefinitionNode> fields =
-                ParseFieldsDefinition();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<FieldDefinitionNode> fields = ParseFieldsDefinition();
 
             var location = new Location(start, _reader.Token);
 
@@ -357,8 +354,7 @@ namespace StrawberryShake.VisualStudio.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
             List<NamedTypeNode> types = ParseUnionMemberTypes();
 
             var location = new Location(start, _reader.Token);
@@ -469,8 +465,7 @@ namespace StrawberryShake.VisualStudio.Language
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
 
             var location = new Location(start, _reader.Token);
 
@@ -490,10 +485,8 @@ namespace StrawberryShake.VisualStudio.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
-            List<InputValueDefinitionNode> fields =
-                ParseInputFieldsDefinition();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<InputValueDefinitionNode> fields = ParseInputFieldsDefinition();
 
             var location = new Location(start, _reader.Token);
 

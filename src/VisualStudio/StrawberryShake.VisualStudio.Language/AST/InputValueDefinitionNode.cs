@@ -34,6 +34,27 @@ namespace StrawberryShake.VisualStudio.Language
 
         public IValueNode? DefaultValue { get; }
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
+            yield return Name;
+            yield return Type;
+
+            if (DefaultValue is { })
+            {
+                yield return DefaultValue;
+            }
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+        }
+
         public InputValueDefinitionNode WithLocation(Location location)
         {
             return new InputValueDefinitionNode(

@@ -24,6 +24,16 @@ namespace StrawberryShake.VisualStudio.Language
 
         public IReadOnlyList<ArgumentNode> Arguments { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (ArgumentNode argument in Arguments)
+            {
+                yield return argument;
+            }
+        }
+
         public DirectiveNode WithLocation(Location location)
         {
             return new DirectiveNode(location, Name, Arguments);

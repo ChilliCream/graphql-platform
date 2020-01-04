@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -40,6 +42,8 @@ namespace StrawberryShake.VisualStudio.Language
         public string Value { get; }
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="StringValueNode"/>

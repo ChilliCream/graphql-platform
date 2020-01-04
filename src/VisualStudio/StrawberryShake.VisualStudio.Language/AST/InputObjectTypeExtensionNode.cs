@@ -18,6 +18,21 @@ namespace StrawberryShake.VisualStudio.Language
         public override NodeKind Kind { get; } =
             NodeKind.InputObjectTypeExtension;
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (InputValueDefinitionNode field in Fields)
+            {
+                yield return field;
+            }
+        }
+
         public InputObjectTypeExtensionNode WithLocation(Location location)
         {
             return new InputObjectTypeExtensionNode(

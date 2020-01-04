@@ -30,6 +30,30 @@ namespace StrawberryShake.VisualStudio.Language
 
         public SelectionSetNode? SelectionSet { get; }
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Alias is { })
+            {
+                yield return Alias;
+            }
+
+            yield return Name;
+
+            foreach (ArgumentNode argument in Arguments)
+            {
+                yield return argument;
+            }
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            if (SelectionSet is { })
+            {
+                yield return SelectionSet;
+            }
+        }
 
         public FieldNode WithLocation(Location location)
         {

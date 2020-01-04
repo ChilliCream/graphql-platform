@@ -17,6 +17,21 @@ namespace StrawberryShake.VisualStudio.Language
 
         public override NodeKind Kind { get; } = NodeKind.EnumTypeExtension;
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (EnumValueDefinitionNode value in Values)
+            {
+                yield return value;
+            }
+        }
+
         public EnumTypeExtensionNode WithLocation(Location location)
         {
             return new EnumTypeExtensionNode(

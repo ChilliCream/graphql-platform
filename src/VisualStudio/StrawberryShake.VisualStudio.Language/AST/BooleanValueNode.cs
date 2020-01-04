@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -22,10 +23,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         object IValueNode.Value => Value;
 
-        public IEnumerable<ISyntaxNode> GetNodes()
-        {
-            yield break;
-        }
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="BooleanValueNode"/>

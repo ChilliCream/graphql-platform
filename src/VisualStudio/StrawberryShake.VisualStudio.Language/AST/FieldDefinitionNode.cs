@@ -30,6 +30,28 @@ namespace StrawberryShake.VisualStudio.Language
 
         public ITypeNode Type { get; }
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
+            yield return Name;
+
+            foreach(InputValueDefinitionNode argument in Arguments)
+            {
+                yield return argument;
+            }
+
+            yield return Type;
+
+            foreach(DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+        }
+
         public FieldDefinitionNode WithLocation(Location location)
         {
             return new FieldDefinitionNode(

@@ -1,5 +1,5 @@
-﻿using System.Text;
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -24,6 +24,11 @@ namespace StrawberryShake.VisualStudio.Language
         public string Value => Name.Value;
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+        }
 
         /// <summary>
         /// Determines whether the specified <see cref="VariableNode"/>

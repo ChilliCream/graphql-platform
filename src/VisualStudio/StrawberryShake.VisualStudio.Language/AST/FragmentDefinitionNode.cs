@@ -11,14 +11,11 @@ namespace StrawberryShake.VisualStudio.Language
         public FragmentDefinitionNode(
             Location location,
             NameNode name,
-            IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             NamedTypeNode typeCondition,
             IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
             : base(location, name, directives)
         {
-            VariableDefinitions = variableDefinitions
-                ?? throw new ArgumentNullException(nameof(variableDefinitions));
             TypeCondition = typeCondition
                 ?? throw new ArgumentNullException(nameof(typeCondition));
             SelectionSet = selectionSet
@@ -27,18 +24,27 @@ namespace StrawberryShake.VisualStudio.Language
 
         public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
 
-        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
-        { get; }
-
         public NamedTypeNode TypeCondition { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+            yield return TypeCondition;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            yield return SelectionSet;
+        }
 
         public FragmentDefinitionNode WithLocation(Location location)
         {
             return new FragmentDefinitionNode(
                 location, Name,
-                VariableDefinitions,
                 TypeCondition,
                 Directives, SelectionSet);
         }
@@ -47,17 +53,6 @@ namespace StrawberryShake.VisualStudio.Language
         {
             return new FragmentDefinitionNode(
                 Location, name,
-                VariableDefinitions,
-                TypeCondition,
-                Directives, SelectionSet);
-        }
-
-        public FragmentDefinitionNode WithVariableDefinitions(
-            IReadOnlyList<VariableDefinitionNode> variableDefinitions)
-        {
-            return new FragmentDefinitionNode(
-                Location, Name,
-                variableDefinitions,
                 TypeCondition,
                 Directives, SelectionSet);
         }
@@ -67,7 +62,6 @@ namespace StrawberryShake.VisualStudio.Language
         {
             return new FragmentDefinitionNode(
                 Location, Name,
-                VariableDefinitions,
                 typeCondition,
                 Directives, SelectionSet);
         }
@@ -77,7 +71,6 @@ namespace StrawberryShake.VisualStudio.Language
         {
             return new FragmentDefinitionNode(
                 Location, Name,
-                VariableDefinitions,
                 TypeCondition,
                 directives, SelectionSet);
         }
@@ -87,7 +80,6 @@ namespace StrawberryShake.VisualStudio.Language
         {
             return new FragmentDefinitionNode(
                 Location, Name,
-                VariableDefinitions,
                 TypeCondition,
                 Directives, selectionSet);
         }

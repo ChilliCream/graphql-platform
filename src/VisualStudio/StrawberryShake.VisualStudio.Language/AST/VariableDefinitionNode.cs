@@ -36,6 +36,22 @@ namespace StrawberryShake.VisualStudio.Language
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Variable;
+            yield return Type;
+
+            if (DefaultValue is { })
+            {
+                yield return DefaultValue;
+            }
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+        }
+
         public VariableDefinitionNode WithLocation(Location location)
         {
             return new VariableDefinitionNode(
