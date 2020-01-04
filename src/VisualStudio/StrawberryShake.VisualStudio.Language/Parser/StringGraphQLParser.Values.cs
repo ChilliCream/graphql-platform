@@ -30,7 +30,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        internal IValueNode ParseValueLiteral(bool isConstant)
+        private IValueNode ParseValueLiteral(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftBracket)
             {

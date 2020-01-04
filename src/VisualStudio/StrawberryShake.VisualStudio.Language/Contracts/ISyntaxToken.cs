@@ -7,8 +7,8 @@ namespace StrawberryShake.VisualStudio.Language
         int End { get; }
         int Line { get; }
         int Column { get; }
-        string Value { get; }
-        SyntaxToken Previous { get; }
-        SyntaxToken Next { get; }
+        string? Value { get; }
+        SyntaxToken? Previous { get; }
+        SyntaxToken? Next { get; }
     }
 }

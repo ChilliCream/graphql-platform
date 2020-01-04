@@ -22,10 +22,10 @@ namespace StrawberryShake.VisualStudio.Language
             _isScalar[(int)TokenKind.Float] = true;
         }
 
-        internal TokenKind Kind => _reader.Kind;
+        private TokenKind Kind => _reader.Kind;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal NameNode ParseName()
+        private NameNode ParseName()
         {
             ISyntaxToken start = _reader.Token;
             string name = ExpectName();
@@ -39,7 +39,7 @@ namespace StrawberryShake.VisualStudio.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool MoveNext() => _reader.MoveNext();
+        private bool MoveNext() => _reader.MoveNext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe string ExpectName()
@@ -61,10 +61,10 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Kind));
         }
 
-        internal void ExpectColon() =>
+        private void ExpectColon() =>
             Expect(TokenKind.Colon);
 
-        internal void ExpectDollar() =>
+        private void ExpectDollar() =>
             Expect(TokenKind.Dollar);
 
         private void ExpectAt() =>
@@ -114,7 +114,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         private void ExpectSpread() => Expect(TokenKind.Spread);
 
-        internal void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
+        private void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
 
         private void ExpectRightBrace() => Expect(TokenKind.RightBrace);
 
