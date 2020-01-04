@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
@@ -25,5 +25,7 @@ namespace StrawberryShake.VisualStudio.Language
         public NameNode Name { get; }
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
+
+        public abstract IEnumerable<ISyntaxNode> GetNodes();
     }
 }

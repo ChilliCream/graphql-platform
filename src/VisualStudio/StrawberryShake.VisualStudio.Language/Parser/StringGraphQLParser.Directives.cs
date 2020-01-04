@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
         private static readonly List<DirectiveNode> _emptyDirectives =
             new List<DirectiveNode>();

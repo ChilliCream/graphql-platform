@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace StrawberryShake.VisualStudio.Language
 {
     // Implements the parsing rules in the Fragments section.
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
         /// <summary>
         /// Parses a fragment spread or inline fragment within a selection set.

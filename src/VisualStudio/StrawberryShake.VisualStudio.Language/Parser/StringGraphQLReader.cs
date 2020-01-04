@@ -5,7 +5,7 @@ using StrawberryShake.VisualStudio.Language.Properties;
 
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLReader
+    public ref partial struct StringGraphQLReader
     {
         private int _nextNewLines;
         private ReadOnlySpan<char> _graphQLData;
@@ -21,7 +21,7 @@ namespace StrawberryShake.VisualStudio.Language
         private int _column;
         private SyntaxToken _token;
 
-        public TextGraphQLReader(ReadOnlySpan<char> graphQLData)
+        public StringGraphQLReader(ReadOnlySpan<char> graphQLData)
         {
             if (graphQLData.Length == 0)
             {
@@ -112,9 +112,11 @@ namespace StrawberryShake.VisualStudio.Language
                 _end = _position;
                 _kind = TokenKind.EndOfFile;
                 _value = null;
-                _token = new SyntaxToken(
+                var token = new SyntaxToken(
                     TokenKind.EndOfFile, _position, _position,
                     _line, _column, null, _token);
+                _token.Next = token;
+                _token = token;
                 return false;
             }
 

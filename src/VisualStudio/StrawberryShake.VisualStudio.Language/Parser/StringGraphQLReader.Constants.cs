@@ -1,6 +1,6 @@
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLReader
+    public ref partial struct StringGraphQLReader
     {
         private static readonly bool[] _isControlCharacter = new bool[char.MaxValue + 1];
         private static readonly bool[] _isLetterOrUnderscore = new bool[256];
@@ -54,7 +54,7 @@ namespace StrawberryShake.VisualStudio.Language
         public const char Quote = '"';
         public const char Comma = ',';
 
-        static TextGraphQLReader()
+        static StringGraphQLReader()
         {
             InitializeIsControlCharacterCache();
             InitializeIsEscapeCharacterCache();

@@ -4,12 +4,12 @@ using StrawberryShake.VisualStudio.Language.Properties;
 
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
-        private TextGraphQLReader _reader;
+        private StringGraphQLReader _reader;
         private StringValueNode? _description;
 
-        public TextGraphQLParser(ReadOnlySpan<char> graphQLData)
+        public StringGraphQLParser(ReadOnlySpan<char> graphQLData)
         {
             if (graphQLData.Length == 0)
             {
@@ -18,11 +18,11 @@ namespace StrawberryShake.VisualStudio.Language
                     nameof(graphQLData));
             }
 
-            _reader = new TextGraphQLReader(graphQLData);
+            _reader = new StringGraphQLReader(graphQLData);
             _description = null;
         }
 
-        internal TextGraphQLParser(TextGraphQLReader reader)
+        internal StringGraphQLParser(StringGraphQLReader reader)
         {
             if (reader.Kind == TokenKind.EndOfFile)
             {
@@ -62,7 +62,7 @@ namespace StrawberryShake.VisualStudio.Language
         private IDefinitionNode ParseDefinition()
         {
             _description = null;
-            if (TokenHelper.IsDescription(in _reader))
+            if (_isString[(int)_reader.Kind])
             {
                 _description = ParseDescription();
             }

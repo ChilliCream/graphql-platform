@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLReader
+    public ref partial struct StringGraphQLReader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool MoveNext()
@@ -53,6 +53,7 @@ namespace StrawberryShake.VisualStudio.Language
                 }
             }
 
+            _token.Next = current;
             _token = current;
         }
     }

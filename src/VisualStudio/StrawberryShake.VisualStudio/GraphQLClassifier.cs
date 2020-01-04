@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using StrawberryShake.VisualStudio.Language;
-using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using StrawberryShake.VisualStudio.Language;
 
 namespace StrawberryShake.VisualStudio
 {
@@ -45,7 +43,7 @@ namespace StrawberryShake.VisualStudio
 
             try
             {
-                var reader = new Utf8GraphQLReader(Encoding.UTF8.GetBytes(span.GetText()));
+                var reader = new StringGraphQLParser(Encoding.UTF8.GetBytes(span.GetText()));
 
                 while (reader.Read())
                 {

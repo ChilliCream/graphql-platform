@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
@@ -40,6 +40,13 @@ namespace StrawberryShake.VisualStudio.Language
         public IReadOnlyList<InputValueDefinitionNode> Arguments { get; }
 
         public IReadOnlyList<NameNode> Locations { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+            yield return Description;
+            yield return
+        }
 
         public DirectiveDefinitionNode WithLocation(Location location)
         {

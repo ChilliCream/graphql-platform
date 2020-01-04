@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using StrawberryShake.VisualStudio.Language.Properties;
 
 namespace StrawberryShake.VisualStudio.Language
 {
     // Implements the parsing rules in the Type Definition section.
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
-        private static readonly List<EnumValueDefinitionNode> emptyEnumValues =
+        private static readonly List<EnumValueDefinitionNode> _emptyEnumValues =
             new List<EnumValueDefinitionNode>();
         private static readonly List<InputValueDefinitionNode> _emptyInputValues =
             new List<InputValueDefinitionNode>();
@@ -22,7 +22,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <param name="context">The parser context.</param>
         private StringValueNode? ParseDescription()
         {
-            if (TokenHelper.IsDescription(in _reader))
+            if (_isString[(int)_reader.Kind])
             {
                 return ParseStringLiteral();
             }
@@ -452,7 +452,7 @@ namespace StrawberryShake.VisualStudio.Language
                 return list;
             }
 
-            return emptyEnumValues;
+            return _emptyEnumValues;
         }
 
 

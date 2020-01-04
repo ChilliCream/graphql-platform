@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
         private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs =
             new List<OperationTypeDefinitionNode>();

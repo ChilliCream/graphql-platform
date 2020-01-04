@@ -1,6 +1,6 @@
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
         private ref partial struct TokenInfo
         {

@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace StrawberryShake.VisualStudio.Language
@@ -20,6 +21,11 @@ namespace StrawberryShake.VisualStudio.Language
         public bool Value { get; }
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield break;
+        }
 
         /// <summary>
         /// Determines whether the specified <see cref="BooleanValueNode"/>

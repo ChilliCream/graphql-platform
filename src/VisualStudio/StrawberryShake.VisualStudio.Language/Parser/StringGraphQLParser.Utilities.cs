@@ -6,8 +6,22 @@ using StrawberryShake.VisualStudio.Language.Properties;
 
 namespace StrawberryShake.VisualStudio.Language
 {
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
+        private static readonly bool[] _isString = new bool[22];
+        private static readonly bool[] _isScalar = new bool[22];
+
+        static StringGraphQLParser()
+        {
+            _isString[(int)TokenKind.BlockString] = true;
+            _isString[(int)TokenKind.String] = true;
+
+            _isScalar[(int)TokenKind.BlockString] = true;
+            _isScalar[(int)TokenKind.String] = true;
+            _isScalar[(int)TokenKind.Integer] = true;
+            _isScalar[(int)TokenKind.Float] = true;
+        }
+
         internal TokenKind Kind => _reader.Kind;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -62,7 +76,7 @@ namespace StrawberryShake.VisualStudio.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe string ExpectString()
         {
-            if (TokenHelper.IsString(in _reader))
+            if (_isString[(int)_reader.Kind])
             {
                 fixed (char* c = _reader.Value)
                 {
@@ -82,7 +96,7 @@ namespace StrawberryShake.VisualStudio.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe string ExpectScalarValue()
         {
-            if (TokenHelper.IsScalarValue(in _reader))
+            if (_isScalar[(int)_reader.Kind])
             {
                 fixed (char* c = _reader.Value)
                 {

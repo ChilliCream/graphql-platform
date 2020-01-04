@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -6,7 +6,7 @@ namespace StrawberryShake.VisualStudio.Language
     public class SyntaxException
         : Exception
     {
-        internal unsafe SyntaxException(TextGraphQLReader reader, string message)
+        internal unsafe SyntaxException(StringGraphQLReader reader, string message)
             : base(message)
         {
             Position = reader.Position;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using StrawberryShake.VisualStudio.Language.Properties;
@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 namespace StrawberryShake.VisualStudio.Language
 {
     // Implements the parsing rules in the Values section.
-    public ref partial struct TextGraphQLParser
+    public ref partial struct StringGraphQLParser
     {
         /// <summary>
         /// Parses a value.
@@ -42,9 +42,14 @@ namespace StrawberryShake.VisualStudio.Language
                 return ParseObject(isConstant);
             }
 
-            if (TokenHelper.IsScalarValue(in _reader))
+            if (_isString[(int)_reader.Kind])
             {
-                return ParseScalarValue();
+                return ParseStringLiteral();
+            }
+
+            if (_isScalar[(int)_reader.Kind])
+            {
+                return ParseNonStringScalarValue();
             }
 
             if (_reader.Kind == TokenKind.Name)
@@ -190,23 +195,10 @@ namespace StrawberryShake.VisualStudio.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe IValueNode ParseScalarValue()
+        private unsafe IValueNode ParseNonStringScalarValue()
         {
-            if (TokenHelper.IsString(in _reader))
-            {
-                return ParseStringLiteral();
-            }
-
             ISyntaxToken start = _reader.Token;
             TokenKind kind = _reader.Kind;
-
-            if (!TokenHelper.IsScalarValue(in _reader))
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidScalarToken,
-                        _reader.Kind));
-            }
 
             fixed (char* c = _reader.Value)
             {

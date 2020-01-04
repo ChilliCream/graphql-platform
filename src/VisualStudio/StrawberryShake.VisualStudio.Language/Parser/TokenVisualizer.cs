@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -31,7 +31,7 @@ namespace StrawberryShake.VisualStudio.Language
                 {TokenKind.Comment, "Comment"}
             };
 
-        public static string Visualize(in TextGraphQLReader reader)
+        public static string Visualize(in StringGraphQLReader reader)
         {
             return _visualization[reader.Kind];
         }
