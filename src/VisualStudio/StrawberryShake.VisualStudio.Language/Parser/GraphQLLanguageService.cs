@@ -7,6 +7,9 @@ namespace StrawberryShake.VisualStudio.Language
     {
         private readonly Dictionary<ISyntaxToken, ISyntaxNode> _tokenToNode =
             new Dictionary<ISyntaxToken, ISyntaxNode>();
+        private readonly Dictionary<ISyntaxToken, SyntaxClassification> _tokenToClassification =
+            new Dictionary<ISyntaxToken, SyntaxClassification>();
+
         private readonly TokenIndexer _tokenIndexer;
         private DocumentNode? _document;
 
@@ -19,6 +22,7 @@ namespace StrawberryShake.VisualStudio.Language
         {
             var parser = new StringGraphQLParser(sourceText.AsSpan());
             _document = parser.Parse();
+            _tokenToNode.Clear();
             _tokenIndexer.Visit(_document);
         }
 
@@ -64,5 +68,16 @@ namespace StrawberryShake.VisualStudio.Language
         }
     }
 
+    public readonly struct SyntaxClassification
+    {
+
+    }
+
+    public readonly enum SyntaxClassificationKind
+    {
+        Keyword,
+
+
+    }
 
 }
