@@ -73,7 +73,7 @@ namespace StrawberryShake.VisualStudio.Language
 
     }
 
-    public readonly enum SyntaxClassificationKind
+    public enum SyntaxClassificationKind
     {
         Keyword,
 
