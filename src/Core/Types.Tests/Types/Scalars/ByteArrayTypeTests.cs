@@ -67,18 +67,16 @@ namespace HotChocolate.Types
         [Fact]
         public void Serialize_Base64()
         {
-            //TODO: fix
             // arrange
             var byteArrayType = new ByteArrayType();
 
             var value = Encoding.ASCII.GetBytes("value");
-            string base64 = Convert.ToBase64String(value);
 
             // act
             var serializedValue = byteArrayType.Serialize(value);
 
             // assert
-            Assert.Equal(base64, Assert.IsType<string>(serializedValue));
+            Assert.Equal(value, Assert.IsType<byte[]>(serializedValue));
         }
 
         [Fact]
@@ -125,15 +123,13 @@ namespace HotChocolate.Types
         [Fact]
         public void Deserialize_String()
         {
-            //TODO: fix
             // arrange
             var byteArrayType = new ByteArrayType();
             byte[] bytes = Encoding.ASCII.GetBytes("value");
-            var base64 = Convert.ToBase64String(bytes);
 
             // act
             var success = byteArrayType.TryDeserialize(
-                base64, out object o);
+                bytes, out object o);
 
             // assert
             Assert.True(success);
