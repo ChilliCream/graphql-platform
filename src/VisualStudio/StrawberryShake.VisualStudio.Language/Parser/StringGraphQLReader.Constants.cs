@@ -73,13 +73,15 @@ namespace StrawberryShake.VisualStudio.Language
             for (int i = 0; i <= 31; i++)
             {
                 _isControlCharacterNoNewLine[i] = true;
+                _isControlCharacter[i] = true;
             }
 
             _isControlCharacterNoNewLine[127] = true;
+            _isControlCharacter[127] = true;
 
-            // _isControlCharacterNoNewLine[Tab] = false;
-            // _isControlCharacterNoNewLine[Return] = false;
-            // _isControlCharacterNoNewLine[NewLine] = false;
+            _isControlCharacterNoNewLine[Tab] = false;
+            _isControlCharacterNoNewLine[Return] = false;
+            _isControlCharacterNoNewLine[NewLine] = false;
         }
 
         private static void InitializeIsEscapeCharacterCache()

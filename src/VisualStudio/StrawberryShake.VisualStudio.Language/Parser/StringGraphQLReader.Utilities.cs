@@ -48,7 +48,7 @@ namespace StrawberryShake.VisualStudio.Language
                         _end,
                         _line,
                         _column,
-                        new string(c),
+                        new string(c, 0, _value.Length),
                         _token);
                 }
             }

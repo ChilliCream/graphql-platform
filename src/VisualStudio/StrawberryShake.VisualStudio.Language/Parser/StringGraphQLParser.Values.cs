@@ -202,7 +202,7 @@ namespace StrawberryShake.VisualStudio.Language
 
             fixed (char* c = _reader.Value)
             {
-                string value = new string(c);
+                string value = new string(c, 0, _reader.Value.Length);
                 FloatFormat? format = _reader.FloatFormat;
                 MoveNext();
 
@@ -262,7 +262,7 @@ namespace StrawberryShake.VisualStudio.Language
 
             fixed (char* c = _reader.Value)
             {
-                var value = new string(c);
+                var value = new string(c, 0, _reader.Value.Length);
                 MoveNext();
                 location = new Location(start, _reader.Token);
 

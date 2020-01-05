@@ -14,7 +14,7 @@ namespace StrawberryShake.VisualStudio.Language
             Column = reader.Column;
             fixed (char* c = reader.GraphQLData)
             {
-                SourceText = new string(c);
+                SourceText = new string(c, 0, reader.Value.Length);
             }
         }
 

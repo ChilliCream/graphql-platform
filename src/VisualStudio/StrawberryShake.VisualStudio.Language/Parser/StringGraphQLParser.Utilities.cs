@@ -48,7 +48,7 @@ namespace StrawberryShake.VisualStudio.Language
             {
                 fixed (char* c = _reader.Value)
                 {
-                    string name = new string(c);
+                    string name = new string(c, 0, _reader.Value.Length);
                     MoveNext();
                     return name;
                 }
@@ -80,7 +80,7 @@ namespace StrawberryShake.VisualStudio.Language
             {
                 fixed (char* c = _reader.Value)
                 {
-                    string value = new string(c);
+                    string value = new string(c, 0, _reader.Value.Length);
                     MoveNext();
                     return value;
                 }
@@ -100,7 +100,7 @@ namespace StrawberryShake.VisualStudio.Language
             {
                 fixed (char* c = _reader.Value)
                 {
-                    string value = new string(c);
+                    string value = new string(c, 0, _reader.Value.Length);
                     MoveNext();
                     return value;
                 }
@@ -146,13 +146,13 @@ namespace StrawberryShake.VisualStudio.Language
                 fixed (char* k = keyword)
                 {
                     string found = _reader.Kind == TokenKind.Name
-                        ? new string(c)
+                        ? new string(c, 0, _reader.Value.Length)
                         : _reader.Kind.ToString();
 
                     throw new SyntaxException(_reader,
                         string.Format(CultureInfo.InvariantCulture,
                             LangResources.Parser_InvalidToken,
-                            new string(k),
+                            new string(k, 0, keyword.Length),
                             found));
                 }
             }

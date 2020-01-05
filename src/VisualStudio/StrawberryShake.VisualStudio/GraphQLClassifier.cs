@@ -108,7 +108,7 @@ namespace StrawberryShake.VisualStudio
         public static void AddClassification(
             this ICollection<ClassificationSpan> classifications,
             SnapshotSpan snapshotSpan,
-            Utf8GraphQLReader reader,
+            StringGraphQLReader reader,
             IClassificationType type)
         {
             var start = snapshotSpan.Start.Position + reader.Start;

@@ -339,12 +339,12 @@ namespace StrawberryShake.VisualStudio.Language
         {
             var start = _position;
             var trimStart = _position + 1;
-            bool trim = true;
-            bool run = true;
+            var trim = true;
+            var run = true;
 
             while (run && ++_position < _length)
             {
-                char code = _graphQLData[_position];
+                var code = _graphQLData[_position];
 
                 if (code == Hash || code == Space || code == Tab)
                 {
@@ -397,6 +397,7 @@ namespace StrawberryShake.VisualStudio.Language
                         start + 1,
                         _position - start - 1);
                     _position++;
+                    return;
                 }
                 else if (code == Backslash)
                 {

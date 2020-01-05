@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.VisualStudi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrawberryShake.VisualStudio.Language", "StrawberryShake.VisualStudio.Language\StrawberryShake.VisualStudio.Language.csproj", "{FEEABAEA-6919-4D2F-B733-27A2320C5DE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.VisualStudio.Language.Tests", "StrawberryShake.VisualStudio.Language.Tests\StrawberryShake.VisualStudio.Language.Tests.csproj", "{4DDB101E-594B-4A31-B045-173ECABFB285}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrawberryShake.VisualStudio.Language.Tests", "StrawberryShake.VisualStudio.Language.Tests\StrawberryShake.VisualStudio.Language.Tests.csproj", "{4DDB101E-594B-4A31-B045-173ECABFB285}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,7 +20,6 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DADE9F4B-572A-4016-AED1-0A28821E2E3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DADE9F4B-572A-4016-AED1-0A28821E2E3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DADE9F4B-572A-4016-AED1-0A28821E2E3D}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{DADE9F4B-572A-4016-AED1-0A28821E2E3D}.Debug|x64.Build.0 = Debug|Any CPU
 		{DADE9F4B-572A-4016-AED1-0A28821E2E3D}.Debug|x86.ActiveCfg = Debug|Any CPU
