@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -127,8 +128,7 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = Create();
-            InputObjectType inputObjectType =
-                schema.GetType<InputObjectType>("Object1");
+            InputObjectType inputObjectType = schema.GetType<InputObjectType>("Object1");
             ObjectValueNode literal = CreateObjectLiteral();
 
             // act
@@ -351,7 +351,10 @@ namespace HotChocolate.Types
             return new ObjectValueNode(new List<ObjectFieldNode>
             {
                 new ObjectFieldNode("foo",
-                    new ObjectValueNode(new List<ObjectFieldNode>())),
+                    new ObjectValueNode(new List<ObjectFieldNode>
+                    {
+                        new ObjectFieldNode("fooList", new ListValueNode(Array.Empty<IValueNode>()))
+                    })),
                 new ObjectFieldNode("bar",
                     new StringValueNode("123"))
             });
@@ -363,23 +366,19 @@ namespace HotChocolate.Types
             {
                 c.Options.StrictValidation = false;
 
-                c.RegisterType(
-                    new InputObjectType<SerializationInputObject1>(d =>
-                    {
-                        d.Name("Object1");
-                        d.Field(t => t.Foo)
-                            .Type<InputObjectType<SerializationInputObject2>>();
-                        d.Field(t => t.Bar).Type<StringType>();
-                    }));
+                c.RegisterType(new InputObjectType<SerializationInputObject1>(d =>
+                {
+                    d.Name("Object1");
+                    d.Field(t => t.Foo).Type<InputObjectType<SerializationInputObject2>>();
+                    d.Field(t => t.Bar).Type<StringType>();
+                }));
 
-                c.RegisterType(new InputObjectType<SerializationInputObject2>(
-                    d =>
-                    {
-                        d.Name("Object2");
-                        d.Field(t => t.FooList)
-                            .Type<NonNullType<ListType<InputObjectType<
-                                SerializationInputObject1>>>>();
-                    }));
+                c.RegisterType(new InputObjectType<SerializationInputObject2>(d =>
+                {
+                    d.Name("Object2");
+                    d.Field(t => t.FooList)
+                        .Type<NonNullType<ListType<InputObjectType<SerializationInputObject1>>>>();
+                }));
             });
         }
 
@@ -833,7 +832,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseLiteral(new StringValueNode("foo"));
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<InputObjectSerializationException>(action);
         }
 
         [Fact]
@@ -1019,6 +1018,62 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Input_With_Optionals_Not_Set()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithOptionals>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [InlineData("null")]
+        [InlineData("\"abc\"")]
+        [Theory]
+        public async Task Input_With_Optionals_Set(string value)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithOptionals>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ do(input: { bar: " + value + " }) { isBarSet } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Input_With_Immutable_ClrType()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithImmutables>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class SimpleInput
         {
             public int Id { get; set; }
@@ -1036,7 +1091,7 @@ namespace HotChocolate.Types
             public List<SerializationInputObject1> FooList { get; set; } =
                 new List<SerializationInputObject1>
             {
-            new SerializationInputObject1()
+                new SerializationInputObject1()
             };
         }
 
@@ -1103,6 +1158,58 @@ namespace HotChocolate.Types
         public class Baz
         {
             public string Text { get; set; }
+        }
+
+        public class QueryWithOptionals
+        {
+            public FooPayload Do(FooInput input)
+            {
+                return new FooPayload
+                {
+                    IsBarSet = input.Bar.HasValue,
+                    Bar = input.Bar,
+                    Baz = input.Baz
+                };
+            }
+        }
+
+        public class FooInput
+        {
+            public Optional<string> Bar { get; set; }
+            public string Baz { get; set; }
+        }
+
+        public class FooPayload
+        {
+            public bool IsBarSet { get; set; }
+            public string Bar { get; set; }
+            public string Baz { get; set; }
+        }
+
+        public class QueryWithImmutables
+        {
+            public FooImmutable Do(FooImmutable input)
+            {
+                return input;
+            }
+        }
+
+        public class FooImmutable
+        {
+            public FooImmutable()
+            {
+                Bar = "default";
+            }
+
+            public FooImmutable(string bar, string baz)
+            {
+                Bar = bar;
+                Baz = baz;
+            }
+
+            public string Bar { get; }
+            public string Baz { get; set; }
+            public string Qux { get; private set; }
         }
     }
 }

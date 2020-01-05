@@ -76,16 +76,17 @@ namespace HotChocolate.Execution
             foreach (KeyValuePair<NameString, ArgumentVariableValue> var in _vars)
             {
                 IError error = null;
+                object value = null;
 
                 if (variables.TryGetVariable(
                     var.Value.VariableName,
-                    out object value))
+                    out IValueNode variableLiteral))
                 {
-                    value = var.Value.CoerceValue(value);
+                    value = var.Value.CoerceValue(variableLiteral);
                 }
                 else
                 {
-                    value = var.Value.DefaultValue;
+                    value = var.Value.CoerceValue(var.Value.DefaultValue);
 
                     if (var.Value.Type.NamedType().IsLeafType()
                         && value is IValueNode literal)

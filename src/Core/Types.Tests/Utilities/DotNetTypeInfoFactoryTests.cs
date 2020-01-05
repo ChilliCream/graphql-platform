@@ -48,6 +48,7 @@ namespace HotChocolate.Utilities
                 typeInfo.TypeFactory(new StringType()).Visualize());
         }
 
+        [InlineData(typeof(Optional<int>), "Int!")]
         [InlineData(typeof(int), "Int!")]
         [InlineData(typeof(Task<int>), "Int!")]
         [InlineData(typeof(List<int>), "[Int!]")]
@@ -74,8 +75,8 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<Task<int?[]>>), "[Int]")]
         [Theory]
         public void CreateTypeInfoFromValueType(
-            Type clrType,
-            string expectedTypeName)
+                    Type clrType,
+                    string expectedTypeName)
         {
             // arrange
             var factory = new DotNetTypeInfoFactory();

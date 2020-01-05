@@ -53,7 +53,6 @@ namespace HotChocolate.Types
                 context, _definition, _definition.ContextData);
 
             RegisterConfigurationDependencies(context, _definition);
-
             OnRegisterDependencies(context, _definition);
 
             context.Interceptor.OnAfterRegisterDependencies(
@@ -83,7 +82,6 @@ namespace HotChocolate.Types
                 context, _definition, _definition.ContextData);
 
             ExecuteConfigurations(context, _definition, ApplyConfigurationOn.Naming);
-
             OnCompleteName(context, _definition);
 
             if (Name.IsEmpty)
@@ -122,18 +120,16 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            DefinitionBase? definition = _definition;
+            TDefinition definition = _definition;
 
             context.Interceptor.OnBeforeCompleteType(
-                context, definition, _definition.ContextData);
+                context, definition, definition.ContextData);
 
-            ExecuteConfigurations(context, _definition, ApplyConfigurationOn.Completion);
+            ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
+            Description = definition.Description;
+            OnCompleteType(context, definition);
 
-            Description = _definition.Description;
-
-            OnCompleteType(context, _definition);
-
-            _contextData = new Dictionary<string, object?>(_definition.ContextData);
+            _contextData = new Dictionary<string, object?>(definition.ContextData);
             _definition = null;
 
             base.CompleteType(context);

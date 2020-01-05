@@ -822,6 +822,10 @@ namespace HotChocolate.Execution
                 {
                     return s + "123";
                 }
+                else if (argument.Type is StringType && value is StringValueNode sn)
+                {
+                    return sn.Value + "123";
+                }
                 return value;
             }
         }
