@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
 {
-    public class GraphQLLanguageService
+    public class GraphQLDocument
     {
         private readonly Dictionary<ISyntaxToken, ISyntaxNode> _tokenToNode =
             new Dictionary<ISyntaxToken, ISyntaxNode>();
@@ -13,7 +13,7 @@ namespace StrawberryShake.VisualStudio.Language
         private readonly TokenIndexer _tokenIndexer;
         private DocumentNode? _document;
 
-        public GraphQLLanguageService()
+        public GraphQLDocument()
         {
             _tokenIndexer = new TokenIndexer(_tokenToNode);
         }
@@ -24,6 +24,11 @@ namespace StrawberryShake.VisualStudio.Language
             _document = parser.Parse();
             _tokenToNode.Clear();
             _tokenIndexer.Visit(_document);
+        }
+
+        public IEnumerable<SyntaxClassification> GetSyntaxClassifications(int start, int length)
+        {
+            yield break;
         }
 
         private sealed class TokenIndexer : SyntaxVisitor
@@ -70,14 +75,34 @@ namespace StrawberryShake.VisualStudio.Language
 
     public readonly struct SyntaxClassification
     {
-
+        public SyntaxClassificationKind Kind { get; }
+        public int Start { get; }
+        public int Length { get; }
     }
 
     public enum SyntaxClassificationKind
     {
         Keyword,
 
+        Comment,
 
+        Identifier,
+
+        SymbolDefinition,
+
+        SymbolReference,
+
+        StringLiteral,
+
+        NumberLiteral,
+
+        EnumLiteral,
+
+        BooleanLiteral,
+
+        WhiteSpace,
+
+        Other
     }
 
 }
