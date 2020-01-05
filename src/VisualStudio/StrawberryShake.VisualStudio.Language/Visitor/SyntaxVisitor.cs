@@ -31,9 +31,9 @@ namespace StrawberryShake.VisualStudio.Language
             ISyntaxVisitorContext context)
         {
             var levels = new List<List<ISyntaxNode>>();
-            var ancestors = _listPool.Get();
-            var root = _listPool.Get();
-            var localContext = context;
+            List<ISyntaxNode> ancestors = _listPool.Get();
+            List<ISyntaxNode> root = _listPool.Get();
+            ISyntaxVisitorContext localContext = context;
             int index = 0;
 
             root.Push(node);
@@ -58,18 +58,19 @@ namespace StrawberryShake.VisualStudio.Language
                     current = ancestors.Pop();
                     ancestors.TryPeek(out parent);
                     result = Leave(current, localContext);
-                    localContext = OnAfterLeave(node, parent, ancestors, localContext);
+                    localContext = OnAfterLeave(current, parent, ancestors, localContext);
+                    index--;
                 }
                 else
                 {
                     current = levels[index].Pop();
-                    localContext = OnBeforeEnter(node, parent, ancestors, localContext);
-                    result = Enter(node, localContext);
+                    localContext = OnBeforeEnter(current, parent, ancestors, localContext);
+                    result = Enter(current, localContext);
 
                     if (result is ContinueSyntaxVisitorAction)
                     {
-                        var nextLevel = _listPool.Get();
-                        nextLevel.AddRange(GetNodes(node, localContext));
+                        List<ISyntaxNode> nextLevel = _listPool.Get();
+                        nextLevel.AddRange(GetNodes(current, localContext));
                         levels.Push(nextLevel);
                     }
                     else if (result is SkipSyntaxVisitorAction)

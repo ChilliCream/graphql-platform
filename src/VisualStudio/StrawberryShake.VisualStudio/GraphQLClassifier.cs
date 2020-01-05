@@ -6,7 +6,6 @@ using StrawberryShake.VisualStudio.Language;
 
 namespace StrawberryShake.VisualStudio
 {
-
     internal sealed class GraphQLClassifier : IClassifier
     {
         private readonly GraphQLDocument _document = new GraphQLDocument();
@@ -48,21 +47,6 @@ namespace StrawberryShake.VisualStudio
             }
 
             return list;
-        }
-    }
-
-    internal static class ListExtensions
-    {
-        public static void AddClassification(
-            this ICollection<ClassificationSpan> classifications,
-            SnapshotSpan snapshotSpan,
-            SyntaxClassification classification,
-            IClassificationType type)
-        {
-            var span = new Span(classification.Start, classification.Length);
-            classifications.Add(new ClassificationSpan(
-                new SnapshotSpan(snapshotSpan.Snapshot, span),
-                type));
         }
     }
 }

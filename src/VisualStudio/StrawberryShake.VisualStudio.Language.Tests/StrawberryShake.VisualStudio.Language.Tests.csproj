@@ -22,4 +22,8 @@
     <ProjectReference Include="..\StrawberryShake.VisualStudio.Language\StrawberryShake.VisualStudio.Language.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Parser\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

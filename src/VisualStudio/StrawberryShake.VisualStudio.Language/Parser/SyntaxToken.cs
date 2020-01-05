@@ -1,4 +1,6 @@
-﻿namespace StrawberryShake.VisualStudio.Language
+using System.Globalization;
+
+namespace StrawberryShake.VisualStudio.Language
 {
     /// <summary>
     /// Represents a GraphQL syntax token.
@@ -44,6 +46,7 @@
             Column = column;
             Value = value;
             Previous = previous;
+            Length = End - Start;
         }
 
         /// <summary>
@@ -60,6 +63,11 @@
         /// Gets the character offset at which this node ends.
         /// </summary>
         public int End { get; }
+
+        /// <summary>
+        /// Gets the character count of this token.
+        /// </summary>
+        public int Length { get; }
 
         /// <summary>
         /// Gets the 1-indexed line number on which this
@@ -94,5 +102,17 @@
         /// this property will return <c>null</c>.
         /// </summary>
         public SyntaxToken? Next { get; internal set; }
+
+        public override string ToString()
+        {
+            string value = Kind.ToString();
+
+            if(Value is { })
+            {
+                return value + ":" + Value; 
+            }
+
+            return value;
+        }
     }
 }
