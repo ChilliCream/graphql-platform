@@ -11,12 +11,20 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/dotnet-graphql/bin/Debug/netcoreapp2.1/dotnet-graphql.dll",
       // "args": ["generate", "-d", "-n StrawberryShake.Client.GraphQL", "-f"],
-      "args": [
+      /*"args": [
         "generate",
         "-p ./StarWarsQuery",
         "-l 8.0",
         "-d",
         "-n StrawberryShake.Client.StarWarsQuery",
+        "-f"
+      ],*/
+      "args": [
+        "generate",
+        "-p ./SchemaRegistry",
+        "-l 8.0",
+        "-d",
+        "-n StrawberryShake.Tools.SchemaRegistry",
         "-f"
       ],
       /*"args": [
@@ -27,7 +35,7 @@
         "-n StrawberryShake.Client.GitHub",
         "-f"
       ],*/
-      "cwd": "${workspaceFolder}/Demo",
+      "cwd": "${workspaceFolder}/dotnet-graphql",
       "console": "internalConsole",
       "stopAtEntry": false
     },

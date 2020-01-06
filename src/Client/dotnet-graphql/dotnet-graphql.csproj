@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Generators\Generators.csproj" />
+    <ProjectReference Include="..\Http\Http.csproj" />
   </ItemGroup>
 
 </Project>

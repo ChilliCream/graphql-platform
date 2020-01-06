@@ -13,6 +13,7 @@ namespace StrawberryShake.Tools
             root.AddSubcommand(UpdateCommand.Create());
             root.AddSubcommand(CompileCommand.Create());
             root.AddSubcommand(GenerateCommand.Create());
+            root.AddSubcommand(DownloadCommand.Create());
             root.HelpOption("-h|--help");
             root.OnExecute(() => root.HelpTextGenerator.Generate(root, root.Out));
             return root.ExecuteAsync(args);

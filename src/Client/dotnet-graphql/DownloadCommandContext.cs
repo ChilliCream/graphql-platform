@@ -2,22 +2,22 @@ using System;
 
 namespace StrawberryShake.Tools
 {
-    public class UpdateCommandContext
+    public class DownloadCommandContext
     {
-        public UpdateCommandContext(
-            Uri? uri,
-            string path,
+        public DownloadCommandContext(
+            Uri uri,
+            string fileName,
             string? token,
             string scheme)
         {
             Uri = uri;
-            Path = path;
+            FileName = fileName;
             Token = token;
             Scheme = scheme;
         }
 
-        public Uri? Uri { get; }
-        public string Path { get; }
+        public Uri Uri { get; }
+        public string FileName { get; }
         public string? Token { get; }
         public string Scheme { get; }
     }

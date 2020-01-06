@@ -39,7 +39,7 @@ namespace StrawberryShake.Tools
 
             var context = new UpdateCommandContext(
                 arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()?.Trim()) : null,
-                arguments.Path.Value()?.Trim(),
+                FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 arguments.Token.Value()?.Trim(),
                 arguments.Scheme.Value()?.Trim() ?? "bearer");
 

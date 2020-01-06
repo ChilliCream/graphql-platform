@@ -32,7 +32,7 @@ namespace StrawberryShake.Tools
 
             CommandOption schemeArg = init.Option(
                 "-s|--scheme",
-                "The token scheme (defaul: bearer).",
+                "The token scheme (default: bearer).",
                 CommandOptionType.SingleValue);
 
             CommandOption jsonArg = init.Option(

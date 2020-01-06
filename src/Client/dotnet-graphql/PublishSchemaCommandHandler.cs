@@ -8,10 +8,10 @@ using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools
 {
-    public class InitCommandHandler
-        : CommandHandler<InitCommandArguments>
+    public class DownloadCommandHandler
+        : CommandHandler<DownloadCommandArguments>
     {
-        public InitCommandHandler(
+        public DownloadCommandHandler(
             IFileSystem fileSystem,
             IHttpClientFactory httpClientFactory,
             IConfigurationStore configurationStore,
@@ -32,30 +32,24 @@ namespace StrawberryShake.Tools
         public IConsoleOutput Output { get; }
 
         public override async Task<int> ExecuteAsync(
-            InitCommandArguments arguments,
+            DownloadCommandArguments arguments,
             CancellationToken cancellationToken)
         {
             using IDisposable command = Output.WriteCommand();
 
-            var context = new InitCommandContext(
-                arguments.Schema.Value()?.Trim() ?? "schema",
-                FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
+            var context = new DownloadCommandContext(
+                new Uri(arguments.Uri.Value!),
+                FileSystem.ResolvePath(arguments.FileName.Value()?.Trim(), "schema.graphql"),
                 arguments.Token.Value()?.Trim(),
-                arguments.Scheme.Value()?.Trim() ?? "bearer",
-                new Uri(arguments.Uri.Value!));
+                arguments.Scheme.Value()?.Trim() ?? "bearer");
 
-            FileSystem.EnsureDirectoryExists(context.Path);
+            FileSystem.EnsureDirectoryExists(
+                FileSystem.GetDirectoryName(context.FileName));
 
-            if (await DownloadSchemaAsync(context))
-            {
-                await WriteConfigurationAsync(context, cancellationToken);
-                return 0;
-            }
-
-            return 1;
+            return await DownloadSchemaAsync(context) ? 0 : 1;
         }
 
-        private async Task<bool> DownloadSchemaAsync(InitCommandContext context)
+        private async Task<bool> DownloadSchemaAsync(DownloadCommandContext context)
         {
             using var activity = Output.WriteActivity("Download schema");
 
@@ -66,9 +60,7 @@ namespace StrawberryShake.Tools
                 DocumentNode schema = await IntrospectionClient.LoadSchemaAsync(client);
                 schema = IntrospectionClient.RemoveBuiltInTypes(schema);
 
-                string schemaFilePath = FileSystem.CombinePath(
-                    context.Path, context.SchemaFileName);
-                await FileSystem.WriteToAsync(schemaFilePath, stream =>
+                await FileSystem.WriteToAsync(context.FileName, stream =>
                     Task.Run(() => SchemaSyntaxSerializer.Serialize(
                         schema, stream, true)));
                 return true;
@@ -82,26 +74,6 @@ namespace StrawberryShake.Tools
                         .Build());
                 return false;
             }
-        }
-
-        private async Task WriteConfigurationAsync(
-           InitCommandContext context,
-           CancellationToken cancellationToken)
-        {
-            using var activity = Output.WriteActivity("Client configuration");
-
-            var configuration = ConfigurationStore.New();
-
-            configuration.ClientName = context.ClientName;
-            configuration.Schemas.Add(new SchemaFile
-            {
-                Type = "http",
-                Name = context.SchemaName,
-                File = context.SchemaFileName,
-                Url = context.Uri.ToString()
-            });
-
-            await ConfigurationStore.SaveAsync(context.Path, configuration);
         }
     }
 }
