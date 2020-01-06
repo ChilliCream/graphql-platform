@@ -20,10 +20,10 @@ namespace HotChocolate.Types
         protected override double GetSerializedAssertValue => 1.0d;
 
         protected override double GetMaxValue => double.MaxValue;
-        protected override string GetAssertMaxValue => "1.797693E+308";
+        protected override string GetAssertMaxValue => "1.79769313486232E+308";
 
         protected override double GetMinValue => double.MinValue;
-        protected override string GetAssertMinValue => "-1.797693E+308";
+        protected override string GetAssertMinValue => "-1.79769313486232E+308";
 
         [Fact]
         public void IsInstanceOfType_IntValueNode()
@@ -141,6 +141,16 @@ namespace HotChocolate.Types
             // assert
             Assert.True(success);
             Assert.Null(value);
+        }
+
+        [Fact]
+        public void Convert_Values_To_And_From()
+        {
+            double d = 266666666666666;
+            var type = new FloatType();
+            IValueNode literal = type.ParseValue(d);
+            object o = type.ParseLiteral(literal);
+            Assert.Equal(d, Assert.IsType<double>(o));
         }
     }
 }
