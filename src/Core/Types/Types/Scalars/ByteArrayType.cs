@@ -14,23 +14,6 @@ namespace HotChocolate.Types
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
-        /// </summary>
-        public ByteArrayType(NameString name)
-            : base(name)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
-        /// </summary>
-        public ByteArrayType(NameString name, string description)
-            : base(name)
-        {
-            Description = description;
-        }
-
         protected override byte[] ParseLiteral(StringValueNode literal)
         {
             return Convert.FromBase64String(literal.Value);
