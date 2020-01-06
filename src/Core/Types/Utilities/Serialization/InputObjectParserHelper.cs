@@ -23,7 +23,7 @@ namespace HotChocolate.Utilities.Serialization
             try
             {
                 Parse(type, value, dict, converter);
-                SetDefaultValues(type, dict);
+                SetDefaultValues(type, dict, converter);
                 return factory(dict, converter);
             }
             finally
@@ -40,7 +40,7 @@ namespace HotChocolate.Utilities.Serialization
             var dict = new Dictionary<string, object>();
 
             Parse(type, value, dict, converter);
-            SetDefaultValues(type, dict);
+            SetDefaultValues(type, dict, converter);
 
             return dict;
         }
@@ -56,7 +56,8 @@ namespace HotChocolate.Utilities.Serialization
                 ObjectFieldNode fieldValue = source.Fields[i];
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
-                    target[field.Name] = field.Type.ParseLiteral(fieldValue.Value);
+                    object value = field.Type.Deserialize(fieldValue.Value);
+                    target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
                 {
@@ -78,7 +79,7 @@ namespace HotChocolate.Utilities.Serialization
             try
             {
                 Deserialize(type, value, dict, converter);
-                SetDefaultValues(type, dict);
+                SetDefaultValues(type, dict, converter);
                 return factory(dict, converter);
             }
             finally
@@ -95,7 +96,7 @@ namespace HotChocolate.Utilities.Serialization
             var dict = new Dictionary<string, object>();
 
             Deserialize(type, value, dict, converter);
-            SetDefaultValues(type, dict);
+            SetDefaultValues(type, dict, converter);
 
             return dict;
         }
@@ -110,7 +111,8 @@ namespace HotChocolate.Utilities.Serialization
             {
                 if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
                 {
-                    target[field.Name] = field.Type.Deserialize(fieldValue.Value);
+                    object value = field.Type.Deserialize(fieldValue.Value);
+                    target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
                 {
@@ -123,15 +125,31 @@ namespace HotChocolate.Utilities.Serialization
 
         private static void SetDefaultValues(
             InputObjectType type,
-            IDictionary<string, object> dict)
+            IDictionary<string, object> dict,
+            ITypeConversion converter)
         {
             foreach (InputField field in type.Fields)
             {
                 if (!field.IsOptional && !dict.ContainsKey(field.Name))
                 {
-                    dict[field.Name] = field.Type.ParseLiteral(field.DefaultValue);
+                    object value = field.Type.ParseLiteral(field.DefaultValue);
+                    dict[field.Name] = ConvertValue(field, converter, value);
                 }
             }
+        }
+
+        private static object ConvertValue(
+            InputField field,
+            ITypeConversion converter,
+            object value)
+        {
+            if (value is { }
+                && field.ClrType != typeof(object)
+                && !field.ClrType.IsInstanceOfType(value))
+            {
+                value = converter.Convert(value.GetType(), field.ClrType, value);
+            }
+            return value;
         }
 
         private class DictionaryPoolPolicy
