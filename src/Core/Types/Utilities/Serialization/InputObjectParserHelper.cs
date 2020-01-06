@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using System;
 
 namespace HotChocolate.Utilities.Serialization
 {
@@ -56,7 +57,7 @@ namespace HotChocolate.Utilities.Serialization
                 ObjectFieldNode fieldValue = source.Fields[i];
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
-                    object value = field.Type.Deserialize(fieldValue.Value);
+                    object value = field.Type.ParseLiteral(fieldValue.Value);
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
@@ -144,10 +145,17 @@ namespace HotChocolate.Utilities.Serialization
             object value)
         {
             if (value is { }
-                && field.ClrType != typeof(object)
-                && !field.ClrType.IsInstanceOfType(value))
+                && field.ClrType != typeof(object))
             {
-                value = converter.Convert(value.GetType(), field.ClrType, value);
+                Type type = field.ClrType;
+
+                if (type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(Optional<>))
+                {
+                    type = type.GetGenericArguments()[0];
+                }
+
+                value = converter.Convert(value.GetType(), type, value);
             }
             return value;
         }
