@@ -1,8 +1,9 @@
+using HotChocolate;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Voyager;
 
 namespace HotChocolate.Server.Template
 {
