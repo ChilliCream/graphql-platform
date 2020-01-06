@@ -79,8 +79,10 @@ type PublishSchemaPayload {
 
 type Query {
   environmentById(id: ID!): Environment!
+  environmentByName(name: String!): Environment!
   environments(after: String before: String first: PaginationAmount last: PaginationAmount order_by: EnvironmentSort where: EnvironmentFilter): EnvironmentConnection
   environmentsById(ids: [ID!]! order_by: EnvironmentSort): [Environment!]!
+  environmentsByName(names: [String!]! order_by: EnvironmentSort): [Environment!]!
   schemaById(id: ID!): Schema!
   schemaByName(name: String!): Schema!
   schemas(after: String before: String first: PaginationAmount last: PaginationAmount order_by: SchemaSort where: SchemaFilter): SchemaConnection
@@ -393,7 +395,6 @@ input TagFilter {
 
 input TagInput {
   key: String!
-  published: DateTime!
   value: String!
 }
 
