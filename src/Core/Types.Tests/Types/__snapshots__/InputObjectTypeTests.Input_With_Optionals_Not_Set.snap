@@ -1,0 +1,12 @@
+﻿{
+  "Data": {
+    "do": {
+      "isBarSet": false,
+      "bar": null,
+      "baz": "abc"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

@@ -182,13 +182,13 @@ namespace HotChocolate.Configuration
         private void MergeTypeExtensions(DiscoveredTypes discoveredTypes)
         {
             var extensions = discoveredTypes.Types
-                .Where(t => t.Type is INamedTypeExtensionMerger)
+                .Where(t => t.IsExtension)
                 .ToList();
 
             if (extensions.Count > 0)
             {
                 var types = discoveredTypes.Types
-                    .Where(t => t.Type is INamedType)
+                    .Where(t => t.IsNamedType)
                     .ToList();
 
                 foreach (RegisteredType extension in extensions)
@@ -452,10 +452,13 @@ namespace HotChocolate.Configuration
                 TypeDependencyKind.Completed,
                 registeredType =>
                 {
-                    CompletionContext context = _completionContext[registeredType];
-                    context.Status = TypeStatus.Named;
-                    context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                    registeredType.Type.CompleteType(context);
+                    if (!registeredType.IsExtension)
+                    {
+                        CompletionContext context = _completionContext[registeredType];
+                        context.Status = TypeStatus.Named;
+                        context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                        registeredType.Type.CompleteType(context);
+                    }
                     return true;
                 });
 

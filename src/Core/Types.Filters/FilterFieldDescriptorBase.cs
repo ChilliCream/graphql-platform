@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Filters
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
 
-            AllowedOperations = context.GetFilterConvention().GetAllowedOperations(Definition);
+            AllowedOperations = _filterConventions.GetAllowedOperations(Definition);
         }
 
         internal protected sealed override FilterFieldDefintion Definition { get; } =

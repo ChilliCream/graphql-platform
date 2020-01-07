@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
-        [Fact(Skip = "Fix deserialization")]
+        [Fact]
         public async Task Dictionary_Is_Correctly_Deserialized()
         {
             // arrange
