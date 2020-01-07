@@ -22,7 +22,7 @@ namespace HotChocolate
             var descriptorContext = DescriptorContext.Create(
                 _options,
                 services,
-                CreateConventions(services));
+                _conventions);
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
@@ -349,20 +349,6 @@ namespace HotChocolate
             }
 
             return list;
-        }
-
-        private IReadOnlyDictionary<Type, IConvention> CreateConventions(
-            IServiceProvider services)
-        {
-            var serviceFactory = new ServiceFactory { Services = services };
-            var conventions = new Dictionary<Type, IConvention>();
-
-            foreach (KeyValuePair<Type, CreateConvention> item in _conventions)
-            {
-                conventions.Add(item.Key, item.Value(serviceFactory));
-            }
-
-            return conventions;
         }
     }
 }

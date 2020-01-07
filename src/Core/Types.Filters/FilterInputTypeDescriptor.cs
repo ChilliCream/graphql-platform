@@ -20,7 +20,8 @@ namespace HotChocolate.Types.Filters
 
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
-            Type entityType)
+            Type entityType,
+            string conventionName)
             : base(context)
         {
             _convention = context.GetFilterConvention();
@@ -295,7 +296,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public static FilterInputTypeDescriptor<T> New(
-            IDescriptorContext context, Type entityType) =>
-            new FilterInputTypeDescriptor<T>(context, entityType);
+            IDescriptorContext context, Type entityType, string conventionName) =>
+            new FilterInputTypeDescriptor<T>(context, entityType, conventionName);
     }
 }

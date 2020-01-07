@@ -65,6 +65,12 @@ namespace HotChocolate
             public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";
         }
 
+        public static class Convention
+        {
+            public const string WrongType = "CONVENTION_WRONG_TYPE";
+            public const string NonNull = "CONVENTION_NON_NULL";
+        }
+
         public static class Utilities
         {
             public const string UnknownField = "EXEC_VAR_UNKNOWN_FIELD";
