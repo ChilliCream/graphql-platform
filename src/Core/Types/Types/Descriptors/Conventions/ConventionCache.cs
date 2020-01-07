@@ -71,14 +71,15 @@ namespace HotChocolate.Types.Descriptors
                 = new ConcurrentDictionary<Type,
                     ConcurrentDictionary<string, Lazy<IConvention>>>();
 
-            foreach ((var name, Type type, CreateConvention convention) in configurations)
+            foreach (ConfigureNamedConvention configuration in configurations)
             {
                 ConcurrentDictionary<string, Lazy<IConvention>> conventionCache =
-                    conventions.GetOrAdd(type,
+                    conventions.GetOrAdd(configuration.Type,
                         (t) => new ConcurrentDictionary<string, Lazy<IConvention>>());
 
-                conventionCache[name] =
-                    new Lazy<IConvention>(() => convention.Invoke(serviceFactory));
+                conventionCache[configuration.Name] =
+                    new Lazy<IConvention>(() =>
+                        configuration.CreateConvention.Invoke(serviceFactory));
             }
 
             return new ConventionCache(serviceFactory, conventions);
