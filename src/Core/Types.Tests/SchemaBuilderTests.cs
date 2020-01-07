@@ -1273,6 +1273,32 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddNamedConvention_WithImplementation_Generic()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddNamedConvention<ITestConvention>("Test", TestConvention.Default)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention notNamed =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                    new TestConvention());
+            Assert.NotEqual(TestConvention.Default, notNamed);
+            Assert.Equal(TestConvention.Default, convention);
+        }
+
+        [Fact]
         public void AddConvention_WithImplementation_Generic()
         {
             // arrange

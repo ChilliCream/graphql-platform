@@ -12,5 +12,8 @@ namespace HotChocolate.Types.Descriptors
 
         T GetConventionOrDefault<T>(T defaultConvention)
             where T : class, IConvention;
+
+        T GetConventionOrDefault<T>(string name, T defaultConvention)
+            where T : class, IConvention;
     }
 }
