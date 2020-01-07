@@ -74,7 +74,11 @@ namespace HotChocolate.Types.Descriptors
 
             return _conventionCache.GetOrAdd<T>(name, (sp) =>
                 {
-                    if (!(sp.GetService(typeof(T)) is T convention))
+                    // TODO: add test case!
+                    // Conventions that are registered with dependency injection are only allowed
+                    // in default 
+                    if (name != Convention.DefaultName ||
+                        !(sp.GetService(typeof(T)) is T convention))
                     {
                         convention = defaultConvention();
                     }
