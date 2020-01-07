@@ -130,15 +130,10 @@ namespace HotChocolate.Types.Filters.Conventions
                     || elementType == typeof(bool)
                     || typeof(IComparable).IsAssignableFrom(elementType))
                 {
-                    field = new ArrayFilterFieldDescriptor(
-                        context,
-                        property,
-                        typeof(ISingleFilter<>).MakeGenericType(elementType));
+                    elementType = typeof(ISingleFilter<>).MakeGenericType(elementType);
                 }
-                else
-                {
-                    field = new ArrayFilterFieldDescriptor(context, property, elementType);
-                }
+
+                field = new ArrayFilterFieldDescriptor(context, property, elementType);
 
                 definition = field.CreateDefinition();
                 return true;

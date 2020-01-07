@@ -42,6 +42,7 @@ namespace HotChocolate
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";
             public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
+            public const string NoOperationNameFound = "FILTER_CONVENTION_NO_OPERATION_NAME_FOUND";
         }
 
         public static class Sorting

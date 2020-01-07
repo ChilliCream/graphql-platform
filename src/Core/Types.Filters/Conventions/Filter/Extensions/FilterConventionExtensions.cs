@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
@@ -234,7 +235,7 @@ namespace HotChocolate.Types.Filters.Conventions
                     .And();
         }
 
-        private static string GetNameForDefintion(FilterFieldDefintion definition)
+        private static string GetNameForDefintion(DefinitionBase definition)
         {
             var name = definition.Name.Value;
             if (name.Length > 1)

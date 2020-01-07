@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -76,15 +77,14 @@ namespace HotChocolate.Types.Filters.Conventions
                 return createDefaultFieldName(definition, kind);
             }
 
-            // Todo resources && set code
             throw new SchemaException(
                 SchemaErrorBuilder.New()
                 .SetMessage(
                     string.Format(
-                        "No operation name for {0} in filter type {1} found. Add operation"
-                        + "name to filter conventions",
+                        FilterResources.FilterConvention_NoOperationNameFound,
                         kind,
                         definition.Kind))
+                .SetCode(ErrorCodes.Filtering.NoOperationNameFound)
                 .Build());
         }
 
@@ -113,7 +113,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         private FilterConventionDefinition GetOrCreateConfiguration()
         {
-            lock (this)
+            lock (_definition)
             {
                 if (_definition == null)
                 {
@@ -123,6 +123,6 @@ namespace HotChocolate.Types.Filters.Conventions
             }
         }
 
-        public static IFilterConvention Default = new FilterConvention();
+        public readonly static IFilterConvention Default = new FilterConvention();
     }
 }

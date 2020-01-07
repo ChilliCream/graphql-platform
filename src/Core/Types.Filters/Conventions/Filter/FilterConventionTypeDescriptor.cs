@@ -36,9 +36,9 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
 
-        public IFilterConventionTypeDescriptor Name(NameString name)
+        public IFilterConventionTypeDescriptor Name(NameString factory)
         {
-            Definition.Name = name;
+            Definition.Name = factory;
             return this;
         }
 
@@ -74,7 +74,6 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public FilterConventionTypeDefinition CreateDefinition()
         {
-            Array values = Enum.GetValues(typeof(FilterKind));
             foreach (FilterConventionOperationDescriptor descriptor in _operations.Values)
             {
                 FilterConventionOperationDefinition definition = descriptor.CreateDefinition();

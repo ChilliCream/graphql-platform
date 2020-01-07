@@ -157,7 +157,7 @@ namespace HotChocolate.Types.Filters
 
             while (enumerator.MoveNext()
                 && !enumerator.Current(Context, type, property, out definition))
-                ;
+            {/**/}
 
             return definition != null;
         }

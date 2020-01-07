@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public abstract class FilterConventionOperationDescriptorBase
+    public class FilterConventionOperationDescriptorBase
         : IFilterConventionOperationDescriptorBase
     {
-        private readonly FilterConventionTypeDescriptor _descriptor;
-
-        protected FilterConventionOperationDescriptorBase( 
+        protected FilterConventionOperationDescriptorBase(
             FilterOperationKind kind)
-        { 
+        {
             Definition.OperationKind = kind;
         }
 
