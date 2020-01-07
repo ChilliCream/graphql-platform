@@ -1,27 +1,30 @@
 using McMaster.Extensions.CommandLineUtils;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
     public class InitCommandArguments
+        : AuthArgumentsBase
     {
         public InitCommandArguments(
             CommandArgument uri,
             CommandOption path,
             CommandOption schema,
             CommandOption token,
-            CommandOption scheme)
+            CommandOption scheme,
+            CommandOption tokenEndpoint,
+            CommandOption clientId,
+            CommandOption clientSecret,
+            CommandOption scopes)
+            : base(token, scheme, tokenEndpoint, clientId, clientSecret, scopes)
         {
             Uri = uri;
             Path = path;
             Schema = schema;
-            Token = token;
-            Scheme = scheme;
         }
 
         public CommandArgument Uri { get; }
         public CommandOption Path { get; }
         public CommandOption Schema { get; }
-        public CommandOption Token { get; }
-        public CommandOption Scheme { get; }
     }
 }

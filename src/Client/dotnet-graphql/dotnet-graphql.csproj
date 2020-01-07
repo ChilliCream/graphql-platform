@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.4.2" />
+    <PackageReference Include="IdentityModel" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>

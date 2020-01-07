@@ -25,6 +25,26 @@ namespace StrawberryShake.Tools
                 "The schema name.",
                 CommandOptionType.SingleValue);
 
+            CommandOption tokenEndpointArg = init.Option(
+                "--tokenEndpoint",
+                "The token endpoint uri.",
+                CommandOptionType.SingleValue);
+
+            CommandOption clientId = init.Option(
+                "--clientId",
+                "The client id.",
+                CommandOptionType.SingleValue);
+
+            CommandOption clientSecret = init.Option(
+                "--clientSecret",
+                "The client secret.",
+                CommandOptionType.SingleValue);
+
+            CommandOption scopes = init.Option(
+                "--scope",
+                "A custom scope that shall be passed along with the token request.",
+                CommandOptionType.MultipleValue);
+
             CommandOption tokenArg = init.Option(
                 "-t|--token",
                 "The token that shall be used to autheticate with the GraphQL server.",
@@ -43,7 +63,15 @@ namespace StrawberryShake.Tools
             init.OnExecuteAsync(cancellationToken =>
             {
                 var arguments = new InitCommandArguments(
-                    uriArg, pathArg, schemaArg, tokenArg, schemeArg);
+                    uriArg,
+                    pathArg,
+                    schemaArg,
+                    tokenArg,
+                    schemeArg,
+                    tokenEndpointArg,
+                    clientId,
+                    clientSecret,
+                    scopes);
                 var handler = CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });

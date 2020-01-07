@@ -8,10 +8,10 @@ using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools
 {
-    public class DownloadCommandHandler
+    public class PublishSchemaCommandHandler
         : CommandHandler<DownloadCommandArguments>
     {
-        public DownloadCommandHandler(
+        public PublishSchemaCommandHandler(
             IFileSystem fileSystem,
             IHttpClientFactory httpClientFactory,
             IConfigurationStore configurationStore,

@@ -20,6 +20,8 @@ namespace StrawberryShake.Tools
                 "The file name to store the schema SDL.",
                 CommandOptionType.SingleValue);
 
+            
+
             CommandOption tokenArg = init.Option(
                 "-t|--token",
                 "The token that shall be used to autheticate with the GraphQL server.",
