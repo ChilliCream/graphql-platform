@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Types.Sorting\Types.Sorting.csproj" />
     <ProjectReference Include="..\Types\Types.csproj" />
     <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
     <ProjectReference Include="..\Types.Tests\Types.Tests.csproj" />

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types.Relay;
+using HotChocolate.Types.Sorting;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -416,6 +418,77 @@ namespace HotChocolate.Types.Filters
 
             // assert
             result.MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Execute_Filter_OvervariablesWithPaginationAndSorting()
+        {
+
+            // arrange
+            var foos = new Foo[]
+                {
+                    new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+                    new Foo { Bar = "ba", Baz = 1 },
+                    new Foo { Bar = "ca", Baz = 2 },
+                    new Foo { Bar = "ab", Baz = 2 },
+                    new Foo { Bar = "ac", Baz = 2 },
+                    new Foo { Bar = "ad", Baz = 2 },
+                    new Foo { Bar = null, Baz = 0 }
+                };
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d
+                  .Field("FoosConnection")
+                  .UsePaging<FooType>()
+                  .UseFiltering<FooFilterType>()
+                  .UseSorting<FooSortType>()
+                  .Resolver(x => foos))
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+            var variables = new Dictionary<string, object>()
+            {
+                {"filter", new { baz_gt = 1} }
+            };
+            var query = @"query GetFooList($filter: FooFilter!) {
+                FoosConnection(where: $filter) {
+                    totalCount
+                }
+            }";
+
+            // act
+            IExecutionResult result = executor.Execute(
+                query, variables);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        public class FooFilterType : FilterInputType<Foo>
+        {
+            protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
+            {
+                base.Configure(descriptor);
+                descriptor.BindFieldsExplicitly().Filter(x => x.Baz);
+            }
+        }
+
+        public class FooType : ObjectType<Foo>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+            {
+                base.Configure(descriptor);
+                descriptor.BindFieldsExplicitly().Field(x => x.Baz);
+            }
+        }
+
+        public class FooSortType : SortInputType<Foo>
+        {
+            protected override void Configure(ISortInputTypeDescriptor<Foo> descriptor)
+            {
+                base.Configure(descriptor);
+                descriptor.BindFieldsExplicitly().Sortable(x => x.Baz);
+            }
         }
 
         public class FooDateTime
