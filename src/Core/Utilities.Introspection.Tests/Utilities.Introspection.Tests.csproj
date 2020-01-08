@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Utilities.Introspection\Utilities.Introspection.csproj" />
-    <ProjectReference Include="..\..\AspNetCore.Tests\AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\Server\AspNetCore.Tests\AspNetCore.Tests.csproj" />
   </ItemGroup>
 
 </Project>

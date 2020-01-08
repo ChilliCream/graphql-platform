@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -12,6 +13,7 @@ namespace HotChocolate.Utilities.Introspection
 {
     public class IntrospectionClient : IIntrospectionClient
     {
+        private const string _jsonContentType = "application/json";
         private static readonly JsonSerializerOptions _serializerOptions;
 
         static IntrospectionClient()
@@ -112,12 +114,19 @@ namespace HotChocolate.Utilities.Introspection
             HttpQueryRequest request,
             CancellationToken cancellationToken)
         {
-            byte[] serializedRequest = JsonSerializer.SerializeToUtf8Bytes(request);
+            byte[] serializedRequest = JsonSerializer.SerializeToUtf8Bytes(
+                request, _serializerOptions);
 
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, client.BaseAddress);
-            httpRequest.Content = new ByteArrayContent(serializedRequest);
-            using HttpResponseMessage httpResponse =
-                await client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            var content = new ByteArrayContent(serializedRequest);
+            content.Headers.ContentType = new MediaTypeHeaderValue(_jsonContentType);
+
+            using var httpRequest = new HttpRequestMessage(
+                HttpMethod.Post, client.BaseAddress);
+            httpRequest.Content = content;
+
+            using HttpResponseMessage httpResponse = await client.SendAsync(
+                httpRequest, cancellationToken)
+                .ConfigureAwait(false);
             httpResponse.EnsureSuccessStatusCode();
 
             using Stream stream = await httpResponse.Content.ReadAsStreamAsync()
