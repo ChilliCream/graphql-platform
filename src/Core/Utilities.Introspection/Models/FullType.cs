@@ -1,3 +1,4 @@
+#pragma warning disable CA1812
 using System.Collections.Generic;
 
 #nullable disable
@@ -16,3 +17,4 @@ namespace HotChocolate.Utilities.Introspection
         public ICollection<TypeRef> PossibleTypes { get; set; }
     }
 }
+#pragma warning restore CA1812

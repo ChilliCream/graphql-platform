@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿#pragma warning disable CA1812
+using System.Collections.Generic;
 
 #nullable disable
 
 namespace HotChocolate.Utilities.Introspection
 {
-
     internal class Directive
     {
         public string Name { get; set; }
@@ -17,3 +17,5 @@ namespace HotChocolate.Utilities.Introspection
         public bool OnField { get; set; }
     }
 }
+
+#pragma warning restore CA1812

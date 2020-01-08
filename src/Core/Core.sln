@@ -69,6 +69,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Mongo.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.Introspection", "Utilities.Introspection\Utilities.Introspection.csproj", "{68C4C942-3C35-490B-9366-37B516A25566}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.Introspection.Tests", "Utilities.Introspection.Tests\Utilities.Introspection.Tests.csproj", "{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -463,6 +465,18 @@ Global
 		{68C4C942-3C35-490B-9366-37B516A25566}.Release|x64.Build.0 = Release|Any CPU
 		{68C4C942-3C35-490B-9366-37B516A25566}.Release|x86.ActiveCfg = Release|Any CPU
 		{68C4C942-3C35-490B-9366-37B516A25566}.Release|x86.Build.0 = Release|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Debug|x64.Build.0 = Debug|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Debug|x86.Build.0 = Debug|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Release|x64.ActiveCfg = Release|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Release|x64.Build.0 = Release|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Release|x86.ActiveCfg = Release|Any CPU
+		{ABEAB433-0D17-4B46-BADA-D7FA5FC98E6F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

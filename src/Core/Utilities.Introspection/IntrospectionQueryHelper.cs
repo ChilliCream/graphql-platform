@@ -40,10 +40,20 @@ namespace HotChocolate.Utilities.Introspection
             FieldNode schema =
                 operation.SelectionSet.Selections.OfType<FieldNode>().First();
 
+            if (schema.SelectionSet is null)
+            {
+                throw new IntrospectionException();
+            }
+
             FieldNode directives =
                 schema.SelectionSet.Selections.OfType<FieldNode>().First(t =>
                     t.Name.Value.Equals(_directivesField,
                         StringComparison.Ordinal));
+
+            if (directives.SelectionSet is null)
+            {
+                throw new IntrospectionException();
+            }
 
             var selections = directives.SelectionSet.Selections.ToList();
             AddDirectiveFeatures(features, selections);
@@ -120,8 +130,10 @@ namespace HotChocolate.Utilities.Introspection
 
         private static string GetQueryFile(string fileName)
         {
+#pragma warning disable CS8600
             Stream stream = typeof(IntrospectionClient).Assembly
                 .GetManifestResourceStream($"{_resourceNamespace}.{fileName}");
+#pragma warning restore CS8600
 
             if (stream != null)
             {
@@ -139,7 +151,7 @@ namespace HotChocolate.Utilities.Introspection
                 }
             }
 
-            return null;
+            throw new IntrospectionException("Could not find query file: " + fileName);
         }
     }
 }

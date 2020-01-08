@@ -1,3 +1,4 @@
+#pragma warning disable CA1812
 #nullable disable
 
 using System.Collections.Generic;
@@ -11,3 +12,4 @@ namespace HotChocolate.Utilities.Introspection
         public List<IntrospectionError> Errors { get; set; }
     }
 }
+#pragma warning restore CA1812

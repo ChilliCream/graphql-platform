@@ -83,22 +83,22 @@ namespace HotChocolate.Utilities.Introspection
         {
             switch (type.Kind)
             {
-                case TypeKind.Enum:
+                case TypeKind.ENUM:
                     return CreateEnumType(type);
 
-                case TypeKind.Input_Object:
+                case TypeKind.INPUT_OBJECT:
                     return CreateInputObject(type);
 
-                case TypeKind.Interface:
+                case TypeKind.INTERFACE:
                     return CreateInterface(type);
 
-                case TypeKind.Object:
+                case TypeKind.OBJECT:
                     return CreateObject(type);
 
-                case TypeKind.Scalar:
+                case TypeKind.SCALAR:
                     return CreateScalar(type);
 
-                case TypeKind.Union:
+                case TypeKind.UNION:
                     return CreateUnion(type);
 
                 default:
@@ -358,7 +358,7 @@ namespace HotChocolate.Utilities.Introspection
 
         private static ITypeNode CreateTypeReference(TypeRef typeRef)
         {
-            if (typeRef.Kind == TypeKind.Non_Null)
+            if (typeRef.Kind == TypeKind.NON_NULL)
             {
                 return new NonNullTypeNode
                 (
@@ -366,7 +366,7 @@ namespace HotChocolate.Utilities.Introspection
                 );
             }
 
-            if (typeRef.Kind == TypeKind.List)
+            if (typeRef.Kind == TypeKind.LIST)
             {
                 return new ListTypeNode
                 (
@@ -376,15 +376,5 @@ namespace HotChocolate.Utilities.Introspection
 
             return new NamedTypeNode(new NameNode(typeRef.Name));
         }
-    }
-
-    internal static class WellKnownDirectives
-    {
-        public const string Skip = "skip";
-        public const string Include = "include";
-        public const string IfArgument = "if";
-        public const string Deprecated = "deprecated";
-        public const string DeprecationReasonArgument = "reason";
-        public const string DeprecationDefaultReason = "No longer supported";
     }
 }

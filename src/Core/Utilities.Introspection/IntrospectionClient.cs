@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -13,17 +12,30 @@ namespace HotChocolate.Utilities.Introspection
 {
     public class IntrospectionClient : IIntrospectionClient
     {
-        private static readonly JsonSerializerOptions _serializerOptions =
-            new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
+        private static readonly JsonSerializerOptions _serializerOptions;
+
+        static IntrospectionClient()
+        {
+            var options = new JsonSerializerOptions();
+            options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.Converters.Add(new JsonStringEnumConverter());
+            _serializerOptions = options;
+        }
+
+        internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
+
+        public static IntrospectionClient Default { get; } = new IntrospectionClient();
 
         public async Task DownloadSchemaAsync(
             HttpClient client,
             Stream stream,
             CancellationToken cancellationToken = default)
         {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
             DocumentNode document = await DownloadSchemaAsync(
                 client, cancellationToken)
                 .ConfigureAwait(false);
@@ -38,6 +50,11 @@ namespace HotChocolate.Utilities.Introspection
             HttpClient client,
             CancellationToken cancellationToken = default)
         {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
             ISchemaFeatures features = await GetSchemaFeaturesAsync(
                 client, cancellationToken)
                 .ConfigureAwait(false);
@@ -56,6 +73,11 @@ namespace HotChocolate.Utilities.Introspection
             HttpClient client,
             CancellationToken cancellationToken = default)
         {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
             HttpQueryRequest request = IntrospectionQueryHelper.CreateFeatureQuery();
 
             IntrospectionResult result = await ExecuteIntrospectionAsync(
@@ -92,9 +114,9 @@ namespace HotChocolate.Utilities.Introspection
         {
             byte[] serializedRequest = JsonSerializer.SerializeToUtf8Bytes(request);
 
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, client.BaseAddress);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, client.BaseAddress);
             httpRequest.Content = new ByteArrayContent(serializedRequest);
-            HttpResponseMessage httpResponse =
+            using HttpResponseMessage httpResponse =
                 await client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             httpResponse.EnsureSuccessStatusCode();
 
