@@ -27,7 +27,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             DocumentNode document = CreateIntrospectionQueryDocument(features);
             string sourceText = QuerySyntaxSerializer.Serialize(document, false);
-            return new HttpQueryRequest(sourceText, sourceText);
+            return new HttpQueryRequest(sourceText, "introspection_phase_2");
         }
 
         private static DocumentNode CreateIntrospectionQueryDocument(ISchemaFeatures features)

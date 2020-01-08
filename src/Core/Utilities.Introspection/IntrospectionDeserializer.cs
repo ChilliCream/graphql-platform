@@ -132,7 +132,7 @@ namespace HotChocolate.Utilities.Introspection
                     null,
                     new NameNode(value.Name),
                     CreateDescription(value.Description),
-                    CreateDepricatedDirective(
+                    CreateDeprecatedDirective(
                         value.IsDeprecated,
                         value.DeprecationReason)
                 ));
@@ -150,11 +150,11 @@ namespace HotChocolate.Utilities.Introspection
                 new NameNode(type.Name),
                 CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
-                CreateInputVals(type.InputFields)
+                CreateInputValues(type.InputFields)
             );
         }
 
-        private static IReadOnlyList<InputValueDefinitionNode> CreateInputVals(
+        private static IReadOnlyList<InputValueDefinitionNode> CreateInputValues(
             IEnumerable<InputField> fields)
         {
             var list = new List<InputValueDefinitionNode>();
@@ -214,9 +214,9 @@ namespace HotChocolate.Utilities.Introspection
                     null,
                     new NameNode(field.Name),
                     CreateDescription(field.Description),
-                    CreateInputVals(field.Args),
+                    CreateInputValues(field.Args),
                     CreateTypeReference(field.Type),
-                    CreateDepricatedDirective(
+                    CreateDeprecatedDirective(
                         field.IsDeprecated,
                         field.DeprecationReason)
                 ));
@@ -262,7 +262,7 @@ namespace HotChocolate.Utilities.Introspection
                 new NameNode(directive.Name),
                 CreateDescription(directive.Description),
                 directive.IsRepeatable,
-                CreateInputVals(directive.Args),
+                CreateInputValues(directive.Args),
                 locations
             );
         }
@@ -314,10 +314,10 @@ namespace HotChocolate.Utilities.Introspection
             return list;
         }
 
-        private static IReadOnlyList<DirectiveNode> CreateDepricatedDirective(
-            bool isDepricated, string deprecationReason)
+        private static IReadOnlyList<DirectiveNode> CreateDeprecatedDirective(
+            bool isDeprecated, string deprecationReason)
         {
-            if (isDepricated)
+            if (isDeprecated)
             {
                 return new List<DirectiveNode>
                 {

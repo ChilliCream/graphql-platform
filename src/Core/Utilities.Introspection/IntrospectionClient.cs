@@ -16,6 +16,7 @@ namespace HotChocolate.Utilities.Introspection
         private const string _jsonContentType = "application/json";
         private static readonly JsonSerializerOptions _serializerOptions;
 
+#pragma warning disable CA1810
         static IntrospectionClient()
         {
             var options = new JsonSerializerOptions();
@@ -23,6 +24,7 @@ namespace HotChocolate.Utilities.Introspection
             options.Converters.Add(new JsonStringEnumConverter());
             _serializerOptions = options;
         }
+#pragma warning restore CA1810
 
         internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
 
@@ -36,6 +38,11 @@ namespace HotChocolate.Utilities.Introspection
             if (client is null)
             {
                 throw new ArgumentNullException(nameof(client));
+            }
+
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
             }
 
             DocumentNode document = await DownloadSchemaAsync(
@@ -68,7 +75,7 @@ namespace HotChocolate.Utilities.Introspection
                 .ConfigureAwait(false);
             EnsureNoGraphQLErrors(result);
 
-            return IntrospectionDeserializer.Deserialize(result);
+            return IntrospectionDeserializer.Deserialize(result).RemoveBuiltInTypes();
         }
 
         public async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
