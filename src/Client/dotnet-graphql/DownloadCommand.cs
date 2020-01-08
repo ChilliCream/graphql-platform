@@ -1,4 +1,5 @@
 using McMaster.Extensions.CommandLineUtils;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
@@ -6,44 +7,38 @@ namespace StrawberryShake.Tools
     {
         public static CommandLineApplication Create()
         {
-            var init = new CommandLineApplication();
-            init.AddName("download");
-            init.AddHelp<InitHelpTextGenerator>();
+            var download = new CommandLineApplication();
+            download.AddName("download");
+            download.AddHelp<InitHelpTextGenerator>();
 
-            CommandArgument uriArg = init.Argument(
+            CommandArgument uriArg = download.Argument(
                 "uri",
                 "The URL to the GraphQL endpoint.",
                 c => c.IsRequired());
 
-            CommandOption fileNameArg = init.Option(
+            CommandOption fileNameArg = download.Option(
                 "-f|--FileName",
                 "The file name to store the schema SDL.",
                 CommandOptionType.SingleValue);
 
-            CommandOption tokenArg = init.Option(
-                "-t|--token",
-                "The token that shall be used to autheticate with the GraphQL server.",
-                CommandOptionType.SingleValue);
-
-            CommandOption schemeArg = init.Option(
-                "-s|--scheme",
-                "The token scheme (default: bearer).",
-                CommandOptionType.SingleValue);
-
-            CommandOption jsonArg = init.Option(
+            CommandOption jsonArg = download.Option(
                 "-j|--json",
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
-            init.OnExecuteAsync(cancellationToken =>
+            AuthArguments authArguments = download.AddAuthArguments();
+
+            download.OnExecuteAsync(cancellationToken =>
             {
                 var arguments = new DownloadCommandArguments(
-                    uriArg, fileNameArg, tokenArg, schemeArg);
+                    uriArg,
+                    fileNameArg,
+                    authArguments);
                 var handler = CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
 
-            return init;
+            return download;
         }
     }
 }

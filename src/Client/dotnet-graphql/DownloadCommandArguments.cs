@@ -1,4 +1,5 @@
 using McMaster.Extensions.CommandLineUtils;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
@@ -7,18 +8,15 @@ namespace StrawberryShake.Tools
         public DownloadCommandArguments(
             CommandArgument uri,
             CommandOption fileName,
-            CommandOption token,
-            CommandOption scheme)
+            AuthArguments authArguments)
         {
             Uri = uri;
             FileName = fileName;
-            Token = token;
-            Scheme = scheme;
+            AuthArguments = authArguments;
         }
 
         public CommandArgument Uri { get; }
         public CommandOption FileName { get; }
-        public CommandOption Token { get; }
-        public CommandOption Scheme { get; }
+        public AuthArguments AuthArguments { get; }
     }
 }

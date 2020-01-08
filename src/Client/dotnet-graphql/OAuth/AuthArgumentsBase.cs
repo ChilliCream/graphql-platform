@@ -7,11 +7,11 @@ using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools.OAuth
 {
-    public class AuthArgumentsBase
+    public sealed class AuthArguments
     {
         private const string _defaultScheme = "bearer";
 
-        protected AuthArgumentsBase(
+        public AuthArguments(
             CommandOption token,
             CommandOption scheme,
             CommandOption tokenEndpoint,

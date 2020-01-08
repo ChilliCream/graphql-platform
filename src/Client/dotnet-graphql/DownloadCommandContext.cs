@@ -8,7 +8,7 @@ namespace StrawberryShake.Tools
             Uri uri,
             string fileName,
             string? token,
-            string scheme)
+            string? scheme)
         {
             Uri = uri;
             FileName = fileName;
@@ -19,6 +19,6 @@ namespace StrawberryShake.Tools
         public Uri Uri { get; }
         public string FileName { get; }
         public string? Token { get; }
-        public string Scheme { get; }
+        public string? Scheme { get; }
     }
 }

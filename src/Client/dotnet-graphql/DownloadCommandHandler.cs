@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection;
+using StrawberryShake.Tools.OAuth;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools
@@ -37,16 +38,21 @@ namespace StrawberryShake.Tools
         {
             using IDisposable command = Output.WriteCommand();
 
+            AccessToken? accessToken =
+                await arguments.AuthArguments
+                    .RequestTokenAsync(Output, cancellationToken)
+                    .ConfigureAwait(false);
+
             var context = new DownloadCommandContext(
                 new Uri(arguments.Uri.Value!),
                 FileSystem.ResolvePath(arguments.FileName.Value()?.Trim(), "schema.graphql"),
-                arguments.Token.Value()?.Trim(),
-                arguments.Scheme.Value()?.Trim() ?? "bearer");
+                accessToken?.Token,
+                accessToken?.Scheme);
 
             FileSystem.EnsureDirectoryExists(
                 FileSystem.GetDirectoryName(context.FileName));
 
-            return await DownloadSchemaAsync(context) ? 0 : 1;
+            return await DownloadSchemaAsync(context).ConfigureAwait(false) ? 0 : 1;
         }
 
         private async Task<bool> DownloadSchemaAsync(DownloadCommandContext context)
@@ -57,12 +63,15 @@ namespace StrawberryShake.Tools
             {
                 HttpClient client = HttpClientFactory.Create(
                     context.Uri, context.Token, context.Scheme);
-                DocumentNode schema = await IntrospectionClient.LoadSchemaAsync(client);
+                DocumentNode schema =
+                    await IntrospectionClient.LoadSchemaAsync(client)
+                        .ConfigureAwait(false);
                 schema = IntrospectionClient.RemoveBuiltInTypes(schema);
 
                 await FileSystem.WriteToAsync(context.FileName, stream =>
                     Task.Run(() => SchemaSyntaxSerializer.Serialize(
-                        schema, stream, true)));
+                        schema, stream, true)))
+                        .ConfigureAwait(false);
                 return true;
             }
             catch (HttpRequestException ex)

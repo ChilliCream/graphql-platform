@@ -1,4 +1,5 @@
 using McMaster.Extensions.CommandLineUtils;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
@@ -25,40 +26,12 @@ namespace StrawberryShake.Tools
                 "The schema name.",
                 CommandOptionType.SingleValue);
 
-            CommandOption tokenEndpointArg = init.Option(
-                "--tokenEndpoint",
-                "The token endpoint uri.",
-                CommandOptionType.SingleValue);
-
-            CommandOption clientId = init.Option(
-                "--clientId",
-                "The client id.",
-                CommandOptionType.SingleValue);
-
-            CommandOption clientSecret = init.Option(
-                "--clientSecret",
-                "The client secret.",
-                CommandOptionType.SingleValue);
-
-            CommandOption scopes = init.Option(
-                "--scope",
-                "A custom scope that shall be passed along with the token request.",
-                CommandOptionType.MultipleValue);
-
-            CommandOption tokenArg = init.Option(
-                "-t|--token",
-                "The token that shall be used to autheticate with the GraphQL server.",
-                CommandOptionType.SingleValue);
-
-            CommandOption schemeArg = init.Option(
-                "-s|--scheme",
-                "The token scheme (default: bearer).",
-                CommandOptionType.SingleValue);
-
             CommandOption jsonArg = init.Option(
                 "-j|--json",
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
+
+            AuthArguments authArguments = init.AddAuthArguments();
 
             init.OnExecuteAsync(cancellationToken =>
             {
@@ -66,12 +39,7 @@ namespace StrawberryShake.Tools
                     uriArg,
                     pathArg,
                     schemaArg,
-                    tokenArg,
-                    schemeArg,
-                    tokenEndpointArg,
-                    clientId,
-                    clientSecret,
-                    scopes);
+                    authArguments);
                 var handler = CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });

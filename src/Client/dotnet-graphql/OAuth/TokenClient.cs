@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -28,18 +27,5 @@ namespace StrawberryShake.Tools.OAuth
                 cancellationToken).ConfigureAwait(false);
             return tokenRes.AccessToken;
         }
-    }
-
-    public class AccessToken
-    {
-        public AccessToken(string token, string scheme)
-        {
-            Token = token;
-            Scheme = scheme;
-        }
-
-        public string Token { get; }
-
-        public string Scheme { get; }
     }
 }

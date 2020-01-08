@@ -39,7 +39,8 @@ namespace StrawberryShake.Tools
             using IDisposable command = Output.WriteCommand();
 
             AccessToken? accessToken =
-                await arguments.RequestTokenAsync(Output, cancellationToken)
+                await arguments.AuthArguments
+                    .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
 
             var context = new InitCommandContext(
@@ -51,9 +52,9 @@ namespace StrawberryShake.Tools
 
             FileSystem.EnsureDirectoryExists(context.Path);
 
-            if (await DownloadSchemaAsync(context))
+            if (await DownloadSchemaAsync(context).ConfigureAwait(false))
             {
-                await WriteConfigurationAsync(context, cancellationToken);
+                await WriteConfigurationAsync(context, cancellationToken).ConfigureAwait(false);
                 return 0;
             }
 
@@ -68,14 +69,19 @@ namespace StrawberryShake.Tools
             {
                 HttpClient client = HttpClientFactory.Create(
                     context.Uri, context.Token, context.Scheme);
-                DocumentNode schema = await IntrospectionClient.LoadSchemaAsync(client);
+                DocumentNode schema =
+                    await IntrospectionClient
+                        .LoadSchemaAsync(client)
+                        .ConfigureAwait(false);
                 schema = IntrospectionClient.RemoveBuiltInTypes(schema);
 
                 string schemaFilePath = FileSystem.CombinePath(
                     context.Path, context.SchemaFileName);
-                await FileSystem.WriteToAsync(schemaFilePath, stream =>
-                    Task.Run(() => SchemaSyntaxSerializer.Serialize(
-                        schema, stream, true)));
+                await FileSystem.WriteToAsync(
+                    schemaFilePath,
+                    stream => Task.Run(() =>
+                        SchemaSyntaxSerializer.Serialize(schema, stream, true)))
+                    .ConfigureAwait(false);
                 return true;
             }
             catch (HttpRequestException ex)
@@ -106,7 +112,7 @@ namespace StrawberryShake.Tools
                 Url = context.Uri.ToString()
             });
 
-            await ConfigurationStore.SaveAsync(context.Path, configuration);
+            await ConfigurationStore.SaveAsync(context.Path, configuration).ConfigureAwait(false);
         }
     }
 }

@@ -20,11 +20,29 @@ namespace StrawberryShake.Tools
                 "The file name to store the schema SDL.",
                 CommandOptionType.SingleValue);
 
-            
+            CommandOption tokenEndpointArg = init.Option(
+                "--tokenEndpoint",
+                "The token endpoint uri.",
+                CommandOptionType.SingleValue);
+
+            CommandOption clientId = init.Option(
+                "--clientId",
+                "The client id.",
+                CommandOptionType.SingleValue);
+
+            CommandOption clientSecret = init.Option(
+                "--clientSecret",
+                "The client secret.",
+                CommandOptionType.SingleValue);
+
+            CommandOption scopes = init.Option(
+                "--scope",
+                "A custom scope that shall be passed along with the token request.",
+                CommandOptionType.MultipleValue);
 
             CommandOption tokenArg = init.Option(
                 "-t|--token",
-                "The token that shall be used to autheticate with the GraphQL server.",
+                "The token that shall be used to authenticate with the GraphQL server.",
                 CommandOptionType.SingleValue);
 
             CommandOption schemeArg = init.Option(
@@ -39,9 +57,16 @@ namespace StrawberryShake.Tools
 
             init.OnExecuteAsync(cancellationToken =>
             {
-                var arguments = new DownloadCommandArguments(
-                    uriArg, fileNameArg, tokenArg, schemeArg);
-                var handler = CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
+                var arguments = new PublishSchemaCommandArguments(
+                    uriArg,
+                    fileNameArg,
+                    tokenArg,
+                    schemeArg,
+                    tokenEndpointArg,
+                    clientId,
+                    clientSecret,
+                    scopes);
+                var handler = CommandTools.CreateHandler<PublishSchemaCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
 
