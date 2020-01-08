@@ -81,7 +81,8 @@ namespace HotChocolate.Types
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t),
-                t => Assert.Equal("c", t));
+                t => Assert.Equal("c", t),
+                t => Assert.Equal("d", t));
         }
 
         [Fact]
@@ -99,7 +100,8 @@ namespace HotChocolate.Types
                     .Select(t => t.Name)
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
-                t => Assert.Equal("c", t));
+                t => Assert.Equal("c", t),
+                t => Assert.Equal("d", t));
         }
 
 
@@ -112,6 +114,26 @@ namespace HotChocolate.Types
             // act
             descriptor.Field(t => t.B).Ignore();
             descriptor.Field(t => t.B).Ignore(false);
+
+            // assert
+            Assert.Collection(
+                descriptor.CreateDefinition().Fields
+                    .Select(t => t.Name)
+                    .OrderBy(t => t),
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("b", t),
+                t => Assert.Equal("c", t),
+                t => Assert.Equal("d", t));
+        }
+
+        [Fact]
+        public void IgnoreHiddenPropertyField()
+        {
+            // arrange
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
+
+            // act
+            descriptor.Field(t => t.D).Ignore();
 
             // assert
             Assert.Collection(
@@ -140,7 +162,8 @@ namespace HotChocolate.Types
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t),
-                t => Assert.Equal("c", t));
+                t => Assert.Equal("c", t),
+                t => Assert.Equal("d", t));
         }
 
         [Fact]
@@ -162,6 +185,7 @@ namespace HotChocolate.Types
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t),
                 t => Assert.Equal("c", t),
+                t => Assert.Equal("d", t),
                 t => Assert.Equal("equals", t));
         }
 
@@ -202,7 +226,7 @@ namespace HotChocolate.Types
             public string A { get; set; }
             public override string B { get; set; }
             public string C { get; set; }
-
+            public new bool D { get; set; }
             public override bool Equals(object obj) => true;
 
             public override int GetHashCode() => 0;
@@ -217,6 +241,8 @@ namespace HotChocolate.Types
         public class FooBase
         {
             public virtual string B { get; set; }
+
+            public string D { get; set; }
         }
 
         public class BarType
