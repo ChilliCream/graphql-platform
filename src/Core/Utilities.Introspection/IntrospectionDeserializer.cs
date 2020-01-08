@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Utilities.Introspection.Properties;
 
 namespace HotChocolate.Utilities.Introspection
 {
@@ -102,7 +103,7 @@ namespace HotChocolate.Utilities.Introspection
 
                 default:
                     throw new NotSupportedException(
-                        StitchingResources.Type_NotSupported);
+                        IntroResources.Type_NotSupported);
             }
         }
 
@@ -132,7 +133,7 @@ namespace HotChocolate.Utilities.Introspection
                     new NameNode(value.Name),
                     CreateDescription(value.Description),
                     CreateDepricatedDirective(
-                        value.IsDepricated,
+                        value.IsDeprecated,
                         value.DeprecationReason)
                 ));
             }
@@ -216,7 +217,7 @@ namespace HotChocolate.Utilities.Introspection
                     CreateInputVals(field.Args),
                     CreateTypeReference(field.Type),
                     CreateDepricatedDirective(
-                        field.IsDepricated,
+                        field.IsDeprecated,
                         field.DeprecationReason)
                 ));
             }
@@ -334,7 +335,7 @@ namespace HotChocolate.Utilities.Introspection
             return Array.Empty<DirectiveNode>();
         }
 
-        private static StringValueNode CreateDescription(string description)
+        private static StringValueNode? CreateDescription(string description)
         {
             return string.IsNullOrEmpty(description)
                 ? null
@@ -375,5 +376,15 @@ namespace HotChocolate.Utilities.Introspection
 
             return new NamedTypeNode(new NameNode(typeRef.Name));
         }
+    }
+
+    internal static class WellKnownDirectives
+    {
+        public const string Skip = "skip";
+        public const string Include = "include";
+        public const string IfArgument = "if";
+        public const string Deprecated = "deprecated";
+        public const string DeprecationReasonArgument = "reason";
+        public const string DeprecationDefaultReason = "No longer supported";
     }
 }
