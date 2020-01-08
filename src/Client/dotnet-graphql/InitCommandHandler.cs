@@ -52,7 +52,7 @@ namespace StrawberryShake.Tools
 
             FileSystem.EnsureDirectoryExists(context.Path);
 
-            if (await DownloadSchemaAsync(context).ConfigureAwait(false))
+            if (await DownloadSchemaAsync(context, cancellationToken).ConfigureAwait(false))
             {
                 await WriteConfigurationAsync(context, cancellationToken).ConfigureAwait(false);
                 return 0;
@@ -61,38 +61,22 @@ namespace StrawberryShake.Tools
             return 1;
         }
 
-        private async Task<bool> DownloadSchemaAsync(InitCommandContext context)
+        private async Task<bool> DownloadSchemaAsync(
+            InitCommandContext context,
+            CancellationToken cancellationToken)
         {
             using var activity = Output.WriteActivity("Download schema");
 
-            try
-            {
-                HttpClient client = HttpClientFactory.Create(
-                    context.Uri, context.Token, context.Scheme);
-                DocumentNode schema =
-                    await IntrospectionClient
-                        .LoadSchemaAsync(client)
-                        .ConfigureAwait(false);
-                schema = IntrospectionClient.RemoveBuiltInTypes(schema);
+            string schemaFilePath = FileSystem.CombinePath(
+                context.Path, context.SchemaFileName);
 
-                string schemaFilePath = FileSystem.CombinePath(
-                    context.Path, context.SchemaFileName);
-                await FileSystem.WriteToAsync(
-                    schemaFilePath,
-                    stream => Task.Run(() =>
-                        SchemaSyntaxSerializer.Serialize(schema, stream, true)))
-                    .ConfigureAwait(false);
-                return true;
-            }
-            catch (HttpRequestException ex)
-            {
-                activity.WriteError(
-                    HCErrorBuilder.New()
-                        .SetMessage(ex.Message)
-                        .SetCode("HTTP_ERROR")
-                        .Build());
-                return false;
-            }
+            HttpClient client = HttpClientFactory.Create(
+                context.Uri, context.Token, context.Scheme);
+
+            return await IntrospectionHelper.DownloadSchemaAsync(
+                client, FileSystem, activity, schemaFilePath,
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private async Task WriteConfigurationAsync(

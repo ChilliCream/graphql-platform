@@ -101,36 +101,20 @@ namespace StrawberryShake.Tools
         private async Task<bool> DownloadSchemaAsync(
             UpdateCommandContext context,
             string path,
-            SchemaFile schemaFile)
+            SchemaFile schemaFile,
+            CancellationToken cancellationToken)
         {
             using var activity = Output.WriteActivity("Download schema");
 
-            try
-            {
-                HttpClient client = HttpClientFactory.Create(
+            HttpClient client = HttpClientFactory.Create(
                     context.Uri ?? new Uri(schemaFile.Url),
                     context.Token,
                     context.Scheme);
 
-                DocumentNode schema = await IntrospectionClient.LoadSchemaAsync(client);
-                schema = IntrospectionClient.RemoveBuiltInTypes(schema);
-
-                string schemaFilePath = FileSystem.CombinePath(
-                    path, schemaFile.File);
-                await FileSystem.WriteToAsync(schemaFilePath, stream =>
-                    Task.Run(() => SchemaSyntaxSerializer.Serialize(
-                        schema, stream, true)));
-                return true;
-            }
-            catch (HttpRequestException ex)
-            {
-                activity.WriteError(
-                    HCErrorBuilder.New()
-                        .SetMessage(ex.Message)
-                        .SetCode("HTTP_ERROR")
-                        .Build());
-                return false;
-            }
+            return await IntrospectionHelper.DownloadSchemaAsync(
+                client, FileSystem, activity, schemaFile.File,
+                cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

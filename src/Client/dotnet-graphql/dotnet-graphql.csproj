@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Generators\Generators.csproj" />
     <ProjectReference Include="..\Http\Http.csproj" />
+    <ProjectReference Include="..\..\Core\Utilities.Introspection\Utilities.Introspection.csproj" />
   </ItemGroup>
 
 </Project>

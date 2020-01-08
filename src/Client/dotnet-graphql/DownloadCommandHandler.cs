@@ -2,10 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
-using HotChocolate.Stitching.Introspection;
 using StrawberryShake.Tools.OAuth;
-using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools
 {
@@ -52,37 +49,25 @@ namespace StrawberryShake.Tools
             FileSystem.EnsureDirectoryExists(
                 FileSystem.GetDirectoryName(context.FileName));
 
-            return await DownloadSchemaAsync(context).ConfigureAwait(false) ? 0 : 1;
+            return await DownloadSchemaAsync(
+                context, cancellationToken)
+                .ConfigureAwait(false)
+                ? 0 : 1;
         }
 
-        private async Task<bool> DownloadSchemaAsync(DownloadCommandContext context)
+        private async Task<bool> DownloadSchemaAsync(
+            DownloadCommandContext context,
+            CancellationToken cancellationToken)
         {
             using var activity = Output.WriteActivity("Download schema");
 
-            try
-            {
-                HttpClient client = HttpClientFactory.Create(
-                    context.Uri, context.Token, context.Scheme);
-                DocumentNode schema =
-                    await IntrospectionClient.LoadSchemaAsync(client)
-                        .ConfigureAwait(false);
-                schema = IntrospectionClient.RemoveBuiltInTypes(schema);
+            HttpClient client = HttpClientFactory.Create(
+                context.Uri, context.Token, context.Scheme);
 
-                await FileSystem.WriteToAsync(context.FileName, stream =>
-                    Task.Run(() => SchemaSyntaxSerializer.Serialize(
-                        schema, stream, true)))
-                        .ConfigureAwait(false);
-                return true;
-            }
-            catch (HttpRequestException ex)
-            {
-                activity.WriteError(
-                    HCErrorBuilder.New()
-                        .SetMessage(ex.Message)
-                        .SetCode("HTTP_ERROR")
-                        .Build());
-                return false;
-            }
+            return await IntrospectionHelper.DownloadSchemaAsync(
+                client, FileSystem, activity, context.FileName,
+                cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }
