@@ -1,4 +1,5 @@
 using McMaster.Extensions.CommandLineUtils;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
@@ -10,9 +11,9 @@ namespace StrawberryShake.Tools
             init.AddName("download");
             init.AddHelp<InitHelpTextGenerator>();
 
-            CommandArgument uriArg = init.Argument(
-                "uri",
-                "The URL to the GraphQL endpoint.",
+            CommandArgument registryArg = init.Argument(
+                "registry",
+                "The URL to the GraphQL schema registry.",
                 c => c.IsRequired());
 
             CommandOption fileNameArg = init.Option(
@@ -20,34 +21,14 @@ namespace StrawberryShake.Tools
                 "The file name to store the schema SDL.",
                 CommandOptionType.SingleValue);
 
-            CommandOption tokenEndpointArg = init.Option(
-                "--tokenEndpoint",
-                "The token endpoint uri.",
+            CommandOption fileNameArg = init.Option(
+                "-f|--FileName",
+                "The file name to store the schema SDL.",
                 CommandOptionType.SingleValue);
 
-            CommandOption clientId = init.Option(
-                "--clientId",
-                "The client id.",
-                CommandOptionType.SingleValue);
-
-            CommandOption clientSecret = init.Option(
-                "--clientSecret",
-                "The client secret.",
-                CommandOptionType.SingleValue);
-
-            CommandOption scopes = init.Option(
-                "--scope",
-                "A custom scope that shall be passed along with the token request.",
-                CommandOptionType.MultipleValue);
-
-            CommandOption tokenArg = init.Option(
-                "-t|--token",
-                "The token that shall be used to authenticate with the GraphQL server.",
-                CommandOptionType.SingleValue);
-
-            CommandOption schemeArg = init.Option(
-                "-s|--scheme",
-                "The token scheme (default: bearer).",
+            CommandOption fileNameArg = init.Option(
+                "-f|--FileName",
+                "The file name to store the schema SDL.",
                 CommandOptionType.SingleValue);
 
             CommandOption jsonArg = init.Option(
@@ -55,17 +36,14 @@ namespace StrawberryShake.Tools
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
+            AuthArguments arguments = init.AddAuthArguments();
+
             init.OnExecuteAsync(cancellationToken =>
             {
                 var arguments = new PublishSchemaCommandArguments(
-                    uriArg,
+                    registryArg,
                     fileNameArg,
-                    tokenArg,
-                    schemeArg,
-                    tokenEndpointArg,
-                    clientId,
-                    clientSecret,
-                    scopes);
+                    authArguments);
                 var handler = CommandTools.CreateHandler<PublishSchemaCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
