@@ -22,9 +22,9 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public NameString ArgumentName { get; set; }
 
-        public NameString ArrayFilterPropertyName { get; set; }
+        public NameString ElementName { get; set; }
 
-        public GetFilterTypeName GetFilterTypeName { get; set; }
+        public GetFilterTypeName FilterTypeNameFactory { get; set; }
 
     }
 }

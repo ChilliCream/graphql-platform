@@ -30,17 +30,24 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public IFilterConventionDescriptor ArrayFilterPropertyName(
-            NameString arrayFilterPropertyName)
+        public IFilterConventionDescriptor ElementName(
+            NameString name)
         {
-            Definition.ArrayFilterPropertyName = arrayFilterPropertyName;
+            Definition.ElementName = name;
             return this;
         }
 
-        public IFilterConventionDescriptor GetFilterTypeName(GetFilterTypeName getFilterTypeName)
+        public IFilterConventionDescriptor FilterTypeName(
+            GetFilterTypeName factory)
         {
-            Definition.GetFilterTypeName = getFilterTypeName;
+            Definition.FilterTypeNameFactory = factory;
             return this;
+        }
+        public IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind)
+        {
+            return _defaultOperations.GetOrAdd(
+                kind, (FilterOperationKind kind) =>
+                FilterConventionDefaultOperationDescriptor.New(this, kind));
         }
 
         public IFilterConventionTypeDescriptor Type(FilterKind kind)
@@ -100,11 +107,5 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public static FilterConventionDescriptor New() => new FilterConventionDescriptor();
 
-        public IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind)
-        {
-            return _defaultOperations.GetOrAdd(
-                kind, (FilterOperationKind kind) =>
-                FilterConventionDefaultOperationDescriptor.New(this, kind));
-        }
     }
 }

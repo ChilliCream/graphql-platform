@@ -1,18 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace HotChocolate.Types.Filters.Conventions
 {
     public interface IFilterConventionDescriptor : IFluent
     {
         IFilterConventionDescriptor ArgumentName(NameString argumentName);
 
-        IFilterConventionDescriptor ArrayFilterPropertyName(
-            NameString arrayFilterPropertyName);
+        IFilterConventionDescriptor ElementName(
+            NameString name);
 
-        IFilterConventionDescriptor GetFilterTypeName(
-            GetFilterTypeName getFilterTypeName);
+        IFilterConventionDescriptor FilterTypeName(
+            GetFilterTypeName factory);
 
         IFilterConventionTypeDescriptor Type(FilterKind kind);
 

@@ -1,11 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Filters.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -15,8 +10,8 @@ namespace HotChocolate.Types.Filters.Conventions
             this IFilterConventionDescriptor descriptor)
         {
             return descriptor.ArgumentName("where")
-                .ArrayFilterPropertyName("element")
-                .GetFilterTypeName(
+                .ElementName("element")
+                .FilterTypeName(
                     (IDescriptorContext context, Type entityType) =>
                         context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter")
                 .Type(FilterKind.Array)
@@ -66,74 +61,97 @@ namespace HotChocolate.Types.Filters.Conventions
         this IFilterConventionDescriptor descriptor)
         {
             return descriptor
-                .Operation(FilterOperationKind.Equals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name)
+                .Operation(FilterOperationKind.Equals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name)
                     .And()
-                .Operation(FilterOperationKind.NotEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not")
+                .Operation(FilterOperationKind.NotEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not")
                     .And()
-                .Operation(FilterOperationKind.Contains).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_contains")
+                .Operation(FilterOperationKind.Contains)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_contains")
                     .And()
-                .Operation(FilterOperationKind.NotContains).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_contains")
+                .Operation(FilterOperationKind.NotContains)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_contains")
                     .And()
-                .Operation(FilterOperationKind.In).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_in")
+                .Operation(FilterOperationKind.In)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_in")
                     .And()
-                .Operation(FilterOperationKind.NotIn).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_in")
+                .Operation(FilterOperationKind.NotIn)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_in")
                     .And()
-                .Operation(FilterOperationKind.StartsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_starts_with")
+                .Operation(FilterOperationKind.StartsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_starts_with")
                     .And()
-                .Operation(FilterOperationKind.NotStartsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_starts_with")
+                .Operation(FilterOperationKind.NotStartsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_starts_with")
                     .And()
-                .Operation(FilterOperationKind.EndsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_ends_with")
+                .Operation(FilterOperationKind.EndsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_ends_with")
                     .And()
-                .Operation(FilterOperationKind.NotEndsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_ends_with")
+                .Operation(FilterOperationKind.NotEndsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_ends_with")
                     .And()
-                .Operation(FilterOperationKind.GreaterThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_gt")
+                .Operation(FilterOperationKind.GreaterThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_gt")
                     .And()
-                .Operation(FilterOperationKind.NotGreaterThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_gt")
+                .Operation(FilterOperationKind.NotGreaterThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_gt")
                     .And()
-                .Operation(FilterOperationKind.GreaterThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_gte")
+                .Operation(FilterOperationKind.GreaterThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_gte")
                     .And()
-                .Operation(FilterOperationKind.NotGreaterThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_gte")
+                .Operation(FilterOperationKind.NotGreaterThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_gte")
                     .And()
-                .Operation(FilterOperationKind.LowerThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_lt")
+                .Operation(FilterOperationKind.LowerThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_lt")
                     .And()
-                .Operation(FilterOperationKind.NotLowerThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_lt")
+                .Operation(FilterOperationKind.NotLowerThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_lt")
                     .And()
-                .Operation(FilterOperationKind.LowerThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_lte")
+                .Operation(FilterOperationKind.LowerThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_lte")
                     .And()
-                .Operation(FilterOperationKind.NotLowerThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_not_lte")
+                .Operation(FilterOperationKind.NotLowerThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_not_lte")
                     .And()
-                .Operation(FilterOperationKind.Object).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name)
+                .Operation(FilterOperationKind.Object)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name)
                     .And()
-                .Operation(FilterOperationKind.ArraySome).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_some")
+                .Operation(FilterOperationKind.ArraySome)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_some")
                     .And()
-                .Operation(FilterOperationKind.ArrayNone).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_none")
+                .Operation(FilterOperationKind.ArrayNone)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_none")
                     .And()
-                .Operation(FilterOperationKind.ArrayAll).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_all")
+                .Operation(FilterOperationKind.ArrayAll)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_all")
                     .And()
-                .Operation(FilterOperationKind.ArrayAny).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) => d.Name + "_any")
+                .Operation(FilterOperationKind.ArrayAny)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
+                        d.Name + "_any")
                     .And();
         }
 
@@ -141,96 +159,96 @@ namespace HotChocolate.Types.Filters.Conventions
             this IFilterConventionDescriptor descriptor)
         {
             return descriptor.ArgumentName("Where")
-                .Operation(FilterOperationKind.Equals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.Equals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d))
                     .And()
-                .Operation(FilterOperationKind.NotEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not")
                     .And()
-                .Operation(FilterOperationKind.Contains).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.Contains)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Contains")
                     .And()
-                .Operation(FilterOperationKind.NotContains).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotContains)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_Contains")
                     .And()
-                .Operation(FilterOperationKind.In).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.In)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_In")
                     .And()
-                .Operation(FilterOperationKind.NotIn).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotIn)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_In")
                     .And()
-                .Operation(FilterOperationKind.StartsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.StartsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_StartsWith")
                     .And()
-                .Operation(FilterOperationKind.NotStartsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotStartsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_StartsWith")
                     .And()
-                .Operation(FilterOperationKind.EndsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.EndsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_EndsWith")
                     .And()
-                .Operation(FilterOperationKind.NotEndsWith).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotEndsWith)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_EndsWith")
                     .And()
-                .Operation(FilterOperationKind.GreaterThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.GreaterThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Gt")
                     .And()
-                .Operation(FilterOperationKind.NotGreaterThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotGreaterThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_Gt")
                     .And()
-                .Operation(FilterOperationKind.GreaterThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.GreaterThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Gte")
                     .And()
-                .Operation(FilterOperationKind.NotGreaterThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotGreaterThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_Gte")
                     .And()
-                .Operation(FilterOperationKind.LowerThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.LowerThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Lt")
                     .And()
-                .Operation(FilterOperationKind.NotLowerThan).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotLowerThan)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_Lt")
                     .And()
-                .Operation(FilterOperationKind.LowerThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.LowerThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Lte")
                     .And()
-                .Operation(FilterOperationKind.NotLowerThanOrEquals).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.NotLowerThanOrEquals)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Not_Lte")
                     .And()
-                .Operation(FilterOperationKind.Object).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.Object)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d))
                     .And()
-                .Operation(FilterOperationKind.ArraySome).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.ArraySome)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Some")
                     .And()
-                .Operation(FilterOperationKind.ArrayNone).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.ArrayNone)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_None")
                     .And()
-                .Operation(FilterOperationKind.ArrayAll).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.ArrayAll)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_All")
                     .And()
-                .Operation(FilterOperationKind.ArrayAny).Name(
-                    (FilterFieldDefintion d, FilterOperationKind k) =>
+                .Operation(FilterOperationKind.ArrayAny)
+                    .Name((FilterFieldDefintion d, FilterOperationKind k) =>
                         GetNameForDefintion(d) + "_Any")
                     .And();
         }

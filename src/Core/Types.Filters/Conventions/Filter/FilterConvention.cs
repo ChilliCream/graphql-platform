@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public NameString GetArrayFilterPropertyName()
         {
-            return GetOrCreateConfiguration().ArrayFilterPropertyName;
+            return GetOrCreateConfiguration().ElementName;
         }
 
         public ISet<FilterOperationKind> GetAllowedOperations(FilterFieldDefintion definition)
@@ -90,7 +90,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public virtual NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
         {
-            return GetOrCreateConfiguration().GetFilterTypeName(context, entityType);
+            return GetOrCreateConfiguration().FilterTypeNameFactory(context, entityType);
         }
 
         public IEnumerable<TryCreateImplicitFilter> GetImplicitFilterFactories()
