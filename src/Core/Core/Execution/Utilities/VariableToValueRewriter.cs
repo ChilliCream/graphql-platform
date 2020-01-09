@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
@@ -52,13 +53,6 @@ namespace HotChocolate.Execution
             _type.Push(type);
 
             return RewriteValue(value, null);
-        }
-
-        protected override ObjectValueNode RewriteObjectValue(
-            ObjectValueNode node,
-            object context)
-        {
-            return base.RewriteObjectValue(node, node);
         }
 
         protected override ObjectFieldNode RewriteObjectField(
@@ -115,7 +109,6 @@ namespace HotChocolate.Execution
                 return node.WithValue(rewritten);
             }
 
-            // TODO : resource
             throw new QueryException(
                 ErrorBuilder.New()
                     .SetMessage(CoreResources.VarRewriter_UnknownField)
@@ -165,7 +158,7 @@ namespace HotChocolate.Execution
                         else
                         {
                             IValueNode rewritten = RewriteValue(value, context);
-                            rewrite = rewritten == value;
+                            rewrite = rewritten != value;
                             copy[i] = rewritten;
                         }
                     }
@@ -200,7 +193,22 @@ namespace HotChocolate.Execution
                 variable.Name.Value,
                 out object v))
             {
-                if (!type.ClrType.IsInstanceOfType(v)
+                if (v is IValueNode n)
+                {
+                    return n;
+                }
+
+                if (v is { }
+                    && type.IsListType()
+                    && !(v is IList))
+                {
+                    Array array = Array.CreateInstance(v.GetType(), 1);
+                    array.SetValue(v, 0);
+                    v = array;
+                }
+
+                if (v is { }
+                    && !type.ClrType.IsInstanceOfType(v)
                     && !_typeConversion.TryConvert(
                         typeof(object),
                         type.ClrType,
