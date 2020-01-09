@@ -187,7 +187,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             if (report is null)
             {
                 report = new SchemaPublishReport(
-                    schemaId,
+                    schemaVersionId,
                     environmentId,
                     Array.Empty<Issue>(),
                     PublishState.Published,

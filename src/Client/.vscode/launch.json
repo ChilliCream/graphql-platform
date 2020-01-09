@@ -20,12 +20,12 @@
         "publish",
         "schema",
         "http://localhost:5000",
+        "dev",
         "foo",
-        "bar",
-        "bar.graphql",
+        "StarWars.graphql",
         "--tag:abc=def"
       ],
-      "cwd": "${workspaceFolder}/dotnet-graphql",
+      "cwd": "${workspaceFolder}/Demo/StarWarsAll",
       "console": "internalConsole",
       "stopAtEntry": false
     },

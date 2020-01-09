@@ -11,12 +11,14 @@ namespace StrawberryShake.Tools.SchemaRegistry
         public SchemaRegistryClientFactory(Uri uri, string? token, string? scheme)
         {
             var serviceCollection = new ServiceCollection();
-            var builder = serviceCollection.AddHttpClient("SchemaRegistry");
+            var builder = serviceCollection.AddHttpClient("SchemaRegistryClient")
+                .ConfigureHttpClient(c => c.BaseAddress = uri);
 
             if (token is { } && scheme is { })
             {
                 builder.ConfigureHttpClient(c =>
                 {
+                    c.BaseAddress = uri;
                     c.DefaultRequestHeaders.Authorization =
                         new AuthenticationHeaderValue(scheme, token);
                     c.DefaultRequestHeaders.UserAgent.Add(

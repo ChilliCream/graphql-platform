@@ -70,7 +70,6 @@ namespace StrawberryShake.Tools
 
             var clientFactory = new SchemaRegistryClientFactory(
                 context.Registry, context.Token, context.Scheme);
-
             ISchemaRegistryClient client = clientFactory.Create();
 
             string sourceText = await File.ReadAllTextAsync(context.SchemaFileName);
