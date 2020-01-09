@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
@@ -158,7 +159,7 @@ namespace HotChocolate.Execution
                         else
                         {
                             IValueNode rewritten = RewriteValue(value, context);
-                            rewrite = rewritten == value;
+                            rewrite = rewritten != value;
                             copy[i] = rewritten;
                         }
                     }
@@ -199,6 +200,15 @@ namespace HotChocolate.Execution
                 }
 
                 if (v is { }
+                    && type.IsListType()
+                    && !(v is IList))
+                {
+                    Array array = Array.CreateInstance(v.GetType(), 1);
+                    array.SetValue(v, 0);
+                    v = array;
+                }
+
+                if (v is { }
                     && !type.ClrType.IsInstanceOfType(v)
                     && !_typeConversion.TryConvert(
                         typeof(object),
@@ -209,7 +219,7 @@ namespace HotChocolate.Execution
                     throw new QueryException(
                         ErrorBuilder.New()
                             .SetMessage(CoreResources.VarRewriter_CannotConvert)
-                            .SetCode(ErrorCodes.Utilities.NoConverter)
+                            .SetCode(UtilityErrorCodes.NoConverter)
                             .AddLocation(variable)
                             .Build());
                 }

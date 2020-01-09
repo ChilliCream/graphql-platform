@@ -196,6 +196,42 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public void Replace_Variable_In_Object_List_Object()
+        {
+            // arrange
+            ISchema schema = CreateSchemaBuilder()
+                .AddType(new InputObjectType(d => d
+                    .Name("Foo1")
+                    .Field("bar")
+                    .Type(new ListTypeNode(new NamedTypeNode("Foo2")))))
+                .AddType(new InputObjectType(d => d
+                    .Name("Foo2")
+                    .Field("bar")
+                    .Type<ListType<StringType>>()))
+                .Create();
+
+            var value = new ObjectValueNode(
+                new ObjectFieldNode(
+                    "bar",
+                    new ListValueNode(
+                        new ObjectValueNode(
+                            new ObjectFieldNode(
+                                "bar",
+                                new VariableNode("abc"))))));
+
+            var type = schema.GetType<InputObjectType>("Foo1");
+            var variables = new VariableCollectionMock("abc", "def");
+            var typeConversion = new TypeConversion();
+
+            // act
+            IValueNode rewritten = VariableToValueRewriter.Rewrite(
+                value, type, variables, typeConversion);
+
+            // assert
+            QuerySyntaxSerializer.Serialize(rewritten).MatchSnapshot();
+        }
+
+        [Fact]
         public void Cannot_Convert_Variable()
         {
             // arrange
