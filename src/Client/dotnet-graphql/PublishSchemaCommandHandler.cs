@@ -1,15 +1,16 @@
+using System.IO;
 using System;
-using System.Net.Http;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
-using HotChocolate.Stitching.Introspection;
-using HCErrorBuilder = HotChocolate.ErrorBuilder;
+using StrawberryShake.Tools.OAuth;
+using StrawberryShake.Tools.SchemaRegistry;
+using System.Collections.Generic;
 
 namespace StrawberryShake.Tools
 {
     public class PublishSchemaCommandHandler
-        : CommandHandler<DownloadCommandArguments>
+        : CommandHandler<PublishSchemaCommandArguments>
     {
         public PublishSchemaCommandHandler(
             IFileSystem fileSystem,
@@ -32,36 +33,56 @@ namespace StrawberryShake.Tools
         public IConsoleOutput Output { get; }
 
         public override async Task<int> ExecuteAsync(
-            DownloadCommandArguments arguments,
+            PublishSchemaCommandArguments arguments,
             CancellationToken cancellationToken)
         {
             using IDisposable command = Output.WriteCommand();
 
-            var context = new DownloadCommandContext(
-                new Uri(arguments.Uri.Value!),
-                FileSystem.ResolvePath(arguments.FileName.Value()?.Trim(), "schema.graphql"),
-                arguments.Token.Value()?.Trim(),
-                arguments.Scheme.Value()?.Trim() ?? "bearer");
+            AccessToken? accessToken =
+                await arguments.AuthArguments
+                    .RequestTokenAsync(Output, cancellationToken)
+                    .ConfigureAwait(false);
 
-            FileSystem.EnsureDirectoryExists(
-                FileSystem.GetDirectoryName(context.FileName));
+            var context = new PublishSchemaCommandContext(
+                new Uri(arguments.Registry.Value!),
+                arguments.EnvironmentName.Value!,
+                arguments.SchemaName.Value!,
+                arguments.SchemaFileName.Value!,
+                arguments.Tag.HasValue()
+                    ? arguments.Tag.Values
+                        .Where(t => t! is { })
+                        .Select(t => t!.Split("="))
+                        .Select(t => new TagInput { Key = t[0], Value = t[1] })
+                        .ToList()
+                    : null,
+                accessToken?.Token,
+                accessToken?.Scheme);
 
-            return await DownloadSchemaAsync(context) ? 0 : 1;
+            await PublishSchemaAsync(context, cancellationToken);
+            return 0;
         }
 
-        private async Task<bool> DownloadSchemaAsync(
-            DownloadCommandContext context,
+        private async Task PublishSchemaAsync(
+            PublishSchemaCommandContext context,
             CancellationToken cancellationToken)
         {
-            using var activity = Output.WriteActivity("Download schema");
+            using var activity = Output.WriteActivity("Publish schema");
 
-            HttpClient client = HttpClientFactory.Create(
-                context.Uri, context.Token, context.Scheme);
+            var clientFactory = new SchemaRegistryClientFactory(
+                context.Registry, context.Token, context.Scheme);
 
-            return await IntrospectionHelper.DownloadSchemaAsync(
-                client, FileSystem, activity, context.FileName,
-                cancellationToken)
-                .ConfigureAwait(false);
+            ISchemaRegistryClient client = clientFactory.Create();
+
+            string sourceText = await File.ReadAllTextAsync(context.SchemaFileName);
+
+            IOperationResult<IPublishSchema> result =
+                await client.PublishSchemaAsync(
+                    context.SchemaName,
+                    context.EnvironmentName,
+                    sourceText,
+                    new Optional<IReadOnlyList<TagInput>?>(context.Tags),
+                    cancellationToken);
+            result.EnsureNoErrors();
         }
     }
 }

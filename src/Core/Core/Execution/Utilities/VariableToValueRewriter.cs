@@ -54,13 +54,6 @@ namespace HotChocolate.Execution
             return RewriteValue(value, null);
         }
 
-        protected override ObjectValueNode RewriteObjectValue(
-            ObjectValueNode node,
-            object context)
-        {
-            return base.RewriteObjectValue(node, node);
-        }
-
         protected override ObjectFieldNode RewriteObjectField(
             ObjectFieldNode node,
             object context)

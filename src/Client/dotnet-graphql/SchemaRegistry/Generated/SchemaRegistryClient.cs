@@ -8,7 +8,7 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SchemaRegistryClient
+    public class SchemaRegistryClient
         : ISchemaRegistryClient
     {
         private const string _clientName = "SchemaRegistryClient";
@@ -45,9 +45,9 @@ namespace StrawberryShake.Tools.SchemaRegistry
             return _executor.ExecuteAsync(
                 new PublishSchemaOperation
                 {
-                    SchemaName = schemaName,
-                    EnvironmentName = environmentName,
-                    SourceText = sourceText,
+                    SchemaName = schemaName, 
+                    EnvironmentName = environmentName, 
+                    SourceText = sourceText, 
                     Tags = tags
                 },
                 cancellationToken);

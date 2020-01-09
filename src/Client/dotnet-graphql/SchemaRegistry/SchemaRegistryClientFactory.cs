@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http.Headers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.Tools.SchemaRegistry
@@ -7,10 +8,25 @@ namespace StrawberryShake.Tools.SchemaRegistry
     {
         private readonly IServiceProvider _services;
 
-        public SchemaRegistryClientFactory(Uri uri)
+        public SchemaRegistryClientFactory(Uri uri, string? token, string? scheme)
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHttpClient("SchemaRegistry");
+            var builder = serviceCollection.AddHttpClient("SchemaRegistry");
+
+            if (token is { } && scheme is { })
+            {
+                builder.ConfigureHttpClient(c =>
+                {
+                    c.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue(scheme, token);
+                    c.DefaultRequestHeaders.UserAgent.Add(
+                        new ProductInfoHeaderValue(
+                            new ProductHeaderValue(
+                                "StrawberryShake",
+                                typeof(InitCommand).Assembly!.GetName()!.Version!.ToString())));
+                });
+            }
+
             serviceCollection.AddSchemaRegistryClient();
             _services = serviceCollection.BuildServiceProvider();
         }

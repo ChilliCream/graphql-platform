@@ -15,7 +15,8 @@ namespace StrawberryShake.Tools.OAuth
             CommandOption clientId = app.Option(
                 "--clientId",
                 "The client id.",
-                CommandOptionType.SingleValue);
+                CommandOptionType.SingleValue,
+                c => c.ShortName = null);
 
             CommandOption clientSecret = app.Option(
                 "--clientSecret",
@@ -28,12 +29,12 @@ namespace StrawberryShake.Tools.OAuth
                 CommandOptionType.MultipleValue);
 
             CommandOption token = app.Option(
-                "-t|--token",
+                "--token",
                 "The token that shall be used to authenticate with the GraphQL server.",
                 CommandOptionType.SingleValue);
 
             CommandOption scheme = app.Option(
-                "-s|--scheme",
+                "--scheme",
                 "The token scheme (default: bearer).",
                 CommandOptionType.SingleValue);
 

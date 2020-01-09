@@ -8,7 +8,7 @@ namespace StrawberryShake.Tools
             Uri? uri,
             string path,
             string? token,
-            string scheme)
+            string? scheme)
         {
             Uri = uri;
             Path = path;
@@ -19,6 +19,6 @@ namespace StrawberryShake.Tools
         public Uri? Uri { get; }
         public string Path { get; }
         public string? Token { get; }
-        public string Scheme { get; }
+        public string? Scheme { get; }
     }
 }

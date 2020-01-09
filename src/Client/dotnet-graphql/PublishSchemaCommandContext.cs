@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using StrawberryShake.Tools.SchemaRegistry;
 
 namespace StrawberryShake.Tools
 {
@@ -10,9 +11,9 @@ namespace StrawberryShake.Tools
             string schemaName,
             string environmentName,
             string schemaFileName,
-            IReadOnlyDictionary<string, string> tags,
+            IReadOnlyList<TagInput>? tags,
             string? token,
-            string scheme)
+            string? scheme)
         {
             Registry = registry;
             SchemaName = schemaName;
@@ -27,8 +28,8 @@ namespace StrawberryShake.Tools
         public string SchemaName { get; }
         public string EnvironmentName { get; }
         public string SchemaFileName { get; }
-        public IReadOnlyDictionary<string, string> Tags { get; }
+        public IReadOnlyList<TagInput>? Tags { get; }
         public string? Token { get; }
-        public string Scheme { get; }
+        public string? Scheme { get; }
     }
 }

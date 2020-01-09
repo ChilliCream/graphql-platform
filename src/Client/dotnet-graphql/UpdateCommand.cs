@@ -1,4 +1,5 @@
 using McMaster.Extensions.CommandLineUtils;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
@@ -15,16 +16,6 @@ namespace StrawberryShake.Tools
                 "The directory where the client shall be located.",
                 CommandOptionType.SingleValue);
 
-            CommandOption tokenArg = init.Option(
-                "-t|--token",
-                "The token that shall be used to autheticate with the GraphQL server.",
-                CommandOptionType.SingleValue);
-
-            CommandOption schemeArg = init.Option(
-                "-s|--scheme",
-                "The token scheme (defaul: bearer).",
-                CommandOptionType.SingleValue);
-
             CommandOption urlArg = init.Option(
                 "-u|--uri",
                 "The URL to the GraphQL endpoint.",
@@ -35,9 +26,11 @@ namespace StrawberryShake.Tools
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
+            AuthArguments authArguments = init.AddAuthArguments();
+
             init.OnExecuteAsync(cancellationToken =>
             {
-                var arguments = new UpdateCommandArguments(urlArg, pathArg, tokenArg, schemeArg);
+                var arguments = new UpdateCommandArguments(urlArg, pathArg, authArguments);
                 var handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });

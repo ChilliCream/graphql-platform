@@ -3,52 +3,61 @@ using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
+
     public static class PublishSchemaCommand
     {
         public static CommandLineApplication Create()
         {
-            var init = new CommandLineApplication();
-            init.AddName("download");
-            init.AddHelp<InitHelpTextGenerator>();
+            var publish = new CommandLineApplication();
+            publish.AddName("schema");
+            //publish.AddHelp<InitHelpTextGenerator>();
 
-            CommandArgument registryArg = init.Argument(
+            CommandArgument registryArg = publish.Argument(
                 "registry",
                 "The URL to the GraphQL schema registry.",
                 c => c.IsRequired());
 
-            CommandOption fileNameArg = init.Option(
-                "-f|--FileName",
-                "The file name to store the schema SDL.",
-                CommandOptionType.SingleValue);
+            CommandArgument environmentNameArg = publish.Argument(
+                "environmentName",
+                "The name of the environment.",
+                c => c.IsRequired());
 
-            CommandOption fileNameArg = init.Option(
-                "-f|--FileName",
-                "The file name to store the schema SDL.",
-                CommandOptionType.SingleValue);
+            CommandArgument schemaNameArg = publish.Argument(
+                "schemaName",
+                "The name of the schema.",
+                c => c.IsRequired());
 
-            CommandOption fileNameArg = init.Option(
-                "-f|--FileName",
-                "The file name to store the schema SDL.",
-                CommandOptionType.SingleValue);
+            CommandArgument schemaFileNameArg = publish.Argument(
+                "schemaFileName",
+                "The schema file name.",
+                c => c.IsRequired());
 
-            CommandOption jsonArg = init.Option(
+            CommandOption tagArg = publish.Option(
+                "-t|--tag",
+                "A custom tag that can be passed to the schema registry.",
+                CommandOptionType.MultipleValue);
+
+            CommandOption jsonArg = publish.Option(
                 "-j|--json",
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
-            AuthArguments arguments = init.AddAuthArguments();
+            AuthArguments authArguments = publish.AddAuthArguments();
 
-            init.OnExecuteAsync(cancellationToken =>
+            publish.OnExecuteAsync(cancellationToken =>
             {
                 var arguments = new PublishSchemaCommandArguments(
                     registryArg,
-                    fileNameArg,
+                    schemaNameArg,
+                    environmentNameArg,
+                    schemaFileNameArg,
+                    tagArg,
                     authArguments);
                 var handler = CommandTools.CreateHandler<PublishSchemaCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
 
-            return init;
+            return publish;
         }
     }
 }

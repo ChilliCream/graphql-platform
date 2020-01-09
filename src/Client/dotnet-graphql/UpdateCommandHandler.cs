@@ -1,10 +1,8 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.Stitching.Introspection;
-using HotChocolate.Language;
-using HCErrorBuilder = HotChocolate.ErrorBuilder;
 using System.Threading;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
@@ -31,30 +29,41 @@ namespace StrawberryShake.Tools
 
         public IConsoleOutput Output { get; }
 
-        public override Task<int> ExecuteAsync(
+        public override async Task<int> ExecuteAsync(
             UpdateCommandArguments arguments,
             CancellationToken cancellationToken)
         {
             using IDisposable command = Output.WriteCommand();
 
+            AccessToken? accessToken =
+                await arguments.AuthArguments
+                    .RequestTokenAsync(Output, cancellationToken)
+                    .ConfigureAwait(false);
+
             var context = new UpdateCommandContext(
                 arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()?.Trim()) : null,
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
-                arguments.Token.Value()?.Trim(),
-                arguments.Scheme.Value()?.Trim() ?? "bearer");
+                accessToken?.Token,
+                accessToken?.Scheme);
 
             return context.Path is null
-                ? FindAndUpdateSchemasAsync(context)
-                : UpdateSingleSchemaAsync(context, context.Path);
+                ? await FindAndUpdateSchemasAsync(context, cancellationToken)
+                    .ConfigureAwait(false)
+                : await UpdateSingleSchemaAsync(context, context.Path, cancellationToken)
+                    .ConfigureAwait(false);
         }
 
-        private async Task<int> FindAndUpdateSchemasAsync(UpdateCommandContext context)
+        private async Task<int> FindAndUpdateSchemasAsync(
+            UpdateCommandContext context,
+            CancellationToken cancellationToken)
         {
             foreach (string path in FileSystem.GetClientDirectories(FileSystem.CurrentDirectory))
             {
                 try
                 {
-                    await UpdateSingleSchemaAsync(context, path);
+                    await UpdateSingleSchemaAsync(
+                        context, path, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch
                 {
@@ -64,12 +73,18 @@ namespace StrawberryShake.Tools
             return 0;
         }
 
-        private async Task<int> UpdateSingleSchemaAsync(UpdateCommandContext context, string path)
+        private async Task<int> UpdateSingleSchemaAsync(
+            UpdateCommandContext context,
+            string path,
+            CancellationToken cancellationToken)
         {
-            Configuration? configuration = await ConfigurationStore.TryLoadAsync(context.Path!);
+            Configuration? configuration =
+                await ConfigurationStore.TryLoadAsync(path)
+                    .ConfigureAwait(false);
 
             if (configuration is { }
-                && await UpdateSchemaAsync(context, context.Path! ?? path, configuration))
+                && await UpdateSchemaAsync(
+                    context, path, configuration, cancellationToken))
             {
                 return 0;
             }
@@ -80,7 +95,8 @@ namespace StrawberryShake.Tools
         private async Task<bool> UpdateSchemaAsync(
             UpdateCommandContext context,
             string path,
-            Configuration configuration)
+            Configuration configuration,
+            CancellationToken cancellationToken)
         {
             bool hasErrors = false;
 
@@ -88,7 +104,8 @@ namespace StrawberryShake.Tools
             {
                 if (schema.Type == "http")
                 {
-                    if (!await DownloadSchemaAsync(context, path, schema))
+                    if (!await DownloadSchemaAsync(
+                        context, path, schema, cancellationToken))
                     {
                         hasErrors = true;
                     }

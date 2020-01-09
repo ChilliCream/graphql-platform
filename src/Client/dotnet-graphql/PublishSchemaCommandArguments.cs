@@ -6,25 +6,25 @@ namespace StrawberryShake.Tools
     public class PublishSchemaCommandArguments
     {
         public PublishSchemaCommandArguments(
-            CommandOption registry,
-            CommandOption schemaName,
-            CommandOption environmentName,
-            CommandOption schemaFileName,
+            CommandArgument registry,
+            CommandArgument environmentName,
+            CommandArgument schemaName,
+            CommandArgument schemaFileName,
             CommandOption tag,
             AuthArguments authArguments)
         {
             Registry = registry;
-            SchemaName = schemaName;
             EnvironmentName = environmentName;
+            SchemaName = schemaName;
             SchemaFileName = schemaFileName;
             Tag = tag;
             AuthArguments = authArguments;
         }
 
-        public CommandOption Registry { get; }
-        public CommandOption SchemaName { get; }
-        public CommandOption EnvironmentName { get; }
-        public CommandOption SchemaFileName { get; }
+        public CommandArgument Registry { get; }
+        public CommandArgument EnvironmentName { get; }
+        public CommandArgument SchemaName { get; }
+        public CommandArgument SchemaFileName { get; }
         public CommandOption Tag { get; }
         public AuthArguments AuthArguments { get; }
     }
