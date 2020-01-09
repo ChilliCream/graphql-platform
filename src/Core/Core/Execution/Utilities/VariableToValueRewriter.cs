@@ -164,7 +164,9 @@ namespace HotChocolate.Execution
                         }
                         else
                         {
-                            copy[i] = value;
+                            IValueNode rewritten = RewriteValue(value, context);
+                            rewrite = rewritten == value;
+                            copy[i] = rewritten;
                         }
                     }
 
