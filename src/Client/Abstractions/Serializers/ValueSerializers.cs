@@ -8,6 +8,7 @@ namespace StrawberryShake.Serializers
             {
                 new BooleanValueSerializer(),
                 new ByteValueSerializer(),
+                new ByteArrayValueSerializer(),
                 new DateTimeValueSerializer(),
                 new DateValueSerializer(),
                 new DecimalValueSerializer(),
