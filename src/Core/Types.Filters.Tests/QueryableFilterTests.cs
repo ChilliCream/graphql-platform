@@ -422,7 +422,7 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Execute_Filter_OvervariablesWithPaginationAndSorting()
+        public void Execute_Filter_WithVariablesWithPaginationAndSorting()
         {
 
             // arrange
@@ -446,19 +446,23 @@ namespace HotChocolate.Types.Filters
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
-            var variables = new Dictionary<string, object>()
-            {
-                {"filter", new { baz_gt = 1} }
-            };
-            var query = @"query GetFooList($filter: FooFilter!) {
-                FoosConnection(where: $filter) {
-                    totalCount
-                }
-            }";
+
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query GetFooList($filter: FooFilter!) {
+                        FoosConnection(where: $filter) {
+                            totalCount
+                        }
+                    }")
+                .AddVariableValue("filter", new Dictionary<string, object>
+                {
+                    { "baz_gt", 1 }
+                })
+                .Create(); 
 
             // act
-            IExecutionResult result = executor.Execute(
-                query, variables);
+            IExecutionResult result = executor.Execute(request);
 
             // assert
             result.MatchSnapshot();
