@@ -33,9 +33,9 @@ namespace HotChocolate.Execution
                 }
             }
 
-            if (innerType is InputObjectType inputType)
+            if (innerType is InputObjectType inputType && value is ObjectValueNode ov)
             {
-                return ValidateObject(inputType, (ObjectValueNode)value, path);
+                return ValidateObject(inputType, ov, path);
             }
 
             return default;
