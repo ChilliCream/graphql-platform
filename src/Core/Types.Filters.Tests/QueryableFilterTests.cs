@@ -389,6 +389,90 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public async Task Execute_String_Filter_WithVariable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryFooString>(d => d
+                    .Name("Query")
+                    .Field(y => y.Foo)
+                    .UseFiltering())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    "query TestQuery($searchTerm: String) {" +
+                    "foo(where: { foo_contains: $searchTerm, fooSecond_contains: $searchTerm})" +
+                    " { foo fooSecond } }")
+                .SetVariableValue("searchTerm", "Test")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_String_Filter_WithVariable_NestedObject()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryFooString>(d => d
+                    .Name("Query")
+                    .Field(y => y.FooNested)
+                    .UseFiltering())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    "query TestQuery($searchTerm: String) {" +
+                    "fooNested(where: { foo: {foo_contains: $searchTerm}}) " +
+                    " { foo {foo fooSecond } } }")
+                .SetVariableValue("searchTerm", "Test")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_String_Filter_WithVariable_OR()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryFooString>(d => d
+                    .Name("Query")
+                    .Field(y => y.Foo)
+                    .UseFiltering())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    "query TestQuery($searchTerm: String) {" +
+                    "foo(where: { OR: [{ foo_contains: $searchTerm }, " +
+                    "{ fooSecond_contains: $searchTerm }] }) { foo fooSecond } }")
+                .SetVariableValue("searchTerm", "Test")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Execute_DateTime_Filter_With_Variables()
         {
             // arrange
@@ -416,6 +500,30 @@ namespace HotChocolate.Types.Filters
 
             // assert
             result.MatchSnapshot();
+        }
+
+        public class FooString
+        {
+            public string Foo { get; set; }
+            public string FooSecond { get; set; }
+        }
+        public class BarString
+        {
+            public FooString Foo { get; set; }
+        }
+
+        public class QueryFooString
+        {
+            public IEnumerable<FooString> Foo { get; set; } = new List<FooString>
+            {
+                new FooString { Foo = "Test_something" ,FooSecond = "Test_someother" },
+                new FooString { Foo = "Some_Test" }
+            };
+            public IEnumerable<BarString> FooNested { get; set; } = new List<BarString>
+            {
+                new BarString {Foo = new FooString { Foo = "Test_something" } },
+                new BarString {Foo = new FooString {  Foo = "Some_Test" } }
+            };
         }
 
         public class FooDateTime

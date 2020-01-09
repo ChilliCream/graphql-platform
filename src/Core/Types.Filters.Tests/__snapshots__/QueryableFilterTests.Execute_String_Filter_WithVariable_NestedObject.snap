@@ -1,0 +1,21 @@
+﻿{
+  "Data": {
+    "fooNested": [
+      {
+        "foo": {
+          "foo": "Test_something",
+          "fooSecond": null
+        }
+      },
+      {
+        "foo": {
+          "foo": "Some_Test",
+          "fooSecond": null
+        }
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

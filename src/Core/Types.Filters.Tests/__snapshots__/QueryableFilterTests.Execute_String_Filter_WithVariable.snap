@@ -1,0 +1,13 @@
+﻿{
+  "Data": {
+    "foo": [
+      {
+        "foo": "Test_something",
+        "fooSecond": "Test_someother"
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

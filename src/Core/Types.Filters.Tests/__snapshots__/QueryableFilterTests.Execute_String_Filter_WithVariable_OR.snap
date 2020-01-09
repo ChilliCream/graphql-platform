@@ -1,0 +1,37 @@
+﻿{
+  "Data": {
+    "foo": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": [
+        "foo"
+      ],
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 39
+        }
+      ],
+      "Exception": {
+        "ClassName": "System.InvalidOperationException",
+        "Message": "Queue empty.",
+        "Data": null,
+        "InnerException": null,
+        "HelpURL": null,
+        "StackTraceString": "   at System.Collections.Generic.Queue`1.ThrowForEmptyQueue()\n   at System.Collections.Generic.Queue`1.Peek()\n   at HotChocolate.Types.Filters.QueryableClosure.GetExpressionBodyWithNullCheck() in C:\\kot\\hctest\\hotchocolate\\src\\Core\\Types.Filters\\QueryableClosure.cs:line 51\n   at HotChocolate.Types.Filters.QueryableClosure.CreateLambda[T]() in C:\\kot\\hctest\\hotchocolate\\src\\Core\\Types.Filters\\QueryableClosure.cs:line 44\n   at HotChocolate.Types.Filters.QueryableFilterVisitor.CreateFilter[TSource]() in C:\\kot\\hctest\\hotchocolate\\src\\Core\\Types.Filters\\QueryableFilterVisitor.cs:line 71\n   at HotChocolate.Types.Filters.QueryableFilterMiddleware`1.InvokeAsync(IMiddlewareContext context) in C:\\kot\\hctest\\hotchocolate\\src\\Core\\Types.Filters\\QueryableFilterMiddleware.cs:line 69\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverContext resolverContext, IErrorHandler errorHandler) in C:\\kot\\hctest\\hotchocolate\\src\\Core\\Core\\Execution\\ExecutionStrategyBase.Resolver.cs:line 40",
+        "RemoteStackTraceString": null,
+        "RemoteStackIndex": 0,
+        "ExceptionMethod": null,
+        "HResult": -2146233079,
+        "Source": "System.Collections",
+        "WatsonBuckets": null
+      },
+      "Extensions": {}
+    }
+  ],
+  "ContextData": {}
+}
