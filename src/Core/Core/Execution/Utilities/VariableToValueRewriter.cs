@@ -1,11 +1,11 @@
-using System.Buffers;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
