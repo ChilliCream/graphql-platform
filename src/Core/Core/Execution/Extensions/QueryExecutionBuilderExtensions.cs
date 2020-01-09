@@ -702,8 +702,7 @@ namespace HotChocolate.Execution
             }
 
             builder.Services.TryAddSingleton<
-                IDocumentHashProvider,
-                MD5DocumentHashProvider>();
+                IDocumentHashProvider>(new MD5DocumentHashProvider());
             return builder;
         }
 
