@@ -219,7 +219,7 @@ namespace HotChocolate.Execution
                     throw new QueryException(
                         ErrorBuilder.New()
                             .SetMessage(CoreResources.VarRewriter_CannotConvert)
-                            .SetCode(UtilityErrorCodes.NoConverter)
+                            .SetCode(ErrorCodes.Utilities.NoConverter)
                             .AddLocation(variable)
                             .Build());
                 }
