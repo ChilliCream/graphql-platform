@@ -8,7 +8,7 @@ namespace HotChocolate.Stitching.Introspection.Models
         public string Description { get; set; }
         public ICollection<InputField> Args { get; set; }
         public TypeRef Type { get; set; }
-        public bool IsDepricated { get; set; }
+        public bool IsDeprecated { get; set; }
         public string DeprecationReason { get; set; }
     }
 }

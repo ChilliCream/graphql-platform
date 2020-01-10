@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [10.3.1]
+
+- Fixed issue that private setters where not used during input deserialization.
+
 ## [10.3.0]
 
 ### Added
@@ -21,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added paging attribute. [#1306](https://github.com/ChilliCream/hotchocolate/pull/1306)
 - Added filter attribute. [#1306](https://github.com/ChilliCream/hotchocolate/pull/1306)
 - Added sorting attribute. [#1306](https://github.com/ChilliCream/hotchocolate/pull/1306)
+- Added initial support for `Optional<T>`. [#1317](https://github.com/ChilliCream/hotchocolate/pull/1317)
+- Added support for immutable input types. [#1317](https://github.com/ChilliCream/hotchocolate/pull/1317)
 
 ### Changed
 

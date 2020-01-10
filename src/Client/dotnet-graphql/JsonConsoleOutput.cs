@@ -8,6 +8,8 @@ namespace StrawberryShake.Tools
         private readonly JsonConsoleOutputData _data =
             new JsonConsoleOutputData();
 
+        public bool HasErrors { get; private set; }
+
         public IDisposable WriteCommand()
         {
             return new JsonConsoleOutputCommand(_data);
@@ -15,7 +17,7 @@ namespace StrawberryShake.Tools
 
         public IActivity WriteActivity(string text, string? path = null)
         {
-            return new JsonConsoleOutputActivity(_data, text, path);
+            return new JsonConsoleOutputActivity(_data, text, path, () => HasErrors = true);
         }
 
         public void WriteFileCreated(string fileName)

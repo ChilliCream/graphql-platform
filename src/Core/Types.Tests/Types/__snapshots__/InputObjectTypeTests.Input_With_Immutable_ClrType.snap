@@ -2,7 +2,8 @@
   "Data": {
     "do": {
       "bar": "abc",
-      "baz": "def"
+      "baz": "def",
+      "qux": "ghi"
     }
   },
   "Extensions": {},

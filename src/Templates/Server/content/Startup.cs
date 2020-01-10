@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore;
 using HotChocolate;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
 
 namespace HotChocolate.Server.Template
 {
@@ -22,26 +23,22 @@ namespace HotChocolate.Server.Template
             services.AddDataLoaderRegistry();
 
             // Add GraphQL Services
-            services.AddGraphQL(sp => SchemaBuilder.New()
+            services.AddGraphQL(SchemaBuilder.New()
                 // enable for authorization support
-                // .AddDirectiveType<AuthorizeDirectiveType>()
-                .AddQueryType<Query>());
+                // .AddAuthorizeDirectiveType()
+                .AddQueryType<Query>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            // enable this if you want tu support subscription.
-            // app.UseWebSockets();
-            app.UseGraphQL();
-            // enable this if you want to use graphiql instead of playground.
-            // app.UseGraphiQL();
-            app.UsePlayground();
+            app
+                .UseRouting()
+                .UseWebSockets()
+                .UseGraphQL()
+                .UsePlayground()
+                .UseVoyager();
         }
     }
 }
