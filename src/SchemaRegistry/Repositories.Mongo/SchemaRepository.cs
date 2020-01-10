@@ -125,7 +125,8 @@ namespace MarshmallowPie.Repositories.Mongo
                     Builders<Schema>.Filter.Eq(t => t.Id, schema.Id),
                     schema,
                     options: default(ReplaceOptions),
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (MongoWriteException ex)
             when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
@@ -174,25 +175,49 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
-        public Task AddSchemaVersionAsync(
+        public async Task AddSchemaVersionAsync(
             SchemaVersion schemaVersion,
             CancellationToken cancellationToken = default)
         {
-            return _versions.InsertOneAsync(
-                schemaVersion,
-                options: null,
-                cancellationToken);
+            try
+            {
+                await _versions.InsertOneAsync(
+                    schemaVersion,
+                    options: null,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    $"The specified schema version hash `{schemaVersion.Hash}` already exists.",
+                    ex);
+            }
         }
 
-        public Task UpdateSchemaVersionAsync(
+        public async Task UpdateSchemaVersionAsync(
             SchemaVersion schemaVersion,
             CancellationToken cancellationToken = default)
         {
-            return _versions.ReplaceOneAsync(
-                Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersion.Id),
-                schemaVersion,
-                options: default(ReplaceOptions),
-                cancellationToken);
+            try
+            {
+                await _versions.ReplaceOneAsync(
+                    Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersion.Id),
+                    schemaVersion,
+                    options: default(ReplaceOptions),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    $"The specified schema version hash `{schemaVersion.Hash}` already exists.",
+                    ex);
+            }
         }
 
         public IQueryable<SchemaPublishReport> GetPublishReports() =>
@@ -223,25 +248,51 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
-        public Task AddPublishReportAsync(
+        public async Task AddPublishReportAsync(
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
-            return _publishReports.InsertOneAsync(
-                publishReport,
-                options: null,
-                cancellationToken);
+            try
+            {
+                await _publishReports.InsertOneAsync(
+                    publishReport,
+                    options: null,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    "A schema publish report was already created for the specified " +
+                    "schema version and environment.",
+                    ex);
+            }
         }
 
-        public Task UpdatePublishReportAsync(
+        public async Task UpdatePublishReportAsync(
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
-            return _publishReports.ReplaceOneAsync(
-                Builders<SchemaPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
-                publishReport,
-                options: default(ReplaceOptions),
-                cancellationToken);
+            try
+            {
+                await _publishReports.ReplaceOneAsync(
+                    Builders<SchemaPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
+                    publishReport,
+                    options: default(ReplaceOptions),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    "A schema publish report was already created for the specified " +
+                    "schema version and environment.",
+                    ex);
+            }
         }
     }
 }

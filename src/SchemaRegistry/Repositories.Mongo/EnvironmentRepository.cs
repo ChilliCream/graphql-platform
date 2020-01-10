@@ -71,25 +71,49 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Name);
         }
 
-        public Task AddEnvironmentAsync(
+        public async Task AddEnvironmentAsync(
             Environment environment,
             CancellationToken cancellationToken = default)
         {
-            return _environments.InsertOneAsync(
-                environment,
-                options: null,
-                cancellationToken);
+            try
+            {
+                await _environments.InsertOneAsync(
+                    environment,
+                    options: null,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    $"An environment with the name `{environment.Name}` already exists",
+                    ex);
+            }
         }
 
-        public Task UpdateEnvironmentAsync(
+        public async Task UpdateEnvironmentAsync(
             Environment environment,
             CancellationToken cancellationToken = default)
         {
-            return _environments.ReplaceOneAsync(
-                Builders<Environment>.Filter.Eq(t => t.Id, environment.Id),
-                environment,
-                options: default(ReplaceOptions),
-                cancellationToken);
+            try
+            {
+                await _environments.ReplaceOneAsync(
+                    Builders<Environment>.Filter.Eq(t => t.Id, environment.Id),
+                    environment,
+                    options: default(ReplaceOptions),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    $"An environment with the name `{environment.Name}` already exists",
+                    ex);
+            }
         }
     }
 }
