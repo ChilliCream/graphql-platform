@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -9,17 +10,20 @@ namespace StrawberryShake.Tools
         private readonly JsonConsoleOutputData _data;
         private readonly string _activityText;
         private readonly string? _path;
+        private readonly Action _errorReceived;
         private readonly Stopwatch _stopwatch;
         private bool _hasErrors;
 
         public JsonConsoleOutputActivity(
             JsonConsoleOutputData data,
             string activityText,
-            string? path)
+            string? path,
+            Action errorReceived)
         {
             _data = data;
             _activityText = activityText;
             _path = path;
+            _errorReceived = errorReceived;
             _stopwatch = Stopwatch.StartNew();
         }
 
@@ -27,6 +31,7 @@ namespace StrawberryShake.Tools
         {
             _hasErrors = true;
             _data.Errors.Add(new JsonConsoleOutputErrorData(error));
+            _errorReceived();
         }
 
         public void WriteErrors(IEnumerable<HotChocolate.IError> errors)
@@ -35,6 +40,7 @@ namespace StrawberryShake.Tools
             {
                 _hasErrors = true;
                 _data.Errors.Add(new JsonConsoleOutputErrorData(error));
+                _errorReceived();
             }
         }
 
