@@ -273,7 +273,7 @@ namespace MarshmallowPie.Repositories.Mongo
             // assert
             Assert.Collection(version.Tags.OrderBy(t => t.Value),
                 tag => Assert.Equal("b", tag.Value),
-                tag => Assert.Equal("b", tag.Value));
+                tag => Assert.Equal("c", tag.Value));
         }
 
         [Fact]
