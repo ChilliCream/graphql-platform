@@ -258,7 +258,7 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             // arrange
             // act
-            Action action = () => new SchemaVersion(
+            var version = new SchemaVersion(
                 Guid.NewGuid(),
                 "bar",
                 "baz",
@@ -271,7 +271,9 @@ namespace MarshmallowPie.Repositories.Mongo
                 DateTime.UtcNow);
 
             // assert
-            Assert.Equal("tags", Assert.Throws<ArgumentException>(action).ParamName);
+            Assert.Collection(version.Tags.OrderBy(t => t.Value),
+                tag => Assert.Equal("b", tag.Value),
+                tag => Assert.Equal("b", tag.Value));
         }
 
         [Fact]
