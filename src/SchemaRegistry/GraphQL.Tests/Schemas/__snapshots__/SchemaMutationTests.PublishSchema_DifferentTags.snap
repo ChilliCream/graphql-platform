@@ -1,0 +1,18 @@
+﻿{
+  "Data": {
+    "publishSchema": {
+      "report": {
+        "environment": {
+          "name": "abc"
+        },
+        "schemaVersion": {
+          "hash": "5ojZAmlJiqbSmuVUfch8jxNVdiN0rgQicAQfIFO+EqA="
+        }
+      },
+      "clientMutationId": "ghi"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

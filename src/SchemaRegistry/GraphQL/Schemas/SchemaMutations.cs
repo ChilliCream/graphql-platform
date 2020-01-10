@@ -10,6 +10,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using MarshmallowPie.GraphQL.Environments;
 using MarshmallowPie.Repositories;
+using MarshmallowPie.GraphQL.Properties;
 
 namespace MarshmallowPie.GraphQL.Schemas
 {
@@ -38,7 +39,7 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             if (!deserializedId.TypeName.Equals(nameof(Schema), StringComparison.Ordinal))
             {
-                throw new GraphQLException("The specified id type is invalid.");
+                throw new GraphQLException(Resources.General_IdTypeInvalid);
             }
 
             var schema = new Schema(
@@ -55,7 +56,6 @@ namespace MarshmallowPie.GraphQL.Schemas
         public async Task<PublishSchemaPayload> PublishSchemaAsync(
             PublishSchemaInput input,
             [Service]ISchemaRepository schemaRepository,
-            [Service]IEnvironmentRepository environmentRepository,
             [DataLoader]SchemaByNameDataLoader schemaDataLoader,
             [DataLoader]EnvironmentByNameDataLoader environmentDataLoader,
             CancellationToken cancellationToken)
@@ -69,17 +69,35 @@ namespace MarshmallowPie.GraphQL.Schemas
                 .ConfigureAwait(false);
 
             SchemaVersion? schemaVersion;
+            string? hash = input.Hash;
 
-            if (input.Hash is null)
+            if (hash is null)
             {
                 if (input.SourceText is null)
                 {
                     throw new GraphQLException(
-                        "The schema hash or the schem source text have to be provided.");
+                        Resources.SchemaMutations_HashAndSourceTextAreNull);
                 }
 
+                using var sha = SHA256.Create();
+                hash = Convert.ToBase64String(sha.ComputeHash(
+                    Encoding.UTF8.GetBytes(input.SourceText)));
+            }
+
+           schemaVersion =  await  schemaRepository.GetSchemaVersionAsync(
+               hash, cancellationToken)
+               .ConfigureAwait(false);
+
+            if(schemaVersion is null && input.SourceText is null)
+            {
+                throw new GraphQLException(
+                    Resources.SchemaMutations_HashNotFound);
+            }
+
+            if(schemaVersion is null)
+            { 
                 schemaVersion = await CreateSchemaVersionAsync(
-                    input.SourceText,
+                    input.SourceText!,
                     input.Tags ?? Array.Empty<TagInput>(),
                     schema,
                     schemaRepository,
@@ -89,7 +107,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             else
             {
                 schemaVersion = await UpdateSchemaVersionAsync(
-                    input.Hash,
+                    schemaVersion,
                     input.Tags ?? Array.Empty<TagInput>(),
                     schemaRepository,
                     cancellationToken)
@@ -97,7 +115,6 @@ namespace MarshmallowPie.GraphQL.Schemas
             }
 
             SchemaPublishReport report = await TryCreateReportAsync(
-                schema.Id,
                 schemaVersion.Id,
                 environment.Id,
                 schemaRepository,
@@ -133,22 +150,11 @@ namespace MarshmallowPie.GraphQL.Schemas
         }
 
         private async Task<SchemaVersion> UpdateSchemaVersionAsync(
-            string hash,
+            SchemaVersion schemaVersion,
             IReadOnlyList<TagInput> tags,
             ISchemaRepository repository,
             CancellationToken cancellationToken)
         {
-            SchemaVersion? schemaVersion =
-                await repository.GetSchemaVersionAsync(
-                    hash, cancellationToken)
-                    .ConfigureAwait(false);
-
-            if (schemaVersion is null)
-            {
-                throw new GraphQLException(
-                    "The specified schema hash is invalid.");
-            }
-
             if (tags is { })
             {
                 var list = new List<Tag>(schemaVersion.Tags);
@@ -157,6 +163,7 @@ namespace MarshmallowPie.GraphQL.Schemas
 
                 schemaVersion = new SchemaVersion(
                     schemaVersion.Id,
+                    schemaVersion.SchemaId,
                     schemaVersion.SourceText,
                     schemaVersion.Hash,
                     list,
@@ -171,7 +178,6 @@ namespace MarshmallowPie.GraphQL.Schemas
         }
 
         private async Task<SchemaPublishReport> TryCreateReportAsync(
-            Guid schemaId,
             Guid schemaVersionId,
             Guid environmentId,
             ISchemaRepository repository,
