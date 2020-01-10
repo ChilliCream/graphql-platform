@@ -21,8 +21,7 @@ namespace HotChocolate.Types.Relay
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : class, IOutputType
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => Task.CompletedTask;
             Type middlewareDefinition = typeof(QueryableConnectionMiddleware<>);
 
             descriptor
@@ -38,12 +37,11 @@ namespace HotChocolate.Types.Relay
                     IOutputType type = context.GetType<IOutputType>(reference);
                     if (type.NamedType() is IHasClrType hasClrType)
                     {
-                        Type middlewareType = middlewareDefinition
-                            .MakeGenericType(hasClrType.ClrType);
-                        FieldMiddleware middleware =
-                            FieldClassMiddlewareFactory.Create(middlewareType);
-                        int index =
-                            defintion.MiddlewareComponents.IndexOf(placeholder);
+                        Type middlewareType = middlewareDefinition.MakeGenericType(
+                            hasClrType.ClrType);
+                        FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(
+                            middlewareType);
+                        int index = defintion.MiddlewareComponents.IndexOf(placeholder);
                         defintion.MiddlewareComponents[index] = middleware;
                     }
                 })

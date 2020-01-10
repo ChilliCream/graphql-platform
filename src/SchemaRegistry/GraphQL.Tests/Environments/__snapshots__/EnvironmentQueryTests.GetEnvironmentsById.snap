@@ -1,0 +1,14 @@
+﻿{
+  "Data": {
+    "environmentsById": [
+      {
+        "id": "RW52aXJvbm1lbnQKZzI1NGZiYjcwNWYyYTQ5M2NiMTdiMGE4YzdkZmZjMDI3",
+        "name": "abc",
+        "description": "def"
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

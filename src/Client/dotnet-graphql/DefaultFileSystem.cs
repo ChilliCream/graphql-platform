@@ -44,11 +44,25 @@ namespace StrawberryShake.Tools
         public string GetFileNameWithoutExtension(string path) =>
             Path.GetFileNameWithoutExtension(path);
 
+        public string GetDirectoryName(string path) => Path.GetDirectoryName(path);
+
         public IEnumerable<string> GetGraphQLFiles(string path) =>
             Directory.GetFiles(path, _graphQLFilter);
 
-        public string ResolvePath(string? path) =>
-            path is { } ? path : Environment.CurrentDirectory;
+        public string ResolvePath(string? path, string? fileName)
+        {
+            if (path is { })
+            {
+                return path;
+            }
+
+            if (fileName is { })
+            {
+                return Path.Combine(Environment.CurrentDirectory, fileName);
+            }
+
+            return Environment.CurrentDirectory;
+        }
 
         public Task<byte[]> ReadAllBytesAsync(string fileName) =>
             File.ReadAllBytesAsync(fileName);

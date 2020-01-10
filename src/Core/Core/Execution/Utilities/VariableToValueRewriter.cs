@@ -1,11 +1,12 @@
-using System.Buffers;
 using System;
+using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -164,7 +165,9 @@ namespace HotChocolate.Execution
                         }
                         else
                         {
-                            copy[i] = value;
+                            IValueNode rewritten = RewriteValue(value, context);
+                            rewrite = rewritten != value;
+                            copy[i] = rewritten;
                         }
                     }
 
@@ -198,7 +201,22 @@ namespace HotChocolate.Execution
                 variable.Name.Value,
                 out object v))
             {
-                if (!type.ClrType.IsInstanceOfType(v)
+                if (v is IValueNode n)
+                {
+                    return n;
+                }
+
+                if (v is { }
+                    && type.IsListType()
+                    && !(v is IList))
+                {
+                    Array array = Array.CreateInstance(v.GetType(), 1);
+                    array.SetValue(v, 0);
+                    v = array;
+                }
+
+                if (v is { }
+                    && !type.ClrType.IsInstanceOfType(v)
                     && !_typeConversion.TryConvert(
                         typeof(object),
                         type.ClrType,

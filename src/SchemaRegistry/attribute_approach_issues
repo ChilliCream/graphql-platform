@@ -1,0 +1,5 @@
+# Issues to Solve
+
+- Node Resolver? The way we do node resolver at the moment is not nice. Should this one become annotated and static?
+- Paging is still an issue with attributes
+- Allow to access the parent resolver with And()

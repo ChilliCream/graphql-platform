@@ -170,11 +170,6 @@ namespace HotChocolate.Language
         protected virtual IValueNode RewriteValue(
             IValueNode node, TContext context)
         {
-            if (node is null)
-            {
-                return null;
-            }
-
             switch (node)
             {
                 case IntValueNode value:
