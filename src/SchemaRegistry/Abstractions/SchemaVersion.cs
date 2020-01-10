@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MarshmallowPie
 {
@@ -25,11 +26,7 @@ namespace MarshmallowPie
         {
             if (tags.Count > 1)
             {
-                var keys = new HashSet<Tag>(tags, TagComparer.Default);
-                if (keys.Count < tags.Count)
-                {
-                    throw new ArgumentException("The tags have to be unique.", nameof(tags));
-                }
+                tags = new HashSet<Tag>(tags, TagComparer.Default).ToList();
             }
 
             Id = id;

@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Schemas\__snapshots__\__mismatch__\" />
     <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 

@@ -210,5 +210,84 @@ namespace MarshmallowPie.GraphQL.Schemas
             // assert
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task PublishSchema_DifferentTags()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+
+            var schema = new Schema("abc", "def");
+            await SchemaRepository.AddSchemaAsync(schema);
+
+            var environment = new Environment("abc", "def");
+            await EnvironmentRepository.AddEnvironmentAsync(environment);
+
+            IExecutionResult result = await Executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"mutation(
+                            $schemaName: String!
+                            $environmentName: String!
+                            $sourceText: String!
+                            $version: String!) {
+                            publishSchema(input: {
+                                schemaName: $schemaName
+                                environmentName: $environmentName
+                                sourceText: $sourceText
+                                tags: [ { key: ""version"" value: $version } ]
+                                clientMutationId: ""ghi"" }) {
+                                report {
+                                    environment {
+                                        name
+                                    }
+                                    schemaVersion {
+                                        hash
+                                    }
+                                }
+                                clientMutationId
+                            }
+                        }")
+                    .SetVariableValue("schemaName", "abc")
+                    .SetVariableValue("environmentName", "abc")
+                    .SetVariableValue("sourceText", "type Query { a: String }")
+                    .SetVariableValue("version", "1.0.0")
+                    .Create());
+
+            // act
+            result = await Executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"mutation(
+                            $schemaName: String!
+                            $environmentName: String!
+                            $sourceText: String!
+                            $version: String!) {
+                            publishSchema(input: {
+                                schemaName: $schemaName
+                                environmentName: $environmentName
+                                sourceText: $sourceText
+                                tags: [ { key: ""version"" value: $version } ]
+                                clientMutationId: ""ghi"" }) {
+                                report {
+                                    environment {
+                                        name
+                                    }
+                                    schemaVersion {
+                                        hash
+                                    }
+                                }
+                                clientMutationId
+                            }
+                        }")
+                    .SetVariableValue("schemaName", "abc")
+                    .SetVariableValue("environmentName", "abc")
+                    .SetVariableValue("sourceText", "type Query { a: String }")
+                    .SetVariableValue("version", "1.1.0")
+                    .Create());
+
+            // assert
+            result.MatchSnapshot();
+        }
     }
 }
