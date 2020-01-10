@@ -892,6 +892,16 @@
         },
         {
           "kind": "SCALAR",
+          "name": "ByteArray",
+          "description": null,
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
           "name": "Short",
           "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.",
           "fields": null,
