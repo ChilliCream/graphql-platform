@@ -10,7 +10,11 @@ namespace MarshmallowPie.GraphQL.ErrorFilters
         {
             if (error.Exception is DuplicateKeyException ex)
             {
-                return error.WithMessage(ex.Message).WithException(null);
+                return ErrorBuilder.FromError(error)
+                    .SetMessage(ex.Message)
+                    .SetException(null)
+                    .SetCode(ErrorCodes.DuplicateKey)
+                    .Build();
             }
             return error;
         }

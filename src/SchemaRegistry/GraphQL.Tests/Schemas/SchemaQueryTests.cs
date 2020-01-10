@@ -295,9 +295,7 @@ namespace MarshmallowPie.GraphQL.Schemas
                     .Create());
 
             // assert
-            result.MatchSnapshot(o =>
-                o.Assert(fo =>
-                    Assert.Equal(id, fo.Field<string>("Data.schemasByName[0].id"))));
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -517,9 +515,7 @@ namespace MarshmallowPie.GraphQL.Schemas
                     .Create());
 
             // assert
-            result.MatchSnapshot(o =>
-                o.Assert(fo =>
-                    Assert.Equal(id, fo.Field<string>("Data.schemaVersionsById[0].id"))));
+            result.MatchSnapshot();
         }
     }
 }

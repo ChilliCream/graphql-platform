@@ -4,7 +4,7 @@
   "Errors": [
     {
       "Message": "The specified schema name `abc` already exists.",
-      "Code": null,
+      "Code": "SCHEMA_REG_DUPLICATE_KEY",
       "Path": [
         "createSchema"
       ],
@@ -15,7 +15,9 @@
         }
       ],
       "Exception": null,
-      "Extensions": {}
+      "Extensions": {
+        "code": "SCHEMA_REG_DUPLICATE_KEY"
+      }
     }
   ],
   "ContextData": {}
