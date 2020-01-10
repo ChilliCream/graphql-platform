@@ -9,16 +9,22 @@ namespace MarshmallowPie.GraphQL
     public static class RegistrySchemaExtensions
     {
         public static ISchemaBuilder AddSchemaRegistry(
-            this ISchemaBuilder builder)
+            this ISchemaBuilder builder,
+            bool addRootTypes = true)
         {
-            return builder
-                .AddQueryType(d => d.Name("Query"))
-                .AddType<EnvironmentQueries>()
-                .AddType<SchemaQueries>()
-                .AddMutationType(d => d.Name("Mutation"))
-                .AddType<EnvironmentMutations>()
-                .AddType<SchemaMutations>()
+            if (addRootTypes)
+            {
+                builder
+                    .AddQueryType(d => d.Name("Query"))
+                    .AddMutationType(d => d.Name("Mutation"));
                 //.AddSubscriptionType(d => d.Name("Subscription"))
+            }
+
+            return builder
+                .AddType<EnvironmentQueries>()
+                .AddType<EnvironmentMutations>()
+                .AddType<SchemaQueries>()
+                .AddType<SchemaMutations>()
                 .AddType<SchemaExtension>()
                 .AddType<SchemaVersionExtension>()
                 .AddType<SchemaPublishReportExtension>()

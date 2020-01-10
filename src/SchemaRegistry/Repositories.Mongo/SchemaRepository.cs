@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,11 @@ namespace MarshmallowPie.Repositories.Mongo
             _schemas.Indexes.CreateOne(
                 new CreateIndexModel<Schema>(
                     Builders<Schema>.IndexKeys.Ascending(x => x.Name),
+                    new CreateIndexOptions { Unique = true }));
+
+            _versions.Indexes.CreateOne(
+                new CreateIndexModel<SchemaVersion>(
+                    Builders<SchemaVersion>.IndexKeys.Ascending(x => x.Hash),
                     new CreateIndexOptions { Unique = true }));
 
             _publishReports.Indexes.CreateOne(
@@ -87,25 +93,48 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Name);
         }
 
-        public Task AddSchemaAsync(
+        public async Task AddSchemaAsync(
             Schema schema,
             CancellationToken cancellationToken = default)
         {
-            return _schemas.InsertOneAsync(
-                schema,
-                options: null,
-                cancellationToken);
+            try
+            {
+                await _schemas.InsertOneAsync(
+                    schema,
+                    options: null,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    $"The specified schema name `{schema.Name}` already exists.",
+                    ex);
+            }
         }
 
-        public Task UpdateSchemaAsync(
+        public async Task UpdateSchemaAsync(
             Schema schema,
             CancellationToken cancellationToken = default)
         {
-            return _schemas.ReplaceOneAsync(
-                Builders<Schema>.Filter.Eq(t => t.Id, schema.Id),
-                schema,
-                options: default(ReplaceOptions),
-                cancellationToken);
+            try
+            {
+                await _schemas.ReplaceOneAsync(
+                    Builders<Schema>.Filter.Eq(t => t.Id, schema.Id),
+                    schema,
+                    options: default(ReplaceOptions),
+                    cancellationToken);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    $"The specified schema name `{schema.Name}` already exists.",
+                    ex);
+            }
         }
 
         public IQueryable<SchemaVersion> GetSchemaVersions()

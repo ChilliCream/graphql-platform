@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
 
@@ -175,6 +176,29 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         [Fact]
+        public async Task AddSchema_DuplicateName()
+        {
+            // arrange
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+            var schema = new Schema("foo", "bar");
+            await repository.AddSchemaAsync(schema);
+
+            // act
+            Func<Task> action = () => repository.AddSchemaAsync(schema);
+
+            // assert
+            DuplicateKeyException ex = await Assert.ThrowsAsync<DuplicateKeyException>(action);
+            ex.Message.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task UpdateSchema()
         {
             // arrange
@@ -201,6 +225,32 @@ namespace MarshmallowPie.Repositories.Mongo
             Assert.NotNull(retrieved);
             Assert.Equal(updated.Name, retrieved.Name);
             Assert.Equal(updated.Description, retrieved.Description);
+        }
+
+        [Fact]
+        public async Task UpdateSchema_DuplicateName()
+        {
+            // arrange
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var initial = new Schema("foo", "bar");
+            await schemas.InsertOneAsync(initial, options: null, default);
+            await schemas.InsertOneAsync(new Schema("bar", "bar"), options: null, default);
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            // act
+            var updated = new Schema(initial.Id, "bar", "baz");
+            Func<Task> action = () => repository.UpdateSchemaAsync(updated);
+
+            // assert
+            DuplicateKeyException ex = await Assert.ThrowsAsync<DuplicateKeyException>(action);
+            ex.Message.MatchSnapshot();
         }
 
         [Fact]

@@ -1,0 +1,22 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "The specified schema name `def` already exists.",
+      "Code": null,
+      "Path": [
+        "updateSchema"
+      ],
+      "Locations": [
+        {
+          "Line": 2,
+          "Column": 29
+        }
+      ],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ],
+  "ContextData": {}
+}

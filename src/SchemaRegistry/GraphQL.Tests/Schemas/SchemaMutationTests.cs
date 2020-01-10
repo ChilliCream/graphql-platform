@@ -46,6 +46,51 @@ namespace MarshmallowPie.GraphQL.Schemas
         }
 
         [Fact]
+        public async Task CreateSchema_Duplicate_Name()
+        {
+            // arrange
+            IExecutionResult result = await Executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"mutation {
+                            createSchema(input: {
+                                name: ""abc""
+                                description: ""def""
+                                clientMutationId: ""ghi"" }) {
+                                schema {
+                                    id
+                                    name
+                                    description
+                                }
+                                clientMutationId
+                            }
+                        }")
+                    .Create());
+
+            // act
+            result = await Executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"mutation {
+                            createSchema(input: {
+                                name: ""abc""
+                                description: ""def""
+                                clientMutationId: ""ghi"" }) {
+                                schema {
+                                    id
+                                    name
+                                    description
+                                }
+                                clientMutationId
+                            }
+                        }")
+                    .Create());
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task UpdateSchema()
         {
             // arrange
@@ -79,6 +124,43 @@ namespace MarshmallowPie.GraphQL.Schemas
             result.MatchSnapshot(o =>
                 o.Assert(fo =>
                     Assert.NotNull(fo.Field<string>("Data.updateSchema.schema.id"))));
+        }
+
+        [Fact]
+        public async Task UpdateSchema_DuplicateName()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+            var schemaA = new Schema(Guid.NewGuid(), "abc", "def");
+            var schemaB = new Schema(Guid.NewGuid(), "def", "ghi");
+            await SchemaRepository.AddSchemaAsync(schemaA);
+            await SchemaRepository.AddSchemaAsync(schemaB);
+            string id = serializer.Serialize("Schema", schemaA.Id);
+
+            // act
+            IExecutionResult result = await Executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"mutation($id: ID!) {
+                            updateSchema(input: {
+                                id: $id
+                                name: ""def""
+                                description: ""def2""
+                                clientMutationId: ""ghi"" }) {
+                                schema {
+                                    id
+                                    name
+                                    description
+                                }
+                                clientMutationId
+                            }
+                        }")
+                    .SetVariableValue("id", id)
+                    .Create());
+
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]

@@ -1,0 +1,22 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "The specified schema name `abc` already exists.",
+      "Code": null,
+      "Path": [
+        "createSchema"
+      ],
+      "Locations": [
+        {
+          "Line": 2,
+          "Column": 29
+        }
+      ],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ],
+  "ContextData": {}
+}

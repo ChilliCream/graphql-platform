@@ -1,5 +1,6 @@
 using HotChocolate;
 using MarshmallowPie.GraphQL.Environments;
+using MarshmallowPie.GraphQL.ErrorFilters;
 using MarshmallowPie.GraphQL.Schemas;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,12 @@ namespace MarshmallowPie.GraphQL
                 .AddDataLoader<EnvironmentByIdDataLoader>()
                 .AddDataLoader<SchemaByIdDataLoader>()
                 .AddDataLoader<SchemaByNameDataLoader>();
+        }
+
+        public static IServiceCollection AddSchemRegistryErrorFilters(
+            this IServiceCollection serviceCollection)
+        {
+            return serviceCollection.AddErrorFilter<DuplicateKeyErrorFilter>();
         }
     }
 }

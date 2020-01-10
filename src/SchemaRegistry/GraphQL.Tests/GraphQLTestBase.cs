@@ -30,9 +30,8 @@ namespace MarshmallowPie.GraphQL
                     .AddSchemaRegistry()
                     .EnableRelaySupport());
             serviceCollection.AddQueryExecutor();
-            serviceCollection.AddDataLoader<EnvironmentByIdDataLoader>();
-            serviceCollection.AddDataLoader<SchemaByIdDataLoader>();
-            serviceCollection.AddDataLoader<SchemaByNameDataLoader>();
+            serviceCollection.AddSchemaRegistryDataLoader();
+            serviceCollection.AddSchemRegistryErrorFilters();
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             EnvironmentRepository = services.GetRequiredService<IEnvironmentRepository>();
