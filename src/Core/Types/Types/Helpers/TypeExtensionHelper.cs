@@ -52,16 +52,6 @@ namespace HotChocolate.Types
                 (fields, extensionField, typeField) => { });
         }
 
-        public static void MergeConfigurations(
-            ICollection<ILazyTypeConfiguration> extensionConfigurations,
-            ICollection<ILazyTypeConfiguration> typeConfigurations)
-        {
-            foreach (ILazyTypeConfiguration configuration in extensionConfigurations)
-            {
-                typeConfigurations.Add(configuration);
-            }
-        }
-
         private static void MergeOutputFields<T>(
             ICompletionContext context,
             IList<T> extensionFields,
@@ -204,6 +194,16 @@ namespace HotChocolate.Types
                 {
                     typeTypes.Add(reference);
                 }
+            }
+        }
+
+        public static void MergeConfigurations(
+            ICollection<ILazyTypeConfiguration> extensionConfigurations,
+            ICollection<ILazyTypeConfiguration> typeConfigurations)
+        {
+            foreach (ILazyTypeConfiguration configuration in extensionConfigurations)
+            {
+                typeConfigurations.Add(configuration);
             }
         }
     }
