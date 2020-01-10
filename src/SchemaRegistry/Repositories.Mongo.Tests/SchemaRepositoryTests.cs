@@ -265,6 +265,7 @@ namespace MarshmallowPie.Repositories.Mongo
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow),
+                    new Tag("a", "b", DateTime.UtcNow),
                     new Tag("a", "c", DateTime.UtcNow)
                 },
                 DateTime.UtcNow);
