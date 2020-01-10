@@ -6,7 +6,23 @@
 
         Comment,
 
+        Description,
+
+        OperationKind,
+
+        Parenthesis,
+
+        Bracket,
+
+        Brace,
+
         Identifier,
+
+        ArgumentIdentifier,
+
+        DirectiveIdentifier,
+
+        InputFieldIdentifier,
 
         SymbolDefinition,
 
@@ -22,7 +38,8 @@
 
         WhiteSpace,
 
-        Other
+        Other,
+        Error
     }
 
 }
