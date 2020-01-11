@@ -104,7 +104,7 @@ namespace StrawberryShake.VisualStudio.Language
                 }
 
                 // skip closing token
-                ExpectRightBrace();
+                ParseRightBrace();
 
                 return list;
             }

@@ -58,7 +58,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
 
             // skip closing token
-            ExpectRightBrace();
+            ParseRightBrace();
 
             var location = new Location(start, _reader.Token);
 
@@ -201,7 +201,7 @@ namespace StrawberryShake.VisualStudio.Language
                 }
 
                 // skip closing token
-                ExpectRightBrace();
+                ParseRightBrace();
 
                 return list;
             }
@@ -435,7 +435,7 @@ namespace StrawberryShake.VisualStudio.Language
                 }
 
                 // skip closing token
-                ExpectRightBrace();
+                ParseRightBrace();
 
                 return list;
             }
@@ -507,7 +507,7 @@ namespace StrawberryShake.VisualStudio.Language
                 }
 
                 // skip closing token
-                ExpectRightBrace();
+                ParseRightBrace();
 
                 return list;
             }
