@@ -18,6 +18,10 @@
 
         Identifier,
 
+        VariableIdentifier,
+
+        OperationIdentifier,
+
         FragmentIdentifier,
 
         ArgumentIdentifier,
@@ -28,7 +32,15 @@
 
         TypeReference,
 
+        FieldReference,
+
+        ArgumentReference,
+
+        FieldAlias,
+
         FragmentReference,
+
+        VariableReference,
 
         DirectiveLocation,
 

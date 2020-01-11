@@ -24,8 +24,22 @@ namespace StrawberryShake.VisualStudio.Language
         private TokenKind Kind => _reader.Kind;
 
 
-        private void ParseName(SyntaxClassificationKind kind) => ExpectName(kind);
-
+        private void ParseName(SyntaxClassificationKind kind)
+        {
+            if (_reader.Kind == TokenKind.Name)
+            {
+                classifications.AddClassification(
+                    kind,
+                    _reader.Token);
+            }
+            else
+            {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
+            }
+            MoveNext();
+        }
 
         private bool MoveNext()
         {
@@ -45,27 +59,8 @@ namespace StrawberryShake.VisualStudio.Language
             return !_reader.IsEndOfStream();
         }
 
-
-        private void ExpectName(SyntaxClassificationKind kind)
-        {
-            if (_reader.Kind == TokenKind.Name)
-            {
-                classifications.AddClassification(
-                    kind,
-                    _reader.Token);
-            }
-            else
-            {
-                classifications.AddClassification(
-                    SyntaxClassificationKind.Error,
-                    _reader.Token);
-            }
-            MoveNext();
-        }
-
-        private void ExpectColon() => Expect(TokenKind.Colon);
-
-        private void ExpectDollar() => Expect(TokenKind.Dollar);
+        private void ParseColon() =>
+            Expect(SyntaxClassificationKind.Colon, TokenKind.Colon);
 
         private void ExpectAt() =>
             Expect(SyntaxClassificationKind.At, TokenKind.At);

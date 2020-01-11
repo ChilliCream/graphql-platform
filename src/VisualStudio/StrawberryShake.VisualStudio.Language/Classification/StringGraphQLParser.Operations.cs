@@ -1,53 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using StrawberryShake.VisualStudio.Language.Properties;
 
 namespace StrawberryShake.VisualStudio.Language
 {
     // Implements the parsing rules in the Operations section.
     public ref partial struct StringGraphQLClassifier
     {
-        private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions =
-            new List<VariableDefinitionNode>();
-        private static readonly List<ArgumentNode> _emptyArguments =
-            new List<ArgumentNode>();
-
-
         /// <summary>
         /// Parses an operation definition.
         /// <see cref="OperationDefinitionNode" />:
         /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private OperationDefinitionNode ParseOperationDefinition(
-            ICollection<SyntaxClassification> classifications)
+        private void ParseOperationDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
-            ParseOperationType(classifications);
+            ParseOperationType();
 
             if (_reader.Kind == TokenKind.Name)
             {
-                ParseName(classifications, SyntaxClassificationKind.Identifier);
+                ParseName(SyntaxClassificationKind.OperationIdentifier);
             }
 
-            ParseVariableDefinitions(classifications);
+            ParseVariableDefinitions();
             ParseDirectives(false);
-            SelectionSetNode selectionSet = ParseSelectionSet();
-            var location = new Location(start, _reader.Token);
-
-            return new OperationDefinitionNode
-            (
-                location,
-                name,
-                operation,
-                variableDefinitions,
-                directives,
-                selectionSet
-            );
+            ParseSelectionSet();
         }
 
         /// <summary>
@@ -55,32 +30,13 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="OperationDefinitionNode" />:
         /// SelectionSet
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private OperationDefinitionNode ParseShortOperationDefinition()
-        {
-            ISyntaxToken start = _reader.Token;
-            SelectionSetNode selectionSet = ParseSelectionSet();
-            var location = new Location(start, _reader.Token);
-
-            return new OperationDefinitionNode
-            (
-                location,
-                null,
-                OperationType.Query,
-                Array.Empty<VariableDefinitionNode>(),
-                Array.Empty<DirectiveNode>(),
-                selectionSet
-            );
-        }
+        private void ParseShortOperationDefinition() =>
+            ParseSelectionSet();
 
         /// <summary>
         /// Parses the <see cref="OperationType" />.
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private void ParseOperationType(
-            ICollection<SyntaxClassification> classifications)
+        private void ParseOperationType()
         {
             SyntaxClassificationKind kind = (_reader.Kind == TokenKind.Name
                 || _reader.Value.SequenceEqual(GraphQLKeywords.Query)
@@ -97,10 +53,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="IEnumerable{VariableDefinitionNode}" />:
         /// ( VariableDefinition+ )
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private void ParseVariableDefinitions(
-            ICollection<SyntaxClassification> classifications)
+        private void ParseVariableDefinitions()
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
             {
@@ -128,30 +81,18 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="VariableDefinitionNode" />:
         /// $variable : Type = DefaultValue?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private VariableDefinitionNode ParseVariableDefinition()
+        private void ParseVariableDefinition()
         {
-            ISyntaxToken start = _reader.Token;
+            ParseVariableName(false);
+            ParseColon();
+            ParseTypeReference();
 
-            VariableNode variable = ParseVariable();
-            ExpectColon();
-            ITypeNode type = ParseTypeReference();
-            IValueNode? defaultValue = SkipEqual()
-                ? ParseValueLiteral(true)
-                : null;
-            List<DirectiveNode> directives = ParseDirectives(true);
+            if (SkipEqual())
+            {
+                ParseValueLiteral(true);
+            }
 
-            var location = new Location(start, _reader.Token);
-
-            return new VariableDefinitionNode
-            (
-                location,
-                variable,
-                type,
-                defaultValue,
-                directives
-            );
+            ParseDirectives(true);
         }
 
         /// <summary>
@@ -159,20 +100,30 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="VariableNode" />:
         /// $Name
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private VariableNode ParseVariable()
+        private void ParseVariableName(bool isReference)
         {
             ISyntaxToken start = _reader.Token;
-            ExpectDollar();
-            NameNode name = ParseName();
-            var location = new Location(start, _reader.Token);
+            SyntaxClassificationKind classificationKind = isReference
+                ? SyntaxClassificationKind.VariableReference
+                : SyntaxClassificationKind.VariableIdentifier;
 
-            return new VariableNode
-            (
-                location,
-                name
-            );
+            if (_reader.Kind == TokenKind.Dollar)
+            {
+                MoveNext();
+                classifications.AddClassification(
+                    _reader.Kind == TokenKind.Name
+                        ? classificationKind
+                        : SyntaxClassificationKind.Error,
+                    new Location(start, _reader.Token));
+            }
+            else
+            {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
+            }
+
+            MoveNext();
         }
 
         /// <summary>
@@ -180,8 +131,6 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="SelectionSetNode" />:
         /// { Selection+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
         private void ParseSelectionSet()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
@@ -215,9 +164,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// - FragmentSpread
         /// - InlineFragment
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private ISelectionNode ParseSelection()
+        private void ParseSelection()
         {
             if (_reader.Kind == TokenKind.Spread)
             {
@@ -234,38 +181,36 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="FieldNode"  />:
         /// Alias? : Name Arguments? Directives? SelectionSet?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
         private void ParseField()
         {
             ISyntaxToken start = _reader.Token;
 
-            NameNode name = ParseName();
-            NameNode? alias = null;
-
-            if (SkipColon())
+            if (start.Kind == TokenKind.Name)
             {
-                alias = name;
-                name = ParseName();
+                MoveNext();
+
+                if (SkipColon())
+                {
+                    classifications.AddClassification(
+                        SyntaxClassificationKind.FieldAlias,
+                        start);
+                    ParseName(SyntaxClassificationKind.FieldReference);
+                }
+                else
+                {
+                    classifications.AddClassification(
+                        SyntaxClassificationKind.FieldReference,
+                        start);
+                }
             }
 
-            List<ArgumentNode> arguments = ParseArguments(false);
-            List<DirectiveNode> directives = ParseDirectives(false);
-            SelectionSetNode? selectionSet = _reader.Kind == TokenKind.LeftBrace
-                ? ParseSelectionSet()
-                : null;
+            ParseArguments(false);
+            ParseDirectives(false);
 
-            var location = new Location(start, _reader.Token);
-
-            return new FieldNode
-            (
-                location,
-                name,
-                alias,
-                directives,
-                arguments,
-                selectionSet
-            );
+            if (_reader.Kind == TokenKind.LeftBrace)
+            {
+                ParseSelectionSet();
+            }
         }
 
         /// <summary>
@@ -273,8 +218,6 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="ArgumentNode" />:
         /// Name : Value[isConstant]
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
         private void ParseArguments(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -298,25 +241,15 @@ namespace StrawberryShake.VisualStudio.Language
             }
         }
 
-
         /// <summary>
         /// Parses an argument.
         /// <see cref="ArgumentNode" />:
         /// Name : Value[isConstant]
         /// </summary>
-        /// <param name="context">The parser context.</param>
-
-        private void ParseArgument(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
+        private void ParseArgument(bool isConstant)
         {
-            classifications.AddClassification(
-                SyntaxClassificationKind.ArgumentIdentifier,
-                _reader.Token);
-            ExpectName();
-
-            ExpectColon();
-
+            ParseName(SyntaxClassificationKind.ArgumentReference);
+            ParseColon();
             ParseValueLiteral(isConstant);
         }
     }

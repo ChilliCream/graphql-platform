@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -22,7 +21,6 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="NullValueNode" />: null
         /// <see cref="EnumValueNode" />: Name but not true, false or null.
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
@@ -51,7 +49,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
             else if (_reader.Kind == TokenKind.Dollar && !isConstant)
             {
-                ParseVariable();
+                ParseVariableName(true);
             }
             else
             {
@@ -61,7 +59,6 @@ namespace StrawberryShake.VisualStudio.Language
                 MoveNext();
             }
         }
-
 
         private void ParseStringLiteral(
             SyntaxClassificationKind kind = SyntaxClassificationKind.StringLiteral)
@@ -87,12 +84,10 @@ namespace StrawberryShake.VisualStudio.Language
         /// - [ ]
         /// - [ Value[isConstant]+ ]
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-
         private void ParseList(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftBracket)
@@ -128,12 +123,10 @@ namespace StrawberryShake.VisualStudio.Language
         /// - { }
         /// - { Value[isConstant]+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-
         private void ParseObject(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftBrace)
@@ -163,13 +156,10 @@ namespace StrawberryShake.VisualStudio.Language
             }
         }
 
-
         private void ParseObjectField(bool isConstant)
         {
             ParseName(SyntaxClassificationKind.InputFieldIdentifier);
-
-            ExpectColon();
-
+            ParseColon();
             ParseValueLiteral(isConstant);
         }
 
