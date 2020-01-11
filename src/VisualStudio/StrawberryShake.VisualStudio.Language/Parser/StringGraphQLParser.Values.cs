@@ -65,7 +65,7 @@ namespace StrawberryShake.VisualStudio.Language
             throw Unexpected(_reader.Kind);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private StringValueNode ParseStringLiteral()
         {
             ISyntaxToken start = _reader.Token;
@@ -88,7 +88,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private ListValueNode ParseList(bool isConstant)
         {
             ISyntaxToken start = _reader.Token;
@@ -136,7 +136,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private ObjectValueNode ParseObject(bool isConstant)
         {
             ISyntaxToken start = _reader.Token;
@@ -173,7 +173,7 @@ namespace StrawberryShake.VisualStudio.Language
             );
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private ObjectFieldNode ParseObjectField(bool isConstant)
         {
             ISyntaxToken start = _reader.Token;
@@ -194,7 +194,7 @@ namespace StrawberryShake.VisualStudio.Language
             );
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private unsafe IValueNode ParseNonStringScalarValue()
         {
             ISyntaxToken start = _reader.Token;
@@ -231,7 +231,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private unsafe IValueNode ParseEnumValue()
         {
             ISyntaxToken start = _reader.Token;

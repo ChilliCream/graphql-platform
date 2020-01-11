@@ -7,25 +7,17 @@ namespace StrawberryShake.VisualStudio.Language
     // Implements the parsing rules in the Type Definition section.
     public ref partial struct StringGraphQLClassifier
     {
-        private static readonly List<EnumValueDefinitionNode> _emptyEnumValues =
-            new List<EnumValueDefinitionNode>();
-        private static readonly List<InputValueDefinitionNode> _emptyInputValues =
-            new List<InputValueDefinitionNode>();
-        private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions =
-            new List<FieldDefinitionNode>();
-
         /// <summary>
         /// Parses a description.
         /// <see cref="StringValueNode" />:
         /// StringValue
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private void ParseDescription(
-            ICollection<SyntaxClassification> classifications)
+        private void ParseDescription()
         {
             if (_isString[(int)_reader.Kind])
             {
-                ParseStringLiteral(classifications, SyntaxClassificationKind.Comment);
+                ParseStringLiteral(SyntaxClassificationKind.Comment);
             }
         }
 
@@ -256,7 +248,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// ( InputValueDefinition+ )
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private List<InputValueDefinitionNode> ParseArgumentDefinitions()
+        private void ParseArgumentDefinitions()
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
             {

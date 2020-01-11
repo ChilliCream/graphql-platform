@@ -84,7 +84,7 @@ namespace StrawberryShake.VisualStudio.Language
             return _emptyDirectives;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private DirectiveNode ParseDirective(bool isConstant)
         {
             ISyntaxToken start = _reader.Token;

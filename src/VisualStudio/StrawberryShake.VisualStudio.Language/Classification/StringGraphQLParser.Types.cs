@@ -60,17 +60,7 @@
         /// Name
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private NamedTypeNode ParseNamedType()
-        {
-            ISyntaxToken start = _reader.Token;
-            NameNode name = ParseName();
-            var location = new Location(start, _reader.Token);
-
-            return new NamedTypeNode
-            (
-                location,
-                name
-            );
-        }
+        private void ParseNamedType() =>
+            ParseName(SyntaxClassificationKind.TypeReference);
     }
 }

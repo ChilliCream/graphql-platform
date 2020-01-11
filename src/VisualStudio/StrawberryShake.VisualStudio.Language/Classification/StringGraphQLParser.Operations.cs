@@ -21,7 +21,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private OperationDefinitionNode ParseOperationDefinition(
             ICollection<SyntaxClassification> classifications)
         {
@@ -56,7 +56,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private OperationDefinitionNode ParseShortOperationDefinition()
         {
             ISyntaxToken start = _reader.Token;
@@ -78,7 +78,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Parses the <see cref="OperationType" />.
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ParseOperationType(
             ICollection<SyntaxClassification> classifications)
         {
@@ -98,7 +98,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// ( VariableDefinition+ )
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ParseVariableDefinitions(
             ICollection<SyntaxClassification> classifications)
         {
@@ -129,7 +129,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// $variable : Type = DefaultValue?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private VariableDefinitionNode ParseVariableDefinition()
         {
             ISyntaxToken start = _reader.Token;
@@ -160,7 +160,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// $Name
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private VariableNode ParseVariable()
         {
             ISyntaxToken start = _reader.Token;
@@ -181,41 +181,31 @@ namespace StrawberryShake.VisualStudio.Language
         /// { Selection+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private SelectionSetNode ParseSelectionSet()
+
+        private void ParseSelectionSet()
         {
-            ISyntaxToken start = _reader.Token;
-
-            if (_reader.Kind != TokenKind.LeftBrace)
+            if (_reader.Kind == TokenKind.LeftBrace)
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
+                // skip opening token
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Brace,
+                    _reader.Token);
+                MoveNext();
+
+                while (_reader.Kind != TokenKind.RightBrace)
+                {
+                    ParseSelection();
+                }
+
+                // skip closing token
+                ParseRightBrace();
             }
-
-            var selections = new List<ISelectionNode>();
-
-            // skip opening token
-            MoveNext();
-
-            while (_reader.Kind != TokenKind.RightBrace)
+            else
             {
-                selections.Add(ParseSelection());
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
             }
-
-            // skip closing token
-            ExpectRightBrace();
-
-            var location = new Location(start, _reader.Token);
-
-            return new SelectionSetNode
-            (
-                location,
-                selections
-            );
         }
 
         /// <summary>
@@ -226,14 +216,17 @@ namespace StrawberryShake.VisualStudio.Language
         /// - InlineFragment
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private ISelectionNode ParseSelection()
         {
             if (_reader.Kind == TokenKind.Spread)
             {
-                return ParseFragment();
+                ParseFragment();
             }
-            return ParseField();
+            else
+            {
+                ParseField();
+            }
         }
 
         /// <summary>
@@ -242,8 +235,8 @@ namespace StrawberryShake.VisualStudio.Language
         /// Alias? : Name Arguments? Directives? SelectionSet?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FieldNode ParseField()
+
+        private void ParseField()
         {
             ISyntaxToken start = _reader.Token;
 
@@ -281,10 +274,8 @@ namespace StrawberryShake.VisualStudio.Language
         /// Name : Value[isConstant]
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseArguments(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
+
+        private void ParseArguments(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
             {
@@ -314,7 +305,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Name : Value[isConstant]
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ParseArgument(
             ICollection<SyntaxClassification> classifications,
             bool isConstant)

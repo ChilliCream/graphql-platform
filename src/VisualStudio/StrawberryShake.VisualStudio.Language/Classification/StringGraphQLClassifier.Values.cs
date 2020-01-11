@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using StrawberryShake.VisualStudio.Language.Properties;
 using System.Runtime.CompilerServices;
 
 namespace StrawberryShake.VisualStudio.Language
@@ -30,56 +27,58 @@ namespace StrawberryShake.VisualStudio.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        private void ParseValueLiteral(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
+        private void ParseValueLiteral(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftBracket)
             {
-                ParseList(classifications, isConstant);
+                ParseList(isConstant);
             }
-
-            if (_reader.Kind == TokenKind.LeftBrace)
+            else if (_reader.Kind == TokenKind.LeftBrace)
             {
-                ParseObject(classifications, isConstant);
+                ParseObject(isConstant);
             }
-
-            if (_isString[(int)_reader.Kind])
+            else if (_isString[(int)_reader.Kind])
             {
-                ParseStringLiteral(classifications);
+                ParseStringLiteral();
             }
-
-            if (_isScalar[(int)_reader.Kind])
+            else if (_isScalar[(int)_reader.Kind])
             {
-                ParseNonStringScalarValue();
+                ParseNumberScalarValue();
             }
-
-            if (_reader.Kind == TokenKind.Name)
+            else if (_reader.Kind == TokenKind.Name)
             {
-                return ParseEnumValue();
+                ParseEnumValue();
             }
-
-            if (_reader.Kind == TokenKind.Dollar && !isConstant)
+            else if (_reader.Kind == TokenKind.Dollar && !isConstant)
             {
-                return ParseVariable();
+                ParseVariable();
             }
-
-            throw Unexpected(_reader.Kind);
+            else
+            {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
+                MoveNext();
+            }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ParseStringLiteral(
-            ICollection<SyntaxClassification> classifications,
             SyntaxClassificationKind kind = SyntaxClassificationKind.StringLiteral)
         {
-            ISyntaxToken start = _reader.Token;
-
-            bool isBlock = _reader.Kind == TokenKind.BlockString;
-            string value = ExpectString();
-            var location = new Location(start, _reader.Token);
-
-            classifications.Add(new SyntaxClassification(
-                kind, location.Start, location.Length));
+            if (_isString[(int)_reader.Kind])
+            {
+                classifications.AddClassification(
+                    kind,
+                    _reader.Token);
+            }
+            else
+            {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
+            }
+            MoveNext();
         }
 
         /// <summary>
@@ -93,10 +92,8 @@ namespace StrawberryShake.VisualStudio.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseList(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
+
+        private void ParseList(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftBracket)
             {
@@ -108,14 +105,14 @@ namespace StrawberryShake.VisualStudio.Language
 
                 while (_reader.Kind != TokenKind.RightBracket)
                 {
-                    ParseValueLiteral(classifications, isConstant);
+                    ParseValueLiteral(isConstant);
                 }
 
                 // skip closing token
                 classifications.AddClassification(
                     SyntaxClassificationKind.Bracket,
                     _reader.Token);
-                Expect(TokenKind.RightBracket);
+                Expect(SyntaxClassificationKind.Bracket, TokenKind.RightBracket);
             }
             else
             {
@@ -136,18 +133,16 @@ namespace StrawberryShake.VisualStudio.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseObject(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
-        {
-            ISyntaxToken start = _reader.Token;
 
+        private void ParseObject(bool isConstant)
+        {
             if (_reader.Kind == TokenKind.LeftBrace)
             {
                 // skip opening token
-                classifications.AddClassification(SyntaxClassificationKind.Brace, _reader.Token);
-                MoveNext(classifications);
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Brace,
+                    _reader.Token);
+                MoveNext();
 
                 while (_reader.Kind != TokenKind.RightBrace)
                 {
@@ -155,8 +150,10 @@ namespace StrawberryShake.VisualStudio.Language
                 }
 
                 // skip closing token
-                classifications.AddClassification(SyntaxClassificationKind.Brace, _reader.Token);
-                Expect(classifications, SyntaxClassificationKind.Brace, TokenKind.RightBrace);
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Brace,
+                    _reader.Token);
+                Expect(SyntaxClassificationKind.Brace, TokenKind.RightBrace);
             }
             else
             {
@@ -166,23 +163,18 @@ namespace StrawberryShake.VisualStudio.Language
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseObjectField(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
-        {
-            ISyntaxToken start = _reader.Token;
 
-            ParseName(classifications, SyntaxClassificationKind.InputFieldIdentifier);
+        private void ParseObjectField(bool isConstant)
+        {
+            ParseName(SyntaxClassificationKind.InputFieldIdentifier);
 
             ExpectColon();
 
-            ParseValueLiteral(classifications, isConstant);
+            ParseValueLiteral(isConstant);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseNumberScalarValue(
-            ICollection<SyntaxClassification> classifications)
+
+        private void ParseNumberScalarValue()
         {
             if (_reader.Kind == TokenKind.Float
                 || _reader.Kind == TokenKind.Integer)
@@ -197,50 +189,33 @@ namespace StrawberryShake.VisualStudio.Language
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
-
-            MoveNext(classifications);
+            MoveNext();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe IValueNode ParseEnumValue()
+
+        private void ParseEnumValue()
         {
-            ISyntaxToken start = _reader.Token;
-
-            Location location;
-
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.True)
+                || _reader.Value.SequenceEqual(GraphQLKeywords.False))
             {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.BooleanLiteral,
+                    _reader.Token);
                 MoveNext();
-                location = new Location(start, _reader.Token);
-                return new BooleanValueNode(location, true);
             }
-
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
+            else if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
             {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.NullLiteral,
+                    _reader.Token);
                 MoveNext();
-                location = new Location(start, _reader.Token);
-                return new BooleanValueNode(location, false);
             }
-
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
+            else
             {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
                 MoveNext();
-
-                location = new Location(start, _reader.Token);
-                return new NullValueNode(location);
-            }
-
-            fixed (char* c = _reader.Value)
-            {
-                var value = new string(c, 0, _reader.Value.Length);
-                MoveNext();
-                location = new Location(start, _reader.Token);
-
-                return new EnumValueNode
-                (
-                    location,
-                    value
-                );
             }
         }
     }

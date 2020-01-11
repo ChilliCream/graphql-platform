@@ -4,7 +4,7 @@ namespace StrawberryShake.VisualStudio.Language
 {
     public ref partial struct StringGraphQLReader
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         internal bool MoveNext()
         {
             while (Read() && _kind == TokenKind.Comment)
@@ -12,7 +12,7 @@ namespace StrawberryShake.VisualStudio.Language
             return !IsEndOfStream();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         internal bool Skip(TokenKind kind)
         {
             if (_kind == kind)

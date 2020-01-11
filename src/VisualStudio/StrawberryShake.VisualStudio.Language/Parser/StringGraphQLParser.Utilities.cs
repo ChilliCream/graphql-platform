@@ -24,7 +24,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         private TokenKind Kind => _reader.Kind;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private NameNode ParseName()
         {
             ISyntaxToken start = _reader.Token;
@@ -38,10 +38,10 @@ namespace StrawberryShake.VisualStudio.Language
             );
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private bool MoveNext() => _reader.MoveNext();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private unsafe string ExpectName()
         {
             if (_reader.Kind == TokenKind.Name)
@@ -73,7 +73,7 @@ namespace StrawberryShake.VisualStudio.Language
         private void ExpectRightBracket() =>
             Expect(TokenKind.RightBracket);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private unsafe string ExpectString()
         {
             if (_isString[(int)_reader.Kind])
@@ -93,7 +93,7 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Kind));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private unsafe string ExpectScalarValue()
         {
             if (_isScalar[(int)_reader.Kind])
@@ -118,7 +118,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         private void ExpectRightBrace() => Expect(TokenKind.RightBrace);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void Expect(TokenKind kind)
         {
             if (!_reader.Skip(kind))
@@ -137,7 +137,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         private void ExpectFragmentKeyword() => ExpectKeyword(GraphQLKeywords.Fragment);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private unsafe void ExpectKeyword(ReadOnlySpan<char> keyword)
         {
             if (!SkipKeyword(keyword))
@@ -170,7 +170,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         private bool SkipImplementsKeyword() => SkipKeyword(GraphQLKeywords.Implements);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private bool SkipKeyword(ReadOnlySpan<char> keyword)
         {
             if (_reader.Kind == TokenKind.Name
@@ -182,7 +182,7 @@ namespace StrawberryShake.VisualStudio.Language
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private StringValueNode? TakeDescription()
         {
             StringValueNode? description = _description;

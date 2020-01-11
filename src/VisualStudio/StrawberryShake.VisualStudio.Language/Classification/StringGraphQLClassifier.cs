@@ -6,6 +6,7 @@ namespace StrawberryShake.VisualStudio.Language
 {
     public ref partial struct StringGraphQLClassifier
     {
+        private readonly List<SyntaxClassification> classifications;
         private StringGraphQLReader _reader;
         private StringValueNode? _description;
 
@@ -18,6 +19,7 @@ namespace StrawberryShake.VisualStudio.Language
                     nameof(graphQLData));
             }
 
+            _classifications = new List<SyntaxClassification>();
             _reader = new StringGraphQLReader(graphQLData);
             _description = null;
         }
@@ -31,6 +33,7 @@ namespace StrawberryShake.VisualStudio.Language
                     nameof(reader));
             }
 
+            _classifications = new List<SyntaxClassification>();
             _reader = reader;
             _description = null;
         }
@@ -64,7 +67,7 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_isString[(int)_reader.Kind])
             {
-                ParseDescription(classifications);
+                ParseDescription();
             }
             else if (_reader.Kind == TokenKind.Name)
             {

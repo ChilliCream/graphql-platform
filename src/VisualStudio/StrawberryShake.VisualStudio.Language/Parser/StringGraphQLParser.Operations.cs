@@ -21,7 +21,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private OperationDefinitionNode ParseOperationDefinition()
         {
             ISyntaxToken start = _reader.Token;
@@ -52,7 +52,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private OperationDefinitionNode ParseShortOperationDefinition()
         {
             ISyntaxToken start = _reader.Token;
@@ -74,7 +74,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Parses the <see cref="OperationType" />.
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private OperationType ParseOperationType()
         {
             if (_reader.Kind == TokenKind.Name)
@@ -107,7 +107,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// ( VariableDefinition+ )
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private List<VariableDefinitionNode> ParseVariableDefinitions()
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -137,7 +137,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// $variable : Type = DefaultValue?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private VariableDefinitionNode ParseVariableDefinition()
         {
             ISyntaxToken start = _reader.Token;
@@ -168,7 +168,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// $Name
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private VariableNode ParseVariable()
         {
             ISyntaxToken start = _reader.Token;
@@ -189,7 +189,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// { Selection+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private SelectionSetNode ParseSelectionSet()
         {
             ISyntaxToken start = _reader.Token;
@@ -234,7 +234,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// - InlineFragment
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private ISelectionNode ParseSelection()
         {
             if (_reader.Kind == TokenKind.Spread)
@@ -250,7 +250,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Alias? : Name Arguments? Directives? SelectionSet?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private FieldNode ParseField()
         {
             ISyntaxToken start = _reader.Token;
@@ -289,7 +289,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Name : Value[isConstant]
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private List<ArgumentNode> ParseArguments(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -319,7 +319,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// Name : Value[isConstant]
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private ArgumentNode ParseArgument(bool isConstant)
         {
             ISyntaxToken start = _reader.Token;

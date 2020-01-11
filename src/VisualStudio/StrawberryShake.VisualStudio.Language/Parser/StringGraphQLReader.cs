@@ -182,7 +182,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <returns>
         /// Returns the name token read from the current lexer state.
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ReadNameToken()
         {
             var start = _position;
@@ -206,7 +206,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// one of ! $ ( ) ... : = @ [ ] { | }
         /// additionally the reader will tokenize ampersands.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ReadPunctuatorToken(char code)
         {
             _start = _position;
@@ -244,7 +244,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// http://facebook.github.io/graphql/October2016/#FloatValue
         /// from the current lexer state.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ReadNumberToken(char firstCode)
         {
             int start = _position;
@@ -298,7 +298,7 @@ namespace StrawberryShake.VisualStudio.Language
             _value = _graphQLData.Slice(start, _position - start);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private char ReadDigits(char firstCode)
         {
             if (!_isDigit[firstCode])
@@ -334,7 +334,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// #[\u0009\u0020-\uFFFF]*
         /// from the current lexer state.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ReadCommentToken()
         {
             var start = _position;
@@ -375,7 +375,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
         /// from the current lexer state.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ReadStringValueToken()
         {
             var start = _position;
@@ -423,7 +423,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// http://facebook.github.io/graphql/draft/#BlockStringCharacter
         /// from the current lexer state.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void ReadBlockStringToken()
         {
             var start = _position - 2;
@@ -479,7 +479,7 @@ namespace StrawberryShake.VisualStudio.Language
             throw new SyntaxException(this, "Unterminated string.");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void SkipWhitespaces()
         {
             if (_nextNewLines > 0)
@@ -523,7 +523,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <summary>
         /// Sets the state to a new line.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void SetNewLine()
         {
             _line++;
@@ -537,7 +537,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <param name="lines">
         /// The number of lines to skip.
         /// </param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void SetNewLine(int lines)
         {
             if (lines < 1)
@@ -554,7 +554,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <summary>
         /// Updates the column index.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private void UpdateColumn()
         {
             _column = 1 + _position - _lineStart;
@@ -564,13 +564,13 @@ namespace StrawberryShake.VisualStudio.Language
         /// Checks if the lexer source pointer has reached
         /// the end of the GraphQL source text.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public bool IsEndOfStream()
         {
             return _position >= _length;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private bool IsEndOfStream(int position)
         {
             return position >= _length;

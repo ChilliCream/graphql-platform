@@ -8,68 +8,61 @@ namespace StrawberryShake.VisualStudio.Language
         private static readonly List<DirectiveNode> _emptyDirectives =
             new List<DirectiveNode>();
 
-        private DirectiveDefinitionNode ParseDirectiveDefinition()
+        private void ParseDirectiveDefinition()
         {
-            ISyntaxToken start = _reader.Token;
+            ParseDirectiveKeyword();
 
-            StringValueNode? description = ParseDescription();
+            ParseDirectiveName();
 
-            ExpectDirectiveKeyword();
-            ExpectAt();
+            ParseArgumentDefinitions();
 
-            NameNode name = ParseName();
-            List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
+            ParseRepeatableKeyword();
 
-            bool isRepeatable = SkipRepeatableKeyword();
-            ExpectOnKeyword();
+            ParseOnKeyword();
 
-            List<NameNode> locations = ParseDirectiveLocations();
-
-             var location = new Location(start, _reader.Token);
-
-            return new DirectiveDefinitionNode
-            (
-                location,
-                name,
-                description,
-                isRepeatable,
-                arguments,
-                locations
-            );
+            ParseDirectiveLocations();
         }
 
-        private List<NameNode> ParseDirectiveLocations()
-        {
-            var list = new List<NameNode>();
+        private void ParseRepeatableKeyword() =>
+            SkipKeyword(SyntaxClassificationKind.RepeatableKeyword, GraphQLKeywords.Repeatable);
 
+        private void ParseDirectiveLocations()
+        {
             // skip optional leading pipe.
             SkipPipe();
 
             do
             {
-                list.Add(ParseDirectiveLocation());
+                ParseDirectiveLocation();
             }
             while (SkipPipe());
-
-            return list;
         }
 
-        private NameNode ParseDirectiveLocation()
+        private unsafe void ParseDirectiveLocation()
         {
-            TokenKind kind = _reader.Kind;
-            NameNode name = ParseName();
+            ISyntaxToken token = _reader.Token;
 
-            if (DirectiveLocation.IsValidName(name.Value))
+            if (token.Kind == TokenKind.Name)
             {
-                return name;
+                fixed (char* c = _reader.Value)
+                {
+                    string name = new string(c, 0, _reader.Value.Length);
+                    if (DirectiveLocation.IsValidName(name))
+                    {
+                        classifications.AddClassification(
+                            SyntaxClassificationKind.DirectiveLocation,
+                            _reader.Token);
+                        return;
+                    }
+                }
             }
 
-            throw Unexpected(kind);
+            classifications.AddClassification(
+                SyntaxClassificationKind.Error,
+                _reader.Token);
         }
 
-        private void ParseDirectives(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
+        private void ParseDirectives(bool isConstant)
         {
             if (_reader.Kind == TokenKind.At)
             {
@@ -80,30 +73,33 @@ namespace StrawberryShake.VisualStudio.Language
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private DirectiveNode ParseDirective(
-            ICollection<SyntaxClassification> classifications,
-            bool isConstant)
+        private void ParseDirective(bool isConstant)
+        {
+            ParseDirectiveName();
+            ParseArguments(isConstant);
+        }
+
+        private void ParseDirectiveName()
         {
             ISyntaxToken start = _reader.Token;
 
-            ExpectAt();
-            ExpectName();
+            if (_reader.Kind == TokenKind.At)
+            {
+                MoveNext();
+                classifications.AddClassification(
+                    _reader.Kind == TokenKind.Name
+                        ? SyntaxClassificationKind.DirectiveIdentifier
+                        : SyntaxClassificationKind.Error,
+                    new Location(start, _reader.Token));
+            }
+            else
+            {
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
+            }
 
-            classifications.AddClassification(
-                SyntaxClassificationKind.DirectiveIdentifier,
-                new Location(start, _reader.Token));
-
-            List<ArgumentNode> arguments = ParseArguments(isConstant);
-
-             var location = new Location(start, _reader.Token);
-
-            return new DirectiveNode
-            (
-                location,
-                name,
-                arguments
-            );
+            MoveNext();
         }
     }
 }

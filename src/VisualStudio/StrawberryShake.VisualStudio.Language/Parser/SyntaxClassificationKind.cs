@@ -18,15 +18,29 @@
 
         Identifier,
 
-        ArgumentIdentifier,
+        FragmentIdentifier,
 
-        DirectiveIdentifier,
+        ArgumentIdentifier,
 
         InputFieldIdentifier,
 
-        SymbolDefinition,
+        DirectiveIdentifier,
 
-        SymbolReference,
+        TypeReference,
+
+        FragmentReference,
+
+        DirectiveLocation,
+
+        DirectiveKeyword,
+
+        RepeatableKeyword,
+
+        ImplementsKeyword,
+
+        FragmentKeyword,
+
+        OnKeyword,
 
         StringLiteral,
 
@@ -36,9 +50,24 @@
 
         BooleanLiteral,
 
+        NullLiteral,
+
+        At,
+
+        Pipe,
+
+        Equal,
+
+        Ampersand,
+
+        Colon,
+
+        Spread,
+
         WhiteSpace,
 
         Other,
+
         Error
     }
 

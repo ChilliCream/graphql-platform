@@ -13,7 +13,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="ParseInlineFragment" />.
         /// </summary>
         /// <param name="context">The parser context.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         private ISelectionNode ParseFragment()
         {
             ISyntaxToken start = _reader.Token;
