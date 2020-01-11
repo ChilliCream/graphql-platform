@@ -82,7 +82,7 @@ namespace StrawberryShake.VisualStudio.Language
             ISyntaxToken start = _reader.Token;
 
             OperationType operation = ParseOperationType();
-            ExpectColon();
+            ParseColon();
             NamedTypeNode type = ParseNamedType();
 
             var location = new Location(start, _reader.Token);
@@ -225,7 +225,7 @@ namespace StrawberryShake.VisualStudio.Language
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
             List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
-            ExpectColon();
+            ParseColon();
             ITypeNode type = ParseTypeReference();
             List<DirectiveNode> directives = ParseDirectives(true);
 
@@ -283,7 +283,7 @@ namespace StrawberryShake.VisualStudio.Language
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
-            ExpectColon();
+            ParseColon();
             ITypeNode type = ParseTypeReference();
             IValueNode? defaultValue = SkipEqual()
                 ? ParseValueLiteral(true)
