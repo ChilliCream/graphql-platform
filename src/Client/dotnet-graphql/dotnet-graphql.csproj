@@ -14,10 +14,13 @@
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.4.2" />
+    <PackageReference Include="IdentityModel" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Generators\Generators.csproj" />
+    <ProjectReference Include="..\Http\Http.csproj" />
+    <ProjectReference Include="..\..\Core\Utilities.Introspection\Utilities.Introspection.csproj" />
   </ItemGroup>
 
 </Project>

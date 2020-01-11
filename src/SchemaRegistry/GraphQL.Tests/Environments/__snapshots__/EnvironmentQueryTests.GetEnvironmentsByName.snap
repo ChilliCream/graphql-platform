@@ -1,0 +1,16 @@
+﻿{
+  "Data": {
+    "environments": {
+      "nodes": [
+        {
+          "id": "RW52aXJvbm1lbnQKZzE1OGI4NTkzZTE1YzQxMDU5NzU3MmI5MjJiMzkxNzBm",
+          "name": "abc",
+          "description": "def"
+        }
+      ]
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

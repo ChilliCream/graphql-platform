@@ -172,7 +172,7 @@ namespace StrawberryShake.Http
                     serialized.Add(SerializeVariable(element, serializer));
                 }
 
-                return serializer;
+                return serialized;
             }
 
             return serializer.Serialize(obj);

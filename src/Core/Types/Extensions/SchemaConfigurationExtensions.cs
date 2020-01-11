@@ -111,6 +111,7 @@ namespace HotChocolate
 
             schemaConfiguration.RegisterType(typeof(DecimalType));
             schemaConfiguration.RegisterType(typeof(ByteType));
+            schemaConfiguration.RegisterType(typeof(ByteArrayType));
             schemaConfiguration.RegisterType(typeof(ShortType));
             schemaConfiguration.RegisterType(typeof(LongType));
             schemaConfiguration.RegisterType(typeof(DateTimeType));

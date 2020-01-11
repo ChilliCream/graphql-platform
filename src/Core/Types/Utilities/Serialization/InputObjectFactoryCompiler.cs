@@ -127,7 +127,7 @@ namespace HotChocolate.Utilities.Serialization
             foreach (InputField field in fields.Values)
             {
                 Expression value = GetFieldValue(field, data, converter);
-                yield return Expression.Call(instance, field.Property.GetSetMethod(), value);
+                yield return Expression.Call(instance, field.Property.GetSetMethod(true), value);
             }
         }
 

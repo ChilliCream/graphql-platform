@@ -33,6 +33,22 @@ namespace StrawberryShake.Tools
                 "  dotnet graphql generate [-p|--Path] [-l|--LanguageVersion] " +
                 "[-d|--DISupport] [-n|--Namespace] [-s|--Search] [-f|--Force] " +
                 "[-j|--json]");
+            output.WriteLine();
+            output.WriteLine("- Download the schema as GraphQL SDL");
+            output.WriteLine("  dotnet graphql download http://localhost");
+            output.WriteLine(
+                "  dotnet graphql download {url} [-f|--FileName] " +
+                "[-t|--token] [-s|--scheme]");
+            output.WriteLine();
+            output.WriteLine("- Publish schema to schema registry");
+            output.WriteLine(
+                "  dotnet graphql publish schema -r http://localhost " +
+                "-s Foo -e Dev -f schema.graphql -t version:1.0.0");
+            output.WriteLine(
+                "  dotnet graphql publish schema [-r|--Registry] " +
+                "[-s|--SchemaName] [-e|--EnvironmentName] [-f|--SchemaFileName] " +
+                "[-t|--Tag]");
+
         }
     }
 }

@@ -1,14 +1,14 @@
-using System.Security.Claims;
-using HotChocolate;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Voyager;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using StarWars.Data;
-using StarWars.Types;
+using Microsoft.Extensions.Hosting;
+using HotChocolate;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
+using HotChocolate.Subscriptions;
+using StarWars.Characters;
+using StarWars.Repositories;
+using StarWars.Reviews;
 
 namespace StarWars
 {
@@ -19,8 +19,8 @@ namespace StarWars
         public void ConfigureServices(IServiceCollection services)
         {
             // Add the custom services like repositories etc ...
-            services.AddSingleton<CharacterRepository>();
-            services.AddSingleton<ReviewRepository>();
+            services.AddSingleton<ICharacterRepository, CharacterRepository>();
+            services.AddSingleton<IReviewRepository, ReviewRepository>();
 
             // Add in-memory event provider
             services.AddInMemorySubscriptionProvider();
@@ -28,51 +28,20 @@ namespace StarWars
             // Add GraphQL Services
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
-
-                // Adds the authorize directive and
-                // enable the authorization middleware.
-                .AddAuthorizeDirectiveType()
-
-                .AddQueryType<QueryType>()
-                .AddMutationType<MutationType>()
-                .AddSubscriptionType<SubscriptionType>()
-                .AddType<HumanType>()
-                .AddType<DroidType>()
-                .AddType<EpisodeType>()
-                .Create(),
-                new QueryExecutionOptions
-                {
-                    TracingPreference = TracingPreference.Always
-                });
-
-
-            // Add Authorization Policy
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("HasCountry", policy =>
-                    policy.RequireAssertion(context =>
-                        context.User.HasClaim(c =>
-                            (c.Type == ClaimTypes.Country))));
-            });
-
-            /*
-            Note: uncomment this
-            section in order to simulate a user that has a country claim and
-            passes the configured authorization rule.
-
-            services.AddQueryRequestInterceptor((ctx, builder, ct) =>
-            {
-                var identity = new ClaimsIdentity("abc");
-                identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-                ctx.User = new ClaimsPrincipal(identity);
-                builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
-                return Task.CompletedTask;
-            });
-            */
+                .AddQueryType(d => d.Name("Query"))
+                .AddMutationType(d => d.Name("Mutation"))
+                .AddSubscriptionType(d => d.Name("Subscription"))
+                .AddType<CharacterQueries>()
+                .AddType<ReviewQueries>()
+                .AddType<ReviewMutations>()
+                .AddType<ReviewSubscriptions>()
+                .AddType<Human>()
+                .AddType<Droid>()
+                .AddType<Starship>()
+                .Create());
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -80,9 +49,9 @@ namespace StarWars
             }
 
             app
+                .UseRouting()
                 .UseWebSockets()
                 .UseGraphQL("/graphql")
-                .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
                 .UseVoyager("/graphql");
         }

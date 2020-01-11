@@ -79,7 +79,7 @@ namespace HotChocolate.Configuration
         public bool TryGetType(NameString typeName, out IType? type)
         {
             if (_discoveredTypes is { }
-                && _named.TryGetValue(typeName, out ITypeReference reference)
+                && _named.TryGetValue(typeName, out ITypeReference? reference)
                 && _discoveredTypes.TryGetType(reference, out RegisteredType registered)
                 && registered.Type is IType t)
             {
@@ -261,22 +261,21 @@ namespace HotChocolate.Configuration
 
             foreach (Type type in _externalResolverTypes)
             {
-                GraphQLResolverOfAttribute attribute =
+                GraphQLResolverOfAttribute? attribute =
                     type.GetCustomAttribute<GraphQLResolverOfAttribute>();
 
-                if (attribute.TypeNames != null)
+                if (attribute?.TypeNames != null)
                 {
                     foreach (string typeName in attribute.TypeNames)
                     {
-                        if (types.TryGetValue(typeName,
-                            out ObjectType objectType))
+                        if (types.TryGetValue(typeName, out ObjectType? objectType))
                         {
                             AddResolvers(_descriptorContext, objectType, type);
                         }
                     }
                 }
 
-                if (attribute.Types != null)
+                if (attribute?.Types != null)
                 {
                     foreach (Type sourceType in attribute.Types
                         .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
@@ -584,7 +583,7 @@ namespace HotChocolate.Configuration
             ITypeReference typeReference,
             out ITypeReference? normalized)
         {
-            if (_dependencyLookup.TryGetValue(typeReference, out ITypeReference nr))
+            if (_dependencyLookup.TryGetValue(typeReference, out ITypeReference? nr))
             {
                 normalized = nr;
                 return true;

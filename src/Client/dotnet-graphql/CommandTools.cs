@@ -1,9 +1,9 @@
-using System.Text;
 using System;
 using System.Collections.Generic;
+using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using McMaster.Extensions.CommandLineUtils;
 using McMaster.Extensions.CommandLineUtils.HelpText;
-using Microsoft.Extensions.DependencyInjection;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
 

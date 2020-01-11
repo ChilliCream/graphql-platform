@@ -15,7 +15,7 @@
     <AssemblyName>HotChocolate.Utilities</AssemblyName>
     <RootNamespace>HotChocolate.Utilities</RootNamespace>
     <PackageId>HotChocolate.Utilities</PackageId>
-    <Description>Contains internal helper classees and untilities used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
+    <Description>Contains internal helper classes and untilities used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net461' AND '$(TargetFramework)' != 'netstandard1.4'">
