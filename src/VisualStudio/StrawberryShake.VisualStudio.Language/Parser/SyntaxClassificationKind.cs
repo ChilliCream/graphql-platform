@@ -10,12 +10,6 @@
 
         OperationKind,
 
-        Parenthesis,
-
-        Bracket,
-
-        Brace,
-
         Identifier,
 
         VariableIdentifier,
@@ -28,11 +22,23 @@
 
         InputFieldIdentifier,
 
+        InterfaceIdentifier,
+
+        UnionIdentifier,
+
+        FieldIdentifier,
+
         DirectiveIdentifier,
+
+        ScalarIdentifier,
+
+        TypeIdentifier,
 
         TypeReference,
 
         FieldReference,
+
+        InputFieldReference,
 
         ArgumentReference,
 
@@ -52,6 +58,16 @@
 
         FragmentKeyword,
 
+        SchemaKeyword,
+
+        ScalarKeyword,
+
+        TypeKeyword,
+
+        InterfaceKeyword,
+
+        UnionKeyword,
+
         OnKeyword,
 
         StringLiteral,
@@ -63,6 +79,14 @@
         BooleanLiteral,
 
         NullLiteral,
+
+        Parenthesis,
+
+        Bracket,
+
+        Brace,
+
+        Bang,
 
         At,
 

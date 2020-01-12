@@ -10,48 +10,29 @@
         /// - ListType
         /// - NonNullType
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private ITypeNode ParseTypeReference()
+        private void ParseTypeReference()
         {
-            ITypeNode type;
-            Location location;
-
             if (_reader.Kind == TokenKind.LeftBracket)
             {
-                ISyntaxToken start = _reader.Token;
-
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Bracket,
+                    _reader.Token);
                 MoveNext();
-                type = ParseTypeReference();
-                ExpectRightBracket();
-
-                location = new Location(start, _reader.Token);
-
-                type = new ListTypeNode(location, type);
+                ParseTypeReference();
+                ParseRightBracket();
             }
             else
             {
-                type = ParseNamedType();
+                ParseNamedType();
             }
 
             if (_reader.Kind == TokenKind.Bang)
             {
-                if (type is INullableTypeNode nt)
-                {
-                    ISyntaxToken start = _reader.Token;
-                    MoveNext();
-                    location = new Location(start, _reader.Token);
-
-                    return new NonNullTypeNode
-                    (
-                        location,
-                        nt
-                    );
-                }
-
-                Unexpected(TokenKind.Bang);
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Bang,
+                    _reader.Token);
+                MoveNext();
             }
-
-            return type;
         }
 
         /// <summary>

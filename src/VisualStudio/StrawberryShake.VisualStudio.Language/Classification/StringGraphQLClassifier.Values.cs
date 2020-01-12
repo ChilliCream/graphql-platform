@@ -158,7 +158,7 @@ namespace StrawberryShake.VisualStudio.Language
 
         private void ParseObjectField(bool isConstant)
         {
-            ParseName(SyntaxClassificationKind.InputFieldIdentifier);
+            ParseName(SyntaxClassificationKind.InputFieldReference);
             ParseColon();
             ParseValueLiteral(isConstant);
         }

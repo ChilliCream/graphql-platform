@@ -65,16 +65,17 @@ namespace StrawberryShake.VisualStudio.Language
         private void ExpectAt() =>
             Expect(SyntaxClassificationKind.At, TokenKind.At);
 
-        private void ExpectRightBracket() => Expect(TokenKind.RightBracket);
+        private void ParseRightBracket() =>
+            Expect(SyntaxClassificationKind.Bracket, TokenKind.RightBracket);
 
         private void ParseSpread() =>
             Expect(SyntaxClassificationKind.Spread, TokenKind.Spread);
 
-        private void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
+        private void ParseRightParenthesis() =>
+            Expect(SyntaxClassificationKind.Parenthesis, TokenKind.RightParenthesis);
 
         private void ParseRightBrace() =>
             Expect(SyntaxClassificationKind.Brace, TokenKind.RightBrace);
-
 
         private void Expect(
             SyntaxClassificationKind classificationKind,
@@ -137,11 +138,8 @@ namespace StrawberryShake.VisualStudio.Language
         private bool SkipAmpersand() =>
             Skip(SyntaxClassificationKind.Ampersand, TokenKind.Ampersand);
 
-
-
         private bool SkipImplementsKeyword() =>
             SkipKeyword(SyntaxClassificationKind.ImplementsKeyword, GraphQLKeywords.Implements);
-
 
         private bool SkipKeyword(
             SyntaxClassificationKind classificationKind,

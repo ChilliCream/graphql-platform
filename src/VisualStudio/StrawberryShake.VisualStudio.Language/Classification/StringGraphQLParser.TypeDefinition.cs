@@ -12,7 +12,6 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="StringValueNode" />:
         /// StringValue
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private void ParseDescription()
         {
             if (_isString[(int)_reader.Kind])
@@ -26,49 +25,36 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="SchemaDefinitionNode" />:
         /// schema Directives[isConstant:true]? { OperationTypeDefinition+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private SchemaDefinitionNode ParseSchemaDefinition()
+        private void ParseSchemaDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
-            // skip schema keyword
+            classifications.AddClassification(
+                SyntaxClassificationKind.SchemaKeyword,
+                _reader.Token);
             MoveNext();
 
-            List<DirectiveNode> directives = ParseDirectives(true);
+            ParseDirectives(true);
 
-            if (_reader.Kind != TokenKind.LeftBrace)
+            if (_reader.Kind == TokenKind.LeftBrace)
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Brace,
+                    _reader.Token);
+                MoveNext();
+
+                while (_reader.Kind != TokenKind.RightBrace)
+                {
+                    ParseOperationTypeDefinition();
+                }
+
+                ParseRightBrace();
             }
-
-            var operationTypeDefinitions =
-                new List<OperationTypeDefinitionNode>();
-
-            // skip opening token
-            MoveNext();
-
-            while (_reader.Kind != TokenKind.RightBrace)
+            else
             {
-                operationTypeDefinitions.Add(ParseOperationTypeDefinition());
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
+                MoveNext();
             }
-
-            // skip closing token
-            ParseRightBrace();
-
-            var location = new Location(start, _reader.Token);
-
-            return new SchemaDefinitionNode
-            (
-                location,
-                TakeDescription(),
-                directives,
-                operationTypeDefinitions
-            );
         }
 
         /// <summary>
@@ -76,23 +62,11 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="OperationTypeDefinitionNode" />:
         /// OperationType : NamedType
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private OperationTypeDefinitionNode ParseOperationTypeDefinition()
+        private void ParseOperationTypeDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
-            OperationType operation = ParseOperationType();
+            ParseOperationType();
             ParseColon();
-            NamedTypeNode type = ParseNamedType();
-
-            var location = new Location(start, _reader.Token);
-
-            return new OperationTypeDefinitionNode
-            (
-                location,
-                operation,
-                type
-            );
+            ParseNamedType();
         }
 
         /// <summary>
@@ -101,26 +75,15 @@ namespace StrawberryShake.VisualStudio.Language
         /// Description?
         /// scalar Name Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private ScalarTypeDefinitionNode ParseScalarTypeDefinition()
+        private void ParseScalarTypeDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
-            // skip scalar keyword
+            classifications.AddClassification(
+                SyntaxClassificationKind.ScalarKeyword,
+                _reader.Token);
             MoveNext();
 
-            NameNode name = ParseName();
-            List<DirectiveNode> directives = ParseDirectives(true);
-
-            var location = new Location(start, _reader.Token);
-
-            return new ScalarTypeDefinitionNode
-            (
-                location,
-                name,
-                TakeDescription(),
-                directives
-            );
+            ParseName(SyntaxClassificationKind.ScalarIdentifier);
+            ParseDirectives(true);
         }
 
         /// <summary>
@@ -129,30 +92,17 @@ namespace StrawberryShake.VisualStudio.Language
         /// Description?
         /// type Name ImplementsInterfaces? Directives[isConstant=true]? FieldsDefinition?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private ObjectTypeDefinitionNode ParseObjectTypeDefinition()
+        private void ParseObjectTypeDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
-            // skip type keyword
+            classifications.AddClassification(
+                SyntaxClassificationKind.TypeKeyword,
+                _reader.Token);
             MoveNext();
 
-            NameNode name = ParseName();
-            List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
-            List<DirectiveNode> directives = ParseDirectives(true);
-            List<FieldDefinitionNode> fields = ParseFieldsDefinition();
-
-            var location = new Location(start, _reader.Token);
-
-            return new ObjectTypeDefinitionNode
-            (
-                location,
-                name,
-                TakeDescription(),
-                directives,
-                interfaces,
-                fields
-            );
+            ParseName(SyntaxClassificationKind.TypeIdentifier);
+            ParseImplementsInterfaces();
+            ParseDirectives(true);
+            ParseFieldsDefinition();
         }
 
         /// <summary>
@@ -160,11 +110,8 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="List{NamedTypeNode}" />:
         /// implements &amp;? NamedType
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private List<NamedTypeNode> ParseImplementsInterfaces()
+        private void ParseImplementsInterfaces()
         {
-            var list = new List<NamedTypeNode>();
-
             if (SkipImplementsKeyword())
             {
                 // skip optional leading ampersand.
@@ -172,12 +119,10 @@ namespace StrawberryShake.VisualStudio.Language
 
                 do
                 {
-                    list.Add(ParseNamedType());
+                    ParseNamedType();
                 }
                 while (SkipAmpersand());
             }
-
-            return list;
         }
 
         /// <summary>
@@ -185,27 +130,22 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="IReadOnlyList{FieldDefinitionNode}" />:
         /// { FieldDefinition+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private List<FieldDefinitionNode> ParseFieldsDefinition()
+        private void ParseFieldsDefinition()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
             {
-                var list = new List<FieldDefinitionNode>();
-
-                // skip opening token
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Brace,
+                    _reader.Token);
                 MoveNext();
 
                 while (_reader.Kind != TokenKind.RightBrace)
                 {
-                    list.Add(ParseFieldDefinition());
+                    ParseFieldDefinition();
                 }
 
-                // skip closing token
                 ParseRightBrace();
-
-                return list;
             }
-            return _emptyFieldDefinitions;
         }
 
 
@@ -217,29 +157,14 @@ namespace StrawberryShake.VisualStudio.Language
         /// Description?
         /// Name ArgumentsDefinition? : Type Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private FieldDefinitionNode ParseFieldDefinition()
+        private void ParseFieldDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
-            StringValueNode? description = ParseDescription();
-            NameNode name = ParseName();
-            List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
+            ParseDescription();
+            ParseName(SyntaxClassificationKind.FieldIdentifier);
+            ParseArgumentDefinitions();
             ParseColon();
-            ITypeNode type = ParseTypeReference();
-            List<DirectiveNode> directives = ParseDirectives(true);
-
-            var location = new Location(start, _reader.Token);
-
-            return new FieldDefinitionNode
-            (
-                location,
-                name,
-                description,
-                arguments,
-                type,
-                directives
-            );
+            ParseTypeReference();
+            ParseDirectives(true);
         }
 
         /// <summary>
@@ -247,28 +172,23 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="List{InputValueDefinitionNode}" />:
         /// ( InputValueDefinition+ )
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private void ParseArgumentDefinitions()
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
             {
-                var list = new List<InputValueDefinitionNode>();
-
-                // skip opening token
+                classifications.AddClassification(
+                    SyntaxClassificationKind.Parenthesis,
+                    _reader.Token);
                 MoveNext();
 
                 while (_reader.Kind != TokenKind.RightParenthesis)
                 {
-                    list.Add(ParseInputValueDefinition());
+                    ParseInputValueDefinition(
+                        SyntaxClassificationKind.ArgumentIdentifier);
                 }
 
-                // skip closing token
-                ExpectRightParenthesis();
-
-                return list;
+                ParseRightParenthesis();
             }
-
-            return _emptyInputValues;
         }
 
         /// <summary>
@@ -276,31 +196,20 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="InputValueDefinitionNode" />:
         /// Description? Name : Type DefaultValue? Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private InputValueDefinitionNode ParseInputValueDefinition()
+        private void ParseInputValueDefinition(
+            SyntaxClassificationKind classificationKind)
         {
-            ISyntaxToken start = _reader.Token;
-
-            StringValueNode? description = ParseDescription();
-            NameNode name = ParseName();
+            ParseDescription();
+            ParseName(classificationKind);
             ParseColon();
-            ITypeNode type = ParseTypeReference();
-            IValueNode? defaultValue = SkipEqual()
-                ? ParseValueLiteral(true)
-                : null;
-            List<DirectiveNode> directives = ParseDirectives(true);
+            ParseTypeReference();
 
-            var location = new Location(start, _reader.Token);
+            if (SkipEqual())
+            {
+                ParseValueLiteral(true);
+            }
 
-            return new InputValueDefinitionNode
-            (
-                location,
-                name,
-                description,
-                type,
-                defaultValue,
-                directives
-            );
+            ParseDirectives(true);
         }
 
         /// <summary>
@@ -309,27 +218,16 @@ namespace StrawberryShake.VisualStudio.Language
         /// Description? interface Name Directives[isConstant=true]?
         /// FieldsDefinition?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition()
+        private void ParseInterfaceTypeDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
+            classifications.AddClassification(
+                SyntaxClassificationKind.InterfaceKeyword,
+                _reader.Token);
             MoveNext();
 
-            NameNode name = ParseName();
-            List<DirectiveNode> directives = ParseDirectives(true);
-            List<FieldDefinitionNode> fields = ParseFieldsDefinition();
-
-            var location = new Location(start, _reader.Token);
-
-            return new InterfaceTypeDefinitionNode
-            (
-                location,
-                name,
-                TakeDescription(),
-                directives,
-                fields
-            );
+            ParseName(SyntaxClassificationKind.InterfaceIdentifier);
+            ParseDirectives(true);
+            ParseFieldsDefinition();
         }
 
         /// <summary>
@@ -338,27 +236,16 @@ namespace StrawberryShake.VisualStudio.Language
         /// Description? union Name Directives[isConstant=true]?
         /// UnionMemberTypes?
         /// </summary>
-        /// <param name="context">The parser context.</param>
-        private UnionTypeDefinitionNode ParseUnionTypeDefinition()
+        private void ParseUnionTypeDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
+            classifications.AddClassification(
+                SyntaxClassificationKind.UnionKeyword,
+                _reader.Token);
             MoveNext();
 
-            NameNode name = ParseName();
-            List<DirectiveNode> directives = ParseDirectives(true);
-            List<NamedTypeNode> types = ParseUnionMemberTypes();
-
-            var location = new Location(start, _reader.Token);
-
-            return new UnionTypeDefinitionNode
-            (
-                location,
-                name,
-                TakeDescription(),
-                directives,
-                types
-            );
+            ParseName(SyntaxClassificationKind.UnionIdentifier);
+            ParseDirectives(true);
+            ParseUnionMemberTypes();
         }
 
         /// <summary>
@@ -366,7 +253,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="List{NamedTypeNode}" />:
         /// = `|`? NamedType
         /// </summary>
-        /// <param name="context">The parser context.</param>
+
         private List<NamedTypeNode> ParseUnionMemberTypes()
         {
             var list = new List<NamedTypeNode>();
@@ -391,7 +278,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="EnumTypeDefinitionNode" />:
         /// Description? enum Name Directives[Const]? EnumValuesDefinition?
         /// </summary>
-        /// <param name="context">The parser context.</param>
+
         private EnumTypeDefinitionNode ParseEnumTypeDefinition()
         {
             ISyntaxToken start = _reader.Token;
@@ -419,7 +306,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="List{EnumValueDefinitionNode}" />:
         /// { EnumValueDefinition+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
+
         private List<EnumValueDefinitionNode> ParseEnumValuesDefinition()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
@@ -450,7 +337,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="EnumValueDefinitionNode" />:
         /// Description? EnumValue Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
+
         private EnumValueDefinitionNode ParseEnumValueDefinition()
         {
             ISyntaxToken start = _reader.Token;

@@ -72,7 +72,7 @@ namespace StrawberryShake.VisualStudio.Language
                 classifications.AddClassification(
                     SyntaxClassificationKind.Parenthesis,
                     _reader.Token);
-                ExpectRightParenthesis();
+                ParseRightParenthesis();
             }
         }
 
@@ -237,7 +237,7 @@ namespace StrawberryShake.VisualStudio.Language
                 classifications.AddClassification(
                     SyntaxClassificationKind.Parenthesis,
                     _reader.Token);
-                ExpectRightParenthesis();
+                ParseRightParenthesis();
             }
         }
 
