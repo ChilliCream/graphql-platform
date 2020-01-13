@@ -40,8 +40,26 @@ namespace StrawberryShake.VisualStudio
                         list.AddClassification(span, classification, _classifications.Comment);
                         break;
 
+                    case SyntaxClassificationKind.Keyword:
+                    case SyntaxClassificationKind.DirectiveKeyword:
+                    case SyntaxClassificationKind.EnumKeyword:
+                    case SyntaxClassificationKind.ExtendKeyword:
+                    case SyntaxClassificationKind.FragmentKeyword:
+                    case SyntaxClassificationKind.ImplementsKeyword:
+                    case SyntaxClassificationKind.InputKeyword:
+                    case SyntaxClassificationKind.InterfaceKeyword:
+                    case SyntaxClassificationKind.OnKeyword:
+                    case SyntaxClassificationKind.RepeatableKeyword:
+                    case SyntaxClassificationKind.ScalarKeyword:
+                    case SyntaxClassificationKind.SchemaKeyword:
+                    case SyntaxClassificationKind.TypeKeyword:
+                    case SyntaxClassificationKind.UnionKeyword:
+                    case SyntaxClassificationKind.OperationKind:
+                        list.AddClassification(span, classification, _classifications.Keyword);
+                        break;
+
                     default:
-                        list.AddClassification(span, classification, _classifications.SymbolDefinition);
+                        list.AddClassification(span, classification, _classifications.Other);
                         break;
                 }
             }
