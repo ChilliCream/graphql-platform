@@ -14,7 +14,7 @@
         {
             if (_reader.Kind == TokenKind.LeftBracket)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Bracket,
                     _reader.Token);
                 MoveNext();
@@ -28,7 +28,7 @@
 
             if (_reader.Kind == TokenKind.Bang)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Bang,
                     _reader.Token);
                 MoveNext();

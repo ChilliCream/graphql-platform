@@ -6,11 +6,13 @@ namespace StrawberryShake.VisualStudio.Language
 {
     public ref partial struct StringGraphQLClassifier
     {
-        private readonly List<SyntaxClassification> classifications;
+        private readonly ICollection<SyntaxClassification> _classifications;
         private StringGraphQLReader _reader;
         private StringValueNode? _description;
 
-        public StringGraphQLClassifier(ReadOnlySpan<char> graphQLData)
+        public StringGraphQLClassifier(
+            ReadOnlySpan<char> graphQLData,
+            ICollection<SyntaxClassification> classifications)
         {
             if (graphQLData.Length == 0)
             {
@@ -19,12 +21,19 @@ namespace StrawberryShake.VisualStudio.Language
                     nameof(graphQLData));
             }
 
+            if (classifications is null)
+            {
+                throw new ArgumentNullException(nameof(classifications));
+            }
+
             _classifications = new List<SyntaxClassification>();
             _reader = new StringGraphQLReader(graphQLData);
             _description = null;
         }
 
-        internal StringGraphQLClassifier(StringGraphQLReader reader)
+        internal StringGraphQLClassifier(
+            StringGraphQLReader reader,
+            ICollection<SyntaxClassification> classifications)
         {
             if (reader.Kind == TokenKind.EndOfFile)
             {
@@ -33,37 +42,28 @@ namespace StrawberryShake.VisualStudio.Language
                     nameof(reader));
             }
 
-            _classifications = new List<SyntaxClassification>();
+            if (classifications is null)
+            {
+                throw new ArgumentNullException(nameof(classifications));
+            }
+
+            _classifications = classifications;
             _reader = reader;
             _description = null;
         }
 
-        public DocumentNode Parse()
+
+        public void Parse()
         {
-            var definitions = new List<IDefinitionNode>();
-
-            ISyntaxToken start = _reader.Token;
-
             MoveNext();
 
             while (_reader.Kind != TokenKind.EndOfFile)
             {
-                definitions.Add(ParseDefinition());
+                ParseDefinition();
             }
-
-            var location = new Location(start, _reader.Token);
-
-            return new DocumentNode(location, definitions);
         }
 
-        private IReadOnlyList<ArgumentNode> ParseArguments()
-        {
-            MoveNext();
-            return ParseArguments(false);
-        }
-
-        private void ParseDefinition(
-            ICollection<SyntaxClassification> classifications)
+        private void ParseDefinition()
         {
             if (_isString[(int)_reader.Kind])
             {
@@ -75,55 +75,65 @@ namespace StrawberryShake.VisualStudio.Language
                     || _reader.Value.SequenceEqual(GraphQLKeywords.Mutation)
                     || _reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
                 {
-                    return ParseOperationDefinition();
+                    ParseOperationDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Fragment))
                 {
-                    return ParseFragmentDefinition();
+                    ParseFragmentDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
                 {
-                    return ParseSchemaDefinition();
+                    ParseSchemaDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
                 {
-                    return ParseScalarTypeDefinition();
+                    ParseScalarTypeDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Type))
                 {
-                    return ParseObjectTypeDefinition();
+                    ParseObjectTypeDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Interface))
                 {
-                    return ParseInterfaceTypeDefinition();
+                    ParseInterfaceTypeDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
                 {
-                    return ParseUnionTypeDefinition();
+                    ParseUnionTypeDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Enum))
                 {
-                    return ParseEnumTypeDefinition();
+                    ParseEnumTypeDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
                 {
-                    return ParseInputObjectTypeDefinition();
+                    ParseInputObjectTypeDefinition();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Extend))
                 {
-                    return ParseTypeExtension();
+                    ParseTypeExtension();
                 }
                 else if (_reader.Value.SequenceEqual(GraphQLKeywords.Directive))
                 {
-                    return ParseDirectiveDefinition();
+                    ParseDirectiveDefinition();
+                }
+                else
+                {
+                    _classifications.AddClassification(
+                        SyntaxClassificationKind.Error,
+                        _reader.Token);
                 }
             }
             else if (_reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseShortOperationDefinition();
+                ParseShortOperationDefinition();
             }
-
-            throw Unexpected(_reader.Kind);
+            else
+            {
+                _classifications.AddClassification(
+                    SyntaxClassificationKind.Error,
+                    _reader.Token);
+            }
         }
     }
 }

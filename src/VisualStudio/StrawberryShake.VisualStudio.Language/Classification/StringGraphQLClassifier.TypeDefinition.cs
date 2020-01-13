@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
-using StrawberryShake.VisualStudio.Language.Properties;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -27,7 +25,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// </summary>
         private void ParseSchemaDefinition()
         {
-            classifications.AddClassification(
+            _classifications.AddClassification(
                 SyntaxClassificationKind.SchemaKeyword,
                 _reader.Token);
             MoveNext();
@@ -36,7 +34,7 @@ namespace StrawberryShake.VisualStudio.Language
 
             if (_reader.Kind == TokenKind.LeftBrace)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Brace,
                     _reader.Token);
                 MoveNext();
@@ -50,7 +48,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
                 MoveNext();
@@ -77,7 +75,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// </summary>
         private void ParseScalarTypeDefinition()
         {
-            classifications.AddClassification(
+            _classifications.AddClassification(
                 SyntaxClassificationKind.ScalarKeyword,
                 _reader.Token);
             MoveNext();
@@ -94,7 +92,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// </summary>
         private void ParseObjectTypeDefinition()
         {
-            classifications.AddClassification(
+            _classifications.AddClassification(
                 SyntaxClassificationKind.TypeKeyword,
                 _reader.Token);
             MoveNext();
@@ -134,7 +132,7 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_reader.Kind == TokenKind.LeftBrace)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Brace,
                     _reader.Token);
                 MoveNext();
@@ -176,7 +174,7 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Parenthesis,
                     _reader.Token);
                 MoveNext();
@@ -220,7 +218,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// </summary>
         private void ParseInterfaceTypeDefinition()
         {
-            classifications.AddClassification(
+            _classifications.AddClassification(
                 SyntaxClassificationKind.InterfaceKeyword,
                 _reader.Token);
             MoveNext();
@@ -238,7 +236,7 @@ namespace StrawberryShake.VisualStudio.Language
         /// </summary>
         private void ParseUnionTypeDefinition()
         {
-            classifications.AddClassification(
+            _classifications.AddClassification(
                 SyntaxClassificationKind.UnionKeyword,
                 _reader.Token);
             MoveNext();
@@ -253,24 +251,18 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="List{NamedTypeNode}" />:
         /// = `|`? NamedType
         /// </summary>
-
-        private List<NamedTypeNode> ParseUnionMemberTypes()
+        private void ParseUnionMemberTypes()
         {
-            var list = new List<NamedTypeNode>();
-
             if (SkipEqual())
             {
-                // skip optional leading pipe (might not exist!)
                 SkipPipe();
 
                 do
                 {
-                    list.Add(ParseNamedType());
+                    ParseNamedType();
                 }
                 while (SkipPipe());
             }
-
-            return list;
         }
 
         /// <summary>
@@ -278,27 +270,16 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="EnumTypeDefinitionNode" />:
         /// Description? enum Name Directives[Const]? EnumValuesDefinition?
         /// </summary>
-
-        private EnumTypeDefinitionNode ParseEnumTypeDefinition()
+        private void ParseEnumTypeDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
+            _classifications.AddClassification(
+                SyntaxClassificationKind.EnumKeyword,
+                _reader.Token);
             MoveNext();
 
-            NameNode name = ParseName();
-            List<DirectiveNode> directives = ParseDirectives(true);
-            List<EnumValueDefinitionNode> values = ParseEnumValuesDefinition();
-
-            var location = new Location(start, _reader.Token);
-
-            return new EnumTypeDefinitionNode
-            (
-                location,
-                name,
-                TakeDescription(),
-                directives,
-                values
-            );
+            ParseName(SyntaxClassificationKind.EnumIdentifier);
+            ParseDirectives(true);
+            ParseEnumValuesDefinition();
         }
 
         /// <summary>
@@ -306,100 +287,65 @@ namespace StrawberryShake.VisualStudio.Language
         /// <see cref="List{EnumValueDefinitionNode}" />:
         /// { EnumValueDefinition+ }
         /// </summary>
-
-        private List<EnumValueDefinitionNode> ParseEnumValuesDefinition()
+        private void ParseEnumValuesDefinition()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
             {
-                var list = new List<EnumValueDefinitionNode>();
-
-                // skip opening token
+                _classifications.AddClassification(
+                    SyntaxClassificationKind.Brace,
+                    _reader.Token);
                 MoveNext();
 
                 while (_reader.Kind != TokenKind.RightBrace)
                 {
-                    list.Add(ParseEnumValueDefinition());
+                    ParseEnumValueDefinition();
                 }
 
-                // skip closing token
                 ParseRightBrace();
-
-                return list;
             }
-
-            return _emptyEnumValues;
         }
-
-
 
         /// <summary>
         /// Parses an enum value definitions.
         /// <see cref="EnumValueDefinitionNode" />:
         /// Description? EnumValue Directives[isConstant=true]?
         /// </summary>
-
-        private EnumValueDefinitionNode ParseEnumValueDefinition()
+        private void ParseEnumValueDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
-            StringValueNode? description = ParseDescription();
-            NameNode name = ParseName();
-            List<DirectiveNode> directives = ParseDirectives(true);
-
-            var location = new Location(start, _reader.Token);
-
-            return new EnumValueDefinitionNode
-            (
-                location,
-                name,
-                description,
-                directives
-            );
+            ParseDescription();
+            ParseName(SyntaxClassificationKind.EnumLiteral);
+            ParseDirectives(true);
         }
 
-        private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition()
+        private void ParseInputObjectTypeDefinition()
         {
-            ISyntaxToken start = _reader.Token;
-
+            _classifications.AddClassification(
+                SyntaxClassificationKind.InputKeyword,
+                _reader.Token);
             MoveNext();
 
-            NameNode name = ParseName();
-            List<DirectiveNode> directives = ParseDirectives(true);
-            List<InputValueDefinitionNode> fields = ParseInputFieldsDefinition();
-
-            var location = new Location(start, _reader.Token);
-
-            return new InputObjectTypeDefinitionNode
-            (
-                location,
-                name,
-                TakeDescription(),
-                directives,
-                fields
-            );
+            ParseName(SyntaxClassificationKind.InputIdentifier);
+            ParseDirectives(true);
+            ParseInputFieldsDefinition();
         }
 
-        private List<InputValueDefinitionNode> ParseInputFieldsDefinition()
+        private void ParseInputFieldsDefinition()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
             {
-                var list = new List<InputValueDefinitionNode>();
-
-                // skip opening token
+                _classifications.AddClassification(
+                    SyntaxClassificationKind.Brace,
+                    _reader.Token);
                 MoveNext();
 
                 while (_reader.Kind != TokenKind.RightBrace)
                 {
-                    list.Add(ParseInputValueDefinition());
+                    ParseInputValueDefinition(
+                        SyntaxClassificationKind.InputFieldIdentifier);
                 }
 
-                // skip closing token
                 ParseRightBrace();
-
-                return list;
             }
-
-            return _emptyInputValues;
         }
     }
 }

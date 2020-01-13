@@ -30,7 +30,11 @@
 
         DirectiveIdentifier,
 
+        EnumIdentifier,
+
         ScalarIdentifier,
+
+        InputIdentifier,
 
         TypeIdentifier,
 
@@ -52,9 +56,15 @@
 
         DirectiveKeyword,
 
+        EnumKeyword,
+
+        ExtendKeyword,
+
         RepeatableKeyword,
 
         ImplementsKeyword,
+
+        InputKeyword,
 
         FragmentKeyword,
 

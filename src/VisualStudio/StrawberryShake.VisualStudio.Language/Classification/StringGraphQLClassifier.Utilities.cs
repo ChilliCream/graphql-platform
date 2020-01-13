@@ -28,13 +28,13 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_reader.Kind == TokenKind.Name)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     kind,
                     _reader.Token);
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -47,7 +47,7 @@ namespace StrawberryShake.VisualStudio.Language
             {
                 if (_reader.Kind == TokenKind.Comment)
                 {
-                    classifications.AddClassification(
+                    _classifications.AddClassification(
                         SyntaxClassificationKind.Comment,
                         _reader.Token);
                 }
@@ -83,13 +83,13 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_reader.Skip(tokenKind))
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     classificationKind,
                     _reader.Token);
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -113,13 +113,13 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.Name
                 && _reader.Value.SequenceEqual(keyword))
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     classificationKind,
                     _reader.Token);
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -148,7 +148,7 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.Name
                 && _reader.Value.SequenceEqual(keyword))
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     classificationKind,
                     _reader.Token);
                 MoveNext();
@@ -164,7 +164,7 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_reader.Kind == tokenKind)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     classificationKind,
                     _reader.Token);
                 MoveNext();

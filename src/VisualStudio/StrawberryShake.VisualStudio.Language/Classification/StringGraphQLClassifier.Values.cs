@@ -53,7 +53,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
                 MoveNext();
@@ -65,13 +65,13 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_isString[(int)_reader.Kind])
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     kind,
                     _reader.Token);
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -93,7 +93,7 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.LeftBracket)
             {
                 // skip opening token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Bracket,
                     _reader.Token);
                 MoveNext();
@@ -104,14 +104,14 @@ namespace StrawberryShake.VisualStudio.Language
                 }
 
                 // skip closing token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Bracket,
                     _reader.Token);
                 Expect(SyntaxClassificationKind.Bracket, TokenKind.RightBracket);
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -132,7 +132,7 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.LeftBrace)
             {
                 // skip opening token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Brace,
                     _reader.Token);
                 MoveNext();
@@ -143,14 +143,14 @@ namespace StrawberryShake.VisualStudio.Language
                 }
 
                 // skip closing token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Brace,
                     _reader.Token);
                 Expect(SyntaxClassificationKind.Brace, TokenKind.RightBrace);
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -169,13 +169,13 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.Float
                 || _reader.Kind == TokenKind.Integer)
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.NumberLiteral,
                     _reader.Token);
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -188,21 +188,21 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Value.SequenceEqual(GraphQLKeywords.True)
                 || _reader.Value.SequenceEqual(GraphQLKeywords.False))
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.BooleanLiteral,
                     _reader.Token);
                 MoveNext();
             }
             else if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.NullLiteral,
                     _reader.Token);
                 MoveNext();
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
                 MoveNext();
