@@ -12,12 +12,14 @@
                 "The cost directives is used to express the complexity " +
                 "of a field.");
 
+            descriptor.BindArgumentsExplicitly();
+
             descriptor.Location(DirectiveLocation.FieldDefinition);
 
             descriptor.Argument(t => t.Complexity)
                 .Name("complexity")
                 .Description("Defines the complexity of the field.")
-                .Type<NonNullType<IntType>>()
+                .NonNullType(Scalars.Int)
                 .DefaultValue(1);
 
             descriptor.Argument(t => t.Multipliers)

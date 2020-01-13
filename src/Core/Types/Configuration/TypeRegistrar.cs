@@ -15,6 +15,7 @@ namespace HotChocolate.Configuration
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
+        private readonly HashSet<NameString> _registeredNames = new HashSet<NameString>();
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
         private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
@@ -59,6 +60,11 @@ namespace HotChocolate.Configuration
                         _clrTypeReferences.Add(clrRef, registeredType.References[0]);
                     }
                 }
+
+                if (registeredType.Type is ScalarType scalarType)
+                {
+                    _registeredNames.Add(scalarType.Name);
+                }
             }
         }
 
@@ -85,6 +91,11 @@ namespace HotChocolate.Configuration
             }
 
             return false;
+        }
+
+        public bool IsResolved(NameString typeName)
+        {
+            return _registeredNames.Contains(typeName);
         }
 
         public TypeSystemObjectBase CreateInstance(Type namedSchemaType)

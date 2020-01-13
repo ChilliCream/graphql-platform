@@ -12,21 +12,14 @@ namespace HotChocolate.Types.Introspection
             IObjectTypeDescriptor<EnumValue> descriptor)
         {
             descriptor.Name("__EnumValue");
-
-            descriptor.Description(
-                TypeResources.EnumValue_Description);
+            descriptor.Description(TypeResources.EnumValue_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
-            descriptor.Field(c => c.Name)
-                .Type<NonNullType<StringType>>();
-
-            descriptor.Field(c => c.Description);
-
-            descriptor.Field(c => c.IsDeprecated)
-                .Type<NonNullType<BooleanType>>();
-
-            descriptor.Field(c => c.DeprecationReason);
+            descriptor.Field(c => c.Name).NonNullType(Scalars.String);
+            descriptor.Field(c => c.Description).Type(Scalars.String);
+            descriptor.Field(c => c.IsDeprecated).NonNullType(Scalars.Boolean);
+            descriptor.Field(c => c.DeprecationReason).Type(Scalars.String);
         }
     }
 }

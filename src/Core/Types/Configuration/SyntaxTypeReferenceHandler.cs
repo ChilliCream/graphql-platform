@@ -18,13 +18,15 @@ namespace HotChocolate.Configuration
             foreach (ISyntaxTypeReference typeReference in
                 typeReferences.OfType<ISyntaxTypeReference>())
             {
-                if (Scalars.TryGetScalar(
-                    typeReference.Type.NamedType().Name.Value,
-                    out IClrTypeReference namedTypeReference))
+                string typeName = typeReference.Type.NamedType().Name.Value;
+
+                if (!typeRegistrar.IsResolved(typeName)
+                    && Scalars.TryGetScalar(typeName, out IClrTypeReference namedTypeReference))
                 {
                     if (!typeRegistrar.IsResolved(namedTypeReference))
                     {
-                        typeRegistrar.Register(typeRegistrar.CreateInstance(namedTypeReference.Type));
+                        typeRegistrar.Register(
+                            typeRegistrar.CreateInstance(namedTypeReference.Type));
                     }
                 }
             }

@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Introspection
                 .New(context, IntrospectionFields.TypeName);
 
             descriptor.Description(TypeResources.TypeNameField_Description)
-                .Type<NonNullType<StringType>>()
+                .NonNullType(Scalars.String)
                 .Resolver(ctx => ctx.ObjectType.Name.Value);
 
             return descriptor.CreateDefinition();

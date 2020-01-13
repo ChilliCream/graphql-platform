@@ -23,11 +23,11 @@ namespace HotChocolate.Types.Introspection
                 .Resolver(c => c.Parent<IType>().Kind);
 
             descriptor.Field("name")
-                .Type<StringType>()
+                .Type(Scalars.String)
                 .Resolver(c => GetName(c.Parent<IType>()));
 
             descriptor.Field("description")
-                .Type<StringType>()
+                .Type(Scalars.String)
                 .Resolver(c => GetDescription(c.Parent<IType>()));
 
             descriptor.Field("fields")

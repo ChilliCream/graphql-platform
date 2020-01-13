@@ -17,6 +17,8 @@ namespace HotChocolate.Configuration
 
         bool IsResolved(ITypeReference typeReference);
 
+        bool IsResolved(NameString typeName);
+
         TypeSystemObjectBase CreateInstance(Type namedSchemaType);
 
         IReadOnlyCollection<ITypeReference> GetUnresolved();

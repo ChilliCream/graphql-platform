@@ -31,7 +31,7 @@ namespace HotChocolate.Types
                     "Deprecations include a reason for why it is deprecated, " +
                     "which is formatted using Markdown syntax " +
                     "(as specified by CommonMark).")
-                .Type<StringType>()
+                .Type(Scalars.String)
                 .DefaultValue(WellKnownDirectives.DeprecationDefaultReason);
         }
     }

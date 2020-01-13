@@ -13,35 +13,31 @@ namespace HotChocolate.Types.Introspection
             IObjectTypeDescriptor<IInputField> descriptor)
         {
             descriptor.Name("__InputValue");
-
-            descriptor.Description(
-                TypeResources.InputValue_Description);
+            descriptor.Description(TypeResources.InputValue_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
-            descriptor.Field(t => t.Name)
-                .Type<NonNullType<StringType>>();
+            descriptor.Field(t => t.Name).NonNullType(Scalars.String);
 
-            descriptor.Field(t => t.Description);
+            descriptor.Field(t => t.Description).Type(Scalars.String);
 
-            descriptor.Field(t => t.Type)
-                .Type<NonNullType<__Type>>();
+            descriptor.Field(t => t.Type).Type<NonNullType<__Type>>();
 
             descriptor.Field(t => t.DefaultValue)
                 .Description(TypeResources.InputValue_DefaultValue)
-                .Type<StringType>()
+                .Type(Scalars.String)
                 .Resolver(c =>
                 {
                     IInputField field = c.Parent<IInputField>();
+
                     if (field.DefaultValue.IsNull())
                     {
                         return null;
                     }
 
-                    if (field.DefaultValue != null)
+                    if (field.DefaultValue is { })
                     {
-                        return QuerySyntaxSerializer
-                            .Serialize(field.DefaultValue);
+                        return QuerySyntaxSerializer.Serialize(field.DefaultValue);
                     }
 
                     return null;

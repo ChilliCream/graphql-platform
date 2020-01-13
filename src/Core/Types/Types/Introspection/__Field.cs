@@ -12,28 +12,24 @@ namespace HotChocolate.Types.Introspection
             IObjectTypeDescriptor<IOutputField> descriptor)
         {
             descriptor.Name("__Field");
-
             descriptor.Description(TypeResources.Field_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
-            descriptor.Field(t => t.Name)
-                .Type<NonNullType<StringType>>();
+            descriptor.Field(t => t.Name).NonNullType(Scalars.String);
 
-            descriptor.Field(t => t.Description);
+            descriptor.Field(t => t.Description).Type(Scalars.String);
 
             descriptor.Field(t => t.Arguments)
                 .Name("args")
                 .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
                 .Resolver(c => c.Parent<IOutputField>().Arguments);
 
-            descriptor.Field(t => t.Type)
-                .Type<NonNullType<__Type>>();
+            descriptor.Field(t => t.Type).Type<NonNullType<__Type>>();
 
-            descriptor.Field(t => t.IsDeprecated)
-                .Type<NonNullType<BooleanType>>();
+            descriptor.Field(t => t.IsDeprecated).NonNullType(Scalars.Boolean);
 
-            descriptor.Field(t => t.DeprecationReason);
+            descriptor.Field(t => t.DeprecationReason).Type(Scalars.String);
         }
     }
 }

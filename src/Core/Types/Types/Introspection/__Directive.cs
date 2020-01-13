@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 
@@ -16,15 +17,15 @@ namespace HotChocolate.Types.Introspection
             descriptor.Description(TypeResources.Directive_Description);
 
             descriptor.Field("name")
-                .Type<NonNullType<StringType>>()
+                .NonNullType(Scalars.String)
                 .Resolver(c => c.Parent<DirectiveType>().Name);
 
             descriptor.Field("description")
-                .Type<StringType>()
+                .Type(Scalars.String)
                 .Resolver(c => c.Parent<DirectiveType>().Description);
 
             descriptor.Field("isRepeatable")
-                .Type<BooleanType>()
+                .NonNullType(Scalars.String)
                 .Resolver(c => c.Parent<DirectiveType>().IsRepeatable);
 
             descriptor.Field("locations")
@@ -36,17 +37,17 @@ namespace HotChocolate.Types.Introspection
                 .Resolver(c => c.Parent<DirectiveType>().Arguments);
 
             descriptor.Field("onOperation")
-                .Type<NonNullType<BooleanType>>()
+                .NonNullType(Scalars.Boolean)
                 .Resolver(c => GetOnOperation(c))
                 .Deprecated(TypeResources.Directive_UseLocation);
 
             descriptor.Field("onFragment")
-                .Type<NonNullType<BooleanType>>()
+                .NonNullType(Scalars.Boolean)
                 .Resolver(c => GetOnFragment(c))
                 .Deprecated(TypeResources.Directive_UseLocation);
 
             descriptor.Field("onField")
-                .Type<NonNullType<BooleanType>>()
+                .NonNullType(Scalars.Boolean)
                 .Resolver(c => GetOnField(c))
                 .Deprecated(TypeResources.Directive_UseLocation);
         }

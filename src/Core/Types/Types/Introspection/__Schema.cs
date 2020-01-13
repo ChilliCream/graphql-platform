@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Introspection
             descriptor.BindFields(BindingBehavior.Explicit);
 
             descriptor.Field("description")
-                .Type<StringType>()
+                .Type(Scalars.String)
                 .Resolver(c => c.Schema.Description);
 
             descriptor.Field("types")
