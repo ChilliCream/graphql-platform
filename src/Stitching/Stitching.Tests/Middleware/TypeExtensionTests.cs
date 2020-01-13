@@ -7,6 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using System.Collections.Generic;
 
 namespace HotChocolate.Stitching
 {
@@ -59,6 +60,51 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
+        public async Task AddComplexMutationTypeExtension()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddSchemaConfiguration(c => c
+                        .RegisterType<PaginationAmountType>()
+                        .RegisterType(new ObjectTypeExtension(d => d
+                            .Name("Mutation")
+                            .Field("foo")
+                            .Type<StringType>()
+                            .Argument("bar", a => a.Type<NonNullType<ComplexInputType>>())
+                            .Resolver(c => c.Argument<ComplexInput>("bar").Value.ToString())))));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                result = await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery("mutation($input: ComplexInput!) { foo(bar: $input) }")
+                        .SetVariableValues(new Dictionary<string, object>
+                        {
+                            { "input", new Dictionary<string, object> { { "value", "EXCEL" } } }
+                        })
+                        .SetServices(scope.ServiceProvider)
+                        .Create());
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
         public async Task UseSchemaBuilder()
         {
             // arrange
@@ -98,5 +144,25 @@ namespace HotChocolate.Stitching
             // assert
             Snapshot.Match(result);
         }
+    }
+
+    public class ComplexInput
+    {
+        public FileFormat Value { get; set; }
+    }
+
+    public class ComplexInputType : InputObjectType<ComplexInput>
+    {
+        protected override void Configure(IInputObjectTypeDescriptor<ComplexInput> descriptor)
+        {
+            descriptor.Field("value")
+                .Type<NonNullType<EnumType<FileFormat>>>();
+        }
+    }
+
+    public enum FileFormat
+    {
+        Unknown,
+        Excel
     }
 }
