@@ -6,21 +6,29 @@ namespace StrawberryShake.VisualStudio.Language
 {
     public class GraphQLDocument
     {
-        private readonly List<SyntaxClassification> _classifications =
-            new List<SyntaxClassification>();
+        private List<SyntaxClassification> _classifications = new List<SyntaxClassification>();
 
         private DocumentNode? _document;
 
         public GraphQLDocument()
         {
+            
         }
 
         public void Parse(string sourceText)
         {
-            var classifier = new StringGraphQLClassifier(
-                sourceText.AsSpan(),
-                _classifications);
-            classifier.Parse();
+            try
+            {
+                var classifications = new List<SyntaxClassification>();
+                var classifier = new StringGraphQLClassifier(
+                    sourceText.AsSpan(),
+                    classifications);
+                classifier.Parse();
+                _classifications = classifications;
+            }
+            catch
+            {
+            }
         }
 
         public IEnumerable<SyntaxClassification> GetSyntaxClassifications(int start, int length)

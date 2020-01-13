@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
 {
@@ -49,17 +48,19 @@ namespace StrawberryShake.VisualStudio.Language
                     string name = new string(c, 0, _reader.Value.Length);
                     if (DirectiveLocation.IsValidName(name))
                     {
-                        classifications.AddClassification(
+                        _classifications.AddClassification(
                             SyntaxClassificationKind.DirectiveLocation,
                             _reader.Token);
+                        MoveNext();
                         return;
                     }
                 }
             }
 
-            classifications.AddClassification(
+            _classifications.AddClassification(
                 SyntaxClassificationKind.Error,
                 _reader.Token);
+            MoveNext();
         }
 
         private void ParseDirectives(bool isConstant)
@@ -86,7 +87,7 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.At)
             {
                 MoveNext();
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     _reader.Kind == TokenKind.Name
                         ? SyntaxClassificationKind.DirectiveIdentifier
                         : SyntaxClassificationKind.Error,
@@ -94,7 +95,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }

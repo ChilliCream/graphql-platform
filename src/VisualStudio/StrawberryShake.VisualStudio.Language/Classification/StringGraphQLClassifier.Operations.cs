@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
@@ -44,7 +44,7 @@ namespace StrawberryShake.VisualStudio.Language
                 || _reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
                 ? SyntaxClassificationKind.OperationKind
                 : SyntaxClassificationKind.Error;
-            classifications.AddClassification(kind, _reader.Token);
+            _classifications.AddClassification(kind, _reader.Token);
             MoveNext();
         }
 
@@ -58,18 +58,19 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.LeftParenthesis)
             {
                 // skip opening token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Parenthesis,
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightParenthesis)
+                while (_reader.Kind != TokenKind.RightParenthesis
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseVariableDefinition();
                 }
 
                 // skip closing token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Parenthesis,
                     _reader.Token);
                 ParseRightParenthesis();
@@ -110,7 +111,7 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.Dollar)
             {
                 MoveNext();
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     _reader.Kind == TokenKind.Name
                         ? classificationKind
                         : SyntaxClassificationKind.Error,
@@ -118,7 +119,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -136,12 +137,13 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.LeftBrace)
             {
                 // skip opening token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Brace,
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseSelection();
                 }
@@ -151,7 +153,7 @@ namespace StrawberryShake.VisualStudio.Language
             }
             else
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
             }
@@ -191,14 +193,14 @@ namespace StrawberryShake.VisualStudio.Language
 
                 if (SkipColon())
                 {
-                    classifications.AddClassification(
+                    _classifications.AddClassification(
                         SyntaxClassificationKind.FieldAlias,
                         start);
                     ParseName(SyntaxClassificationKind.FieldReference);
                 }
                 else
                 {
-                    classifications.AddClassification(
+                    _classifications.AddClassification(
                         SyntaxClassificationKind.FieldReference,
                         start);
                 }
@@ -223,18 +225,19 @@ namespace StrawberryShake.VisualStudio.Language
             if (_reader.Kind == TokenKind.LeftParenthesis)
             {
                 // skip opening token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Parenthesis,
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightParenthesis)
+                while (_reader.Kind != TokenKind.RightParenthesis
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseArgument(isConstant);
                 }
 
                 // skip closing token
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Parenthesis,
                     _reader.Token);
                 ParseRightParenthesis();

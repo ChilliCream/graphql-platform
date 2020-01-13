@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake.VisualStudio.Language
@@ -27,7 +27,7 @@ namespace StrawberryShake.VisualStudio.Language
             {
                 if (isOnKeyword)
                 {
-                    classifications.AddClassification(
+                    _classifications.AddClassification(
                         SyntaxClassificationKind.OnKeyword,
                         _reader.Token);
                     MoveNext();
@@ -84,7 +84,7 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_reader.Value.SequenceEqual(GraphQLKeywords.On))
             {
-                classifications.AddClassification(
+                _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
                 MoveNext();

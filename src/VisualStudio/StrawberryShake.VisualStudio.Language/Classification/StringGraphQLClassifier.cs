@@ -26,7 +26,7 @@ namespace StrawberryShake.VisualStudio.Language
                 throw new ArgumentNullException(nameof(classifications));
             }
 
-            _classifications = new List<SyntaxClassification>();
+            _classifications = classifications;
             _reader = new StringGraphQLReader(graphQLData);
             _description = null;
         }
@@ -122,6 +122,7 @@ namespace StrawberryShake.VisualStudio.Language
                     _classifications.AddClassification(
                         SyntaxClassificationKind.Error,
                         _reader.Token);
+                    MoveNext();
                 }
             }
             else if (_reader.Kind == TokenKind.LeftBrace)
@@ -133,6 +134,7 @@ namespace StrawberryShake.VisualStudio.Language
                 _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
+                 MoveNext();
             }
         }
     }

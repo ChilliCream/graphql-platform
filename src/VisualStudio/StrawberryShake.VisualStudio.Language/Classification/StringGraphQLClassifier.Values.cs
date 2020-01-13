@@ -98,7 +98,8 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightBracket)
+                while (_reader.Kind != TokenKind.RightBracket
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseValueLiteral(isConstant);
                 }
@@ -137,7 +138,8 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseObjectField(isConstant);
                 }

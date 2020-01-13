@@ -39,7 +39,8 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseOperationTypeDefinition();
                 }
@@ -137,7 +138,8 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseFieldDefinition();
                 }
@@ -179,7 +181,8 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightParenthesis)
+                while (_reader.Kind != TokenKind.RightParenthesis
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseInputValueDefinition(
                         SyntaxClassificationKind.ArgumentIdentifier);
@@ -296,7 +299,8 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseEnumValueDefinition();
                 }
@@ -338,7 +342,8 @@ namespace StrawberryShake.VisualStudio.Language
                     _reader.Token);
                 MoveNext();
 
-                while (_reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace
+                    && _reader.Kind != TokenKind.EndOfFile)
                 {
                     ParseInputValueDefinition(
                         SyntaxClassificationKind.InputFieldIdentifier);
