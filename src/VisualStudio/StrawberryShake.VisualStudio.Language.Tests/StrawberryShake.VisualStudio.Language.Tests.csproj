@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Classification\__snapshots__\__mismatch__\" />
     <Folder Include="Parser\__snapshots__\__mismatch__\" />
   </ItemGroup>
 

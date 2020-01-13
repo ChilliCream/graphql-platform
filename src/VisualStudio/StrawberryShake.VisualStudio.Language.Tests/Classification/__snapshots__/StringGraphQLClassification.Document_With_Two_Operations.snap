@@ -1,0 +1,42 @@
+﻿[
+  {
+    "Kind": "OperationKind",
+    "Start": 0,
+    "Length": 5
+  },
+  {
+    "Kind": "OperationIdentifier",
+    "Start": 6,
+    "Length": 3
+  },
+  {
+    "Kind": "Brace",
+    "Start": 10,
+    "Length": 1
+  },
+  {
+    "Kind": "Brace",
+    "Start": 14,
+    "Length": 5
+  },
+  {
+    "Kind": "OperationKind",
+    "Start": 14,
+    "Length": 5
+  },
+  {
+    "Kind": "OperationIdentifier",
+    "Start": 20,
+    "Length": 3
+  },
+  {
+    "Kind": "Brace",
+    "Start": 24,
+    "Length": 1
+  },
+  {
+    "Kind": "Brace",
+    "Start": 27,
+    "Length": 0
+  }
+]

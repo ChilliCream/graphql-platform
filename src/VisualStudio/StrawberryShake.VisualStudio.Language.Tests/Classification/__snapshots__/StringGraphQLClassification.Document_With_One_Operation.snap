@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Kind": "OperationKind",
+    "Start": 0,
+    "Length": 5
+  },
+  {
+    "Kind": "OperationIdentifier",
+    "Start": 6,
+    "Length": 3
+  },
+  {
+    "Kind": "Brace",
+    "Start": 10,
+    "Length": 1
+  },
+  {
+    "Kind": "Brace",
+    "Start": 13,
+    "Length": 0
+  }
+]

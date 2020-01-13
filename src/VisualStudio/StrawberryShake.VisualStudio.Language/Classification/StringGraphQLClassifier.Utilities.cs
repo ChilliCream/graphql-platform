@@ -92,8 +92,8 @@ namespace StrawberryShake.VisualStudio.Language
                 _classifications.AddClassification(
                     SyntaxClassificationKind.Error,
                     _reader.Token);
+                MoveNext();
             }
-            MoveNext();
         }
 
         private void ParseDirectiveKeyword() =>
