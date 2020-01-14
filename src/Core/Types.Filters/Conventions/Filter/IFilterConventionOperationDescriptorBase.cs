@@ -6,9 +6,21 @@ namespace HotChocolate.Types.Filters.Conventions
 {
     public interface IFilterConventionOperationDescriptorBase : IFluent
     {
+        /// <summary>
+        /// Specifies a delegate that return the name of a field for a specific 
+        /// <see cref="FilterOperationKind"/>
+        /// </summary> 
+        /// <param name="factory">The delegate to name the field</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="factory"/> is <c>null</c>
+        /// </exception>
         IFilterConventionOperationDescriptorBase Name(CreateFieldName factory);
 
-        IFilterConventionOperationDescriptorBase Description(string value);
+        /// <summary>
+        /// Specify the graphql description of a <see cref="FilterOperationKind"/>
+        /// </summary> 
+        /// <param name="description">The description to name the field</param> 
+        IFilterConventionOperationDescriptorBase Description(string description);
 
     }
 }
