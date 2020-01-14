@@ -142,7 +142,8 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            IFilterConvention convention = context.DescriptorContext.GetFilterConvention();
+            IFilterConvention convention
+                = context.DescriptorContext.GetFilterConvention();
             IFilterInputType type =
                 context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition

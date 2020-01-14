@@ -1,0 +1,25 @@
+mutation publishSchema(
+  $schemaName: String!
+  $environmentName: String!
+  $sourceText: String!
+  $tags: [TagInput!]
+) {
+  publishSchema(
+    input: {
+      schemaName: $schemaName
+      environmentName: $environmentName
+      sourceText: $sourceText
+      tags: $tags
+    }
+  ) {
+    report {
+      environment {
+        name
+      }
+      schemaVersion {
+        hash
+      }
+    }
+    clientMutationId
+  }
+}

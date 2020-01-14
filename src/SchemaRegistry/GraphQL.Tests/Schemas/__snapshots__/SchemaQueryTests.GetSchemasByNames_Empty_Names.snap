@@ -1,0 +1,15 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "No names where provided.",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ],
+  "ContextData": {}
+}

@@ -4,6 +4,7 @@ namespace StrawberryShake
     {
         public const string String = "String";
         public const string Byte = "Byte";
+        public const string ByteArray = "ByteArray";
         public const string Short = "Short";
         public const string Int = "Int";
         public const string Long = "Long";

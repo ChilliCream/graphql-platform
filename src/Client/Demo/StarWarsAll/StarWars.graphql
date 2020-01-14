@@ -9,7 +9,12 @@ interface Character {
   "The episodes the character appears in."
   appearsIn: [Episode]
   "The names of the character's friends."
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
+  friends(
+    after: String
+    before: String
+    first: PaginationAmount
+    last: PaginationAmount
+  ): CharacterConnection
   "The height of the character."
   height(unit: Unit): Float
   "The unique identifier for the character."
@@ -41,7 +46,12 @@ type CharacterEdge {
 type Droid implements Character {
   "The episodes the character appears in."
   appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
+  friends(
+    after: String
+    before: String
+    first: PaginationAmount
+    last: PaginationAmount
+  ): CharacterConnection
   height(unit: Unit): Float
   "The unique identifier for the character."
   id: ID!
@@ -55,7 +65,12 @@ type Droid implements Character {
 type Human implements Character {
   "The episodes the character appears in."
   appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
+  friends(
+    after: String
+    before: String
+    first: PaginationAmount
+    last: PaginationAmount
+  ): CharacterConnection
   height(unit: Unit): Float
   "The planet the character is originally from."
   homePlanet: String
@@ -67,7 +82,12 @@ type Human implements Character {
 
 type Mutation {
   "Creates a review for a given Star Wars episode."
-  createReview("The episode to review." episode: Episode! "The review." review: ReviewInput!): Review!
+  createReview(
+    "The episode to review."
+    episode: Episode!
+    "The review."
+    review: ReviewInput!
+  ): Review!
 }
 
 "Information about pagination in a connection."
@@ -90,7 +110,8 @@ type Query {
   hero("The episode to look up by." episode: Episode! = NEWHOPE): Character
   "Gets a human by Id."
   human("The Id of the human to retrieve." id: String): Human
-  search(text: String): [SearchResult] @authorize(policy: "HasCountry", roles: [  ])
+  search(text: String): [SearchResult]
+    @authorize(policy: "HasCountry", roles: [])
 }
 
 "A review of a particular movie."
@@ -141,12 +162,17 @@ enum Unit {
   METERS
 }
 
-directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access to the annotated resource." roles: [String!]) repeatable on OBJECT | FIELD_DEFINITION
+directive @authorize(
+  "The name of the authorization policy that determines access to the annotated resource."
+  policy: String
+  "Roles that are allowed to access to the annotated resource."
+  roles: [String!]
+) on OBJECT | FIELD_DEFINITION
 
 "The `Boolean` scalar type represents `true` or `false`."
 scalar Boolean
 
-"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point)."
 scalar Float
 
 "The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID."
