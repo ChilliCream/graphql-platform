@@ -6,9 +6,9 @@ namespace HotChocolate.Types.Filters
     public static class FilterConventionExtensions
     {
         public static IFilterConvention GetFilterConvention(
-            this IDescriptorContext context)
+            this IDescriptorContext context, string name = Convention.DefaultName)
         {
-            return context.GetConventionOrDefault(FilterConvention.Default);
+            return context.GetConventionOrDefault(name, FilterConvention.Default);
         }
     }
 }

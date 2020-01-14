@@ -18,7 +18,6 @@ namespace HotChocolate.Types.Filters
         , IFilterInputTypeDescriptor<T>
     {
         private readonly IFilterConvention _convention;
-        private readonly string _conventionName;
 
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
@@ -26,14 +25,12 @@ namespace HotChocolate.Types.Filters
             string conventionName)
             : base(context)
         {
-            _convention = context.GetFilterConvention();
-            _conventionName = conventionName;
+            _convention = context.GetFilterConvention(conventionName);
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
-            Definition.Name = _convention.GetFilterTypeName(context, entityType); 
-            Definition.Description = context.Naming.GetTypeDescription(
-                entityType, TypeKind.Object);
+            Definition.Name = _convention.GetFilterTypeName(context, entityType);
+            Definition.Description = _convention.GetFilterTypeDescription(context, entityType);
             Definition.Fields.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
         }

@@ -48,15 +48,15 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <summary>
         /// Get configured <see cref="FilterOperationKind"/> that are valid for the definition
         /// This set contains all not ignored operations configured with
-        /// <see cref="FilterConventionDescriptor.Operation(FilterOperationKind)"/> or
-        /// <see cref="FilterConventionTypeDescriptor.Operation(FilterOperationKind)"/>
+        /// <see cref="IFilterConventionDescriptor.Operation(FilterOperationKind)"/> or
+        /// <see cref="IFilterConventionTypeDescriptor.Operation(FilterOperationKind)"/>
         /// </summary>
         /// <param name="definition"></param> 
         ISet<FilterOperationKind> GetAllowedOperations(FilterFieldDefintion definition);
 
         /// <summary>
         /// Get a <see cref="NameString">GraphQL Name</see> for a <see cref="FilterInputType{T}"/>
-        /// Can be configured over <see cref="FilterConventionDescriptor.FilterTypeName"/>
+        /// Can be configured over <see cref="IFilterConventionDescriptor.FilterTypeName"/>
         /// </summary>
         /// <param name="context">The descriptor context of the schema creation</param>
         /// <param name="entityType">The type <c>{T}</c> of the <see cref="FilterInputType{T}"/>
@@ -64,10 +64,19 @@ namespace HotChocolate.Types.Filters.Conventions
         NameString GetFilterTypeName(IDescriptorContext context, Type entityType);
 
         /// <summary>
+        /// Get a the description for a <see cref="FilterInputType{T}"/>
+        /// Can be configured over <see cref="IFilterConventionDescriptor.FilterTypeDescription"/>
+        /// </summary>
+        /// <param name="context">The descriptor context of the schema creation</param>
+        /// <param name="entityType">The type <c>{T}</c> of the <see cref="FilterInputType{T}"/>
+        /// </param>
+        string GetFilterTypeDescription(IDescriptorContext context, Type entityType);
+
+        /// <summary>
         /// Gets a list of all possible <see cref="TryCreateImplicitFilter"/>. This can be used to
         /// create <see cref="FilterInputType{T}"/> implicitly
         /// Can be configured with
-        /// <see cref="FilterConventionTypeDescriptor.TryCreateImplicitFilter"/>
+        /// <see cref="IFilterConventionTypeDescriptor.TryCreateImplicitFilter"/>
         /// </summary>
         /// <returns></returns>
         IEnumerable<TryCreateImplicitFilter> GetImplicitFilterFactories();

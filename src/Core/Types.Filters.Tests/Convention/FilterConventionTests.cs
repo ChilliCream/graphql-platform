@@ -69,6 +69,20 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Convention_Reset()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                x => x.AddType<FilterInputType<Foo>>()
+                    .AddConvention<IFilterConvention>(
+                        new FilterConvention(x => x.Reset())));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Convention_ArgumentName()
         {
             // arrange
@@ -111,6 +125,22 @@ namespace HotChocolate.Types.Filters
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(
                             x => x.FilterTypeName(
+                                (x, type) => x.Naming.GetTypeName(type) + "Test"))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Convention_FilterTypeDescription()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                x => x.AddType<FilterInputType<Foo>>()
+                    .AddConvention<IFilterConvention>(
+                        new FilterConvention(
+                            x => x.FilterTypeDescription(
                                 (x, type) => x.Naming.GetTypeName(type) + "Test"))));
 
             // assert

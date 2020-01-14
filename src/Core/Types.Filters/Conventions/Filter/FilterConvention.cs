@@ -21,6 +21,10 @@ namespace HotChocolate.Types.Filters.Conventions
         IDescriptorContext context,
         Type entityType);
 
+    public delegate string GetFilterTypeDescription(
+        IDescriptorContext context,
+        Type entityType);
+
     public class FilterConvention : IFilterConvention
     {
         private readonly object _definitionLock = new object { };
@@ -104,6 +108,18 @@ namespace HotChocolate.Types.Filters.Conventions
             }
 
             return description;
+        }
+
+        public string GetFilterTypeDescription(IDescriptorContext context, Type entityType)
+        {
+            GetFilterTypeDescription factory
+                = GetOrCreateConfiguration().FilterTypeDescriptionFactory;
+
+            if (factory == null)
+            {
+                return null;
+            }
+            return factory(context, entityType);
         }
 
         public virtual NameString GetFilterTypeName(IDescriptorContext context, Type entityType)

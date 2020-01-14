@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters.Conventions
         {
         }
 
-        internal protected FilterConventionDefinition Definition { get; } =
+        internal protected FilterConventionDefinition Definition { get; private set; } =
             new FilterConventionDefinition();
 
         private readonly ConcurrentDictionary<FilterOperationKind,
@@ -43,6 +43,14 @@ namespace HotChocolate.Types.Filters.Conventions
             Definition.FilterTypeNameFactory = factory;
             return this;
         }
+
+        public IFilterConventionDescriptor FilterTypeDescription(
+            GetFilterTypeDescription factory)
+        {
+            Definition.FilterTypeDescriptionFactory = factory;
+            return this;
+        }
+
         public IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind)
         {
             return _defaultOperations.GetOrAdd(
@@ -103,6 +111,14 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
             }
             return Definition;
+        }
+
+        public IFilterConventionDescriptor Reset()
+        {
+            Definition = new FilterConventionDefinition();
+            _defaultOperations.Clear();
+            _configurations.Clear();
+            return this;
         }
 
         public static FilterConventionDescriptor New() => new FilterConventionDescriptor();
