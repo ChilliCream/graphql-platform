@@ -36,11 +36,12 @@ namespace StrawberryShake.VisualStudio.Language
             int end = start + length;
 
             foreach (SyntaxClassification classification in _classifications
-                .Where(t => t.Start >= start && t.Start < end)
+                .Where(t => t.Start <= end && t.End >= start)
                 .OrderBy(t => t.Start))
             {
                 yield return classification;
             }
         }
     }
+
 }

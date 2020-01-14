@@ -37,6 +37,7 @@ namespace StrawberryShake.VisualStudio
                 switch (classification.Kind)
                 {
                     case SyntaxClassificationKind.Comment:
+                    case SyntaxClassificationKind.Description:
                         list.AddClassification(span, classification, _classifications.Comment);
                         break;
 

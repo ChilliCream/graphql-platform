@@ -8,7 +8,6 @@ namespace StrawberryShake.VisualStudio.Language
     {
         private readonly ICollection<SyntaxClassification> _classifications;
         private StringGraphQLReader _reader;
-        private StringValueNode? _description;
 
         public StringGraphQLClassifier(
             ReadOnlySpan<char> graphQLData,
@@ -28,7 +27,6 @@ namespace StrawberryShake.VisualStudio.Language
 
             _classifications = classifications;
             _reader = new StringGraphQLReader(graphQLData);
-            _description = null;
         }
 
         internal StringGraphQLClassifier(
@@ -49,7 +47,6 @@ namespace StrawberryShake.VisualStudio.Language
 
             _classifications = classifications;
             _reader = reader;
-            _description = null;
         }
 
 

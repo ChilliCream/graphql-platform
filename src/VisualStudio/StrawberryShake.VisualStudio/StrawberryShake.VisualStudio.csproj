@@ -46,6 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="GraphQL.cs" />
+    <Compile Include="GraphQLClassificationDefinitions.cs" />
     <Compile Include="GraphQLClassificationService.cs" />
     <Compile Include="GraphQLClassifier.cs" />
     <Compile Include="GraphQLClassifierProvider.cs" />
@@ -60,6 +61,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="PresentationCore" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>

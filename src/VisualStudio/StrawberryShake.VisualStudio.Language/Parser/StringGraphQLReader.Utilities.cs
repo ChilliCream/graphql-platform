@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace StrawberryShake.VisualStudio.Language
@@ -20,6 +21,19 @@ namespace StrawberryShake.VisualStudio.Language
                 MoveNext();
                 return true;
             }
+            return false;
+        }
+
+        internal bool Skip(TokenKind kind, out ISyntaxToken? token)
+        {
+            if (_kind == kind)
+            {
+                token = Token;
+                MoveNext();
+                return true;
+            }
+
+            token = null;
             return false;
         }
 

@@ -7,16 +7,19 @@ namespace StrawberryShake.VisualStudio
     {
         private readonly IStandardClassificationService _classifications;
 
-        public GraphQLClassificationService(IStandardClassificationService classifications)
+        public GraphQLClassificationService(
+            IStandardClassificationService classifications,
+            IClassificationTypeRegistryService classificationTypeRegistry)
         {
             _classifications = classifications;
+            Keyword = classificationTypeRegistry.GetClassificationType("GraphQL.Keyword");
         }
 
         public IClassificationType Comment => _classifications.Comment;
 
         public IClassificationType Identifier => _classifications.FormalLanguage;
 
-        public IClassificationType Keyword => _classifications.Keyword;
+        public IClassificationType Keyword { get; }
 
         public IClassificationType StringLiteral => _classifications.StringLiteral;
 

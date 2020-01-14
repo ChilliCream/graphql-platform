@@ -81,11 +81,11 @@ namespace StrawberryShake.VisualStudio.Language
             SyntaxClassificationKind classificationKind,
             TokenKind tokenKind)
         {
-            if (_reader.Skip(tokenKind))
+            if (_reader.Skip(tokenKind, out ISyntaxToken? token))
             {
                 _classifications.AddClassification(
                     classificationKind,
-                    _reader.Token);
+                    token);
             }
             else
             {

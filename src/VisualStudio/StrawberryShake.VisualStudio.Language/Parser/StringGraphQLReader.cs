@@ -454,7 +454,7 @@ namespace StrawberryShake.VisualStudio.Language
                     {
                         _kind = TokenKind.BlockString;
                         _start = start;
-                        _end = _position + 2;
+                        _end = _position + 3;
                         _value = _graphQLData.Slice(start + 3, _position - start - 3);
                         _position = _end + 1;
                         return;

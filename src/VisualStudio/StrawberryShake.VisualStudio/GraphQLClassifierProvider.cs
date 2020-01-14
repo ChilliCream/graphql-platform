@@ -19,7 +19,11 @@ namespace StrawberryShake.VisualStudio
 
         public IClassifier GetClassifier(ITextBuffer textBuffer)
         {
-            return new GraphQLClassifier(textBuffer, new GraphQLClassificationService(_classifications));
+            return new GraphQLClassifier(
+                textBuffer,
+                new GraphQLClassificationService(
+                    _classifications,
+                    _classificationRegistry));
         }
     }
 }

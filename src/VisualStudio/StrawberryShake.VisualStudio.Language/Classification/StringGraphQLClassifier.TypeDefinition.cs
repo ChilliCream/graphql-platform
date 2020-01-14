@@ -14,7 +14,7 @@ namespace StrawberryShake.VisualStudio.Language
         {
             if (_isString[(int)_reader.Kind])
             {
-                ParseStringLiteral(SyntaxClassificationKind.Comment);
+                ParseStringLiteral(SyntaxClassificationKind.Description);
             }
         }
 
