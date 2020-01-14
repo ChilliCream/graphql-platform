@@ -35,12 +35,6 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public new IFilterConventionDefaultOperationDescriptor Ignore(bool ignore = true)
-        {
-            base.Ignore(ignore);
-            return this;
-        }
-
         public static FilterConventionDefaultOperationDescriptor New(
             FilterConventionDescriptor descriptor, FilterOperationKind kind) =>
                 new FilterConventionDefaultOperationDescriptor(descriptor, kind);

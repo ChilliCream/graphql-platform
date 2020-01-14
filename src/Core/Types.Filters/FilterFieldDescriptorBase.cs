@@ -13,15 +13,16 @@ namespace HotChocolate.Types.Filters
     public abstract class FilterFieldDescriptorBase
         : DescriptorBase<FilterFieldDefintion>
     {
-        private readonly IFilterConvention _filterConventions;
 
         protected FilterFieldDescriptorBase(
             FilterKind filterKind,
             IDescriptorContext context,
-            PropertyInfo property)
+            PropertyInfo property,
+            IFilterConvention filterConventions)
             : base(context)
         {
-            _filterConventions = context.GetFilterConvention();
+            FilterConventions = filterConventions;
+
             Definition.Kind = filterKind;
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
@@ -33,11 +34,13 @@ namespace HotChocolate.Types.Filters
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
 
-            AllowedOperations = _filterConventions.GetAllowedOperations(Definition);
+            AllowedOperations = FilterConventions.GetAllowedOperations(Definition);
         }
 
         internal protected sealed override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
+
+        protected readonly IFilterConvention FilterConventions;
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
@@ -50,6 +53,11 @@ namespace HotChocolate.Types.Filters
                 FilterOperationKind.In,
                 FilterOperationKind.NotIn
             };
+
+        protected void Name(NameString value)
+        {
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+        }
 
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
@@ -224,9 +232,9 @@ namespace HotChocolate.Types.Filters
         {
             if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
             {
-                Definition.Name = _filterConventions.GetArrayFilterPropertyName();
+                Definition.Name = FilterConventions.GetArrayFilterPropertyName();
             }
-            return _filterConventions.CreateFieldName(Definition, kind);
+            return FilterConventions.CreateFieldName(Definition, kind);
         }
 
         protected virtual ITypeReference RewriteType(

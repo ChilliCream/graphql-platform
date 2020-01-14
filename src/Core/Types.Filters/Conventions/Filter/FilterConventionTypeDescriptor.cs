@@ -29,19 +29,6 @@ namespace HotChocolate.Types.Filters.Conventions
             return _descriptor;
         }
 
-        public IFilterConventionTypeDescriptor Description(string value)
-        {
-            Definition.Description = value;
-            return this;
-        }
-
-
-        public IFilterConventionTypeDescriptor Name(NameString factory)
-        {
-            Definition.Name = factory;
-            return this;
-        }
-
         public IFilterConventionTypeDescriptor Ignore(bool ignore = true)
         {
             Definition.Ignore = ignore;

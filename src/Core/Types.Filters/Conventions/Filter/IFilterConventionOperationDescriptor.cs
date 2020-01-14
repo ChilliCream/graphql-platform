@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// Ignores the filter if true
         /// </summary> 
         /// 
-        new IFilterConventionOperationDescriptor Ignore(bool ignore = true);
+        IFilterConventionOperationDescriptor Ignore(bool ignore = true);
 
         IFilterConventionTypeDescriptor And();
 

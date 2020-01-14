@@ -6,10 +6,6 @@ namespace HotChocolate.Types.Filters.Conventions
 {
     public interface IFilterConventionTypeDescriptor : IFluent
     {
-        IFilterConventionTypeDescriptor Name(NameString factory);
-
-        IFilterConventionTypeDescriptor Description(string value);
-
         /// <summary>
         /// Ignores the filter type if true
         /// </summary> 

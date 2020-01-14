@@ -34,10 +34,10 @@ namespace HotChocolate.Types.Filters.Conventions
             base.Name(factory);
             return this;
         }
-
-        public new IFilterConventionOperationDescriptor Ignore(bool ignore = true)
+         
+        public IFilterConventionOperationDescriptor Ignore(bool ignore = true)
         {
-            base.Ignore(ignore);
+            Definition.Ignore = ignore;
             return this;
         }
 

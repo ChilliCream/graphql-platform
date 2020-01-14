@@ -17,8 +17,8 @@ namespace HotChocolate.Types.Filters.Conventions
         public IDictionary<FilterOperationKind, CreateFieldName> DefaultOperationNames
         { get; } = new Dictionary<FilterOperationKind, CreateFieldName>();
 
-        public IDictionary<FilterOperationKind, NameString> DefaultOperationDescriptions
-        { get; } = new Dictionary<FilterOperationKind, NameString>();
+        public IDictionary<FilterOperationKind, string> DefaultOperationDescriptions
+        { get; } = new Dictionary<FilterOperationKind, string>();
 
         public NameString ArgumentName { get; set; }
 

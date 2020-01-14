@@ -19,6 +19,8 @@ namespace HotChocolate.Types.Filters.Conventions
 
         NameString GetFilterTypeName(IDescriptorContext context, Type entityType);
 
+        string GetOperationDescription(FilterOperation operation);
+
         IEnumerable<TryCreateImplicitFilter> GetImplicitFilterFactories();
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -11,9 +12,17 @@ namespace HotChocolate.Types.Filters
     {
         public StringFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property)
-            : base(FilterKind.String, context, property)
+            PropertyInfo property,
+            IFilterConvention filterConventions)
+            : base(FilterKind.String, context, property, filterConventions)
         {
+        }
+
+        /// <inheritdoc/>
+        public new IStringFilterFieldDescriptor Name(NameString value)
+        {
+            base.Name(value);
+            return this;
         }
 
         /// <inheritdoc/>
@@ -145,6 +154,7 @@ namespace HotChocolate.Types.Filters
         {
             var operation = new FilterOperation(
                 typeof(string),
+                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -153,7 +163,8 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
-                operation);
+                operation,
+                FilterConventions);
         }
     }
 }

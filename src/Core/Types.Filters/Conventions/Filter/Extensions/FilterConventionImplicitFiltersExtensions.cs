@@ -37,12 +37,13 @@ namespace HotChocolate.Types.Filters.Conventions
             IDescriptorContext context,
             Type type,
             PropertyInfo property,
+            IFilterConvention filterConventions,
             out FilterFieldDefintion definition)
         {
 
             if (type == typeof(string))
             {
-                var field = new StringFilterFieldDescriptor(context, property);
+                var field = new StringFilterFieldDescriptor(context, property, filterConventions);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -55,13 +56,14 @@ namespace HotChocolate.Types.Filters.Conventions
             IDescriptorContext context,
             Type type,
             PropertyInfo property,
+            IFilterConvention filterConventions,
             out FilterFieldDefintion definition)
         {
 
             if (type == typeof(bool))
             {
                 var field = new BooleanFilterFieldDescriptor(
-                    context, property);
+                    context, property, filterConventions);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -74,6 +76,7 @@ namespace HotChocolate.Types.Filters.Conventions
             IDescriptorContext context,
             Type type,
             PropertyInfo property,
+            IFilterConvention filterConventions,
             out FilterFieldDefintion definition)
         {
             if (type != typeof(bool) &&
@@ -81,7 +84,7 @@ namespace HotChocolate.Types.Filters.Conventions
                 IsComparable(property.PropertyType))
             {
                 var field = new ComparableFilterFieldDescriptor(
-                    context, property);
+                    context, property, filterConventions);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -94,12 +97,13 @@ namespace HotChocolate.Types.Filters.Conventions
             IDescriptorContext context,
             Type type,
             PropertyInfo property,
+            IFilterConvention filterConventions,
             out FilterFieldDefintion definition)
         {
             if (type.IsClass)
             {
                 var field = new ObjectFilterFieldDescriptor(
-                    context, property, property.PropertyType);
+                    context, property, property.PropertyType, filterConventions);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -112,6 +116,7 @@ namespace HotChocolate.Types.Filters.Conventions
             IDescriptorContext context,
             Type type,
             PropertyInfo property,
+            IFilterConvention filterConventions,
             out FilterFieldDefintion definition)
         {
             if (DotNetTypeInfoFactory.IsListType(type))
@@ -133,7 +138,8 @@ namespace HotChocolate.Types.Filters.Conventions
                     elementType = typeof(ISingleFilter<>).MakeGenericType(elementType);
                 }
 
-                field = new ArrayFilterFieldDescriptor(context, property, elementType);
+                field = new ArrayFilterFieldDescriptor(context,
+                    property, elementType, filterConventions);
 
                 definition = field.CreateDefinition();
                 return true;

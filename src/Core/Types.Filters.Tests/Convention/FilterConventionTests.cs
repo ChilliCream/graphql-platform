@@ -74,7 +74,12 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             ISchema schema = CreateSchema(
-                x => x.AddType<FilterInputType<Foo>>()
+                x => x.AddType(
+                        new ObjectType(
+                            x => x.Name("Test")
+                                .Field("test")
+                                .Resolver(x => new Foo[] { })
+                                .UseFiltering()))
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(x => x.ArgumentName("Test"))));
 
@@ -106,7 +111,7 @@ namespace HotChocolate.Types.Filters
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(
                             x => x.FilterTypeName(
-                                (x, type) => x.Naming.GetTypeName(type) + "Test")));
+                                (x, type) => x.Naming.GetTypeName(type) + "Test"))));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -142,27 +147,23 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
-        //TODO: wire up ignore
         [Fact]
-        public void Convention_Root_Operation()
+        public void Convention_Type_IgnoreArrayFilterKind()
         {
             // arrange
-            int propertyCount = 0;
             // act
             ISchema schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(
-                            x => x.Operation(FilterOperationKind.Equals).Ignore())));
+                            x => x.Type(FilterKind.Array).Ignore())));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
-        public void Convention_Type_Root_IgnoreArrayFilterKind()
+        public void Convention_Operation_ChangeDefaultNaming()
         {
             // arrange
             // act
@@ -170,7 +171,42 @@ namespace HotChocolate.Types.Filters
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(
-                            x => x.Type(FilterKind.Array))));
+                            x => x.Type(FilterKind.Array)
+                            .Operation(FilterOperationKind.ArrayAll)
+                            .Name((d, k) => "ArrayAllTest"))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Convention_Operation_ChangeDefaultDescription()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                x => x.AddType<FilterInputType<Foo>>()
+                    .AddConvention<IFilterConvention>(
+                        new FilterConvention(
+                            x => x.Type(FilterKind.Array)
+                            .Operation(FilterOperationKind.ArrayAll)
+                            .Description("Test description"))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Convention_Operation_Ingore()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                x => x.AddType<FilterInputType<Foo>>()
+                    .AddConvention<IFilterConvention>(
+                        new FilterConvention(
+                            x => x.Type(FilterKind.Array)
+                            .Operation(FilterOperationKind.ArrayAll).Ignore())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -198,6 +234,7 @@ namespace HotChocolate.Types.Filters
             public bool Bool { get; set; }
             public FooBar Object { get; set; }
         }
+
         public class FooBar
         {
             public string Nested { get; set; }

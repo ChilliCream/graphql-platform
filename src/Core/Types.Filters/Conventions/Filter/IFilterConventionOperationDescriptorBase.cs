@@ -10,11 +10,5 @@ namespace HotChocolate.Types.Filters.Conventions
 
         IFilterConventionOperationDescriptorBase Description(string value);
 
-        /// <summary>
-        /// Ignores the filter if true
-        /// </summary> 
-        /// 
-        IFilterConventionOperationDescriptorBase Ignore(bool ignore = true);
-
     }
 }

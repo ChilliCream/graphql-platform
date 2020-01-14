@@ -17,6 +17,8 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
+        private readonly IFilterConvention _convention;
+        private readonly string _conventionName;
 
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
@@ -25,18 +27,17 @@ namespace HotChocolate.Types.Filters
             : base(context)
         {
             _convention = context.GetFilterConvention();
+            _conventionName = conventionName;
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
-            Definition.Name = _convention.GetFilterTypeName(context, entityType);
-            // TODO : should we rework get type description?
+            Definition.Name = _convention.GetFilterTypeName(context, entityType); 
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
             Definition.Fields.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
         }
 
-        private readonly IFilterConvention _convention;
 
         internal protected override FilterInputTypeDefinition Definition { get; } =
             new FilterInputTypeDefinition();
@@ -156,7 +157,7 @@ namespace HotChocolate.Types.Filters
                 = _convention.GetImplicitFilterFactories().GetEnumerator();
 
             while (enumerator.MoveNext()
-                && !enumerator.Current(Context, type, property, out definition))
+                && !enumerator.Current(Context, type, property, _convention, out definition))
             {/**/}
 
             return definition != null;
@@ -181,7 +182,7 @@ namespace HotChocolate.Types.Filters
             if (property.ExtractMember() is PropertyInfo p)
             {
                 return Fields.GetOrAddDescriptor(p,
-                    () => new StringFilterFieldDescriptor(Context, p));
+                    () => new StringFilterFieldDescriptor(Context, p, _convention));
             }
 
             throw new ArgumentException(
@@ -195,7 +196,7 @@ namespace HotChocolate.Types.Filters
             if (property.ExtractMember() is PropertyInfo p)
             {
                 return Fields.GetOrAddDescriptor(p,
-                    () => new BooleanFilterFieldDescriptor(Context, p));
+                    () => new BooleanFilterFieldDescriptor(Context, p, _convention));
             }
 
             throw new ArgumentException(
@@ -209,7 +210,7 @@ namespace HotChocolate.Types.Filters
             if (property.ExtractMember() is PropertyInfo p)
             {
                 return Fields.GetOrAddDescriptor(p,
-                    () => new ComparableFilterFieldDescriptor(Context, p));
+                    () => new ComparableFilterFieldDescriptor(Context, p, _convention));
             }
 
             throw new ArgumentException(
@@ -223,7 +224,7 @@ namespace HotChocolate.Types.Filters
             if (property.ExtractMember() is PropertyInfo p)
             {
                 Fields.GetOrAddDescriptor(p,
-                    () => new IgnoredFilterFieldDescriptor(Context, p));
+                    () => new IgnoredFilterFieldDescriptor(Context, p, _convention));
                 return this;
             }
 
@@ -238,7 +239,7 @@ namespace HotChocolate.Types.Filters
             if (property.ExtractMember() is PropertyInfo p)
             {
                 return Fields.GetOrAddDescriptor(p,
-                    () => new ObjectFilterFieldDescriptor<TObject>(Context, p));
+                    () => new ObjectFilterFieldDescriptor<TObject>(Context, p, _convention));
             }
 
             throw new ArgumentException(
@@ -252,7 +253,7 @@ namespace HotChocolate.Types.Filters
             if (property.ExtractMember() is PropertyInfo p)
             {
                 return Fields.GetOrAddDescriptor(p,
-                    () => new ArrayFilterFieldDescriptor<TObject>(Context, p));
+                    () => new ArrayFilterFieldDescriptor<TObject>(Context, p, _convention));
             }
 
             throw new ArgumentException(

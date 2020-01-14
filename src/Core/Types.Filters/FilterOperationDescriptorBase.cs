@@ -1,4 +1,6 @@
+using System;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -6,9 +8,21 @@ namespace HotChocolate.Types.Filters
         : ArgumentDescriptorBase<FilterOperationDefintion>
     {
         protected FilterOperationDescriptorBase(
-            IDescriptorContext context)
+            IDescriptorContext context,
+            NameString name,
+            ITypeReference type,
+            FilterOperation operation,
+            IFilterConvention filterConventions)
             : base(context)
         {
+
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.Type = type
+                ?? throw new ArgumentNullException(nameof(type));
+            Definition.Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
+            Definition.Description =
+                filterConventions.GetOperationDescription(operation);
         }
 
         internal protected override FilterOperationDefintion Definition { get; } =

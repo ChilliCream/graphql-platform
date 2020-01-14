@@ -6,8 +6,6 @@ namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterConventionTypeDefinition
     {
-        public NameString Name { get; set; }
-        public string Description { get; set; }
         public bool Ignore { get; set; }
         public FilterKind FilterKind { get; set; }
         public TryCreateImplicitFilter TryCreateFilter { get; set; }
@@ -17,7 +15,7 @@ namespace HotChocolate.Types.Filters.Conventions
         public IDictionary<FilterOperationKind, CreateFieldName> OperationNames { get; set; }
             = new Dictionary<FilterOperationKind, CreateFieldName>();
 
-        public IDictionary<FilterOperationKind, NameString> OperationDescriptions { get; set; }
-            = new Dictionary<FilterOperationKind, NameString>();
+        public IDictionary<FilterOperationKind, string> OperationDescriptions { get; set; }
+            = new Dictionary<FilterOperationKind, string>();
     }
 }

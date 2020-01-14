@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Properties;
 
@@ -11,6 +10,7 @@ namespace HotChocolate.Types.Filters.Conventions
             IDescriptorContext context,
             Type type,
             PropertyInfo property,
+            IFilterConvention filterConventions,
             out FilterFieldDefintion definition);
 
     public delegate NameString CreateFieldName(
@@ -23,8 +23,9 @@ namespace HotChocolate.Types.Filters.Conventions
 
     public class FilterConvention : IFilterConvention
     {
+        private readonly object _definitionLock = new object { };
         private readonly Action<IFilterConventionDescriptor> _configure;
-        private FilterConventionDefinition _definition;
+        private volatile FilterConventionDefinition _definition;
 
         public FilterConvention()
         {
@@ -88,6 +89,23 @@ namespace HotChocolate.Types.Filters.Conventions
                 .Build());
         }
 
+        public string GetOperationDescription(FilterOperation operation)
+        {
+            FilterConventionDefinition configuration = GetOrCreateConfiguration();
+
+            if (!(configuration.TypeDefinitions.TryGetValue(operation.FilterKind,
+                    out FilterConventionTypeDefinition typeDefinition) &&
+                    typeDefinition.OperationDescriptions.TryGetValue(operation.Kind,
+                        out string description))
+                )
+            {
+                configuration.DefaultOperationDescriptions.TryGetValue(operation.Kind,
+                           out description);
+            }
+
+            return description;
+        }
+
         public virtual NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
         {
             return GetOrCreateConfiguration().FilterTypeNameFactory(context, entityType);
@@ -113,14 +131,17 @@ namespace HotChocolate.Types.Filters.Conventions
 
         private FilterConventionDefinition GetOrCreateConfiguration()
         {
-            lock (_definition)
+            if (_definition == null)
             {
-                if (_definition == null)
+                lock (_definitionLock)
                 {
-                    _definition = CreateDefinition();
+                    if (_definition == null)
+                    {
+                        _definition = CreateDefinition();
+                    }
                 }
-                return _definition;
             }
+            return _definition;
         }
 
         public readonly static IFilterConvention Default = new FilterConvention();
