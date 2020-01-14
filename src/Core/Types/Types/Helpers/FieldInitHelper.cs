@@ -23,9 +23,9 @@ namespace HotChocolate.Types
                        definition.NativeDefaultValue);
                 }
 
-                return definition.DefaultValue.IsNull()
-                    ? NullValueNode.Default
-                    : definition.DefaultValue;
+                return definition.DefaultValue is { }
+                    ? definition.DefaultValue
+                    : null;
             }
             catch (Exception ex)
             {

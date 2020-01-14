@@ -40,8 +40,7 @@ namespace HotChocolate.Types
             else
             {
                 base.OnCompleteField(context, definition);
-                DefaultValue = FieldInitHelper.CreateDefaultValue(
-                    context, definition, Type);
+                DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
             }
         }
     }

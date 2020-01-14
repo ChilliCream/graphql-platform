@@ -156,8 +156,7 @@ namespace HotChocolate.Types
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
-            DefaultValue = FieldInitHelper.CreateDefaultValue(
-                context, definition, Type);
+            DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
         }
     }
 }
