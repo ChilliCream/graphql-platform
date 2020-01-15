@@ -5,6 +5,8 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class Argument
@@ -19,9 +21,9 @@ namespace HotChocolate.Types
             DefaultValue = definition.DefaultValue;
         }
 
-        public InputValueDefinitionNode SyntaxNode { get; }
+        public InputValueDefinitionNode? SyntaxNode { get; }
 
-        public IValueNode DefaultValue { get; private set; }
+        public IValueNode? DefaultValue { get; private set; }
 
         protected override void OnCompleteField(
             ICompletionContext context,
