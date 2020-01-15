@@ -6,6 +6,9 @@ namespace StrawberryShake.Transport
     public class MessageWriter
         : IRequestWriter
     {
+        private const int _initialBufferSize = 1024;
+        private const int _defaultMemorySize = 256;
+        private const int _minMemorySize = 1;
         private byte[] _buffer;
         private int _capacity;
         private int _start;
@@ -13,7 +16,7 @@ namespace StrawberryShake.Transport
 
         public MessageWriter()
         {
-            _buffer = ArrayPool<byte>.Shared.Rent(1024);
+            _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
             _capacity = _buffer.Length;
         }
 
@@ -35,14 +38,14 @@ namespace StrawberryShake.Transport
 
         public Memory<byte> GetMemory(int sizeHint = 0)
         {
-            var size = sizeHint < 1 ? 256 : sizeHint;
+            var size = sizeHint < _minMemorySize ? _defaultMemorySize : sizeHint;
             EnsureBufferCapacity(size);
             return _buffer.AsMemory().Slice(_start, size);
         }
 
         public Span<byte> GetSpan(int sizeHint = 0)
         {
-            var size = sizeHint < 1 ? 256 : sizeHint;
+            var size = sizeHint < _minMemorySize ? _defaultMemorySize : sizeHint;
             EnsureBufferCapacity(size);
             return _buffer.AsSpan().Slice(_start, size);
         }
@@ -70,13 +73,14 @@ namespace StrawberryShake.Transport
         public void Clear()
         {
             ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = ArrayPool<byte>.Shared.Rent(1024);
+            _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
             _capacity = _buffer.Length;
         }
 
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)

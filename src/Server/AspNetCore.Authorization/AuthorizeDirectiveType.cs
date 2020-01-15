@@ -36,7 +36,6 @@ namespace HotChocolate.AspNetCore.Authorization
                 .Type<NonNullType<ApplyPolicyType>>()
                 .DefaultValue(ApplyPolicy.BeforeResolver);
 
-
             descriptor.Use<AuthorizeMiddleware>();
         }
     }

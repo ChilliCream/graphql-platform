@@ -144,7 +144,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 principal = p;
                 return true;
             }
-
+  
             principal = null;
             return false;
         }
