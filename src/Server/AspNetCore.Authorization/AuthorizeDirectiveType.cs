@@ -27,15 +27,14 @@ namespace HotChocolate.AspNetCore.Authorization
                     "annotated resource.")
                 .Type<ListType<NonNullType<StringType>>>();
 
-            descriptor.Argument(t => t.ExecuteResolver)
+            descriptor.Argument(t => t.Apply)
                 .Description(
                     "Defines when when the resolver shall be executed." +
                     "By default the resolver is executed after the policy " +
                     "has determined that the current user is allowed to access " +
                     "the field.")
-                .Type<NonNullType<ExecuteResolverType>>()
-                .DefaultValue(ExecuteResolver.AfterPolicy);
-
+                .Type<NonNullType<ApplyPolicyType>>()
+                .DefaultValue(ApplyPolicy.BeforeResolver);
 
             descriptor.Use<AuthorizeMiddleware>();
         }

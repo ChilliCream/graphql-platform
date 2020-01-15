@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore.Authorization
             AuthorizeDirective directive = context.Directive
                 .ToObject<AuthorizeDirective>();
 
-            if (directive.ExecuteResolver == ExecuteResolver.BeforePolicy)
+            if (directive.Apply == ApplyPolicy.AfterResolver)
             {
                 await _next(context).ConfigureAwait(false);
 
@@ -144,14 +144,14 @@ namespace HotChocolate.AspNetCore.Authorization
                 principal = p;
                 return true;
             }
-
+  
             principal = null;
             return false;
         }
 
         private static bool IsInAnyRole(
             IPrincipal principal,
-            IReadOnlyList<string> roles)
+            IReadOnlyList<string>? roles)
         {
             if (roles == null || roles.Count == 0)
             {
@@ -169,10 +169,10 @@ namespace HotChocolate.AspNetCore.Authorization
             return false;
         }
 
-        private static bool NeedsPolicyValidation(
-            AuthorizeDirective directive)
+        private static bool NeedsPolicyValidation(AuthorizeDirective directive)
         {
-            return directive.Roles.Count == 0
+            return directive.Roles == null
+                || directive.Roles.Count == 0
                 || !string.IsNullOrEmpty(directive.Policy);
         }
 
@@ -198,7 +198,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
             AuthorizationPolicy? policy = null;
 
-            if (directive.Roles.Count == 0 && string.IsNullOrWhiteSpace(directive.Policy))
+            if ((directive.Roles is null || directive.Roles.Count == 0)
+                && string.IsNullOrWhiteSpace(directive.Policy))
             {
                 policy = await policyProvider.GetDefaultPolicyAsync()
                     .ConfigureAwait(false);

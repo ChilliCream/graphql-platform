@@ -25,7 +25,7 @@ namespace HotChocolate.AspNetCore.Authorization
             [Authorize(Policy = "b")]
             public string GetPiped() => "foo";
 
-            [Authorize(Policy = "a", ExecuteResolver = ExecuteResolver.BeforePolicy)]
+            [Authorize(Policy = "a", Apply = ApplyPolicy.AfterResolver)]
             public string GetAfterResolver() => "foo";
         }
 
