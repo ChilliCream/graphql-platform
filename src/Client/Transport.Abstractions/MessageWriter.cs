@@ -47,13 +47,21 @@ namespace StrawberryShake.Transport
             return _buffer.AsSpan().Slice(_start, size);
         }
 
-        private void EnsureBufferCapacity(int size)
+        private void EnsureBufferCapacity(int neededCapacity)
         {
-            if (_capacity < size)
+            if (_capacity < neededCapacity)
             {
                 byte[] buffer = _buffer;
-                _buffer = ArrayPool<byte>.Shared.Rent(size + _buffer.Length);
-                _capacity += _buffer.Length;
+
+                int newSize = buffer.Length * 2;
+                if (neededCapacity > buffer.Length)
+                {
+                    newSize += neededCapacity;
+                }
+
+                _buffer = ArrayPool<byte>.Shared.Rent(newSize);
+                _capacity += _buffer.Length - buffer.Length;
+
                 buffer.AsSpan().CopyTo(_buffer);
                 ArrayPool<byte>.Shared.Return(buffer);
             }
