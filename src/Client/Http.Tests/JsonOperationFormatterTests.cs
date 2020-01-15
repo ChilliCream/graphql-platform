@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Moq;
 using Snapshooter.Xunit;
@@ -119,6 +120,25 @@ namespace StrawberryShake.Http
             Encoding.UTF8.GetString(messageWriter.Body.Span).MatchSnapshot();
         }
 
+        [Fact]
+        public void Serialize_To_Json_With_ManyVariables()
+        {
+            // arrange
+            var serializerResolver = new Mock<IValueSerializerCollection>();
+            serializerResolver.Setup(t => t.Get(It.IsAny<string>()))
+                .Returns(new StringValueSerializer());
+            var formatter = new JsonOperationFormatter(serializerResolver.Object);
+            var formatterOptions = new OperationFormatterOptions();
+            var operation = new OperationWithManyVariables();
+            var messageWriter = new MessageWriter();
+
+            // act
+            formatter.Serialize(operation, messageWriter, formatterOptions);
+
+            // assert
+            Encoding.UTF8.GetString(messageWriter.Body.Span).MatchSnapshot();
+        }
+
         private class Operation
             : IOperation
         {
@@ -147,6 +167,25 @@ namespace StrawberryShake.Http
 
             public IReadOnlyList<VariableValue> GetVariableValues() =>
                 new[] { new VariableValue("Foo", "Bar", "123") };
+        }
+
+
+        private class OperationWithManyVariables
+            : IOperation
+        {
+            public string Name => "abc";
+
+            public IDocument Document { get; } = new Document();
+
+            public OperationKind Kind { get; } = OperationKind.Subscription;
+
+            public Type ResultType => typeof(OnReview);
+
+            public IReadOnlyList<VariableValue> GetVariableValues() => Enumerable
+                .Range(1, 1000)
+                .Select(r => r.ToString("0000"))
+                .Select(r => new VariableValue($"Name_{r}", "Bar", r))
+                .ToArray();
         }
 
         private class Document
