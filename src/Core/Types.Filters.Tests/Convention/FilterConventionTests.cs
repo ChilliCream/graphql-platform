@@ -82,6 +82,7 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+
         [Fact]
         public void Convention_ArgumentName()
         {
@@ -96,6 +97,27 @@ namespace HotChocolate.Types.Filters
                                 .UseFiltering()))
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(x => x.ArgumentName("Test"))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void NamedConvention_FilterType()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                x => x.AddType(
+                        new ObjectType(
+                            x => x.Name("Test")
+                                .Field("test")
+                                .Resolver(x => new Foo[] { })
+                                .UseFiltering("TEST")))
+                    .AddConvention<IFilterConvention>(
+                        new FilterConvention(x => x.ElementName("should_not_be_visible")))
+                    .AddNamedConvention<IFilterConvention>("TEST",
+                        new FilterConvention(x => x.ElementName("should_be_visible"))));
 
             // assert
             schema.ToString().MatchSnapshot();
