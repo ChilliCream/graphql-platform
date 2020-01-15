@@ -58,7 +58,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
             // assert
             Assert.Equal("abc", authorizeDirective.Policy);
-            Assert.Empty(authorizeDirective.Roles);
+            Assert.Null(authorizeDirective.Roles);
         }
 
         [Fact]
