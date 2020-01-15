@@ -22,7 +22,7 @@ namespace HotChocolate.Types
             // assert
             Assert.Equal(
                 "abc",
-                schema.QueryType.Fields["field"].Arguments["argument"].DefaultValue.Value);
+                schema.QueryType.Fields["field"].Arguments["argument"].DefaultValue!.Value);
         }
 
         [Fact]

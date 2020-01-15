@@ -77,8 +77,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         [ClassData(typeof(AuthorizationAttributeTestData))]
-        public async Task NoAuthServices_Authenticated_True(
-            ISchema schema)
+        public async Task NoAuthServices_Authenticated_True(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -112,8 +111,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         [ClassData(typeof(AuthorizationAttributeTestData))]
-        public async Task NoAuthServices_Authenticated_False(
-            ISchema schema)
+        public async Task NoAuthServices_Authenticated_False(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -352,8 +350,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         [ClassData(typeof(AuthorizationAttributeTestData))]
-        public async Task Roles_UserHasDifferentRoles_NotAuthorized(
-            ISchema schema)
+        public async Task Roles_UserHasDifferentRoles_NotAuthorized(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -390,8 +387,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         [ClassData(typeof(AuthorizationAttributeTestData))]
-        public async Task Roles_UserHasNoneOfTheRoles_NotAuthorized(
-            ISchema schema)
+        public async Task Roles_UserHasNoneOfTheRoles_NotAuthorized(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -428,8 +424,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         [ClassData(typeof(AuthorizationAttributeTestData))]
-        public async Task Roles_UserHasAllOfTheRoles_Authorized(
-            ISchema schema)
+        public async Task Roles_UserHasAllOfTheRoles_Authorized(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -647,6 +642,112 @@ namespace HotChocolate.AspNetCore.Authorization
             result.MatchSnapshot();
         }
 
+        [Theory]
+        [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
+        public async Task Policy_Is_Executed_After_Resolver_User_Is_Allowed(ISchema schema)
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddAuthorization(options =>
+                    {
+                        options.AddPolicy("a", policy =>
+                            policy.RequireAssertion(context =>
+                            {
+                                if (context.Resource is IMiddlewareContext m
+                                    && m.Result is string s
+                                    && s == "foo")
+                                {
+                                    return true;
+                                }
+                                return false;
+                            }));
+                    });
+
+                    services.AddGraphQL(schema);
+                },
+                context =>
+                {
+                    var identity = new ClaimsIdentity("testauth");
+                    identity.AddClaim(new Claim(
+                        ClaimTypes.DateOfBirth,
+                        "2013-05-30"));
+                    context.User.AddIdentity(identity);
+                });
+
+            var request = "{ afterResolver }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Theory]
+        [ClassData(typeof(AuthorizationTestData))]
+        [ClassData(typeof(AuthorizationAttributeTestData))]
+        public async Task Policy_Is_Executed_After_Resolver_User_Is_Denied(ISchema schema)
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddAuthorization(options =>
+                    {
+                        options.AddPolicy("a", policy =>
+                            policy.RequireAssertion(context =>
+                            {
+                                if (context.Resource is IMiddlewareContext m
+                                    && m.Result is string s
+                                    && s == "bar")
+                                {
+                                    return true;
+                                }
+                                return false;
+                            }));
+                    });
+
+                    services.AddGraphQL(schema);
+                },
+                context =>
+                {
+                    var identity = new ClaimsIdentity("testauth");
+                    identity.AddClaim(new Claim(
+                        ClaimTypes.DateOfBirth,
+                        "2013-05-30"));
+                    context.User.AddIdentity(identity);
+                });
+
+            var request = "{ afterResolver }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+
+            Assert.NotNull(result.Errors);
+            result.MatchSnapshot();
+        }
+
         [Fact]
         public void AddAuthorizeDirectiveType_SchemaBuilderIsNull_ArgNullExec()
         {
@@ -675,8 +776,7 @@ namespace HotChocolate.AspNetCore.Authorization
                             return Task.CompletedTask;
                         });
                 },
-                app =>
-                    app.UseGraphQL());
+                app => app.UseGraphQL());
         }
     }
 }

@@ -278,6 +278,8 @@ namespace HotChocolate.Execution
             IInputField argument,
             IDictionary<string, IValueNode> argumentValues)
         {
+            IValueNode defaultValueLiteral = argument.DefaultValue ?? NullValueNode.Default;
+
             if (argumentValues.TryGetValue(argument.Name,
                 out IValueNode literal))
             {
@@ -290,8 +292,8 @@ namespace HotChocolate.Execution
                     }
 
                     object defaultValue = argument.Type.IsLeafType()
-                        ? ParseLiteral(argument.Type, argument.DefaultValue)
-                        : argument.DefaultValue;
+                        ? ParseLiteral(argument.Type, defaultValueLiteral)
+                        : defaultValueLiteral;
                     defaultValue = CoerceArgumentValue(argument, defaultValue);
 
                     fieldInfo.VarArguments[argument.Name] =
@@ -308,7 +310,7 @@ namespace HotChocolate.Execution
             }
             else
             {
-                CreateArgumentValue(fieldInfo, argument, argument.DefaultValue);
+                CreateArgumentValue(fieldInfo, argument, defaultValueLiteral);
             }
         }
 

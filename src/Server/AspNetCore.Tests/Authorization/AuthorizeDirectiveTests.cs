@@ -1,9 +1,7 @@
-using System.Reflection;
 using System;
-using System.Collections.Generic;
-using Xunit;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization
 {

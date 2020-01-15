@@ -1,24 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Authorization.Properties;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
-#if ASPNETCLASSIC
-
-namespace HotChocolate.AspNetClassic.Authorization
-#else
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Authorization.Properties;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.AspNetCore.Authorization
-#endif
 {
-    internal class AuthorizeMiddleware
+    internal sealed class AuthorizeMiddleware
     {
         private readonly FieldDelegate _next;
 
@@ -32,45 +27,126 @@ namespace HotChocolate.AspNetCore.Authorization
             AuthorizeDirective directive = context.Directive
                 .ToObject<AuthorizeDirective>();
 
-            ClaimsPrincipal principal = null;
-            var allowed = false;
-            var authenticated = false;
-
-            if (context.ContextData.TryGetValue(
-                nameof(ClaimsPrincipal), out var o)
-                && o is ClaimsPrincipal p)
-            {
-                principal = p;
-                authenticated = allowed =
-                    p.Identities.Any(t => t.IsAuthenticated);
-            }
-
-            allowed = allowed && IsInAnyRole(principal, directive.Roles);
-
-#if !ASPNETCLASSIC
-            if (allowed && NeedsPolicyValidation(directive))
-            {
-                allowed = await AuthorizeWithPolicyAsync(
-                    context, directive, principal)
-                    .ConfigureAwait(false);
-            }
-#endif
-            if (allowed)
+            if (directive.ExecuteResolver == ExecuteResolver.BeforePolicy)
             {
                 await _next(context).ConfigureAwait(false);
+
+                AuthState state = await CheckPermissionsAsync(
+                    context, directive)
+                    .ConfigureAwait(false);
+
+                if (state != AuthState.Allowed && !IsErrorResult(context))
+                {
+                    SetError(context, directive, state);
+                }
             }
-            else if (context.Result == null)
+            else
             {
-                context.Result = ErrorBuilder.New()
-                    .SetMessage(
-                        AuthResources.AuthorizeMiddleware_NotAuthorized)
-                    .SetCode(authenticated
-                        ? ErrorCodes.Authentication.NotAuthorized
-                        : ErrorCodes.Authentication.NotAuthenticated)
-                    .SetPath(context.Path)
-                    .AddLocation(context.FieldSelection)
-                    .Build();
+                AuthState state = await CheckPermissionsAsync(
+                    context, directive)
+                    .ConfigureAwait(false);
+
+                if (state == AuthState.Allowed)
+                {
+                    await _next(context).ConfigureAwait(false);
+                }
+                else
+                {
+                    SetError(context, directive, state);
+                }
             }
+        }
+
+        private bool IsErrorResult(IDirectiveContext context) =>
+            context.Result is IError || context.Result is IEnumerable<IError>;
+
+        private void SetError(
+            IDirectiveContext context,
+            AuthorizeDirective directive,
+            AuthState state)
+        {
+            switch (state)
+            {
+                case AuthState.NoDefaultPolicy:
+                    context.Result = context.Result = ErrorBuilder.New()
+                        .SetMessage(AuthResources.AuthorizeMiddleware_NoDefaultPolicy)
+                        .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
+                        .SetPath(context.Path)
+                        .AddLocation(context.FieldSelection)
+                        .Build();
+                    break;
+
+                case AuthState.PolicyNotFound:
+                    context.Result = ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            AuthResources.AuthorizeMiddleware_PolicyNotFound,
+                            directive.Policy))
+                        .SetCode(ErrorCodes.Authentication.PolicyNotFound)
+                        .SetPath(context.Path)
+                        .AddLocation(context.FieldSelection)
+                        .Build();
+                    break;
+
+                default:
+                    context.Result = ErrorBuilder.New()
+                        .SetMessage(AuthResources.AuthorizeMiddleware_NotAuthorized)
+                        .SetCode(state == AuthState.NotAllowed
+                            ? ErrorCodes.Authentication.NotAuthorized
+                            : ErrorCodes.Authentication.NotAuthenticated)
+                        .SetPath(context.Path)
+                        .AddLocation(context.FieldSelection)
+                        .Build();
+                    break;
+            }
+        }
+
+        private static async Task<AuthState> CheckPermissionsAsync(
+            IDirectiveContext context,
+            AuthorizeDirective directive)
+        {
+            if (!TryGetAuthenticatedPrincipal(context, out ClaimsPrincipal? principal))
+            {
+                return AuthState.NotAuthenticated;
+            }
+
+            if (IsInAnyRole(principal!, directive.Roles))
+            {
+                if (NeedsPolicyValidation(directive))
+                {
+                    return await AuthorizeWithPolicyAsync(
+                        context, directive, principal!)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    return AuthState.Allowed;
+                }
+            }
+
+            return AuthState.NotAllowed;
+        }
+
+#if NETCOREAPP2_2 || NETCOREAPP2_1 || NETSTANDARD2_0 ||  NET462
+        private static bool TryGetAuthenticatedPrincipal(
+            IDirectiveContext context,
+            out ClaimsPrincipal? principal)
+#else
+        private static bool TryGetAuthenticatedPrincipal(
+            IDirectiveContext context,
+            [NotNullWhen(true)]out ClaimsPrincipal? principal)
+#endif
+        {
+            if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var o)
+                && o is ClaimsPrincipal p
+                && p.Identities.Any(t => t.IsAuthenticated))
+            {
+                principal = p;
+                return true;
+            }
+
+            principal = null;
+            return false;
         }
 
         private static bool IsInAnyRole(
@@ -92,7 +168,6 @@ namespace HotChocolate.AspNetCore.Authorization
 
             return false;
         }
-#if !ASPNETCLASSIC
 
         private static bool NeedsPolicyValidation(
             AuthorizeDirective directive)
@@ -101,7 +176,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 || !string.IsNullOrEmpty(directive.Policy);
         }
 
-        private static async Task<bool> AuthorizeWithPolicyAsync(
+        private static async Task<AuthState> AuthorizeWithPolicyAsync(
             IDirectiveContext context,
             AuthorizeDirective directive,
             ClaimsPrincipal principal)
@@ -114,29 +189,25 @@ namespace HotChocolate.AspNetCore.Authorization
 
             if (authorizeService == null || policyProvider == null)
             {
-                return string.IsNullOrWhiteSpace(directive.Policy);
+                // authorization service is not configured so the user is
+                // authorized with the previous checks.
+                return string.IsNullOrWhiteSpace(directive.Policy)
+                    ? AuthState.Allowed
+                    : AuthState.NotAllowed;
             }
 
-            AuthorizationPolicy policy = null;
+            AuthorizationPolicy? policy = null;
 
-            if (directive.Roles.Count == 0
-                && string.IsNullOrWhiteSpace(directive.Policy))
+            if (directive.Roles.Count == 0 && string.IsNullOrWhiteSpace(directive.Policy))
             {
                 policy = await policyProvider.GetDefaultPolicyAsync()
                     .ConfigureAwait(false);
 
                 if (policy == null)
                 {
-                    context.Result = context.Result = ErrorBuilder.New()
-                        .SetMessage(
-                            AuthResources.AuthorizeMiddleware_NoDefaultPolicy)
-                        .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
-                        .SetPath(context.Path)
-                        .AddLocation(context.FieldSelection)
-                        .Build();
+                    return AuthState.NoDefaultPolicy;
                 }
             }
-
             else if (!string.IsNullOrWhiteSpace(directive.Policy))
             {
                 policy = await policyProvider.GetPolicyAsync(directive.Policy)
@@ -144,29 +215,29 @@ namespace HotChocolate.AspNetCore.Authorization
 
                 if (policy == null)
                 {
-                    context.Result = ErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            AuthResources.AuthorizeMiddleware_PolicyNotFound,
-                            directive.Policy))
-                        .SetCode(ErrorCodes.Authentication.PolicyNotFound)
-                        .SetPath(context.Path)
-                        .AddLocation(context.FieldSelection)
-                        .Build();
+                    return AuthState.PolicyNotFound;
                 }
             }
 
-            if (context.Result == null && policy != null)
+            if (policy is { })
             {
                 AuthorizationResult result =
                     await authorizeService.AuthorizeAsync(
                         principal, context, policy)
                         .ConfigureAwait(false);
-                return result.Succeeded;
+                return result.Succeeded ? AuthState.Allowed : AuthState.NotAllowed;
             }
 
-            return false;
+            return AuthState.NotAllowed;
         }
-#endif
+
+        private enum AuthState
+        {
+            Allowed,
+            NotAllowed,
+            NotAuthenticated,
+            NoDefaultPolicy,
+            PolicyNotFound
+        }
     }
 }

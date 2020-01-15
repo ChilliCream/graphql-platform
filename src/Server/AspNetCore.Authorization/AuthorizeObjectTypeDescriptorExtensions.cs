@@ -1,10 +1,5 @@
 ﻿using System;
-
-#if ASPNETCLASSIC
-using HotChocolate.AspNetClassic.Authorization;
-#else
 using HotChocolate.AspNetCore.Authorization;
-#endif
 
 namespace HotChocolate.Types
 {
@@ -34,7 +29,6 @@ namespace HotChocolate.Types
             return self.Directive(new AuthorizeDirective(roles));
         }
 
-#if !ASPNETCLASSIC
         public static IObjectTypeDescriptor Authorize(
             this IObjectTypeDescriptor self)
         {
@@ -106,6 +100,5 @@ namespace HotChocolate.Types
 
             return self.Directive(new AuthorizeDirective(policy, roles));
         }
-#endif
     }
 }

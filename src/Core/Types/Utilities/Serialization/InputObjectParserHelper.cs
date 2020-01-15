@@ -133,7 +133,8 @@ namespace HotChocolate.Utilities.Serialization
             {
                 if (!field.IsOptional && !dict.ContainsKey(field.Name))
                 {
-                    object value = field.Type.ParseLiteral(field.DefaultValue);
+                    object value = field.Type.ParseLiteral(
+                        field.DefaultValue ?? NullValueNode.Default);
                     dict[field.Name] = ConvertValue(field, converter, value);
                 }
             }

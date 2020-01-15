@@ -16,29 +16,17 @@ namespace HotChocolate.Types
         private DirectiveNode _parsedDirective;
         private Dictionary<string, ArgumentNode> _arguments;
 
-        internal Directive(
+        private Directive(
             DirectiveType directiveType,
             DirectiveNode parsedDirective,
+            object customDirective,
             object source)
         {
             Type = directiveType
                 ?? throw new ArgumentNullException(nameof(directiveType));
             _parsedDirective = parsedDirective
                 ?? throw new ArgumentNullException(nameof(parsedDirective));
-            Source = source
-                ?? throw new ArgumentNullException(nameof(source));
-            Name = directiveType.Name;
-        }
-
-        internal Directive(
-            DirectiveType directiveType,
-            object customDirective,
-            object source)
-        {
-            Type = directiveType
-                ?? throw new ArgumentNullException(nameof(directiveType));
-            _customDirective = customDirective
-                ?? throw new ArgumentNullException(nameof(customDirective));
+            _customDirective = customDirective;
             Source = source
                 ?? throw new ArgumentNullException(nameof(source));
             Name = directiveType.Name;
@@ -78,22 +66,7 @@ namespace HotChocolate.Types
         {
             if (_parsedDirective is null)
             {
-                var arguments = new List<ArgumentNode>();
-                Type type = _customDirective.GetType();
-                ILookup<string, PropertyInfo> properties = type.GetProperties()
-                    .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
-
-                foreach (Argument argument in Type.Arguments)
-                {
-                    PropertyInfo property =
-                        properties[argument.Name].FirstOrDefault();
-                    var value = property?.GetValue(_customDirective);
-
-                    IValueNode valueNode = argument.Type.ParseValue(value);
-                    arguments.Add(new ArgumentNode(argument.Name, valueNode));
-                }
-
-                _parsedDirective = new DirectiveNode(Name, arguments);
+                _parsedDirective = ParseValue(Type, _customDirective);
             }
 
             if (removeNullArguments
@@ -101,6 +74,7 @@ namespace HotChocolate.Types
                 && _parsedDirective.Arguments.Any(t => t.Value.IsNull()))
             {
                 var arguments = new List<ArgumentNode>();
+
                 foreach (ArgumentNode argument in _parsedDirective.Arguments)
                 {
                     if (!argument.Value.IsNull())
@@ -108,6 +82,7 @@ namespace HotChocolate.Types
                         arguments.Add(argument);
                     }
                 }
+
                 return _parsedDirective.WithArguments(arguments);
             }
 
@@ -197,7 +172,6 @@ namespace HotChocolate.Types
             DirectiveNode directiveNode,
             out T directive)
         {
-
             ConstructorInfo constructor = typeof(T).GetTypeInfo()
                 .DeclaredConstructors.FirstOrDefault(t =>
                 {
@@ -249,13 +223,20 @@ namespace HotChocolate.Types
 
             if (definition.CustomDirective is null)
             {
-                return new Directive(directiveType,
-                    definition.ParsedDirective,
+                return new Directive(
+                    directiveType,
+                    CompleteArguments(directiveType, definition.ParsedDirective),
+                    null,
                     source);
             }
             else
             {
-                return new Directive(directiveType,
+                DirectiveNode directiveNode = ParseValue(
+                    directiveType, definition.CustomDirective);
+
+                return new Directive(
+                    directiveType,
+                    CompleteArguments(directiveType, directiveNode),
                     definition.CustomDirective,
                     source);
             }
@@ -285,12 +266,74 @@ namespace HotChocolate.Types
                 directiveNode.Name.Value,
                 out DirectiveType type))
             {
-                return new Directive(type, directiveNode, source);
+                return new Directive(
+                    type,
+                    CompleteArguments(type, directiveNode),
+                    null,
+                    source);
             }
 
             throw new InvalidOperationException(
                 "The specified directive is not registered " +
                 "with the given schema.");
+        }
+
+        private static DirectiveNode CompleteArguments(
+            DirectiveType directiveType,
+            DirectiveNode directive)
+        {
+            if (directiveType.Arguments.Count > 0
+                && directiveType.Arguments.Any(t => t.DefaultValue is { }))
+            {
+                List<ArgumentNode> arguments = null;
+
+                var argumentNames = new HashSet<string>(
+                    directive.Arguments.Select(t => t.Name.Value));
+
+                foreach (Argument argument in directiveType.Arguments)
+                {
+                    if (argument.DefaultValue is { }
+                        && !argumentNames.Contains(argument.Name))
+                    {
+                        if (arguments is null)
+                        {
+                            arguments = new List<ArgumentNode>();
+                        }
+
+                        arguments.Add(new ArgumentNode(argument.Name, argument.DefaultValue));
+                    }
+                }
+
+                if (arguments is { })
+                {
+                    arguments.AddRange(directive.Arguments);
+                    return directive.WithArguments(arguments);
+                }
+            }
+
+            return directive;
+        }
+
+        private static DirectiveNode ParseValue(
+            DirectiveType directiveType,
+            object directive)
+        {
+            var arguments = new List<ArgumentNode>();
+
+            Type type = directive.GetType();
+            ILookup<string, PropertyInfo> properties =
+                type.GetProperties().ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
+
+            foreach (Argument argument in directiveType.Arguments)
+            {
+                PropertyInfo property = properties[argument.Name].FirstOrDefault();
+                var propertyValue = property?.GetValue(directive);
+
+                IValueNode valueNode = argument.Type.ParseValue(propertyValue);
+                arguments.Add(new ArgumentNode(argument.Name, valueNode));
+            }
+
+            return new DirectiveNode(directiveType.Name, arguments);
         }
     }
 }

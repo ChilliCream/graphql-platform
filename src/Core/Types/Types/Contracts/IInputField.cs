@@ -1,5 +1,7 @@
 ﻿using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -17,6 +19,6 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the default value literal of this field.
         /// </summary>
-        IValueNode DefaultValue { get; }
+        IValueNode? DefaultValue { get; }
     }
 }
