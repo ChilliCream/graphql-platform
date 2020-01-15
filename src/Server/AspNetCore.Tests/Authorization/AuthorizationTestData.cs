@@ -17,7 +17,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     @authorize(policy: ""a"")
                     @authorize(policy: ""b"")
                 afterResolver: String
-                    @authorize(policy: ""a"" executeResolver: BEFORE_POLICY)
+                    @authorize(policy: ""a"" apply: AFTER_RESOLVER)
             }
         ";
 

@@ -11,18 +11,18 @@ namespace HotChocolate.AspNetCore.Authorization
     {
         public AuthorizeDirective(
             IReadOnlyList<string> roles,
-            ExecuteResolver executeResolver = ExecuteResolver.AfterPolicy)
+            ApplyPolicy executeResolver = ApplyPolicy.AfterResolver)
             : this(null, roles, executeResolver)
         { }
 
         public AuthorizeDirective(
             string? policy = null,
             IReadOnlyList<string>? roles = null,
-            ExecuteResolver executeResolver = ExecuteResolver.AfterPolicy)
+            ApplyPolicy executeResolver = ApplyPolicy.AfterResolver)
         {
             Policy = policy;
-            Roles = roles ?? Array.Empty<string>();
-            ExecuteResolver = executeResolver;
+            Roles = roles;
+            Apply = executeResolver;
         }
 
         public AuthorizeDirective(SerializationInfo info, StreamingContext context)
@@ -35,8 +35,8 @@ namespace HotChocolate.AspNetCore.Authorization
             if (node == null)
             {
                 Policy = info.GetString(nameof(Policy));
-                Roles = (List<string>)info.GetValue(nameof(Roles), typeof(List<string>))!;
-                ExecuteResolver = (ExecuteResolver)info.GetInt16(nameof(ExecuteResolver));
+                Roles = info.GetValue(nameof(Roles), typeof(List<string>)) as List<string>;
+                Apply = (ApplyPolicy)info.GetInt16(nameof(Apply));
             }
             else
             {
@@ -45,14 +45,13 @@ namespace HotChocolate.AspNetCore.Authorization
                 ArgumentNode rolesArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "roles");
                 ArgumentNode resolverArgument = node.Arguments
-                    .FirstOrDefault(t => t.Name.Value == "executeResolver");
+                    .FirstOrDefault(t => t.Name.Value == "apply");
 
                 Policy = (policyArgument is { }
                     && policyArgument.Value is StringValueNode sv)
                     ? sv.Value
                     : null;
 
-                Roles = Array.Empty<string>();
                 if (rolesArgument is { })
                 {
                     if (rolesArgument.Value is ListValueNode lv)
@@ -68,12 +67,12 @@ namespace HotChocolate.AspNetCore.Authorization
                     }
                 }
 
-                ExecuteResolver = ExecuteResolver.AfterPolicy;
+                Apply = ApplyPolicy.BeforeResolver;
                 if (resolverArgument is { }
                     && resolverArgument.Value.Value is string s
-                    && s == "BEFORE_POLICY")
+                    && s == "AFTER_RESOLVER")
                 {
-                    ExecuteResolver = ExecuteResolver.BeforePolicy;
+                    Apply = ApplyPolicy.AfterResolver;
                 }
             }
         }
@@ -86,24 +85,24 @@ namespace HotChocolate.AspNetCore.Authorization
         /// <summary>
         /// Gets of roles that are allowed to access the resource.
         /// </summary>
-        public IReadOnlyList<string> Roles { get; }
+        public IReadOnlyList<string>? Roles { get; }
 
         /// <summary>
         /// Gets a value indicating if the resolver has to be executed
-        /// before the policy is run or after the policy has run.
+        /// before the policy is run or after the policy is run.
         ///
         /// The before policy option is good if the actual object is needed
         /// for the policy to be evaluated.
         ///
-        /// The default is AfterPolicy.
+        /// The default is BeforeResolver.
         /// </summary>
-        public ExecuteResolver ExecuteResolver { get; }
+        public ApplyPolicy Apply { get; }
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue(nameof(Policy), Policy);
-            info.AddValue(nameof(Roles), Roles.ToList());
-            info.AddValue(nameof(ExecuteResolver), (int)ExecuteResolver);
+            info.AddValue(nameof(Roles), Roles?.ToList());
+            info.AddValue(nameof(Apply), (int)Apply);
         }
     }
 }
