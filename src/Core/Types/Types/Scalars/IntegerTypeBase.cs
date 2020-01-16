@@ -12,7 +12,7 @@ namespace HotChocolate.Types
             TClrType min,
             TClrType max,
             BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name)
+            : base(name, bind)
         {
             MinValue = min;
             MaxValue = max;

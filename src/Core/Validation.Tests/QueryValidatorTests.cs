@@ -19,7 +19,6 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            // act
             Action a = () => queryValidator.Validate(schema, null);
 
             // assert

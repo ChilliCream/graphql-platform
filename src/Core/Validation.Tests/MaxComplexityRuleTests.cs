@@ -234,9 +234,11 @@ namespace HotChocolate.Validation
 
         private ISchema CreateSchema()
         {
-            return Schema.Create(
-                FileResource.Open("CostSchema.graphql"),
-                c => c.Use(next => context => Task.CompletedTask));
+            return SchemaBuilder.New()
+                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                .AddCostDirectiveType()
+                .Use(next => context => Task.CompletedTask)
+                .Create();
         }
     }
 }
