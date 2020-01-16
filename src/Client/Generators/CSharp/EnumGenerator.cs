@@ -7,13 +7,18 @@ namespace StrawberryShake.Generators.CSharp
     public class EnumGenerator
         : CodeGenerator<IEnumDescriptor>
     {
+        public EnumGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IEnumDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentedLineAsync(
-                "public enum {0}", descriptor.Name)
+                $"{ModelAccessModifier} partial enum {descriptor.Name}")
                 .ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{")
                 .ConfigureAwait(false);

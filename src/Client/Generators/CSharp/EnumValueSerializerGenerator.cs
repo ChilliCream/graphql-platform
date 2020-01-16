@@ -9,9 +9,10 @@ namespace StrawberryShake.Generators.CSharp
     {
         private readonly LanguageVersion _languageVersion;
 
-        public EnumValueSerializerGenerator(LanguageVersion languageVersion)
+        public EnumValueSerializerGenerator(ClientGeneratorOptions options)
+            : base(options)
         {
-            _languageVersion = languageVersion;
+            _languageVersion = options.LanguageVersion;
         }
 
         protected override string CreateFileName(IEnumDescriptor descriptor)
@@ -25,8 +26,8 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentedLineAsync(
-                "public class {0}ValueSerializer",
-                descriptor.Name).ConfigureAwait(false);
+                $"{ModelAccessModifier} partial class {descriptor.Name}ValueSerializer")
+                .ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {

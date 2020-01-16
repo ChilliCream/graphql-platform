@@ -5,7 +5,7 @@
 
 public interface IHasFriends
 {
-    UNKNOWN? Friends { get; }
+    global::Foo.Bar.UNKNOWN? Friends { get; }
 }
 
 public interface IHero
@@ -19,7 +19,7 @@ public class Hero
 {
     public Hero(
         string? name, 
-        UNKNOWN? friends)
+        global::Foo.Bar.UNKNOWN? friends)
     {
         Name = name;
         Friends = friends;
@@ -27,6 +27,6 @@ public class Hero
 
     public string? Name { get; }
 
-    public UNKNOWN? Friends { get; }
+    public global::Foo.Bar.UNKNOWN? Friends { get; }
 }
 

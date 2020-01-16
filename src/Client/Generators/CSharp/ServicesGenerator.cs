@@ -12,6 +12,11 @@ namespace StrawberryShake.Generators.CSharp
         : CodeGenerator<IServicesDescriptor>
         , IUsesComponents
     {
+        public ServicesGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         public IReadOnlyList<string> Components { get; } = new[]
         {
             WellKnownComponents.DI,

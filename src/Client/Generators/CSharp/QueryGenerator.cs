@@ -10,20 +10,27 @@ namespace StrawberryShake.Generators.CSharp
     public class QueryGenerator
         : CodeGenerator<IQueryDescriptor>
     {
+        public QueryGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IQueryDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public class ").ConfigureAwait(false);
+            await writer.WriteAsync(
+                $"{ModelAccessModifier} partial class ")
+                .ConfigureAwait(false);
             await writer.WriteAsync(GetClassName(descriptor.Name)).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 await writer.WriteIndentAsync().ConfigureAwait(false);
-                await writer.WriteAsync(": IDocument").ConfigureAwait(false);
+                await writer.WriteAsync(": global::StrawberryShake.IDocument").ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
             }
 

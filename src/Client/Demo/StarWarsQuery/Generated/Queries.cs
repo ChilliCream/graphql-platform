@@ -6,8 +6,8 @@ using StrawberryShake;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class Queries
-        : IDocument
+    public partial class Queries
+        : global::StrawberryShake.IDocument
     {
         private readonly byte[] _hashName = new byte[]
         {

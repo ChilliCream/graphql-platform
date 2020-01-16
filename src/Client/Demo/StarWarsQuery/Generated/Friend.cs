@@ -6,15 +6,15 @@ using StrawberryShake;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class Friend
+    public partial class Friend
         : IFriend
     {
         public Friend(
-            IReadOnlyList<IHasName>? nodes)
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.StarWarsQuery.IHasName>? nodes)
         {
             Nodes = nodes;
         }
 
-        public IReadOnlyList<IHasName>? Nodes { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.StarWarsQuery.IHasName>? Nodes { get; }
     }
 }

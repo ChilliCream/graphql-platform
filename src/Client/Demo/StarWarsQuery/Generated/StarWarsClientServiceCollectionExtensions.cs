@@ -15,7 +15,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static class StarWarsClientServiceCollectionExtensions
+    public static partial class StarWarsClientServiceCollectionExtensions
     {
         private const string _clientName = "StarWarsClient";
 

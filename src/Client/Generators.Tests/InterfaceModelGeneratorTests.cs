@@ -67,7 +67,8 @@ namespace StrawberryShake.Generators
             // assert
             var typeLookup = new TypeLookup(
                 LanguageVersion.CSharp_8_0,
-                CollectFieldsVisitor.MockLookup(document, context.FieldTypes));
+                CollectFieldsVisitor.MockLookup(document, context.FieldTypes),
+                "Foo.Bar");
 
             string output = await WriteAllAsync(context.Descriptors, typeLookup);
 
@@ -127,7 +128,8 @@ namespace StrawberryShake.Generators
             // assert
             var typeLookup = new TypeLookup(
                 LanguageVersion.CSharp_8_0,
-                CollectFieldsVisitor.MockLookup(document, context.FieldTypes));
+                CollectFieldsVisitor.MockLookup(document, context.FieldTypes),
+                "Foo.Bar");
 
             string output = await WriteAllAsync(context.Descriptors, typeLookup);
 
@@ -211,7 +213,8 @@ namespace StrawberryShake.Generators
             // assert
             var typeLookup = new TypeLookup(
                 LanguageVersion.CSharp_8_0,
-                CollectFieldsVisitor.MockLookup(document, context.FieldTypes));
+                CollectFieldsVisitor.MockLookup(document, context.FieldTypes),
+                "Foo.Bar");
 
             string output = await WriteAllAsync(context.Descriptors, typeLookup);
 
@@ -291,7 +294,8 @@ namespace StrawberryShake.Generators
             // assert
             var typeLookup = new TypeLookup(
                 LanguageVersion.CSharp_8_0,
-                CollectFieldsVisitor.MockLookup(document, context.FieldTypes));
+                CollectFieldsVisitor.MockLookup(document, context.FieldTypes),
+                "Foo.Bar");
 
             string output = await WriteAllAsync(context.Descriptors, typeLookup);
 
@@ -377,7 +381,8 @@ namespace StrawberryShake.Generators
             // assert
             var typeLookup = new TypeLookup(
                 LanguageVersion.CSharp_8_0,
-                CollectFieldsVisitor.MockLookup(document, context.FieldTypes));
+                CollectFieldsVisitor.MockLookup(document, context.FieldTypes),
+                "Foo.Bar");
 
             string output = await WriteAllAsync(context.Descriptors, typeLookup);
 

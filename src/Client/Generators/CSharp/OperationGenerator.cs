@@ -9,13 +9,20 @@ namespace StrawberryShake.Generators.CSharp
     public class OperationGenerator
         : CodeGenerator<IOperationDescriptor>
     {
+        public OperationGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IOperationDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public class ").ConfigureAwait(false);
+            await writer.WriteAsync(
+                $"{ModelAccessModifier} partial class ")
+                .ConfigureAwait(false);
             await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 

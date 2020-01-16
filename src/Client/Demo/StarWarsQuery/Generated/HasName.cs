@@ -6,7 +6,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class HasName
+    public partial class HasName
         : IHasName
     {
         public HasName(

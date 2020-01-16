@@ -8,13 +8,18 @@ namespace StrawberryShake.Generators.CSharp
     public class ClassGenerator
         : CodeGenerator<IClassDescriptor>
     {
+        public ClassGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IClassDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public class ").ConfigureAwait(false);
+            await writer.WriteAsync($"{ModelAccessModifier} partial class ").ConfigureAwait(false);
             await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
@@ -134,7 +139,7 @@ namespace StrawberryShake.Generators.CSharp
                 {
                     IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
 
-                    string propetyName = GetPropertyName(
+                    string propertyName = GetPropertyName(
                         fieldDescriptor.ResponseName);
 
                     string parameterName = GetFieldName(
@@ -142,7 +147,7 @@ namespace StrawberryShake.Generators.CSharp
 
                     await writer.WriteIndentedLineAsync(
                         "{0} = {1};",
-                        propetyName,
+                        propertyName,
                         parameterName)
                         .ConfigureAwait(false);
                 }

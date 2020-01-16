@@ -11,7 +11,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetHumanResultParser
+    public partial class GetHumanResultParser
         : JsonResultParserBase<IGetHuman>
     {
         private readonly IValueSerializer _floatSerializer;
@@ -36,7 +36,7 @@ namespace StrawberryShake.Client.StarWarsQuery
 
         }
 
-        private IHuman? ParseGetHumanHuman(
+        private global::StrawberryShake.Client.StarWarsQuery.IHuman? ParseGetHumanHuman(
             JsonElement parent,
             string field)
         {
@@ -58,7 +58,7 @@ namespace StrawberryShake.Client.StarWarsQuery
             );
         }
 
-        private IFriend? ParseGetHumanHumanFriends(
+        private global::StrawberryShake.Client.StarWarsQuery.IFriend? ParseGetHumanHumanFriends(
             JsonElement parent,
             string field)
         {
@@ -78,7 +78,7 @@ namespace StrawberryShake.Client.StarWarsQuery
             );
         }
 
-        private IReadOnlyList<IHasName>? ParseGetHumanHumanFriendsNodes(
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.StarWarsQuery.IHasName>? ParseGetHumanHumanFriendsNodes(
             JsonElement parent,
             string field)
         {
@@ -93,7 +93,7 @@ namespace StrawberryShake.Client.StarWarsQuery
             }
 
             int objLength = obj.GetArrayLength();
-            var list = new IHasName[objLength];
+            var list = new global::StrawberryShake.Client.StarWarsQuery.IHasName[objLength];
             for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
                 JsonElement element = obj[objIndex];

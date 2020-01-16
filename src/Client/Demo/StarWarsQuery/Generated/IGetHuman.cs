@@ -6,8 +6,8 @@ using StrawberryShake;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetHuman
+    public partial interface IGetHuman
     {
-        IHuman? Human { get; }
+        global::StrawberryShake.Client.StarWarsQuery.IHuman? Human { get; }
     }
 }

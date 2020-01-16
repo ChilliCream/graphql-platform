@@ -141,10 +141,10 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+        Task<IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
             CancellationToken cancellationToken = default);
 
-        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+        Task<IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
             GetEpisodeOperation operation,
             CancellationToken cancellationToken = default);
     }
@@ -173,7 +173,7 @@ namespace StrawberryShake.Client
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
             CancellationToken cancellationToken = default)
         {
 
@@ -182,7 +182,7 @@ namespace StrawberryShake.Client
                 cancellationToken);
         }
 
-        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
             GetEpisodeOperation operation,
             CancellationToken cancellationToken = default)
         {

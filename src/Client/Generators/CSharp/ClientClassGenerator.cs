@@ -13,6 +13,11 @@ namespace StrawberryShake.Generators.CSharp
         : CodeGenerator<IClientDescriptor>
         , IUsesComponents
     {
+        public ClientClassGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         public IReadOnlyList<string> Components { get; } =
             new List<string>
             {
@@ -25,7 +30,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public class ").ConfigureAwait(false);
+            await writer.WriteAsync($"{ClientAccessModifier} partial class ").ConfigureAwait(false);
             await writer.WriteAsync(GetClassName(descriptor.Name)).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
@@ -89,7 +94,7 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync(
-                    "private readonly IOperationExecutor _executor;")
+                    "private readonly global::StrawberryShake.IOperationExecutor _executor;")
                     .ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
             }
@@ -99,7 +104,8 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync(
-                    "private readonly IOperationStreamExecutor _streamExecutor;")
+                    "private readonly global::StrawberryShake.IOperationStreamExecutor " +
+                    "_streamExecutor;")
                     .ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
             }
@@ -115,7 +121,8 @@ namespace StrawberryShake.Generators.CSharp
                 t.Operation.Operation == OperationType.Subscription);
 
             await writer.WriteIndentedLineAsync(
-                $"public {GetClassName(descriptor.Name)}(IOperationExecutorPool executorPool)")
+                $"public {GetClassName(descriptor.Name)}(" +
+                "global::StrawberryShake.IOperationExecutorPool executorPool)")
                 .ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
@@ -248,13 +255,15 @@ namespace StrawberryShake.Generators.CSharp
             if (operation.Operation.Operation == OperationType.Subscription)
             {
                 await writer.WriteAsync(
-                    $"Task<IResponseStream<{operationTypeName}>> ")
+                    "global::System.Threading.Tasks.Task<" +
+                    $"global::StrawberryShake.IResponseStream<{operationTypeName}>> ")
                     .ConfigureAwait(false);
             }
             else
             {
                 await writer.WriteAsync(
-                    $"Task<IOperationResult<{operationTypeName}>> ")
+                    "global::System.Threading.Tasks.Task<" +
+                    $"global::StrawberryShake.IOperationResult<{operationTypeName}>> ")
                     .ConfigureAwait(false);
             }
             await writer.WriteAsync(
@@ -283,7 +292,9 @@ namespace StrawberryShake.Generators.CSharp
                         true);
 
                     await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync($"Optional<{argumentType}>").ConfigureAwait(false);
+                    await writer.WriteAsync(
+                        $"global::StrawberryShake.Optional<{argumentType}>")
+                        .ConfigureAwait(false);
                     await writer.WriteSpaceAsync().ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
                     await writer.WriteAsync(" = default").ConfigureAwait(false);
@@ -297,7 +308,7 @@ namespace StrawberryShake.Generators.CSharp
 
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync(
-                    "CancellationToken cancellationToken = default")
+                    "global::System.Threading.CancellationToken cancellationToken = default")
                     .ConfigureAwait(false);
                 await writer.WriteAsync(')').ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
@@ -314,13 +325,15 @@ namespace StrawberryShake.Generators.CSharp
             if (operation.Operation.Operation == OperationType.Subscription)
             {
                 await writer.WriteAsync(
-                    $"Task<IResponseStream<{operationTypeName}>> ")
+                    "global::System.Threading.Tasks.Task<" +
+                    $"global::StrawberryShake.IResponseStream<{operationTypeName}>> ")
                     .ConfigureAwait(false);
             }
             else
             {
                 await writer.WriteAsync(
-                    $"Task<IOperationResult<{operationTypeName}>> ")
+                    "global::System.Threading.Tasks.Task<" +
+                    $"global::StrawberryShake.IOperationResult<{operationTypeName}>> ")
                     .ConfigureAwait(false);
             }
             await writer.WriteAsync(
@@ -342,7 +355,7 @@ namespace StrawberryShake.Generators.CSharp
 
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync(
-                    "CancellationToken cancellationToken = default")
+                    "global::System.Threading.CancellationToken cancellationToken = default")
                     .ConfigureAwait(false);
                 await writer.WriteAsync(')').ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);

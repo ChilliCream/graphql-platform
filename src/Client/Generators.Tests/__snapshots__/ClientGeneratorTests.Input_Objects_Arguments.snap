@@ -30,7 +30,7 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class FooInput
     {
-        public Optional<BarInput?> Bar { get; set; }
+        public Optional<global::StrawberryShake.Client.BarInput?> Bar { get; set; }
     }
 }
 
@@ -290,7 +290,7 @@ namespace StrawberryShake.Client
 
         public Type ResultType => typeof(IGetFoo);
 
-        public Optional<FooInput> Input { get; set; }
+        public Optional<global::StrawberryShake.Client.FooInput> Input { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
@@ -319,11 +319,11 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetFoo>> GetFooAsync(
-            Optional<FooInput> input = default,
+        Task<IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
+            Optional<global::StrawberryShake.Client.FooInput> input = default,
             CancellationToken cancellationToken = default);
 
-        Task<IOperationResult<IGetFoo>> GetFooAsync(
+        Task<IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
             GetFooOperation operation,
             CancellationToken cancellationToken = default);
     }
@@ -352,8 +352,8 @@ namespace StrawberryShake.Client
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<IGetFoo>> GetFooAsync(
-            Optional<FooInput> input = default,
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
+            Optional<global::StrawberryShake.Client.FooInput> input = default,
             CancellationToken cancellationToken = default)
         {
             if (input.HasValue && input.Value is null)
@@ -366,7 +366,7 @@ namespace StrawberryShake.Client
                 cancellationToken);
         }
 
-        public Task<IOperationResult<IGetFoo>> GetFooAsync(
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
             GetFooOperation operation,
             CancellationToken cancellationToken = default)
         {
