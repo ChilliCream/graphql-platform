@@ -1,5 +1,5 @@
-using System.Buffers.Text;
 using System;
+using System.Buffers.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 

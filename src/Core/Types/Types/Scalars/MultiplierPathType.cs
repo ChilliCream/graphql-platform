@@ -1,5 +1,3 @@
-using System;
-using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
