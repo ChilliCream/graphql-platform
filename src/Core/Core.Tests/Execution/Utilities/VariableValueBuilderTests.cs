@@ -618,6 +618,7 @@ namespace HotChocolate.Execution
                 c =>
                 {
                     c.Use(next => context => Task.CompletedTask);
+                    c.RegisterType<IntType>();
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();
                     c.RegisterType<BazType>();
