@@ -11,16 +11,16 @@ namespace HotChocolate.Types
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
 
-        public DateTimeType() : base(ScalarNames.DateTime)
+        public DateTimeType() : base(ScalarNames.DateTime, BindingBehavior.Implicit)
         {
             Description = TypeResources.DateTimeType_Description;
         }
 
-        public DateTimeType(NameString name) : base(name)
+        public DateTimeType(NameString name) : base(name, BindingBehavior.Implicit)
         {
         }
 
-        public DateTimeType(NameString name, string description) : base(name)
+        public DateTimeType(NameString name, string description) : base(name, BindingBehavior.Implicit)
         {
             Description = description;
         }

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -19,7 +18,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="StringType"/> class.
         /// </summary>
         public StringType()
-            : base(ScalarNames.String)
+            : base(ScalarNames.String, BindingBehavior.Implicit)
         {
             Description = TypeResources.StringType_Description;
         }
@@ -28,7 +27,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="StringType"/> class.
         /// </summary>
         public StringType(NameString name)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
         }
 
@@ -36,7 +35,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="StringType"/> class.
         /// </summary>
         public StringType(NameString name, string description)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
             Description = description;
         }

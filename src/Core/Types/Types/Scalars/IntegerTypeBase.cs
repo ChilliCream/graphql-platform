@@ -7,7 +7,11 @@ namespace HotChocolate.Types
         : ScalarType<TClrType, IntValueNode>
         where TClrType : IComparable
     {
-        protected IntegerTypeBase(NameString name, TClrType min, TClrType max)
+        protected IntegerTypeBase(
+            NameString name,
+            TClrType min,
+            TClrType max,
+            BindingBehavior bind = BindingBehavior.Explicit)
             : base(name)
         {
             MinValue = min;

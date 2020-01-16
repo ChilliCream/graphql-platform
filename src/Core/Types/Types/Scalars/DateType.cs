@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     {
         private const string _dateFormat = "yyyy-MM-dd";
 
-        public DateType() : base(ScalarNames.Date)
+        public DateType() : base(ScalarNames.Date, BindingBehavior.Implicit)
         {
             Description = TypeResources.DateType_Description;
         }

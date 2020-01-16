@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
         /// </summary>
         public MultiplierPathType()
-            : base(ScalarNames.MultiplierPath)
+            : base(ScalarNames.MultiplierPath, BindingBehavior.Implicit)
         {
             Description = TypeResources.MultiplierPathType_Description;
         }
@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
         /// </summary>
         public MultiplierPathType(NameString name)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
         }
 
@@ -33,7 +33,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
         /// </summary>
         public MultiplierPathType(NameString name, string description)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
             Description = description;
         }

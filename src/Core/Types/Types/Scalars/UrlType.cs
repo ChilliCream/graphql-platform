@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="UrlType"/> class.
         /// </summary>
         public UrlType()
-            : base(ScalarNames.Url)
+            : base(ScalarNames.Url, BindingBehavior.Implicit)
         {
         }
 
@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="UrlType"/> class.
         /// </summary>
         public UrlType(NameString name)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
         }
 
@@ -27,7 +27,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="UrlType"/> class.
         /// </summary>
         public UrlType(NameString name, string description)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
             Description = description;
         }

@@ -15,15 +15,18 @@ namespace HotChocolate.Types
         private ObjectToDictionaryConverter _objectToDictConverter;
         private ITypeConversion _converter;
 
-        public AnyType() : base(ScalarNames.Any)
+        public AnyType()
+            : base(ScalarNames.Any, BindingBehavior.Explicit)
         {
         }
 
-        public AnyType(NameString name) : base(name)
+        public AnyType(NameString name)
+            : base(name, BindingBehavior.Explicit)
         {
         }
 
-        public AnyType(NameString name, string description) : base(name)
+        public AnyType(NameString name, string description)
+            : base(name, BindingBehavior.Explicit)
         {
             Description = description;
         }
