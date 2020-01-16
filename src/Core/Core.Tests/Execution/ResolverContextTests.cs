@@ -105,6 +105,54 @@ namespace HotChocolate.Execution
             list.Select(t => t.Selection.Name.Value).ToList().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task DirectiveContextCollectFields()
+        {
+            // arrange
+            var list = new List<IFieldSelection>();
+
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        foo: Foo @my
+                    }
+
+                    type Foo {
+                        bar: Bar @my
+                    }
+
+                    type Bar {
+                        baz: String @my
+                    }")
+                .AddDirectiveType<MyDirectiveType>()
+                .Use(next => context =>
+                {
+                    if (context.Field.Type.NamedType() is ObjectType type)
+                    {
+                        foreach (IFieldSelection selection in context.CollectFields(type))
+                        {
+                            CollectSelections(context, selection, list);
+                        }
+                    }
+                    return Task.CompletedTask;
+                })
+                .Create();
+
+            // act
+            await schema.MakeExecutable().ExecuteAsync(
+            @"{
+                foo {
+                    bar {
+                        baz
+                    }
+                }
+            }");
+
+            // assert
+            list.Select(t => t.Selection.Name.Value).ToList().MatchSnapshot();
+        }
+
         private static void CollectSelections(
             IResolverContext context,
             IFieldSelection selection,
@@ -122,6 +170,17 @@ namespace HotChocolate.Execution
                 {
                     CollectSelections(context, child, collected);
                 }
+            }
+        }
+
+         public class MyDirectiveType
+            : DirectiveType
+        {
+            protected override void Configure(IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("my");
+                descriptor.Location(DirectiveLocation.FieldDefinition);
+                descriptor.Use(next => context => next(context));
             }
         }
     }
