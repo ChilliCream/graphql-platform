@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="NameType"/> class.
         /// </summary>
         public NameType()
-            : base(ScalarNames.Name)
+            : base(ScalarNames.Name, BindingBehavior.Implicit)
         {
             Description = TypeResources.NameType_Description;
         }
@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="NameType"/> class.
         /// </summary>
         public NameType(NameString name)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
         }
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="NameType"/> class.
         /// </summary>
         public NameType(NameString name, string description)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
             Description = description;
         }
