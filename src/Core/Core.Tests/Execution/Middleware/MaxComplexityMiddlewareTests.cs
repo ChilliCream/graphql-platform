@@ -217,7 +217,6 @@ namespace HotChocolate.Execution
                 .AddResolver("Query", "foo", "Hello")
                 .Create();
 
-
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
@@ -290,9 +289,10 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
                     foo(i: FooInput): String
                         @cost(complexity: 5 multipliers: [""i.index""])
                 }
@@ -300,12 +300,10 @@ namespace HotChocolate.Execution
                 input FooInput {
                     index : Int
                 }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -396,6 +394,7 @@ namespace HotChocolate.Execution
                     baz: String
                 }
                 ")
+                .AddDirectiveType<CostDirectiveType>()
                 .Use(next => context =>
                 {
                     context.Result = "baz";
@@ -439,6 +438,7 @@ namespace HotChocolate.Execution
                     baz: String
                 }
                 ")
+                .AddDirectiveType<CostDirectiveType>()
                 .Use(next => context =>
                 {
                     context.Result = "baz";
