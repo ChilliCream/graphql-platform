@@ -210,7 +210,7 @@ namespace HotChocolate.Discovery
             : ScalarType
         {
             public ByteArrayType()
-                : base("ByteArray")
+                : base("ByteArray", BindingBehavior.Implicit)
             {
             }
 
