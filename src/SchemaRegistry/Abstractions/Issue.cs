@@ -5,23 +5,31 @@ namespace MarshmallowPie
     public class Issue
     {
         public Issue(
-            string code,
             string message,
             IssueType type,
-            ResolutionType? resolution)
+            ResolutionType resolution = ResolutionType.Open)
+            : this(Guid.NewGuid(), null, message, type, resolution)
+        {
+        }
+
+        public Issue(
+            string? code,
+            string message,
+            IssueType type,
+            ResolutionType resolution = ResolutionType.Open)
             : this(Guid.NewGuid(), code, message, type, resolution)
         {
         }
 
         public Issue(
             Guid id,
-            string code,
+            string? code,
             string message,
             IssueType type,
-            ResolutionType? resolution)
+            ResolutionType resolution)
         {
             Id = id;
-            Code = code;
+            Code = code ?? "NONE";
             Message = message;
             Type = type;
             Resolution = resolution;
@@ -35,6 +43,6 @@ namespace MarshmallowPie
 
         public IssueType Type { get; }
 
-        public ResolutionType? Resolution { get; }
+        public ResolutionType Resolution { get; }
     }
 }

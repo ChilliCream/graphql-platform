@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+<PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
     <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
@@ -11,16 +11,26 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <PackageId>MarshmallowPie.Abstractions</PackageId>
-    <AssemblyName>MarshmallowPie.Abstractions</AssemblyName>
-    <RootNamespace>MarshmallowPie</RootNamespace>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <PackageId>MarshmallowPie.BackgroundServices</PackageId>
+    <AssemblyName>MarshmallowPie.BackgroundServices</AssemblyName>
+    <RootNamespace>MarshmallowPie.BackgroundServices</RootNamespace>
     <Description></Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    <ProjectReference Include="..\..\Core\Types\Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

@@ -95,7 +95,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             }
 
             if(schemaVersion is null)
-            { 
+            {
                 schemaVersion = await CreateSchemaVersionAsync(
                     input.SourceText!,
                     input.Tags ?? Array.Empty<TagInput>(),

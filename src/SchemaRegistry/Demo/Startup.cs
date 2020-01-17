@@ -23,6 +23,8 @@ namespace Demo
         {
             services.AddMongoRepositories(sp => new MongoClient().GetDatabase("foo3"));
 
+            services.AddHostedService<PublishDocumentService>();
+
             services.AddSchemaRegistryDataLoader();
 
             services.AddGraphQL(
