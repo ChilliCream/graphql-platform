@@ -1,13 +1,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
     public abstract class MessageHandler<T>
-        : IMessageHandler
+        : IMessageHandler, ICustomMessageHandler
         where T : OperationMessage
     {
         public bool CanHandle(OperationMessage message)

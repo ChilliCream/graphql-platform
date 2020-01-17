@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -49,6 +50,33 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     Assert.Equal(
                         MessageTypes.Connection.KeepAlive,
                         message["type"]);
+                }
+            });
+        }
+
+        [Fact]
+        public Task Send_Connect_CustomMessageHandler()
+        {
+            return TryTest(async () =>
+            {
+                var messageHandler = new CustomMessageHandlerMock();
+                Action<IServiceCollection> configureServices =
+                       x => x.AddSingleton<ICustomMessageHandler>(messageHandler);
+
+                using (TestServer testServer = CreateStarWarsServer(configureServices))
+                {
+                    // arrange
+                    WebSocketClient client = CreateWebSocketClient(testServer);
+                    WebSocket webSocket = await client
+                        .ConnectAsync(SubscriptionUri, CancellationToken.None);
+
+                    // act
+                    await webSocket.SendConnectionInitializeAsync();
+
+                    // assert
+                    IReadOnlyDictionary<string, object> message =
+                        await webSocket.ReceiveServerMessageAsync();
+                    Assert.True(messageHandler.HasBeenCalled);
                 }
             });
         }

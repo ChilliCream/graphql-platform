@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -32,6 +33,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return ServerFactory.Create(
                 services => services.AddStarWars(),
                 app => app.UseGraphQL(path));
+        }
+
+        protected TestServer CreateStarWarsServer(Action<IServiceCollection> configureServices)
+        {
+            return ServerFactory.Create(
+                services => configureServices(services.AddStarWars()),
+                app => app.UseGraphQL());
         }
 
         protected async Task<ClientQueryResult> DeserializeAsync(

@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.Server;
 using HotChocolate.Language;
+using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
@@ -14,8 +14,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
         : IMessagePipeline
     {
         private readonly IMessageHandler[] _messageHandlers;
+        private readonly IMessageHandler[] _customMessageHandlers;
 
-        public MessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
+        public MessagePipeline(IEnumerable<IMessageHandler> messageHandlers,
+            IEnumerable<ICustomMessageHandler> customMessageHandlers)
         {
             if (messageHandlers is null)
             {
@@ -23,6 +25,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
 
             _messageHandlers = messageHandlers.ToArray();
+            _customMessageHandlers = customMessageHandlers.ToArray();
         }
 
         public async Task ProcessAsync(
@@ -193,6 +196,20 @@ namespace HotChocolate.AspNetCore.Subscriptions
             OperationMessage message,
             CancellationToken cancellationToken)
         {
+            for (int i = 0; i < _customMessageHandlers.Length; i++)
+            {
+                IMessageHandler handler = _customMessageHandlers[i];
+
+                if (handler.CanHandle(message))
+                {
+                    await handler.HandleAsync(
+                            connection,
+                            message,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+
             for (int i = 0; i < _messageHandlers.Length; i++)
             {
                 IMessageHandler handler = _messageHandlers[i];
