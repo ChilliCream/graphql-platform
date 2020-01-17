@@ -1,9 +1,9 @@
-schema {
+﻿schema {
   query: Query
 }
 
 type Query {
-  foo: String @authorize(apply: AFTER_RESOLVER)
+  foo: String @authorize(apply: BEFORE_RESOLVER)
 }
 
 enum ApplyPolicy {

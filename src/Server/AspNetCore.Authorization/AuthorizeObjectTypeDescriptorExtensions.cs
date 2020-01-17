@@ -6,99 +6,99 @@ namespace HotChocolate.Types
     public static class AuthorizeObjectTypeDescriptorExtensions
     {
         public static IObjectTypeDescriptor Authorize(
-            this IObjectTypeDescriptor self,
+            this IObjectTypeDescriptor descriptor,
             params string[] roles)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective(roles));
+            return descriptor.Directive(new AuthorizeDirective(roles));
         }
 
         public static IObjectTypeDescriptor<T> Authorize<T>(
-            this IObjectTypeDescriptor<T> self,
+            this IObjectTypeDescriptor<T> descriptor,
             params string[] roles)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective(roles));
+            return descriptor.Directive(new AuthorizeDirective(roles));
         }
 
         public static IObjectTypeDescriptor Authorize(
-            this IObjectTypeDescriptor self)
+            this IObjectTypeDescriptor descriptor)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective());
+            return descriptor.Directive(new AuthorizeDirective());
         }
 
         public static IObjectTypeDescriptor Authorize(
-            this IObjectTypeDescriptor self,
+            this IObjectTypeDescriptor descriptor,
             string policy)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective(policy));
+            return descriptor.Directive(new AuthorizeDirective(policy));
         }
 
         public static IObjectTypeDescriptor Authorize(
-            this IObjectTypeDescriptor self,
+            this IObjectTypeDescriptor descriptor,
             string policy,
             params string[] roles)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective(policy, roles));
+            return descriptor.Directive(new AuthorizeDirective(policy, roles));
         }
 
         public static IObjectTypeDescriptor<T> Authorize<T>(
-            this IObjectTypeDescriptor<T> self)
+            this IObjectTypeDescriptor<T> descriptor)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective());
+            return descriptor.Directive(new AuthorizeDirective());
         }
 
         public static IObjectTypeDescriptor<T> Authorize<T>(
-            this IObjectTypeDescriptor<T> self,
+            this IObjectTypeDescriptor<T> descriptor,
             string policy)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective(policy));
+            return descriptor.Directive(new AuthorizeDirective(policy));
         }
 
         public static IObjectTypeDescriptor<T> Authorize<T>(
-            this IObjectTypeDescriptor<T> self,
+            this IObjectTypeDescriptor<T> descriptor,
             string policy,
             params string[] roles)
         {
-            if (self == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(self));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return self.Directive(new AuthorizeDirective(policy, roles));
+            return descriptor.Directive(new AuthorizeDirective(policy, roles));
         }
     }
 }

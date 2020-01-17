@@ -291,36 +291,5 @@ namespace HotChocolate.AspNetCore.Authorization
             // assert
             Assert.Throws<ArgumentNullException>(action);
         }
-
-        [Fact]
-        public void FieldAuth_WithPolicyAndRoles()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Field("foo")
-                    .Authorize("MyPolicy", new[] { "MyRole" })
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void FieldAuth_WithPolicyAndRoles_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectFieldDescriptorExtensions
-                    .Authorize(null, "MyPolicy", new[] { "MyRole" });
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
     }
 }
