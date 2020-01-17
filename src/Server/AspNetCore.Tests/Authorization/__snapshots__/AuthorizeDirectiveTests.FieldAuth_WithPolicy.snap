@@ -3,7 +3,7 @@
 }
 
 type Query {
-  foo: String @authorize(apply: AFTER_RESOLVER, policy: "MyPolicy")
+  foo: String @authorize(apply: BEFORE_RESOLVER, policy: "MyPolicy")
 }
 
 enum ApplyPolicy {
