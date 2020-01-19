@@ -1,0 +1,48 @@
+<Window x:Class="StrawberryShake.VisualStudio.GUI.CreateClient"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StrawberryShake.VisualStudio.GUI"
+        mc:Ignorable="d"
+        Title="Add GraphQL Client" Height="710.047" Width="634.929" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Image HorizontalAlignment="Left" Height="208" Margin="10,10,0,0" VerticalAlignment="Top" Width="204" Source="strawberryshake-signet.png"/>
+        <TextBlock HorizontalAlignment="Left" Margin="219,12,0,0" TextWrapping="Wrap" Text="Add GraphQL Client" VerticalAlignment="Top" FontSize="24" FontWeight="Bold" Grid.ColumnSpan="2" Height="32" Width="225"/>
+
+        <RadioButton Content="" HorizontalAlignment="Left" Margin="221,89,0,0" VerticalAlignment="Top" IsChecked="True" Height="15" Width="19"/>
+        <Label Content="Transport" HorizontalAlignment="Left" Margin="240,296,0,0" VerticalAlignment="Top" FontSize="14" Height="28" Width="68"/>
+        <TextBox HorizontalAlignment="Left" Height="28" Margin="240,108,0,0" TextWrapping="Wrap" Text="http://localhost:5000" VerticalAlignment="Top" Width="320" FontSize="14" />
+
+        <RadioButton Content="" HorizontalAlignment="Left" Margin="221,150,0,0" VerticalAlignment="Top" Height="15" Width="19"/>
+        <Label Content="GraphQL Schema File" HorizontalAlignment="Left" Margin="240,141,0,0" VerticalAlignment="Top" FontSize="14" RenderTransformOrigin="0.55,-0.483" Height="29" Width="142"/>
+        <TextBox HorizontalAlignment="Left" Height="28" Margin="240,169,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="320" FontSize="14" RenderTransformOrigin="0.489,0.475" Grid.ColumnSpan="2" IsEnabled="False"/>
+        <Button Content="..." HorizontalAlignment="Left" Margin="565,169,0,0" VerticalAlignment="Top" Width="37" Height="28"/>
+
+        <ComboBox HorizontalAlignment="Left" Margin="240,432,0,0" VerticalAlignment="Top" Width="362" FontSize="14" SelectedIndex="0" Height="28">
+            <ListBoxItem Content="Public"/>
+            <ListBoxItem Content="Models Public / Client Internal"/>
+            <ListBoxItem Content="Internal"/>
+        </ComboBox>
+        <Label Content="GraphQL Server URL" HorizontalAlignment="Left" Margin="240,80,0,0" VerticalAlignment="Top" FontSize="14" RenderTransformOrigin="0.55,-0.483" Height="28" Width="136"/>
+        <CheckBox Content="HTTP" HorizontalAlignment="Left" Margin="240,330,0,0" VerticalAlignment="Top" IsChecked="True" Width="171" Height="15"/>
+        <CheckBox Content="gRPC" HorizontalAlignment="Left" Margin="240,350,0,0" VerticalAlignment="Top" Width="171" IsEnabled="False" Height="15"/>
+        <Label Content="Access Modifier" HorizontalAlignment="Left" Margin="240,404,0,0" VerticalAlignment="Top" FontSize="14" Height="28" Width="108"/>
+        <CheckBox Content="" HorizontalAlignment="Left" Margin="220,474,0,0" VerticalAlignment="Top" Width="17" Height="15"/>
+        <TextBox HorizontalAlignment="Left" Height="28" Margin="240,494,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="362" FontSize="14" RenderTransformOrigin="0.489,0.475" IsEnabled="False"/>
+        <Label Content="Namespace" HorizontalAlignment="Left" Margin="243,465,0,0" VerticalAlignment="Top" FontSize="14" Height="29" Width="82"/>
+        <ComboBox HorizontalAlignment="Left" Margin="240,555,0,0" VerticalAlignment="Top" Width="362" FontSize="14" Height="28" SelectedIndex="0">
+            <ListBoxItem Content="Microsoft DI"/>
+        </ComboBox>
+        <Label Content="Access Modifier" HorizontalAlignment="Left" Margin="240,527,0,0" VerticalAlignment="Top" FontSize="14" Height="29" Width="108"/>
+        <CheckBox Content="" HorizontalAlignment="Left" Margin="220,535,0,0" VerticalAlignment="Top" Width="17" IsChecked="True" Height="15"/>
+        <Button Content="Cancel" HorizontalAlignment="Left" Margin="494,630,0,0" VerticalAlignment="Top" Width="108" FontSize="14" Height="28"/>
+        <Button Content="OK" HorizontalAlignment="Left" Margin="381,630,0,0" VerticalAlignment="Top" Width="108" FontSize="14" Height="28"/>
+        <Button Content="..." HorizontalAlignment="Left" Margin="565,108,0,0" VerticalAlignment="Top" Width="37" Height="28"/>
+        <Label Content="Client Name" HorizontalAlignment="Left" Margin="240,202,0,0" VerticalAlignment="Top" FontSize="14" RenderTransformOrigin="0.55,-0.483" Height="29" Width="142"/>
+        <TextBox HorizontalAlignment="Left" Height="28" Margin="240,230,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="362" FontSize="14" RenderTransformOrigin="0.489,0.475" Text="StarWars" />
+
+
+
+    </Grid>
+</Window>

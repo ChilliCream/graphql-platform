@@ -1,34 +1,26 @@
 using System;
-using System.Net.Http;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Tools.OAuth;
 
-namespace StrawberryShake.Tools
+namespace StrawberryShake.VisualStudio.GUI
 {
-    public class InitCommandHandler
-        : CommandHandler<InitCommandArguments>
+    internal class CreateClientViewModel
     {
-        public InitCommandHandler(
-            IFileSystem fileSystem,
-            IHttpClientFactory httpClientFactory,
-            IConfigurationStore configurationStore,
-            IConsoleOutput output)
+        public string ServerUrl { get; set; }
+
+        public string SchemaFile { get; set; }
+
+
+        public void Ok()
         {
-            FileSystem = fileSystem;
-            HttpClientFactory = httpClientFactory;
-            ConfigurationStore = configurationStore;
-            Output = output;
+            
         }
 
-        public IFileSystem FileSystem { get; }
-
-        public IHttpClientFactory HttpClientFactory { get; }
-
-        public IConfigurationStore ConfigurationStore { get; }
-
-        public IConsoleOutput Output { get; }
-
+        /*
         public override async Task<int> ExecuteAsync(
             InitCommandArguments arguments,
             CancellationToken cancellationToken)
@@ -59,12 +51,9 @@ namespace StrawberryShake.Tools
         }
 
         private async Task<bool> DownloadSchemaAsync(
-            InitCommandContext context,
             CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Download schema");
-
-            string schemaFilePath = FileSystem.CombinePath(
+            string schemaFilePath = Path.CombinePath(
                 context.Path, context.SchemaFileName);
 
             HttpClient client = HttpClientFactory.Create(
@@ -95,5 +84,6 @@ namespace StrawberryShake.Tools
 
             await ConfigurationStore.SaveAsync(context.Path, configuration).ConfigureAwait(false);
         }
+        */
     }
 }
