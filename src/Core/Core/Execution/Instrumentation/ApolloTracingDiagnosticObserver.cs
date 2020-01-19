@@ -56,7 +56,7 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 Builder.SetRequestDuration(Activity.Current.Duration);
 
-                if (result is IQueryResult queryResult)
+                if (result.Result is IQueryResult queryResult)
                 {
                     queryResult.Extensions.Add(_extensionKey, Builder.Build());
                 }
