@@ -47,21 +47,46 @@ namespace StrawberryShake.Tools
                 accessToken?.Token,
                 accessToken?.Scheme);
 
+            if(await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
+            {
+                return 0;
+            }
+            return 1;
+        }
+
+        public async Task<bool> ExecuteAsync(
+            InitCommandContext context,
+            CancellationToken cancellationToken)
+        {
+            using IDisposable command = Output.WriteCommand();
+
+            return await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<bool> ExecuteInternalAsync(
+           InitCommandContext context,
+           CancellationToken cancellationToken)
+        {
             FileSystem.EnsureDirectoryExists(context.Path);
 
             if (await DownloadSchemaAsync(context, cancellationToken).ConfigureAwait(false))
             {
                 await WriteConfigurationAsync(context, cancellationToken).ConfigureAwait(false);
-                return 0;
+                return true;
             }
 
-            return 1;
+            return false;
         }
 
         private async Task<bool> DownloadSchemaAsync(
             InitCommandContext context,
             CancellationToken cancellationToken)
         {
+            if(context.Uri == null)
+            {
+                return true;
+            }
+
             using IActivity activity = Output.WriteActivity("Download schema");
 
             string schemaFilePath = FileSystem.CombinePath(

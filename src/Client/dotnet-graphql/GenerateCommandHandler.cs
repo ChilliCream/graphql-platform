@@ -77,7 +77,7 @@ namespace StrawberryShake.Tools
             }
 
             await generator.BuildAsync();
-            await File.WriteAllTextAsync(hashFile, CreateHash(documents));
+            await Task.Run(() => File.WriteAllText(hashFile, CreateHash(documents)));
             return true;
         }
 
@@ -93,7 +93,7 @@ namespace StrawberryShake.Tools
             }
 
             string newHash = CreateHash(documents);
-            string currentHash = await File.ReadAllTextAsync(hashFile);
+            string currentHash = await Task.Run(() => File.ReadAllText(hashFile));
 
             return string.Equals(newHash, currentHash, StringComparison.Ordinal);
         }

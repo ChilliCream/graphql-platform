@@ -62,7 +62,7 @@ namespace StrawberryShake.VisualStudio
         {
             get
             {
-                return this.package;
+                return package;
             }
         }
 
@@ -76,7 +76,7 @@ namespace StrawberryShake.VisualStudio
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
+            var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new AddGraphQLClient(package, commandService);
         }
 

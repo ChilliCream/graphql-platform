@@ -52,7 +52,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Compile Include="Class1.cs" />
+    <Compile Include="CreateClientViewModel.cs" />
     <Compile Include="CreateClient.xaml.cs">
       <DependentUpon>CreateClient.xaml</DependentUpon>
     </Compile>
@@ -84,9 +84,9 @@
     <Resource Include="strawberryshake-signet.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Client\Generators\Generators.csproj">
-      <Project>{baedc1a2-b02d-4d1f-8ce7-b077b3313c7e}</Project>
-      <Name>Generators</Name>
+    <ProjectReference Include="..\..\Client\dotnet-graphql\dotnet-graphql.csproj">
+      <Project>{b4bdb37a-8621-4974-8078-ca0807bfe4a7}</Project>
+      <Name>dotnet-graphql</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

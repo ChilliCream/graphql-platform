@@ -65,7 +65,7 @@ namespace StrawberryShake.Tools
         }
 
         public Task<byte[]> ReadAllBytesAsync(string fileName) =>
-            File.ReadAllBytesAsync(fileName);
+            Task.Run(() => File.ReadAllBytes(fileName));
 
         public async Task WriteToAsync(string fileName, Func<Stream, Task> write)
         {

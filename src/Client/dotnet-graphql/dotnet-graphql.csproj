@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp2.1;net462</TargetFrameworks>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.1</TargetFramework>
     <PackageId>StrawberryShake.Tools</PackageId>
     <AssemblyName>dotnet-graphql</AssemblyName>

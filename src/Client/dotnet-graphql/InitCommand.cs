@@ -40,7 +40,8 @@ namespace StrawberryShake.Tools
                     pathArg,
                     schemaArg,
                     authArguments);
-                var handler = CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
+                InitCommandHandler handler =
+                    CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
 

@@ -52,14 +52,17 @@ namespace StrawberryShake.Tools
             app.HelpTextGenerator = new T();
         }
 
-        public static T CreateHandler<T>(CommandOption jsonArg) where T : class
+        public static T CreateHandler<T>(CommandOption jsonArg) where T : class =>
+            CreateHandler<T>(jsonArg.HasValue());
+
+        public static T CreateHandler<T>(bool jsonOutput) where T : class
         {
             var services = new ServiceCollection();
             services.AddSingleton<IHttpClientFactory, DefaultHttpClientFactory>();
             services.AddSingleton<IFileSystem, DefaultFileSystem>();
             services.AddSingleton<IConfigurationStore, DefaultConfigurationStore>();
 
-            if (jsonArg.HasValue())
+            if (jsonOutput)
             {
                 services.AddSingleton<IConsoleOutput, JsonConsoleOutput>();
             }

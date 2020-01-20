@@ -1,29 +1,39 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using Microsoft.Win32;
 
 namespace StrawberryShake.VisualStudio.GUI
 {
-    /// <summary>
-    /// Interaction logic for CreateClient.xaml
-    /// </summary>
     public partial class CreateClient : Window
     {
+        private CreateClientViewModel _viewModel;
+
         public CreateClient()
         {
+            _viewModel = new CreateClientViewModel();
             InitializeComponent();
+            DataContext = _viewModel;
         }
 
-        public void ShowMe() => ShowDialog();
+
+        private void HttpDetails_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OpenFile_Click(object sender, RoutedEventArgs e)
+        {
+            var openSchemaFile = new OpenFileDialog();
+            openSchemaFile.Title = "Open Schema File";
+            openSchemaFile.Filter= "GraphQL Schema File|*.graphql";
+            if (openSchemaFile.ShowDialog() ?? false)
+            {
+                _viewModel.SchemaFile = openSchemaFile.FileName;
+            }
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+        }
     }
 }

@@ -51,7 +51,7 @@ namespace StrawberryShake.Tools
                 arguments.Tag.HasValue()
                     ? arguments.Tag.Values
                         .Where(t => t! is { })
-                        .Select(t => t!.Split("="))
+                        .Select(t => t!.Split('='))
                         .Select(t => new TagInput { Key = t[0], Value = t[1] })
                         .ToList()
                     : null,
@@ -66,13 +66,13 @@ namespace StrawberryShake.Tools
             PublishSchemaCommandContext context,
             CancellationToken cancellationToken)
         {
-            using var activity = Output.WriteActivity("Publish schema");
+            using IActivity activity = Output.WriteActivity("Publish schema");
 
             var clientFactory = new SchemaRegistryClientFactory(
                 context.Registry, context.Token, context.Scheme);
             ISchemaRegistryClient client = clientFactory.Create();
 
-            string sourceText = await File.ReadAllTextAsync(context.SchemaFileName);
+            string sourceText = await Task.Run(() => File.ReadAllText(context.SchemaFileName));
 
             IOperationResult<IPublishSchema> result =
                 await client.PublishSchemaAsync(
