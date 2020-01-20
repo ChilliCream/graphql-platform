@@ -1,5 +1,4 @@
 ﻿using HotChocolate.Language;
-using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -12,7 +11,7 @@ namespace HotChocolate.Types
         }
 
         public PaginationAmountType(int max)
-            : base(ScalarNames.PaginationAmount, 0, max)
+            : base(ScalarNames.PaginationAmount, 0, max, BindingBehavior.Explicit)
         {
         }
 

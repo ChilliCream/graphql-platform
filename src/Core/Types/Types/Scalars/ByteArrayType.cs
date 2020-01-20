@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
         /// </summary>
         public ByteArrayType()
-            : base(ScalarNames.ByteArray)
+            : base(ScalarNames.ByteArray, BindingBehavior.Implicit)
         {
         }
 

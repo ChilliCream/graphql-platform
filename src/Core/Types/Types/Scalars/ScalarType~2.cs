@@ -13,7 +13,8 @@ namespace HotChocolate.Types
         : ScalarType<TClrType>
         where TLiteral : IValueNode
     {
-        protected ScalarType(NameString name) : base(name)
+        protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
         }
 

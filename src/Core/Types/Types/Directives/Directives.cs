@@ -5,13 +5,12 @@ namespace HotChocolate.Types
 {
     public static class Directives
     {
-        private static readonly HashSet<string> _directiveNames =
-            new HashSet<string>
+        private static readonly HashSet<NameString> _directiveNames =
+            new HashSet<NameString>
             {
                 WellKnownDirectives.Skip,
                 WellKnownDirectives.Include,
-                WellKnownDirectives.Deprecated,
-                "cost"
+                WellKnownDirectives.Deprecated
             };
 
         internal static IReadOnlyList<ITypeReference> All { get; } =
@@ -19,13 +18,11 @@ namespace HotChocolate.Types
             {
                 new ClrTypeReference(typeof(SkipDirectiveType), TypeContext.None),
                 new ClrTypeReference(typeof(IncludeDirectiveType), TypeContext.None),
-                new ClrTypeReference(typeof(CostDirectiveType), TypeContext.None)
             };
 
         public static bool IsBuiltIn(NameString typeName)
         {
-            return typeName.HasValue
-                && _directiveNames.Contains(typeName.Value);
+            return _directiveNames.Contains(typeName.Value);
         }
     }
 }

@@ -31,12 +31,12 @@ namespace HotChocolate.Types
         }
 
         public IntType(NameString name, int min, int max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
         }
 
         public IntType(NameString name, string description, int min, int max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
             Description = description;
         }

@@ -1,6 +1,8 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public sealed class ShortType
@@ -23,12 +25,12 @@ namespace HotChocolate.Types
         }
 
         public ShortType(NameString name, short min, short max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
         }
 
         public ShortType(NameString name, string description, short min, short max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
             Description = description;
         }

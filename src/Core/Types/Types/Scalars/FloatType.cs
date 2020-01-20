@@ -32,12 +32,12 @@ namespace HotChocolate.Types
         }
 
         public FloatType(NameString name, double min, double max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
         }
 
         public FloatType(NameString name, string description, double min, double max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
             Description = description;
         }

@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.Name = argumentName;
-            Definition.DefaultValue = NullValueNode.Default;
+            Definition.DefaultValue = null;
         }
 
         public DirectiveArgumentDescriptor(

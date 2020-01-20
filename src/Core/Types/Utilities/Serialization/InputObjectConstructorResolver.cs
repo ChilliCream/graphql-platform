@@ -75,7 +75,7 @@ namespace HotChocolate.Utilities.Serialization
             for (int i = 0; i < parameters.Length; i++)
             {
                 ParameterInfo parameter = parameters[i];
-                if (properties.TryGetValue(parameter.Name, out PropertyInfo property)
+                if (properties.TryGetValue(parameter.Name!, out PropertyInfo? property)
                     && parameter.ParameterType == property.PropertyType)
                 {
                     required.Remove(property.Name);

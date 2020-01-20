@@ -31,12 +31,12 @@ namespace HotChocolate.Configuration
 
         public bool TryGetType(
             ITypeReference typeReference,
-            out RegisteredType registeredType)
+            out RegisteredType? registeredType)
         {
             ITypeReference typeRef = typeReference;
 
             if (typeRef is IClrTypeReference clrTypeRef
-                && _clrTypeReferences.TryGetValue(clrTypeRef, out ITypeReference t))
+                && _clrTypeReferences.TryGetValue(clrTypeRef, out ITypeReference? t))
             {
                 typeRef = t;
             }

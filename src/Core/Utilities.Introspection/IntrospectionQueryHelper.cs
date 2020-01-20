@@ -12,13 +12,10 @@ namespace HotChocolate.Utilities.Introspection
         private const string _resourceNamespace = "HotChocolate.Utilities.Introspection.Queries";
         private const string _featureQueryFile = "introspection_phase_1.graphql";
         private const string _introspectionQueryFile = "introspection_phase_2.graphql";
-        private const string _locations = "locations";
-        private const string _isRepeatable = "isRepeatable";
         private const string _onOperation = "onOperation";
         private const string _onFragment = "onFragment";
         private const string _onField = "onField";
         private const string _directivesField = "directives";
-        private const string _subscriptionType = "subscriptionType";
 
         public static HttpQueryRequest CreateFeatureQuery() =>
             new HttpQueryRequest(GetFeatureQuery(), "introspection_phase_1");
@@ -47,8 +44,7 @@ namespace HotChocolate.Utilities.Introspection
 
             FieldNode directives =
                 schema.SelectionSet.Selections.OfType<FieldNode>().First(t =>
-                    t.Name.Value.Equals(_directivesField,
-                        StringComparison.Ordinal));
+                    t.Name.Value.Equals(_directivesField, StringComparison.Ordinal));
 
             if (directives.SelectionSet is null)
             {
@@ -90,7 +86,7 @@ namespace HotChocolate.Utilities.Introspection
         {
             if (features.HasDirectiveLocations)
             {
-                selections.Add(CreateField(_locations));
+                selections.Add(CreateField(SchemaFeatures.Locations));
             }
             else
             {
@@ -101,7 +97,7 @@ namespace HotChocolate.Utilities.Introspection
 
             if (features.HasRepeatableDirectives)
             {
-                selections.Add(CreateField(_isRepeatable));
+                selections.Add(CreateField(SchemaFeatures.IsRepeatable));
             }
         }
 
@@ -112,7 +108,8 @@ namespace HotChocolate.Utilities.Introspection
             if (!features.HasSubscriptionSupport)
             {
                 FieldNode subscriptionField = selections.OfType<FieldNode>()
-                    .First(t => t.Name.Value.Equals(_subscriptionType,
+                    .First(t => t.Name.Value.Equals(
+                        SchemaFeatures.SubscriptionType,
                         StringComparison.Ordinal));
                 selections.Remove(subscriptionField);
             }

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
+using static HotChocolate.Utilities.Introspection.WellKnownTypes;
+using static HotChocolate.Utilities.Introspection.WellKnownDirectives;
 
 namespace HotChocolate.Utilities.Introspection
 {
@@ -8,27 +10,27 @@ namespace HotChocolate.Utilities.Introspection
         private static readonly HashSet<string> _typeNames =
             new HashSet<string>
             {
-                "__Directive",
-                "__DirectiveLocation",
-                "__EnumValue",
-                "__Field",
-                "__InputValue",
-                "__Schema",
-                "__Type",
-                "__TypeKind",
-                "String",
-                "Boolean",
-                "Float",
-                "ID",
-                "Int",
+                __Directive,
+                __DirectiveLocation,
+                __EnumValue,
+                __Field,
+                __InputValue,
+                __Schema,
+                __Type,
+                __TypeKind,
+                String,
+                Boolean,
+                Float,
+                ID,
+                Int,
             };
 
         private static readonly HashSet<string> _directiveNames =
             new HashSet<string>
             {
-                "skip",
-                "include",
-                "deprecated"
+                Skip,
+                Include,
+                Deprecated
             };
 
         public static DocumentNode RemoveBuiltInTypes(this DocumentNode schema)

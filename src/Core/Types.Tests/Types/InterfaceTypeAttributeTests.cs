@@ -25,7 +25,7 @@ namespace HotChocolate.Types
                 schema.GetType<InterfaceType>("Interface1")
                     .Fields["field"]
                     .Arguments["argument"]
-                    .DefaultValue
+                    .DefaultValue!
                     .Value);
         }
 
