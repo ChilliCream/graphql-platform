@@ -31,7 +31,7 @@ namespace StrawberryShake.Tools
 
         public override async Task<int> ExecuteAsync(
             InitCommandArguments arguments,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             using IDisposable command = Output.WriteCommand();
 

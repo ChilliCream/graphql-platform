@@ -14,6 +14,12 @@ namespace StrawberryShake.VisualStudio.GUI
             DataContext = _viewModel;
         }
 
+        public string ProjectFileName
+        {
+            get => _viewModel.ProjectFileName;
+            set => _viewModel.ProjectFileName = value;
+        }
+
 
         private void HttpDetails_Click(object sender, RoutedEventArgs e)
         {
@@ -24,7 +30,7 @@ namespace StrawberryShake.VisualStudio.GUI
         {
             var openSchemaFile = new OpenFileDialog();
             openSchemaFile.Title = "Open Schema File";
-            openSchemaFile.Filter= "GraphQL Schema File|*.graphql";
+            openSchemaFile.Filter = "GraphQL Schema File|*.graphql";
             if (openSchemaFile.ShowDialog() ?? false)
             {
                 _viewModel.SchemaFile = openSchemaFile.FileName;

@@ -149,17 +149,23 @@ namespace StrawberryShake.VisualStudio.GUI
             }
         }
 
+        public string ProjectFileName { get; set; }
 
-        
-
-        private async Task Foo()
+        public async Task CreateClient()
         {
-            /*
+            string path = Path.Combine(
+                Path.GetDirectoryName(ProjectFileName),
+                ClientName);
+
+            Directory.CreateDirectory(path);
+
+            InitCommandContext context = UseServerUrl
+                ? new InitCommandContext(ClientName, path, new Uri(ServerUrl), null, null)
+                : new InitCommandContext(ClientName, path, null, null);
 
             InitCommandHandler initCommandHandler =
                 CommandTools.CreateHandler<InitCommandHandler>(false);
-            initCommandHandler.ExecuteAsync(new InitCommandContext()
-            */
+            await initCommandHandler.ExecuteAsync(context);
         }
 
         private void OnPropertyChanged(string propertyName)

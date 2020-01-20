@@ -3,6 +3,7 @@ using System.ComponentModel.Design;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using StrawberryShake.VisualStudio.GUI;
@@ -89,8 +90,17 @@ namespace StrawberryShake.VisualStudio
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            var dialog = new CreateClient();
-            dialog.ShowDialog();
+            var dte = (EnvDTE.DTE)this.ServiceProvider.GetServiceAsync(typeof(EnvDTE.DTE)).Result;
+            object activeSolutionProject = dte.SelectedItems.Item(1);
+
+            var project = activeSolutionProject as EnvDTE.SelectedItem;
+
+            if (project != null)
+            {
+                var dialog = new CreateClient();
+                dialog.ProjectFileName = project.Project.FileName;
+                dialog.ShowDialog();
+            }
         }
     }
 }
