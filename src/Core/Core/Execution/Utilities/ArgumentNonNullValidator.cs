@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
             return ValidateInnerType(field.Type, value, path);
         }
 
-        public static Report Validate(
+        private static Report Validate(
             IType type,
             IValueNode value,
             Path path)
