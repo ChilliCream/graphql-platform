@@ -14,7 +14,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Directive(new AuthorizeDirective());
+            return descriptor.Directive(new AuthorizeDirective(apply: apply));
         }
 
         public static IObjectFieldDescriptor Authorize(
@@ -27,7 +27,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Directive(new AuthorizeDirective(policy));
+            return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
         }
 
         public static IObjectFieldDescriptor Authorize(

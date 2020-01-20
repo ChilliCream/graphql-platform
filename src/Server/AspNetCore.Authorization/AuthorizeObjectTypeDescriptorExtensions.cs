@@ -30,75 +30,53 @@ namespace HotChocolate.Types
         }
 
         public static IObjectTypeDescriptor Authorize(
-            this IObjectTypeDescriptor descriptor)
-        {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            return descriptor.Directive(new AuthorizeDirective());
-        }
-
-        public static IObjectTypeDescriptor Authorize(
             this IObjectTypeDescriptor descriptor,
-            string policy)
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Directive(new AuthorizeDirective(policy));
+            return descriptor.Directive(new AuthorizeDirective(apply: apply));
         }
 
         public static IObjectTypeDescriptor Authorize(
             this IObjectTypeDescriptor descriptor,
             string policy,
-            params string[] roles)
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Directive(new AuthorizeDirective(policy, roles));
-        }
-
-        public static IObjectTypeDescriptor<T> Authorize<T>(
-            this IObjectTypeDescriptor<T> descriptor)
-        {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            return descriptor.Directive(new AuthorizeDirective());
+            return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
         }
 
         public static IObjectTypeDescriptor<T> Authorize<T>(
             this IObjectTypeDescriptor<T> descriptor,
-            string policy)
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Directive(new AuthorizeDirective(policy));
+            return descriptor.Directive(new AuthorizeDirective(apply: apply));
         }
 
         public static IObjectTypeDescriptor<T> Authorize<T>(
             this IObjectTypeDescriptor<T> descriptor,
             string policy,
-            params string[] roles)
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Directive(new AuthorizeDirective(policy, roles));
+            return descriptor.Directive(new AuthorizeDirective(policy, apply: apply));
         }
     }
 }
