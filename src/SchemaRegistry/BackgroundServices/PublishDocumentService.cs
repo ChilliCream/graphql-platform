@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using MarshmallowPie.Messaging;
+using MarshmallowPie.Processing;
 
 namespace BackgroundServices
 {

@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using MarshmallowPie.Messaging;
+using MarshmallowPie.Processing;
 
-namespace MarshmallowPie.Messaging
+namespace MarshmallowPie.Processing
 {
     public interface IPublishDocumentHandler
     {

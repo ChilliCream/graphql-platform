@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\..\Core\Types\Types.csproj" />
+    <ProjectReference Include="..\..\Core\Language\Language.csproj" />
   </ItemGroup>
 
   <ItemGroup>

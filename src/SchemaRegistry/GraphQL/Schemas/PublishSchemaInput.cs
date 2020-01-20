@@ -7,15 +7,13 @@ namespace MarshmallowPie.GraphQL.Schemas
         public PublishSchemaInput(
             string environmentName,
             string schemaName,
-            string? sourceText,
-            string? hash,
+            string sourceText,
             IReadOnlyList<TagInput>? tags,
             string? clientMutationId)
         {
             EnvironmentName = environmentName;
             SchemaName = schemaName;
             SourceText = sourceText;
-            Hash = hash;
             Tags = tags;
             ClientMutationId = clientMutationId;
         }
@@ -24,9 +22,7 @@ namespace MarshmallowPie.GraphQL.Schemas
 
         public string SchemaName { get; }
 
-        public string? SourceText { get; }
-
-        public string? Hash { get; }
+        public string SourceText { get; }
 
         public IReadOnlyList<TagInput>? Tags { get; }
 

@@ -1,4 +1,4 @@
-namespace MarshmallowPie.Messaging
+namespace MarshmallowPie.Processing
 {
     public interface ISessionMessage
     {

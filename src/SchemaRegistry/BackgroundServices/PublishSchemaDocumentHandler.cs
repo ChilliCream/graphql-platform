@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
 using MarshmallowPie;
-using MarshmallowPie.Messaging;
+using MarshmallowPie.Processing;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Storage;
 
@@ -20,15 +20,19 @@ namespace BackgroundServices
     {
         private readonly IFileStorage _fileStorage;
         private readonly ISchemaRepository _schemaRepository;
+        private readonly IMessageSender<PublishDocumentEvent> _eventSender;
 
         public PublishSchemaDocumentHandler(
             IFileStorage fileStorage,
-            ISchemaRepository schemaRepository)
+            ISchemaRepository schemaRepository,
+            IMessageSender<PublishDocumentEvent> eventSender)
         {
             _fileStorage = fileStorage
                 ?? throw new ArgumentNullException(nameof(fileStorage));
             _schemaRepository = schemaRepository
                 ?? throw new ArgumentNullException(nameof(schemaRepository));
+            _eventSender = eventSender
+                ?? throw new ArgumentNullException(nameof(eventSender));
         }
 
         public DocumentType Type => DocumentType.Schema;
@@ -49,49 +53,65 @@ namespace BackgroundServices
             PublishDocumentMessage message,
             CancellationToken cancellationToken)
         {
-            IFile schemaFile =
-                await ResolveSchemaFileAsync(message, cancellationToken).ConfigureAwait(false);
-
-            var issues = new List<Issue>();
-            DocumentNode? schemaDocument = await TryParseSchemaAsync(
-                schemaFile, issues, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (schemaDocument is { })
+            try
             {
-                string formattedSourceText = PrintSchema(schemaDocument);
-                string hash = Hash.ComputeHash(formattedSourceText);
+                IFile schemaFile =
+                    await ResolveSchemaFileAsync(message, cancellationToken).ConfigureAwait(false);
 
-                if (TryCreateSchema(schemaDocument, issues, out ISchema? schema))
-                {
-                    // start looking for incompatibilities
-                }
+                var issues = new List<Issue>();
+                var issueLogger = new IssueLogger(message.SessionId, _eventSender, issues);
 
-                SchemaVersion? schemaVersion = await _schemaRepository.GetSchemaVersionAsync(
-                    hash, cancellationToken)
+                DocumentNode? schemaDocument = await TryParseSchemaAsync(
+                    schemaFile, issueLogger, cancellationToken)
                     .ConfigureAwait(false);
 
-                if (schemaVersion is null)
+                if (schemaDocument is { })
                 {
-                    schemaVersion = await CreateSchemaVersionAsync(
-                        formattedSourceText,
-                        message.Tags,
-                        message.SchemaId,
-                        cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    schemaVersion = await UpdateSchemaVersionAsync(
-                        schemaVersion,
-                        message.Tags,
-                        cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                    string formattedSourceText = PrintSchema(schemaDocument);
+                    string hash = Hash.ComputeHash(formattedSourceText);
 
-                await TryCreateReportAsync(
-                    schemaVersion.Id,
-                    message.EnvironmentId,
+                    ISchema? schema = await TryCreateSchema(
+                        schemaDocument, issueLogger, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (schema is { })
+                    {
+                        // start looking for incompatibilities
+                    }
+
+                    SchemaVersion? schemaVersion = await _schemaRepository.GetSchemaVersionAsync(
+                        hash, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (schemaVersion is null)
+                    {
+                        schemaVersion = await CreateSchemaVersionAsync(
+                            formattedSourceText,
+                            message.Tags,
+                            message.SchemaId,
+                            cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        schemaVersion = await UpdateSchemaVersionAsync(
+                            schemaVersion,
+                            message.Tags,
+                            cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
+                    await TryCreateReportAsync(
+                        schemaVersion.Id,
+                        message.EnvironmentId,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                await _eventSender.SendAsync(
+                    PublishDocumentEvent.Completed(message.SessionId),
                     cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -112,12 +132,13 @@ namespace BackgroundServices
 
         private static async Task<DocumentNode?> TryParseSchemaAsync(
             IFile file,
-            ICollection<Issue> issues,
+            IssueLogger logger,
             CancellationToken cancellationToken)
         {
             try
             {
-                using var fileStream = await file.OpenAsync(cancellationToken).ConfigureAwait(false);
+                using var fileStream = await file.OpenAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 using var memoryStream = new MemoryStream();
 
                 await fileStream.CopyToAsync(memoryStream).ConfigureAwait(false);
@@ -126,13 +147,17 @@ namespace BackgroundServices
             }
             catch (SyntaxException ex)
             {
-                issues.Add(new Issue("LANG", ex.Message, IssueType.Error));
+                await logger.LogIssueAsync(
+                    "LANG", ex.Message, IssueType.Error, cancellationToken)
+                    .ConfigureAwait(false);
                 return null;
             }
 #pragma warning disable CA1031
             catch (Exception ex)
             {
-                issues.Add(new Issue(ex.Message, IssueType.Error));
+                await logger.LogIssueAsync(
+                    ex.Message, IssueType.Error, cancellationToken)
+                    .ConfigureAwait(false);
                 return null;
             }
 #pragma warning restore CA1031
@@ -141,35 +166,35 @@ namespace BackgroundServices
         private static string PrintSchema(DocumentNode document) =>
             SchemaSyntaxSerializer.Serialize(document, true);
 
-        private bool TryCreateSchema(
+        private async Task<ISchema?> TryCreateSchema(
             DocumentNode document,
-            ICollection<Issue> issues,
-            out ISchema? schema)
+            IssueLogger logger,
+            CancellationToken cancellationToken)
         {
             try
             {
-                schema = SchemaBuilder.New()
+                return SchemaBuilder.New()
                     .AddDocument(sp => document)
                     .Use(next => context => Task.CompletedTask)
                     .Create();
-                return true;
             }
             catch (SchemaException ex)
             {
-                foreach (Issue issue in ex.Errors.Select(t =>
-                    new Issue(t.Code, t.Message, IssueType.Error)))
+                foreach (ISchemaError error in ex.Errors)
                 {
-                    issues.Add(issue);
+                    await logger.LogIssueAsync(
+                        error.Code, error.Message, IssueType.Error, cancellationToken)
+                        .ConfigureAwait(false);
                 }
-                schema = null;
-                return false;
+                return null;
             }
 #pragma warning disable CA1031
             catch (Exception ex)
             {
-                issues.Add(new Issue(ex.Message, IssueType.Error));
-                schema = null;
-                return false;
+                await logger.LogIssueAsync(
+                    ex.Message, IssueType.Error, cancellationToken)
+                    .ConfigureAwait(false);
+                return null;
             }
 #pragma warning restore CA1031
         }
@@ -255,14 +280,42 @@ namespace BackgroundServices
         }
     }
 
-
-    internal static class Hash
+    internal sealed class IssueLogger
     {
-        public static string ComputeHash(string formattedSourceText)
+        private string _sessionId;
+        private IMessageSender<PublishDocumentEvent> _eventSender;
+        private readonly ICollection<Issue> _issues;
+
+        public IssueLogger(
+            string sessionId,
+            IMessageSender<PublishDocumentEvent> eventSender,
+            ICollection<Issue> issues)
         {
-            using var sha = SHA256.Create();
-            return Convert.ToBase64String(sha.ComputeHash(
-                Encoding.UTF8.GetBytes(formattedSourceText)));
+            _sessionId = sessionId;
+            _eventSender = eventSender;
+            _issues = issues;
+        }
+
+        public Task LogIssueAsync(
+            string message,
+            IssueType type,
+            CancellationToken cancellationToken = default) =>
+            LogIssueAsync(null, message, type, cancellationToken);
+
+        public async Task LogIssueAsync(
+            string? code,
+            string message,
+            IssueType type,
+            CancellationToken cancellationToken = default)
+        {
+            var issue = new Issue(code, message, type, ResolutionType.Open);
+
+            _issues.Add(issue);
+
+            await _eventSender.SendAsync(
+                new PublishDocumentEvent(_sessionId, issue),
+                cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

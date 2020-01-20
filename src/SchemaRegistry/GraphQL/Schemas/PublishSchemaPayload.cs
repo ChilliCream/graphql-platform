@@ -3,18 +3,14 @@ namespace MarshmallowPie.GraphQL.Schemas
     public class PublishSchemaPayload
     {
         public PublishSchemaPayload(
-            SchemaVersion version,
-            SchemaPublishReport report,
+            string sessionId,
             string? clientMutationId)
         {
-            Version = version;
-            Report = report;
+            SessionId = sessionId;
             ClientMutationId = clientMutationId;
         }
 
-        public SchemaVersion Version { get; }
-
-        public SchemaPublishReport Report { get; }
+        public string SessionId { get; }
 
         public string? ClientMutationId { get; }
     }

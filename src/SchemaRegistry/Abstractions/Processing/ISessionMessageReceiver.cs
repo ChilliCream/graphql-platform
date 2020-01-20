@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MarshmallowPie.Messaging
+namespace MarshmallowPie.Processing
 {
     public interface ISessionMessageReceiver<TMessage> where TMessage : ISessionMessage
     {

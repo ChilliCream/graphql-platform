@@ -6,6 +6,11 @@ namespace MarshmallowPie
 {
     public class Tag
     {
+        public Tag(string key, string value)
+            : this(key, value, DateTime.UtcNow)
+        {
+        }
+
         public Tag(string key, string value, DateTime published)
         {
             Key = key;
