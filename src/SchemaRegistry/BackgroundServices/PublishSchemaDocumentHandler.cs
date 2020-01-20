@@ -166,7 +166,7 @@ namespace BackgroundServices
         private static string PrintSchema(DocumentNode document) =>
             SchemaSyntaxSerializer.Serialize(document, true);
 
-        private async Task<ISchema?> TryCreateSchema(
+        private static async Task<ISchema?> TryCreateSchema(
             DocumentNode document,
             IssueLogger logger,
             CancellationToken cancellationToken)

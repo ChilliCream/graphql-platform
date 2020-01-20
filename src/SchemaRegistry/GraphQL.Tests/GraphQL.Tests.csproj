@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.1</TargetFramework>
     <AssemblyName>MarshmallowPie.GraphQL.Tests</AssemblyName>
     <RootNamespace>MarshmallowPie.GraphQL</RootNamespace>
   </PropertyGroup>

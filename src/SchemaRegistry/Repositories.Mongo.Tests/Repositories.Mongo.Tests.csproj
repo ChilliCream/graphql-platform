@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.1</TargetFramework>
     <AssemblyName>MarshmallowPie.Repositories.Mongo.Tests</AssemblyName>
     <RootNamespace>MarshmallowPie.Repositories.Mongo</RootNamespace>
   </PropertyGroup>
