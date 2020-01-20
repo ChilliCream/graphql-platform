@@ -169,37 +169,6 @@ namespace HotChocolate.AspNetCore.Authorization
         }
 
         [Fact]
-        public void TypeAuth_WithPolicyAndRoles()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Authorize("MyPolicy", new[] { "MyRole" })
-                    .Field("foo")
-                    .Resolver("bar"))
-                .AddAuthorizeDirectiveType()
-                .Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void TypeAuth_WithPolicyAndRoles_DescriptorNull()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                AuthorizeObjectTypeDescriptorExtensions
-                    .Authorize(null, "MyPolicy", new[] { "MyRole" });
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
         public void FieldAuth_DefaultPolicy()
         {
             // arrange
@@ -209,6 +178,42 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize()
+                    .Resolver("bar"))
+                .AddAuthorizeDirectiveType()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FieldAuth_DefaultPolicy_AfterResolver()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Authorize(apply: ApplyPolicy.AfterResolver)
+                    .Resolver("bar"))
+                .AddAuthorizeDirectiveType()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FieldAuth_DefaultPolicy_BeforeResolver()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Authorize(apply: ApplyPolicy.BeforeResolver)
                     .Resolver("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
@@ -240,6 +245,42 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize("MyPolicy")
+                    .Resolver("bar"))
+                .AddAuthorizeDirectiveType()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FieldAuth_WithPolicy_AfterResolver()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Authorize("MyPolicy", apply: ApplyPolicy.AfterResolver)
+                    .Resolver("bar"))
+                .AddAuthorizeDirectiveType()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FieldAuth_WithPolicy_BeforeResolver()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Authorize("MyPolicy", apply: ApplyPolicy.BeforeResolver)
                     .Resolver("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
