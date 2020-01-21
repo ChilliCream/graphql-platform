@@ -320,7 +320,7 @@ namespace HotChocolate.Execution
             // assert
             Bar bar = coercedVariableValues.GetVariable<Bar>("test");
             Assert.NotNull(bar.F);
-            Assert.Equal(BarEnum.B, bar.F.B);
+            Assert.Equal(BarEnum.A, bar.F.B);
         }
 
         [Fact]
