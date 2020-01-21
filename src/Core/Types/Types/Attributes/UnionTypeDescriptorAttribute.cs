@@ -30,4 +30,16 @@ namespace HotChocolate.Types
             IUnionTypeDescriptor descriptor,
             Type type);
     }
+
+    public sealed class SubscribeAttribute
+        : ObjectFieldDescriptorAttribute
+    {
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
+        {
+
+        }
+    }
 }
