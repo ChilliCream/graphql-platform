@@ -8,7 +8,7 @@
 
     <Groups>
       <Group guid="guidStrawberryShakePackageCmdSet" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE"/>
+        <Parent guid="guidSHLMainMenu" id="cmdidShellWindowNavigate7"/>
       </Group>
     </Groups>
 
@@ -17,7 +17,7 @@
         <Parent guid="guidStrawberryShakePackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Add GraphQL Client</ButtonText>
+          <ButtonText>GraphQL Client</ButtonText>
         </Strings>
       </Button>
     </Buttons>

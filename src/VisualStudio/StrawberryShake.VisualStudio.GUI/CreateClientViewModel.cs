@@ -165,7 +165,7 @@ namespace StrawberryShake.VisualStudio.GUI
 
             InitCommandHandler initCommandHandler =
                 CommandTools.CreateHandler<InitCommandHandler>(false);
-            await initCommandHandler.ExecuteAsync(context);
+            // await initCommandHandler.ExecuteAsync(context);
         }
 
         private void OnPropertyChanged(string propertyName)
