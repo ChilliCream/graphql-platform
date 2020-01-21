@@ -121,11 +121,11 @@ namespace HotChocolate.Execution
 
         public IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _middlewareContext.CollectFields(typeContext, FieldSelection.SelectionSet);
+            _middlewareContext.CollectFields(typeContext, selectionSet);
 
         public IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet, Path path) =>
-            _middlewareContext.CollectFields(typeContext, FieldSelection.SelectionSet, path);
+            _middlewareContext.CollectFields(typeContext, selectionSet, path);
 
         public ValueKind ArgumentKind(NameString name) =>
             _middlewareContext.ArgumentKind(name);
