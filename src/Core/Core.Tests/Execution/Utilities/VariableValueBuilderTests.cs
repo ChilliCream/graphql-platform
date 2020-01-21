@@ -299,6 +299,31 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public void CoerceInputObjectWithEnumInDictionaryGraph_()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: BarInput!) { a }");
+
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", new Bar { F = new Foo { B = BarEnum.A } } }
+            };
+
+            var resolver = new VariableValueBuilder(schema, operation);
+
+            // act
+            VariableValueCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
+
+            // assert
+            Bar bar = coercedVariableValues.GetVariable<Bar>("test");
+            Assert.NotNull(bar.F);
+            Assert.Equal(BarEnum.B, bar.F.B);
+        }
+
+        [Fact]
         public void CoerceInputObjectWithEnumAsEnumValueNode()
         {
             // arrange
