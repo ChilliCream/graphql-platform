@@ -22,6 +22,8 @@ namespace HotChocolate.Types
                             .Type<StringType>()
                             .Cost(5)));
 
+                    t.RegisterDirective<CostDirectiveType>();
+
                     t.Use(next => context => Task.CompletedTask);
                 });
 
@@ -46,6 +48,8 @@ namespace HotChocolate.Types
                             .Argument("a", a => a.Type<StringType>())
                             .Type<StringType>()
                             .Cost(5, "a")));
+
+                    t.RegisterDirective<CostDirectiveType>();
 
                     t.Use(next => context => Task.CompletedTask);
                 });
@@ -73,6 +77,8 @@ namespace HotChocolate.Types
                             .Argument("a", a => a.Type<StringType>())
                             .Type<StringType>()
                             .Cost(5, "a", "b")));
+
+                    t.RegisterDirective<CostDirectiveType>();
 
                     t.Use(next => context => Task.CompletedTask);
                 });
@@ -108,7 +114,7 @@ namespace HotChocolate.Types
                             .Type<StringType>()
                             .Cost(5)));
 
-                    t.Options.StrictValidation = false;
+                    t.RegisterDirective<CostDirectiveType>();
 
                     t.Use(next => context => Task.CompletedTask);
                 });
@@ -141,7 +147,7 @@ namespace HotChocolate.Types
                             .Type<StringType>()
                             .Cost(5, "a")));
 
-                    t.Options.StrictValidation = false;
+                    t.RegisterDirective<CostDirectiveType>();
 
                     t.Use(next => context => Task.CompletedTask);
                 });
@@ -151,8 +157,7 @@ namespace HotChocolate.Types
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
             Assert.Equal(5, obj.Complexity);
-            Assert.Collection(obj.Multipliers,
-                t => Assert.Equal("a", t));
+            Assert.Collection(obj.Multipliers, t => Assert.Equal("a", t));
         }
 
         [Fact]
@@ -176,7 +181,7 @@ namespace HotChocolate.Types
                             .Type<StringType>()
                             .Cost(5, "a", "b")));
 
-                    t.Options.StrictValidation = false;
+                    t.RegisterDirective<CostDirectiveType>();
 
                     t.Use(next => context => Task.CompletedTask);
                 });
@@ -196,12 +201,15 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var schema = Schema.Create(
-                @"type Query {
-                    field(a: Int): String
-                        @cost(complexity: 5 multipliers: [""a""])
-                }",
-                t => t.Use(next => context => Task.CompletedTask));
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        field(a: Int): String
+                            @cost(complexity: 5 multipliers: [""a""])
+                    }")
+                .AddDirectiveType<CostDirectiveType>()
+                .Use(next => context => Task.CompletedTask)
+                .Create();
 
             ObjectType query = schema.GetType<ObjectType>("Query");
             IDirective directive = query.Fields["field"].Directives
@@ -217,31 +225,29 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    field(a: Int): String
-                        @cost(complexity: 5 multipliers: [""a""])
-                }
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        field(a: Int): String
+                            @cost(complexity: 5 multipliers: [""a""])
+                    }
 
-                interface IQuery {
-                    field(a: Int): String
-                        @cost(complexity: 5 multipliers: [""a""])
-                }
-                ",
-                t =>
-                {
-                    t.Use(next => context => Task.CompletedTask);
-                    t.Options.StrictValidation = false;
-                });
+                    interface IQuery {
+                        field(a: Int): String
+                            @cost(complexity: 5 multipliers: [""a""])
+                    }
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .Use(next => context => Task.CompletedTask)
+                .Create();
 
             InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
-            IDirective directive = queryInterface.Fields["field"].Directives
-                .Single(t => t.Name == "cost");
+            IDirective directive =
+                queryInterface.Fields["field"].Directives.Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
             Assert.Equal(5, obj.Complexity);
-            Assert.Collection(obj.Multipliers,
-                t => Assert.Equal("a", t));
+            Assert.Collection(obj.Multipliers, t => Assert.Equal("a", t));
         }
 
         [Fact]
@@ -249,7 +255,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(b => { });
+            ISchema schema = CreateSchema(b => b.AddDirectiveType<CostDirectiveType>());
             CostDirectiveType directive =
                 schema.DirectiveTypes.OfType<CostDirectiveType>().FirstOrDefault();
 

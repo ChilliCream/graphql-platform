@@ -18,12 +18,12 @@ namespace HotChocolate.Utilities.Serialization
         private static readonly MethodInfo _createOptionalValue =
             typeof(InputObjectFactoryCompiler).GetMethod(
                 "CreateOptionalValue",
-                BindingFlags.Static | BindingFlags.NonPublic);
+                BindingFlags.Static | BindingFlags.NonPublic)!;
 
         private static readonly MethodInfo _createValue =
             typeof(InputObjectFactoryCompiler).GetMethod(
                 "CreateValue",
-                BindingFlags.Static | BindingFlags.NonPublic);
+                BindingFlags.Static | BindingFlags.NonPublic)!;
 
         public static InputObjectFactory Compile(
             InputObjectType inputType,
@@ -81,7 +81,7 @@ namespace HotChocolate.Utilities.Serialization
             }
 
             Dictionary<string, InputField> fields = inputType.Fields.ToDictionary(t =>
-                t.Property.Name,
+                t.Property!.Name,
                 StringComparer.OrdinalIgnoreCase);
 
             IReadOnlyDictionary<ParameterInfo, InputField> parameterMap =
@@ -102,7 +102,7 @@ namespace HotChocolate.Utilities.Serialization
             for (int i = 0; i < parameters.Length; i++)
             {
                 ParameterInfo parameter = parameters[i];
-                map[parameter] = fields[parameter.Name];
+                map[parameter] = fields[parameter.Name!];
             }
 
             return map;
@@ -116,18 +116,18 @@ namespace HotChocolate.Utilities.Serialization
             Expression converter)
         {
             Dictionary<string, InputField> fields = inputType.Fields.ToDictionary(t =>
-                t.Property.Name,
+                t.Property!.Name,
                 StringComparer.OrdinalIgnoreCase);
 
             foreach (ParameterInfo parameter in parameters)
             {
-                fields.Remove(parameter.Name);
+                fields.Remove(parameter.Name!);
             }
 
             foreach (InputField field in fields.Values)
             {
                 Expression value = GetFieldValue(field, data, converter);
-                yield return Expression.Call(instance, field.Property.GetSetMethod(true), value);
+                yield return Expression.Call(instance, field.Property!.GetSetMethod(true), value);
             }
         }
 
@@ -136,7 +136,7 @@ namespace HotChocolate.Utilities.Serialization
             Expression data,
             Expression converter)
         {
-            Type fieldType = field.Property.PropertyType;
+            Type fieldType = field.Property!.PropertyType;
             Expression name = Expression.Constant(field.Name.Value);
 
             if (fieldType.IsGenericType
@@ -159,7 +159,7 @@ namespace HotChocolate.Utilities.Serialization
             string fieldName,
             ITypeConversion converter)
         {
-            if (values.TryGetValue(fieldName, out object o))
+            if (values.TryGetValue(fieldName, out object? o))
             {
                 return o is T casted ? casted : converter.Convert<object, T>(o);
             }
@@ -171,7 +171,7 @@ namespace HotChocolate.Utilities.Serialization
             string fieldName,
             ITypeConversion converter)
         {
-            if (values.TryGetValue(fieldName, out object o))
+            if (values.TryGetValue(fieldName, out object? o))
             {
                 return o is T casted ? casted : converter.Convert<object, T>(o);
             }

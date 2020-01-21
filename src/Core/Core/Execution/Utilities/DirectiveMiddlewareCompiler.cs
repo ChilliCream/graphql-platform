@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Execution
 {
@@ -107,7 +108,10 @@ namespace HotChocolate.Execution
                     out DirectiveType directiveType)
                     && directiveType.IsExecutable)
                 {
-                    yield return new Directive(directiveType, directive, field);
+                    yield return Directive.FromDescription(
+                        directiveType,
+                        new DirectiveDefinition(directive),
+                        field);
                 }
             }
         }

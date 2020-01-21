@@ -3,15 +3,7 @@ using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#if !ASPNETCLASSIC
-using System.Collections.ObjectModel;
-#endif
-
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Authorization
-#else
 namespace HotChocolate.AspNetCore.Authorization
-#endif
 {
     [AttributeUsage(
         AttributeTargets.Class
@@ -22,9 +14,11 @@ namespace HotChocolate.AspNetCore.Authorization
         AllowMultiple = true)]
     public sealed class AuthorizeAttribute : DescriptorAttribute
     {
-        public string Policy { get; set; }
+        public string? Policy { get; set; }
 
-        public string[] Roles { get; set; }
+        public string[]? Roles { get; set; }
+
+        public ApplyPolicy Apply { get; set; } = ApplyPolicy.BeforeResolver;
 
         protected override void TryConfigure(
             IDescriptorContext context,
@@ -43,29 +37,23 @@ namespace HotChocolate.AspNetCore.Authorization
 
         private AuthorizeDirective CreateDirective()
         {
-#if ASPNETCLASSIC
-            if (Roles is { })
-            {
-                return new AuthorizeDirective(Roles);
-            }
-            else
-            {
-                return new AuthorizeDirective();
-            }
-#else
             if (Policy is { })
             {
-                return new AuthorizeDirective(Policy);
+                return new AuthorizeDirective(
+                    Policy,
+                    apply: Apply);
             }
-            else if(Roles is { })
+            else if (Roles is { })
             {
-                return new AuthorizeDirective(Roles);
+                return new AuthorizeDirective(
+                    Roles,
+                    apply: Apply);
             }
             else
             {
-                return new AuthorizeDirective();
+                return new AuthorizeDirective(
+                    apply: Apply);
             }
-#endif
         }
     }
 }
