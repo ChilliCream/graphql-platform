@@ -13,10 +13,8 @@ namespace HotChocolate
         public async Task DescriptionsAreCorrectlyRead()
         {
             // arrange
-            string source = FileResource.Open(
-                "schema_with_multiline_descriptions.graphql");
-            string query = FileResource.Open(
-                "IntrospectionQuery.graphql");
+            string source = FileResource.Open("schema_with_multiline_descriptions.graphql");
+            string query = FileResource.Open("IntrospectionQuery.graphql");
 
             // act
             ISchema schema = Schema.Create(

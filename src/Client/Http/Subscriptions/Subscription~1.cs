@@ -14,7 +14,6 @@ namespace StrawberryShake.Http.Subscriptions
         private Channel<IOperationResult<T>> _channel;
         private Func<Task>? _unregister;
         private bool _disposed;
-        private bool _completed;
 
         public Subscription(
             IOperation operation,

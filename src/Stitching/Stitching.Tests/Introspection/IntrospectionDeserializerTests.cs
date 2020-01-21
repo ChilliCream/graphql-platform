@@ -36,8 +36,7 @@ namespace HotChocolate.Stitching.Introspection
         public void DeserializeIntrospectionWithIntDefaultValues()
         {
             // arrange
-            string json = FileResource.Open(
-                "IntrospectionWithDefaultValues.json");
+            string json = FileResource.Open("IntrospectionWithDefaultValues.json");
 
             // act
             DocumentNode schema = IntrospectionDeserializer.Deserialize(json);

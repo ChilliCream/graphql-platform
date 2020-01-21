@@ -1,5 +1,5 @@
-using System.Buffers.Text;
 using System;
+using System.Buffers.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -40,7 +40,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
         public UuidType(NameString name, string? description, char format = '\0')
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
             Description = description;
             _format = CreateFormatString(format);

@@ -1,4 +1,5 @@
 using McMaster.Extensions.CommandLineUtils;
+using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
 {
@@ -8,20 +9,17 @@ namespace StrawberryShake.Tools
             CommandArgument uri,
             CommandOption path,
             CommandOption schema,
-            CommandOption token,
-            CommandOption scheme)
+            AuthArguments authArguments)
         {
             Uri = uri;
             Path = path;
             Schema = schema;
-            Token = token;
-            Scheme = scheme;
+            AuthArguments = authArguments;
         }
 
         public CommandArgument Uri { get; }
         public CommandOption Path { get; }
         public CommandOption Schema { get; }
-        public CommandOption Token { get; }
-        public CommandOption Scheme { get; }
+        public AuthArguments AuthArguments { get; }
     }
 }

@@ -47,7 +47,7 @@ namespace HotChocolate.Utilities
                 {
                     TypeArguments = new IExtendedType[]
                     {
-                        FromType(type.GetElementType())
+                        FromType(type.GetElementType()!)
                     };
                 }
             }

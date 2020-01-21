@@ -1,0 +1,15 @@
+﻿{
+  "Data": {
+    "createEnvironment": {
+      "environment": {
+        "id": "RW52aXJvbm1lbnQKZ2VkMzczNWRmMDQ5ODQ4OWU4MTdjNzljN2FjYzkzYTQ0",
+        "name": "abc",
+        "description": "def"
+      },
+      "clientMutationId": "ghi"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

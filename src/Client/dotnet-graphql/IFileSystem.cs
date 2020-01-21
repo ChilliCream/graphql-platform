@@ -9,11 +9,13 @@ namespace StrawberryShake.Tools
     {
         string CurrentDirectory { get; }
 
-        string ResolvePath(string? path);
+        string ResolvePath(string? path, string? fileName = null);
 
         string CombinePath(params string[] paths);
 
         void EnsureDirectoryExists(string path);
+
+        string GetDirectoryName(string path);
 
         string GetFileNameWithoutExtension(string path);
 

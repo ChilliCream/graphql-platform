@@ -6,7 +6,28 @@ namespace HotChocolate.Execution
 {
     internal static class ArgumentNonNullValidator
     {
-        public static Report Validate(IType type, IValueNode value, Path path)
+        public static Report Validate(
+            IInputField field,
+            IValueNode value,
+            Path path)
+        {
+            if (value.IsNull())
+            {
+                if (field.Type.IsNonNullType()
+                    && field.DefaultValue.IsNull())
+                {
+                    return new Report(field.Type, path);
+                }
+                return default;
+            }
+
+            return ValidateInnerType(field.Type, value, path);
+        }
+
+        private static Report Validate(
+            IType type,
+            IValueNode value,
+            Path path)
         {
             if (value.IsNull())
             {
@@ -17,6 +38,14 @@ namespace HotChocolate.Execution
                 return default;
             }
 
+            return ValidateInnerType(type, value, path);
+        }
+
+        private static Report ValidateInnerType(
+            IType type,
+            IValueNode value,
+            Path path)
+        {
             IType innerType = type.IsNonNullType()
                 ? type.InnerType()
                 : type;
@@ -33,9 +62,10 @@ namespace HotChocolate.Execution
                 }
             }
 
-            if (innerType is InputObjectType inputType)
+            if (innerType is InputObjectType inputType
+                && value is ObjectValueNode ov)
             {
-                return ValidateObject(inputType, (ObjectValueNode)value, path);
+                return ValidateObject(inputType, ov, path);
             }
 
             return default;
@@ -59,7 +89,7 @@ namespace HotChocolate.Execution
                 fields.TryGetValue(field.Name, out IValueNode fieldValue);
 
                 Report report = Validate(
-                    field.Type,
+                    field,
                     fieldValue,
                     path.Append(field.Name));
 

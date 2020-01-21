@@ -21,7 +21,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
         public IdType()
-            : base(ScalarNames.ID)
+            : base(ScalarNames.ID, BindingBehavior.Explicit)
         {
             Description = TypeResources.IdType_Description;
         }
@@ -30,7 +30,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
         public IdType(NameString name)
-            : base(name)
+            : base(name, BindingBehavior.Explicit)
         {
         }
 
@@ -38,7 +38,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
         public IdType(NameString name, string description)
-            : base(name)
+            : base(name, BindingBehavior.Explicit)
         {
             Description = description;
         }
