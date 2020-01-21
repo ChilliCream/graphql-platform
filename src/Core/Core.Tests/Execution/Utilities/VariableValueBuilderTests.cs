@@ -299,7 +299,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void CoerceInputObjectWithEnumInDictionaryGraph_()
+        public void Backing_Type_Can_Be_Used_As_Variable()
         {
             // arrange
             Schema schema = CreateSchema();
