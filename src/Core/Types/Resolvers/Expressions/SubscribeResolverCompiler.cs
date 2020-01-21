@@ -70,7 +70,10 @@ namespace HotChocolate.Resolvers.Expressions
             _taskResult = _taskResult.MakeGenericMethod(typeof(object));
         }
 
-        public FieldResolver Compile(ResolverDescriptor descriptor)
+        public static SubscribeResolverCompiler Default { get; } =
+            new SubscribeResolverCompiler();
+
+        public SubscribeResolverDelegate Compile(ResolverDescriptor descriptor)
         {
             MethodInfo resolverMethod = descriptor.ResolverType is null
                 ? _parent.MakeGenericMethod(descriptor.SourceType)
@@ -79,27 +82,17 @@ namespace HotChocolate.Resolvers.Expressions
             Expression resolverInstance = Expression.Call(
                 _context, resolverMethod);
 
-            FieldResolverDelegate resolver = CreateResolver(
+            return CreateResolver(
                 resolverInstance,
                 descriptor.Field.Member,
                 descriptor.SourceType);
-
-            return new FieldResolver(
-                descriptor.Field.TypeName,
-                descriptor.Field.FieldName,
-                resolver);
         }
 
-        private FieldResolverDelegate CreateResolver(
+        private SubscribeResolverDelegate CreateResolver(
             Expression resolverInstance,
             MemberInfo member,
             Type sourceType)
         {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
             if (member is MethodInfo method)
             {
                 IEnumerable<Expression> parameters = CreateParameters(
@@ -111,19 +104,7 @@ namespace HotChocolate.Resolvers.Expressions
                 Expression handleResult = HandleResult(
                     resolverExpression, method.ReturnType);
 
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, _context).Compile();
-            }
-
-            if (member is PropertyInfo property)
-            {
-                MemberExpression propertyAccessor = Expression.Property(
-                    resolverInstance, property);
-
-                Expression handleResult = HandleResult(
-                    propertyAccessor, property.PropertyType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
+                return Expression.Lambda<SubscribeResolverDelegate>(
                     handleResult, _context).Compile();
             }
 
@@ -160,11 +141,10 @@ namespace HotChocolate.Resolvers.Expressions
                 return resolverExpression;
             }
 
-            Type subscriptionType = resultType.GetGenericArguments().First();
-
             if (typeof(Task).IsAssignableFrom(resultType)
                 && resultType.IsGenericType)
             {
+                Type subscriptionType = resultType.GetGenericArguments().First();
 
                 if (subscriptionType.IsGenericType)
                 {
@@ -195,40 +175,40 @@ namespace HotChocolate.Resolvers.Expressions
                     }
                 }
             }
-            else
-            {
-                Type subscriptionType = resultType.GetGenericArguments().First();
 
-                Type typeDefinition = subscriptionType.GetGenericTypeDefinition();
+            if (resultType.IsGenericType)
+            {
+                Type typeDefinition = resultType.GetGenericTypeDefinition();
+
                 if (typeDefinition == typeof(IAsyncEnumerable<>))
                 {
                     return WrapAsyncEnumerable(
                         resolverExpression,
-                        subscriptionType.GetGenericArguments().Single());
+                        resultType.GetGenericArguments().Single());
                 }
                 else if (typeDefinition == typeof(IEnumerable<>))
                 {
-                    return AwaitEnumerable(
+                    return WrapEnumerable(
                         resolverExpression,
-                        subscriptionType.GetGenericArguments().Single());
+                        resultType.GetGenericArguments().Single());
                 }
                 else if (typeDefinition == typeof(IQueryable<>))
                 {
-                    return AwaitQueryable(
+                    return WrapQueryable(
                         resolverExpression,
-                        subscriptionType.GetGenericArguments().Single());
+                        resultType.GetGenericArguments().Single());
                 }
                 else if (typeDefinition == typeof(IObservable<>))
                 {
-                    return AwaitObservable(
+                    return WrapObservable(
                         resolverExpression,
-                        subscriptionType.GetGenericArguments().Single());
+                        resultType.GetGenericArguments().Single());
                 }
             }
 
             throw new NotSupportedException(
                 "The specified return type is not supported for a " +
-                $"subscribe method `{subscriptionType.FullName}`.");
+                $"subscribe method `{resultType.FullName}`.");
         }
 
         private static MethodCallExpression AwaitAsyncEnumerable(

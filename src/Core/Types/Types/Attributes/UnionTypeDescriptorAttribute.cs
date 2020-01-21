@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -39,7 +40,7 @@ namespace HotChocolate.Types
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-
+           
         }
     }
 }

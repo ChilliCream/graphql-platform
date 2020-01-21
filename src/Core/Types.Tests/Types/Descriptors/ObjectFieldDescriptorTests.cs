@@ -92,7 +92,8 @@ namespace HotChocolate.Types
             // arrange
             var descriptor = ObjectFieldDescriptor.New(
                 Context,
-                typeof(ObjectField).GetProperty("Arguments"));
+                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(ObjectField));
 
             // act
             descriptor
@@ -114,7 +115,8 @@ namespace HotChocolate.Types
             // arrange
             var descriptor = ObjectFieldDescriptor.New(
                 Context,
-                typeof(ObjectField).GetProperty("Arguments"));
+                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(ObjectField));
 
             // act
             descriptor.Name("args");
@@ -130,7 +132,8 @@ namespace HotChocolate.Types
             string expectedDescription = Guid.NewGuid().ToString();
             var descriptor = ObjectFieldDescriptor.New(
                 Context,
-                typeof(ObjectField).GetProperty("Arguments"));
+                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(ObjectField));
 
             // act
             descriptor.Description(expectedDescription);
@@ -147,7 +150,8 @@ namespace HotChocolate.Types
             var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
-                    typeof(ObjectField).GetProperty("Arguments"));
+                    typeof(ObjectField).GetProperty("Arguments"),
+                    typeof(ObjectField));
 
             // act
             descriptor.Resolver(() => "ThisIsAString");
@@ -173,7 +177,8 @@ namespace HotChocolate.Types
             var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
-                    typeof(ObjectField).GetProperty("Arguments"));
+                    typeof(ObjectField).GetProperty("Arguments"),
+                    typeof(ObjectField));
 
             // act
             descriptor
