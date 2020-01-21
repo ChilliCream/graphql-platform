@@ -143,6 +143,11 @@ namespace HotChocolate.Types
                 return _deserialize(dict);
             }
 
+            if (ClrType != typeof(object) && ClrType.IsInstanceOfType(serialized))
+            {
+                return serialized;
+            }
+
             throw new InputObjectSerializationException(
                 "The specified value is not a serialized input object.");
         }
@@ -162,6 +167,13 @@ namespace HotChocolate.Types
                     value = _deserialize(dict);
                     return true;
                 }
+
+                if (ClrType != typeof(object) && ClrType.IsInstanceOfType(serialized))
+                {
+                    value = serialized;
+                    return true;
+                }
+
 
                 value = null;
                 return false;
