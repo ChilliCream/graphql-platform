@@ -1,36 +1,16 @@
 ﻿using System;
-
-#if ASPNETCLASSIC
-using HotChocolate.AspNetClassic.Playground;
-using Microsoft.Owin;
-using Microsoft.Owin.FileSystems;
-using Microsoft.Owin.StaticFiles;
-using Microsoft.Owin.StaticFiles.ContentTypes;
-using Owin;
-using IApplicationBuilder = Owin.IAppBuilder;
-#else
 using HotChocolate.AspNetCore.Playground;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
-#endif
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public static class ApplicationBuilderExtensions
     {
-#if ASPNETCLASSIC
-        private const string _resourcesNamespace =
-            "HotChocolate.AspNetClassic.Playground.Resources";
-#else
         private const string _resourcesNamespace =
             "HotChocolate.AspNetCore.Playground.Resources";
-#endif
 
         public static IApplicationBuilder UsePlayground(
             this IApplicationBuilder applicationBuilder)
@@ -81,33 +61,9 @@ namespace HotChocolate.AspNetCore
         {
             return applicationBuilder.Map(
                 options.Path.Add(new PathString("/settings.js")),
-#if ASPNETCLASSIC
-                app => app.Use<SettingsMiddleware>(options));
-#else
                 app => app.UseMiddleware<SettingsMiddleware>(options));
-#endif
         }
 
-#if ASPNETCLASSIC
-        private static IApplicationBuilder UsePlaygroundFileServer(
-            this IApplicationBuilder applicationBuilder,
-            PathString route)
-        {
-            var fileServerOptions = new FileServerOptions
-            {
-                RequestPath = route,
-                FileSystem = CreateFileSystem(),
-                EnableDefaultFiles = true,
-                StaticFileOptions =
-                {
-                    ContentTypeProvider =
-                        new FileExtensionContentTypeProvider()
-                }
-            };
-
-            return applicationBuilder.UseFileServer(fileServerOptions);
-        }
-#else
         private static IApplicationBuilder UsePlaygroundFileServer(
             this IApplicationBuilder applicationBuilder,
             string path)
@@ -126,18 +82,7 @@ namespace HotChocolate.AspNetCore
 
             return applicationBuilder.UseFileServer(fileServerOptions);
         }
-#endif
 
-#if ASPNETCLASSIC
-        private static IFileSystem CreateFileSystem()
-        {
-            Type type = typeof(ApplicationBuilderExtensions);
-
-            return new EmbeddedResourceFileSystem(
-                type.Assembly,
-                _resourcesNamespace);
-        }
-#else
         private static IFileProvider CreateFileProvider()
         {
             Type type = typeof(ApplicationBuilderExtensions);
@@ -146,6 +91,5 @@ namespace HotChocolate.AspNetCore
                 type.Assembly,
                 _resourcesNamespace);
         }
-#endif
     }
 }

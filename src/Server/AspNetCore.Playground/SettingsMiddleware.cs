@@ -1,26 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-using HttpContext = Microsoft.Owin.IOwinContext;
-using HttpRequest = Microsoft.Owin.IOwinRequest;
-using RequestDelegate = Microsoft.Owin.OwinMiddleware;
-#else
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
-#endif
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Playground
-#else
 namespace HotChocolate.AspNetCore.Playground
-#endif
 {
     internal sealed class SettingsMiddleware
-#if ASPNETCLASSIC
-        : RequestDelegate
-#endif
     {
         private readonly PlaygroundOptions _options;
         private readonly string _queryPath;
@@ -29,13 +14,8 @@ namespace HotChocolate.AspNetCore.Playground
         public SettingsMiddleware(
             RequestDelegate next,
             PlaygroundOptions options)
-#if ASPNETCLASSIC
-                : base(next)
-#endif
         {
-#if !ASPNETCLASSIC
             Next = next;
-#endif
             _options = options
                 ?? throw new ArgumentNullException(nameof(options));
 
@@ -48,21 +28,14 @@ namespace HotChocolate.AspNetCore.Playground
                 .ToString();
         }
 
-#if !ASPNETCLASSIC
         internal RequestDelegate Next { get; }
-#endif
 
-#if ASPNETCLASSIC
-        /// <inheritdoc />
-        public override async Task Invoke(HttpContext context)
-#else
         /// <summary>
         ///
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
-#endif
         {
             string queryUrl = BuildUrl(context.Request, false, _queryPath);
             string subscriptionUrl = _options.EnableSubscription
@@ -95,17 +68,9 @@ namespace HotChocolate.AspNetCore.Playground
                 scheme = request.IsHttps() ? "wss" : "ws";
             }
 
-#if ASPNETCLASSIC
-            Uri uri = request.Uri;
-            var uriBuilder = new UriBuilder(scheme, uri.Host, uri.Port,
-                uiPath + path);
-
-            return uriBuilder.ToString().TrimEnd('/');
-#else
             return UriHelper.BuildAbsolute(
                 scheme, request.Host, uiPath + path)
                 .TrimEnd('/');
-#endif
         }
 
         private static Uri UriFromPath(PathString path)

@@ -1,12 +1,6 @@
 ﻿using HotChocolate.Types;
 using StarWars.Models;
 
-#if ASPNETCLASSIC
-using HotChocolate.AspNetClassic.Authorization;
-#else
-using HotChocolate.AspNetCore.Authorization;
-#endif
-
 namespace StarWars.Types
 {
     public class QueryType

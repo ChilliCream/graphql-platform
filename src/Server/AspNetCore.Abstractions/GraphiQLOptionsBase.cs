@@ -1,16 +1,7 @@
 ﻿using System;
-
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-#else
 using Microsoft.AspNetCore.Http;
-#endif
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public class GraphiQLOptionsBase
         : IUIOptionsAccessor
@@ -101,10 +92,6 @@ namespace HotChocolate.AspNetCore
         /// <summary>
         /// Defines if the GraphiQL client shall handle subscriptions.
         /// </summary>
-#if ASPNETCLASSIC
-        public bool EnableSubscription { get; set; } = false;
-#else
         public bool EnableSubscription { get; set; } = true;
-#endif
     }
 }
