@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Removed
+
+- _GraphiQL_ middleware [#1411](https://github.com/ChilliCream/hotchocolate/pull/1411)
+
 ## [10.3.1]
 
 - Fixed issue that private setters where not used during input deserialization.
@@ -30,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Stop adding the __typename field when it's in selection on schema stitching. [#1248](https://github.com/ChilliCream/hotchocolate/pull/1248)
+- Stop adding the \_\_typename field when it's in selection on schema stitching. [#1248](https://github.com/ChilliCream/hotchocolate/pull/1248)
 - Improved Type Discovery. [#1281](https://github.com/ChilliCream/hotchocolate/pull/1281)
 
 ### Fixed
@@ -62,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - FilterTypes produce schema errors when filters properties are nullable. [#1034](https://github.com/ChilliCream/hotchocolate/pull/1034)
-- MongoDB & Filter on `Boolean` property: the "_not" filter throws an exception. [#1033](https://github.com/ChilliCream/hotchocolate/pull/1033)
+- MongoDB & Filter on `Boolean` property: the "\_not" filter throws an exception. [#1033](https://github.com/ChilliCream/hotchocolate/pull/1033)
 - Input object is not validated when given entirely as a variable [#1074](https://github.com/ChilliCream/hotchocolate/pull/1074)
 - Variables parsing: Issue with nested `DateTime` fields in variables [#1037](https://github.com/ChilliCream/hotchocolate/pull/1037)
 - DateTime Filters not working. [#1036](https://github.com/ChilliCream/hotchocolate/pull/1036)
@@ -259,7 +263,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IErrorFilter is not given the exception unless IncludeExceptionDetails is enabled. [#637](https://github.com/ChilliCream/hotchocolate/issues/638)
 - Parse and validation event tracked wrong duration.
 - Schema-First descriptions are now correctly included into the schema. [#647](https://github.com/ChilliCream/hotchocolate/issues/647)
-- __type argument was named `type` instead of `name`. [spec](https://facebook.github.io/graphql/June2018/#sec-Introspection)
+- \_\_type argument was named `type` instead of `name`. [spec](https://facebook.github.io/graphql/June2018/#sec-Introspection)
 - The server template is now working again. [#657](https://github.com/ChilliCream/hotchocolate/issues/657)
 - Non-nullable types are now validated when query uses variables. [#651](https://github.com/ChilliCream/hotchocolate/issues/651)
 - Variable handling im middleware does not convert the DateTime value anymore. [#664](https://github.com/ChilliCream/hotchocolate/issues/664)
