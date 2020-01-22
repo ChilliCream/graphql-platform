@@ -15,6 +15,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             Expression instance,
             ITypeConversion converter,
+            bool inMemory,
             out Expression expression)
         {
             if (operation.Type == typeof(IComparable)
