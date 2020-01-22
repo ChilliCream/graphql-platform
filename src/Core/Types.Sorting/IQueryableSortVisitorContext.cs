@@ -5,8 +5,8 @@ namespace HotChocolate.Types.Sorting
     public interface IQueryableSortVisitorContext
     {
         bool InMemory { get; }
-        public Queue<SortOperationInvocation> SortOperations { get; }
-        public SortQueryableClosure Closure { get; }
+        Queue<SortOperationInvocation> SortOperations { get; }
+        SortQueryableClosure Closure { get; }
 
     }
 }
