@@ -135,6 +135,41 @@ namespace HotChocolate.Resolvers.Expressions
                 }
             }
 
+            if (resultType.IsGenericType
+                && resultType.GetGenericTypeDefinition() ==  typeof(ValueTask<>))
+            {
+                Type subscriptionType = resultType.GetGenericArguments().First();
+
+                if (subscriptionType.IsGenericType)
+                {
+                    Type typeDefinition = subscriptionType.GetGenericTypeDefinition();
+                    if (typeDefinition == typeof(IAsyncEnumerable<>))
+                    {
+                        return AwaitValueTaskAsyncEnumerable(
+                            resolverExpression,
+                            subscriptionType.GetGenericArguments().Single());
+                    }
+                    else if (typeDefinition == typeof(IEnumerable<>))
+                    {
+                        return AwaitValueTaskEnumerable(
+                            resolverExpression,
+                            subscriptionType.GetGenericArguments().Single());
+                    }
+                    else if (typeDefinition == typeof(IQueryable<>))
+                    {
+                        return AwaitValueTaskQueryable(
+                            resolverExpression,
+                            subscriptionType.GetGenericArguments().Single());
+                    }
+                    else if (typeDefinition == typeof(IObservable<>))
+                    {
+                        return AwaitValueTaskObservable(
+                            resolverExpression,
+                            subscriptionType.GetGenericArguments().Single());
+                    }
+                }
+            }
+
             if (resultType.IsGenericType)
             {
                 Type typeDefinition = resultType.GetGenericTypeDefinition();

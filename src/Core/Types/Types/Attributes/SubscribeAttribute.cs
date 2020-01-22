@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 #nullable enable
@@ -22,7 +23,8 @@ namespace HotChocolate.Types
                 ITypeReference typeReference = context.Inspector.GetReturnType(
                     member, TypeContext.Output);
 
-                if (typeReference is IClrTypeReference clrTypeRef)
+                if (typeReference is IClrTypeReference clrTypeRef
+                    && !NamedTypeInfoFactory.Default.TryCreate(clrTypeRef.Type, out _))
                 {
                     Type rewritten = Unwrap(UnwrapNonNull(Unwrap(clrTypeRef.Type)));
                     rewritten = GetInnerListType(rewritten);

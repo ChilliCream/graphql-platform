@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers.Expressions
     internal static class SubscribeExpressionHelper
     {
         public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskAsyncEnumerable<T>(
-            ValueTask<IAsyncEnumerable<T>> task)
+            Task<IAsyncEnumerable<T>> task)
         {
             if (task == null)
             {
@@ -21,7 +21,7 @@ namespace HotChocolate.Resolvers.Expressions
         }
 
         public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskEnumerable<T>(
-            ValueTask<IEnumerable<T>> task)
+            Task<IEnumerable<T>> task)
         {
             if (task == null)
             {
@@ -33,7 +33,7 @@ namespace HotChocolate.Resolvers.Expressions
         }
 
         public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskQueryable<T>(
-            ValueTask<IQueryable<T>> task)
+            Task<IQueryable<T>> task)
         {
             if (task == null)
             {
@@ -45,7 +45,7 @@ namespace HotChocolate.Resolvers.Expressions
         }
 
         public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskObservable<T>(
-            ValueTask<IObservable<T>> task)
+            Task<IObservable<T>> task)
         {
             if (task == null)
             {

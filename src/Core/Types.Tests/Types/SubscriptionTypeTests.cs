@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
+using Snapshooter;
 
 #nullable enable
 
@@ -199,8 +200,14 @@ namespace HotChocolate.Types
             results.MatchSnapshot();
         }
 
-        [Fact]
-        public async Task Subscribe_Attribute_AsyncEnumerableOfString()
+        [InlineData("onSomething")]
+        [InlineData("onSomethingTask")]
+        [InlineData("onSomethingValueTask")]
+        [InlineData("onSomethingObj")]
+        [InlineData("onSomethingObjTask")]
+        [InlineData("onSomethingObjValueTask")]
+        [Theory]
+        public async Task Subscribe_Attribute_AsyncEnumerable(string field)
         {
             // arrange
             using var cts = new CancellationTokenSource(30000);
@@ -214,7 +221,7 @@ namespace HotChocolate.Types
             // assert
             IQueryExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onSomething }", cts.Token);
+                "subscription { " + field + " }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
             await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
@@ -222,137 +229,7 @@ namespace HotChocolate.Types
                 results.Add(result);
             }
 
-            results.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Subscribe_Attribute_TaskAsyncEnumerableOfString()
-        {
-            // arrange
-            using var cts = new CancellationTokenSource(30000);
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
-                .ModifyOptions(t => t.StrictValidation = false)
-                .Create();
-
-            // assert
-            IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onSomethingTask }", cts.Token);
-
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
-            {
-                results.Add(result);
-            }
-
-            results.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Subscribe_Attribute_ValueAsyncEnumerableOfString()
-        {
-            // arrange
-            using var cts = new CancellationTokenSource(30000);
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
-                .ModifyOptions(t => t.StrictValidation = false)
-                .Create();
-
-            // assert
-            IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onSomethingValueTask }", cts.Token);
-
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
-            {
-                results.Add(result);
-            }
-
-            results.MatchSnapshot();
-        }
-
-         [Fact]
-        public async Task Subscribe_Attribute_AsyncEnumerableOfObject()
-        {
-            // arrange
-            using var cts = new CancellationTokenSource(30000);
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
-                .ModifyOptions(t => t.StrictValidation = false)
-                .Create();
-
-            // assert
-            IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onSomethingObj }", cts.Token);
-
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
-            {
-                results.Add(result);
-            }
-
-            results.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Subscribe_Attribute_TaskAsyncEnumerableOfObject()
-        {
-            // arrange
-            using var cts = new CancellationTokenSource(30000);
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
-                .ModifyOptions(t => t.StrictValidation = false)
-                .Create();
-
-            // assert
-            IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onSomethingObjTask }", cts.Token);
-
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
-            {
-                results.Add(result);
-            }
-
-            results.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Subscribe_Attribute_ValueAsyncEnumerableOfObject()
-        {
-            // arrange
-            using var cts = new CancellationTokenSource(30000);
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
-                .ModifyOptions(t => t.StrictValidation = false)
-                .Create();
-
-            // assert
-            IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onSomethingObjValueTask }", cts.Token);
-
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
-            {
-                results.Add(result);
-            }
-
-            results.MatchSnapshot();
+            results.MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         public class TestObservable
