@@ -138,6 +138,7 @@ namespace HotChocolate.Types.Filters
                         node.Value,
                         Closures.Peek().Instance.Peek(),
                         _converter,
+                        _inMemory,
                         out Expression expression))
                     {
                         Closures.Peek().Level.Peek().Enqueue(expression);
