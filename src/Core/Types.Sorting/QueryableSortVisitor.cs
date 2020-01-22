@@ -13,30 +13,30 @@ namespace HotChocolate.Types.Sorting
 
         public QueryableSortVisitor(
             InputObjectType initialType,
-            Type source) : base(initialType)
+            Type source,
+            bool inMemory) : base(initialType)
         {
             if (initialType is null)
             {
                 throw new ArgumentNullException(nameof(initialType));
             }
-
-            Closure = new SortQueryableClosure(source, _parameterName);
+            context = new QueryableSortVisitorContext(inMemory,
+                new SortQueryableClosure(source, _parameterName, inMemory));
         }
 
-        protected Queue<SortOperationInvocation> SortOperations { get; } =
-            new Queue<SortOperationInvocation>();
-        protected SortQueryableClosure Closure { get; }
+        private readonly IQueryableSortVisitorContext context;
+
 
         protected virtual SortOperationInvocation CreateSortOperation(SortOperationKind kind)
         {
-            return Closure.CreateSortOperation(kind);
+            return context.Closure.CreateSortOperation(kind);
         }
 
 
         public IQueryable<TSource> Sort<TSource>(
             IQueryable<TSource> source)
         {
-            if (!SortOperations.Any())
+            if (!context.SortOperations.Any())
             {
                 return source;
             }
@@ -45,18 +45,18 @@ namespace HotChocolate.Types.Sorting
             if (!OrderingMethodFinder.OrderMethodExists(source.Expression))
             {
                 sortedSource = source.AddInitialSortOperation(
-                    SortOperations.Dequeue());
+                    context.SortOperations.Dequeue());
             }
             else
             {
                 sortedSource = (IOrderedQueryable<TSource>)source;
             }
 
-            while (SortOperations.Any())
+            while (context.SortOperations.Any())
             {
                 sortedSource
                     = sortedSource.AddSortOperation(
-                        SortOperations.Dequeue());
+                        context.SortOperations.Dequeue());
             }
 
             return sortedSource;
@@ -96,11 +96,11 @@ namespace HotChocolate.Types.Sorting
 
             if (Operations.Peek() is SortOperationField sortField)
             {
-                Closure.EnqueueProperty(sortField.Operation.Property);
+                context.Closure.EnqueueProperty(sortField.Operation.Property);
                 if (!sortField.Operation.IsObject)
                 {
                     var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value);
-                    SortOperations.Enqueue(CreateSortOperation(kind));
+                    context.SortOperations.Enqueue(CreateSortOperation(kind));
                 }
             }
 
@@ -116,7 +116,7 @@ namespace HotChocolate.Types.Sorting
 
             if (Operations.Peek() is SortOperationField)
             {
-                Closure.Pop();
+                context.Closure.Pop();
             }
             return base.Leave(node, parent, path, ancestors);
         }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -8,13 +7,19 @@ namespace HotChocolate.Types.Sorting
 {
     public class SortQueryableClosure
     {
-        public SortQueryableClosure(Type type, string parameterName)
+        private readonly bool _inMemory;
+
+        public SortQueryableClosure(
+            Type type,
+            string parameterName,
+            bool inMemory)
         {
             Parameter = Expression.Parameter(type, parameterName);
             Instance = new Stack<Expression>();
             Property = new Stack<PropertyInfo>();
 
             Instance.Push(Parameter);
+            _inMemory = inMemory;
         }
 
         public ParameterExpression Parameter { get; }
@@ -24,10 +29,25 @@ namespace HotChocolate.Types.Sorting
 
         public SortOperationInvocation CreateSortOperation(SortOperationKind kind)
         {
+            if (_inMemory)
+            {
+                return CreateInMemorySortOperation(kind);
+            }
             return new SortOperationInvocation(kind, Parameter, Instance.Peek());
         }
+        public void EnqueueProperty(PropertyInfo property)
+        {
+            Property.Push(property);
+            Instance.Push(Expression.Property(Instance.Peek(), property));
+        }
 
-        public SortOperationInvocation CreateInMemorySortOperation(
+        public Expression Pop()
+        {
+            Property.Pop();
+            return Instance.Pop();
+        }
+
+        private SortOperationInvocation CreateInMemorySortOperation(
             SortOperationKind kind)
         {
             Expression nextExpression = Instance.Peek();
@@ -47,16 +67,5 @@ namespace HotChocolate.Types.Sorting
             return new SortOperationInvocation(kind, Parameter, nextExpression);
         }
 
-        public void EnqueueProperty(PropertyInfo property)
-        {
-            Property.Push(property);
-            Instance.Push(Expression.Property(Instance.Peek(), property));
-        }
-
-        public Expression Pop()
-        {
-            Property.Pop();
-            return Instance.Pop();
-        }
     }
 }

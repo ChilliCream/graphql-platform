@@ -5,21 +5,22 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public interface IExpressionFieldHandler
     {
-        bool Enter(FilterOperationField field,
+        bool Enter(
+            IQueryableFilterVisitorContext context,
+            FilterOperationField field,
             ObjectFieldNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures,
-            bool inMemory,
             out VisitorAction action);
 
-        void Leave(FilterOperationField field,
+        void Leave(
+            IQueryableFilterVisitorContext context,
+            FilterOperationField field,
             ObjectFieldNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures);
+            IReadOnlyList<ISyntaxNode> ancestors);
     }
 }
 

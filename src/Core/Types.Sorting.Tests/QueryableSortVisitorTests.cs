@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Sorting
             // act
             Func<QueryableSortVisitor> createVisitor
                 = () => new QueryableSortVisitor(
-                    null, typeof(Foo));
+                    null, typeof(Foo), false);
 
             // assert
             Assert.Throws<ArgumentNullException>(createVisitor);
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Sorting
 
             // act
             var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
+                sortType, typeof(Foo), false);
             value.Accept(filter);
             ICollection<Foo> aFiltered = filter.Sort(a).ToList();
 
@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Sorting
 
             // act
             var filter = new QueryableSortVisitor(
-                sortType, typeof(FooNested));
+                sortType, typeof(FooNested), false);
             value.Accept(filter);
             ICollection<FooNested> aFiltered = filter.Sort(a).ToList();
 
@@ -147,7 +147,7 @@ namespace HotChocolate.Types.Sorting
 
             // act
             var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
+                sortType, typeof(Foo), false);
             value.Accept(filter);
             ICollection<Foo> aFiltered = filter.Sort(a).ToList();
 
@@ -178,7 +178,7 @@ namespace HotChocolate.Types.Sorting
 
             // act
             var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
+                sortType, typeof(Foo), false);
             value.Accept(filter);
             ICollection<Foo> aFiltered = filter.Sort(a).ToList();
 
@@ -205,7 +205,7 @@ namespace HotChocolate.Types.Sorting
 
             // act
             var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
+                sortType, typeof(Foo), false);
             value.Accept(filter);
             IQueryable<Foo> aFiltered = filter.Sort(a);
 

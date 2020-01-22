@@ -7,21 +7,20 @@ namespace HotChocolate.Types.Filters.Expressions
     public class ObjectFieldHandler : IExpressionFieldHandler
     {
         public bool Enter(
+            IQueryableFilterVisitorContext context,
             FilterOperationField field,
             ObjectFieldNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures,
-            bool inMemory,
             out VisitorAction action)
         {
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 MemberExpression nestedProperty = Expression.Property(
-                    closures.Peek().Instance.Peek(),
+                    context.GetInstance(),
                     field.Operation.Property);
-                closures.Peek().Instance.Push(nestedProperty);
+                context.PushInstance(nestedProperty);
                 action = VisitorAction.Continue;
                 return true;
             }
@@ -30,24 +29,24 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public void Leave(
+            IQueryableFilterVisitorContext context,
             FilterOperationField field,
             ObjectFieldNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures)
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 // Deque last expression to prefix with nullcheck
-                Expression condition = closures.Peek().Level.Peek().Dequeue();
-                Expression property = closures.Peek().Instance.Peek();
-                
+                Expression condition = context.GetLevel().Dequeue();
+                Expression property = context.GetInstance();
+
                 // wrap last expression  
-                closures.Peek().Level.Peek().Enqueue(
+                context.GetLevel().Enqueue(
                     FilterExpressionBuilder.NotNullAndAlso(
                         property, condition));
-                closures.Peek().Instance.Pop();
+                context.PopInstance();
             }
         }
     }

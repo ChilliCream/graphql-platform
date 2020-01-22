@@ -60,11 +60,11 @@ namespace HotChocolate.Types.Sorting
                 QueryableSortVisitor visitor;
                 if (source is EnumerableQuery)
                 {
-                    visitor = new QueryableSortVisitorInMemory(iot, fit.EntityType);
+                    visitor = new QueryableSortVisitor(iot, fit.EntityType, true);
                 }
                 else
                 {
-                    visitor = new QueryableSortVisitor(iot, fit.EntityType);
+                    visitor = new QueryableSortVisitor(iot, fit.EntityType, false);
                 }
 
                 sortArgument.Accept(visitor);

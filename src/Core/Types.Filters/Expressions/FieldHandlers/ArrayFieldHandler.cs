@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -10,13 +8,12 @@ namespace HotChocolate.Types.Filters.Expressions
     public class ArrayFieldHandler : IExpressionFieldHandler
     {
         public bool Enter(
+            IQueryableFilterVisitorContext context,
             FilterOperationField field,
             ObjectFieldNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures,
-            bool inMemory,
             out VisitorAction action
             )
         {
@@ -27,15 +24,15 @@ namespace HotChocolate.Types.Filters.Expressions
                )
             {
                 MemberExpression nestedProperty = Expression.Property(
-                    closures.Peek().Instance.Peek(),
+                    context.GetInstance(),
                     field.Operation.Property
                 );
 
-                closures.Peek().Instance.Push(nestedProperty);
+                context.PushInstance(nestedProperty);
 
                 Type closureType = GetTypeFor(field.Operation);
 
-                closures.Push(new QueryableClosure(closureType, "_s" + closures.Count, inMemory));
+                context.AddClosure(closureType);
                 action = VisitorAction.Continue;
                 return true;
             }
@@ -44,12 +41,12 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public void Leave(
+            IQueryableFilterVisitorContext context,
             FilterOperationField field,
             ObjectFieldNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures)
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
 
             if (
@@ -58,7 +55,7 @@ namespace HotChocolate.Types.Filters.Expressions
                field.Operation.Kind == FilterOperationKind.ArrayAll
               )
             {
-                QueryableClosure nestedClosure = closures.Pop();
+                QueryableClosure nestedClosure = context.PopClosure();
                 LambdaExpression lambda = nestedClosure.CreateLambda();
                 Type closureType = GetTypeFor(field.Operation);
 
@@ -68,7 +65,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     case FilterOperationKind.ArraySome:
                         expression = FilterExpressionBuilder.Any(
                           closureType,
-                          closures.Peek().Instance.Peek(),
+                          context.GetInstance(),
                           lambda
                         );
                         break;
@@ -76,7 +73,7 @@ namespace HotChocolate.Types.Filters.Expressions
                         expression = FilterExpressionBuilder.Not(
                             FilterExpressionBuilder.Any(
                                 closureType,
-                                closures.Peek().Instance.Peek(),
+                                context.GetInstance(),
                                 lambda
                             )
                         );
@@ -84,16 +81,16 @@ namespace HotChocolate.Types.Filters.Expressions
                     case FilterOperationKind.ArrayAll:
                         expression = FilterExpressionBuilder.All(
                           closureType,
-                          closures.Peek().Instance.Peek(),
+                          context.GetInstance(),
                           lambda
                         );
                         break;
                     default:
                         throw new NotSupportedException();
                 }
-                closures.Peek().Level.Peek().Enqueue(expression);
+                context.GetLevel().Enqueue(expression);
 
-                closures.Peek().Instance.Pop();
+                context.PopInstance();
             }
         }
 

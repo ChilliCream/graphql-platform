@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Linq.Expressions;
 using Xunit;
 
 namespace HotChocolate.Types.Sorting
@@ -11,7 +10,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IQueryable<Foo> source = new Foo[0].AsQueryable();
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            var closure = new SortQueryableClosure(typeof(Foo), "p", false);
             closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
             var operation = closure.CreateSortOperation(SortOperationKind.Asc);
 
@@ -29,7 +28,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IQueryable<Foo> source = new Foo[0].AsQueryable();
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            var closure = new SortQueryableClosure(typeof(Foo), "p", false);
             closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
             var operation = closure.CreateSortOperation(SortOperationKind.Desc);
 
@@ -47,7 +46,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            var closure = new SortQueryableClosure(typeof(Foo), "p", false);
             closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
             var operation = closure.CreateSortOperation(SortOperationKind.Asc);
 
@@ -65,7 +64,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
-            var closure = new SortQueryableClosure(typeof(Foo), "p");
+            var closure = new SortQueryableClosure(typeof(Foo), "p", false);
             closure.EnqueueProperty(typeof(Foo).GetProperty(nameof(Foo.Bar)));
             var operation = closure.CreateSortOperation(SortOperationKind.Desc);
 
