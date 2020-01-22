@@ -7,29 +7,30 @@ using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions
 {
-    internal sealed class ResolverCompiler
+    internal class ResolverCompiler
     {
-        private static readonly MethodInfo _awaitHelper =
-            typeof(ExpressionHelper).GetMethod("AwaitHelper");
-        private static readonly MethodInfo _wrapResultHelper =
-            typeof(ExpressionHelper).GetMethod("WrapResultHelper");
         private static readonly MethodInfo _parent =
-            typeof(IResolverContext).GetMethod("Parent");
+            typeof(IResolverContext).GetMethod("Parent")!;
         private static readonly MethodInfo _resolver =
-            typeof(IResolverContext).GetMethod("Resolver");
+            typeof(IResolverContext).GetMethod("Resolver")!;
+        private readonly MethodInfo _taskResult = typeof(Task)
+            .GetTypeInfo()
+            .GetDeclaredMethod(nameof(Task.FromResult))!
+            .MakeGenericMethod(typeof(object));
 
         private readonly IResolverParameterCompiler[] _compilers;
         private readonly ParameterExpression _context;
-        private readonly MethodInfo _taskResult;
 
-        public ResolverCompiler()
+        protected ResolverCompiler()
             : this(ParameterCompilerFactory.Create())
         {
         }
 
-        public ResolverCompiler(
+        protected ResolverCompiler(
             IEnumerable<IResolverParameterCompiler> compilers)
         {
             if (compilers == null)
@@ -38,79 +39,16 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             _compilers = compilers.ToArray();
-
-            Type contextType = typeof(IResolverContext);
-            TypeInfo contextTypeInfo = contextType.GetTypeInfo();
-
-            _context = Expression.Parameter(contextType);
-
-            _taskResult = typeof(Task)
-                .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Task.FromResult));
-            _taskResult = _taskResult.MakeGenericMethod(typeof(object));
+            _context = Expression.Parameter(typeof(IResolverContext));
         }
 
-        public FieldResolver Compile(ResolverDescriptor descriptor)
-        {
-            MethodInfo resolverMethod = descriptor.ResolverType is null
-                ? _parent.MakeGenericMethod(descriptor.SourceType)
-                : _resolver.MakeGenericMethod(descriptor.ResolverType);
+        protected ParameterExpression Context => _context;
 
-            Expression resolverInstance = Expression.Call(
-                _context, resolverMethod);
+        protected MethodInfo Parent => _parent;
 
-            FieldResolverDelegate resolver = CreateResolver(
-                resolverInstance,
-                descriptor.Field.Member,
-                descriptor.SourceType);
+        protected MethodInfo Resolver => _resolver;
 
-            return new FieldResolver(
-                descriptor.Field.TypeName,
-                descriptor.Field.FieldName,
-                resolver);
-        }
-
-        private FieldResolverDelegate CreateResolver(
-            Expression resolverInstance,
-            MemberInfo member,
-            Type sourceType)
-        {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            if (member is MethodInfo method)
-            {
-                IEnumerable<Expression> parameters = CreateParameters(
-                    method.GetParameters(), sourceType);
-
-                MethodCallExpression resolverExpression =
-                    Expression.Call(resolverInstance, method, parameters);
-
-                Expression handleResult = HandleResult(
-                    resolverExpression, method.ReturnType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, _context).Compile();
-            }
-
-            if (member is PropertyInfo property)
-            {
-                MemberExpression propertyAccessor = Expression.Property(
-                    resolverInstance, property);
-
-                Expression handleResult = HandleResult(
-                    propertyAccessor, property.PropertyType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, _context).Compile();
-            }
-
-            throw new NotSupportedException();
-        }
-
-        private IEnumerable<Expression> CreateParameters(
+        protected IEnumerable<Expression> CreateParameters(
             IEnumerable<ParameterInfo> parameters,
             Type sourceType)
         {
@@ -131,42 +69,8 @@ namespace HotChocolate.Resolvers.Expressions
             }
         }
 
-        private static Expression HandleResult(
-            Expression resolverExpression,
-            Type resultType)
-        {
-            if (resultType == typeof(Task<object>))
-            {
-                return resolverExpression;
-            }
-            else if (typeof(Task).IsAssignableFrom(resultType)
-                && resultType.IsGenericType)
-            {
-                return AwaitMethodCall(
-                    resolverExpression,
-                    resultType.GetGenericArguments().First());
-            }
-            else
-            {
-                return WrapResult(
-                    resolverExpression,
-                    resultType);
-            }
-        }
+        public static SubscribeCompiler Subscribe { get; } = new SubscribeCompiler();
 
-        private static MethodCallExpression AwaitMethodCall(
-            Expression taskExpression, Type valueType)
-        {
-            MethodInfo awaitHelper = _awaitHelper.MakeGenericMethod(valueType);
-            return Expression.Call(awaitHelper, taskExpression);
-        }
-
-        private static MethodCallExpression WrapResult(
-            Expression taskExpression, Type valueType)
-        {
-            MethodInfo wrapResultHelper =
-                _wrapResultHelper.MakeGenericMethod(valueType);
-            return Expression.Call(wrapResultHelper, taskExpression);
-        }
+        public static ResolveCompiler Resolve { get; } = new ResolveCompiler();
     }
 }

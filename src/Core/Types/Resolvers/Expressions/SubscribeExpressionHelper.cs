@@ -8,8 +8,8 @@ namespace HotChocolate.Resolvers.Expressions
 {
     internal static class SubscribeExpressionHelper
     {
-        public static async Task<IAsyncEnumerable<object>> AwaitAsyncEnumerable<T>(
-            Task<IAsyncEnumerable<T>> task)
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskAsyncEnumerable<T>(
+            ValueTask<IAsyncEnumerable<T>> task)
         {
             if (task == null)
             {
@@ -20,8 +20,8 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertEnumerable(enumerable);
         }
 
-        public static async Task<IAsyncEnumerable<object>> AwaitEnumerable<T>(
-            Task<IEnumerable<T>> task)
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskEnumerable<T>(
+            ValueTask<IEnumerable<T>> task)
         {
             if (task == null)
             {
@@ -32,8 +32,8 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertEnumerable(enumerable);
         }
 
-        public static async Task<IAsyncEnumerable<object>> AwaitQueryable<T>(
-            Task<IQueryable<T>> task)
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskQueryable<T>(
+            ValueTask<IQueryable<T>> task)
         {
             if (task == null)
             {
@@ -44,8 +44,8 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertEnumerable(enumerable);
         }
 
-        public static async Task<IAsyncEnumerable<object>> AwaitObservable<T>(
-            Task<IObservable<T>> task)
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskObservable<T>(
+            ValueTask<IObservable<T>> task)
         {
             if (task == null)
             {
@@ -56,21 +56,69 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertObservable(enumerable);
         }
 
-        public static Task<IAsyncEnumerable<object>> WrapAsyncEnumerable<T>(
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskAsyncEnumerable<T>(
+            ValueTask<IAsyncEnumerable<T>> task)
+        {
+            if (task == null)
+            {
+                return null;
+            }
+
+            IAsyncEnumerable<T> enumerable = await task.ConfigureAwait(false);
+            return ConvertEnumerable(enumerable);
+        }
+
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskEnumerable<T>(
+            ValueTask<IEnumerable<T>> task)
+        {
+            if (task == null)
+            {
+                return null;
+            }
+
+            IEnumerable<T> enumerable = await task.ConfigureAwait(false);
+            return ConvertEnumerable(enumerable);
+        }
+
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskQueryable<T>(
+            ValueTask<IQueryable<T>> task)
+        {
+            if (task == null)
+            {
+                return null;
+            }
+
+            IEnumerable<T> enumerable = await task.ConfigureAwait(false);
+            return ConvertEnumerable(enumerable);
+        }
+
+        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskObservable<T>(
+            ValueTask<IObservable<T>> task)
+        {
+            if (task == null)
+            {
+                return null;
+            }
+
+            IObservable<T> enumerable = await task.ConfigureAwait(false);
+            return ConvertObservable(enumerable);
+        }
+
+        public static ValueTask<IAsyncEnumerable<object>> WrapAsyncEnumerable<T>(
             IAsyncEnumerable<T> result) =>
-            Task.FromResult<IAsyncEnumerable<object>>(ConvertEnumerable(result));
+            new ValueTask<IAsyncEnumerable<object>>(ConvertEnumerable(result));
 
-        public static Task<IAsyncEnumerable<object>> WrapEnumerable<T>(
+        public static ValueTask<IAsyncEnumerable<object>> WrapEnumerable<T>(
             IEnumerable<T> result) =>
-            Task.FromResult<IAsyncEnumerable<object>>(ConvertEnumerable(result));
+            new ValueTask<IAsyncEnumerable<object>>(ConvertEnumerable(result));
 
-        public static Task<IAsyncEnumerable<object>> WrapQueryable<T>(
+        public static ValueTask<IAsyncEnumerable<object>> WrapQueryable<T>(
             IQueryable<T> result) =>
-            Task.FromResult<IAsyncEnumerable<object>>(ConvertEnumerable(result));
+            new ValueTask<IAsyncEnumerable<object>>(ConvertEnumerable(result));
 
-        public static Task<IAsyncEnumerable<object>> WrapObservable<T>(
+        public static ValueTask<IAsyncEnumerable<object>> WrapObservable<T>(
             IObservable<T> result) =>
-            Task.FromResult<IAsyncEnumerable<object>>(ConvertObservable(result));
+            new ValueTask<IAsyncEnumerable<object>>(ConvertObservable(result));
 
         private static IAsyncEnumerable<object> ConvertObservable<T>(
             IObservable<T> enumerable) =>

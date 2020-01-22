@@ -204,6 +204,7 @@ namespace HotChocolate.Types
                 ObjectFieldDescriptor.New(
                     Context,
                     typeof(ObjectField).GetProperty("Arguments"),
+                    typeof(ObjectField),
                     typeof(string));
 
             // assert

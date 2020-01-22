@@ -6,6 +6,8 @@ using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class SubscriptionTypeTests
@@ -197,6 +199,162 @@ namespace HotChocolate.Types
             results.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Subscribe_Attribute_AsyncEnumerableOfString()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSomething }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_TaskAsyncEnumerableOfString()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSomethingTask }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_ValueAsyncEnumerableOfString()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSomethingValueTask }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+         [Fact]
+        public async Task Subscribe_Attribute_AsyncEnumerableOfObject()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSomethingObj }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_TaskAsyncEnumerableOfObject()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSomethingObjTask }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_ValueAsyncEnumerableOfObject()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSomethingObjValueTask }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
         public class TestObservable
             : IObservable<string>
             , IDisposable
@@ -238,6 +396,55 @@ namespace HotChocolate.Types
                 yield return "b";
                 yield return "c";
             }
+        }
+
+        public class PureCodeFirstAsyncEnumerable
+        {
+            [Subscribe]
+            public async IAsyncEnumerable<string?> OnSomething()
+            {
+                await Task.Delay(50);
+                yield return "a";
+                yield return "b";
+                yield return "c";
+            }
+
+            [Subscribe]
+            public Task<IAsyncEnumerable<string?>> OnSomethingTask()
+            {
+                return Task.FromResult<IAsyncEnumerable<string?>>(OnSomething());
+            }
+
+            [Subscribe]
+            public ValueTask<IAsyncEnumerable<string?>> OnSomethingValueTask()
+            {
+                return new ValueTask<IAsyncEnumerable<string?>>(OnSomething());
+            }
+
+            [GraphQLType(typeof(StringType))]
+            [Subscribe]
+            public async IAsyncEnumerable<object?> OnSomethingObj()
+            {
+                await Task.Delay(50);
+                yield return "a";
+                yield return "b";
+                yield return "c";
+            }
+
+            [GraphQLType(typeof(StringType))]
+            [Subscribe]
+            public Task<IAsyncEnumerable<object?>> OnSomethingObjTask()
+            {
+                return Task.FromResult<IAsyncEnumerable<object?>>(OnSomethingObj());
+            }
+
+            [GraphQLType(typeof(StringType))]
+            [Subscribe]
+            public ValueTask<IAsyncEnumerable<object?>> OnSomethingObjValueTask()
+            {
+                return new ValueTask<IAsyncEnumerable<object?>>(OnSomethingObj());
+            }
+
         }
     }
 }

@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     ObjectFieldDefinition fieldDefinition =
                         ObjectFieldDescriptor
-                            .New(Context, member, resolverType)
+                            .New(Context, member, sourceType, resolverType)
                             .CreateDefinition();
 
                     if (processed.Add(fieldDefinition.Name))
@@ -269,7 +269,7 @@ namespace HotChocolate.Types.Descriptors
                 }
 
                 fieldDescriptor = ObjectFieldDescriptor.New(
-                    Context, member, typeof(TResolver));
+                    Context, member, Definition.ClrType, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }

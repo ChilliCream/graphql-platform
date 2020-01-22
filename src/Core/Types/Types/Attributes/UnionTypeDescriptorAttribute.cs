@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -30,17 +29,5 @@ namespace HotChocolate.Types
             IDescriptorContext context,
             IUnionTypeDescriptor descriptor,
             Type type);
-    }
-
-    public sealed class SubscribeAttribute
-        : ObjectFieldDescriptorAttribute
-    {
-        public override void OnConfigure(
-            IDescriptorContext context,
-            IObjectFieldDescriptor descriptor,
-            MemberInfo member)
-        {
-           
-        }
     }
 }
