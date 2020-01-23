@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -49,7 +47,8 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures)
+            Stack<QueryableClosure> closures,
+            bool inMemory)
         {
 
             if (
@@ -91,6 +90,13 @@ namespace HotChocolate.Types.Filters.Expressions
                     default:
                         throw new NotSupportedException();
                 }
+
+                if (inMemory)
+                {
+                    expression = FilterExpressionBuilder.NotNullAndAlso(
+                                closures.Peek().Instance.Peek(), expression);
+                }
+
                 closures.Peek().Level.Peek().Enqueue(expression);
 
                 closures.Peek().Instance.Pop();

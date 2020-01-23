@@ -105,6 +105,9 @@ namespace HotChocolate.Types.Filters
 
             var b = new FooSimple { Bar = new[] { "c", null, "b" } };
             Assert.False(func(b));
+
+            var c = new FooSimple { Bar = null };
+            Assert.False(func(c));
         }
 
         [Fact]
@@ -202,6 +205,19 @@ namespace HotChocolate.Types.Filters
                 }
             };
             Assert.False(func(b));
+
+            var c = new Foo
+            {
+                FooNested = new[]
+                {
+                    null,
+                    new FooNested { Bar = null },
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "a" }
+                }
+            };
+            Assert.True(func(c));
         }
 
         [Fact]
@@ -251,6 +267,17 @@ namespace HotChocolate.Types.Filters
                 }
             };
             Assert.True(func(b));
+            var c = new Foo
+            {
+                FooNested = new[]
+                {
+                    null,
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = null },
+                    new FooNested { Bar = "b" }
+                }
+            };
+            Assert.True(func(c));
         }
 
         [Fact]
@@ -322,6 +349,18 @@ namespace HotChocolate.Types.Filters
                 }
             };
             Assert.False(func(d));
+
+            var e = new Foo
+            {
+                FooNested = new[]
+                {
+                    null,
+                    new FooNested { Bar = null },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
+                }
+            };
+            Assert.False(func(e));
         }
 
         [Fact]
@@ -359,6 +398,10 @@ namespace HotChocolate.Types.Filters
 
             var b = new Foo { FooNested = new FooNested[] { } };
             Assert.False(func(b));
+            var c = new Foo { FooNested = null };
+            Assert.False(func(c));
+            var d = new Foo { FooNested = new FooNested[] { null } };
+            Assert.True(func(d));
         }
 
         [Fact]
@@ -394,6 +437,11 @@ namespace HotChocolate.Types.Filters
 
             var b = new Foo { FooNested = new FooNested[] { } };
             Assert.True(func(b));
+            var c = new Foo { FooNested = null };
+            Assert.False(func(c));
+
+            var d = new Foo { FooNested = new FooNested[] { null } };
+            Assert.False(func(d));
         }
         public class Foo
         {
