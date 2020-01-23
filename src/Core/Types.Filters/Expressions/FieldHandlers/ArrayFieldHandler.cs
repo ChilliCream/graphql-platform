@@ -88,6 +88,13 @@ namespace HotChocolate.Types.Filters.Expressions
                     default:
                         throw new NotSupportedException();
                 }
+
+                if (inMemory)
+                {
+                    expression = FilterExpressionBuilder.NotNullAndAlso(
+                                 context.GetInstance(), expression);
+                }
+
                 context.GetLevel().Enqueue(expression);
 
                 context.PopInstance();

@@ -43,9 +43,13 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression property = context.GetInstance();
 
                 // wrap last expression  
-                context.GetLevel().Enqueue(
-                    FilterExpressionBuilder.NotNullAndAlso(
-                        property, condition));
+                // wrap last expression only if  in memory
+                if (context.InMemory)
+                {
+                    condition = FilterExpressionBuilder.NotNullAndAlso(
+                        property, condition);
+                } 
+                context.GetLevel().Enqueue(condition);
                 context.PopInstance();
             }
         }
