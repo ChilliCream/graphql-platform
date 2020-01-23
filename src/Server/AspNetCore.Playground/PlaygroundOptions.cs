@@ -21,11 +21,10 @@ namespace HotChocolate.AspNetCore.Playground
         private PathString _queryPath = new PathString("/");
         private PathString _subscriptionPath = new PathString("/");
 
-        protected PlaygroundOptions()
+        public PlaygroundOptions()
         {
             _path = _defaultPath = new PathString("/playground");
         }
-
 
         /// <summary>
         /// The path of the Playground middleware.
