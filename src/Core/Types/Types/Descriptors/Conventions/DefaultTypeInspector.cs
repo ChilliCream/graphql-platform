@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using HotChocolate.Properties;
+using System.Collections.Concurrent;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -13,9 +14,12 @@ namespace HotChocolate.Types.Descriptors
     {
         private const string _toString = "ToString";
         private const string _getHashCode = "GetHashCode";
+        private const string _equals = "Equals";
 
         private readonly TypeInspector _typeInspector =
             new TypeInspector();
+        private readonly ConcurrentDictionary<MemberInfo, IExtendedMethodTypeInfo> _methods =
+            new ConcurrentDictionary<MemberInfo, IExtendedMethodTypeInfo>();
 
         public static DefaultTypeInspector Default { get; } =
             new DefaultTypeInspector();
@@ -80,9 +84,7 @@ namespace HotChocolate.Types.Descriptors
             return Enumerable.Empty<Type>();
         }
 
-        public virtual ITypeReference GetReturnType(
-            MemberInfo member,
-            TypeContext context)
+        public virtual ITypeReference GetReturnType(MemberInfo member, TypeContext context)
         {
             if (member == null)
             {
@@ -93,15 +95,13 @@ namespace HotChocolate.Types.Descriptors
 
             if (member.IsDefined(typeof(GraphQLTypeAttribute)))
             {
-                GraphQLTypeAttribute attribute =
-                    member.GetCustomAttribute<GraphQLTypeAttribute>();
+                var attribute = member.GetCustomAttribute<GraphQLTypeAttribute>();
                 returnType = attribute.Type;
             }
 
             if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
             {
-                GraphQLNonNullTypeAttribute attribute =
-                    member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
+                var attribute = member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
 
                 return new ClrTypeReference(
                     returnType,
@@ -114,15 +114,17 @@ namespace HotChocolate.Types.Descriptors
             return new ClrTypeReference(returnType, context);
         }
 
-        protected static Type GetReturnType(MemberInfo member)
+        protected Type GetReturnType(MemberInfo member)
         {
             if (member is MethodInfo m)
             {
-                return m.ReturnType;
+                IExtendedMethodTypeInfo info = m.GetExtendedMethodTypeInfo();
+                _methods.TryAdd(m, info);
+                return ExtendedTypeRewriter.Rewrite(info.ReturnType);
             }
             else if (member is PropertyInfo p)
             {
-                return p.PropertyType;
+                return ExtendedTypeRewriter.Rewrite(p.GetExtendedReturnType());
             }
             else
             {
@@ -139,7 +141,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            Type argumentType = parameter.ParameterType;
+            Type argumentType = GetArgumentTypeInternal(parameter);
 
             if (parameter.IsDefined(typeof(GraphQLTypeAttribute)))
             {
@@ -164,6 +166,18 @@ namespace HotChocolate.Types.Descriptors
             return new ClrTypeReference(argumentType, TypeContext.Input);
         }
 
+        private Type GetArgumentTypeInternal(ParameterInfo parameter)
+        {
+            MethodInfo method = (MethodInfo)parameter.Member;
+
+            if (!_methods.TryGetValue(method, out IExtendedMethodTypeInfo info))
+            {
+                info = method.GetExtendedMethodTypeInfo();
+            }
+
+            return ExtendedTypeRewriter.Rewrite(info.ParameterTypes[parameter]);
+        }
+
         public virtual IEnumerable<object> GetEnumValues(Type enumType)
         {
             if (enumType == null)
@@ -179,9 +193,24 @@ namespace HotChocolate.Types.Descriptors
             return Enumerable.Empty<object>();
         }
 
+        public MemberInfo GetEnumValueMember(object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            Type enumType = value.GetType();
+            if (enumType.IsEnum)
+            {
+                return enumType.GetMember(value.ToString()).FirstOrDefault();
+            }
+            return null;
+        }
+
         private static bool IsIgnored(MemberInfo member)
         {
-            if(IsToString(member) || IsGetHashCode(member))
+            if (IsToString(member) || IsGetHashCode(member) || IsEquals(member))
             {
                 return true;
             }
@@ -196,6 +225,12 @@ namespace HotChocolate.Types.Descriptors
             member is MethodInfo m
             && m.Name.Equals(_getHashCode)
             && m.GetParameters().Length == 0;
+
+        private static bool IsEquals(MemberInfo member) =>
+            member is MethodInfo m
+            && m.Name.Equals(_equals)
+            && m.GetParameters().Length == 1
+            && m.GetParameters()[0].ParameterType == typeof(object);
 
         public Type ExtractType(Type type)
         {
@@ -218,7 +253,18 @@ namespace HotChocolate.Types.Descriptors
             return type;
         }
 
-        public bool IsSchemaType(Type type) =>
-            BaseTypes.IsSchemaType(type);
+        public bool IsSchemaType(Type type) => BaseTypes.IsSchemaType(type);
+
+        public void ApplyAttributes(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider attributeProvider)
+        {
+            foreach (var attribute in attributeProvider.GetCustomAttributes(true)
+                .OfType<DescriptorAttribute>())
+            {
+                attribute.TryConfigure(context, descriptor, attributeProvider);
+            }
+        }
     }
 }

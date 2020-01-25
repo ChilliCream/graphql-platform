@@ -1,12 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterNamingConventionSnakeCase : IFilterNamingConvention
+    public class FilterNamingConventionSnakeCase : FilterNamingConventionBase
     {
-        public NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind)
+        public override NameString ArgumentName => "where";
+
+        public override NameString CreateFieldName(
+            FilterFieldDefintion definition,
+            FilterOperationKind kind)
         {
             switch (kind)
             {
@@ -58,12 +60,18 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.Object:
                     return definition.Name;
 
+                case FilterOperationKind.ArraySome:
+                    return definition.Name + "_some";
+                case FilterOperationKind.ArrayNone:
+                    return definition.Name + "_none";
+                case FilterOperationKind.ArrayAll:
+                    return definition.Name + "_all";
+                case FilterOperationKind.ArrayAny:
+                    return definition.Name + "_any";
+
                 default:
                     throw new NotSupportedException();
             }
         }
-
-        public static FilterNamingConventionSnakeCase Default { get; } =
-            new FilterNamingConventionSnakeCase();
     }
 }

@@ -24,9 +24,9 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public new ISortObjectOperationDescriptor<TObject> Ignore()
+        public new ISortObjectOperationDescriptor<TObject> Ignore(bool ignore = true)
         {
-            base.Ignore();
+            base.Ignore(ignore);
             return this;
         }
 

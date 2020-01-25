@@ -1,8 +1,4 @@
-﻿#if ASPNETCLASSIC
-using HotChocolate.AspNetClassic.Authorization;
-#else
-using HotChocolate.AspNetCore.Authorization;
-#endif
+﻿using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Configuration;
 
 namespace HotChocolate

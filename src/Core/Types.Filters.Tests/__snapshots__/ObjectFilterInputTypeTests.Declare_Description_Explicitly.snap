@@ -26,6 +26,7 @@ input FooFilter {
   bar: String
   "custom_object_description"
   barNested: BarFilter
+  barNestedSecond: BarFilter
   bar_contains: String
   bar_ends_with: String
   bar_in: [String]

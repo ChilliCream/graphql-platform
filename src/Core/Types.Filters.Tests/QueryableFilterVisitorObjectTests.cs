@@ -28,7 +28,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -37,6 +38,39 @@ namespace HotChocolate.Types.Filters
             Assert.True(func(a));
 
             var b = new Foo { FooNested = new FooNested { Bar = "b" } };
+            Assert.False(func(b));
+        }
+
+        [Fact]
+        public void Create_ObjectStringEqualWithNull_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("fooNested",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("bar",
+                            new StringValueNode("a")
+                        )
+                    )
+                )
+            );
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default,
+                true);
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { FooNested = new FooNested { Bar = "a" } };
+            Assert.True(func(a));
+
+            Foo b = null;
             Assert.False(func(b));
         }
 
@@ -64,7 +98,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
@@ -100,7 +135,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(Recursive),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<Recursive, bool> func = filter.CreateFilter<Recursive>().Compile();
 
@@ -138,7 +174,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
@@ -190,7 +227,8 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitor(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default);
+                TypeConversion.Default,
+                true);
             value.Accept(filter);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
@@ -235,7 +273,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
-                descriptor.Filter(t => t.FooNested).AllowObject(x => x.Filter(y => y.Bar));
+                descriptor.Object(t => t.FooNested).AllowObject(x => x.Filter(y => y.Bar));
             }
         }
 
@@ -245,7 +283,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<EvenDeeper> descriptor)
             {
-                descriptor.Filter(t => t.Foo).AllowObject(x => x.Filter(y => y.FooNested).AllowObject(z => z.Filter(z => z.Bar)));
+                descriptor.Object(t => t.Foo).AllowObject(x => x.Object(y => y.FooNested).AllowObject(z => z.Filter(z => z.Bar)));
             }
         }
     }

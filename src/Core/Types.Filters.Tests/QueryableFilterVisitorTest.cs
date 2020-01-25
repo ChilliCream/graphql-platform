@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
 
@@ -18,7 +19,35 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default, null);
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default,
+                null,
+                ExpressionFieldHandlers.All,
+                true);
+            };
+
+            // act
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Create_Should_Throw_IfFieldHandlersIsNull()
+        {
+            // arrange
+
+            var fooType = CreateType(new FooFilterType());
+
+            Action action = () =>
+            {
+                new QueryableFilterVisitor(
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default,
+                ExpressionOperationHandlers.All,
+                null,
+                true);
             };
 
             // act
@@ -36,7 +65,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, typeof(Foo), null);
+                fooType, typeof(Foo), null, true);
             };
 
             // act
@@ -54,7 +83,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                fooType, null, TypeConversion.Default);
+                fooType, null, TypeConversion.Default, true);
             };
 
             // act
@@ -70,7 +99,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitor(
-                null, typeof(Foo), TypeConversion.Default);
+                null, typeof(Foo), TypeConversion.Default, true);
             };
 
             // act

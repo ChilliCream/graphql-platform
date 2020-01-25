@@ -31,8 +31,7 @@ namespace HotChocolate.Utilities
 
                     if (bytesRemaining == 0)
                     {
-                        var next = ArrayPool<byte>.Shared.Rent(
-                            buffer.Length * 2);
+                        var next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
                         Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
                         ArrayPool<byte>.Shared.Return(buffer);
                         buffer = next;

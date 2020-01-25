@@ -65,6 +65,7 @@ namespace HotChocolate.Stitching.Client
             return DispatchRequestsAsync(
                 requests,
                 rewriter.Merge(),
+                rewriter.OperationName,
                 variableValues,
                 cancellationToken);
         }
@@ -93,6 +94,7 @@ namespace HotChocolate.Stitching.Client
         private async Task DispatchRequestsAsync(
             IList<BufferedRequest> requests,
             DocumentNode mergedQuery,
+            NameNode operationName,
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken)
         {
@@ -102,6 +104,7 @@ namespace HotChocolate.Stitching.Client
                 IReadOnlyQueryRequest mergedRequest =
                     QueryRequestBuilder.New()
                         .SetQuery(mergedQuery)
+                        .SetOperation(operationName.Value)
                         .SetVariableValues(variableValues)
                         .SetServices(_services)
                         .Create();

@@ -1,0 +1,20 @@
+﻿schema {
+  query: QueryA
+}
+
+type Bar {
+  baz: Baz
+}
+
+type Baz {
+  text: Int!
+}
+
+type QueryA {
+  bar(id: FOO): Bar
+}
+
+scalar FOO
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int

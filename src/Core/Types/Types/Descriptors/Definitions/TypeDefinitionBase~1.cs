@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Gets or sets the .net type representation of this type.
         /// </summary>
-        public Type ClrType
+        public virtual Type ClrType
         {
             get => _clrType;
             set

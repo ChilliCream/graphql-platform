@@ -1,0 +1,111 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  character(characterIds: [String]): [Character!]!
+  droid(id: String): Droid
+  hero(episode: Episode! = NEWHOPE): Character
+  human(id: String): Human
+  search(text: String): [SearchResult]
+}
+
+type Mutation {
+  createReview(episode: Episode! review: ReviewInput!): Review!
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review!
+}
+
+type Human implements Character {
+  appearsIn: [Episode]
+  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
+  height(unit: Unit): Float
+  homePlanet: String
+  id: ID!
+  name: String
+}
+
+type Droid implements Character {
+  appearsIn: [Episode]
+  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
+  height(unit: Unit): Float
+  id: ID!
+  name: String
+  primaryFunction: String
+}
+
+enum Episode {
+  NEWHOPE
+  EMPIRE
+  JEDI
+}
+
+interface Character {
+  appearsIn: [Episode]
+  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
+  height(unit: Unit): Float
+  id: ID!
+  name: String
+}
+
+union SearchResult = Starship | Human | Droid
+
+type Review {
+  commentary: String
+  stars: Int!
+}
+
+input ReviewInput {
+  commentary: String
+  stars: Int!
+}
+
+scalar PaginationAmount
+
+enum Unit {
+  FOOT
+  METERS
+}
+
+"A connection to a list of items."
+type CharacterConnection {
+  "A list of edges."
+  edges: [CharacterEdge!]
+  "A flattened list of the nodes."
+  nodes: [Character]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Starship {
+  id: String
+  length: Float!
+  name: String
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+}
+
+"An edge in a connection."
+type CharacterEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Character
+}
+
+directive @export(as: String) on FIELD

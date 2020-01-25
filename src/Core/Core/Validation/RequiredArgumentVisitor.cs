@@ -76,7 +76,7 @@ namespace HotChocolate.Validation
         private static bool IsRequiredArgument(IInputField argument)
         {
             return argument.Type.IsNonNullType()
-                && argument.DefaultValue is NullValueNode;
+                && argument.DefaultValue.IsNull();
         }
     }
 }

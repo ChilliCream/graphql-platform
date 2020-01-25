@@ -9,6 +9,7 @@ type Query {
 input FooSort {
   bar: SortOperationKind
   baz: SortOperationKind
+  nullableBoolean: SortOperationKind
 }
 
 enum SortOperationKind {

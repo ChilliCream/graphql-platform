@@ -1,96 +1,30 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using HotChocolate.Language;
 
-#if !ASPNETCLASSIC
-using System.Collections.ObjectModel;
-#endif
-
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Authorization
-#else
 namespace HotChocolate.AspNetCore.Authorization
-#endif
 {
-    public class AuthorizeDirective
+    public sealed class AuthorizeDirective
         : ISerializable
     {
-        public AuthorizeDirective()
-        {
-            Roles = Array.Empty<string>();
-        }
-
-#if ASPNETCLASSIC
-        public AuthorizeDirective(IEnumerable<string> roles)
-        {
-            if (roles == null)
-            {
-                throw new ArgumentNullException(nameof(roles));
-            }
-
-            Roles = roles.ToArray();
-        }
-
         public AuthorizeDirective(
-            SerializationInfo info,
-            StreamingContext context)
-        {
-            var node = info.GetValue(
-                nameof(DirectiveNode),
-                typeof(DirectiveNode))
-                as DirectiveNode;
-
-            if (node == null)
-            {
-                Roles = (string[])info.GetValue(
-                    nameof(Roles),
-                    typeof(string[]));
-            }
-            else
-            {
-                ArgumentNode rolesArgument = node.Arguments
-                    .FirstOrDefault(t => t.Name.Value == "roles");
-
-                Roles = Array.Empty<string>();
-                if (rolesArgument != null)
-                {
-                    if (rolesArgument.Value is ListValueNode lv)
-                    {
-                        Roles = lv.Items.OfType<StringValueNode>()
-                            .Select(t => t.Value?.Trim())
-                            .Where(s => !string.IsNullOrEmpty(s))
-                            .ToArray();
-                    }
-                    else if (rolesArgument.Value is StringValueNode svn)
-                    {
-                        Roles = new[] { svn.Value };
-                    }
-                }
-            }
-        }
-
-#else
-        public AuthorizeDirective(string policy)
-            : this(policy, null)
-        { }
-
-        public AuthorizeDirective(IReadOnlyList<string> roles)
-            : this(null, roles)
+            IReadOnlyList<string> roles,
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+            : this(null, roles, apply)
         { }
 
         public AuthorizeDirective(
-            string policy,
-            IReadOnlyList<string> roles)
+            string? policy = null,
+            IReadOnlyList<string>? roles = null,
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         {
             Policy = policy;
-            Roles = roles ?? Array.Empty<string>();
+            Roles = roles;
+            Apply = apply;
         }
 
-        public AuthorizeDirective(
-            SerializationInfo info,
-            StreamingContext context)
+        public AuthorizeDirective(SerializationInfo info, StreamingContext context)
         {
             var node = info.GetValue(
                 nameof(DirectiveNode),
@@ -100,9 +34,8 @@ namespace HotChocolate.AspNetCore.Authorization
             if (node == null)
             {
                 Policy = info.GetString(nameof(Policy));
-                Roles = (string[])info.GetValue(
-                    nameof(Roles),
-                    typeof(string[]));
+                Roles = info.GetValue(nameof(Roles), typeof(List<string>)) as List<string>;
+                Apply = (ApplyPolicy)info.GetInt16(nameof(Apply));
             }
             else
             {
@@ -110,50 +43,65 @@ namespace HotChocolate.AspNetCore.Authorization
                     .FirstOrDefault(t => t.Name.Value == "policy");
                 ArgumentNode rolesArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "roles");
+                ArgumentNode resolverArgument = node.Arguments
+                    .FirstOrDefault(t => t.Name.Value == "apply");
 
-                Policy = (policyArgument != null
+                Policy = (policyArgument is { }
                     && policyArgument.Value is StringValueNode sv)
                     ? sv.Value
                     : null;
 
-                Roles = Array.Empty<string>();
-                if (rolesArgument != null)
+                if (rolesArgument is { })
                 {
                     if (rolesArgument.Value is ListValueNode lv)
                     {
                         Roles = lv.Items.OfType<StringValueNode>()
                             .Select(t => t.Value?.Trim())
                             .Where(s => !string.IsNullOrEmpty(s))
-                            .ToArray();
+                            .ToArray()!;
                     }
                     else if (rolesArgument.Value is StringValueNode svn)
                     {
                         Roles = new[] { svn.Value };
                     }
                 }
+
+                Apply = ApplyPolicy.BeforeResolver;
+                if (resolverArgument is { }
+                    && resolverArgument.Value.Value is string s
+                    && s == "AFTER_RESOLVER")
+                {
+                    Apply = ApplyPolicy.AfterResolver;
+                }
             }
         }
 
         /// <summary>
-        /// Gets or sets the policy name that determines access to the resource.
+        /// Gets the policy name that determines access to the resource.
         /// </summary>
-        public string Policy { get; }
-#endif
+        public string? Policy { get; }
 
         /// <summary>
-        /// Gets or sets of roles that are allowed to access the resource.
+        /// Gets of roles that are allowed to access the resource.
         /// </summary>
-        public IReadOnlyList<string> Roles { get; }
+        public IReadOnlyList<string>? Roles { get; }
 
+        /// <summary>
+        /// Gets a value indicating if the resolver has to be executed
+        /// before the policy is run or after the policy is run.
+        ///
+        /// The before policy option is good if the actual object is needed
+        /// for the policy to be evaluated.
+        ///
+        /// The default is BeforeResolver.
+        /// </summary>
+        public ApplyPolicy Apply { get; }
 
-        public void GetObjectData(
-            SerializationInfo info,
-            StreamingContext context)
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-#if !ASPNETCLASSIC
             info.AddValue(nameof(Policy), Policy);
-#endif
-            info.AddValue(nameof(Roles), Roles?.ToArray());
+            info.AddValue(nameof(Roles), Roles?.ToList());
+            info.AddValue(nameof(Apply), (int)Apply);
         }
     }
 }

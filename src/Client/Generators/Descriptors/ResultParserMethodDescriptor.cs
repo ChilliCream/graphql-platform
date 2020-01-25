@@ -4,7 +4,6 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators.Descriptors
 {

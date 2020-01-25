@@ -1,0 +1,12 @@
+﻿{
+  "Data": {
+    "do": {
+      "bar": "abc",
+      "baz": "def",
+      "qux": "ghi"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

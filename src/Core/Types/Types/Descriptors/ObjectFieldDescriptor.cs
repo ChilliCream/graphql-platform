@@ -6,6 +6,8 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public class ObjectFieldDescriptor
@@ -25,15 +27,17 @@ namespace HotChocolate.Types.Descriptors
 
         protected ObjectFieldDescriptor(
             IDescriptorContext context,
-            MemberInfo member)
-            : this(context, member, null)
+            MemberInfo member,
+            Type sourceType)
+            : this(context, member, sourceType, null)
         {
         }
 
         protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member,
-            Type resolverType)
+            Type sourceType,
+            Type? resolverType)
             : base(context)
         {
             Definition.Member = member
@@ -44,6 +48,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.ObjectField);
             Definition.Type = context.Inspector.GetOutputReturnType(member);
+            Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
 
             if (context.Naming.IsDeprecated(member, out string reason))
@@ -63,12 +68,23 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected override ObjectFieldDefinition Definition { get; } =
+        internal protected override ObjectFieldDefinition Definition { get; } =
             new ObjectFieldDefinition();
 
         protected override void OnCreateDefinition(
             ObjectFieldDefinition definition)
         {
+
+            if (Definition.Member is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Member);
+            }
+
+            base.OnCreateDefinition(definition);
+
             CompleteArguments(definition);
         }
 
@@ -85,7 +101,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IObjectFieldDescriptor SyntaxNode(
-            FieldDefinitionNode fieldDefinition)
+            FieldDefinitionNode? fieldDefinition)
         {
             base.SyntaxNode(fieldDefinition);
             return this;
@@ -98,17 +114,17 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IObjectFieldDescriptor Description(
-            string value)
+            string? value)
         {
             base.Description(value);
             return this;
         }
 
         [Obsolete("Use `Deprecated`.")]
-        public IObjectFieldDescriptor DeprecationReason(string reason) =>
+        public IObjectFieldDescriptor DeprecationReason(string? reason) =>
            Deprecated(reason);
 
-        public new IObjectFieldDescriptor Deprecated(string reason)
+        public new IObjectFieldDescriptor Deprecated(string? reason)
         {
             base.Deprecated(reason);
             return this;
@@ -155,9 +171,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IObjectFieldDescriptor Ignore()
+        public new IObjectFieldDescriptor Ignore(bool ignore = true)
         {
-            base.Ignore();
+            base.Ignore(ignore);
             return this;
         }
 
@@ -206,6 +222,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IObjectFieldDescriptor Subscribe(SubscribeResolverDelegate subscribeResolver)
+        {
+            Definition.SubscribeResolver = subscribeResolver;
+            return this;
+        }
+
         public IObjectFieldDescriptor Use(FieldMiddleware middleware)
         {
             if (middleware == null)
@@ -246,13 +268,15 @@ namespace HotChocolate.Types.Descriptors
 
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
-            MemberInfo member) =>
-            new ObjectFieldDescriptor(context, member);
+            MemberInfo member,
+            Type sourceType) =>
+            new ObjectFieldDescriptor(context, member, sourceType);
 
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             MemberInfo member,
+            Type sourceType,
             Type resolverType) =>
-            new ObjectFieldDescriptor(context, member, resolverType);
+            new ObjectFieldDescriptor(context, member, sourceType, resolverType);
     }
 }

@@ -10,8 +10,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
     public class WebSocketSession
         : ISocketSession
     {
-        private readonly ISocketConnection _connection;
         private readonly Pipe _pipe = new Pipe();
+        private readonly ISocketConnection _connection;
         private readonly KeepConnectionAliveJob _keepAlive;
         private readonly MessageProcessor _messageProcessor;
         private readonly MessageReceiver _messageReciver;

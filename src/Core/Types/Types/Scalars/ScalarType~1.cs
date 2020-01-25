@@ -10,7 +10,8 @@ namespace HotChocolate.Types
     public abstract class ScalarType<TClrType>
         : ScalarType
     {
-        protected ScalarType(NameString name) : base(name)
+        protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
         }
 

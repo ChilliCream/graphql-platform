@@ -14,8 +14,7 @@ namespace HotChocolate.Subscriptions
 #if NET461
                 TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
 #else
-                TypeNameAssemblyFormatHandling =
-                    TypeNameAssemblyFormatHandling.Full,
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full,
 #endif
 
                 TypeNameHandling = TypeNameHandling.All,

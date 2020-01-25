@@ -1210,9 +1210,8 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
-        public async Task<IExecutionResult>
-            ExecutedMutationWithRenamedInputField(
-                IQueryRequestBuilder requestBuilder)
+        public async Task<IExecutionResult> ExecutedMutationWithRenamedInputField(
+            IQueryRequestBuilder requestBuilder)
         {
             IHttpClientFactory clientFactory = CreateRemoteSchemas();
 
@@ -1221,11 +1220,8 @@ namespace HotChocolate.Stitching
             serviceCollection.AddStitchedSchema(builder =>
                 builder.AddSchemaFromHttp("contract")
                     .AddSchemaFromHttp("customer")
-                    .RenameField(
-                        new FieldReference("CreateCustomerInput", "name"),
-                        "foo")
-                    .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql"))
+                    .RenameField(new FieldReference("CreateCustomerInput", "name"), "foo")
+                    .AddExtensionsFromString(FileResource.Open("StitchingExtensions.graphql"))
                     .AddSchemaConfiguration(c =>
                     {
                         c.RegisterType<PaginationAmountType>();

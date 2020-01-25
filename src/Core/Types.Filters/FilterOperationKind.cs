@@ -31,5 +31,14 @@ namespace HotChocolate.Types.Filters
         NotLowerThanOrEquals = 0x0023,
 
         Object = 0x0024,
+
+        ArraySome = 0x0026,
+
+        ArrayNone = 0x0028,
+
+        ArrayAll = 0x0030,
+
+        ArrayAny = 0x0032,
+
     }
 }

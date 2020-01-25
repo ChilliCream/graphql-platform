@@ -1,0 +1,297 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooSimpleFilter {
+  AND: [FooSimpleFilter!]
+  barBoolNullable_all: ISingleFilterOfBooleanFilter
+  barBoolNullable_any: Boolean
+  barBoolNullable_none: ISingleFilterOfBooleanFilter
+  barBoolNullable_some: ISingleFilterOfBooleanFilter
+  barBool_all: ISingleFilterOfBooleanFilter
+  barBool_any: Boolean
+  barBool_none: ISingleFilterOfBooleanFilter
+  barBool_some: ISingleFilterOfBooleanFilter
+  barDatetimeNullable_all: ISingleFilterOfDateTimeFilter
+  barDatetimeNullable_any: Boolean
+  barDatetimeNullable_none: ISingleFilterOfDateTimeFilter
+  barDatetimeNullable_some: ISingleFilterOfDateTimeFilter
+  barDatetimeOffsetNullable_all: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_any: Boolean
+  barDatetimeOffsetNullable_none: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_some: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_any: Boolean
+  barDatetimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
+  barDatetime_all: ISingleFilterOfDateTimeFilter
+  barDatetime_any: Boolean
+  barDatetime_none: ISingleFilterOfDateTimeFilter
+  barDatetime_some: ISingleFilterOfDateTimeFilter
+  barDecimalNullable_all: ISingleFilterOfDecimalFilter
+  barDecimalNullable_any: Boolean
+  barDecimalNullable_none: ISingleFilterOfDecimalFilter
+  barDecimalNullable_some: ISingleFilterOfDecimalFilter
+  barDecimal_all: ISingleFilterOfDecimalFilter
+  barDecimal_any: Boolean
+  barDecimal_none: ISingleFilterOfDecimalFilter
+  barDecimal_some: ISingleFilterOfDecimalFilter
+  barDoubleNullable_all: ISingleFilterOfDoubleFilter
+  barDoubleNullable_any: Boolean
+  barDoubleNullable_none: ISingleFilterOfDoubleFilter
+  barDoubleNullable_some: ISingleFilterOfDoubleFilter
+  barDouble_all: ISingleFilterOfDoubleFilter
+  barDouble_any: Boolean
+  barDouble_none: ISingleFilterOfDoubleFilter
+  barDouble_some: ISingleFilterOfDoubleFilter
+  barGuidNullable_all: ISingleFilterOfGuidFilter
+  barGuidNullable_any: Boolean
+  barGuidNullable_none: ISingleFilterOfGuidFilter
+  barGuidNullable_some: ISingleFilterOfGuidFilter
+  barGuid_all: ISingleFilterOfGuidFilter
+  barGuid_any: Boolean
+  barGuid_none: ISingleFilterOfGuidFilter
+  barGuid_some: ISingleFilterOfGuidFilter
+  barInt16Nullable_all: ISingleFilterOfInt16Filter
+  barInt16Nullable_any: Boolean
+  barInt16Nullable_none: ISingleFilterOfInt16Filter
+  barInt16Nullable_some: ISingleFilterOfInt16Filter
+  barInt16_all: ISingleFilterOfInt16Filter
+  barInt16_any: Boolean
+  barInt16_none: ISingleFilterOfInt16Filter
+  barInt16_some: ISingleFilterOfInt16Filter
+  barInt32Nullable_all: ISingleFilterOfInt32Filter
+  barInt32Nullable_any: Boolean
+  barInt32Nullable_none: ISingleFilterOfInt32Filter
+  barInt32Nullable_some: ISingleFilterOfInt32Filter
+  barInt32_all: ISingleFilterOfInt32Filter
+  barInt32_any: Boolean
+  barInt32_none: ISingleFilterOfInt32Filter
+  barInt32_some: ISingleFilterOfInt32Filter
+  barInt64Nullable_all: ISingleFilterOfInt64Filter
+  barInt64Nullable_any: Boolean
+  barInt64Nullable_none: ISingleFilterOfInt64Filter
+  barInt64Nullable_some: ISingleFilterOfInt64Filter
+  barInt64_all: ISingleFilterOfInt64Filter
+  barInt64_any: Boolean
+  barInt64_none: ISingleFilterOfInt64Filter
+  barInt64_some: ISingleFilterOfInt64Filter
+  barSingleNullable_all: ISingleFilterOfSingleFilter
+  barSingleNullable_any: Boolean
+  barSingleNullable_none: ISingleFilterOfSingleFilter
+  barSingleNullable_some: ISingleFilterOfSingleFilter
+  barSingle_all: ISingleFilterOfSingleFilter
+  barSingle_any: Boolean
+  barSingle_none: ISingleFilterOfSingleFilter
+  barSingle_some: ISingleFilterOfSingleFilter
+  barString_all: ISingleFilterOfStringFilter
+  barString_any: Boolean
+  barString_none: ISingleFilterOfStringFilter
+  barString_some: ISingleFilterOfStringFilter
+  OR: [FooSimpleFilter!]
+}
+
+input ISingleFilterOfBooleanFilter {
+  AND: [ISingleFilterOfBooleanFilter!]
+  element: Boolean
+  element_not: Boolean
+  OR: [ISingleFilterOfBooleanFilter!]
+}
+
+input ISingleFilterOfDateTimeFilter {
+  AND: [ISingleFilterOfDateTimeFilter!]
+  element: DateTime
+  element_gt: DateTime
+  element_gte: DateTime
+  element_in: [DateTime!]
+  element_lt: DateTime
+  element_lte: DateTime
+  element_not: DateTime
+  element_not_gt: DateTime
+  element_not_gte: DateTime
+  element_not_in: [DateTime!]
+  element_not_lt: DateTime
+  element_not_lte: DateTime
+  OR: [ISingleFilterOfDateTimeFilter!]
+}
+
+input ISingleFilterOfDateTimeOffsetFilter {
+  AND: [ISingleFilterOfDateTimeOffsetFilter!]
+  element: DateTime
+  element_gt: DateTime
+  element_gte: DateTime
+  element_in: [DateTime!]
+  element_lt: DateTime
+  element_lte: DateTime
+  element_not: DateTime
+  element_not_gt: DateTime
+  element_not_gte: DateTime
+  element_not_in: [DateTime!]
+  element_not_lt: DateTime
+  element_not_lte: DateTime
+  OR: [ISingleFilterOfDateTimeOffsetFilter!]
+}
+
+input ISingleFilterOfDecimalFilter {
+  AND: [ISingleFilterOfDecimalFilter!]
+  element: Decimal
+  element_gt: Decimal
+  element_gte: Decimal
+  element_in: [Decimal!]
+  element_lt: Decimal
+  element_lte: Decimal
+  element_not: Decimal
+  element_not_gt: Decimal
+  element_not_gte: Decimal
+  element_not_in: [Decimal!]
+  element_not_lt: Decimal
+  element_not_lte: Decimal
+  OR: [ISingleFilterOfDecimalFilter!]
+}
+
+input ISingleFilterOfDoubleFilter {
+  AND: [ISingleFilterOfDoubleFilter!]
+  element: Float
+  element_gt: Float
+  element_gte: Float
+  element_in: [Float!]
+  element_lt: Float
+  element_lte: Float
+  element_not: Float
+  element_not_gt: Float
+  element_not_gte: Float
+  element_not_in: [Float!]
+  element_not_lt: Float
+  element_not_lte: Float
+  OR: [ISingleFilterOfDoubleFilter!]
+}
+
+input ISingleFilterOfGuidFilter {
+  AND: [ISingleFilterOfGuidFilter!]
+  element: Uuid
+  element_gt: Uuid
+  element_gte: Uuid
+  element_in: [Uuid!]
+  element_lt: Uuid
+  element_lte: Uuid
+  element_not: Uuid
+  element_not_gt: Uuid
+  element_not_gte: Uuid
+  element_not_in: [Uuid!]
+  element_not_lt: Uuid
+  element_not_lte: Uuid
+  OR: [ISingleFilterOfGuidFilter!]
+}
+
+input ISingleFilterOfInt16Filter {
+  AND: [ISingleFilterOfInt16Filter!]
+  element: Short
+  element_gt: Short
+  element_gte: Short
+  element_in: [Short!]
+  element_lt: Short
+  element_lte: Short
+  element_not: Short
+  element_not_gt: Short
+  element_not_gte: Short
+  element_not_in: [Short!]
+  element_not_lt: Short
+  element_not_lte: Short
+  OR: [ISingleFilterOfInt16Filter!]
+}
+
+input ISingleFilterOfInt32Filter {
+  AND: [ISingleFilterOfInt32Filter!]
+  element: Int
+  element_gt: Int
+  element_gte: Int
+  element_in: [Int!]
+  element_lt: Int
+  element_lte: Int
+  element_not: Int
+  element_not_gt: Int
+  element_not_gte: Int
+  element_not_in: [Int!]
+  element_not_lt: Int
+  element_not_lte: Int
+  OR: [ISingleFilterOfInt32Filter!]
+}
+
+input ISingleFilterOfInt64Filter {
+  AND: [ISingleFilterOfInt64Filter!]
+  element: Long
+  element_gt: Long
+  element_gte: Long
+  element_in: [Long!]
+  element_lt: Long
+  element_lte: Long
+  element_not: Long
+  element_not_gt: Long
+  element_not_gte: Long
+  element_not_in: [Long!]
+  element_not_lt: Long
+  element_not_lte: Long
+  OR: [ISingleFilterOfInt64Filter!]
+}
+
+input ISingleFilterOfSingleFilter {
+  AND: [ISingleFilterOfSingleFilter!]
+  element: Float
+  element_gt: Float
+  element_gte: Float
+  element_in: [Float!]
+  element_lt: Float
+  element_lte: Float
+  element_not: Float
+  element_not_gt: Float
+  element_not_gte: Float
+  element_not_in: [Float!]
+  element_not_lt: Float
+  element_not_lte: Float
+  OR: [ISingleFilterOfSingleFilter!]
+}
+
+input ISingleFilterOfStringFilter {
+  AND: [ISingleFilterOfStringFilter!]
+  element: String
+  element_contains: String
+  element_ends_with: String
+  element_in: [String]
+  element_not: String
+  element_not_contains: String
+  element_not_ends_with: String
+  element_not_in: [String]
+  element_not_starts_with: String
+  element_starts_with: String
+  OR: [ISingleFilterOfStringFilter!]
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
+
+scalar Uuid

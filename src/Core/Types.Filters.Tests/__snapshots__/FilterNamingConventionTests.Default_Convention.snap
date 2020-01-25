@@ -26,6 +26,10 @@ input FooFilter {
   bool: Boolean
   bool_not: Boolean
   comparable: Short
+  comparableEnumerable_all: ISingleFilterOfInt16Filter
+  comparableEnumerable_any: Boolean
+  comparableEnumerable_none: ISingleFilterOfInt16Filter
+  comparableEnumerable_some: ISingleFilterOfInt16Filter
   comparable_gt: Short
   comparable_gte: Short
   comparable_in: [Short!]
@@ -39,6 +43,23 @@ input FooFilter {
   comparable_not_lte: Short
   object: FooBarFilter
   OR: [FooFilter!]
+}
+
+input ISingleFilterOfInt16Filter {
+  AND: [ISingleFilterOfInt16Filter!]
+  element: Short
+  element_gt: Short
+  element_gte: Short
+  element_in: [Short!]
+  element_lt: Short
+  element_lte: Short
+  element_not: Short
+  element_not_gt: Short
+  element_not_gte: Short
+  element_not_in: [Short!]
+  element_not_lt: Short
+  element_not_lte: Short
+  OR: [ISingleFilterOfInt16Filter!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

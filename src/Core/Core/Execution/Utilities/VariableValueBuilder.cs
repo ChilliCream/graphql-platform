@@ -98,8 +98,7 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object> variableValues,
             Variable variable)
         {
-            var value = variableValues.TryGetValue(
-                variable.Name, out var rawValue)
+            var value = variableValues.TryGetValue(variable.Name, out var rawValue)
                 ? Normalize(variableDefinition, variable, rawValue)
                 : variable.DefaultValue;
 
@@ -197,14 +196,9 @@ namespace HotChocolate.Execution
 
             if (variable.Value != null)
             {
-                if (variable.Value is IValueNode literal)
-                {
-                    invalid = !variable.Type.IsInstanceOfType(literal);
-                }
-                else
-                {
-                    invalid = !variable.Type.IsInstanceOfType(variable.Value);
-                }
+                invalid = variable.Value is IValueNode literal
+                    ? !variable.Type.IsInstanceOfType(literal)
+                    : !variable.Type.IsInstanceOfType(variable.Value);
             }
 
             if (invalid)
@@ -255,8 +249,7 @@ namespace HotChocolate.Execution
                 return _schema.GetType<INamedType>(namedType.Name.Value);
             }
 
-            throw new NotSupportedException(
-                TypeResources.VariableValueBuilder_NodeKind);
+            throw new NotSupportedException(TypeResources.VariableValueBuilder_NodeKind);
         }
 
         private ref struct Variable

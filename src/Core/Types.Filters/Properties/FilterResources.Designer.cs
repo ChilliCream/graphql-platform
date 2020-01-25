@@ -61,6 +61,24 @@ namespace HotChocolate.Types.Filters.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot handle the specified type..
+        /// </summary>
+        internal static string FilterArrayFieldDescriptor_InvalidType {
+            get {
+                return ResourceManager.GetString("FilterArrayFieldDescriptor_InvalidType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The operation descriptor type {0} does not match the requested type {1}..
+        /// </summary>
+        internal static string FilterFieldOperationDescriptor_InvalidDescriptorType {
+            get {
+                return ResourceManager.GetString("FilterFieldOperationDescriptor_InvalidDescriptorType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only properties are allowed for input types..
         /// </summary>
         internal static string FilterInputTypeDescriptor_OnlyProperties {

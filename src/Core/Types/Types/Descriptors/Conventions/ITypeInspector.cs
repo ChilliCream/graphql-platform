@@ -38,8 +38,15 @@ namespace HotChocolate.Types.Descriptors
 
         IEnumerable<object> GetEnumValues(Type enumType);
 
+        MemberInfo GetEnumValueMember(object value);
+
         Type ExtractType(Type type);
 
         bool IsSchemaType(Type type);
+
+        void ApplyAttributes(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider attributeProvider);
     }
 }

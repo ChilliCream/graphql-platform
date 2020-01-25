@@ -3,10 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http;
+using StrawberryShake.Http.Subscriptions;
+using StrawberryShake.Transport;
 
-namespace  StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.GitHub
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class GetUserResultParser
         : JsonResultParserBase<IGetUser>
     {
@@ -14,33 +18,15 @@ namespace  StrawberryShake.Client.GitHub
         private readonly IValueSerializer _dateTimeSerializer;
         private readonly IValueSerializer _intSerializer;
 
-        public GetUserResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetUserResultParser(IValueSerializerCollection serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("String", out IValueSerializer? serializer))
+            if (serializerResolver is null)
             {
-                throw new ArgumentException(
-                    "There is no serializer specified for `String`.",
-                    nameof(serializers));
+                throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializer;
-
-            if (!map.TryGetValue("DateTime", out  serializer))
-            {
-                throw new ArgumentException(
-                    "There is no serializer specified for `DateTime`.",
-                    nameof(serializers));
-            }
-            _dateTimeSerializer = serializer;
-
-            if (!map.TryGetValue("Int", out  serializer))
-            {
-                throw new ArgumentException(
-                    "There is no serializer specified for `Int`.",
-                    nameof(serializers));
-            }
-            _intSerializer = serializer;
+            _stringSerializer = serializerResolver.Get("String");
+            _dateTimeSerializer = serializerResolver.Get("DateTime");
+            _intSerializer = serializerResolver.Get("Int");
         }
 
         protected override IGetUser ParserData(JsonElement data)

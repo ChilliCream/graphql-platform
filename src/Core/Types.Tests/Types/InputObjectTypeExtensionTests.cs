@@ -1,14 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using Xunit;
-using Snapshooter.Xunit;
-using System;
 using HotChocolate.Language;
 using System.Linq;
-using Moq;
 
 namespace HotChocolate.Types
 {
@@ -236,8 +228,18 @@ namespace HotChocolate.Types
 
         public class Foo
         {
-            public string Description { get; } = "hello";
+            public Foo()
+            {
+            }
+
+            public Foo(string name, string description)
+            {
+                Name = name;
+                Description = description;
+            }
+
             public string Name { get; } = "hello";
+            public string Description { get; } = "hello";
         }
 
         public class DummyDirective

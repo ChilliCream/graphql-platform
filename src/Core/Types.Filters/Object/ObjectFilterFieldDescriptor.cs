@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -67,11 +68,17 @@ namespace HotChocolate.Types.Filters
                 operation);
         }
 
+        private ObjectFilterOperationDescriptor GetOrCreateOperation(
+            FilterOperationKind operationKind)
+        {
+            return Filters.GetOrAddOperation(operationKind,
+                    () => CreateOperation(operationKind));
+        }
 
         public IObjectFilterOperationDescriptor AllowObject()
         {
             ObjectFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.Object);
+                GetOrCreateOperation(FilterOperationKind.Object);
             Filters.Add(field);
             return field;
         }

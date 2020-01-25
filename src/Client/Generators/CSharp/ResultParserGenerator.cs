@@ -109,7 +109,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteConstructorAsync(
+        private static async Task WriteConstructorAsync(
             CodeWriter writer,
             IResultParserDescriptor parserDescriptor)
         {
@@ -117,7 +117,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync("public ").ConfigureAwait(false);
             await writer.WriteAsync(parserDescriptor.Name).ConfigureAwait(false);
             await writer.WriteAsync(
-                "(IValueSerializerResolver serializerResolver)")
+                "(IValueSerializerCollection serializerResolver)")
                 .ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
@@ -128,7 +128,7 @@ namespace StrawberryShake.Generators.CSharp
             using (writer.IncreaseIndent())
             {
                 await writer.WriteIndentedLineAsync(
-                    "if(serializerResolver is null)")
+                    "if (serializerResolver is null)")
                     .ConfigureAwait(false);
                 await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())
@@ -147,7 +147,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteAsync('_').ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(leafType.Name)).ConfigureAwait(false);
                     await writer.WriteAsync(
-                        "Serializer = serializerResolver.GetValueSerializer(" +
+                        "Serializer = serializerResolver.Get(" +
                         $"\"{leafType.Name}\");")
                         .ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);

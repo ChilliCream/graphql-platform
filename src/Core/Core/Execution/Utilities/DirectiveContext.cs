@@ -38,6 +38,9 @@ namespace HotChocolate.Execution
         public ISchema Schema =>
             _middlewareContext.Schema;
 
+        public ObjectType RootType =>
+        _middlewareContext.RootType;
+
         public ObjectType ObjectType =>
             _middlewareContext.ObjectType;
 
@@ -112,14 +115,17 @@ namespace HotChocolate.Execution
         public Task<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
 
-        public IReadOnlyCollection<IFieldSelection> CollectFields(
+        public IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext) =>
             _middlewareContext.CollectFields(typeContext);
 
-        public IReadOnlyCollection<IFieldSelection> CollectFields(
+        public IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _middlewareContext.CollectFields(
-                typeContext, FieldSelection.SelectionSet);
+            _middlewareContext.CollectFields(typeContext, selectionSet);
+
+        public IReadOnlyList<IFieldSelection> CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet, Path path) =>
+            _middlewareContext.CollectFields(typeContext, selectionSet, path);
 
         public ValueKind ArgumentKind(NameString name) =>
             _middlewareContext.ArgumentKind(name);

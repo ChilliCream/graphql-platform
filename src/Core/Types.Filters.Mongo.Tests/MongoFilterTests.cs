@@ -1,14 +1,14 @@
-using System.Linq;
-using MongoDB.Driver;
-using MongoDB.Bson;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using Xunit;
-using System.Threading.Tasks;
-using Snapshooter.Xunit;
-using HotChocolate.Types.Relay;
-using Squadron;
 using System;
+using System.Linq;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
+using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using Snapshooter.Xunit;
+using Squadron;
+using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -103,9 +103,13 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
+                    new Model
+                    {
+                        Nested = null
+                    },
                     new Model
                     {
                         Nested = new Model
@@ -163,7 +167,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -199,7 +203,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -235,7 +239,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Foo = "abc", Bar = 1, Baz = true },
@@ -271,7 +275,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
@@ -307,7 +311,7 @@ namespace HotChocolate.Types.Filters
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                var collection = database.GetCollection<Model>("col");
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
                     new Model { Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },

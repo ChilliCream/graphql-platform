@@ -23,10 +23,9 @@ namespace HotChocolate.Stitching.Delegation
                 });
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.SetupGet(t => t.Field).Returns(
-                schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Argument<object>("a"))
-                .Returns("baz");
+            ObjectField field = schema.GetType<ObjectType>("Query").Fields["foo"];
+            context.SetupGet(t => t.Field).Returns(field);
+            context.Setup(t => t.Argument<IValueNode>("a")).Returns(new StringValueNode("baz"));
 
             var scopedVariable = new ScopedVariableNode(
                 null,
@@ -36,15 +35,15 @@ namespace HotChocolate.Stitching.Delegation
             // act
             var resolver = new ArgumentScopedVariableResolver();
             VariableValue value = resolver.Resolve(
-                context.Object, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+                context.Object,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("bar",
-                Assert.IsType<StringValueNode>(value.DefaultValue).Value);
+            Assert.Equal("bar", Assert.IsType<StringValueNode>(value.DefaultValue).Value);
             Assert.Equal("arguments_a", value.Name);
-            Assert.IsType<NamedTypeNode>(value.Type);
-            Assert.Equal("baz", value.Value);
+            Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
+            Assert.Equal("baz", value.Value.Value);
         }
 
         [Fact]
@@ -82,8 +81,9 @@ namespace HotChocolate.Stitching.Delegation
             // act
             var resolver = new ArgumentScopedVariableResolver();
             Action a = () => resolver.Resolve(
-                context.Object, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+                context.Object,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
             Assert.Collection(
@@ -110,8 +110,10 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ArgumentScopedVariableResolver();
-            Action a = () => resolver.Resolve(null, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+            Action a = () => resolver.Resolve(
+                null,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
             Assert.Equal("context",
@@ -138,8 +140,10 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ArgumentScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, null,
-                new NamedTypeNode(new NameNode("abc")));
+            Action a = () => resolver.Resolve(
+                context.Object,
+                null,
+                schema.GetType<StringType>("String"));
 
             // assert
             Assert.Equal("variable",
@@ -159,10 +163,9 @@ namespace HotChocolate.Stitching.Delegation
                 });
 
             var context = new Mock<IMiddlewareContext>();
-            context.SetupGet(t => t.Field).Returns(
-                schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Argument<object>(It.IsAny<NameString>()))
-                .Returns("Baz");
+            ObjectField field = schema.GetType<ObjectType>("Query").Fields["foo"];
+            context.SetupGet(t => t.Field).Returns(field);
+            context.Setup(t => t.Argument<object>(It.IsAny<NameString>())).Returns("Baz");
 
             var scopedVariable = new ScopedVariableNode(
                 null,
@@ -171,8 +174,10 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ArgumentScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, scopedVariable,
-                new NamedTypeNode(new NameNode("abc")));
+            Action a = () => resolver.Resolve(
+                context.Object,
+                scopedVariable,
+                schema.GetType<StringType>("String"));
 
             // assert
             Assert.Equal("variable",

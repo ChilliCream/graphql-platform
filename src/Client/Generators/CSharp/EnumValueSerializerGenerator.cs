@@ -92,7 +92,7 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if(value is null)").ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("if (value is null)").ConfigureAwait(false);
                 await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())
                 {
@@ -165,7 +165,7 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if(serialized is null)")
+                await writer.WriteIndentedLineAsync("if (serialized is null)")
                     .ConfigureAwait(false);
                 await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())

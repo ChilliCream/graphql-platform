@@ -892,6 +892,16 @@
         },
         {
           "kind": "SCALAR",
+          "name": "ByteArray",
+          "description": null,
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
           "name": "Short",
           "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.",
           "fields": null,
@@ -1006,26 +1016,6 @@
           "possibleTypes": null
         },
         {
-          "kind": "SCALAR",
-          "name": "Int",
-          "description": "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "MultiplierPath",
-          "description": "The multiplier path scalar represents a valid GraphQL multiplier path string.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
           "kind": "OBJECT",
           "name": "Foo",
           "description": null,
@@ -1095,47 +1085,6 @@
           "onOperation": false,
           "onFragment": true,
           "onField": true
-        },
-        {
-          "name": "cost",
-          "description": "The cost directives is used to express the complexity of a field.",
-          "args": [
-            {
-              "name": "complexity",
-              "description": "Defines the complexity of the field.",
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                }
-              },
-              "defaultValue": "1"
-            },
-            {
-              "name": "multipliers",
-              "description": "Defines field arguments that act as complexity multipliers.",
-              "type": {
-                "kind": "LIST",
-                "name": null,
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "MultiplierPath",
-                    "ofType": null
-                  }
-                }
-              },
-              "defaultValue": null
-            }
-          ],
-          "onOperation": false,
-          "onFragment": false,
-          "onField": false
         },
         {
           "name": "deprecated",

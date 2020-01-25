@@ -1,0 +1,41 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input BarFilter {
+  AND: [BarFilter!]
+  baz: String
+  baz_contains: String
+  baz_ends_with: String
+  baz_in: [String]
+  baz_not: String
+  baz_not_contains: String
+  baz_not_ends_with: String
+  baz_not_in: [String]
+  baz_not_starts_with: String
+  baz_starts_with: String
+  OR: [BarFilter!]
+}
+
+input FooFilter {
+  AND: [FooFilter!]
+  bar: String
+  barNested_some: BarFilter
+  bar_contains: String
+  bar_ends_with: String
+  bar_in: [String]
+  bar_not: String
+  bar_not_contains: String
+  bar_not_ends_with: String
+  bar_not_in: [String]
+  bar_not_starts_with: String
+  bar_starts_with: String
+  OR: [FooFilter!]
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

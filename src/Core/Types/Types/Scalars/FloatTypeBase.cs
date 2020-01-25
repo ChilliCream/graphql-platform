@@ -8,8 +8,12 @@ namespace HotChocolate.Types
        : ScalarType<TClrType>
        where TClrType : IComparable
     {
-        protected FloatTypeBase(NameString name, TClrType min, TClrType max)
-           : base(name)
+        protected FloatTypeBase(
+            NameString name,
+            TClrType min,
+            TClrType max,
+            BindingBehavior bind = BindingBehavior.Explicit)
+           : base(name, bind)
         {
             MinValue = min;
             MaxValue = max;
@@ -18,7 +22,6 @@ namespace HotChocolate.Types
         public TClrType MinValue { get; }
 
         public TClrType MaxValue { get; }
-
 
         public override bool IsInstanceOfType(IValueNode literal)
         {

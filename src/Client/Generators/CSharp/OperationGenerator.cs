@@ -79,6 +79,12 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
+            await writer.WriteIndentedLineAsync(
+                "public OperationKind Kind => " +
+                $"OperationKind.{descriptor.Operation.Operation};")
+                .ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync("public Type ResultType => ").ConfigureAwait(false);
             await writer.WriteAsync(
@@ -189,7 +195,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentedLineAsync(
-                $"if({GetPropertyName(argument.Name)}.HasValue)")
+                $"if ({GetPropertyName(argument.Name)}.HasValue)")
                 .ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 

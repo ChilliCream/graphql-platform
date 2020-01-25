@@ -5,6 +5,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
     internal sealed class RegisteredType
@@ -13,36 +15,43 @@ namespace HotChocolate.Configuration
         public RegisteredType(
             ITypeReference reference,
             TypeSystemObjectBase type,
-            IReadOnlyList<TypeDependency> dependencies)
+            InitializationContext initializationContext,
+            IReadOnlyList<TypeDependency> dependencies,
+            bool isInferred)
+            : this(new[] { reference }, type, initializationContext, dependencies, isInferred)
         {
-            if (reference == null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
-            References = new[] { reference };
-            Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Dependencies = dependencies
-                ?? throw new ArgumentNullException(nameof(dependencies));
         }
 
         public RegisteredType(
             IReadOnlyList<ITypeReference> references,
             TypeSystemObjectBase type,
-            IReadOnlyList<TypeDependency> dependencies)
+            InitializationContext initializationContext,
+            IReadOnlyList<TypeDependency> dependencies,
+            bool isInferred)
         {
-            References = references
-                ?? throw new ArgumentNullException(nameof(references));
-            Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Dependencies = dependencies
-                ?? throw new ArgumentNullException(nameof(dependencies));
+            References = references;
+            Type = type;
+            InitializationContext = initializationContext;
+            Dependencies = dependencies;
+            IsInferred = isInferred;
+            IsExtension = Type is INamedTypeExtensionMerger;
+            IsNamedType = Type is INamedType;
+            IsDirectiveType = Type is DirectiveType;
         }
 
         public IReadOnlyList<ITypeReference> References { get; }
 
         public TypeSystemObjectBase Type { get; }
+
+        public InitializationContext InitializationContext { get; }
+
+        public bool IsInferred { get; }
+
+        public bool IsExtension { get; }
+
+        public bool IsNamedType { get; }
+
+        public bool IsDirectiveType { get; }
 
         public Type ClrType
         {
@@ -61,34 +70,26 @@ namespace HotChocolate.Configuration
         public RegisteredType WithDependencies(
             IReadOnlyList<TypeDependency> dependencies)
         {
-            if (dependencies == null)
-            {
-                throw new ArgumentNullException(nameof(dependencies));
-            }
-
-            return new RegisteredType(References, Type, dependencies);
+            return new RegisteredType(
+                References,
+                Type,
+                InitializationContext,
+                dependencies,
+                IsInferred);
         }
 
         public RegisteredType AddDependencies(
             IReadOnlyList<TypeDependency> dependencies)
         {
-            if (dependencies == null)
-            {
-                throw new ArgumentNullException(nameof(dependencies));
-            }
-
             var merged = Dependencies.ToList();
             merged.AddRange(dependencies);
 
-            return new RegisteredType(References, Type, merged);
-        }
-
-        public void Update(IDictionary<ITypeReference, RegisteredType> types)
-        {
-            foreach (ITypeReference reference in References)
-            {
-                types[reference] = this;
-            }
+            return new RegisteredType(
+                References,
+                Type,
+                InitializationContext,
+                merged,
+                IsInferred);
         }
     }
 }

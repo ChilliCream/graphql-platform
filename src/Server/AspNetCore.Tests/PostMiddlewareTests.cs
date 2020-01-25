@@ -4,11 +4,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using HotChocolate;
-using HotChocolate.Types;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -69,6 +67,53 @@ namespace HotChocolate.AspNetCore
             // act
             HttpResponseMessage message =
                 await server.SendPostRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [InlineData("[ ]")]
+        [InlineData("[]")]
+        [Theory]
+        public async Task HttpPost_Send_EmptyArray(string request)
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync("[]");
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Send_EmptyRequest()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(string.Empty);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Send_InvalidRequest()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync("{ \"query\":    ");
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
