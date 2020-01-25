@@ -59,11 +59,6 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskAsyncEnumerable<T>(
             ValueTask<IAsyncEnumerable<T>> task)
         {
-            if (task == null)
-            {
-                return null;
-            }
-
             IAsyncEnumerable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertEnumerable(enumerable);
         }
@@ -71,11 +66,6 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskEnumerable<T>(
             ValueTask<IEnumerable<T>> task)
         {
-            if (task == null)
-            {
-                return null;
-            }
-
             IEnumerable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertEnumerable(enumerable);
         }
@@ -83,11 +73,6 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskQueryable<T>(
             ValueTask<IQueryable<T>> task)
         {
-            if (task == null)
-            {
-                return null;
-            }
-
             IEnumerable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertEnumerable(enumerable);
         }
@@ -95,11 +80,6 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskObservable<T>(
             ValueTask<IObservable<T>> task)
         {
-            if (task == null)
-            {
-                return null;
-            }
-
             IObservable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertObservable(enumerable);
         }
