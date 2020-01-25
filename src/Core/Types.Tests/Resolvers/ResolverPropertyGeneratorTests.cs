@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
