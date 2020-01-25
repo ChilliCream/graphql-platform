@@ -23,15 +23,11 @@ namespace HotChocolate.Types.Filters.Expressions
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
-                Type propertType;
+                Type propertType = operation.Type;
 
                 if (operation.TryGetSimpleFilterBaseType(out Type baseType))
                 {
                     propertType = baseType;
-                }
-                else
-                {
-                    propertType = operation.Type;
                 }
 
                 if (parsedValue)

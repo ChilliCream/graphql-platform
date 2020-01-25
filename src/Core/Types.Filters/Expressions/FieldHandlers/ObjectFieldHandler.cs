@@ -35,18 +35,24 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures)
+            Stack<QueryableClosure> closures,
+            bool inMemory)
         {
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 // Deque last expression to prefix with nullcheck
                 Expression condition = closures.Peek().Level.Peek().Dequeue();
                 Expression property = closures.Peek().Instance.Peek();
-                
-                // wrap last expression  
-                closures.Peek().Level.Peek().Enqueue(
-                    FilterExpressionBuilder.NotNullAndAlso(
-                        property, condition));
+
+                // wrap last expression only if  in memory
+                if (inMemory)
+                {
+                    condition = FilterExpressionBuilder.NotNullAndAlso(
+                        property, condition);
+                }
+                closures.Peek().Level.Peek().Enqueue(condition);
+
+
                 closures.Peek().Instance.Pop();
             }
         }

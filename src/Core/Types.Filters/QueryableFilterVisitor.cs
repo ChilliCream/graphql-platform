@@ -166,7 +166,8 @@ namespace HotChocolate.Types.Filters
                         parent,
                         path,
                         ancestors,
-                        Closures);
+                        Closures,
+                        _inMemory);
                 }
             }
             return base.Leave(node, parent, path, ancestors);
