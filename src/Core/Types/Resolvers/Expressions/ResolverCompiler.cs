@@ -17,10 +17,6 @@ namespace HotChocolate.Resolvers.Expressions
             typeof(IResolverContext).GetMethod("Parent")!;
         private static readonly MethodInfo _resolver =
             typeof(IResolverContext).GetMethod("Resolver")!;
-        private readonly MethodInfo _taskResult = typeof(Task)
-            .GetTypeInfo()
-            .GetDeclaredMethod(nameof(Task.FromResult))!
-            .MakeGenericMethod(typeof(object));
 
         private readonly IResolverParameterCompiler[] _compilers;
         private readonly ParameterExpression _context;
