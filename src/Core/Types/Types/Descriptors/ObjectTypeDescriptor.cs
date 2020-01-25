@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     ObjectFieldDefinition fieldDefinition =
                         ObjectFieldDescriptor
-                            .New(Context, member, resolverType)
+                            .New(Context, member, sourceType, resolverType)
                             .CreateDefinition();
 
                     if (processed.Add(fieldDefinition.Name))
@@ -269,7 +269,7 @@ namespace HotChocolate.Types.Descriptors
                 }
 
                 fieldDescriptor = ObjectFieldDescriptor.New(
-                    Context, member, typeof(TResolver));
+                    Context, member, Definition.ClrType, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }
