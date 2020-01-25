@@ -165,7 +165,9 @@ namespace HotChocolate.Utilities
                     || type.Definition == typeof(IReadOnlyList<>)
                     || type.Definition == typeof(ICollection<>)
                     || type.Definition == typeof(IList<>)
-                    || type.Definition == typeof(IQueryable<>))
+                    || type.Definition == typeof(IQueryable<>)
+                    || type.Definition == typeof(IAsyncEnumerable<>)
+                    || type.Definition == typeof(IObservable<>))
                 {
                     return true;
                 }
@@ -180,7 +182,9 @@ namespace HotChocolate.Utilities
 
         private static bool IsTaskType(IExtendedType type)
         {
-            return type.IsGeneric && typeof(Task<>) == type.Definition;
+            return type.IsGeneric
+                && (typeof(Task<>) == type.Definition
+                    || typeof(ValueTask<>) == type.Definition);
         }
 
         private static bool IsResolverResultType(IExtendedType type)

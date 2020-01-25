@@ -42,13 +42,12 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression condition = context.GetLevel().Dequeue();
                 Expression property = context.GetInstance();
 
-                // wrap last expression  
                 // wrap last expression only if  in memory
                 if (context.InMemory)
                 {
                     condition = FilterExpressionBuilder.NotNullAndAlso(
                         property, condition);
-                } 
+                }
                 context.GetLevel().Enqueue(condition);
                 context.PopInstance();
             }

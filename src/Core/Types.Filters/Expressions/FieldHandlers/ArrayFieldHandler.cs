@@ -17,11 +17,9 @@ namespace HotChocolate.Types.Filters.Expressions
             out VisitorAction action
             )
         {
-            if (
-                field.Operation.Kind == FilterOperationKind.ArraySome ||
-                field.Operation.Kind == FilterOperationKind.ArrayNone ||
-                field.Operation.Kind == FilterOperationKind.ArrayAll
-               )
+            if (field.Operation.Kind == FilterOperationKind.ArraySome 
+                || field.Operation.Kind == FilterOperationKind.ArrayNone
+                || field.Operation.Kind == FilterOperationKind.ArrayAll)
             {
                 MemberExpression nestedProperty = Expression.Property(
                     context.GetInstance(),
@@ -49,11 +47,9 @@ namespace HotChocolate.Types.Filters.Expressions
             IReadOnlyList<ISyntaxNode> ancestors)
         {
 
-            if (
-               field.Operation.Kind == FilterOperationKind.ArraySome ||
-               field.Operation.Kind == FilterOperationKind.ArrayNone ||
-               field.Operation.Kind == FilterOperationKind.ArrayAll
-              )
+            if (field.Operation.Kind == FilterOperationKind.ArraySome
+                || field.Operation.Kind == FilterOperationKind.ArrayNone
+                || field.Operation.Kind == FilterOperationKind.ArrayAll)
             {
                 QueryableClosure nestedClosure = context.PopClosure();
                 LambdaExpression lambda = nestedClosure.CreateLambda();
@@ -69,6 +65,7 @@ namespace HotChocolate.Types.Filters.Expressions
                           lambda
                         );
                         break;
+                        
                     case FilterOperationKind.ArrayNone:
                         expression = FilterExpressionBuilder.Not(
                             FilterExpressionBuilder.Any(
@@ -78,6 +75,7 @@ namespace HotChocolate.Types.Filters.Expressions
                             )
                         );
                         break;
+                        
                     case FilterOperationKind.ArrayAll:
                         expression = FilterExpressionBuilder.All(
                           closureType,
@@ -85,6 +83,7 @@ namespace HotChocolate.Types.Filters.Expressions
                           lambda
                         );
                         break;
+                        
                     default:
                         throw new NotSupportedException();
                 }
