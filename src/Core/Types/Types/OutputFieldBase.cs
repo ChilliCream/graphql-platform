@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -18,6 +18,7 @@ namespace HotChocolate.Types
                 definition.Arguments.Select(t => new Argument(t)));
             IsDeprecated = !string.IsNullOrEmpty(
                 definition.DeprecationReason);
+
             DeprecationReason = definition.DeprecationReason;
         }
 

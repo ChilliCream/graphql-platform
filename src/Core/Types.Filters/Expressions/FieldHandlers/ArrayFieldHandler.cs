@@ -89,7 +89,7 @@ namespace HotChocolate.Types.Filters.Expressions
                         throw new NotSupportedException();
                 }
 
-                if (inMemory)
+                if (context.InMemory)
                 {
                     expression = FilterExpressionBuilder.NotNullAndAlso(
                                  context.GetInstance(), expression);
