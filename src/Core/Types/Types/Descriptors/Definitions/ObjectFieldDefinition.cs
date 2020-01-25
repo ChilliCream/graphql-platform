@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
     public class ObjectFieldDefinition
         : OutputFieldDefinitionBase
     {
+        public Type SourceType { get; set; }
+
         public Type ResolverType { get; set; }
 
         public MemberInfo Member { get; set; }
