@@ -59,6 +59,7 @@ namespace HotChocolate.Types
 
                 TypeExtensionHelper.MergeObjectFields(
                     context,
+                    objectType.Definition.ClrType,
                     Definition.Fields,
                     objectType.Definition.Fields);
 
