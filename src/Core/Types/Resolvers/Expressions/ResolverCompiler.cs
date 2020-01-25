@@ -40,9 +40,9 @@ namespace HotChocolate.Resolvers.Expressions
 
         protected ParameterExpression Context => _context;
 
-        protected MethodInfo Parent => _parent;
+        protected static MethodInfo Parent => _parent;
 
-        protected MethodInfo Resolver => _resolver;
+        protected static MethodInfo Resolver => _resolver;
 
         protected IEnumerable<Expression> CreateParameters(
             IEnumerable<ParameterInfo> parameters,
