@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -12,6 +12,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             Expression instance,
             ITypeConversion converter,
+            bool inMemory,
             out Expression expression);
     }
 }

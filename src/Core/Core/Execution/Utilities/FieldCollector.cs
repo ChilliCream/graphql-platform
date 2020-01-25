@@ -325,7 +325,7 @@ namespace HotChocolate.Execution
             }
 
             Report report = ArgumentNonNullValidator.Validate(
-                argument.Type,
+                argument,
                 literal,
                 Path.New(argument.Name));
 
