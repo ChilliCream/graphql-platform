@@ -22,7 +22,6 @@
     <ProjectReference Include="..\..\src\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
-    <ProjectReference Include="..\..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Playground\AspNetCore.Playground.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
   </ItemGroup>

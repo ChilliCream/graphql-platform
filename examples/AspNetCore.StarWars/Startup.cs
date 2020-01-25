@@ -81,7 +81,6 @@ namespace StarWars
             app
                 .UseWebSockets()
                 .UseGraphQL("/graphql")
-                .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
                 .UseVoyager("/graphql");
         }
