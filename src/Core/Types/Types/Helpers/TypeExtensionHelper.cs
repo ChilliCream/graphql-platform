@@ -78,7 +78,8 @@ namespace HotChocolate.Types
                         (args, extensionArg, typeArg) => { });
 
                     action(fields, extensionField, typeField);
-                });
+                },
+                onBeforeAdd);
         }
 
         private static void MergeFields<T>(
