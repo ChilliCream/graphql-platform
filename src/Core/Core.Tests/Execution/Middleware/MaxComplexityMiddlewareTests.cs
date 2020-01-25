@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Moq;
 using Snapshooter;
@@ -21,18 +22,21 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    foo(i: Int): String
-                        @cost(complexity: 5 multipliers: [""i""])
-                }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        foo(i: Int): String
+                            @cost(complexity: 5 multipliers: [""i""])
+                    }
+
+                    input FooInput {
+                        index : Int
+                    }
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -106,18 +110,21 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    foo(i: Int): String
-                        @cost(complexity: 5 multipliers: [""i""])
-                }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        foo(i: Int): String
+                            @cost(complexity: 5 multipliers: [""i""])
+                    }
+
+                    input FooInput {
+                        index : Int
+                    }
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -194,22 +201,21 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    foo(i: FooInput): String
-                        @cost(complexity: 5 multipliers: [""i.index""])
-                }
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        foo(i: FooInput): String
+                            @cost(complexity: 5 multipliers: [""i.index""])
+                    }
 
-                input FooInput {
-                    index : Int
-                }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+                    input FooInput {
+                        index : Int
+                    }
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -283,9 +289,10 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
                     foo(i: FooInput): String
                         @cost(complexity: 5 multipliers: [""i.index""])
                 }
@@ -293,12 +300,10 @@ namespace HotChocolate.Execution
                 input FooInput {
                     index : Int
                 }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -389,6 +394,7 @@ namespace HotChocolate.Execution
                     baz: String
                 }
                 ")
+                .AddDirectiveType<CostDirectiveType>()
                 .Use(next => context =>
                 {
                     context.Result = "baz";
@@ -432,6 +438,7 @@ namespace HotChocolate.Execution
                     baz: String
                 }
                 ")
+                .AddDirectiveType<CostDirectiveType>()
                 .Use(next => context =>
                 {
                     context.Result = "baz";

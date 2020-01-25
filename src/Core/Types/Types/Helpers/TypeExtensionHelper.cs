@@ -12,6 +12,7 @@ namespace HotChocolate.Types
     {
         public static void MergeObjectFields(
             ICompletionContext context,
+            Type sourceType,
             IList<ObjectFieldDefinition> extensionFields,
             IList<ObjectFieldDefinition> typeFields)
         {
@@ -31,7 +32,8 @@ namespace HotChocolate.Types
                             typeField.MiddlewareComponents.Add(component);
                         }
                     }
-                });
+                },
+                extensionField => extensionField.SourceType = sourceType);
         }
 
         public static void MergeInterfaceFields(
@@ -56,7 +58,8 @@ namespace HotChocolate.Types
             ICompletionContext context,
             IList<T> extensionFields,
             IList<T> typeFields,
-            Action<IList<T>, T, T> action)
+            Action<IList<T>, T, T> action,
+            Action<T> onBeforeAdd = null)
             where T : OutputFieldDefinitionBase
         {
             MergeFields(context, extensionFields, typeFields,
@@ -75,14 +78,16 @@ namespace HotChocolate.Types
                         (args, extensionArg, typeArg) => { });
 
                     action(fields, extensionField, typeField);
-                });
+                },
+                onBeforeAdd);
         }
 
         private static void MergeFields<T>(
             ICompletionContext context,
             IList<T> extensionFields,
             IList<T> typeFields,
-            Action<IList<T>, T, T> action)
+            Action<IList<T>, T, T> action,
+            Action<T> onBeforeAdd = null)
             where T : FieldDefinitionBase
         {
             foreach (T extensionField in extensionFields)
@@ -92,6 +97,7 @@ namespace HotChocolate.Types
 
                 if (typeField == null)
                 {
+                    onBeforeAdd?.Invoke(extensionField);
                     typeFields.Add(extensionField);
                 }
                 else

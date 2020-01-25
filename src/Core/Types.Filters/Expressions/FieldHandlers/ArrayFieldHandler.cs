@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -17,19 +15,15 @@ namespace HotChocolate.Types.Filters.Expressions
             IReadOnlyList<ISyntaxNode> ancestors,
             Stack<QueryableClosure> closures,
             bool inMemory,
-            out VisitorAction action
-            )
+            out VisitorAction action)
         {
-            if (
-                field.Operation.Kind == FilterOperationKind.ArraySome ||
-                field.Operation.Kind == FilterOperationKind.ArrayNone ||
-                field.Operation.Kind == FilterOperationKind.ArrayAll
-               )
+            if (field.Operation.Kind == FilterOperationKind.ArraySome 
+                || field.Operation.Kind == FilterOperationKind.ArrayNone
+                || field.Operation.Kind == FilterOperationKind.ArrayAll)
             {
                 MemberExpression nestedProperty = Expression.Property(
                     closures.Peek().Instance.Peek(),
-                    field.Operation.Property
-                );
+                    field.Operation.Property);
 
                 closures.Peek().Instance.Push(nestedProperty);
 
@@ -49,14 +43,13 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures)
+            Stack<QueryableClosure> closures,
+            bool inMemory)
         {
 
-            if (
-               field.Operation.Kind == FilterOperationKind.ArraySome ||
-               field.Operation.Kind == FilterOperationKind.ArrayNone ||
-               field.Operation.Kind == FilterOperationKind.ArrayAll
-              )
+            if (field.Operation.Kind == FilterOperationKind.ArraySome
+                || field.Operation.Kind == FilterOperationKind.ArrayNone
+                || field.Operation.Kind == FilterOperationKind.ArrayAll)
             {
                 QueryableClosure nestedClosure = closures.Pop();
                 LambdaExpression lambda = nestedClosure.CreateLambda();
@@ -72,6 +65,7 @@ namespace HotChocolate.Types.Filters.Expressions
                           lambda
                         );
                         break;
+                        
                     case FilterOperationKind.ArrayNone:
                         expression = FilterExpressionBuilder.Not(
                             FilterExpressionBuilder.Any(
@@ -81,6 +75,7 @@ namespace HotChocolate.Types.Filters.Expressions
                             )
                         );
                         break;
+                        
                     case FilterOperationKind.ArrayAll:
                         expression = FilterExpressionBuilder.All(
                           closureType,
@@ -88,11 +83,18 @@ namespace HotChocolate.Types.Filters.Expressions
                           lambda
                         );
                         break;
+                        
                     default:
                         throw new NotSupportedException();
                 }
-                closures.Peek().Level.Peek().Enqueue(expression);
 
+                if (inMemory)
+                {
+                    expression = FilterExpressionBuilder.NotNullAndAlso(
+                        closures.Peek().Instance.Peek(), expression);
+                }
+
+                closures.Peek().Level.Peek().Enqueue(expression);
                 closures.Peek().Instance.Pop();
             }
         }

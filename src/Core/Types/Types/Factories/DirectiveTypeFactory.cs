@@ -137,8 +137,12 @@ namespace HotChocolate.Types.Factories
                     .Argument(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
-                    .DefaultValue(inputField.DefaultValue)
                     .SyntaxNode(inputField);
+
+                if (inputField.DefaultValue is { })
+                {
+                    descriptor.DefaultValue(inputField.DefaultValue);
+                }
             }
         }
 
@@ -152,8 +156,7 @@ namespace HotChocolate.Types.Factories
                     location.Value,
                     out Language.DirectiveLocation parsedLocation))
                 {
-                    typeDescriptor.Location(
-                        MapDirectiveLocation(parsedLocation));
+                    typeDescriptor.Location(MapDirectiveLocation(parsedLocation));
                 }
             }
         }

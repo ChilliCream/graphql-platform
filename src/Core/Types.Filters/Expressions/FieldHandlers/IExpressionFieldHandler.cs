@@ -19,7 +19,8 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures);
+            Stack<QueryableClosure> closures,
+            bool inMemory);
     }
 }
 

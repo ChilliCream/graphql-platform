@@ -37,9 +37,10 @@ namespace HotChocolate
                 return type;
             }
 
+            // TODO : resource
             throw new ArgumentException(
-                "The specified type does not exist or " +
-                "is not of the specified kind.",
+                $"The specified type `{typeName}` does not exist or " +
+                $"is not of the specified kind `{typeof(T).Name}`.",
                 nameof(typeName));
         }
 

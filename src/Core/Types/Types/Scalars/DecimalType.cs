@@ -23,12 +23,12 @@ namespace HotChocolate.Types
         }
 
         public DecimalType(NameString name, decimal min, decimal max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
         }
 
         public DecimalType(NameString name, string description, decimal min, decimal max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
             Description = description;
         }

@@ -8,6 +8,8 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class InputField
@@ -22,7 +24,7 @@ namespace HotChocolate.Types
             DefaultValue = definition.DefaultValue;
             Property = definition.Property;
 
-            Type propertyType = definition.Property?.PropertyType;
+            Type? propertyType = definition.Property?.PropertyType;
 
             if (propertyType is { }
                 && propertyType.IsGenericType
@@ -32,11 +34,11 @@ namespace HotChocolate.Types
             }
         }
 
-        public InputValueDefinitionNode SyntaxNode { get; }
+        public InputValueDefinitionNode? SyntaxNode { get; }
 
-        public IValueNode DefaultValue { get; private set; }
+        public IValueNode? DefaultValue { get; private set; }
 
-        internal protected PropertyInfo Property { get; }
+        internal protected PropertyInfo? Property { get; }
 
         internal protected bool IsOptional { get; }
 
@@ -53,7 +55,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public void SetValue(object obj, object value)
+        public void SetValue(object obj, object? value)
         {
             if (obj == null)
             {
@@ -71,9 +73,9 @@ namespace HotChocolate.Types
             }
         }
 
-        private bool TrySetValueOnUnknownType(object obj, object value)
+        private bool TrySetValueOnUnknownType(object obj, object? value)
         {
-            if (obj is IDictionary<string, object> dict)
+            if (obj is IDictionary<string, object?> dict)
             {
                 dict[Name] = value;
                 return true;
@@ -92,13 +94,13 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private bool TrySetValueOnKnownType(object obj, object value)
+        private bool TrySetValueOnKnownType(object obj, object? value)
         {
-            Property.SetValue(obj, value);
+            Property!.SetValue(obj, value);
             return true;
         }
 
-        public object GetValue(object obj)
+        public object? GetValue(object obj)
         {
             if (obj == null)
             {
@@ -106,13 +108,13 @@ namespace HotChocolate.Types
             }
 
             bool success = Property == null
-                ? TryGetValueOnUnknownType(obj, out object value)
+                ? TryGetValueOnUnknownType(obj, out object? value)
                 : TryGetValueOnKnownType(obj, out value);
 
             return success ? value : null;
         }
 
-        public bool TryGetValue(object obj, out object value)
+        public bool TryGetValue(object obj, out object? value)
         {
             if (obj == null)
             {
@@ -124,7 +126,7 @@ namespace HotChocolate.Types
                 : TryGetValueOnKnownType(obj, out value);
         }
 
-        private bool TryGetValueOnUnknownType(object obj, out object value)
+        private bool TryGetValueOnUnknownType(object obj, out object? value)
         {
             if (obj is IDictionary<string, object> d)
             {
@@ -145,9 +147,9 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private bool TryGetValueOnKnownType(object obj, out object value)
+        private bool TryGetValueOnKnownType(object obj, out object? value)
         {
-            value = Property.GetValue(obj);
+            value = Property!.GetValue(obj);
             return true;
         }
 
@@ -156,8 +158,7 @@ namespace HotChocolate.Types
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
-            DefaultValue = FieldInitHelper.CreateDefaultValue(
-                context, definition, Type);
+            DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
         }
     }
 }

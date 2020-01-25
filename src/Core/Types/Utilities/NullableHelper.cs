@@ -287,9 +287,9 @@ namespace HotChocolate.Utilities
                     case byte[] a:
                         return new NullableAttribute(a);
                     case CustomAttributeTypedArgument b:
-                        return new NullableAttribute((byte)b.Value);
+                        return new NullableAttribute((byte)b.Value!);
                     case ReadOnlyCollection<CustomAttributeTypedArgument> a:
-                        return new NullableAttribute(a.Select(t => (byte)t.Value).ToArray());
+                        return new NullableAttribute(a.Select(t => (byte)t.Value!).ToArray());
                     default:
                         throw new InvalidOperationException(
                             "Unexpected nullable attribute data.");

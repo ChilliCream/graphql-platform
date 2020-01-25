@@ -17,8 +17,6 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolvers));
             }
 
-            var compiler = new ExpressionCompiler();
-
             foreach (var item in resolvers.ToArray())
             {
                 RegisteredResolver registered = item.Value;
@@ -33,8 +31,8 @@ namespace HotChocolate.Configuration
                                 registered.ResolverType,
                                 registered.SourceType,
                                 member);
-                    FieldResolver resolver = compiler.Compile(descriptor);
-                    resolvers[item.Key] = registered.WithField(resolver);
+                    resolvers[item.Key] = registered.WithField(
+                        ExpressionCompiler.Resolve.Compile(descriptor));
                 }
             }
         }

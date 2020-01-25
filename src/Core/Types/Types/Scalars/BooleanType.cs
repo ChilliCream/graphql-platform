@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="BooleanType"/> class.
         /// </summary>
         public BooleanType()
-            : base(ScalarNames.Boolean)
+            : base(ScalarNames.Boolean, BindingBehavior.Implicit)
         {
             Description = TypeResources.BooleanType_Description;
         }
@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="BooleanType"/> class.
         /// </summary>
         public BooleanType(NameString name)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
             Description = TypeResources.BooleanType_Description;
         }
@@ -35,7 +35,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="BooleanType"/> class.
         /// </summary>
         public BooleanType(NameString name, string description)
-            : base(name)
+            : base(name, BindingBehavior.Implicit)
         {
             Description = description;
         }
