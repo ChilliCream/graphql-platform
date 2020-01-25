@@ -1,0 +1,26 @@
+﻿[
+  {
+    "Data": {
+      "onSomethingObjValueTask": "a"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "onSomethingObjValueTask": "b"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "onSomethingObjValueTask": "c"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  }
+]
