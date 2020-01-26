@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Threading.Tasks;
 using Snapshooter;
 using Snapshooter.Xunit;
@@ -128,5 +128,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     inheritance.ToString()));
         }
 
+        [Fact]
+        public async Task CreateExtensionMethod()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            // act
+            await MethodBuilder.New()
+                .SetName("GetAbc")
+                .SetStatic()
+                .AddParameter(ParameterBuilder.New().SetName("abc").SetType("this String"))
+                .AddCode(CodeLineBuilder.New().SetLine("return;"))
+                .BuildAsync(writer);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
     }
 }

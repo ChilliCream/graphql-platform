@@ -8,7 +8,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         : ITypeBuilder
     {
         private AccessModifier _accessModifier;
+        private bool _isPartial = true;
+        private bool _isStatic = false;
         private string? _name;
+        private List<string> _implements = new List<string>();
+        private List<ConstructorBuilder> _constructors = new List<ConstructorBuilder>();
         private List<MethodBuilder> _methods = new List<MethodBuilder>();
 
         public static ClassBuilder New() => new ClassBuilder();
@@ -25,9 +29,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return this;
         }
 
-        public ClassBuilder AddConstructor()
+        public ClassBuilder AddImplements(string value)
         {
-            throw new NotImplementedException();
+            _implements.Add(value);
+            return this;
+        }
+
+        public ClassBuilder AddConstructor(ConstructorBuilder constructor)
+        {
+            _constructors.Add(constructor);
+            return this;
         }
 
         public ClassBuilder AddField()
@@ -35,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             throw new NotImplementedException();
         }
 
-        public ClassBuilder AddProperty()
+        public ClassBuilder AddProperty(PropertyBuilder property)
         {
             throw new NotImplementedException();
         }
@@ -52,38 +63,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
     }
 
-    public enum Inheritance
-    {
-        None,
-        Sealed,
-        Override,
-        Virtual
-    }
 
 
-    public class Foo
-    {
-        public void Bar()
-        {
-            CodeFileBuilder.New()
-                .AddUsing("System.Collections")
-                .SetNamespace("Foo")
-                .AddType(ClassBuilder.New()
-                    .AddConstructor())
-                .BuildAsync(null);
 
-        }
-    }
 
-    public interface ICode : ICodeBuilder { }
 
     public interface ITypeBuilder : ICodeBuilder
     {
 
-    }
-
-    public interface ICodeBuilder
-    {
-        Task BuildAsync(CodeWriter writer);
     }
 }

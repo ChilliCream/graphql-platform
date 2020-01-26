@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,6 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;
+        private bool _isStatic = false;
         private string _returnType = "void";
         private string? _name;
         private List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
@@ -18,6 +18,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public MethodBuilder SetAccessModifier(AccessModifier value)
         {
             _accessModifier = value;
+            return this;
+        }
+
+        public MethodBuilder SetStatic()
+        {
+            _isStatic = true;
             return this;
         }
 
@@ -63,8 +69,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
 
+            await writer.WriteAsync($"{modifier} ").ConfigureAwait(false);
+
+            if (_isStatic)
+            {
+                await writer.WriteAsync("static ").ConfigureAwait(false);
+            }
+
             await writer.WriteAsync(
-                $"{modifier} {CreateInheritance()}{_returnType} {_name}(")
+                $"{CreateInheritance()}{_returnType} {_name}(")
                 .ConfigureAwait(false);
 
             if (_parameters.Count == 0)
