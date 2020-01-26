@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -64,19 +61,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
     }
 
-    public class ConstructorBuilderTests
+    public class PropertyBuilderTests
     {
         [Fact]
-        public async Task CreateConstructor()
+        public async Task CreateReadOnlyAutoProperty()
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
+            await PropertyBuilder.New()
+                .SetName("Foo")
+                .SetType("Bar")
                 .BuildAsync(writer);
 
             // assert
@@ -84,17 +81,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
-        public async Task CreateConstructor_With_One_Parameter()
+        public async Task CreateAutoProperty()
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
-                .AddParameter(ParameterBuilder.New().SetName("abc").SetType("String"))
+            await PropertyBuilder.New()
+                .SetName("Foo")
+                .SetType("Bar")
+                .MakeSettable()
                 .BuildAsync(writer);
 
             // assert
@@ -102,46 +99,103 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
-        public async Task CreateConstructor_With_Two_Parameter()
+        public async Task CreateAutoProperty_With_Private_Setter()
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
-                .AddParameter(ParameterBuilder.New().SetName("abc").SetType("String"))
-                .AddParameter(ParameterBuilder.New().SetName("def").SetType("String").SetDefault())
+            await PropertyBuilder.New()
+                .SetName("Foo")
+                .SetType("Bar")
+                .MakeSettable()
+                .SetSetterAccessModifier(AccessModifier.Private)
                 .BuildAsync(writer);
 
             // assert
             sb.ToString().MatchSnapshot();
         }
 
-        [InlineData(AccessModifier.Public)]
-        [InlineData(AccessModifier.Internal)]
-        [InlineData(AccessModifier.Protected)]
-        [InlineData(AccessModifier.Private)]
-        [Theory]
-        public async Task CreateConstructor_With_AccessModifier(AccessModifier accessModifier)
+        [Fact]
+        public async Task CreateProperty_With_Backing_Field()
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
-                .SetAccessModifier(accessModifier)
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
+            await PropertyBuilder.New()
+                .SetName("Foo")
+                .SetType("Bar")
+                .SetBackingField("_foo")
+                .MakeSettable()
                 .BuildAsync(writer);
 
             // assert
-            sb.ToString().MatchSnapshot(
-                new SnapshotNameExtension(
-                    accessModifier.ToString()));
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateProperty_With_Backing_Field_And_Private_Setter()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            // act
+            await PropertyBuilder.New()
+                .SetName("Foo")
+                .SetType("Bar")
+                .SetBackingField("_foo")
+                .SetSetterAccessModifier(AccessModifier.Private)
+                .MakeSettable()
+                .BuildAsync(writer);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateProperty_With_Backing_Field_And_Custom_Setter()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            // act
+            await PropertyBuilder.New()
+                .SetName("Foo")
+                .SetType("Bar")
+                .SetBackingField("_foo")
+                .SetSetterAccessModifier(AccessModifier.Private)
+                .SetSetter(CodeLineBuilder.New().SetLine("_value = value;"))
+                .MakeSettable()
+                .BuildAsync(writer);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateProperty_With_Custom_Getter_And_Custom_Setter()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            // act
+            await PropertyBuilder.New()
+                .SetName("Foo")
+                .SetType("Bar")
+                .SetGetter(CodeLineBuilder.New().SetLine("return _value;"))
+                .SetSetterAccessModifier(AccessModifier.Private)
+                .SetSetter(CodeLineBuilder.New().SetLine("_value = value;"))
+                .MakeSettable()
+                .BuildAsync(writer);
+
+            // assert
+            sb.ToString().MatchSnapshot();
         }
     }
 }
