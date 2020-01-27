@@ -219,7 +219,6 @@ namespace MarshmallowPie.GraphQL.Schemas
                             Assert.Equal("1.0.0", t.Value);
                         });
                 });
-
         }
 
         [Fact]
@@ -285,6 +284,22 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             // assert
             result.MatchSnapshot();
+            Assert.Collection(ReceivedMessages,
+                t =>
+                {
+                    PublishDocumentMessage message = Assert.IsType<PublishDocumentMessage>(t);
+                    Assert.Equal(schema.Id, message.SchemaId);
+                    Assert.Equal(environment.Id, message.EnvironmentId);
+                    Assert.Equal(DocumentType.Schema, message.Type);
+                    Assert.Null(message.ClientId);
+                    Assert.NotNull(message.SessionId);
+                    Assert.Collection(message.Tags,
+                        t =>
+                        {
+                            Assert.Equal("version", t.Key);
+                            Assert.Equal("1.0.0", t.Value);
+                        });
+                });
         }
     }
 }
