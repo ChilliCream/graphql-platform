@@ -180,6 +180,7 @@ namespace HotChocolate.Types.Sorting
                 foo => Assert.Equal("c", foo.Bar)
             );
         }
+
         [Fact]
         public void Sort_Nullable_ShouldSortNullableProperlyDesc()
         {

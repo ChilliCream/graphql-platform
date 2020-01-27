@@ -165,7 +165,6 @@ namespace HotChocolate.Types.Sorting
             PropertyInfo property,
             out SortFieldDefinition definition)
         {
-
             Type type = property.PropertyType;
 
             if (type.IsGenericType
