@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
@@ -7,21 +8,29 @@ using HotChocolate.Execution;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Repositories.Mongo;
+using MarshmallowPie.Storage;
+using MarshmallowPie.Storage.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Moq;
 using Squadron;
 using Xunit;
+using IOPath = System.IO.Path;
 
 namespace MarshmallowPie.GraphQL
 {
     public class GraphQLTestBase
         : IClassFixture<MongoResource>
+        , IDisposable
     {
         private readonly List<object> _receivedMessages = new List<object>();
+        private string _path;
 
         protected GraphQLTestBase(MongoResource mongoResource)
         {
+            _path = IOPath.Combine(IOPath.GetTempPath(), Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(_path);
+
             MongoResource = mongoResource;
             MongoDatabase = mongoResource.CreateDatabase(
                 "db_" + Guid.NewGuid().ToString("N"));
@@ -47,8 +56,8 @@ namespace MarshmallowPie.GraphQL
                     _receivedMessages.Add(m);
                     return Task.CompletedTask;
                 }));
-            serviceCollection.AddSingleton<IMessageSender<PublishDocumentMessage>>(
-                publishDocumentMessageSender.Object);
+            serviceCollection.AddSingleton(publishDocumentMessageSender.Object);
+            serviceCollection.AddSingleton<IFileStorage>(new FileStorage(_path));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             EnvironmentRepository = services.GetRequiredService<IEnvironmentRepository>();
@@ -70,6 +79,17 @@ namespace MarshmallowPie.GraphQL
 
         protected ISchemaRepository SchemaRepository { get; }
 
+        protected IFileStorage Storage { get; }
+
         protected IReadOnlyList<object> ReceivedMessages { get; }
+
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(_path, true);
+            }
+            catch { }
+        }
     }
 }

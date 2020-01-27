@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GraphQL\GraphQL.csproj" />
     <ProjectReference Include="..\Repositories.Mongo\Repositories.Mongo.csproj" />
+    <ProjectReference Include="..\Storage.FileSystem\Storage.FileSystem.csproj" />
   </ItemGroup>
 
   <ItemGroup>
