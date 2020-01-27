@@ -202,7 +202,9 @@ namespace MarshmallowPie.GraphQL.Schemas
                     .Create());
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(o =>
+                o.Assert(fo =>
+                    Assert.NotNull(fo.Field<string>("Data.publishSchema.sessionId"))));
             Assert.Collection(ReceivedMessages,
                 t =>
                 {
@@ -283,7 +285,9 @@ namespace MarshmallowPie.GraphQL.Schemas
                     .Create());
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(o =>
+                o.Assert(fo =>
+                    Assert.NotNull(fo.Field<string>("Data.publishSchema.sessionId"))));
             Assert.Collection(ReceivedMessages,
                 t =>
                 {
@@ -298,6 +302,21 @@ namespace MarshmallowPie.GraphQL.Schemas
                         {
                             Assert.Equal("version", t.Key);
                             Assert.Equal("1.0.0", t.Value);
+                        });
+                },
+                t =>
+                {
+                    PublishDocumentMessage message = Assert.IsType<PublishDocumentMessage>(t);
+                    Assert.Equal(schema.Id, message.SchemaId);
+                    Assert.Equal(environment.Id, message.EnvironmentId);
+                    Assert.Equal(DocumentType.Schema, message.Type);
+                    Assert.Null(message.ClientId);
+                    Assert.NotNull(message.SessionId);
+                    Assert.Collection(message.Tags,
+                        t =>
+                        {
+                            Assert.Equal("version", t.Key);
+                            Assert.Equal("1.1.0", t.Value);
                         });
                 });
         }
