@@ -16,6 +16,6 @@ namespace MarshmallowPie.Storage
             string fileName,
             CancellationToken cancellationToken = default);
 
-        Task DeleteAsync(CancellationToken cancellationToken);
+        Task DeleteAsync(CancellationToken cancellationToken = default);
     }
 }

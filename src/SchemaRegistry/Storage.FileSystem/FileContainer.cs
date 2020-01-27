@@ -16,7 +16,7 @@ namespace MarshmallowPie.Storage.FileSystem
         public FileContainer(string fullDirectoryPath)
         {
             _fullDirectoryPath = fullDirectoryPath;
-            Name = Path.GetDirectoryName(_fullDirectoryPath)!;
+            Name = Path.GetFileName(fullDirectoryPath)!;
         }
 
         public string Name { get; }
@@ -31,14 +31,14 @@ namespace MarshmallowPie.Storage.FileSystem
                     $"The directory `{_fullDirectoryPath}` does not exist.");
             }
 
-            if (IOFile.Exists(fileName))
+            string fullFilePath = Path.Combine(_fullDirectoryPath, fileName);
+
+            if (IOFile.Exists(fullFilePath))
             {
                 throw new ArgumentException(
-                    $"File `{fileName}` already exists.",
+                    $"File `{fullFilePath}` already exists.",
                     nameof(fileName));
             }
-
-            string fullFilePath = Path.Combine(_fullDirectoryPath, fileName);
 
             return await Task.Factory.StartNew(
                 () => IOFile.Create(fullFilePath),
@@ -48,7 +48,7 @@ namespace MarshmallowPie.Storage.FileSystem
                 .ConfigureAwait(false);
         }
 
-        public Task DeleteAsync(CancellationToken cancellationToken)
+        public Task DeleteAsync(CancellationToken cancellationToken = default)
         {
             if (Directory.Exists(_fullDirectoryPath))
             {
