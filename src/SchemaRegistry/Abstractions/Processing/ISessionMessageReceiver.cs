@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 
 namespace MarshmallowPie.Processing
 {
-    public interface ISessionMessageReceiver<TMessage> where TMessage : ISessionMessage
+    public interface ISessionMessageReceiver<TMessage>
+        where TMessage : ISessionMessage
     {
-        Task<IAsyncEnumerable<TMessage>> SubscribeAsync(CancellationToken cancellationToken);
+        Task<IAsyncEnumerable<TMessage>> SubscribeAsync(
+            string sessionId,
+            CancellationToken cancellationToken);
     }
 }

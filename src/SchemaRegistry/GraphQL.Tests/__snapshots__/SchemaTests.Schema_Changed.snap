@@ -47,7 +47,7 @@ type Issue {
   code: String!
   id: ID!
   message: String!
-  resolution: ResolutionType
+  resolution: ResolutionType!
   type: IssueType!
 }
 
@@ -73,8 +73,7 @@ type PageInfo {
 
 type PublishSchemaPayload {
   clientMutationId: String
-  report: SchemaPublishReport!
-  version: SchemaVersion!
+  sessionId: String!
 }
 
 type Query {
@@ -234,9 +233,8 @@ input EnvironmentSort {
 input PublishSchemaInput {
   clientMutationId: String
   environmentName: String!
-  hash: String
   schemaName: String!
-  sourceText: String
+  sourceText: String!
   tags: [TagInput!]
 }
 

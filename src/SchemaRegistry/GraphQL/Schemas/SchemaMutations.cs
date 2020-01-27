@@ -103,6 +103,15 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             return new PublishSchemaPayload(sessionId, input.ClientMutationId);
         }
+    }
 
+    public class SchemaSubscriptions
+    {
+        [Subscribe]
+        public Task<IAsyncEnumerable<PublishSchemaEvent>> SubscribeToPublishSchema(
+            string sessionId,
+            [Service]ISessionMessageReceiver<PublishSchemaEvent> messageReceiver,
+            CancellationToken cancellationToken) =>
+            messageReceiver.SubscribeAsync(sessionId, cancellationToken);
     }
 }

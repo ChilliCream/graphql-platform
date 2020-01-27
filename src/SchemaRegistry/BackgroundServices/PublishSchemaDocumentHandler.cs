@@ -20,12 +20,12 @@ namespace BackgroundServices
     {
         private readonly IFileStorage _fileStorage;
         private readonly ISchemaRepository _schemaRepository;
-        private readonly IMessageSender<PublishDocumentEvent> _eventSender;
+        private readonly IMessageSender<PublishSchemaEvent> _eventSender;
 
         public PublishSchemaDocumentHandler(
             IFileStorage fileStorage,
             ISchemaRepository schemaRepository,
-            IMessageSender<PublishDocumentEvent> eventSender)
+            IMessageSender<PublishSchemaEvent> eventSender)
         {
             _fileStorage = fileStorage
                 ?? throw new ArgumentNullException(nameof(fileStorage));
@@ -111,7 +111,7 @@ namespace BackgroundServices
             finally
             {
                 await _eventSender.SendAsync(
-                    PublishDocumentEvent.Completed(message.SessionId),
+                    PublishSchemaEvent.Completed(message.SessionId),
                     cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -283,12 +283,12 @@ namespace BackgroundServices
     internal sealed class IssueLogger
     {
         private string _sessionId;
-        private IMessageSender<PublishDocumentEvent> _eventSender;
+        private IMessageSender<PublishSchemaEvent> _eventSender;
         private readonly ICollection<Issue> _issues;
 
         public IssueLogger(
             string sessionId,
-            IMessageSender<PublishDocumentEvent> eventSender,
+            IMessageSender<PublishSchemaEvent> eventSender,
             ICollection<Issue> issues)
         {
             _sessionId = sessionId;
@@ -313,7 +313,7 @@ namespace BackgroundServices
             _issues.Add(issue);
 
             await _eventSender.SendAsync(
-                new PublishDocumentEvent(_sessionId, issue),
+                new PublishSchemaEvent(_sessionId, issue),
                 cancellationToken)
                 .ConfigureAwait(false);
         }
