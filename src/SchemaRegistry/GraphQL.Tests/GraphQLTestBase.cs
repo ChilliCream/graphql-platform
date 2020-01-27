@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
-using MarshmallowPie.GraphQL.Environments;
-using MarshmallowPie.GraphQL.Schemas;
+using MarshmallowPie.Processing;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Repositories.Mongo;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
+using Moq;
 using Squadron;
 using Xunit;
 
@@ -15,6 +18,8 @@ namespace MarshmallowPie.GraphQL
     public class GraphQLTestBase
         : IClassFixture<MongoResource>
     {
+        private readonly List<object> _receivedMessages = new List<object>();
+
         protected GraphQLTestBase(MongoResource mongoResource)
         {
             MongoResource = mongoResource;
@@ -33,11 +38,24 @@ namespace MarshmallowPie.GraphQL
             serviceCollection.AddSchemaRegistryDataLoader();
             serviceCollection.AddSchemRegistryErrorFilters();
 
+            var publishDocumentMessageSender = new Mock<IMessageSender<PublishDocumentMessage>>();
+            publishDocumentMessageSender.Setup(t => t.SendAsync(
+                It.IsAny<PublishDocumentMessage>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(new Func<PublishDocumentMessage, CancellationToken, Task>((m, c) =>
+                {
+                    _receivedMessages.Add(m);
+                    return Task.CompletedTask;
+                }));
+            serviceCollection.AddSingleton<IMessageSender<PublishDocumentMessage>>(
+                publishDocumentMessageSender.Object);
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             EnvironmentRepository = services.GetRequiredService<IEnvironmentRepository>();
             SchemaRepository = services.GetRequiredService<ISchemaRepository>();
             Schema = services.GetRequiredService<ISchema>();
             Executor = services.GetRequiredService<IQueryExecutor>();
+            ReceivedMessages = _receivedMessages;
         }
 
         protected ISchema Schema { get; }
@@ -51,5 +69,7 @@ namespace MarshmallowPie.GraphQL
         protected IEnvironmentRepository EnvironmentRepository { get; }
 
         protected ISchemaRepository SchemaRepository { get; }
+
+        protected IReadOnlyList<object> ReceivedMessages { get; }
     }
 }

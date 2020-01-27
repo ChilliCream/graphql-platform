@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
+using MarshmallowPie.Processing;
 using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
@@ -190,14 +191,7 @@ namespace MarshmallowPie.GraphQL.Schemas
                                 sourceText: $sourceText
                                 tags: [ { key: ""version"" value: $version } ]
                                 clientMutationId: ""ghi"" }) {
-                                report {
-                                    environment {
-                                        name
-                                    }
-                                    schemaVersion {
-                                        hash
-                                    }
-                                }
+                                sessionId
                                 clientMutationId
                             }
                         }")
@@ -209,6 +203,23 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             // assert
             result.MatchSnapshot();
+            Assert.Collection(ReceivedMessages,
+                t =>
+                {
+                    PublishDocumentMessage message = Assert.IsType<PublishDocumentMessage>(t);
+                    Assert.Equal(schema.Id, message.SchemaId);
+                    Assert.Equal(environment.Id, message.EnvironmentId);
+                    Assert.Equal(DocumentType.Schema, message.Type);
+                    Assert.Null(message.ClientId);
+                    Assert.NotNull(message.SessionId);
+                    Assert.Collection(message.Tags,
+                        t =>
+                        {
+                            Assert.Equal("version", t.Key);
+                            Assert.Equal("1.0.0", t.Value);
+                        });
+                });
+
         }
 
         [Fact]
@@ -237,14 +248,7 @@ namespace MarshmallowPie.GraphQL.Schemas
                                 sourceText: $sourceText
                                 tags: [ { key: ""version"" value: $version } ]
                                 clientMutationId: ""ghi"" }) {
-                                report {
-                                    environment {
-                                        name
-                                    }
-                                    schemaVersion {
-                                        hash
-                                    }
-                                }
+                                sessionId
                                 clientMutationId
                             }
                         }")
@@ -269,14 +273,7 @@ namespace MarshmallowPie.GraphQL.Schemas
                                 sourceText: $sourceText
                                 tags: [ { key: ""version"" value: $version } ]
                                 clientMutationId: ""ghi"" }) {
-                                report {
-                                    environment {
-                                        name
-                                    }
-                                    schemaVersion {
-                                        hash
-                                    }
-                                }
+                                sessionId
                                 clientMutationId
                             }
                         }")
