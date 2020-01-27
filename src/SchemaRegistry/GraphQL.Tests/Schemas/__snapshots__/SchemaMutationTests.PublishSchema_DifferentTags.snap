@@ -1,14 +1,7 @@
 ﻿{
   "Data": {
     "publishSchema": {
-      "report": {
-        "environment": {
-          "name": "abc"
-        },
-        "schemaVersion": {
-          "hash": "5ojZAmlJiqbSmuVUfch8jxNVdiN0rgQicAQfIFO+EqA="
-        }
-      },
+      "sessionId": "b772ec168d3947b48aaf3bbb090c04c6",
       "clientMutationId": "ghi"
     }
   },
