@@ -23,12 +23,12 @@ namespace HotChocolate.Types
         }
 
         public ByteType(NameString name, byte min, byte max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
         }
 
         public ByteType(NameString name, string description, byte min, byte max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
             Description = description;
         }

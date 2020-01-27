@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -14,6 +13,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             Expression instance,
             ITypeConversion converter,
+            bool inMemory,
             out Expression expression)
         {
             if (operation.Type == typeof(string)
@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression property = instance;
 
                 if (!operation.IsSimpleArrayType())
-                { 
+                {
                     property = Expression.Property(instance, operation.Property);
                 }
 

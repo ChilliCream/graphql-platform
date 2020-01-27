@@ -1,0 +1,26 @@
+﻿[
+  {
+    "Data": {
+      "onSomethingTask": "a"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "onSomethingTask": "b"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "onSomethingTask": "c"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  }
+]

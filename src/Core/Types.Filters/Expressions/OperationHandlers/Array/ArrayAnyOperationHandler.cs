@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -13,31 +14,38 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             Expression instance,
             ITypeConversion converter,
+            bool inMemory,
             out Expression expression)
         {
             if (operation.Kind == FilterOperationKind.ArrayAny &&
                 type.IsInstanceOfType(value) &&
                 type.ParseLiteral(value) is bool parsedValue)
             {
-                Expression property = instance;
+                MemberExpression property =
+                    Expression.Property(instance, operation.Property);
+                Type propertType = operation.Type;
 
-                if (!operation.IsSimpleArrayType())
+                if (operation.TryGetSimpleFilterBaseType(out Type baseType))
                 {
-                    property = Expression.Property(instance, operation.Property);
+                    propertType = baseType;
                 }
 
                 if (parsedValue)
                 {
                     expression = FilterExpressionBuilder.Any(
-                        operation.Type,
+                        propertType,
                         property);
                 }
                 else
                 {
                     expression = FilterExpressionBuilder.Not(
                         FilterExpressionBuilder.Any(
-                            operation.Type,
+                            propertType,
                             property));
+                }
+                if (inMemory)
+                {
+                    expression = FilterExpressionBuilder.NotNullAndAlso(property, expression);
                 }
                 return true;
             }

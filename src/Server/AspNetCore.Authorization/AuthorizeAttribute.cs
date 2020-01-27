@@ -18,7 +18,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         public string[]? Roles { get; set; }
 
-        public ApplyPolicy Apply { get; set; } = ApplyPolicy.AfterResolver;
+        public ApplyPolicy Apply { get; set; } = ApplyPolicy.BeforeResolver;
 
         protected override void TryConfigure(
             IDescriptorContext context,
@@ -41,18 +41,18 @@ namespace HotChocolate.AspNetCore.Authorization
             {
                 return new AuthorizeDirective(
                     Policy,
-                    executeResolver: Apply);
+                    apply: Apply);
             }
             else if (Roles is { })
             {
                 return new AuthorizeDirective(
                     Roles,
-                    executeResolver: Apply);
+                    apply: Apply);
             }
             else
             {
                 return new AuthorizeDirective(
-                    executeResolver: Apply);
+                    apply: Apply);
             }
         }
     }

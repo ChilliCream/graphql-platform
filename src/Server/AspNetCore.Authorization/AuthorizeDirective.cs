@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -11,18 +10,18 @@ namespace HotChocolate.AspNetCore.Authorization
     {
         public AuthorizeDirective(
             IReadOnlyList<string> roles,
-            ApplyPolicy executeResolver = ApplyPolicy.AfterResolver)
-            : this(null, roles, executeResolver)
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+            : this(null, roles, apply)
         { }
 
         public AuthorizeDirective(
             string? policy = null,
             IReadOnlyList<string>? roles = null,
-            ApplyPolicy executeResolver = ApplyPolicy.AfterResolver)
+            ApplyPolicy apply = ApplyPolicy.BeforeResolver)
         {
             Policy = policy;
             Roles = roles;
-            Apply = executeResolver;
+            Apply = apply;
         }
 
         public AuthorizeDirective(SerializationInfo info, StreamingContext context)

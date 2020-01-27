@@ -39,6 +39,15 @@ namespace HotChocolate.Utilities
             return RemoveNonEssentialParts(type);
         }
 
+        public static Type UnwrapNonNull(Type type)
+        {
+            if(IsNonNullType(type))
+            {
+                return GetInnerType(type);
+            }
+            return type;
+        }
+
         public static Type Rewrite(
             Type type,
             bool isNonNullType,
@@ -431,7 +440,9 @@ namespace HotChocolate.Utilities
                     || typeDefinition == typeof(IReadOnlyList<>)
                     || typeDefinition == typeof(ICollection<>)
                     || typeDefinition == typeof(IList<>)
-                    || typeDefinition == typeof(IQueryable<>))
+                    || typeDefinition == typeof(IQueryable<>)
+                    || typeDefinition == typeof(IAsyncEnumerable<>)
+                    || typeDefinition == typeof(IObservable<>))
                 {
                     return true;
                 }
@@ -454,7 +465,8 @@ namespace HotChocolate.Utilities
         private static bool IsTaskType(Type type)
         {
             return type.IsGenericType
-                && typeof(Task<>) == type.GetGenericTypeDefinition();
+                && (typeof(Task<>) == type.GetGenericTypeDefinition()
+                    || typeof(ValueTask<>) == type.GetGenericTypeDefinition());
         }
 
         private static bool IsOptional(Type type)

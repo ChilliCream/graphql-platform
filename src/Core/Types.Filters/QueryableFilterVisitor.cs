@@ -138,6 +138,7 @@ namespace HotChocolate.Types.Filters
                         node.Value,
                         Closures.Peek().Instance.Peek(),
                         _converter,
+                        _inMemory,
                         out Expression expression))
                     {
                         Closures.Peek().Level.Peek().Enqueue(expression);
@@ -165,7 +166,8 @@ namespace HotChocolate.Types.Filters
                         parent,
                         path,
                         ancestors,
-                        Closures);
+                        Closures,
+                        _inMemory);
                 }
             }
             return base.Leave(node, parent, path, ancestors);

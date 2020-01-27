@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
         public static Expression Not(Expression expression)
         {
-            return Expression.Equal(expression, Expression.Constant(false));
+            return Expression.Not(expression);
         }
 
         public static Expression Equals(

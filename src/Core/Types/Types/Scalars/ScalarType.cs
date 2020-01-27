@@ -28,15 +28,18 @@ namespace HotChocolate.Types
         /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
         /// </summary>
         /// <param name="name">Name.</param>
-        protected ScalarType(NameString name)
+        protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
         {
             Name = name.EnsureNotEmpty(nameof(name));
+            Bind = bind;
         }
 
         /// <summary>
         /// Gets the type kind.
         /// </summary>
         public TypeKind Kind { get; } = TypeKind.Scalar;
+
+        public BindingBehavior Bind { get; }
 
         /// <summary>
         /// The .net type representation of this scalar.

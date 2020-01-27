@@ -57,7 +57,15 @@ namespace HotChocolate.Configuration
                         SchemaTypeReference.InferTypeContext(typeSystemObject));
                     _unresolved.Remove(clrRef);
 
-                    if (!_clrTypeReferences.ContainsKey(clrRef))
+                    bool autoBind = true;
+
+                    if (typeSystemObject is ScalarType scalar
+                        && scalar.Bind == BindingBehavior.Explicit)
+                    {
+                        autoBind = false;
+                    }
+
+                    if (autoBind && !_clrTypeReferences.ContainsKey(clrRef))
                     {
                         _clrTypeReferences.Add(clrRef, registeredType.References[0]);
                     }

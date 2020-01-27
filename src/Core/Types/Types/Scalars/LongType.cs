@@ -23,12 +23,12 @@ namespace HotChocolate.Types
         }
 
         public LongType(NameString name, long min, long max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
         }
 
         public LongType(NameString name, string description, long min, long max)
-            : base(name, min, max)
+            : base(name, min, max, BindingBehavior.Implicit)
         {
             Description = description;
         }

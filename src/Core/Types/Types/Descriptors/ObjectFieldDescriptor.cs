@@ -27,14 +27,16 @@ namespace HotChocolate.Types.Descriptors
 
         protected ObjectFieldDescriptor(
             IDescriptorContext context,
-            MemberInfo member)
-            : this(context, member, null)
+            MemberInfo member,
+            Type sourceType)
+            : this(context, member, sourceType, null)
         {
         }
 
         protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member,
+            Type sourceType,
             Type? resolverType)
             : base(context)
         {
@@ -46,6 +48,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.ObjectField);
             Definition.Type = context.Inspector.GetOutputReturnType(member);
+            Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
 
             if (context.Naming.IsDeprecated(member, out string reason))
@@ -265,13 +268,15 @@ namespace HotChocolate.Types.Descriptors
 
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
-            MemberInfo member) =>
-            new ObjectFieldDescriptor(context, member);
+            MemberInfo member,
+            Type sourceType) =>
+            new ObjectFieldDescriptor(context, member, sourceType);
 
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             MemberInfo member,
+            Type sourceType,
             Type resolverType) =>
-            new ObjectFieldDescriptor(context, member, resolverType);
+            new ObjectFieldDescriptor(context, member, sourceType, resolverType);
     }
 }
