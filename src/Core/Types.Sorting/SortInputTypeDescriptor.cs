@@ -165,7 +165,16 @@ namespace HotChocolate.Types.Sorting
             PropertyInfo property,
             out SortFieldDefinition definition)
         {
-            if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
+
+            Type type = property.PropertyType;
+
+            if (type.IsGenericType
+                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
+            {
+                type = nullableType;
+            }
+
+            if (typeof(IComparable).IsAssignableFrom(type))
             {
                 var field = new SortFieldDescriptor(Context, property);
                 definition = field.CreateDefinition();
