@@ -21,7 +21,7 @@ namespace MarshmallowPie.BackgroundServices
     public class PublishSchemaDocumentHandlerTests
         : BackgroundServiceTestBase
     {
-        protected PublishSchemaDocumentHandlerTests(
+        public PublishSchemaDocumentHandlerTests(
             MongoResource mongoResource,
             FileStorageResource fileStorageResource)
             : base(mongoResource, fileStorageResource)

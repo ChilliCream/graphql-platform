@@ -7,7 +7,7 @@ namespace MarshmallowPie.Storage.FileSystem
 {
     public class FileStorageResource : IDisposable
     {
-        private ConcurrentBag<string> _tempDirs = new ConcurrentBag<string>();
+        private readonly ConcurrentBag<string> _tempDirs = new ConcurrentBag<string>();
 
         public IFileStorage CreateStorage()
         {
@@ -21,7 +21,7 @@ namespace MarshmallowPie.Storage.FileSystem
         {
             while (_tempDirs.TryTake(out string path))
             {
-               
+
                 try
                 {
                     IOFile.Delete(path);
