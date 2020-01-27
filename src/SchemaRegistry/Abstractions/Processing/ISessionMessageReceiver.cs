@@ -7,8 +7,8 @@ namespace MarshmallowPie.Processing
     public interface ISessionMessageReceiver<TMessage>
         where TMessage : ISessionMessage
     {
-        Task<IAsyncEnumerable<TMessage>> SubscribeAsync(
+        ValueTask<IAsyncEnumerable<TMessage>> SubscribeAsync(
             string sessionId,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using MarshmallowPie.Processing;
 
-namespace BackgroundServices
+namespace MarshmallowPie.BackgroundServices
 {
     public class PublishDocumentService : BackgroundService
     {

@@ -12,24 +12,12 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.1</TargetFramework>
-    <AssemblyName>MarshmallowPie.GraphQL.Tests</AssemblyName>
-    <RootNamespace>MarshmallowPie.GraphQL</RootNamespace>
+    <AssemblyName>MarshmallowPie.Processing.InMemory.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.Processing.InMemory</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GraphQL\GraphQL.csproj" />
-    <ProjectReference Include="..\Repositories.Mongo\Repositories.Mongo.csproj" />
-    <ProjectReference Include="..\Storage.FileSystem.Tests\Storage.FileSystem.Tests.csproj" />
-    <ProjectReference Include="..\Storage.FileSystem\Storage.FileSystem.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Schemas\__snapshots__\__mismatch__\" />
-    <Folder Include="__snapshots__\__mismatch__\" />
+    <ProjectReference Include="..\Processing.InMemory\Processing.InMemory.csproj" />
   </ItemGroup>
 
 </Project>

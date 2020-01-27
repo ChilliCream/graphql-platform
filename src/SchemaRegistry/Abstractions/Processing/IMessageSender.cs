@@ -5,6 +5,6 @@ namespace MarshmallowPie.Processing
 {
     public interface IMessageSender<TMessage>
     {
-        Task SendAsync(TMessage message, CancellationToken cancellationToken);
+        ValueTask SendAsync(TMessage message, CancellationToken cancellationToken = default);
     }
 }

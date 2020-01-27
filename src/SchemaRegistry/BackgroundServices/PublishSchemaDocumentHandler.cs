@@ -8,12 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
-using MarshmallowPie;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Storage;
 
-namespace BackgroundServices
+namespace MarshmallowPie.BackgroundServices
 {
     public class PublishSchemaDocumentHandler
         : IPublishDocumentHandler

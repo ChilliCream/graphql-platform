@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
+using MarshmallowPie.Storage.FileSystem;
 using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
@@ -11,8 +12,8 @@ namespace MarshmallowPie.GraphQL.Schemas
     public class SchemaQueryTests
         : GraphQLTestBase
     {
-        public SchemaQueryTests(MongoResource mongoResource)
-            : base(mongoResource)
+        public SchemaQueryTests(MongoResource mongoResource, FileStorageResource fileStorageResource)
+            : base(mongoResource, fileStorageResource)
         {
         }
 

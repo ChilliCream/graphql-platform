@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace BackgroundServices
+namespace MarshmallowPie.BackgroundServices
 {
     internal static class Hash
     {

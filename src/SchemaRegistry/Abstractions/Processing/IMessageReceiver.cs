@@ -6,7 +6,7 @@ namespace MarshmallowPie.Processing
 {
     public interface IMessageReceiver<TMessage>
     {
-        Task<IAsyncEnumerable<TMessage>> SubscribeAsync(
-            CancellationToken cancellationToken);
+        ValueTask<IAsyncEnumerable<TMessage>> SubscribeAsync(
+            CancellationToken cancellationToken = default);
     }
 }

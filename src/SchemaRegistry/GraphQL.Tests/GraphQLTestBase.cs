@@ -15,22 +15,17 @@ using MongoDB.Driver;
 using Moq;
 using Squadron;
 using Xunit;
-using IOPath = System.IO.Path;
 
 namespace MarshmallowPie.GraphQL
 {
     public class GraphQLTestBase
         : IClassFixture<MongoResource>
-        , IDisposable
+        , IClassFixture<FileStorageResource>
     {
         private readonly List<object> _receivedMessages = new List<object>();
-        private string _path;
 
-        protected GraphQLTestBase(MongoResource mongoResource)
+        protected GraphQLTestBase(MongoResource mongoResource, FileStorageResource fileStorageResource)
         {
-            _path = IOPath.Combine(IOPath.GetTempPath(), Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(_path);
-
             MongoResource = mongoResource;
             MongoDatabase = mongoResource.CreateDatabase(
                 "db_" + Guid.NewGuid().ToString("N"));
@@ -57,13 +52,14 @@ namespace MarshmallowPie.GraphQL
                     return Task.CompletedTask;
                 }));
             serviceCollection.AddSingleton(publishDocumentMessageSender.Object);
-            serviceCollection.AddSingleton<IFileStorage>(new FileStorage(_path));
+            serviceCollection.AddSingleton(fileStorageResource.CreateStorage());
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             EnvironmentRepository = services.GetRequiredService<IEnvironmentRepository>();
             SchemaRepository = services.GetRequiredService<ISchemaRepository>();
             Schema = services.GetRequiredService<ISchema>();
             Executor = services.GetRequiredService<IQueryExecutor>();
+            Storage = services.GetRequiredService<IFileStorage>();
             ReceivedMessages = _receivedMessages;
         }
 
@@ -82,14 +78,5 @@ namespace MarshmallowPie.GraphQL
         protected IFileStorage Storage { get; }
 
         protected IReadOnlyList<object> ReceivedMessages { get; }
-
-        public void Dispose()
-        {
-            try
-            {
-                Directory.Delete(_path, true);
-            }
-            catch { }
-        }
     }
 }

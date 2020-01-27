@@ -10,7 +10,7 @@ namespace MarshmallowPie.GraphQL.Schemas
     public class SchemaSubscriptions
     {
         [Subscribe]
-        public Task<IAsyncEnumerable<PublishSchemaEvent>> SubscribeToPublishSchema(
+        public ValueTask<IAsyncEnumerable<PublishSchemaEvent>> SubscribeToPublishSchema(
             string sessionId,
             [Service]ISessionMessageReceiver<PublishSchemaEvent> messageReceiver,
             CancellationToken cancellationToken) =>
