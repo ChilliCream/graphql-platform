@@ -14,8 +14,8 @@
       ],
       "Exception": null,
       "Extensions": {
-        "variableName": "foo",
-        "variablePath": [
+        "variable_name": "foo",
+        "variable_path": [
           "bar",
           "baz"
         ],

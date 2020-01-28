@@ -11,7 +11,8 @@
     ],
     "Exception": null,
     "Extensions": {
-      "code": "EXEC_INVALID_TYPE"
+      "code": "EXEC_INVALID_TYPE",
+      "variable_name": "test"
     }
   }
 ]

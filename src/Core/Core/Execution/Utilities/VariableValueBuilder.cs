@@ -210,7 +210,7 @@ namespace HotChocolate.Execution
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
                     .SetCode(ErrorCodes.Execution.InvalidType)
-                    .SetExtension("variable", variable.Name)
+                    .SetExtension("variable_name", variable.Name)
                     .AddLocation(variableDefinition)
                     .Build());
             }
@@ -229,7 +229,7 @@ namespace HotChocolate.Execution
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
                     .SetCode(ErrorCodes.Execution.InvalidType)
-                    .SetExtension("variable", variable.Name)
+                    .SetExtension("variable_name", variable.Name)
                     .AddLocation(variableDefinition)
                     .Build());
             }
