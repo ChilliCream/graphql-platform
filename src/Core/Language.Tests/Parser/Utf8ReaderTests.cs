@@ -12,21 +12,18 @@ namespace HotChocolate.Language
         [Fact]
         public void Read_Two_NameTokens()
         {
-            var source = new ReadOnlySpan<byte>(
-                Encoding.UTF8.GetBytes("type foo"));
+            var source = new ReadOnlySpan<byte>(Encoding.UTF8.GetBytes("type foo"));
             var lexer = new Utf8GraphQLReader(source);
 
             Assert.Equal(TokenKind.StartOfFile, lexer.Kind);
 
             Assert.True(lexer.Read());
             Assert.Equal(TokenKind.Name, lexer.Kind);
-            Assert.Equal("type",
-                Encoding.UTF8.GetString(lexer.Value.ToArray()));
+            Assert.Equal("type", Encoding.UTF8.GetString(lexer.Value.ToArray()));
 
             Assert.True(lexer.Read());
             Assert.Equal(TokenKind.Name, lexer.Kind);
-            Assert.Equal("foo",
-                Encoding.UTF8.GetString(lexer.Value.ToArray()));
+            Assert.Equal("foo", Encoding.UTF8.GetString(lexer.Value.ToArray()));
 
             Assert.False(lexer.Read());
             Assert.Equal(TokenKind.EndOfFile, lexer.Kind);

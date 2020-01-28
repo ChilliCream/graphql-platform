@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+
 namespace HotChocolate.Language
 {
     public sealed class SyntaxTokenInfo
@@ -7,13 +10,15 @@ namespace HotChocolate.Language
             int start,
             int end,
             int line,
-            int column)
+            int column,
+            string value)
         {
             Kind = kind;
             Start = start;
             End = end;
             Line = line;
             Column = column;
+            Value = value;
         }
 
         /// <summary>
@@ -43,15 +48,27 @@ namespace HotChocolate.Language
         /// </summary>
         public int Column { get; }
 
-        public static SyntaxTokenInfo FromReader(
-            in Utf8GraphQLReader reader)
+        public string Value { get; }
+
+        public unsafe static SyntaxTokenInfo FromReader(in Utf8GraphQLReader reader)
         {
+            string value = null;
+
+            ReadOnlySpan<byte> token = reader.GraphQLData.Slice(
+                reader.Start, reader.End - reader.Start);
+
+            fixed (byte* b = token)
+            {
+                value = Encoding.UTF8.GetString(b, token.Length);
+            }
+
             return new SyntaxTokenInfo(
                 reader.Kind,
                 reader.Start,
                 reader.End,
                 reader.Line,
-                reader.Column);
+                reader.Column,
+                value);
         }
     }
 }

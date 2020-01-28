@@ -4,20 +4,23 @@
     "Start": 0,
     "End": 3,
     "Line": 1,
-    "Column": 1
+    "Column": 1,
+    "Value": "abc"
   },
   {
     "Kind": "BlockString",
     "Start": 4,
     "End": 16,
     "Line": 1,
-    "Column": 5
+    "Column": 5,
+    "Value": "\"\"\"def\\\"\"\"\"\""
   },
   {
     "Kind": "Name",
     "Start": 18,
     "End": 21,
     "Line": 1,
-    "Column": 19
+    "Column": 19,
+    "Value": "ghi"
   }
 ]

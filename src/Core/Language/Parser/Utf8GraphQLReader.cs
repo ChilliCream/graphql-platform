@@ -111,35 +111,35 @@ namespace HotChocolate.Language
 
             byte code = _graphQLData[_position];
 
-            if (GraphQLConstants.IsPunctuator(code))
+            if (_isPunctuator[code])
             {
                 ReadPunctuatorToken(code);
                 return true;
             }
 
-            if (GraphQLConstants.IsLetterOrUnderscore(code))
+            if (_isLetterOrUnderscore[code])
             {
                 ReadNameToken();
                 return true;
             }
 
-            if (GraphQLConstants.IsDigitOrMinus(code))
+            if (_isDigitOrMinus[code])
             {
                 ReadNumberToken(code);
                 return true;
             }
 
-            if (code == GraphQLConstants.Hash)
+            if (code == Hash)
             {
                 ReadCommentToken();
                 return true;
             }
 
-            if (code == GraphQLConstants.Quote)
+            if (code == Quote)
             {
                 if (_length > _position + 2
-                    && _graphQLData[_position + 1] == GraphQLConstants.Quote
-                    && _graphQLData[_position + 2] == GraphQLConstants.Quote)
+                    && _graphQLData[_position + 1] == Quote
+                    && _graphQLData[_position + 2] == Quote)
                 {
                     _position += 2;
                     ReadBlockStringToken();
@@ -173,8 +173,7 @@ namespace HotChocolate.Language
             var position = _position;
 
             while (++position < _length
-                && GraphQLConstants.IsLetterOrDigitOrUnderscore(
-                    _graphQLData[position]))
+                && _isLetterOrDigitOrUnderscore[_graphQLData[position]])
             {
             }
 
@@ -189,7 +188,7 @@ namespace HotChocolate.Language
         /// Reads punctuator tokens as specified in
         /// http://facebook.github.io/graphql/October2016/#sec-Punctuators
         /// one of ! $ ( ) ... : = @ [ ] { | }
-        /// additionaly the reader will tokenize ampersands.
+        /// additionally the reader will tokenize ampersands.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadPunctuatorToken(byte code)
@@ -198,10 +197,10 @@ namespace HotChocolate.Language
             _end = ++_position;
             _value = null;
 
-            if (code == GraphQLConstants.Dot)
+            if (code == Dot)
             {
-                if (_graphQLData[_position] == GraphQLConstants.Dot
-                    && _graphQLData[_position + 1] == GraphQLConstants.Dot)
+                if (_graphQLData[_position] == Dot
+                    && _graphQLData[_position + 1] == Dot)
                 {
                     _position += 2;
                     _end = _position;
@@ -218,7 +217,7 @@ namespace HotChocolate.Language
             }
             else
             {
-                _kind = GraphQLConstants.PunctuatorKind(code);
+                _kind = _punctuatorKind[code];
             }
         }
 
@@ -236,15 +235,15 @@ namespace HotChocolate.Language
             byte code = firstCode;
             var isFloat = false;
 
-            if (code == GraphQLConstants.Minus)
+            if (code == Minus)
             {
                 code = _graphQLData[++_position];
             }
 
-            if (code == GraphQLConstants.Zero && !IsEndOfStream(_position + 1))
+            if (code == Zero && !IsEndOfStream(_position + 1))
             {
                 code = _graphQLData[++_position];
-                if (GraphQLConstants.IsDigit(code))
+                if (_isDigit[code])
                 {
                     throw new SyntaxException(this,
                         "Invalid number, unexpected digit after 0: " +
@@ -256,7 +255,7 @@ namespace HotChocolate.Language
                 code = ReadDigits(code);
             }
 
-            if (code == GraphQLConstants.Dot)
+            if (code == Dot)
             {
                 isFloat = true;
                 _floatFormat = Language.FloatFormat.FixedPoint;
@@ -264,13 +263,13 @@ namespace HotChocolate.Language
                 code = ReadDigits(code);
             }
 
-            if ((code | 0x20) == GraphQLConstants.E)
+            if ((code | 0x20) == E)
             {
                 isFloat = true;
                 _floatFormat = Language.FloatFormat.Exponential;
                 code = _graphQLData[++_position];
-                if (code == GraphQLConstants.Plus
-                    || code == GraphQLConstants.Minus)
+                if (code == Plus
+                    || code == Minus)
                 {
                     code = _graphQLData[++_position];
                 }
@@ -286,7 +285,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private byte ReadDigits(byte firstCode)
         {
-            if (!GraphQLConstants.IsDigit(firstCode))
+            if (!_isDigit[firstCode])
             {
                 throw new SyntaxException(this,
                     "Invalid number, expected digit but got: " +
@@ -299,12 +298,12 @@ namespace HotChocolate.Language
             {
                 if (++_position >= _length)
                 {
-                    code = GraphQLConstants.Space;
+                    code = Space;
                     break;
                 }
 
                 code = _graphQLData[_position];
-                if (!GraphQLConstants.IsDigit(code))
+                if (!_isDigit[code])
                 {
                     break;
                 }
@@ -324,63 +323,27 @@ namespace HotChocolate.Language
         {
             var start = _position;
             var trimStart = _position + 1;
-            bool trim = true;
-            bool run = true;
+            var trim = true;
+            var run = true;
 
             while (run && ++_position < _length)
             {
-                byte code = _graphQLData[_position];
+                var code = _graphQLData[_position];
 
-                switch (code)
+                if (code == Hash || code == Space || code == Tab)
                 {
-                    // SourceCharacter
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case GraphQLConstants.NewLine:
-                    case 11:
-                    case 12:
-                    case GraphQLConstants.Return:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                    case 19:
-                    case 20:
-                    case 21:
-                    case 22:
-                    case 23:
-                    case 24:
-                    case 25:
-                    case 26:
-                    case 27:
-                    case 28:
-                    case 29:
-                    case 30:
-                    case 31:
-                    case 127:
-                        run = false;
-                        break;
-
-                    case GraphQLConstants.Hash:
-                    case GraphQLConstants.Space:
-                    case GraphQLConstants.Tab:
-                        if (trim)
-                        {
-                            trimStart = _position;
-                        }
-                        break;
-
-                    default:
-                        trim = false;
-                        break;
+                    if (trim)
+                    {
+                        trimStart = _position;
+                    }
+                }
+                else if (_isControlCharacter[code])
+                {
+                    run = false;
+                }
+                else
+                {
+                    trim = false;
                 }
             }
 
@@ -405,65 +368,32 @@ namespace HotChocolate.Language
             {
                 byte code = _graphQLData[_position];
 
-                switch (code)
+                if (code == NewLine || code == Return)
                 {
-                    case GraphQLConstants.NewLine:
-                    case GraphQLConstants.Return:
-                        return;
-
-                    // closing Quote (")
-                    case GraphQLConstants.Quote:
-                        _kind = TokenKind.String;
-                        _start = start;
-                        _end = _position;
-                        _value = _graphQLData.Slice(
-                            start + 1,
-                            _position - start - 1);
-                        _position++;
-                        return;
-
-                    case GraphQLConstants.Backslash:
-                        code = _graphQLData[++_position];
-                        if (!GraphQLConstants.IsValidEscapeCharacter(code))
-                        {
-                            throw new SyntaxException(this,
-                                $"Invalid character escape sequence: \\{code}.");
-                        }
-                        break;
-
-                    // SourceCharacter
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 11:
-                    case 12:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                    case 19:
-                    case 20:
-                    case 21:
-                    case 22:
-                    case 23:
-                    case 24:
-                    case 25:
-                    case 26:
-                    case 27:
-                    case 28:
-                    case 29:
-                    case 30:
-                    case 31:
-                    case 127:
+                    return;
+                }
+                else if (code == Quote)
+                {
+                    _kind = TokenKind.String;
+                    _start = start;
+                    _end = _position;
+                    _value = _graphQLData.Slice(start + 1, _position - start - 1);
+                    _position++;
+                    return;
+                }
+                else if (code == Backslash)
+                {
+                    code = _graphQLData[++_position];
+                    if (!_isEscapeCharacter[code])
+                    {
                         throw new SyntaxException(this,
-                            $"Invalid character within String: {code}.");
+                            $"Invalid character escape sequence: \\{code}.");
+                    }
+                }
+                else if (_isControlCharacter[code])
+                {
+                    throw new SyntaxException(this,
+                        $"Invalid character within String: {code}.");
                 }
             }
 
@@ -485,80 +415,49 @@ namespace HotChocolate.Language
             {
                 byte code = _graphQLData[_position];
 
-                switch (code)
+                if (code == NewLine)
                 {
-                    case GraphQLConstants.NewLine:
-                        _nextNewLines++;
-                        break;
-
-                    case GraphQLConstants.Return:
-                        int next = _position + 1;
-                        if (next < _length
-                            && _graphQLData[next] == GraphQLConstants.NewLine)
-                        {
-                            _position = next;
-                        }
-                        _nextNewLines++;
-                        break;
-
-                    // Closing Triple-Quote (""")
-                    case GraphQLConstants.Quote:
-                        if (_graphQLData[_position + 1] == GraphQLConstants.Quote
-                            && _graphQLData[_position + 2] == GraphQLConstants.Quote)
-                        {
-                            _kind = TokenKind.BlockString;
-                            _start = start;
-                            _end = _position + 2;
-                            _value = _graphQLData.Slice(
-                                start + 3,
-                                _position - start - 3);
-                            _position = _end + 1;
-                            return;
-                        }
-                        break;
-
-                    case GraphQLConstants.Backslash:
-                        if (_graphQLData[_position + 1] == GraphQLConstants.Quote
-                            && _graphQLData[_position + 2] == GraphQLConstants.Quote
-                            && _graphQLData[_position + 3] == GraphQLConstants.Quote)
-                        {
-                            _position += 3;
-                        }
-                        break;
-
-                    // SourceCharacter
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 11:
-                    case 12:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                    case 19:
-                    case 20:
-                    case 21:
-                    case 22:
-                    case 23:
-                    case 24:
-                    case 25:
-                    case 26:
-                    case 27:
-                    case 28:
-                    case 29:
-                    case 30:
-                    case 31:
-                    case 127:
-                        throw new SyntaxException(this,
-                            $"Invalid character within String: {code}.");
+                    _nextNewLines++;
+                }
+                else if (code == Return)
+                {
+                    int next = _position + 1;
+                    if (next < _length
+                        && _graphQLData[next] == NewLine)
+                    {
+                        _position = next;
+                    }
+                    _nextNewLines++;
+                }
+                else if (code == Quote)
+                {
+                    if (_graphQLData[_position + 1] == GraphQLConstants.Quote
+                        && _graphQLData[_position + 2] == GraphQLConstants.Quote)
+                    {
+                        _kind = TokenKind.BlockString;
+                        _start = start;
+                        _end = _position + 2;
+                        int valueStart = _start + 3;
+                        int valueEnd = _end - 3;
+                        int valueLength = valueEnd - valueStart;
+                        _value = _graphQLData.Slice(valueStart, valueLength);
+                        _position = _end + 1;
+                        return;
+                    }
+                }
+                else if (code == Backslash)
+                {
+                    if (_graphQLData[_position + 1] == GraphQLConstants.Quote
+                        && _graphQLData[_position + 2] == GraphQLConstants.Quote
+                        && _graphQLData[_position + 3] == GraphQLConstants.Quote)
+                    {
+                        _position += 3;
+                    }
+                }
+                else if (_isControlCharacterNoNewLine[code])
+                {
+                    throw new SyntaxException(this,
+                        $"Invalid character within String: {code}.");
                 }
             }
 
@@ -570,7 +469,7 @@ namespace HotChocolate.Language
         {
             if (_nextNewLines > 0)
             {
-                NewLine(_nextNewLines);
+                SetNewLine(_nextNewLines);
                 _nextNewLines = 0;
             }
 
@@ -580,23 +479,23 @@ namespace HotChocolate.Language
 
                 switch (code)
                 {
-                    case GraphQLConstants.NewLine:
+                    case NewLine:
                         ++_position;
-                        NewLine();
+                        SetNewLine();
                         break;
 
-                    case GraphQLConstants.Return:
+                    case Return:
                         if (++_position < _length
-                           && _graphQLData[_position] == GraphQLConstants.NewLine)
+                           && _graphQLData[_position] == NewLine)
                         {
                             ++_position;
                         }
-                        NewLine();
+                        SetNewLine();
                         break;
 
-                    case GraphQLConstants.Tab:
-                    case GraphQLConstants.Space:
-                    case GraphQLConstants.Comma:
+                    case Tab:
+                    case Space:
+                    case Comma:
                         ++_position;
                         break;
 
@@ -633,7 +532,7 @@ namespace HotChocolate.Language
         /// Sets the state to a new line.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NewLine()
+        public void SetNewLine()
         {
             _line++;
             _lineStart = _position;
@@ -647,7 +546,7 @@ namespace HotChocolate.Language
         /// The number of lines to skip.
         /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NewLine(int lines)
+        public void SetNewLine(int lines)
         {
             if (lines < 1)
             {

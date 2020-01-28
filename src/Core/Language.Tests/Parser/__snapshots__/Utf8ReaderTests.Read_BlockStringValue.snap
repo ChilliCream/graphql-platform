@@ -4,55 +4,63 @@
     "Start": 0,
     "End": 1,
     "Line": 1,
-    "Column": 1
+    "Column": 1,
+    "Value": "{"
   },
   {
     "Kind": "Name",
     "Start": 2,
     "End": 4,
     "Line": 1,
-    "Column": 3
+    "Column": 3,
+    "Value": "me"
   },
   {
     "Kind": "LeftParenthesis",
     "Start": 4,
     "End": 5,
     "Line": 1,
-    "Column": 5
+    "Column": 5,
+    "Value": "("
   },
   {
     "Kind": "Name",
     "Start": 5,
     "End": 6,
     "Line": 1,
-    "Column": 6
+    "Column": 6,
+    "Value": "a"
   },
   {
     "Kind": "Colon",
     "Start": 6,
     "End": 7,
     "Line": 1,
-    "Column": 7
+    "Column": 7,
+    "Value": ":"
   },
   {
     "Kind": "BlockString",
     "Start": 8,
     "End": 26,
     "Line": 1,
-    "Column": 9
+    "Column": 9,
+    "Value": "\"\"\"\n     Abcdef\n\"\""
   },
   {
     "Kind": "RightParenthesis",
     "Start": 27,
     "End": 28,
     "Line": 3,
-    "Column": 1
+    "Column": 1,
+    "Value": ")"
   },
   {
     "Kind": "RightBrace",
     "Start": 29,
     "End": 30,
     "Line": 3,
-    "Column": 3
+    "Column": 3,
+    "Value": "}"
   }
 ]

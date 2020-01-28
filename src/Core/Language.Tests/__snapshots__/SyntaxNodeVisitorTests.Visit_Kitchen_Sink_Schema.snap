@@ -184,7 +184,7 @@
                 "Line": 17,
                 "Column": 3
               },
-              "Value": "This is a description of the `two` field.",
+              "Value": " This is a description of the `two` field.",
               "Block": true
             },
             "Arguments": [
@@ -198,7 +198,7 @@
                     "Line": 21,
                     "Column": 5
                   },
-                  "Value": "This is a description of the `argument` argument.",
+                  "Value": " This is a description of the `argument` argument.",
                   "Block": true
                 },
                 "Type": {
@@ -3686,7 +3686,7 @@
             "Line": 17,
             "Column": 3
           },
-          "Value": "This is a description of the `two` field.",
+          "Value": " This is a description of the `two` field.",
           "Block": true
         },
         "Arguments": [
@@ -3700,7 +3700,7 @@
                 "Line": 21,
                 "Column": 5
               },
-              "Value": "This is a description of the `argument` argument.",
+              "Value": " This is a description of the `argument` argument.",
               "Block": true
             },
             "Type": {
@@ -4453,7 +4453,7 @@
         "Line": 17,
         "Column": 3
       },
-      "Value": "This is a description of the `two` field.",
+      "Value": " This is a description of the `two` field.",
       "Block": true
     },
     "Arguments": [
@@ -4467,7 +4467,7 @@
             "Line": 21,
             "Column": 5
           },
-          "Value": "This is a description of the `argument` argument.",
+          "Value": " This is a description of the `argument` argument.",
           "Block": true
         },
         "Type": {
@@ -4594,7 +4594,7 @@
         "Line": 21,
         "Column": 5
       },
-      "Value": "This is a description of the `argument` argument.",
+      "Value": " This is a description of the `argument` argument.",
       "Block": true
     },
     "Type": {
@@ -4719,7 +4719,7 @@
       "Line": 21,
       "Column": 5
     },
-    "Value": "This is a description of the `argument` argument.",
+    "Value": " This is a description of the `argument` argument.",
     "Block": true
   },
   {
@@ -4740,7 +4740,7 @@
       "Line": 17,
       "Column": 3
     },
-    "Value": "This is a description of the `two` field.",
+    "Value": " This is a description of the `two` field.",
     "Block": true
   },
   {

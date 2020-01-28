@@ -4,41 +4,47 @@
     "Start": 0,
     "End": 1,
     "Line": 1,
-    "Column": 1
+    "Column": 1,
+    "Value": "{"
   },
   {
     "Kind": "Name",
     "Start": 2,
     "End": 3,
     "Line": 1,
-    "Column": 3
+    "Column": 3,
+    "Value": "x"
   },
   {
     "Kind": "LeftBrace",
     "Start": 4,
     "End": 5,
     "Line": 1,
-    "Column": 5
+    "Column": 5,
+    "Value": "{"
   },
   {
     "Kind": "Name",
     "Start": 6,
     "End": 7,
     "Line": 1,
-    "Column": 7
+    "Column": 7,
+    "Value": "y"
   },
   {
     "Kind": "RightBrace",
     "Start": 8,
     "End": 9,
     "Line": 1,
-    "Column": 9
+    "Column": 9,
+    "Value": "}"
   },
   {
     "Kind": "RightBrace",
     "Start": 10,
     "End": 11,
     "Line": 1,
-    "Column": 11
+    "Column": 11,
+    "Value": "}"
   }
 ]

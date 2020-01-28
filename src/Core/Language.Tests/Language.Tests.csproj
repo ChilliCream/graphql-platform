@@ -5,6 +5,7 @@
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
     <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreTestFramework.props'))</ChilliFramework>
     <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'TestSettings.props'))</ChilliBuild>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <Import Project="$(ChilliFramework)" />

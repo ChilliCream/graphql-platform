@@ -4,27 +4,31 @@
     "Start": 0,
     "End": 1,
     "Line": 1,
-    "Column": 1
+    "Column": 1,
+    "Value": "{"
   },
   {
     "Kind": "Comment",
     "Start": 2,
     "End": 19,
     "Line": 1,
-    "Column": 3
+    "Column": 3,
+    "Value": "#test me foo bar "
   },
   {
     "Kind": "Name",
     "Start": 21,
     "End": 23,
     "Line": 2,
-    "Column": 2
+    "Column": 2,
+    "Value": "me"
   },
   {
     "Kind": "RightBrace",
     "Start": 24,
     "End": 25,
     "Line": 2,
-    "Column": 5
+    "Column": 5,
+    "Value": "}"
   }
 ]
