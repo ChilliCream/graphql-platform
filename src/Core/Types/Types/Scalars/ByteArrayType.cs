@@ -26,13 +26,20 @@ namespace HotChocolate.Types
 
         public override bool TrySerialize(object value, out object serialized)
         {
+            if (value is null)
+            {
+                serialized = null;
+                return true;
+            }
+
             if (value is byte[] b)
             {
                 serialized = Convert.ToBase64String(b);
                 return true;
             }
 
-            return base.TrySerialize(value, out serialized);
+            serialized = null;
+            return false;
         }
 
         public override bool TryDeserialize(object serialized, out object value)
@@ -49,7 +56,13 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            serialized = null;
+            if (serialized is byte[] b)
+            {
+                value = b;
+                return true;
+            }
+
+            value = null;
             return false;
         }
     }
