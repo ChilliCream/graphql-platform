@@ -23,5 +23,34 @@ namespace HotChocolate.Types
         {
             return new StringValueNode(Convert.ToBase64String(value));
         }
+
+        public override bool TrySerialize(object value, out object serialized)
+        {
+            if (value is byte[] b)
+            {
+                serialized = Convert.ToBase64String(b);
+                return true;
+            }
+
+            return base.TrySerialize(value, out serialized);
+        }
+
+        public override bool TryDeserialize(object serialized, out object value)
+        {
+            if (serialized is null)
+            {
+                value = null;
+                return true;
+            }
+
+            if (serialized is string s)
+            {
+                value = Convert.FromBase64String(s);
+                return true;
+            }
+
+            serialized = null;
+            return false;
+        }
     }
 }
