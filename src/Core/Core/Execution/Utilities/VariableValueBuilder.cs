@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
                         variable.Name,
                         TypeVisualizer.Visualize(variable.Type)))
                     .AddLocation(variableDefinition)
-                    .SetExtension("variableName", variable.Name)
+                    .SetExtension("variable_name", variable.Name)
                     .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .Build());
             }
@@ -131,8 +131,8 @@ namespace HotChocolate.Execution
                             TypeResources.VariableValueBuilder_NonNull_In_Graph,
                             variable.Name))
                         .AddLocation(variableDefinition)
-                        .SetExtension("variableName", variable.Name)
-                        .SetExtension("variablePath", report.InputPath)
+                        .SetExtension("variable_name", variable.Name)
+                        .SetExtension("variable_path", report.InputPath)
                         .SetCode(ErrorCodes.Execution.NonNullViolation)
                         .Build());
                 }
@@ -179,6 +179,7 @@ namespace HotChocolate.Execution
                             TypeResources.VariableValueBuilder_InvalidValue,
                             variable.Name))
                         .SetCode(ErrorCodes.Execution.InvalidType)
+                        .SetExtension("variable_name", variable.Name)
                         .AddLocation(variableDefinition)
                         .Build());
                 }
@@ -209,6 +210,7 @@ namespace HotChocolate.Execution
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
                     .SetCode(ErrorCodes.Execution.InvalidType)
+                    .SetExtension("variable_name", variable.Name)
                     .AddLocation(variableDefinition)
                     .Build());
             }
@@ -227,6 +229,7 @@ namespace HotChocolate.Execution
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
                     .SetCode(ErrorCodes.Execution.InvalidType)
+                    .SetExtension("variable_name", variable.Name)
                     .AddLocation(variableDefinition)
                     .Build());
             }
