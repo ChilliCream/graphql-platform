@@ -14,7 +14,7 @@
       ],
       "Exception": null,
       "Extensions": {
-        "variableName": "baz",
+        "variable_name": "baz",
         "code": "EXEC_NON_NULL_VIOLATION"
       }
     }
