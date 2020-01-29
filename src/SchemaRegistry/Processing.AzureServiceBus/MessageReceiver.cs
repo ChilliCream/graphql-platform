@@ -11,15 +11,18 @@ namespace MarshmallowPie.Processing.AzureServiceBus
         : IMessageReceiver<TMessage>
         where TMessage : class
     {
-        public MessageReceiver(ISubscriptionClient client)
+        private readonly Func<ISubscriptionClient> _subscriptionClientFactory;
+
+        public MessageReceiver(Func<ISubscriptionClient> subscriptionClientFactory)
         {
-
-
+            _subscriptionClientFactory = subscriptionClientFactory;
         }
 
-        public ValueTask<IMessageStream<TMessage>> SubscribeAsync(CancellationToken cancellationToken = default)
+        public ValueTask<IMessageStream<TMessage>> SubscribeAsync(
+            CancellationToken cancellationToken = default)
         {
-
+            return new ValueTask<IMessageStream<TMessage>>(
+                new MessageStream(_subscriptionClientFactory()));
         }
 
         private class MessageStream
