@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -18,10 +16,11 @@ namespace MarshmallowPie.Processing.InMemory
             return _channel.Writer.WriteAsync(message, cancellationToken);
         }
 
-        public ValueTask<IMessageStream<TMessage>> SubscribeAsync(CancellationToken cancellationToken = default)
+        public ValueTask<IMessageStream<TMessage>> SubscribeAsync(
+            CancellationToken cancellationToken = default)
         {
-            // return new ValueTask<IAsyncEnumerable<TMessage>>(_channel.Reader.ReadAllAsync());
-            throw new NotImplementedException();
+            return new ValueTask<IMessageStream<TMessage>>(
+                new MessageStream<TMessage>(_channel.Reader));
         }
     }
 }

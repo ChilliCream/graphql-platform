@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace MarshmallowPie.Processing
 {
     public interface ISessionCreator
     {
-        Task<string> CreateSessionAsync();
+        ValueTask<string> CreateSessionAsync(CancellationToken cancellationToken = default);
     }
 }
