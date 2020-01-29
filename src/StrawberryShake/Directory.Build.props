@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Product>Marshmallow Pie</Product>
+    <Product>Strawberry Shake</Product>
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream</Company>
     <Copyright>Copyright &#169; 2019 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
@@ -14,7 +14,7 @@
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://chillicream.com/img/projects/hotchocolate-signet.png</PackageIconUrl>
+    <PackageIconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</PackageIconUrl>
   </PropertyGroup>
 
   <PropertyGroup>
