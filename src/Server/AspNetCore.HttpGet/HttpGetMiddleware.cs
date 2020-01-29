@@ -1,23 +1,11 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using System.Collections.Generic;
 
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-using HttpContext = Microsoft.Owin.IOwinContext;
-using RequestDelegate = Microsoft.Owin.OwinMiddleware;
-#else
-using Microsoft.AspNetCore.Http;
-#endif
-
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public class HttpGetMiddleware
         : QueryMiddlewareBase
@@ -30,27 +18,6 @@ namespace HotChocolate.AspNetCore
         private readonly IQueryExecutor _queryExecutor;
         private readonly IQueryResultSerializer _resultSerializer;
 
-#if ASPNETCLASSIC
-        public HttpGetMiddleware(
-            RequestDelegate next,
-            IHttpGetMiddlewareOptions options,
-            OwinContextAccessor owinContextAccessor,
-            IQueryExecutor queryExecutor,
-            IQueryResultSerializer resultSerializer,
-            IErrorHandler errorHandler)
-            : base(next,
-                options,
-                owinContextAccessor,
-                queryExecutor.Schema.Services,
-                resultSerializer,
-                errorHandler)
-        {
-            _queryExecutor = queryExecutor
-                ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _resultSerializer = resultSerializer
-                ?? throw new ArgumentNullException(nameof(resultSerializer));
-        }
-#else
         public HttpGetMiddleware(
             RequestDelegate next,
             IHttpGetMiddlewareOptions options,
@@ -64,7 +31,6 @@ namespace HotChocolate.AspNetCore
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
         }
-#endif
 
         /// <inheritdoc />
         protected override bool CanHandleRequest(HttpContext context)
@@ -81,12 +47,7 @@ namespace HotChocolate.AspNetCore
             IServiceProvider services)
         {
             var builder = QueryRequestBuilder.New();
-
-#if ASPNETCLASSIC
-            IReadableStringCollection requestQuery = context.Request.Query;
-#else
             IQueryCollection requestQuery = context.Request.Query;
-#endif
 
             builder
                 .SetQuery(requestQuery[_queryIdentifier])
@@ -126,13 +87,8 @@ namespace HotChocolate.AspNetCore
 
         private static bool HasQueryParameter(HttpContext context)
         {
-#if ASPNETCLASSIC
-            return context.Request.Query[_queryIdentifier] != null
-                || context.Request.Query[_namedQueryIdentifier] != null;
-#else
             return context.Request.Query[_queryIdentifier].Count != 0
                 || context.Request.Query[_namedQueryIdentifier].Count != 0;
-#endif
         }
     }
 }

@@ -56,28 +56,18 @@ namespace StarWars.Data
 
         public IEnumerable<object> Search(string text)
         {
-#if ASPNETCLASSIC
-            IEnumerable<ICharacter> filteredCharacters = _characters.Values
-                .Where(t => t.Name.Contains(text));
-#else
             IEnumerable<ICharacter> filteredCharacters = _characters.Values
                 .Where(t => t.Name.Contains(text,
                     StringComparison.OrdinalIgnoreCase));
-#endif
 
             foreach (ICharacter character in filteredCharacters)
             {
                 yield return character;
             }
 
-#if ASPNETCLASSIC
-            IEnumerable<Starship> filteredStarships = _starships.Values
-                .Where(t => t.Name.Contains(text));
-#else
             IEnumerable<Starship> filteredStarships = _starships.Values
                 .Where(t => t.Name.Contains(text,
                     StringComparison.OrdinalIgnoreCase));
-#endif
 
             foreach (Starship starship in filteredStarships)
             {
