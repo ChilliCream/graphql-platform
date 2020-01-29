@@ -1,0 +1,14 @@
+<Project>
+
+  <!-- Shared Package Versions -->
+  <PropertyGroup Label="Dependencies">
+
+    <!-- 3rd party packages -->
+    <GoogleProtobufPackageVersion Condition=" '$(GoogleProtobufPackageVersion)'=='' ">3.10.0</GoogleProtobufPackageVersion>
+    <GrpcDotNetPackageVersion Condition=" '$(GrpcDotNetPackageVersion)'=='' ">2.23.2</GrpcDotNetPackageVersion>
+    <GrpcPackageVersion Condition=" '$(GrpcPackageVersion)'=='' ">2.23.0</GrpcPackageVersion>
+
+  </PropertyGroup>
+
+
+</Project>

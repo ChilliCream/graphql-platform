@@ -1,13 +1,14 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using StarWars.Data;
 using StarWars.Types;
 
@@ -19,6 +20,8 @@ namespace StarWars
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpContextAccessor();
+
             // Add the custom services like repositories etc ...
             services.AddSingleton<CharacterRepository>();
             services.AddSingleton<ReviewRepository>();
@@ -42,6 +45,15 @@ namespace StarWars
                 .AddType<EpisodeType>()
                 .Create());
 
+            // Add gRPC Services
+            services.AddGraphQLOverGrpc(options =>
+            {
+                options.EnableDetailedErrors = true;
+            });
+
+            // TODO: Move to test client
+            // Add test for gRPC to GraphQL
+            services.AddHostedService<TestGrpcToGraphqlHostedService>();
 
             // Add Authorization Policy
             services.AddAuthorization(options =>
@@ -76,13 +88,28 @@ namespace StarWars
                 app.UseDeveloperExceptionPage();
             }
 
+            // gRPC clients need to use HTTPS to call the server - https://docs.microsoft.com/en-us/aspnet/core/tutorials/grpc/grpc-start?view=aspnetcore-3.0&tabs=visual-studio#run-the-service
+            app.UseHttpsRedirection();
+
             app.UseRouting();
 
             app
                 .UseWebSockets()
+                // TODO: When use gRPC services via endpoints.MapGrpcService<GraphqlGrpcService>() than not working routing for GraphQL/GraphiQL/Playground/Voyager
+                // More info here: https://hotchocolategraphql.slack.com/archives/CD9TNKT8T/p1570112005410200
                 .UseGraphQL("/graphql")
                 .UsePlayground("/graphql")
-                .UseVoyager("/graphql");
+                .UseVoyager("/graphql")
+                .UseGraphQLOverGrpc();
+
+            // Default endpoint
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGet("/", async context =>
+                {
+                    await context.Response.WriteAsync($"{nameof(StarWars)} - HotChocolate GraphQL API Server (w/ gRPC API)");
+                });
+            });
         }
     }
 }
