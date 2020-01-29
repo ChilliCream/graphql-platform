@@ -43,11 +43,7 @@ namespace StarWars
                 .AddType<HumanType>()
                 .AddType<DroidType>()
                 .AddType<EpisodeType>()
-                .Create(),
-                new QueryExecutionOptions
-                {
-                    TracingPreference = TracingPreference.Always
-                });
+                .Create());
 
             // Add gRPC Services
             services.AddGraphQLOverGrpc(options =>
@@ -102,7 +98,6 @@ namespace StarWars
                 // TODO: When use gRPC services via endpoints.MapGrpcService<GraphqlGrpcService>() than not working routing for GraphQL/GraphiQL/Playground/Voyager
                 // More info here: https://hotchocolategraphql.slack.com/archives/CD9TNKT8T/p1570112005410200
                 .UseGraphQL("/graphql")
-                .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
                 .UseVoyager("/graphql")
                 .UseGraphQLOverGrpc();

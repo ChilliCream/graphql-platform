@@ -39,6 +39,15 @@ namespace HotChocolate.Utilities
             return RemoveNonEssentialParts(type);
         }
 
+        public static Type UnwrapNonNull(Type type)
+        {
+            if(IsNonNullType(type))
+            {
+                return GetInnerType(type);
+            }
+            return type;
+        }
+
         public static Type Rewrite(
             Type type,
             bool isNonNullType,
@@ -71,7 +80,6 @@ namespace HotChocolate.Utilities
 
             return type;
         }
-
 
         private static IEnumerable<Type> RemoveNonNullComponents(Type type)
         {
@@ -339,24 +347,34 @@ namespace HotChocolate.Utilities
                 current = GetInnerType(current);
             }
 
+            if (IsOptional(type))
+            {
+                current = GetInnerType(current);
+            }
+
             return current;
         }
 
         private static bool IsTypeStackValid(List<Type> components)
         {
+            if (components.Count == 0)
+            {
+                return false;
+            }
+
             foreach (Type type in components)
             {
                 if (typeof(Task).IsAssignableFrom(type))
                 {
                     return false;
                 }
-
-                if (typeof(IType).IsAssignableFrom(type)
-                    && !IsNonNullType(type))
-                {
-                    return false;
-                }
             }
+
+            if (typeof(IType).IsAssignableFrom(components[components.Count - 1]))
+            {
+                return false;
+            }
+
             return true;
         }
 
@@ -371,7 +389,8 @@ namespace HotChocolate.Utilities
                 || IsNonNullType(type)
                 || IsNullableType(type)
                 || IsWrapperType(type)
-                || IsResolverResultType(type))
+                || IsResolverResultType(type)
+                || IsOptional(type))
             {
                 return type.GetGenericArguments().First();
             }
@@ -386,6 +405,11 @@ namespace HotChocolate.Utilities
 
         internal static Type GetInnerListType(Type type)
         {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
+            {
+                return type.GetGenericArguments().First();
+            }
+
             if (type.IsInterface && IsSupportedCollectionInterface(type, true))
             {
                 return type.GetGenericArguments().First();
@@ -416,7 +440,9 @@ namespace HotChocolate.Utilities
                     || typeDefinition == typeof(IReadOnlyList<>)
                     || typeDefinition == typeof(ICollection<>)
                     || typeDefinition == typeof(IList<>)
-                    || typeDefinition == typeof(IQueryable<>))
+                    || typeDefinition == typeof(IQueryable<>)
+                    || typeDefinition == typeof(IAsyncEnumerable<>)
+                    || typeDefinition == typeof(IObservable<>))
                 {
                     return true;
                 }
@@ -432,14 +458,21 @@ namespace HotChocolate.Utilities
         public static bool IsListType(Type type)
         {
             return type.IsArray
-                || typeof(ListType) == type
+                || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
                 || ImplementsListInterface(type);
         }
 
         private static bool IsTaskType(Type type)
         {
             return type.IsGenericType
-                && typeof(Task<>) == type.GetGenericTypeDefinition();
+                && (typeof(Task<>) == type.GetGenericTypeDefinition()
+                    || typeof(ValueTask<>) == type.GetGenericTypeDefinition());
+        }
+
+        private static bool IsOptional(Type type)
+        {
+            return type.IsGenericType
+                && typeof(Optional<>) == type.GetGenericTypeDefinition();
         }
 
         private static bool IsResolverResultType(Type type)
@@ -482,13 +515,18 @@ namespace HotChocolate.Utilities
 
         private static bool CanHandle(Type type)
         {
-            if (!typeof(IType).IsAssignableFrom(type)
-                || IsWrapperType(type))
+            if (!typeof(IType).IsAssignableFrom(type) || IsWrapperType(type))
             {
                 return true;
             }
 
             if (IsNonNullType(type) && CanHandle(GetInnerType(type)))
+            {
+                return true;
+            }
+
+            List<Type> types = DecomposeType(type);
+            if (types.Count > 0 && CanHandle(types[types.Count - 1]))
             {
                 return true;
             }

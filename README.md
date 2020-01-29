@@ -165,7 +165,7 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 }
 ```
 
-This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema, start your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema, start your web host and get [Banana Cake Pop](https://hotchocolate.io/docs/banana-cakepop).
 
 By default, the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
 
@@ -203,12 +203,6 @@ dotnet new graphql
 ## Features and Roadmap
 
 We have moved the roadmap into the [ROADMAP.md](ROADMAP.md)
-
-## GraphQL Compatibility Acceptance Tests
-
-We are now investing to implement the GraphQL Compatibility Acceptance Tests for Hot Chocolate. We should have the first test running with Version 0.8.0 and should have this finished until Version 0.11.0.
-
-More about GraphQL compatibility acceptance tests can be read [here](https://github.com/graphql-cats/graphql-cats).
 
 ## Documentation
 

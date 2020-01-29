@@ -22,10 +22,8 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name =
-                context.Naming.GetTypeName(clrType, TypeKind.Interface);
-            Definition.Description =
-                context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
 
         protected InterfaceTypeDescriptor(
@@ -35,7 +33,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override InterfaceTypeDefinition Definition { get; } =
+        internal protected override InterfaceTypeDefinition Definition { get; } =
             new InterfaceTypeDefinition();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
@@ -44,6 +42,14 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceTypeDefinition definition)
         {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.ClrType);
+            }
+
             var fields = new Dictionary<NameString, InterfaceFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
@@ -56,6 +62,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledMembers);
 
             Definition.Fields.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteFields(
@@ -85,7 +93,14 @@ namespace HotChocolate.Types.Descriptors
 
         public IInterfaceFieldDescriptor Field(NameString name)
         {
-            var fieldDescriptor = new InterfaceFieldDescriptor(
+            InterfaceFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = InterfaceFieldDescriptor.New(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
             Fields.Add(fieldDescriptor);

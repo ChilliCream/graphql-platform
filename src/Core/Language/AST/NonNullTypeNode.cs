@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public NonNullTypeNode(Location location, INullableTypeNode type)
+        public NonNullTypeNode(Location? location, INullableTypeNode type)
         {
             Location = location;
             Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -19,21 +19,11 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.NonNullType;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public INullableTypeNode Type { get; }
 
-        public NonNullTypeNode WithLocation(Location location)
-        {
-            return new NonNullTypeNode(location, Type);
-        }
-
-        public NonNullTypeNode WithType(INullableTypeNode type)
-        {
-            return new NonNullTypeNode(Location, type);
-        }
-
-        public bool Equals(NonNullTypeNode other)
+        public bool Equals(NonNullTypeNode? other)
         {
             if (other is null)
             {
@@ -48,7 +38,7 @@ namespace HotChocolate.Language
             return Type.Equals(other.Type);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -71,9 +61,19 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return $"{Type.ToString()}!";
+        }
+
+        public NonNullTypeNode WithLocation(Location? location)
+        {
+            return new NonNullTypeNode(location, Type);
+        }
+
+        public NonNullTypeNode WithType(INullableTypeNode type)
+        {
+            return new NonNullTypeNode(Location, type);
         }
     }
 }

@@ -1,56 +1,61 @@
 using System;
+using System.Buffers.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public sealed class UuidType
-        : ScalarType
+        : ScalarType<Guid, StringValueNode>
     {
+        private readonly string _format;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UuidType"/> class.
+        /// </summary>
         public UuidType()
-            : base("Uuid")
+            : this('\0')
         {
         }
 
-        public override Type ClrType => typeof(Guid);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UuidType"/> class.
+        /// </summary>
+        public UuidType(char format = '\0')
+            : this(ScalarNames.Uuid, format)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is NullValueNode)
-            {
-                return true;
-            }
-
-            if (literal is StringValueNode stringLiteral
-                && Guid.TryParse(stringLiteral.Value, out _))
-            {
-                return true;
-            }
-
-            return false;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UuidType"/> class.
+        /// </summary>
+        public UuidType(NameString name, char format = '\0')
+            : this(name, null, format)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+        }
 
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UuidType"/> class.
+        /// </summary>
+        public UuidType(NameString name, string? description, char format = '\0')
+            : base(name, BindingBehavior.Implicit)
+        {
+            Description = description;
+            _format = CreateFormatString(format);
+        }
 
-            if (literal is StringValueNode stringLiteral
-                && Guid.TryParse(stringLiteral.Value, out Guid guid))
+        protected override bool IsInstanceOfType(StringValueNode literal)
+        {
+            return Utf8Parser.TryParse(literal.AsSpan(), out Guid _, out int _, _format[0]);
+        }
+
+        protected override Guid ParseLiteral(StringValueNode literal)
+        {
+            if (Utf8Parser.TryParse(literal.AsSpan(), out Guid g, out int _, _format[0]))
             {
-                return guid;
+                return g;
             }
 
             throw new ScalarSerializationException(
@@ -58,40 +63,30 @@ namespace HotChocolate.Types
                     Name, literal.GetType()));
         }
 
-        public override IValueNode ParseValue(object value)
+        protected override StringValueNode ParseValue(Guid value)
         {
-            if (value == null)
-            {
-                return new NullValueNode(null);
-            }
-
-            if (value is Guid guid)
-            {
-                return new StringValueNode(guid.ToString("N"));
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            return new StringValueNode(value.ToString(_format));
         }
 
-        public override object Serialize(object value)
+        public override bool TrySerialize(object value, out object? serialized)
         {
-            if (value == null)
+            if (value is null)
             {
-                return null;
+                serialized = null;
+                return true;
             }
 
-            if (value is Guid guid)
+            if (value is Guid uri)
             {
-                return guid;
+                serialized = uri.ToString(_format);
+                return true;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+            serialized = null;
+            return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object serialized, out object? value)
         {
             if (serialized is null)
             {
@@ -113,6 +108,28 @@ namespace HotChocolate.Types
 
             value = null;
             return false;
+        }
+
+        private static string CreateFormatString(char format)
+        {
+            if (format != '\0'
+                && format != 'N'
+                && format != 'D'
+                && format != 'B'
+                && format != 'P')
+            {
+                throw new ArgumentException(
+                    "Unknown format. Guid supports the following format chars: " +
+                    $"{{ `N`, `D`, `B`, `P` }}.{Environment.NewLine}" +
+                    "https://docs.microsoft.com/en-us/dotnet/api/" +
+                    "system.buffers.text.utf8parser.tryparse?" +
+                    "view=netcore-3.1#System_Buffers_Text_Utf8Parser_" +
+                    "TryParse_System_ReadOnlySpan_System_Byte__System_Guid__" +
+                    "System_Int32__System_Char_",
+                    nameof(format));
+            }
+
+            return format == '\0' ? "N" : format.ToString();
         }
     }
 }

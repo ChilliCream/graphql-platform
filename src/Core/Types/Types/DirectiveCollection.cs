@@ -72,14 +72,12 @@ namespace HotChocolate.Types
             ISet<string> processed,
             out Directive directive)
         {
-            DirectiveType directiveType =
-                context.GetDirectiveType(definition.Reference);
+            DirectiveType directiveType = context.GetDirectiveType(definition.Reference);
             directive = null;
 
             if (directiveType != null)
             {
-                if (!processed.Add(directiveType.Name)
-                    && !directiveType.IsRepeatable)
+                if (!processed.Add(directiveType.Name) && !directiveType.IsRepeatable)
                 {
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(string.Format(

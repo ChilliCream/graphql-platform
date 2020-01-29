@@ -1,4 +1,3 @@
-using System.Buffers;
 using System;
 using System.Runtime.CompilerServices;
 using System.Globalization;
@@ -11,6 +10,7 @@ namespace HotChocolate.Language
         private int _nextNewLines;
         private ReadOnlySpan<byte> _graphQLData;
         private ReadOnlySpan<byte> _value;
+        private FloatFormat? _floatFormat;
         private int _length;
         private int _position;
         private TokenKind _kind;
@@ -22,6 +22,11 @@ namespace HotChocolate.Language
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
         {
+            if (graphQLData.Length == 0)
+            {
+                throw new ArgumentException("The graphQLData is empty.", nameof(graphQLData));
+            }
+
             _kind = TokenKind.StartOfFile;
             _start = 0;
             _end = 0;
@@ -33,6 +38,7 @@ namespace HotChocolate.Language
             _nextNewLines = 0;
             _position = 0;
             _value = null;
+            _floatFormat = null;
         }
 
         public ReadOnlySpan<byte> GraphQLData => _graphQLData;
@@ -80,8 +86,12 @@ namespace HotChocolate.Language
         /// </summary>
         public ReadOnlySpan<byte> Value => _value;
 
+        public FloatFormat? FloatFormat => _floatFormat;
+
         public bool Read()
         {
+            _floatFormat = null;
+
             if (_position == 0)
             {
                 SkipBoml();
@@ -231,7 +241,7 @@ namespace HotChocolate.Language
                 code = _graphQLData[++_position];
             }
 
-            if (code == GraphQLConstants.Zero)
+            if (code == GraphQLConstants.Zero && !IsEndOfStream(_position + 1))
             {
                 code = _graphQLData[++_position];
                 if (GraphQLConstants.IsDigit(code))
@@ -249,6 +259,7 @@ namespace HotChocolate.Language
             if (code == GraphQLConstants.Dot)
             {
                 isFloat = true;
+                _floatFormat = Language.FloatFormat.FixedPoint;
                 code = _graphQLData[++_position];
                 code = ReadDigits(code);
             }
@@ -256,6 +267,7 @@ namespace HotChocolate.Language
             if ((code | 0x20) == GraphQLConstants.E)
             {
                 isFloat = true;
+                _floatFormat = Language.FloatFormat.Exponential;
                 code = _graphQLData[++_position];
                 if (code == GraphQLConstants.Plus
                     || code == GraphQLConstants.Minus)
@@ -665,6 +677,12 @@ namespace HotChocolate.Language
         public bool IsEndOfStream()
         {
             return _position >= _length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsEndOfStream(int position)
+        {
+            return position >= _length;
         }
     }
 }

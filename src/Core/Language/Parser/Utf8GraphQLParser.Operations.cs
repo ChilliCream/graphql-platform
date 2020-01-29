@@ -27,7 +27,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             OperationType operation = ParseOperationType();
-            NameNode name = _reader.Kind == TokenKind.Name
+            NameNode? name = _reader.Kind == TokenKind.Name
                 ? ParseName()
                 : null;
             List<VariableDefinitionNode> variableDefinitions =
@@ -35,7 +35,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new OperationDefinitionNode
             (
@@ -59,7 +59,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new OperationDefinitionNode
             (
@@ -147,13 +147,13 @@ namespace HotChocolate.Language
             VariableNode variable = ParseVariable();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
-            IValueNode defaultValue = SkipEqual()
+            IValueNode? defaultValue = SkipEqual()
                 ? ParseValueLiteral(true)
                 : null;
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new VariableDefinitionNode
             (
@@ -177,7 +177,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
             ExpectDollar();
             NameNode name = ParseName();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new VariableNode
             (
@@ -220,7 +220,7 @@ namespace HotChocolate.Language
             // skip closing token
             ExpectRightBrace();
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new SelectionSetNode
             (
@@ -259,7 +259,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             NameNode name = ParseName();
-            NameNode alias = null;
+            NameNode? alias = null;
 
             if (SkipColon())
             {
@@ -269,11 +269,11 @@ namespace HotChocolate.Language
 
             List<ArgumentNode> arguments = ParseArguments(false);
             List<DirectiveNode> directives = ParseDirectives(false);
-            SelectionSetNode selectionSet = _reader.Kind == TokenKind.LeftBrace
+            SelectionSetNode? selectionSet = _reader.Kind == TokenKind.LeftBrace
                 ? ParseSelectionSet()
                 : null;
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new FieldNode
             (
@@ -331,7 +331,7 @@ namespace HotChocolate.Language
             ExpectColon();
             IValueNode value = ParseValueLiteral(isConstant);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new ArgumentNode
             (

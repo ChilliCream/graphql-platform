@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection.Models;
 using HotChocolate.Stitching.Properties;
@@ -14,8 +15,8 @@ namespace HotChocolate.Stitching.Introspection
         {
             if (string.IsNullOrEmpty(json))
             {
-                throw new ArgumentException(StitchingResources
-                    .IntrospectionDeserializer_Json_NullOrEmpty,
+                throw new ArgumentException(
+                    StitchingResources.IntrospectionDeserializer_Json_NullOrEmpty,
                     nameof(json));
             }
 
@@ -143,8 +144,8 @@ namespace HotChocolate.Stitching.Introspection
                     null,
                     new NameNode(value.Name),
                     CreateDescription(value.Description),
-                    CreateDepricatedDirective(
-                        value.IsDepricated,
+                    CreateDeprecatedDirective(
+                        value.IsDeprecated,
                         value.DeprecationReason)
                 ));
             }
@@ -161,11 +162,11 @@ namespace HotChocolate.Stitching.Introspection
                 new NameNode(type.Name),
                 CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
-                CreateInputVals(type.InputFields)
+                CreateInputValues(type.InputFields)
             );
         }
 
-        private static IReadOnlyList<InputValueDefinitionNode> CreateInputVals(
+        private static IReadOnlyList<InputValueDefinitionNode> CreateInputValues(
             IEnumerable<InputField> fields)
         {
             var list = new List<InputValueDefinitionNode>();
@@ -225,10 +226,10 @@ namespace HotChocolate.Stitching.Introspection
                     null,
                     new NameNode(field.Name),
                     CreateDescription(field.Description),
-                    CreateInputVals(field.Args),
+                    CreateInputValues(field.Args),
                     CreateTypeReference(field.Type),
-                    CreateDepricatedDirective(
-                        field.IsDepricated,
+                    CreateDeprecatedDirective(
+                        field.IsDeprecated,
                         field.DeprecationReason)
                 ));
             }
@@ -273,7 +274,7 @@ namespace HotChocolate.Stitching.Introspection
                 new NameNode(directive.Name),
                 CreateDescription(directive.Description),
                 directive.IsRepeatable,
-                CreateInputVals(directive.Args),
+                CreateInputValues(directive.Args),
                 locations
             );
         }
@@ -325,10 +326,10 @@ namespace HotChocolate.Stitching.Introspection
             return list;
         }
 
-        private static IReadOnlyList<DirectiveNode> CreateDepricatedDirective(
-            bool isDepricated, string deprecationReason)
+        private static IReadOnlyList<DirectiveNode> CreateDeprecatedDirective(
+            bool isDeprecated, string deprecationReason)
         {
-            if (isDepricated)
+            if (isDeprecated)
             {
                 return new List<DirectiveNode>
                 {
@@ -357,16 +358,12 @@ namespace HotChocolate.Stitching.Introspection
         {
             if (!string.IsNullOrEmpty(defaultValue))
             {
-                SyntaxToken start = Lexer.Default.Read(
-                    new Source(defaultValue));
+                byte[] buffer = Encoding.UTF8.GetBytes(defaultValue);
+                var reader = new Utf8GraphQLReader(buffer);
+                reader.MoveNext();
 
-                var context = new ParserContext(
-                    new Source(defaultValue),
-                    start,
-                    ParserOptions.Default,
-                    Parser.ParseName);
-                context.MoveNext();
-                return Parser.ParseValueLiteral(context, true);
+                var parser = new Utf8GraphQLParser(reader, ParserOptions.Default);
+                return parser.ParseValueLiteral(true);
             }
             return NullValueNode.Default;
         }

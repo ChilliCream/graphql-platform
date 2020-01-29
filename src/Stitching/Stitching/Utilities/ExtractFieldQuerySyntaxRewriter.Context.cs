@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Utilities
 {
@@ -34,8 +31,7 @@ namespace HotChocolate.Stitching.Utilities
 
             public OperationDefinitionNode Operation { get; }
 
-            public IDictionary<string, VariableDefinitionNode> Variables
-            { get; }
+            public IDictionary<string, VariableDefinitionNode> Variables { get; }
 
             public INamedOutputType TypeContext { get; set; }
 

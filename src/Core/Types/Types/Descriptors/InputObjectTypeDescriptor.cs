@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override InputObjectTypeDefinition Definition { get; } =
+        internal protected override InputObjectTypeDefinition Definition { get; } =
             new InputObjectTypeDefinition();
 
         protected List<InputFieldDescriptor> Fields { get; } =
@@ -43,6 +43,14 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)
         {
+            if (Definition.ClrType is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.ClrType);
+            }
+
             var fields = new Dictionary<NameString, InputFieldDefinition>();
             var handledProperties = new HashSet<PropertyInfo>();
 
@@ -55,6 +63,8 @@ namespace HotChocolate.Types.Descriptors
             OnCompleteFields(fields, handledProperties);
 
             Definition.Fields.AddRange(fields.Values);
+
+            base.OnCreateDefinition(definition);
         }
 
         protected virtual void OnCompleteFields(
@@ -84,11 +94,18 @@ namespace HotChocolate.Types.Descriptors
 
         public IInputFieldDescriptor Field(NameString name)
         {
-            var field = new InputFieldDescriptor(
+            InputFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = new InputFieldDescriptor(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
-            Fields.Add(field);
-            return field;
+            Fields.Add(fieldDescriptor);
+            return fieldDescriptor;
         }
 
         public IInputObjectTypeDescriptor Directive<T>(T directive)

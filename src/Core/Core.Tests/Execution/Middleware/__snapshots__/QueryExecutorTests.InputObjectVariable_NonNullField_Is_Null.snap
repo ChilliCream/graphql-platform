@@ -4,7 +4,7 @@
   "Errors": [
     {
       "Message": "Detected non-null violation in variable `foo`.",
-      "Code": null,
+      "Code": "EXEC_NON_NULL_VIOLATION",
       "Path": null,
       "Locations": [
         {
@@ -14,11 +14,12 @@
       ],
       "Exception": null,
       "Extensions": {
-        "variableName": "foo",
-        "variablePath": [
+        "variable_name": "foo",
+        "variable_path": [
           "bar",
           "baz"
-        ]
+        ],
+        "code": "EXEC_NON_NULL_VIOLATION"
       }
     }
   ],

@@ -16,8 +16,19 @@ namespace HotChocolate.Types
         private ITypeConversion _converter;
 
         public AnyType()
-            : base("Any")
+            : base(ScalarNames.Any, BindingBehavior.Explicit)
         {
+        }
+
+        public AnyType(NameString name)
+            : base(name, BindingBehavior.Explicit)
+        {
+        }
+
+        public AnyType(NameString name, string description)
+            : base(name, BindingBehavior.Explicit)
+        {
+            Description = description;
         }
 
         public override Type ClrType => typeof(object);
@@ -108,15 +119,9 @@ namespace HotChocolate.Types
                     return new StringValueNode(s);
                 case short s:
                     return new IntValueNode(s);
-                case ushort s:
-                    return new IntValueNode(s);
                 case int i:
                     return new IntValueNode(i);
-                case uint i:
-                    return new IntValueNode(i);
                 case long l:
-                    return new IntValueNode(l);
-                case ulong l:
                     return new IntValueNode(l);
                 case float f:
                     return new FloatValueNode(f);
@@ -170,27 +175,26 @@ namespace HotChocolate.Types
         }
 
 
-        public override object Serialize(object value)
+        public override bool TrySerialize(object value, out object serialized)
         {
             if (value is null)
             {
-                return null;
+                serialized = null;
+                return true;
             }
 
             switch (value)
             {
                 case string _:
                 case short _:
-                case ushort _:
                 case int _:
-                case uint _:
                 case long _:
-                case ulong _:
                 case float _:
                 case double _:
                 case decimal _:
                 case bool _:
-                    return value;
+                    serialized = value;
+                    return true;
 
                 default:
                     Type type = value.GetType();
@@ -199,10 +203,12 @@ namespace HotChocolate.Types
                         type, typeof(string), value, out object converted)
                         && converted is string c)
                     {
-                        return c;
+                        serialized = c;
+                        return true;
                     }
 
-                    return _objectToDictConverter.Convert(value);
+                    serialized = _objectToDictConverter.Convert(value);
+                    return true;
             }
         }
 

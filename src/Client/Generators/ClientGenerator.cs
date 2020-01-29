@@ -9,7 +9,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Validation;
-using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Stitching;
 using StrawberryShake.Generators.Descriptors;
@@ -32,20 +31,20 @@ namespace StrawberryShake.Generators
         private readonly Dictionary<string, LeafTypeInfo> _leafTypes =
             new[]
             {
-                new LeafTypeInfo("String", typeof(string)),
-                new LeafTypeInfo("Int", typeof(int)),
-                new LeafTypeInfo("Float", typeof(double)),
-                new LeafTypeInfo("Boolean", typeof(bool)),
-                new LeafTypeInfo("ID", typeof(string)),
-                new LeafTypeInfo("Date", typeof(DateTime), typeof(string)),
-                new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
-                new LeafTypeInfo("Byte", typeof(byte) , typeof(byte)),
-                new LeafTypeInfo("Short", typeof(short)),
-                new LeafTypeInfo("Long", typeof(long)),
-                new LeafTypeInfo("Decimal", typeof(Decimal), typeof(Decimal)),
-                new LeafTypeInfo("Uuid", typeof(Guid), typeof(string)),
+                new LeafTypeInfo(ScalarNames.String, typeof(string)),
+                new LeafTypeInfo(ScalarNames.Int, typeof(int)),
+                new LeafTypeInfo(ScalarNames.Float, typeof(double)),
+                new LeafTypeInfo(ScalarNames.Boolean, typeof(bool)),
+                new LeafTypeInfo(ScalarNames.ID, typeof(string)),
+                new LeafTypeInfo(ScalarNames.Date, typeof(DateTime), typeof(string)),
+                new LeafTypeInfo(ScalarNames.DateTime, typeof(DateTimeOffset), typeof(string)),
+                new LeafTypeInfo(ScalarNames.Byte, typeof(byte) , typeof(byte)),
+                new LeafTypeInfo(ScalarNames.Short, typeof(short)),
+                new LeafTypeInfo(ScalarNames.Long, typeof(long)),
+                new LeafTypeInfo(ScalarNames.Decimal, typeof(decimal), typeof(decimal)),
+                new LeafTypeInfo(ScalarNames.Uuid, typeof(Guid), typeof(string)),
                 new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
-                new LeafTypeInfo("Url", typeof(Uri), typeof(string))
+                new LeafTypeInfo(ScalarNames.Url, typeof(Uri), typeof(string))
             }.ToDictionary(t => t.TypeName);
 
         private readonly ClientGeneratorOptions _options = new ClientGeneratorOptions();
@@ -190,7 +189,7 @@ namespace StrawberryShake.Generators
             }
 
             string name = IOPath.GetFileNameWithoutExtension(fileName);
-            var document = Utf8GraphQLParser.Parse(File.ReadAllBytes(fileName));
+            DocumentNode document = Utf8GraphQLParser.Parse(File.ReadAllBytes(fileName));
             _queries.Add(name, new DocumentInfo(name, fileName, document));
             return this;
         }
@@ -279,9 +278,6 @@ namespace StrawberryShake.Generators
                     "can generate any client APIs.");
             }
 
-            IDocumentHashProvider hashProvider = _hashProvider
-                ?? new MD5DocumentHashProvider();
-
             // create schema
             DocumentNode mergedSchema = MergeSchema();
             mergedSchema = MergeSchemaExtensions(mergedSchema);
@@ -332,7 +328,8 @@ namespace StrawberryShake.Generators
             }
 
             IReadOnlyList<IQueryDescriptor> queries =
-                await ParseQueriesAsync(schema, hashProvider);
+                await ParseQueriesAsync(hashProvider)
+                    .ConfigureAwait(false);
 
             // generate abstarct client models
             var usedNames = new HashSet<string>();
@@ -358,7 +355,8 @@ namespace StrawberryShake.Generators
                 }
             }
 
-            await _output.WriteAllAsync(typeLookup);
+            await _output.WriteAllAsync(typeLookup)
+                .ConfigureAwait(false);
         }
 
         private DocumentNode MergeSchema()
@@ -399,7 +397,7 @@ namespace StrawberryShake.Generators
                             null,
                             new NameNode(GeneratorDirectives.NameArgument),
                             null,
-                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            new NonNullTypeNode(new NamedTypeNode(ScalarNames.String)),
                             null,
                             Array.Empty<DirectiveNode>()
                         )
@@ -421,7 +419,7 @@ namespace StrawberryShake.Generators
                             null,
                             new NameNode(GeneratorDirectives.NameArgument),
                             null,
-                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            new NonNullTypeNode(new NamedTypeNode(ScalarNames.String)),
                             null,
                             Array.Empty<DirectiveNode>()
                         )
@@ -443,7 +441,7 @@ namespace StrawberryShake.Generators
                             null,
                             new NameNode(GeneratorDirectives.NameArgument),
                             null,
-                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            new NonNullTypeNode(new NamedTypeNode(ScalarNames.String)),
                             null,
                             Array.Empty<DirectiveNode>()
                         )
@@ -467,7 +465,7 @@ namespace StrawberryShake.Generators
 
         private static ISchema CreateSchema(DocumentNode schema)
         {
-            SchemaBuilder builder = SchemaBuilder.New();
+            var builder = SchemaBuilder.New();
 
             foreach (CustomScalarType type in schema.Definitions
                 .OfType<ScalarTypeDefinitionNode>()
@@ -488,7 +486,7 @@ namespace StrawberryShake.Generators
         }
 
         private async Task<IReadOnlyList<IQueryDescriptor>> ParseQueriesAsync(
-            ISchema schema, IDocumentHashProvider hashProvider)
+            IDocumentHashProvider hashProvider)
         {
             var queryCollection = new QueryCollection(hashProvider, _namespace!);
 
@@ -497,7 +495,8 @@ namespace StrawberryShake.Generators
                 await queryCollection.LoadFromDocumentAsync(
                     documentInfo.Name,
                     documentInfo.FileName,
-                    documentInfo.Document);
+                    documentInfo.Document)
+                    .ConfigureAwait(false);
             }
 
             return queryCollection.ToList();
@@ -544,7 +543,7 @@ namespace StrawberryShake.Generators
 
                     Type serializationType = GetTypeFromDirective(
                         scalarType,
-                        GeneratorDirectives.ClrType) ??
+                        GeneratorDirectives.SerializationType) ??
                         clrType;
 
                     _leafTypes[scalarType.Name] =
@@ -581,7 +580,7 @@ namespace StrawberryShake.Generators
                 serviceCollection.AddQueryValidation();
                 serviceCollection.AddDefaultValidationRules();
                 serviceCollection.AddSingleton<IValidateQueryOptionsAccessor, ValidationOptions>();
-                var validator = serviceCollection.BuildServiceProvider()
+                IQueryValidator validator = serviceCollection.BuildServiceProvider()
                     .GetService<IQueryValidator>();
 
                 foreach (DocumentInfo documentInfo in _queries.Values)
@@ -614,7 +613,7 @@ namespace StrawberryShake.Generators
         {
             yield return new ClassGenerator();
             yield return new InputClassGenerator();
-            yield return new InputClassSerializerGenerator();
+            yield return new InputClassSerializerGenerator(options.LanguageVersion);
             yield return new InterfaceGenerator();
             yield return new ResultParserGenerator(options);
             yield return new OperationGenerator();

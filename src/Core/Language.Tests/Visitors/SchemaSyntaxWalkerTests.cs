@@ -10,7 +10,7 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = FileResource.Open("schema-kitchen-sink.graphql");
-            DocumentNode document = Parser.Default.Parse(query);
+            DocumentNode document = Utf8GraphQLParser.Parse(query);
 
             // act
             var walker = new DummySchemaSyntaxWalker();

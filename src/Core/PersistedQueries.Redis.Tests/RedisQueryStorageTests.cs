@@ -1,43 +1,25 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Text;
-using StackExchange.Redis;
-using HotChocolate.PersistedQueries.FileSystem;
+using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
-using Xunit;
+using HotChocolate.PersistedQueries.FileSystem;
 using Snapshooter;
+using Snapshooter.Xunit;
+using Squadron;
+using StackExchange.Redis;
+using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis
 {
     public class RedisQueryStorageTests
+        : IClassFixture<RedisResource>
     {
-        private ConnectionMultiplexer _connectionMultiplexer;
         private IDatabase _database;
 
-        public RedisQueryStorageTests()
+        public RedisQueryStorageTests(RedisResource redisResource)
         {
-            string endpoint =
-               Environment.GetEnvironmentVariable("REDIS_ENDPOINT")
-               ?? "localhost:6379";
-
-            string password =
-                Environment.GetEnvironmentVariable("REDIS_PASSWORD");
-
-            var configuration = new ConfigurationOptions
-            {
-                Ssl = !string.IsNullOrEmpty(password),
-                AbortOnConnectFail = false,
-                Password = password
-            };
-
-            configuration.EndPoints.Add(endpoint);
-
-            _connectionMultiplexer =
-                ConnectionMultiplexer.Connect(configuration);
-
-            _database = _connectionMultiplexer.GetDatabase();
+            _database = redisResource.GetConnection().GetDatabase();
         }
 
         [Fact]

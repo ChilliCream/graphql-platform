@@ -69,6 +69,10 @@ namespace HotChocolate.Types
                 TypeExtensionHelper.MergeTypes(
                     Definition.Types,
                     unionType.Definition.Types);
+
+                TypeExtensionHelper.MergeConfigurations(
+                    Definition.Configurations,
+                    unionType.Definition.Configurations);
             }
             else
             {

@@ -299,6 +299,31 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public void Backing_Type_Can_Be_Used_As_Variable()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: BarInput!) { a }");
+
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", new Bar { F = new Foo { B = BarEnum.A } } }
+            };
+
+            var resolver = new VariableValueBuilder(schema, operation);
+
+            // act
+            VariableValueCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
+
+            // assert
+            Bar bar = coercedVariableValues.GetVariable<Bar>("test");
+            Assert.NotNull(bar.F);
+            Assert.Equal(BarEnum.A, bar.F.B);
+        }
+
+        [Fact]
         public void CoerceInputObjectWithEnumAsEnumValueNode()
         {
             // arrange
@@ -618,6 +643,7 @@ namespace HotChocolate.Execution
                 c =>
                 {
                     c.Use(next => context => Task.CompletedTask);
+                    c.RegisterType<IntType>();
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();
                     c.RegisterType<BazType>();
@@ -629,8 +655,7 @@ namespace HotChocolate.Execution
 
         private OperationDefinitionNode CreateQuery(string query)
         {
-            var parser = new Parser();
-            return parser.Parse(query)
+            return Utf8GraphQLParser.Parse(query)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         }
 

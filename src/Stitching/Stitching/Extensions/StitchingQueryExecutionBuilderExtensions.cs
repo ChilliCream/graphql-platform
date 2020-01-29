@@ -72,8 +72,15 @@ namespace HotChocolate.Execution
             }
 
             return builder
+                .AddDefaultServices(options)
+                .UseDefaultDiagnostics(options)
+                .UseQueryParser()
+                .UseNoCachedQueryError()
+                .UseValidation()
+                .UseOperationResolver()
+                .UseMaxComplexity()
                 .UsePropagateVariables()
-                .UseDefaultPipeline(options);
+                .UseOperationExecutor();
         }
 
         public static IQueryExecutionBuilder UseRemoteQueryExecutor(

@@ -1,14 +1,14 @@
-using System.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using HotChocolate.Configuration;
 using HotChocolate.Types.Factories;
-using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate
 {
@@ -19,7 +19,10 @@ namespace HotChocolate
             IServiceProvider services = _services
                 ?? new EmptyServiceProvider();
 
-            var descriptorContext = DescriptorContext.Create(_options, services);
+            var descriptorContext = DescriptorContext.Create(
+                _options,
+                services,
+                CreateConventions(services));
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
@@ -30,16 +33,14 @@ namespace HotChocolate
             var lazy = new LazySchema();
 
             TypeInitializer initializer =
-                InitializeTypes(
+                CreateTypeInitializer(
                     services,
                     descriptorContext,
                     bindingLookup,
-                    types,
-                    () => lazy.Schema);
+                    types);
+            DiscoveredTypes discoveredTypes = initializer.Initialize(() => lazy.Schema, _options);
 
-            SchemaTypesDefinition definition =
-                CreateSchemaDefinition(initializer);
-
+            SchemaTypesDefinition definition = CreateSchemaDefinition(initializer, discoveredTypes);
             if (definition.QueryType == null && _options.StrictValidation)
             {
                 throw new SchemaException(
@@ -48,7 +49,7 @@ namespace HotChocolate
                         .Build());
             }
 
-            Schema schema = initializer.Types.Values
+            Schema schema = discoveredTypes.Types
                 .Select(t => t.Type)
                 .OfType<Schema>()
                 .First();
@@ -140,22 +141,21 @@ namespace HotChocolate
             }
         }
 
-        private TypeInitializer InitializeTypes(
+        private TypeInitializer CreateTypeInitializer(
             IServiceProvider services,
             IDescriptorContext descriptorContext,
             IBindingLookup bindingLookup,
-            IEnumerable<ITypeReference> types,
-            Func<ISchema> schemaResolver)
+            IEnumerable<ITypeReference> types)
         {
-            var interceptor = new AggregateTypeInitilizationInterceptor(
+            var interceptor = new AggregateTypeInitializationInterceptor(
                 CreateInterceptors(services));
 
             var initializer = new TypeInitializer(
                 services,
                 descriptorContext,
+                _contextData,
                 types,
                 _resolverTypes,
-                _contextData,
                 interceptor,
                 _isOfType,
                 IsQueryType);
@@ -180,48 +180,75 @@ namespace HotChocolate
                 initializer.Resolvers[reference] = resolver;
             }
 
-            foreach (KeyValuePair<ITypeReference, ITypeReference> binding in
+            foreach (KeyValuePair<IClrTypeReference, ITypeReference> binding in
                 _clrTypes)
             {
                 initializer.ClrTypes[binding.Key] = binding.Value;
             }
 
-            initializer.Initialize(schemaResolver, _options);
             return initializer;
         }
 
         private SchemaTypesDefinition CreateSchemaDefinition(
-            TypeInitializer initializer)
+            TypeInitializer typeInitializer,
+            DiscoveredTypes discoveredTypes)
         {
             var definition = new SchemaTypesDefinition();
 
-            definition.Types = initializer.Types.Values
-                .Select(t => t.Type)
+            RegisterOperationName(OperationType.Query, _options.QueryTypeName);
+            RegisterOperationName(OperationType.Mutation, _options.MutationTypeName);
+            RegisterOperationName(OperationType.Subscription, _options.SubscriptionTypeName);
+
+            definition.QueryType = ResolveOperation(
+                typeInitializer, OperationType.Query);
+            definition.MutationType = ResolveOperation(
+                typeInitializer, OperationType.Mutation);
+            definition.SubscriptionType = ResolveOperation(
+                typeInitializer, OperationType.Subscription);
+
+            IReadOnlyCollection<TypeSystemObjectBase> types =
+                RemoveUnreachableTypes(discoveredTypes, definition);
+
+            definition.Types = types
                 .OfType<INamedType>()
                 .Distinct()
                 .ToArray();
 
-            definition.DirectiveTypes = initializer.Types.Values
-                .Select(t => t.Type)
+            definition.DirectiveTypes = types
                 .OfType<DirectiveType>()
                 .Distinct()
                 .ToArray();
 
-            RegisterOperationName(OperationType.Query,
-                _options.QueryTypeName);
-            RegisterOperationName(OperationType.Mutation,
-                _options.MutationTypeName);
-            RegisterOperationName(OperationType.Subscription,
-                _options.SubscriptionTypeName);
-
-            definition.QueryType = ResolveOperation(
-                initializer, OperationType.Query);
-            definition.MutationType = ResolveOperation(
-                initializer, OperationType.Mutation);
-            definition.SubscriptionType = ResolveOperation(
-                initializer, OperationType.Subscription);
-
             return definition;
+        }
+
+        private IReadOnlyCollection<TypeSystemObjectBase> RemoveUnreachableTypes(
+            DiscoveredTypes discoveredTypes,
+            SchemaTypesDefinition definition)
+        {
+            if (_options.RemoveUnreachableTypes)
+            {
+                var trimmer = new TypeTrimmer(discoveredTypes);
+
+                if (definition.QueryType is { })
+                {
+                    trimmer.VisitRoot(definition.QueryType);
+                }
+
+                if (definition.MutationType is { })
+                {
+                    trimmer.VisitRoot(definition.MutationType);
+                }
+
+                if (definition.SubscriptionType is { })
+                {
+                    trimmer.VisitRoot(definition.SubscriptionType);
+                }
+
+                return trimmer.Types;
+            }
+
+            return discoveredTypes.Types.Select(t => t.Type).ToList();
         }
 
         private ObjectType ResolveOperation(
@@ -231,7 +258,7 @@ namespace HotChocolate
             if (!_operations.ContainsKey(operation))
             {
                 NameString typeName = operation.ToString();
-                return initializer.Types.Values
+                return initializer.DiscoveredTypes!.Types
                     .Select(t => t.Type)
                     .OfType<ObjectType>()
                     .FirstOrDefault(t => t.Name.Equals(typeName));
@@ -239,7 +266,6 @@ namespace HotChocolate
             else if (_operations.TryGetValue(operation,
                 out ITypeReference reference))
             {
-
                 if (reference is ISchemaTypeReference sr)
                 {
                     return (ObjectType)sr.Type;
@@ -255,7 +281,7 @@ namespace HotChocolate
                 if (reference is ISyntaxTypeReference str)
                 {
                     NamedTypeNode namedType = str.Type.NamedType();
-                    return initializer.Types.Values
+                    return initializer.DiscoveredTypes!.Types
                         .Select(t => t.Type)
                         .OfType<ObjectType>()
                         .FirstOrDefault(t => t.Name.Equals(
@@ -323,6 +349,20 @@ namespace HotChocolate
             }
 
             return list;
+        }
+
+        private IReadOnlyDictionary<Type, IConvention> CreateConventions(
+            IServiceProvider services)
+        {
+            var serviceFactory = new ServiceFactory { Services = services };
+            var conventions = new Dictionary<Type, IConvention>();
+
+            foreach (KeyValuePair<Type, CreateConvention> item in _conventions)
+            {
+                conventions.Add(item.Key, item.Value(serviceFactory));
+            }
+
+            return conventions;
         }
     }
 }

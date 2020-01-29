@@ -20,7 +20,7 @@ namespace HotChocolate.Utilities
     internal static class MiddlewareActivator
     {
         internal static MiddlewareFactory<TMiddleware, TRequestDelegate>
-            CompileFactory<TMiddleware, TRequestDelegate>()
+            CompileFactory<TMiddleware, TRequestDelegate>(params object[] customParameter)
         {
             ParameterExpression services =
                 Expression.Parameter(typeof(IServiceProvider));
@@ -28,7 +28,7 @@ namespace HotChocolate.Utilities
                 Expression.Parameter(typeof(TRequestDelegate));
 
             NewExpression createInstance = CreateMiddleware<TRequestDelegate>(
-                typeof(TMiddleware).GetTypeInfo(), services, nextDelegate);
+                typeof(TMiddleware).GetTypeInfo(), services, nextDelegate, customParameter);
 
             return Expression
                 .Lambda<MiddlewareFactory<TMiddleware, TRequestDelegate>>(
@@ -37,7 +37,7 @@ namespace HotChocolate.Utilities
         }
 
         internal static ClassQueryDelegate<TMiddleware, TContext>
-            CompileMiddleware<TMiddleware, TContext>()
+            CompileMiddleware<TMiddleware, TContext>(params object[] customParameters)
         {
             TypeInfo middlewareType = typeof(TMiddleware).GetTypeInfo();
             MethodInfo method = middlewareType.GetDeclaredMethod("InvokeAsync")
@@ -59,7 +59,7 @@ namespace HotChocolate.Utilities
             MethodCallExpression middlewareCall = Expression.Call(
                 middlewareInstance,
                 method,
-                CreateParameters<TContext>(method, services, context));
+                CreateParameters<TContext>(method, services, context, customParameters));
 
             return Expression.Lambda<ClassQueryDelegate<TMiddleware, TContext>>(
                 middlewareCall, context, services, middlewareInstance)
@@ -69,11 +69,12 @@ namespace HotChocolate.Utilities
         private static NewExpression CreateMiddleware<TRequestDelegate>(
             TypeInfo middleware,
             ParameterExpression services,
-            Expression next)
+            Expression next,
+            params object[] customParameters)
         {
             ConstructorInfo constructor = CreateConstructor(middleware);
             IEnumerable<Expression> arguments =
-                CreateParameters<TRequestDelegate>(constructor, services, next);
+                CreateParameters<TRequestDelegate>(constructor, services, next, customParameters);
             return Expression.New(constructor, arguments);
         }
 
@@ -93,30 +94,36 @@ namespace HotChocolate.Utilities
         private static IEnumerable<Expression> CreateParameters<TContext>(
             MethodInfo invokeMethod,
             ParameterExpression services,
-            Expression context)
+            Expression context,
+            params object[] customParameters)
         {
+            var custom = new Dictionary<Type, Expression>()
+            {
+                { typeof(TContext), context }
+            };
+
             return CreateParameters(
                 invokeMethod.GetParameters(),
                 services,
-                new Dictionary<Type, Expression>
-                {
-                    { typeof(TContext), context }
-                });
+                AddCustomParameter(custom, customParameters));
         }
 
         private static IEnumerable<Expression>
             CreateParameters<TRequestDelegate>(
                 ConstructorInfo constructor,
                 ParameterExpression services,
-                Expression next)
+                Expression next,
+                params object[] customParameters)
         {
+            var custom = new Dictionary<Type, Expression>()
+            {
+                { typeof(TRequestDelegate), next }
+            };
+
             return CreateParameters(
                 constructor.GetParameters(),
                 services,
-                new Dictionary<Type, Expression>
-                {
-                    { typeof(TRequestDelegate), next }
-                });
+                AddCustomParameter(custom, customParameters));
         }
 
         private static IEnumerable<Expression> CreateParameters(
@@ -144,6 +151,20 @@ namespace HotChocolate.Utilities
                         parameter.ParameterType);
                 }
             }
+        }
+
+        private static Dictionary<Type, Expression> AddCustomParameter(
+            Dictionary<Type, Expression> customBase,
+            params object[] customParameters)
+        {
+            foreach (var param in customParameters)
+            {
+                if (param != null)
+                {
+                    customBase[param.GetType()] = Expression.Constant(param);
+                }
+            }
+            return customBase;
         }
     }
 }

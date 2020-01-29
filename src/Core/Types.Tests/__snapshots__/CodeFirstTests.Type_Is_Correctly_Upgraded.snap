@@ -1,0 +1,33 @@
+﻿schema {
+  query: Query
+}
+
+interface IPet {
+  name: String
+}
+
+type Dog implements IPet {
+  isMale: Boolean!
+  name: String
+}
+
+type Greetings {
+  name: String!
+}
+
+type Query {
+  greetings(greetings: GreetingsInput!): Greetings!
+  pet: IPet!
+  petOrNull: IPet
+  sayHello(name: String!): String!
+}
+
+input GreetingsInput {
+  name: String!
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

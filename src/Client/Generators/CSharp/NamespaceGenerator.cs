@@ -15,7 +15,7 @@ namespace StrawberryShake.Generators.CSharp
         {
             _innerGenerator = innerGenerator
                 ?? throw new ArgumentNullException(nameof(innerGenerator));
-            _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
+            _namespace = ns?.Trim() ?? throw new ArgumentNullException(nameof(ns));
         }
 
         public bool CanHandle(ICodeDescriptor descriptor) =>
@@ -29,78 +29,106 @@ namespace StrawberryShake.Generators.CSharp
             ICodeDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await WriteUsings(writer, _innerGenerator);
-            await writer.WriteLineAsync();
+            await WriteUsingsAsync(writer, _innerGenerator).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteAsync($"namespace {_namespace}");
-            await writer.WriteLineAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteAsync($"namespace {_namespace}").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteAsync('{').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
+                await writer.WriteGeneratedAttributeAsync()
+                    .ConfigureAwait(false);
+
                 await _innerGenerator.WriteAsync(
-                    writer, descriptor, typeLookup);
+                    writer, descriptor, typeLookup)
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteAsync('}').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
+        private static async Task WriteUsingsAsync(CodeWriter writer, ICodeGenerator generator)
         {
             var components = generator is IUsesComponents c
                 ? new HashSet<string>(c.Components)
                 : new HashSet<string>();
 
-            await WriteUsing(writer, "System");
-            await WriteUsing(writer, "System.Collections");
-            await WriteUsing(writer, "System.Collections.Generic");
+            await WriteUsingAsync(writer, "System").ConfigureAwait(false);
+            await WriteUsingAsync(writer, "System.Collections").ConfigureAwait(false);
+            await WriteUsingAsync(writer, "System.Collections.Generic").ConfigureAwait(false);
 
             if (components.Contains(WellKnownComponents.Http))
             {
-                await WriteUsing(writer, "System.Net.Http");
+                await WriteUsingAsync(writer, "System.Net.Http").ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.Json))
             {
-                await WriteUsing(writer, "System.Text.Json");
+                await WriteUsingAsync(writer, "System.Text.Json").ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.Task))
             {
-                await WriteUsing(writer, "System.Threading");
-                await WriteUsing(writer, "System.Threading.Tasks");
+                await WriteUsingAsync(writer, "System.Threading").ConfigureAwait(false);
+                await WriteUsingAsync(writer, "System.Threading.Tasks").ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.DI))
             {
-                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection");
-                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection.Extensions");
+                await WriteUsingAsync(writer, "Microsoft.Extensions.DependencyInjection")
+                    .ConfigureAwait(false);
+                await WriteUsingAsync(writer, "Microsoft.Extensions.DependencyInjection.Extensions")
+                    .ConfigureAwait(false);
             }
 
-            await WriteUsing(writer, "StrawberryShake");
+            await WriteUsingAsync(writer, "StrawberryShake")
+                .ConfigureAwait(false);
 
             if (components.Contains(WellKnownComponents.HttpExecutor))
             {
-                await WriteUsing(writer, "StrawberryShake.Http");
+                await WriteUsingAsync(writer, "StrawberryShake.Configuration")
+                    .ConfigureAwait(false);
+            }
+
+            if (components.Contains(WellKnownComponents.HttpExecutor))
+            {
+                await WriteUsingAsync(writer, "StrawberryShake.Http")
+                    .ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.HttpExecutorPipeline))
             {
-                await WriteUsing(writer, "StrawberryShake.Http.Pipelines");
+                await WriteUsingAsync(writer, "StrawberryShake.Http.Pipelines")
+                    .ConfigureAwait(false);
+            }
+
+            if (components.Contains(WellKnownComponents.HttpExecutor))
+            {
+                await WriteUsingAsync(writer, "StrawberryShake.Http.Subscriptions")
+                    .ConfigureAwait(false);
             }
 
             if (components.Contains(WellKnownComponents.Serializer))
             {
-                await WriteUsing(writer, "StrawberryShake.Serializers");
+                await WriteUsingAsync(writer, "StrawberryShake.Serializers")
+                    .ConfigureAwait(false);
+            }
+
+            if (components.Contains(WellKnownComponents.HttpExecutor))
+            {
+                await WriteUsingAsync(writer, "StrawberryShake.Transport")
+                    .ConfigureAwait(false);
             }
         }
 
-        private async Task WriteUsing(CodeWriter writer, string ns)
+        private static async Task WriteUsingAsync(CodeWriter writer, string ns)
         {
-            await writer.WriteAsync($"using {ns};");
-            await writer.WriteLineAsync();
+            await writer.WriteAsync($"using {ns};").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public ListTypeNode(Location location, ITypeNode type)
+        public ListTypeNode(Location? location, ITypeNode type)
         {
             if (type == null)
             {
@@ -24,11 +24,11 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.ListType;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public ITypeNode Type { get; }
 
-        public ListTypeNode WithLocation(Location location)
+        public ListTypeNode WithLocation(Location? location)
         {
             return new ListTypeNode(location, Type);
         }
@@ -38,7 +38,7 @@ namespace HotChocolate.Language
             return new ListTypeNode(Location, type);
         }
 
-        public bool Equals(ListTypeNode other)
+        public bool Equals(ListTypeNode? other)
         {
             if (other is null)
             {
@@ -53,7 +53,7 @@ namespace HotChocolate.Language
             return Type.Equals(other.Type);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -76,7 +76,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return $"[{Type.ToString()}]";
         }

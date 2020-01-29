@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Moq;
 using Snapshooter;
@@ -22,18 +22,21 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    foo(i: Int): String
-                        @cost(complexity: 5 multipliers: [""i""])
-                }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        foo(i: Int): String
+                            @cost(complexity: 5 multipliers: [""i""])
+                    }
+
+                    input FooInput {
+                        index : Int
+                    }
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -107,18 +110,21 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    foo(i: Int): String
-                        @cost(complexity: 5 multipliers: [""i""])
-                }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        foo(i: Int): String
+                            @cost(complexity: 5 multipliers: [""i""])
+                    }
+
+                    input FooInput {
+                        index : Int
+                    }
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -195,22 +201,21 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    foo(i: FooInput): String
-                        @cost(complexity: 5 multipliers: [""i.index""])
-                }
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        foo(i: FooInput): String
+                            @cost(complexity: 5 multipliers: [""i.index""])
+                    }
 
-                input FooInput {
-                    index : Int
-                }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+                    input FooInput {
+                        index : Int
+                    }
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -284,9 +289,10 @@ namespace HotChocolate.Execution
             int count, bool valid)
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
                     foo(i: FooInput): String
                         @cost(complexity: 5 multipliers: [""i.index""])
                 }
@@ -294,12 +300,10 @@ namespace HotChocolate.Execution
                 input FooInput {
                     index : Int
                 }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "Hello")
-                        .To("Query", "foo");
-                });
+                    ")
+                .AddDirectiveType<CostDirectiveType>()
+                .AddResolver("Query", "foo", "Hello")
+                .Create();
 
             var options = new Mock<IValidateQueryOptionsAccessor>();
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
@@ -367,6 +371,94 @@ namespace HotChocolate.Execution
                 context.Result.MatchSnapshot(
                     new SnapshotNameExtension("complexity", count));
             }
+        }
+
+        [Fact]
+        public async Task Validate_Multiple_Levels_Valid()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                @"
+                type Query {
+                    foo(i: Int = 2): Foo
+                        @cost(complexity: 1 multipliers: [""i""])
+                }
+
+                type Foo {
+                    bar: Bar
+                    qux: String
+                }
+
+                type Bar {
+                    baz: String
+                }
+                ")
+                .AddDirectiveType<CostDirectiveType>()
+                .Use(next => context =>
+                {
+                    context.Result = "baz";
+                    return Task.CompletedTask;
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable(new QueryExecutionOptions
+            {
+                UseComplexityMultipliers = true,
+                MaxOperationComplexity = 4
+            });
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("query { foo { bar { baz } } }")
+                .Create();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Validate_Multiple_Levels_Invalid()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                @"
+                type Query {
+                    foo(i: Int = 2): Foo
+                        @cost(complexity: 1 multipliers: [""i""])
+                }
+
+                type Foo {
+                    bar: Bar
+                    qux: String
+                }
+
+                type Bar {
+                    baz: String
+                }
+                ")
+                .AddDirectiveType<CostDirectiveType>()
+                .Use(next => context =>
+                {
+                    context.Result = "baz";
+                    return Task.CompletedTask;
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable(new QueryExecutionOptions
+            {
+                UseComplexityMultipliers = true,
+                MaxOperationComplexity = 4
+            });
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("query { foo(i: 2) { bar { baz } qux } }")
+                .Create();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
         }
     }
 }

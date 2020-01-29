@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Text;
+using System;
 
 namespace HotChocolate.Language
 {
@@ -6,6 +7,8 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<VariableNode>
     {
+        private ReadOnlyMemory<byte> _memory;
+
         public VariableNode(string name)
             : this(null, new NameNode(name))
         {
@@ -17,7 +20,7 @@ namespace HotChocolate.Language
         }
 
         public VariableNode(
-            Location location,
+            Location? location,
             NameNode name)
         {
             Location = location;
@@ -26,7 +29,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.Variable;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public NameNode Name { get; }
 
@@ -47,7 +50,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="VariableNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(VariableNode other)
+        public bool Equals(VariableNode? other)
         {
             if (other is null)
             {
@@ -75,7 +78,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="VariableNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -107,7 +110,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="VariableNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -147,12 +150,21 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="VariableNode"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return Value;
         }
 
-        public VariableNode WithLocation(Location location)
+        public ReadOnlySpan<byte> AsSpan()
+        {
+            if (_memory.IsEmpty)
+            {
+                _memory = Encoding.UTF8.GetBytes(Value);
+            }
+            return _memory.Span;
+        }
+
+        public VariableNode WithLocation(Location? location)
         {
             return new VariableNode(location, Name);
         }

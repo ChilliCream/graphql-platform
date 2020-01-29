@@ -22,7 +22,19 @@ namespace StrawberryShake
 
         public string Message { get; }
 
-        public string? Code { get; }
+        public string? Code
+        {
+            get
+            {
+                if (Extensions is { }
+                    && Extensions.TryGetValue("code", out var o)
+                    && o is string code)
+                {
+                    return code;
+                }
+                return null;
+            }
+        }
 
         public IReadOnlyList<object>? Path { get; }
 

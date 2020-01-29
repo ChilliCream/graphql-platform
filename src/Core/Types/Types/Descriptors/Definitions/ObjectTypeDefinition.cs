@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
@@ -7,12 +7,22 @@ namespace HotChocolate.Types.Descriptors.Definitions
     public class ObjectTypeDefinition
         : TypeDefinitionBase<ObjectTypeDefinitionNode>
     {
+        public override Type ClrType
+        {
+            get => base.ClrType;
+            set
+            {
+                base.ClrType = value;
+                FieldBindingType = value;
+            }
+        }
+
+        public Type FieldBindingType { get; set; }
+
         public IsOfType IsOfType { get; set; }
 
         public ICollection<ITypeReference> Interfaces { get; } =
             new List<ITypeReference>();
-
-        public BindingBehavior FieldBindingBehavior { get; set; }
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();

@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.Name = argumentName;
-            Definition.DefaultValue = NullValueNode.Default;
+            Definition.DefaultValue = null;
         }
 
         public DirectiveArgumentDescriptor(
@@ -29,6 +29,19 @@ namespace HotChocolate.Types.Descriptors
                 property, MemberKind.DirectiveArgument);
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Property = property;
+        }
+
+        protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
+        {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Property);
+            }
+
+            base.OnCreateDefinition(definition);
         }
 
         public new IDirectiveArgumentDescriptor SyntaxNode(
@@ -93,9 +106,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IDirectiveArgumentDescriptor Ignore()
+        public IDirectiveArgumentDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

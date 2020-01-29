@@ -28,7 +28,7 @@ namespace HotChocolate.Language
         }
 
         public DirectiveNode(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<ArgumentNode> arguments)
         {
@@ -41,13 +41,13 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.Directive;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public NameNode Name { get; }
 
         public IReadOnlyList<ArgumentNode> Arguments { get; }
 
-        public DirectiveNode WithLocation(Location location)
+        public DirectiveNode WithLocation(Location? location)
         {
             return new DirectiveNode(location, Name, Arguments);
         }

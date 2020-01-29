@@ -1,25 +1,48 @@
-using System.Globalization;
+using HotChocolate.Language;
 using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public sealed class ShortType
-        : NumericTypeBase<short>
+        : IntegerTypeBase<short>
     {
         public ShortType()
-            : base("Short")
+            : this(short.MinValue, short.MaxValue)
+        {
+        }
+
+        public ShortType(short min, short max)
+            : this(ScalarNames.Short, min, max)
         {
             Description = TypeResources.ShortType_Description;
         }
 
-        protected override bool TryParseValue(string s, out short value) =>
-            short.TryParse(
-                s,
-                NumberStyles.Integer,
-                CultureInfo.InvariantCulture,
-                out value);
+        public ShortType(NameString name)
+            : this(name, short.MinValue, short.MaxValue)
+        {
+        }
 
-        protected override string SerializeValue(short value) =>
-            value.ToString("D", CultureInfo.InvariantCulture);
+        public ShortType(NameString name, short min, short max)
+            : base(name, min, max, BindingBehavior.Implicit)
+        {
+        }
+
+        public ShortType(NameString name, string description, short min, short max)
+            : base(name, min, max, BindingBehavior.Implicit)
+        {
+            Description = description;
+        }
+
+        protected override short ParseLiteral(IntValueNode literal)
+        {
+            return literal.ToInt16();
+        }
+
+        protected override IntValueNode ParseValue(short value)
+        {
+            return new IntValueNode(value);
+        }
     }
 }

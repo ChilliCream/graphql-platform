@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using static StrawberryShake.Generators.Utilities.NameUtils;
@@ -17,7 +18,8 @@ namespace StrawberryShake.Generators.CSharp
             WellKnownComponents.Http,
             WellKnownComponents.HttpExecutor,
             WellKnownComponents.HttpExecutorPipeline,
-            WellKnownComponents.Serializer
+            WellKnownComponents.Serializer,
+            WellKnownComponents.Configuration
         };
 
         protected override Task WriteAsync(
@@ -26,269 +28,261 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup) =>
             WriteStaticClassAsync(writer, descriptor.Name, async () =>
             {
-                await WriteAddSerializersAsync(writer, descriptor.Client);
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync(
+                    $"private const string _clientName = \"{descriptor.Client.Name}\";")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteAddClientAsync(writer, descriptor.Client);
-                await writer.WriteLineAsync();
-
-                await WriteAddEnumSerializersAsync(writer, descriptor);
-                await writer.WriteLineAsync();
-
-                await WriteAddResultParsersAsync(writer, descriptor);
-                await writer.WriteLineAsync();
-
-                await WriteTryAddDefaultOperationSerializerAsync(writer);
-                await writer.WriteLineAsync();
-
-                await WriteTryAddDefaultHttpPipelineAsync(writer);
-                await writer.WriteLineAsync();
-
-                await WriteClientFactoryAsync(writer, descriptor.Client);
-                await writer.WriteLineAsync();
-
-                await WritePipelineFactoryAsync(writer, descriptor.Client);
+                await WriteAddClientAsync(writer, descriptor).ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             });
 
-        private async Task WriteAddSerializersAsync(
+        private static async Task WriteAddClientAsync(
             CodeWriter writer,
-            IClientDescriptor descriptor)
+            IServicesDescriptor descriptor)
         {
             await WriteMethodAsync(
                 writer,
-                "AddDefaultScalarSerializers",
-                true,
-                async () =>
-                {
-                    await writer.WriteIndentedLineAsync(
-                        "foreach (IValueSerializer serializer in ValueSerializers.All)");
-                    await writer.WriteIndentedLineAsync("{");
-
-                    using (writer.IncreaseIndent())
-                    {
-                        await writer.WriteIndentedLineAsync(
-                            "serviceCollection.AddSingleton(serializer);");
-                    }
-
-                    await writer.WriteIndentedLineAsync("}");
-                    await writer.WriteLineAsync();
-                });
-        }
-
-        private async Task WriteAddClientAsync(
-            CodeWriter writer,
-            IClientDescriptor descriptor)
-        {
-            await WriteMethodAsync(
-                writer,
-                $"Add{descriptor.Name}",
+                $"Add{descriptor.Client.Name}",
                 true,
                 async () =>
                 {
                     await writer.WriteIndentedLineAsync(
                         "serviceCollection.AddSingleton<{0}, {1}>();",
-                        GetInterfaceName(descriptor.Name),
-                        GetClassName(descriptor.Name));
+                        GetInterfaceName(descriptor.Client.Name),
+                        GetClassName(descriptor.Client.Name))
+                        .ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
 
                     await writer.WriteIndentedLineAsync(
-                        "serviceCollection.AddSingleton(sp =>");
+                        "serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>")
+                        .ConfigureAwait(false);
 
                     using (writer.IncreaseIndent())
                     {
                         await writer.WriteIndentedLineAsync(
-                            "HttpOperationExecutorBuilder.New()");
+                            "new HttpOperationExecutorFactory(")
+                            .ConfigureAwait(false);
                         using (writer.IncreaseIndent())
                         {
                             await writer.WriteIndentedLineAsync(
-                                ".AddServices(sp)");
+                                "_clientName,")
+                                .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                ".SetClient(ClientFactory)");
+                                "sp.GetRequiredService<IHttpClientFactory>().CreateClient,")
+                                .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                ".SetPipeline(PipelineFactory)");
+                                "sp.GetRequiredService<IClientOptions>()" +
+                                ".GetOperationPipeline<IHttpOperationContext>(_clientName),")
+                                .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                ".Build());");
+                                "sp.GetRequiredService<IClientOptions>()" +
+                                ".GetOperationFormatter(_clientName),")
+                                .ConfigureAwait(false);
+                            await writer.WriteIndentedLineAsync(
+                                "sp.GetRequiredService<IClientOptions>()" +
+                                ".GetResultParsers(_clientName)));")
+                                .ConfigureAwait(false);
                         }
                     }
-                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync().ConfigureAwait(false);
 
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.AddEnumSerializers();");
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.AddResultParsers();");
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddDefaultOperationSerializer();");
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddDefaultHttpPipeline();");
-                    await writer.WriteLineAsync();
-                });
-        }
-
-        private async Task WriteAddEnumSerializersAsync(
-            CodeWriter writer,
-            IServicesDescriptor descriptor)
-        {
-            await WriteMethodAsync(
-                writer,
-                "AddEnumSerializers",
-                false,
-                async () =>
-                {
-                    foreach (IEnumDescriptor enumType in descriptor.EnumTypes)
+                    if (descriptor.OperationTypes.Contains(OperationType.Subscription))
                     {
                         await writer.WriteIndentedLineAsync(
-                            "serviceCollection.AddSingleton<IValueSerializer, {0}>();",
-                            GetClassName(enumType.Name + "ValueSerializer"));
+                            "serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>")
+                            .ConfigureAwait(false);
+
+                        using (writer.IncreaseIndent())
+                        {
+                            await writer.WriteIndentedLineAsync(
+                                "new SocketOperationStreamExecutorFactory(")
+                                .ConfigureAwait(false);
+                            using (writer.IncreaseIndent())
+                            {
+                                await writer.WriteIndentedLineAsync(
+                                    "_clientName,")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<ISocketConnectionPool>().RentAsync,")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<ISubscriptionManager>(),")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<IClientOptions>()" +
+                                    ".GetOperationFormatter(_clientName),")
+                                    .ConfigureAwait(false);
+                                await writer.WriteIndentedLineAsync(
+                                    "sp.GetRequiredService<IClientOptions>()" +
+                                    ".GetResultParsers(_clientName)));")
+                                    .ConfigureAwait(false);
+                            }
+                        }
+
+                        await writer.WriteLineAsync().ConfigureAwait(false);
                     }
-                });
-        }
 
-        private async Task WriteAddResultParsersAsync(
-            CodeWriter writer,
-            IServicesDescriptor descriptor)
-        {
-            await WriteMethodAsync(
-                writer,
-                "AddResultParsers",
-                false,
-                async () =>
-                {
-                    foreach (IResultParserDescriptor resultParser in descriptor.ResultParsers)
-                    {
-                        await writer.WriteIndentedLineAsync(
-                            "serviceCollection.AddSingleton<IResultParser, {0}>();",
-                            GetClassName(resultParser.Name));
-                    }
-                });
-        }
-
-        private async Task WriteTryAddDefaultOperationSerializerAsync(CodeWriter writer)
-        {
-            await WriteMethodAsync(
-                writer,
-                "TryAddDefaultOperationSerializer",
-                false,
-                async () =>
-                {
                     await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddSingleton<" +
-                        "IOperationSerializer, JsonOperationSerializer>();");
-                });
-        }
+                        "IOperationClientBuilder builder = " +
+                        "serviceCollection.AddOperationClientOptions(_clientName)")
+                        .ConfigureAwait(false);
 
-        private async Task WriteTryAddDefaultHttpPipelineAsync(CodeWriter writer)
-        {
-            await WriteMethodAsync(
-                writer,
-                "TryAddDefaultHttpPipeline",
-                false,
-                async () =>
-                {
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.TryAddSingleton<OperationDelegate>(");
                     using (writer.IncreaseIndent())
                     {
+                        await WriteAddEnumSerializersAsync(writer, descriptor)
+                            .ConfigureAwait(false);
+                        await WriteAddInputSerializersAsync(writer, descriptor)
+                            .ConfigureAwait(false);
+                        await WriteAddResultParsersAsync(writer, descriptor)
+                            .ConfigureAwait(false);
+                        await WriteAddOperationSerializerAsync(writer)
+                            .ConfigureAwait(false);
+                        await WriteAddHttpDefaultPipelineAsync(writer)
+                            .ConfigureAwait(false);
+                    }
+
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+
+                    if (descriptor.OperationTypes.Contains(OperationType.Subscription))
+                    {
                         await writer.WriteIndentedLineAsync(
-                            "sp => HttpPipelineBuilder.New()");
+                            "serviceCollection.TryAddSingleton<ISubscriptionManager, " +
+                            "SubscriptionManager>();")
+                            .ConfigureAwait(false);
+                    }
+
+                    await writer.WriteIndentedLineAsync(
+                        "serviceCollection.TryAddSingleton<IOperationExecutorPool, " +
+                        "OperationExecutorPool>();")
+                        .ConfigureAwait(false);
+
+                    if (descriptor.OperationTypes.Contains(OperationType.Subscription))
+                    {
+                        await writer.WriteIndentedLineAsync(
+                            "serviceCollection.TryAddEnumerable(new ServiceDescriptor(")
+                            .ConfigureAwait(false);
+
                         using (writer.IncreaseIndent())
                         {
                             await writer.WriteIndentedLineAsync(
-                                ".Use<CreateStandardRequestMiddleware>()");
+                                "typeof(ISocketConnectionInterceptor),")
+                                .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                ".Use<SendHttpRequestMiddleware>()");
+                                "typeof(MessagePipelineHandler),")
+                                .ConfigureAwait(false);
                             await writer.WriteIndentedLineAsync(
-                                ".Use<ParseSingleResultMiddleware>()");
-                            await writer.WriteIndentedLineAsync(
-                                ".Build(sp));");
+                                "ServiceLifetime.Singleton));")
+                                .ConfigureAwait(false);
                         }
                     }
-                });
+                }).ConfigureAwait(false);
         }
 
-        private async Task WriteClientFactoryAsync(
+        private static async Task WriteAddEnumSerializersAsync(
             CodeWriter writer,
-            IClientDescriptor descriptor)
+            IServicesDescriptor descriptor)
         {
-            await writer.WriteIndentedLineAsync(
-                "private static Func<HttpClient> ClientFactory(IServiceProvider services)");
-            await writer.WriteIndentedLineAsync("{");
-
-            using (writer.IncreaseIndent())
+            foreach (IEnumDescriptor enumType in descriptor.EnumTypes)
             {
                 await writer.WriteIndentedLineAsync(
-                    "var clientFactory = services.GetRequiredService<IHttpClientFactory>();");
-                await writer.WriteIndentedLineAsync(
-                    "return () => clientFactory.CreateClient(\"{0}\");",
-                    GetClassName(descriptor.Name));
+                    ".AddValueSerializer(() => new {0}())",
+                    GetClassName(enumType.Name + "ValueSerializer"))
+                    .ConfigureAwait(false);
             }
-
-            await writer.WriteIndentedLineAsync("}");
         }
 
-        private async Task WritePipelineFactoryAsync(
+        private static async Task WriteAddInputSerializersAsync(
             CodeWriter writer,
-            IClientDescriptor descriptor)
+            IServicesDescriptor descriptor)
         {
-            await writer.WriteIndentedLineAsync(
-                "private static OperationDelegate PipelineFactory(IServiceProvider services)");
-            await writer.WriteIndentedLineAsync("{");
-
-            using (writer.IncreaseIndent())
+            foreach (IInputClassDescriptor inputType in descriptor.InputTypes)
             {
                 await writer.WriteIndentedLineAsync(
-                    "return services.GetRequiredService<OperationDelegate>();");
+                    ".AddValueSerializer(() => new {0}())",
+                    GetClassName(inputType.Name + "Serializer"))
+                    .ConfigureAwait(false);
             }
-
-            await writer.WriteIndentedLineAsync("}");
         }
 
-        private async Task WriteMethodAsync(
+        private static async Task WriteAddResultParsersAsync(
+            CodeWriter writer,
+            IServicesDescriptor descriptor)
+        {
+            foreach (IResultParserDescriptor resultParser in descriptor.ResultParsers)
+            {
+                await writer.WriteIndentedLineAsync(
+                    ".AddResultParser(serializers => new {0}(serializers))",
+                    GetClassName(resultParser.Name))
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private static async Task WriteAddOperationSerializerAsync(CodeWriter writer)
+        {
+            await writer.WriteIndentedLineAsync(
+                ".AddOperationFormatter(serializers => " +
+                "new JsonOperationFormatter(serializers))")
+                .ConfigureAwait(false);
+        }
+
+        private static async Task WriteAddHttpDefaultPipelineAsync(CodeWriter writer)
+        {
+            await writer.WriteIndentedLineAsync(
+                ".AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());")
+                .ConfigureAwait(false);
+        }
+
+        private static async Task WriteMethodAsync(
             CodeWriter writer,
             string methodName,
             bool isPublic,
             Func<Task> write)
         {
             await writer.WriteIndentedLineAsync(
-                "{0} static IServiceCollection {1}(",
+                "{0} static IOperationClientBuilder {1}(",
                 isPublic ? "public" : "private",
-                methodName);
+                methodName)
+                .ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 await writer.WriteIndentedLineAsync(
-                    "this IServiceCollection serviceCollection)");
+                    "this IServiceCollection serviceCollection)")
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("{");
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 if (isPublic)
                 {
                     await writer.WriteIndentedLineAsync(
-                        "if (serviceCollection is null)");
+                        "if (serviceCollection is null)")
+                        .ConfigureAwait(false);
 
-                    await writer.WriteIndentedLineAsync("{");
+                    await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                     using (writer.IncreaseIndent())
                     {
                         await writer.WriteIndentedLineAsync(
-                            "throw new ArgumentNullException(nameof(serviceCollection));");
+                            "throw new ArgumentNullException(nameof(serviceCollection));")
+                            .ConfigureAwait(false);
                     }
 
-                    await writer.WriteIndentedLineAsync("}");
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await write();
+                await write().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
-                    "return serviceCollection;");
+                    "return builder;")
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
-
-        private static string CreateName(IClientDescriptor descriptor) =>
-            descriptor.Name + "ServiceCollectionExtensions";
     }
 }

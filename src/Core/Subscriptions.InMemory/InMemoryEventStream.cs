@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
@@ -7,92 +9,132 @@ namespace HotChocolate.Subscriptions
     public class InMemoryEventStream
         : IEventStream
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private TaskCompletionSource<IEventMessage> _taskCompletionSource =
-            new TaskCompletionSource<IEventMessage>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly Channel<IEventMessage> _channel;
+        private InMemoryEventStreamEnumerator _enumerator;
+        private bool _isCompleted;
+
+        public InMemoryEventStream()
+        {
+            _channel = Channel.CreateUnbounded<IEventMessage>();
+        }
 
         public event EventHandler Completed;
 
-        public bool IsCompleted { get; private set; }
-
-        public void Trigger(IEventMessage message)
+        public IAsyncEnumerator<IEventMessage> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
         {
-            if (message == null)
+            if (_isCompleted || (_enumerator is { IsCompleted: true }))
+            {
+                throw new InvalidOperationException(
+                    "The stream has been completed and cannot be replayed.");
+            }
+
+            if (_enumerator is null)
+            {
+                _enumerator = new InMemoryEventStreamEnumerator(
+                    _channel,
+                    () => Completed?.Invoke(this, EventArgs.Empty),
+                    cancellationToken);
+            }
+
+            return _enumerator;
+        }
+
+        public ValueTask TriggerAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            if (message is null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            _semaphore.Wait();
+            return TriggerInternalAsync(message, cancellationToken);
+        }
 
-            try
+        private async ValueTask TriggerInternalAsync(
+            IEventMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            if (await _channel.Writer.WaitToWriteAsync(cancellationToken).ConfigureAwait(false))
             {
-                _taskCompletionSource.TrySetResult(message);
-            }
-            finally
-            {
-                _semaphore.Release();
+                await _channel.Writer.WriteAsync(message, cancellationToken);
             }
         }
 
-        public Task<IEventMessage> ReadAsync()
+        public ValueTask CompleteAsync(CancellationToken cancellationToken = default)
         {
-            return ReadAsync(CancellationToken.None);
-        }
-
-        public async Task<IEventMessage> ReadAsync(
-            CancellationToken cancellationToken)
-        {
-            IEventMessage message = await _taskCompletionSource.Task
-                .ConfigureAwait(false);
-
-            await _semaphore.WaitAsync().ConfigureAwait(false);
-
-            try
+            if (!_isCompleted)
             {
-                _taskCompletionSource = new TaskCompletionSource<IEventMessage>(
-                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _channel.Writer.Complete();
+                Completed?.Invoke(this, EventArgs.Empty);
+                _isCompleted = true;
             }
-            finally
+            return default;
+        }
+
+        private class InMemoryEventStreamEnumerator
+            : IAsyncEnumerator<IEventMessage>
+        {
+            private readonly Channel<IEventMessage> _channel;
+            private readonly Action _completed;
+            private readonly CancellationToken _cancellationToken;
+            private bool _isCompleted;
+
+            public InMemoryEventStreamEnumerator(
+                Channel<IEventMessage> channel,
+                Action completed,
+                CancellationToken cancellationToken)
             {
-                _semaphore.Release();
+                _channel = channel;
+                _completed = completed;
+                _cancellationToken = cancellationToken;
             }
 
-            return message;
-        }
+            public IEventMessage Current { get; private set; }
 
-        public Task CompleteAsync()
-        {
-            IsCompleted = true;
-            Completed?.Invoke(this, EventArgs.Empty);
-            return Task.CompletedTask;
-        }
+            internal bool IsCompleted => _isCompleted;
 
-        #region IDisposable
-
-        private bool _disposedValue;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
+            public async ValueTask<bool> MoveNextAsync()
             {
-                if (disposing)
+                if (_isCompleted || _channel.Reader.Completion.IsCompleted)
                 {
-                    IsCompleted = true;
-                    Completed?.Invoke(this, EventArgs.Empty);
+                    return false;
                 }
 
-                _disposedValue = true;
+                try
+                {
+                    if (await _channel.Reader.WaitToReadAsync(_cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        Current = await _channel.Reader.ReadAsync(_cancellationToken)
+                            .ConfigureAwait(false);
+                        return true;
+                    }
+
+                    Current = null;
+                    return false;
+                }
+                catch
+                {
+                    Current = null;
+                    return false;
+                }
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                if (!_isCompleted)
+                {
+                    if (!_channel.Reader.Completion.IsCompleted)
+                    {
+                        _channel.Writer.Complete();
+                    }
+                    _completed();
+                    _isCompleted = true;
+                }
+                return default;
             }
         }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion
     }
 }
-

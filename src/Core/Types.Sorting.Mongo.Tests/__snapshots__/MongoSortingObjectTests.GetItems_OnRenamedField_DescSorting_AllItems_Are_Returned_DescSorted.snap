@@ -1,0 +1,19 @@
+﻿{
+  "Data": {
+    "items": [
+      {
+        "model": {
+          "bar": 2
+        }
+      },
+      {
+        "model": {
+          "bar": 1
+        }
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

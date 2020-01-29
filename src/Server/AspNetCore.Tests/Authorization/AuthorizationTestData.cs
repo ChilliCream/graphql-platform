@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.AspNetCore.Authorization
@@ -17,6 +16,8 @@ namespace HotChocolate.AspNetCore.Authorization
                 piped: String
                     @authorize(policy: ""a"")
                     @authorize(policy: ""b"")
+                afterResolver: String
+                    @authorize(policy: ""a"" apply: AFTER_RESOLVER)
             }
         ";
 

@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.GitHub
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class Queries
         : IDocument
     {
@@ -20,28 +21,28 @@ namespace  StrawberryShake.Client.GitHub
         };
         private readonly byte[] _hash = new byte[]
         {
-            90,
-            53,
-            85,
-            76,
-            50,
-            88,
-            83,
-            104,
-            52,
-            79,
-            115,
-            121,
+            102,
             65,
+            98,
+            100,
+            55,
+            90,
+            84,
+            120,
+            77,
+            70,
+            87,
+            71,
+            71,
+            47,
+            49,
+            119,
+            80,
             53,
-            114,
-            110,
-            53,
-            81,
-            114,
-            86,
-            79,
-            103,
+            98,
+            115,
+            101,
+            65,
             61,
             61
         };
@@ -79,17 +80,6 @@ namespace  StrawberryShake.Client.GitHub
             41,
             32,
             123,
-            32,
-            95,
-            95,
-            116,
-            121,
-            112,
-            101,
-            110,
-            97,
-            109,
-            101,
             32,
             117,
             115,

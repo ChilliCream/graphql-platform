@@ -70,14 +70,12 @@ namespace StrawberryShake.Generators
         {
             _context.Register(_query);
 
-            GenerateEnumTypes();
-
             var backlog = new Queue<FieldSelection>();
 
             foreach (var operation in
                 _document.Definitions.OfType<OperationDefinitionNode>())
             {
-                Path root = Path.New(operation.Name.Value);
+                Path root = Path.New(operation.Name!.Value);
 
                 ObjectType operationType =
                     _schema.GetOperationType(operation.Operation);
@@ -102,6 +100,8 @@ namespace StrawberryShake.Generators
                 GenerateResultParserDescriptor(operation, resultType);
             }
 
+            GenerateEnumTypes();
+
             var clientDescriptor = new ClientDescriptor(
                 _context.ClientName,
                 _namespace,
@@ -111,6 +111,7 @@ namespace StrawberryShake.Generators
                 _context.ClientName + "ServiceCollectionExtensions",
                 _context.Namespace,
                 clientDescriptor,
+                _context.Descriptors.OfType<IInputClassDescriptor>().ToList(),
                 _context.Descriptors.OfType<IEnumDescriptor>().ToList(),
                 _context.Descriptors.OfType<IResultParserDescriptor>().ToList());
 
@@ -165,7 +166,7 @@ namespace StrawberryShake.Generators
                     new NonNullType(operationType),
                     new FieldNode(
                         null,
-                        new NameNode(operation.Name.Value),
+                        new NameNode(operation.Name!.Value),
                         null,
                         new[]
                         {
@@ -200,7 +201,7 @@ namespace StrawberryShake.Generators
             PossibleSelections possibleSelections =
                 _fieldCollector.CollectFields(
                     namedType,
-                    fieldSelection.SelectionSet,
+                    fieldSelection.SelectionSet!,
                     path);
 
             foreach (SelectionInfo selectionInfo in possibleSelections.Variants)
@@ -245,10 +246,18 @@ namespace StrawberryShake.Generators
 
         private void GenerateEnumTypes()
         {
-            IReadOnlyList<EnumType> enumTypes =
+            var enumTypes = new HashSet<EnumType>(
                 CollectUsedEnumTypesVisitor.Collect(
                     _context.Schema,
-                    _context.Query.OriginalDocument);
+                    _context.Query.OriginalDocument)
+                    .ToList());
+
+            foreach (EnumType type in _context.Descriptors.OfType<IInputClassDescriptor>()
+                .SelectMany(t => t.Fields.Select(t => t.Field.Type.NamedType()))
+                .OfType<EnumType>())
+            {
+                enumTypes.Add(type);
+            }
 
             foreach (EnumType enumType in enumTypes)
             {

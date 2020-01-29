@@ -353,7 +353,7 @@ namespace HotChocolate.Language
         }
 
         private void WriteDescription(
-            StringValueNode description,
+            StringValueNode? description,
             DocumentWriter writer)
         {
             if (description != null)
@@ -441,6 +441,21 @@ namespace HotChocolate.Language
         {
             var serializer = new SchemaSyntaxSerializer(useIndentation);
             serializer.Visit(node, new DocumentWriter(writer));
+        }
+
+        public static void Serialize(
+            DocumentNode node,
+            Stream stream) =>
+            Serialize(node, stream, true);
+
+        public static void Serialize(
+            DocumentNode node,
+            Stream stream,
+            bool useIndentation)
+        {
+            using var sr = new StreamWriter(stream);
+            var serializer = new SchemaSyntaxSerializer(useIndentation);
+            serializer.Visit(node, new DocumentWriter(sr));
         }
     }
 }

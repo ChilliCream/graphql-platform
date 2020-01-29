@@ -4,10 +4,10 @@ namespace HotChocolate.Language
 {
     public sealed class InputObjectTypeExtensionNode
         : InputObjectTypeDefinitionNodeBase
-        , INamedTypeExtensionNode
+        , ITypeExtensionNode
     {
         public InputObjectTypeExtensionNode(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<InputValueDefinitionNode> fields)
@@ -18,7 +18,7 @@ namespace HotChocolate.Language
         public override NodeKind Kind { get; } =
             NodeKind.InputObjectTypeExtension;
 
-        public InputObjectTypeExtensionNode WithLocation(Location location)
+        public InputObjectTypeExtensionNode WithLocation(Location? location)
         {
             return new InputObjectTypeExtensionNode(
                 location, Name, Directives, Fields);

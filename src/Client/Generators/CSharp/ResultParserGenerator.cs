@@ -109,7 +109,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteConstructorAsync(
+        private static async Task WriteConstructorAsync(
             CodeWriter writer,
             IResultParserDescriptor parserDescriptor)
         {
@@ -117,7 +117,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync("public ").ConfigureAwait(false);
             await writer.WriteAsync(parserDescriptor.Name).ConfigureAwait(false);
             await writer.WriteAsync(
-                "(IEnumerable<IValueSerializer> serializers)")
+                "(IValueSerializerCollection serializerResolver)")
                 .ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
@@ -127,71 +127,29 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync().ConfigureAwait(false);
-                await writer.WriteAsync(
-                    "IReadOnlyDictionary<string, IValueSerializer> map = ")
+                await writer.WriteIndentedLineAsync(
+                    "if (serializerResolver is null)")
                     .ConfigureAwait(false);
-                await writer.WriteAsync("serializers.ToDictionary();").ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+                using (writer.IncreaseIndent())
+                {
+                    await writer.WriteIndentedLineAsync(
+                        "throw new ArgumentNullException(nameof(serializerResolver));")
+                        .ConfigureAwait(false);
+                }
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
 
                 for (int i = 0; i < parserDescriptor.InvolvedLeafTypes.Count; i++)
                 {
                     INamedType leafType = parserDescriptor.InvolvedLeafTypes[i];
 
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync(
-                        "if (!map.TryGetValue" +
-                        $"(\"{leafType.Name}\", out ")
-                        .ConfigureAwait(false);
-
-                    if (i == 0)
-                    {
-                        await writer.WriteAsync("IValueSerializer").ConfigureAwait(false);
-                        if (_options.LanguageVersion == LanguageVersion.CSharp_8_0)
-                        {
-                            await writer.WriteAsync('?').ConfigureAwait(false);
-                        }
-                    }
-
-                    await writer.WriteAsync(" serializer))").ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync('{').ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-
-                    using (writer.IncreaseIndent())
-                    {
-                        await writer.WriteIndentAsync().ConfigureAwait(false);
-                        await writer.WriteAsync(
-                            "throw new ArgumentException(")
-                            .ConfigureAwait(false);
-                        await writer.WriteLineAsync().ConfigureAwait(false);
-
-                        using (writer.IncreaseIndent())
-                        {
-                            await writer.WriteIndentAsync().ConfigureAwait(false);
-                            await writer.WriteAsync(
-                                "\"There is no serializer specified for " +
-                                $"`{leafType.Name}`.\",")
-                                .ConfigureAwait(false);
-                            await writer.WriteLineAsync().ConfigureAwait(false);
-
-                            await writer.WriteIndentAsync().ConfigureAwait(false);
-                            await writer.WriteAsync("nameof(serializers));").ConfigureAwait(false);
-                            await writer.WriteLineAsync().ConfigureAwait(false);
-                        }
-                    }
-
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync('}').ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-
                     await writer.WriteIndentAsync().ConfigureAwait(false);
                     await writer.WriteAsync('_').ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(leafType.Name)).ConfigureAwait(false);
-                    await writer.WriteAsync("Serializer = serializer;").ConfigureAwait(false);
+                    await writer.WriteAsync(
+                        "Serializer = serializerResolver.Get(" +
+                        $"\"{leafType.Name}\");")
+                        .ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }

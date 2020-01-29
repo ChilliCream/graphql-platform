@@ -1,40 +1,22 @@
 using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using StackExchange.Redis;
-using Xunit;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
+using Squadron;
+using StackExchange.Redis;
+using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis
 {
     public class ServiceCollectionExtensionsTests
+        : IClassFixture<RedisResource>
     {
-        private ConnectionMultiplexer _connectionMultiplexer;
         private IDatabase _database;
 
-        public ServiceCollectionExtensionsTests()
+        public ServiceCollectionExtensionsTests(RedisResource redisResource)
         {
-            string endpoint =
-               Environment.GetEnvironmentVariable("REDIS_ENDPOINT")
-               ?? "localhost:6379";
-
-            string password =
-                Environment.GetEnvironmentVariable("REDIS_PASSWORD");
-
-            var configuration = new ConfigurationOptions
-            {
-                Ssl = !string.IsNullOrEmpty(password),
-                AbortOnConnectFail = false,
-                Password = password
-            };
-
-            configuration.EndPoints.Add(endpoint);
-
-            _connectionMultiplexer =
-                ConnectionMultiplexer.Connect(configuration);
-
-            _database = _connectionMultiplexer.GetDatabase();
+            _database = redisResource.GetConnection().GetDatabase();
         }
 
         [Fact]

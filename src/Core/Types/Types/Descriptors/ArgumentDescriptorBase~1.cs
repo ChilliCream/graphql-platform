@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = new T();
         }
 
-        protected override T Definition { get; }
+        internal protected override T Definition { get; }
 
         protected void SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
@@ -92,8 +92,7 @@ namespace HotChocolate.Types.Descriptors
 
         public void DefaultValue(IValueNode value)
         {
-            Definition.DefaultValue =
-                value ?? NullValueNode.Default;
+            Definition.DefaultValue = value ?? NullValueNode.Default;
             Definition.NativeDefaultValue = null;
         }
 
@@ -106,9 +105,7 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                Definition.SetMoreSpecificType(
-                    value.GetType(),
-                    TypeContext.Input);
+                Definition.SetMoreSpecificType(value.GetType(), TypeContext.Input);
                 Definition.NativeDefaultValue = value;
                 Definition.DefaultValue = null;
             }

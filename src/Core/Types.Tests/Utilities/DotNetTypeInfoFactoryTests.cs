@@ -48,6 +48,7 @@ namespace HotChocolate.Utilities
                 typeInfo.TypeFactory(new StringType()).Visualize());
         }
 
+        [InlineData(typeof(Optional<int>), "Int!")]
         [InlineData(typeof(int), "Int!")]
         [InlineData(typeof(Task<int>), "Int!")]
         [InlineData(typeof(List<int>), "[Int!]")]
@@ -74,8 +75,8 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<Task<int?[]>>), "[Int]")]
         [Theory]
         public void CreateTypeInfoFromValueType(
-            Type clrType,
-            string expectedTypeName)
+                    Type clrType,
+                    string expectedTypeName)
         {
             // arrange
             var factory = new DotNetTypeInfoFactory();
@@ -194,6 +195,31 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal(expectedReducedType, reducedType);
+        }
+
+        [Fact]
+        public void Create_TypeInfo_From_RewrittenType()
+        {
+            // arrange
+            Type type = typeof(ListType<NonNullType<NativeType<string>>>);
+            var factory = new DotNetTypeInfoFactory();
+
+            // act
+            bool success = factory.TryCreate(type, out TypeInfo typeInfo);
+
+            // assert
+            Assert.True(success);
+
+            Assert.Collection(typeInfo.Components,
+                t => Assert.Equal(typeof(ListType<NonNullType<NativeType<string>>>), t),
+                t => Assert.Equal(typeof(NonNullType<NativeType<string>>), t),
+                t => Assert.Equal(typeof(string), t));
+
+            IType schemaType = typeInfo.TypeFactory(new StringType());
+
+            Assert.IsType<StringType>(
+                Assert.IsType<NonNullType>(
+                    Assert.IsType<ListType>(schemaType).ElementType).Type);
         }
 
         private class CustomStringList

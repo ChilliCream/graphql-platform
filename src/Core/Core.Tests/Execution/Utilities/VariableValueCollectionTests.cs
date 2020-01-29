@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
@@ -14,10 +16,8 @@ namespace HotChocolate.Execution
         public void GetVariable_Name_Is_Invalid(string name)
         {
             // arrange
-            var values = new Dictionary<string, object>();
-            var variables = new VariableValueCollection(
-                TypeConversion.Default,
-                values);
+            var values = new Dictionary<string, VariableValue>();
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
 
             // act
             Action action = () => variables.GetVariable<string>(name);
@@ -32,10 +32,8 @@ namespace HotChocolate.Execution
         public void TryGetVariable_Name_Is_Invalid(string name)
         {
             // arrange
-            var values = new Dictionary<string, object>();
-            var variables = new VariableValueCollection(
-                TypeConversion.Default,
-                values);
+            var values = new Dictionary<string, VariableValue>();
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
 
             // act
             Action action = () => variables.TryGetVariable<string>(name, out _);
@@ -45,12 +43,103 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void GetVariable_Casted()
+        public void GetVariable_StringValue_As_String()
         {
             // arrange
-            var values = new Dictionary<string, object>
+            var values = new Dictionary<string, VariableValue>
             {
-                { "abc", "def" }
+                { "abc", new VariableValue("abc", new StringType(), new StringValueNode("def")) }
+            };
+
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
+
+            // act
+            var value = variables.GetVariable<string>("abc");
+
+            // assert
+            Assert.Equal("def", value);
+        }
+
+        [Fact]
+        public void GetVariable_StringValue_As_Int()
+        {
+            // arrange
+            var values = new Dictionary<string, VariableValue>
+            {
+                { "abc", new VariableValue("abc", new StringType(), new StringValueNode("123")) }
+            };
+
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
+
+            // act
+            var value = variables.GetVariable<int>("abc");
+
+            // assert
+            Assert.Equal(123, value);
+        }
+
+
+        [Fact]
+        public void GetVariable_StringValue_As_IValueNode()
+        {
+            // arrange
+            var values = new Dictionary<string, VariableValue>
+            {
+                { "abc", new VariableValue("abc", new StringType(), new StringValueNode("def")) }
+            };
+
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
+
+            // act
+            var value = variables.GetVariable<IValueNode>("abc");
+
+            // assert
+            Assert.Equal("def", Assert.IsType<StringValueNode>(value).Value);
+        }
+
+        [Fact]
+        public void GetVariable_StringValue_As_IValueNodeOfString()
+        {
+            // arrange
+            var values = new Dictionary<string, VariableValue>
+            {
+                { "abc", new VariableValue("abc", new StringType(), new StringValueNode("def")) }
+            };
+
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
+
+            // act
+            var value = variables.GetVariable<IValueNode<string>>("abc");
+
+            // assert
+            Assert.Equal("def", value.Value);
+        }
+
+        [Fact]
+        public void GetVariable_StringValue_As_StringValue()
+        {
+            // arrange
+            var values = new Dictionary<string, VariableValue>
+            {
+                { "abc", new VariableValue("abc", new StringType(), new StringValueNode("def")) }
+            };
+
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
+
+            // act
+            var value = variables.GetVariable<StringValueNode>("abc");
+
+            // assert
+            Assert.Equal("def", value.Value);
+        }
+
+        [Fact]
+        public void GetVariable_String_As_StringValue()
+        {
+            // arrange
+            var values = new Dictionary<string, VariableValue>
+            {
+                { "abc", new VariableValue("abc", new StringType(), "def") }
             };
 
             var variables = new VariableValueCollection(
@@ -58,7 +147,27 @@ namespace HotChocolate.Execution
                 values);
 
             // act
-            string value = variables.GetVariable<string>("abc");
+            var value = variables.GetVariable<StringValueNode>("abc");
+
+            // assert
+            Assert.Equal("def", value.Value);
+        }
+
+        [Fact]
+        public void GetVariable_Casted()
+        {
+            // arrange
+            var values = new Dictionary<string, VariableValue>
+            {
+                { "abc", new VariableValue("abc", new StringType(), "def") }
+            };
+
+            var variables = new VariableValueCollection(
+                TypeConversion.Default,
+                values);
+
+            // act
+            var value = variables.GetVariable<string>("abc");
 
             // assert
             Assert.Equal("def", value);
@@ -68,14 +177,12 @@ namespace HotChocolate.Execution
         public void GetVariable_Converted()
         {
             // arrange
-            var values = new Dictionary<string, object>
+            var values = new Dictionary<string, VariableValue>
             {
-                { "abc", "123" }
+                { "abc", new VariableValue("abc", new StringType(), "123") }
             };
 
-            var variables = new VariableValueCollection(
-                TypeConversion.Default,
-                values);
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
 
             // act
             int value = variables.GetVariable<int>("abc");
@@ -89,14 +196,12 @@ namespace HotChocolate.Execution
         public void GetVariable_Variable_Does_Not_Exist()
         {
             // arrange
-            var values = new Dictionary<string, object>
+            var values = new Dictionary<string, VariableValue>
             {
-                { "abc", "123" }
+                { "abc", new VariableValue("abc", new StringType(), "123") }
             };
 
-            var variables = new VariableValueCollection(
-                TypeConversion.Default,
-                values);
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
 
             // act
             Action action = () => variables.GetVariable<int>("def");
@@ -110,14 +215,12 @@ namespace HotChocolate.Execution
         public void TryGetVariable_Casted()
         {
             // arrange
-            var values = new Dictionary<string, object>
+            var values = new Dictionary<string, VariableValue>
             {
-                { "abc", "def" }
+                { "abc", new VariableValue("abc", new StringType(), "def") }
             };
 
-            var variables = new VariableValueCollection(
-                TypeConversion.Default,
-                values);
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
 
             // act
             bool success = variables.TryGetVariable<string>(
@@ -132,14 +235,12 @@ namespace HotChocolate.Execution
         public void TryGetVariable_Converted()
         {
             // arrange
-            var values = new Dictionary<string, object>
+            var values = new Dictionary<string, VariableValue>
             {
-                { "abc", "123" }
+                { "abc", new VariableValue("abc", new StringType(), "123") }
             };
 
-            var variables = new VariableValueCollection(
-                TypeConversion.Default,
-                values);
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
 
             // act
             bool success = variables.TryGetVariable<int>(
@@ -154,14 +255,12 @@ namespace HotChocolate.Execution
         public void TryGetVariable_Variable_Does_Not_Exist()
         {
             // arrange
-            var values = new Dictionary<string, object>
+            var values = new Dictionary<string, VariableValue>
             {
-                { "abc", "123" }
+                { "abc", new VariableValue("abc", new StringType(), "123") }
             };
 
-            var variables = new VariableValueCollection(
-                TypeConversion.Default,
-                values);
+            var variables = new VariableValueCollection(TypeConversion.Default, values);
 
             // act
             bool success = variables.TryGetVariable<int>(
@@ -189,9 +288,9 @@ namespace HotChocolate.Execution
         public void CreateInstance_ConverterIsNull()
         {
             // arrange
-            var values = new Dictionary<string, object>
+            var values = new Dictionary<string, VariableValue>
             {
-                { "abc", "123" }
+                { "abc", new VariableValue("abc", new StringType(), "def") }
             };
 
             // act

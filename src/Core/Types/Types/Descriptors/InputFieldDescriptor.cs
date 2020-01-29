@@ -31,6 +31,19 @@ namespace HotChocolate.Types.Descriptors
             Definition.Type = context.Inspector.GetInputReturnType(property);
         }
 
+        protected override void OnCreateDefinition(InputFieldDefinition definition)
+        {
+            if (Definition.Property is { })
+            {
+                Context.Inspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.Property);
+            }
+
+            base.OnCreateDefinition(definition);
+        }
+
         public new IInputFieldDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
@@ -77,9 +90,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IInputFieldDescriptor Ignore()
+        public IInputFieldDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

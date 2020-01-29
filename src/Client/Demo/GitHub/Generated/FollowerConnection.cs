@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.GitHub
 {
+    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class FollowerConnection
         : IFollowerConnection
     {

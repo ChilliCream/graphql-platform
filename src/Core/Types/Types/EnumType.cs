@@ -176,6 +176,12 @@ namespace HotChocolate.Types
                 return true;
             }
 
+            if (_valueToValues.TryGetValue(serialized, out enumValue))
+            {
+                value = enumValue.Value;
+                return true;
+            }
+
             value = null;
             return false;
         }
@@ -202,6 +208,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
             context.RegisterDependencies(definition);
+            SetTypeIdentity(typeof(EnumType<>));
         }
 
         protected override void OnCompleteType(

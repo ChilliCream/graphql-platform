@@ -69,6 +69,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
             context.RegisterDependencies(definition);
+            SetTypeIdentity(typeof(ObjectType<>));
         }
 
         protected override void OnCompleteType(
@@ -143,8 +144,7 @@ namespace HotChocolate.Types
                 {
                     // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                           "COULD NOT RESOLVE INTERFACE")
+                        .SetMessage("COULD NOT RESOLVE INTERFACE")
                         .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)

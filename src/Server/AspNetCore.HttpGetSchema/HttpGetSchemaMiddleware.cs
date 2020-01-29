@@ -68,14 +68,18 @@ namespace HotChocolate.AspNetCore
                     "Content-Disposition",
                     new[] { "attachment; filename=\"schema.graphql\"" });
 
-                using (var streamWriter = new StreamWriter(
-                   context.Response.Body))
+                using (var memoryStream = new MemoryStream())
                 {
-                    SchemaSerializer.Serialize(
-                        _queryExecutor.Schema,
-                        streamWriter);
+                    using (var streamWriter = new StreamWriter(memoryStream))
+                    {
+                        SchemaSerializer.Serialize(
+                            _queryExecutor.Schema,
+                            streamWriter);
+                        await streamWriter.FlushAsync().ConfigureAwait(false);
 
-                    await streamWriter.FlushAsync().ConfigureAwait(false);
+                        memoryStream.Seek(0, SeekOrigin.Begin);
+                        await memoryStream.CopyToAsync(context.Response.Body).ConfigureAwait(false);
+                    }
                 }
             }
             else

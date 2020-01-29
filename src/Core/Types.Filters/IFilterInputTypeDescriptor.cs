@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
@@ -7,6 +9,24 @@ namespace HotChocolate.Types.Filters
         : IDescriptor<FilterInputTypeDefinition>
         , IFluent
     {
+        /// <summary>
+        /// Defines the name of the <see cref="FilterInputType{T}"/>.
+        /// </summary>
+        /// <param name="value">The filter type name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="value"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
+        IFilterInputTypeDescriptor<T> Name(NameString value);
+
+        /// <summary>
+        /// Adds explanatory text of the <see cref="FilterInputType{T}"/>
+        /// that can be accessd via introspection.
+        /// </summary>
+        /// <param name="value">The filter type description.</param>
+        /// 
+        IFilterInputTypeDescriptor<T> Description(string value);
+
         /// <summary>
         /// Defines the filter binding behavior.
         ///
@@ -71,9 +91,50 @@ namespace HotChocolate.Types.Filters
         /// <param name="property">
         /// The property for which a filter shall be applied.
         /// </param>
-        IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
+        IObjectFilterFieldDescriptor<TObject> Object<TObject>(
             Expression<Func<T, TObject>> property)
             where TObject : class;
+
+        /// <summary>
+        /// Define a object filter for a IEnumerable of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<TObject> List<TObject>(
+            Expression<Func<T, IEnumerable<TObject>>> property)
+            where TObject : class;
+
+        /// <summary>
+        /// Define a object filter for a IEnumerable of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<ISingleFilter<string>> List(
+            Expression<Func<T, IEnumerable<string>>> property);
+
+        /// <summary>
+        /// Define a object filter for a IEnumerable of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
+            Expression<Func<T, IEnumerable<TStruct>>> property, 
+            RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct;
+
+        /// <summary>
+        /// Define a object filter for a IEnumerable of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
+            Expression<Func<T, IEnumerable<TStruct?>>> property, 
+            RequireStruct<TStruct> ignore = null) 
+            where TStruct : struct;
 
         /// <summary>
         /// Ignore the specified property.
@@ -81,5 +142,18 @@ namespace HotChocolate.Types.Filters
         /// <param name="property">The property that hall be ignored.</param>
         IFilterInputTypeDescriptor<T> Ignore(
             Expression<Func<T, object>> property);
+
+        IFilterInputTypeDescriptor<T> Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class;
+
+        IFilterInputTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new();
+
+        IFilterInputTypeDescriptor<T> Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
+
+        public class RequireStruct<TStruct> where TStruct : struct { }
     }
 }

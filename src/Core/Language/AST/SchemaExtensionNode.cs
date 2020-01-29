@@ -4,10 +4,10 @@ namespace HotChocolate.Language
 {
     public sealed class SchemaExtensionNode
         : SchemaDefinitionNodeBase
-        , ITypeExtensionNode
+        , ITypeSystemExtensionNode
     {
         public SchemaExtensionNode(
-            Location location,
+            Location? location,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
             : base(location, directives, operationTypes)
@@ -16,7 +16,7 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.SchemaExtension;
 
-        public SchemaExtensionNode WithLocation(Location location)
+        public SchemaExtensionNode WithLocation(Location? location)
         {
             return new SchemaExtensionNode(
                 Location, Directives, OperationTypes);

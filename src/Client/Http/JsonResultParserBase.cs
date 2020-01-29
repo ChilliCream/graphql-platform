@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,9 +12,32 @@ namespace StrawberryShake.Http
         : IResultParser
         where T : class
     {
+        private static readonly JsonDocumentOptions _options = new JsonDocumentOptions
+        {
+            AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip
+        };
+
         protected ReadOnlySpan<byte> TypeName => _typename;
 
         public Type ResultType => typeof(T);
+
+        public void Parse(ReadOnlySpan<byte> result, IOperationResultBuilder resultBuilder)
+        {
+            if (resultBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(resultBuilder));
+            }
+
+            byte[] rented = ArrayPool<byte>.Shared.Rent(result.Length);
+            result.CopyTo(rented);
+            var memory = new ReadOnlyMemory<byte>(rented);
+            memory = memory.Slice(0, result.Length);
+
+            using JsonDocument document = JsonDocument.Parse(memory, _options);
+            ParseInternal(document, resultBuilder);
+
+            ArrayPool<byte>.Shared.Return(rented);
+        }
 
         public Task ParseAsync(
             Stream stream,
@@ -38,39 +62,45 @@ namespace StrawberryShake.Http
             IOperationResultBuilder resultBuilder,
             CancellationToken cancellationToken)
         {
-            using (JsonDocument document = await JsonDocument.ParseAsync(stream)
-                .ConfigureAwait(false))
+            using JsonDocument document = await JsonDocument.ParseAsync(
+                stream, _options, cancellationToken)
+                .ConfigureAwait(false);
+            ParseInternal(document, resultBuilder);
+        }
+
+        private void ParseInternal(
+            JsonDocument document,
+            IOperationResultBuilder resultBuilder)
+        {
+            if (document.RootElement.TryGetProperty(
+                _data, out JsonElement data))
             {
-                if (document.RootElement.TryGetProperty(
-                    _data, out JsonElement data))
-                {
-                    resultBuilder.SetData(ParserData(data));
-                }
+                resultBuilder.SetData(ParserData(data));
+            }
 
-                if (document.RootElement.TryGetProperty(
-                    _errors, out JsonElement errors))
-                {
-                    resultBuilder.AddErrors(ParseErrors(errors));
-                }
+            if (document.RootElement.TryGetProperty(
+                _errors, out JsonElement errors))
+            {
+                resultBuilder.AddErrors(ParseErrors(errors));
+            }
 
-                if (TryParseExtensions(
-                    document.RootElement,
-                    out IReadOnlyDictionary<string, object?>? extensions))
-                {
-                    resultBuilder.AddExtensions(extensions!);
-                }
+            if (TryParseExtensions(
+                document.RootElement,
+                out IReadOnlyDictionary<string, object?>? extensions))
+            {
+                resultBuilder.AddExtensions(extensions!);
+            }
 
-                if (!resultBuilder.IsDataOrErrorModified)
-                {
-                    resultBuilder.AddError(ErrorBuilder.New()
-                        .SetMessage(
-                            "The specified document is not a valid " +
-                            "GraphQL response document. Ensure that either " +
-                            "`data` or `errors` os provided. The document " +
-                            "parses property names case-sensitive.")
-                        .SetCode(ErrorCodes.InvalidResponse)
-                        .Build());
-                }
+            if (!resultBuilder.IsDataOrErrorModified)
+            {
+                resultBuilder.AddError(ErrorBuilder.New()
+                    .SetMessage(
+                        "The specified document is not a valid " +
+                        "GraphQL response document. Ensure that either " +
+                        "`data` or `errors` os provided. The document " +
+                        "parses property names case-sensitive.")
+                    .SetCode(ErrorCodes.InvalidResponse)
+                    .Build());
             }
         }
 
@@ -78,12 +108,12 @@ namespace StrawberryShake.Http
 
         private IEnumerable<IError> ParseErrors(JsonElement parent)
         {
-            int length = parent.GetArrayLength();
+            var length = parent.GetArrayLength();
 
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 JsonElement error = parent[i];
-                var builder = ErrorBuilder.New();
+                ErrorBuilder builder = ErrorBuilder.New();
 
                 builder.SetMessage(error.GetProperty(_message).GetString());
 
@@ -115,7 +145,7 @@ namespace StrawberryShake.Http
                 return false;
             }
 
-            int length = list.GetArrayLength();
+            var length = list.GetArrayLength();
             var locs = new Location[length];
 
             for (int i = 0; i < length; i++)
@@ -139,10 +169,10 @@ namespace StrawberryShake.Http
                 return false;
             }
 
-            int length = list.GetArrayLength();
+            var length = list.GetArrayLength();
             var pathArray = new object[length];
 
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 JsonElement element = list[i];
                 if (element.ValueKind == JsonValueKind.Number)
@@ -201,10 +231,10 @@ namespace StrawberryShake.Http
 
         private IReadOnlyList<object?> ParseList(JsonElement list)
         {
-            int length = list.GetArrayLength();
+            var length = list.GetArrayLength();
             var items = new object?[length];
 
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 items[i] = ParseValue(list[i]);
             }

@@ -69,7 +69,7 @@ namespace HotChocolate.Language
             while (position < data.Length)
             {
                 line = GetNextLine(in data, ref position);
-                if (trim && line.Length >= commonIndent.Value)
+                if (trim && commonIndent.HasValue && line.Length >= commonIndent.Value)
                 {
                     line = line.Slice(commonIndent.Value);
                 }

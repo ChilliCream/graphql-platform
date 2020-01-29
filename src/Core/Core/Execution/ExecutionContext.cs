@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public IReadOnlyCollection<FieldSelection> CollectFields(
+        public IReadOnlyList<FieldSelection> CollectFields(
             ObjectType objectType,
             SelectionSetNode selectionSet,
             Path path)

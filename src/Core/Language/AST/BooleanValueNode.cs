@@ -5,7 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class BooleanValueNode
         : IValueNode<bool>
-        , IEquatable<BooleanValueNode>
+        , IEquatable<BooleanValueNode?>
     {
         public BooleanValueNode(bool value)
             : this(null, value)
@@ -13,7 +13,7 @@ namespace HotChocolate.Language
         }
 
         public BooleanValueNode(
-            Location location,
+            Location? location,
             bool value)
         {
             Location = location;
@@ -22,7 +22,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.BooleanValue;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public bool Value { get; }
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="BooleanValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(BooleanValueNode other)
+        public bool Equals(BooleanValueNode? other)
         {
             if (other is null)
             {
@@ -69,7 +69,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="BooleanValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -101,7 +101,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="BooleanValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -141,7 +141,7 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="BooleanValueNode"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
 #if NETSTANDARD1_4
             return Value.ToString();
@@ -150,14 +150,14 @@ namespace HotChocolate.Language
 #endif
         }
 
-        public BooleanValueNode WithLocation(Location location)
-        {
-            return new BooleanValueNode(location, Value);
-        }
+        public BooleanValueNode WithLocation(Location? location) =>
+            new BooleanValueNode(location, Value);
 
-        public BooleanValueNode WithValue(bool value)
-        {
-            return new BooleanValueNode(Location, value);
-        }
+        public BooleanValueNode WithValue(bool value) =>
+            new BooleanValueNode(Location, value);
+
+        public static BooleanValueNode TrueLiteral { get; } = new BooleanValueNode(true);
+
+        public static BooleanValueNode FalseLiteral { get; } = new BooleanValueNode(false);
     }
 }

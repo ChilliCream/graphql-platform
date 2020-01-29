@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -26,7 +26,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -47,7 +47,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -69,7 +69,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -91,7 +91,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -112,7 +112,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -134,7 +134,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -157,7 +157,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -179,7 +179,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -201,7 +201,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -223,7 +223,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -246,7 +246,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -270,7 +270,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -294,7 +294,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -317,7 +317,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -341,7 +341,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -366,7 +366,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -390,7 +390,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -414,7 +414,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -437,7 +437,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -462,7 +462,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -485,7 +485,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -493,7 +493,7 @@ namespace HotChocolate.Resolvers.Expressions
             context.Setup(t => t.Parent<Resolvers>())
                 .Returns(new Resolvers());
             context.Setup(t => t.CustomProperty<IEventMessage>(
-                typeof(IEventMessage).FullName))
+                WellKnownContextData.EventMessage))
                 .Returns(new Mock<IEventMessage>().Object);
             bool result = (bool)await resolver.Resolver(context.Object);
             Assert.True(result);
@@ -511,7 +511,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -542,7 +542,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -572,7 +572,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -605,7 +605,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -635,7 +635,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -665,7 +665,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -692,7 +692,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -721,7 +721,7 @@ namespace HotChocolate.Resolvers.Expressions
                 new FieldMember("A", "b", resolverMember));
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -750,7 +750,7 @@ namespace HotChocolate.Resolvers.Expressions
             };
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -774,7 +774,7 @@ namespace HotChocolate.Resolvers.Expressions
             var contextData = new Dictionary<string, object>();
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -798,7 +798,7 @@ namespace HotChocolate.Resolvers.Expressions
             var contextData = new Dictionary<string, object>();
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -823,7 +823,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .SetItem("foo", "bar");
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -847,7 +847,7 @@ namespace HotChocolate.Resolvers.Expressions
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
@@ -871,7 +871,7 @@ namespace HotChocolate.Resolvers.Expressions
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
-            var compiler = new ResolverCompiler();
+            var compiler = new ResolveCompiler();
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert

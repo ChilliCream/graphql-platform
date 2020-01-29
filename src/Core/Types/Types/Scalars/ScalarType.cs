@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
@@ -15,6 +16,7 @@ namespace HotChocolate.Types
     public abstract class ScalarType
         : TypeSystemObjectBase
         , ILeafType
+        , IHasDirectives
     {
         private static readonly ITypeConversion _converter =
             TypeConversion.Default;
@@ -26,15 +28,18 @@ namespace HotChocolate.Types
         /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
         /// </summary>
         /// <param name="name">Name.</param>
-        protected ScalarType(NameString name)
+        protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
         {
             Name = name.EnsureNotEmpty(nameof(name));
+            Bind = bind;
         }
 
         /// <summary>
         /// Gets the type kind.
         /// </summary>
         public TypeKind Kind { get; } = TypeKind.Scalar;
+
+        public BindingBehavior Bind { get; }
 
         /// <summary>
         /// The .net type representation of this scalar.
@@ -43,6 +48,8 @@ namespace HotChocolate.Types
 
         public override IReadOnlyDictionary<string, object> ContextData =>
             _contextData;
+
+        public IDirectiveCollection Directives { get; private set; }
 
         /// <summary>
         /// Defines if the specified <paramref name="literal" />
@@ -125,7 +132,31 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be serialized
         /// by this scalar.
         /// </exception>
-        public abstract object Serialize(object value);
+        public virtual object Serialize(object value)
+        {
+            if (TrySerialize(value, out object s))
+            {
+                return s;
+            }
+
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+        }
+
+        /// <summary>
+        /// Tries to serializes the .net value representation to the output format.
+        /// </summary>
+        /// <param name="value">
+        /// The .net value representation.
+        /// </param>
+        /// <param name="serialized">
+        /// The serialized value.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the value was correctly serialized; otherwise, <c>false</c>.
+        /// </returns>
+        public abstract bool TrySerialize(
+            object value, out object serialized);
 
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
@@ -153,13 +184,16 @@ namespace HotChocolate.Types
 
 
         /// <summary>
-        /// Deserializes the serialized value to it`s .net value representation.
+        /// Tries to deserializes the value from the output format to the .net value representation.
         /// </summary>
+        /// <param name="serialized">
+        /// The serialized value.
+        /// </param>
         /// <param name="value">
-        /// The serialized value representation.
+        /// The .net value representation.
         /// </param>
         /// <returns>
-        /// Returns the .net value representation.
+        /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
         /// </returns>
         public abstract bool TryDeserialize(
             object serialized, out object value);
@@ -211,6 +245,8 @@ namespace HotChocolate.Types
             ICompletionContext context,
             IDictionary<string, object> contextData)
         {
+            Directives = DirectiveCollection.CreateAndComplete(
+                context, this, Array.Empty<DirectiveDefinition>());
         }
 
         protected static bool TryConvertSerialized<T>(

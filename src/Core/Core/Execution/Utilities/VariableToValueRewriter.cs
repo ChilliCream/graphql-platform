@@ -1,11 +1,12 @@
-using System.Buffers;
 using System;
+using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -54,17 +55,37 @@ namespace HotChocolate.Execution
             return RewriteValue(value, null);
         }
 
+        protected override ObjectValueNode RewriteObjectValue(
+            ObjectValueNode node,
+            object context)
+        {
+            return base.RewriteObjectValue(node, node);
+        }
+
         protected override ObjectFieldNode RewriteObjectField(
             ObjectFieldNode node,
             object context)
         {
-            if (_type.Peek().NamedType() is InputObjectType inputObject
+            INamedType namedType = _type.Peek().NamedType();
+            IInputType fieldType = null;
+
+            if (namedType is ScalarType scalar
+                && scalar.IsInstanceOfType((ObjectValueNode)context))
+            {
+                fieldType = scalar;
+            }
+            else if (namedType is InputObjectType inputObject
                 && inputObject.Fields.TryGetField(
                     node.Name.Value,
                     out InputField field))
             {
+                fieldType = field.Type;
+            }
+
+            if (fieldType != null)
+            {
                 IValueNode rewritten = null;
-                _type.Push(field.Type);
+                _type.Push(fieldType);
 
                 switch (node.Value)
                 {
@@ -77,7 +98,7 @@ namespace HotChocolate.Execution
                         break;
 
                     case VariableNode value:
-                        rewritten = ReplaceVariable(value, field.Type);
+                        rewritten = ReplaceVariable(value, fieldType);
                         break;
 
                     default:
@@ -107,11 +128,23 @@ namespace HotChocolate.Execution
             ListValueNode node,
             object context)
         {
+            IType type = _type.Peek();
+            IInputType elementType = null;
+
+            if (type.IsListType() && type.ListType().ElementType is IInputType inputType)
+            {
+                elementType = inputType;
+            }
+            else if (type.NamedType() is ScalarType scalar && scalar.IsInstanceOfType(node))
+            {
+                elementType = scalar;
+            }
+
             ListValueNode current = node;
 
-            if (_type.Peek().ListType().ElementType is IInputType elementType)
+            if (elementType != null)
             {
-                _type.Push(_type.Peek().ListType().ElementType);
+                _type.Push(elementType);
 
                 if (current.Items.Count > 0)
                 {
@@ -132,7 +165,9 @@ namespace HotChocolate.Execution
                         }
                         else
                         {
-                            copy[i] = value;
+                            IValueNode rewritten = RewriteValue(value, context);
+                            rewrite = rewritten != value;
+                            copy[i] = rewritten;
                         }
                     }
 
@@ -166,7 +201,22 @@ namespace HotChocolate.Execution
                 variable.Name.Value,
                 out object v))
             {
-                if (!type.ClrType.IsInstanceOfType(v)
+                if (v is IValueNode n)
+                {
+                    return n;
+                }
+
+                if (v is { }
+                    && type.IsListType()
+                    && !(v is IList))
+                {
+                    Array array = Array.CreateInstance(v.GetType(), 1);
+                    array.SetValue(v, 0);
+                    v = array;
+                }
+
+                if (v is { }
+                    && !type.ClrType.IsInstanceOfType(v)
                     && !_typeConversion.TryConvert(
                         typeof(object),
                         type.ClrType,

@@ -210,7 +210,7 @@ namespace HotChocolate.Discovery
             : ScalarType
         {
             public ByteArrayType()
-                : base("ByteArray")
+                : base("ByteArray", BindingBehavior.Implicit)
             {
             }
 
@@ -243,6 +243,12 @@ namespace HotChocolate.Discovery
 
             public override bool TryDeserialize(
                 object serialized, out object value)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override bool TrySerialize(
+                object value, out object serialized)
             {
                 throw new NotSupportedException();
             }

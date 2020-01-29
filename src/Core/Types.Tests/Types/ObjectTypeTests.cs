@@ -680,6 +680,20 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Include_TypeWithOneField_And_Update_FieldDefinition()
+        {
+            // arrange
+            // act
+            ObjectType<object> fooType =
+                CreateType(new ObjectType<object>(d => d
+                    .Include<Foo>()
+                    .Field<Foo>(t => t.Description).Name("desc")));
+
+            // assert
+            Assert.True(fooType.Fields.ContainsField("desc"));
+        }
+
+        [Fact]
         public void NonNullAttribute_StringIsRewritten_NonNullStringType()
         {
             // arrange
@@ -1194,6 +1208,26 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void UnignoreFieldWithShortcut()
+        {
+            // arrange
+            // act
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d =>
+            {
+                d.Ignore(t => t.Description);
+                d.Field("foo").Type<StringType>().Resolver("abc");
+                d.Field(t => t.Description).Ignore(false);
+            }));
+
+            // assert
+            Assert.Collection(
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                t => Assert.Equal("description", t.Name),
+                t => Assert.Equal("foo", t.Name));
+
+        }
+
+        [Fact]
         public void IgnoreField_DescriptorIsNull_ArgumentNullException()
         {
             // arrange
@@ -1267,7 +1301,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Argument_Type_IsInfered_From_Parameter()
+        public void Argument_Type_IsInferred_From_Parameter()
         {
             // arrange
             // act
@@ -1586,6 +1620,13 @@ namespace HotChocolate.Types
         public class Foo
             : IFoo
         {
+            public Foo() { }
+
+            public Foo(string description)
+            {
+                Description = description;
+            }
+
             public string Description { get; } = "hello";
         }
 

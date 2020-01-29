@@ -8,6 +8,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
+    public delegate IImmutableDictionary<string, object> ModifyScopedContext(
+        IImmutableDictionary<string, object> contextData);
+
     /// <summary>
     /// The resolver context represent the execution context for a specific
     /// field that is being resolved.
@@ -19,6 +22,11 @@ namespace HotChocolate.Resolvers
         /// Gets the GraphQL schema on which the query is executed.
         /// </summary>
         ISchema Schema { get; }
+
+        /// <summary>
+        /// Gets the root object type of the currently execution operation.
+        /// </summary>
+        ObjectType RootType { get; }
 
         /// <summary>
         /// Gets the object type on which the field resolver is being executed.
@@ -109,9 +117,20 @@ namespace HotChocolate.Resolvers
         /// The type to which the argument shall be casted to.
         /// </typeparam>
         /// <returns>
-        /// Returns a specific field argument.
+        /// Returns the value of the specified field argument.
         /// </returns>
         T Argument<T>(NameString name);
+
+        /// <summary>
+        /// Gets the value kind of a specific field argument.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <returns>
+        /// Returns the value kind of the specified field argument kind.
+        /// </returns>
+        ValueKind ArgumentKind(NameString name);
 
         /// <summary>
         /// Gets as specific service from the dependency injection container.
@@ -156,7 +175,7 @@ namespace HotChocolate.Resolvers
         T Resolver<T>();
 
         /// <summary>
-        /// Report a non-terminating resolver error to the execution enhgine.
+        /// Report a non-terminating resolver error to the execution engine.
         /// The error will be displayed in the errorsection with a reference to
         /// the field selection that is associated with the current
         /// resolver context.
@@ -167,7 +186,7 @@ namespace HotChocolate.Resolvers
         void ReportError(string errorMessage);
 
         /// <summary>
-        /// Report a non-terminating resolver error to the execution enhgine.
+        /// Report a non-terminating resolver error to the execution engine.
         /// The error will be displayed in the errorsection with a reference to
         /// the field selection that is associated with the current
         /// resolver context.
@@ -186,7 +205,7 @@ namespace HotChocolate.Resolvers
         /// Returns the fields that would be selected if this resolver
         /// returns an object of the specified typeContext.
         /// </returns>
-        IReadOnlyCollection<IFieldSelection> CollectFields(
+        IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext);
 
         /// <summary>
@@ -201,8 +220,33 @@ namespace HotChocolate.Resolvers
         /// Returns the fields that would be selected if this resolver
         /// returns an object of the specified typeContext.
         /// </returns>
-        IReadOnlyCollection<IFieldSelection> CollectFields(
+        IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext,
             SelectionSetNode selectionSet);
+
+        /// <summary>
+        /// Collects the fields of a selection set with the specified
+        /// type context.
+        /// </summary>
+        /// <param name="typeContext">The object type context.</param>
+        /// <param name="selectionSet">
+        /// The selection set that shall be analyzed.
+        /// </param>
+        /// <param name="path">
+        /// The field path.
+        /// </param>
+        /// <returns>
+        /// Returns the fields that would be selected if this resolver
+        /// returns an object of the specified typeContext.
+        /// </returns>
+        IReadOnlyList<IFieldSelection> CollectFields(
+            ObjectType typeContext,
+            SelectionSetNode selectionSet,
+            Path path);
+
+        /// <summary>
+        /// Helper method to modify the scoped context data.
+        /// </summary>
+        void ModifyScopedContext(ModifyScopedContext modify);
     }
 }

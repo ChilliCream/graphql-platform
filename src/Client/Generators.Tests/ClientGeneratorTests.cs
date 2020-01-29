@@ -38,6 +38,67 @@ namespace StrawberryShake.Generators
         }
 
         [Fact]
+        public async Task Nested_List_Nullable_ReturnType()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(a: String): [String]
+                }
+                ";
+
+            string query =
+               @"
+                query getBars($a: String) {
+                    foo(a: $a)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Nested_List_ReturnType()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(a: String): [String!]!
+                }
+                ";
+
+            string query =
+               @"
+                query getBars($a: String) {
+                    foo(a: $a)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+
+        [Fact]
         public async Task Two_Nullable_Scalar_Arguments()
         {
             // arrange
@@ -468,6 +529,99 @@ namespace StrawberryShake.Generators
                 .AddQueryDocumentFromString("Queries", query)
                 .AddSchemaDocumentFromString("Schema", schema)
                 .AddSchemaDocumentFromString("Extensions", extensions)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Custom_Scalar_Types_Byte_Array()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Bar
+                    baz: Qux
+                    abc: String
+                }
+
+                scalar String
+                scalar Bar
+                scalar Qux
+                ";
+
+            string extensions = @"
+                extend scalar Bar
+                    @runtimeType(name: ""System.String[]"")
+                    @serializationType(name: ""System.String"")
+                extend scalar Qux
+                    @runtimeType(name: ""System.Byte[]"")
+                    @serializationType(name: ""System.String"")";
+
+            string query =
+               @"
+                query getFoo {
+                    foo
+                    baz
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .AddSchemaDocumentFromString("Extensions", extensions)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Custom_Scalar_Types_Byte_Array_LanguageVersion()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Bar
+                    baz: Qux
+                    abc: String
+                }
+
+                scalar String
+                scalar Bar
+                scalar Qux
+                ";
+
+            string extensions = @"
+                extend scalar Bar
+                    @runtimeType(name: ""System.String[]"")
+                    @serializationType(name: ""System.String"")
+                extend scalar Qux
+                    @runtimeType(name: ""System.Byte[]"")
+                    @serializationType(name: ""System.String"")";
+
+            string query =
+               @"
+                query getFoo {
+                    foo
+                    baz
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .AddSchemaDocumentFromString("Extensions", extensions)
+                .ModifyOptions(o => o.LanguageVersion = LanguageVersion.CSharp_7_3)
                 .SetOutput(outputHandler)
                 .BuildAsync();
 

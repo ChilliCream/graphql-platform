@@ -25,7 +25,7 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor Type(Type type);
 
-        IInputFieldDescriptor Ignore();
+        IInputFieldDescriptor Ignore(bool ignore = true);
 
         IInputFieldDescriptor DefaultValue(IValueNode value);
 
