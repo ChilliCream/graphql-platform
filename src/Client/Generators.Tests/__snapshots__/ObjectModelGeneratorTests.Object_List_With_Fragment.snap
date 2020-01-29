@@ -1,17 +1,17 @@
 ﻿﻿public interface IFoo
 {
-    IReadOnlyList<UNKNOWN>? Bars { get; }
+    global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UNKNOWN>? Bars { get; }
 }
 
 public class Foo
     : IFoo
 {
     public Foo(
-        IReadOnlyList<UNKNOWN>? bars)
+        global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UNKNOWN>? bars)
     {
         Bars = bars;
     }
 
-    public IReadOnlyList<UNKNOWN>? Bars { get; }
+    public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UNKNOWN>? Bars { get; }
 }
 

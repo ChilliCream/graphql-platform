@@ -11,6 +11,11 @@ namespace StrawberryShake.Generators.CSharp
     public class ResultParserMethodGenerator
         : CodeGenerator<IResultParserMethodDescriptor>
     {
+        public ResultParserMethodGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         protected override Task WriteAsync(
             CodeWriter writer,
             IResultParserMethodDescriptor descriptor,

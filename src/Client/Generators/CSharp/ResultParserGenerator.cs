@@ -12,17 +12,16 @@ namespace StrawberryShake.Generators.CSharp
         : CodeGenerator<IResultParserDescriptor>
         , IUsesComponents
     {
-        private static readonly ResultParserMethodGenerator _methodGenerator =
-            new ResultParserMethodGenerator();
+        private readonly ResultParserMethodGenerator _methodGenerator;
         private readonly ResultParserDeserializeMethodGenerator _desMethodGenerator;
         private readonly ClientGeneratorOptions _options;
 
         public ResultParserGenerator(ClientGeneratorOptions options)
+            : base(options)
         {
-            _options = options
-                ?? throw new ArgumentNullException(nameof(options));
-            _desMethodGenerator = new ResultParserDeserializeMethodGenerator(
-                options.LanguageVersion);
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _methodGenerator = new ResultParserMethodGenerator(options);
+            _desMethodGenerator = new ResultParserDeserializeMethodGenerator(options);
         }
 
         public IReadOnlyList<string> Components { get; } = new[]
@@ -37,7 +36,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public class ").ConfigureAwait(false);
+            await writer.WriteAsync($"{ModelAccessModifier} partial class ").ConfigureAwait(false);
             await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 

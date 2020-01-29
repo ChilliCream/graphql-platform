@@ -10,6 +10,19 @@ namespace StrawberryShake.Generators
         : ICodeGenerator
         where T : ICodeDescriptor
     {
+        protected CodeGenerator(ClientGeneratorOptions options)
+        {
+            Options = options;
+            ClientAccessModifier = options.ClientAccessModifier.ToString().ToLowerInvariant();
+            ModelAccessModifier = options.ModelAccessModifier.ToString().ToLowerInvariant();
+        }
+
+        protected ClientGeneratorOptions Options { get; }
+
+        public string ClientAccessModifier { get; set; }
+
+        public string ModelAccessModifier { get; set; }
+
         public bool CanHandle(ICodeDescriptor descriptor)
         {
             return descriptor is T;
@@ -91,7 +104,7 @@ namespace StrawberryShake.Generators
             Func<Task> write) =>
             WriteClassAsync(writer, typeName, false, implements, write);
 
-        private static async Task WriteClassAsync(
+        private async Task WriteClassAsync(
             CodeWriter writer,
             string typeName,
             bool isStatic,
@@ -101,13 +114,13 @@ namespace StrawberryShake.Generators
             if (isStatic)
             {
                 await writer.WriteIndentedLineAsync(
-                    "public static class {0}", typeName)
+                    $"{ModelAccessModifier} static partial class {typeName}")
                     .ConfigureAwait(false);
             }
             else
             {
                 await writer.WriteIndentedLineAsync(
-                    "public class {0}", typeName)
+                    $"{ModelAccessModifier} partial class {typeName}")
                     .ConfigureAwait(false);
             }
 

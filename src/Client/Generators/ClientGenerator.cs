@@ -331,7 +331,7 @@ namespace StrawberryShake.Generators
                 await ParseQueriesAsync(hashProvider)
                     .ConfigureAwait(false);
 
-            // generate abstarct client models
+            // generate abstract client models
             var usedNames = new HashSet<string>();
             var descriptors = new List<ICodeDescriptor>();
             var fieldTypes = new Dictionary<FieldNode, string>();
@@ -341,7 +341,8 @@ namespace StrawberryShake.Generators
             var typeLookup = new TypeLookup(
                 _options.LanguageVersion,
                 _leafTypes.Values,
-                fieldTypes);
+                fieldTypes,
+                _namespace);
 
             // generate code from models
             foreach (ICodeGenerator generator in CreateGenerators(_options))
@@ -611,21 +612,21 @@ namespace StrawberryShake.Generators
         private static IEnumerable<ICodeGenerator> CreateGenerators(
             ClientGeneratorOptions options)
         {
-            yield return new ClassGenerator();
-            yield return new InputClassGenerator();
-            yield return new InputClassSerializerGenerator(options.LanguageVersion);
-            yield return new InterfaceGenerator();
+            yield return new ClassGenerator(options);
+            yield return new InputClassGenerator(options);
+            yield return new InputClassSerializerGenerator(options);
+            yield return new InterfaceGenerator(options);
             yield return new ResultParserGenerator(options);
-            yield return new OperationGenerator();
-            yield return new ClientInterfaceGenerator();
-            yield return new ClientClassGenerator();
-            yield return new QueryGenerator();
-            yield return new EnumGenerator();
-            yield return new EnumValueSerializerGenerator(options.LanguageVersion);
+            yield return new OperationGenerator(options);
+            yield return new ClientInterfaceGenerator(options);
+            yield return new ClientClassGenerator(options);
+            yield return new QueryGenerator(options);
+            yield return new EnumGenerator(options);
+            yield return new EnumValueSerializerGenerator(options);
 
             if (options.EnableDISupport)
             {
-                yield return new ServicesGenerator();
+                yield return new ServicesGenerator(options);
             }
         }
 

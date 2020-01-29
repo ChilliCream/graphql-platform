@@ -1,0 +1,4 @@
+﻿internal GetAbc()
+{
+    return;
+}

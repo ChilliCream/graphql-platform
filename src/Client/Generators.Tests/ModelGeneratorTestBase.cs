@@ -16,10 +16,12 @@ namespace StrawberryShake.Generators
             IReadOnlyCollection<ICodeDescriptor> descriptors,
             ITypeLookup typeLookup)
         {
+            var options = new ClientGeneratorOptions();
+
             var generators = new ICodeGenerator[]
             {
-                new InterfaceGenerator(),
-                new ClassGenerator()
+                new InterfaceGenerator(options),
+                new ClassGenerator(options)
             };
 
             using (var stream = new MemoryStream())

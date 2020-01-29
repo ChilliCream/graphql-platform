@@ -12,6 +12,11 @@ namespace StrawberryShake.Generators.CSharp
         : CodeGenerator<IClientDescriptor>
         , IUsesComponents
     {
+        public ClientInterfaceGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         public IReadOnlyList<string> Components { get; } =
             new List<string>
             {
@@ -29,7 +34,9 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public interface ").ConfigureAwait(false);
+            await writer.WriteAsync(
+                $"{ClientAccessModifier} partial interface ")
+                .ConfigureAwait(false);
             await writer.WriteAsync(GetInterfaceName(descriptor.Name)).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
@@ -81,7 +88,8 @@ namespace StrawberryShake.Generators.CSharp
             if (operation.Operation.Operation == OperationType.Subscription)
             {
                 await writer.WriteAsync(
-                    $"Task<IResponseStream<{operationTypeName}>> ")
+                    "global::System.Threading.Tasks.Task<" +
+                    $"global::StrawberryShake.IResponseStream<{operationTypeName}>> ")
                     .ConfigureAwait(false);
             }
             else
@@ -152,7 +160,7 @@ namespace StrawberryShake.Generators.CSharp
             if (operation.Operation.Operation == OperationType.Subscription)
             {
                 await writer.WriteAsync(
-                    $"Task<IResponseStream<{operationTypeName}>> ")
+                    $"global::System.Threading.Tasks.Task<global::StrawberryShake.IResponseStream<{operationTypeName}>> ")
                     .ConfigureAwait(false);
             }
             else

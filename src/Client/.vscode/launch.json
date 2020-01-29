@@ -43,7 +43,7 @@
         "-n StrawberryShake.Client.StarWarsQuery",
         "-f"
       ],
-      "cwd": "${workspaceFolder}/dotnet-graphql",
+      "cwd": "${workspaceFolder}/Demo",
       "console": "internalConsole",
       "stopAtEntry": false
     },

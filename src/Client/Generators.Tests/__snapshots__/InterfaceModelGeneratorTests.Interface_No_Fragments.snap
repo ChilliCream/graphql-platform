@@ -2,7 +2,7 @@
 {
     string? Name { get; }
 
-    UNKNOWN? Friends { get; }
+    global::Foo.Bar.UNKNOWN? Friends { get; }
 }
 
 public class Character
@@ -10,7 +10,7 @@ public class Character
 {
     public Character(
         string? name, 
-        UNKNOWN? friends)
+        global::Foo.Bar.UNKNOWN? friends)
     {
         Name = name;
         Friends = friends;
@@ -18,6 +18,6 @@ public class Character
 
     public string? Name { get; }
 
-    public UNKNOWN? Friends { get; }
+    public global::Foo.Bar.UNKNOWN? Friends { get; }
 }
 

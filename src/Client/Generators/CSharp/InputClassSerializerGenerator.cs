@@ -13,9 +13,10 @@ namespace StrawberryShake.Generators.CSharp
     {
         private readonly LanguageVersion _languageVersion;
 
-        public InputClassSerializerGenerator(LanguageVersion languageVersion)
+        public InputClassSerializerGenerator(ClientGeneratorOptions options)
+            : base(options)
         {
-            _languageVersion = languageVersion;
+            _languageVersion = options.LanguageVersion;
         }
 
         protected override string CreateFileName(
@@ -30,7 +31,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public class ").ConfigureAwait(false);
+            await writer.WriteAsync($"{ModelAccessModifier} partial class ").ConfigureAwait(false);
             await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
             await writer.WriteAsync("Serializer").ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);

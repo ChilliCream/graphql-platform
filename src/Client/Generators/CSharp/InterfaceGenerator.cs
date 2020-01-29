@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
@@ -11,13 +10,20 @@ namespace StrawberryShake.Generators.CSharp
     public class InterfaceGenerator
         : CodeGenerator<IInterfaceDescriptor>
     {
+        public InterfaceGenerator(ClientGeneratorOptions options)
+            : base(options)
+        {
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IInterfaceDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync("public interface ").ConfigureAwait(false);
+            await writer.WriteAsync(
+                $"{ModelAccessModifier} partial interface ")
+                .ConfigureAwait(false);
             await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 

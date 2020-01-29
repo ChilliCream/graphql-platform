@@ -42,9 +42,10 @@ namespace StrawberryShake.Generators.CSharp
 
         private readonly LanguageVersion _languageVersion;
 
-        public ResultParserDeserializeMethodGenerator(LanguageVersion languageVersion)
+        public ResultParserDeserializeMethodGenerator(ClientGeneratorOptions options)
+            : base(options)
         {
-            _languageVersion = languageVersion;
+            _languageVersion = options.LanguageVersion;
         }
 
         protected override async Task WriteAsync(

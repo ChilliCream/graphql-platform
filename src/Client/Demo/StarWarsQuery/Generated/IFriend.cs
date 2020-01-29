@@ -6,8 +6,8 @@ using StrawberryShake;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFriend
+    public partial interface IFriend
     {
-        IReadOnlyList<IHasName>? Nodes { get; }
+        global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.StarWarsQuery.IHasName>? Nodes { get; }
     }
 }

@@ -10,12 +10,12 @@ namespace StrawberryShake.Client
         : IGetBars
     {
         public GetBars(
-            IFoo foo)
+            global::StrawberryShake.Client.IFoo foo)
         {
             Foo = foo;
         }
 
-        public IFoo Foo { get; }
+        public global::StrawberryShake.Client.IFoo Foo { get; }
     }
 }
 
@@ -52,7 +52,7 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetBars
     {
-        IFoo Foo { get; }
+        global::StrawberryShake.Client.IFoo Foo { get; }
     }
 }
 
@@ -106,7 +106,7 @@ namespace StrawberryShake.Client
 
         }
 
-        private IFoo ParseGetBarsFoo(
+        private global::StrawberryShake.Client.IFoo ParseGetBarsFoo(
             JsonElement parent,
             string field)
         {
@@ -174,10 +174,10 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetBars>> GetBarsAsync(
+        Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             CancellationToken cancellationToken = default);
 
-        Task<IOperationResult<IGetBars>> GetBarsAsync(
+        Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             GetBarsOperation operation,
             CancellationToken cancellationToken = default);
     }
@@ -206,7 +206,7 @@ namespace StrawberryShake.Client
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<IGetBars>> GetBarsAsync(
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             CancellationToken cancellationToken = default)
         {
 
@@ -215,7 +215,7 @@ namespace StrawberryShake.Client
                 cancellationToken);
         }
 
-        public Task<IOperationResult<IGetBars>> GetBarsAsync(
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             GetBarsOperation operation,
             CancellationToken cancellationToken = default)
         {

@@ -10,12 +10,12 @@ namespace StrawberryShake.Client
         : IGetBars
     {
         public GetBars(
-            IFooNew foo)
+            global::StrawberryShake.Client.IFooNew foo)
         {
             Foo = foo;
         }
 
-        public IFooNew Foo { get; }
+        public global::StrawberryShake.Client.IFooNew Foo { get; }
     }
 }
 
@@ -32,12 +32,12 @@ namespace StrawberryShake.Client
         : IFooNew
     {
         public FooNew(
-            IReadOnlyList<IBar> bars)
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.IBar> bars)
         {
             Bars = bars;
         }
 
-        public IReadOnlyList<IBar> Bars { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.IBar> Bars { get; }
     }
 }
 
@@ -74,7 +74,7 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetBars
     {
-        IFooNew Foo { get; }
+        global::StrawberryShake.Client.IFooNew Foo { get; }
     }
 }
 
@@ -89,7 +89,7 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooNew
     {
-        IReadOnlyList<IBar> Bars { get; }
+        global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.IBar> Bars { get; }
     }
 }
 
@@ -145,7 +145,7 @@ namespace StrawberryShake.Client
 
         }
 
-        private IFooNew ParseGetBarsFoo(
+        private global::StrawberryShake.Client.IFooNew ParseGetBarsFoo(
             JsonElement parent,
             string field)
         {
@@ -157,14 +157,14 @@ namespace StrawberryShake.Client
             );
         }
 
-        private IReadOnlyList<IBar> ParseGetBarsFooBars(
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Client.IBar> ParseGetBarsFooBars(
             JsonElement parent,
             string field)
         {
             JsonElement obj = parent.GetProperty(field);
 
             int objLength = obj.GetArrayLength();
-            var list = new IBar[objLength];
+            var list = new global::StrawberryShake.Client.IBar[objLength];
             for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
                 JsonElement element = obj[objIndex];
@@ -226,10 +226,10 @@ namespace StrawberryShake.Client
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetBars>> GetBarsAsync(
+        Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             CancellationToken cancellationToken = default);
 
-        Task<IOperationResult<IGetBars>> GetBarsAsync(
+        Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             GetBarsOperation operation,
             CancellationToken cancellationToken = default);
     }
@@ -258,7 +258,7 @@ namespace StrawberryShake.Client
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<IGetBars>> GetBarsAsync(
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             CancellationToken cancellationToken = default)
         {
 
@@ -267,7 +267,7 @@ namespace StrawberryShake.Client
                 cancellationToken);
         }
 
-        public Task<IOperationResult<IGetBars>> GetBarsAsync(
+        public Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             GetBarsOperation operation,
             CancellationToken cancellationToken = default)
         {

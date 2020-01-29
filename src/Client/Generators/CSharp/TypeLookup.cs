@@ -30,15 +30,16 @@ namespace StrawberryShake.Generators.CSharp
         private readonly IReadOnlyDictionary<FieldNode, string> _generatedTypes;
         private readonly LanguageVersion _languageVersion;
         private readonly bool _nullableRef;
+        private readonly string _namespace;
 
         public TypeLookup(
             LanguageVersion languageVersion,
-            IReadOnlyDictionary<FieldNode, string> generatedTypes)
+            IReadOnlyDictionary<FieldNode, string> generatedTypes,
+            string @namespace)
         {
             _languageVersion = languageVersion;
 
-            _generatedTypes = generatedTypes
-                ?? throw new ArgumentNullException(nameof(generatedTypes));
+            _generatedTypes = generatedTypes;
 
             _leafTypes = new[]
             {
@@ -57,23 +58,20 @@ namespace StrawberryShake.Generators.CSharp
                 new LeafTypeInfo("Uuid", typeof(Guid), typeof(string)),
             }.ToDictionary(t => t.TypeName);
 
+            _namespace = @namespace;
             _nullableRef = _languageVersion == LanguageVersion.CSharp_8_0;
         }
 
         public TypeLookup(
             LanguageVersion languageVersion,
             IEnumerable<LeafTypeInfo> leafTypes,
-            IReadOnlyDictionary<FieldNode, string> generatedTypes)
+            IReadOnlyDictionary<FieldNode, string> generatedTypes,
+            string @namespace)
         {
-            if (leafTypes is null)
-            {
-                throw new ArgumentNullException(nameof(leafTypes));
-            }
-
             _languageVersion = languageVersion;
             _leafTypes = leafTypes.ToDictionary(t => t.TypeName);
-            _generatedTypes = generatedTypes
-                ?? throw new ArgumentNullException(nameof(generatedTypes));
+            _generatedTypes = generatedTypes;
+            _namespace = @namespace;
             _nullableRef = _languageVersion == LanguageVersion.CSharp_8_0;
         }
 
@@ -243,18 +241,19 @@ namespace StrawberryShake.Generators.CSharp
             {
                 string elementType = BuildType(typeName, lt.ElementType, readOnly, false);
                 string listType = readOnly
-                    ? $"IReadOnlyList<{elementType}>"
-                    : $"List<{elementType}>";
+                    ? $"global::System.Collections.Generic.IReadOnlyList<{elementType}>"
+                    : $"global::System.Collections.Generic.List<{elementType}>";
                 return _languageVersion == LanguageVersion.CSharp_8_0
                     ? isNullable ? listType + "?" : listType
                     : listType;
             }
 
-            return _languageVersion == LanguageVersion.CSharp_8_0
+            string s = _languageVersion == LanguageVersion.CSharp_8_0
                 ? isNullable ? typeName + "?" : typeName
                 : typeName;
-        }
 
+            return $"global::{_namespace}.{s}";
+        }
 
         public string GetLeafClrTypeName(IType type)
         {
@@ -320,9 +319,7 @@ namespace StrawberryShake.Generators.CSharp
 
             if (!namedType.IsLeafType())
             {
-                throw new ArgumentException(
-                    "Only leaf types are allowed.",
-                    nameof(type));
+                throw new ArgumentException("Only leaf types are allowed.", nameof(type));
             }
 
             if (namedType.IsEnumType())
@@ -354,19 +351,19 @@ namespace StrawberryShake.Generators.CSharp
         private static string CreateGenericTypeName(Type type)
         {
             string name = type.Name.Substring(0, type.Name.Length - 2);
-            IEnumerable<string> arguments = type.GetGenericArguments()
-                .Select(GetTypeName);
-            return CreateTypeName(type,
-                $"{name}<{string.Join(", ", arguments)}>");
+            IEnumerable<string> arguments = type.GetGenericArguments().Select(GetTypeName);
+            return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
         }
 
         private static string CreateTypeName(Type type, string typeName)
         {
             string? ns = GetNamespace(type);
+
             if (ns == null)
             {
                 return typeName;
             }
+
             return $"{ns}.{typeName}";
         }
 
@@ -375,7 +372,7 @@ namespace StrawberryShake.Generators.CSharp
             if (type.IsNested)
             {
                 Type declaringType = type.DeclaringType!;
-                return $"{GetNamespace(declaringType!)}.{declaringType.Name}";
+                return $"global::{GetNamespace(declaringType!)}.{declaringType.Name}";
             }
 
             return type.Namespace;

@@ -6,15 +6,15 @@ using StrawberryShake;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetHuman
+    public partial class GetHuman
         : IGetHuman
     {
         public GetHuman(
-            IHuman? human)
+            global::StrawberryShake.Client.StarWarsQuery.IHuman? human)
         {
             Human = human;
         }
 
-        public IHuman? Human { get; }
+        public global::StrawberryShake.Client.StarWarsQuery.IHuman? Human { get; }
     }
 }

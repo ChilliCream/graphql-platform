@@ -6,8 +6,8 @@ using StrawberryShake;
 namespace StrawberryShake.Client.StarWarsQuery
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IHasFriends
+    public partial interface IHasFriends
     {
-        IFriend? Friends { get; }
+        global::StrawberryShake.Client.StarWarsQuery.IFriend? Friends { get; }
     }
 }
