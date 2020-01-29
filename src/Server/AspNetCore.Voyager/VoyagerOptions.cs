@@ -1,16 +1,7 @@
 using System;
-
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-#else
 using Microsoft.AspNetCore.Http;
-#endif
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Voyager
-#else
 namespace HotChocolate.AspNetCore.Voyager
-#endif
 {
     public class VoyagerOptions
     {

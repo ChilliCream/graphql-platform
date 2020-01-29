@@ -3,17 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-using HttpContext = Microsoft.Owin.IOwinContext;
-#else
-#endif
-
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public static class SerializerExtensions
     {

@@ -1,24 +1,27 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Playground
+namespace HotChocolate.AspNetCore
 {
-    public class PlaygroundOptions
+    public class GraphiQLOptionsBase
+        : IUIOptionsAccessor
     {
         private bool _pathIsSet;
         private bool _subscriptionPathIsSet;
+
         private readonly PathString _defaultPath;
         private PathString _path;
         private PathString _queryPath = new PathString("/");
         private PathString _subscriptionPath = new PathString("/");
 
-        public PlaygroundOptions()
+        protected GraphiQLOptionsBase(PathString defaultPath)
         {
-            _path = _defaultPath = new PathString("/playground");
+            _path = _defaultPath = defaultPath;
         }
 
+
         /// <summary>
-        /// The path of the Playground middleware.
+        /// The path of the GraphiQL middleware.
         /// </summary>
         public PathString Path
         {
@@ -38,7 +41,7 @@ namespace HotChocolate.AspNetCore.Playground
 
         /// <summary>
         /// The path of the query middleware.
-        /// This is basically where Playground
+        /// This is basically where GraphiQL
         /// send its requests to execute its queries.
         /// </summary>
         public PathString QueryPath
@@ -87,12 +90,8 @@ namespace HotChocolate.AspNetCore.Playground
         }
 
         /// <summary>
-        /// Defines if the Playground client shall handle subscriptions.
+        /// Defines if the GraphiQL client shall handle subscriptions.
         /// </summary>
-#if ASPNETCLASSIC
-        public bool EnableSubscription { get; set; } = false;
-#else
         public bool EnableSubscription { get; set; } = true;
-#endif
     }
 }
