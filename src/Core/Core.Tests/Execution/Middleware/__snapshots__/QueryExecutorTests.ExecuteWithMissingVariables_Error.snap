@@ -14,7 +14,7 @@
       ],
       "Exception": null,
       "Extensions": {
-        "variableName": "a",
+        "variable_name": "a",
         "code": "EXEC_NON_NULL_VIOLATION"
       }
     }

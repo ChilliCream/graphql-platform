@@ -24,6 +24,7 @@ namespace HotChocolate.Types.Sorting
             // assert
             Assert.Equal(source.OrderBy(s => s.Bar), sorted);
         }
+
         [Fact]
         public void AddInitialSortOperation_DescOnIQueryable_ShouldAddOrderBy()
         {

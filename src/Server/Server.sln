@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore", "AspNetCore\As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Authorization", "AspNetCore.Authorization\AspNetCore.Authorization.csproj", "{51B44755-FEE8-42A1-B46D-53AB8A89ABB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.GraphiQL", "AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj", "{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Playground", "AspNetCore.Playground\AspNetCore.Playground.csproj", "{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "References", "References", "{948ABAC5-4F55-44FB-B083-7A7CC3DE1170}"
@@ -77,10 +75,6 @@ Global
 		{51B44755-FEE8-42A1-B46D-53AB8A89ABB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51B44755-FEE8-42A1-B46D-53AB8A89ABB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51B44755-FEE8-42A1-B46D-53AB8A89ABB8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}.Release|Any CPU.ActiveCfg = Release|Any CPU

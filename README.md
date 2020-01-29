@@ -165,7 +165,7 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 }
 ```
 
-This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema, start your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema, start your web host and get [Banana Cake Pop](https://hotchocolate.io/docs/banana-cakepop).
 
 By default, the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
 

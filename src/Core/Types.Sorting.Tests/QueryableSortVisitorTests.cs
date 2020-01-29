@@ -31,12 +31,9 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)
-                    ),
+                    new EnumValueNode(SortOperationKind.Asc)),
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Asc)
-                    )
-            );
+                    new EnumValueNode(SortOperationKind.Asc)));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -68,11 +65,9 @@ namespace HotChocolate.Types.Sorting
             var value = new ObjectValueNode(new ObjectFieldNode("foo",
                     new ObjectValueNode(
                         new ObjectFieldNode("baz",
-                            new EnumValueNode(SortOperationKind.Asc)
-                            ),
+                            new EnumValueNode(SortOperationKind.Asc)),
                     new ObjectFieldNode("bar",
-                         new EnumValueNode(SortOperationKind.Asc)
-                    ))));
+                         new EnumValueNode(SortOperationKind.Asc)))));
 
             FooNestedSortType sortType = CreateType(new FooNestedSortType());
 
@@ -134,8 +129,7 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Asc)
-                    )
+                    new EnumValueNode(SortOperationKind.Asc))
             );
 
             FooSortType sortType = CreateType(new FooSortType());
@@ -165,8 +159,7 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Desc)
-                    )
+                    new EnumValueNode(SortOperationKind.Desc))
             );
 
             FooSortType sortType = CreateType(new FooSortType());
@@ -218,6 +211,68 @@ namespace HotChocolate.Types.Sorting
             );
         }
 
+        [Fact]
+        public void Sort_Nullable_ShouldSortNullableProperlyAsc()
+        {
+            // arrange 
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("nullableInt",
+                    new EnumValueNode(SortOperationKind.Asc)));
+
+            FooSortType sortType = CreateType(new FooSortType());
+
+            IQueryable<Foo> a = new[]
+            {
+                new Foo {Bar = "b"},
+                new Foo {Bar = "c", NullableInt = 2},
+                new Foo {Bar = "a", NullableInt = 1}
+            }.AsQueryable();
+
+            // act
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            IQueryable<Foo> aFiltered = filter.Sort(a);
+
+            // assert 
+            Assert.Collection(aFiltered,
+                foo => Assert.Equal("b", foo.Bar),
+                foo => Assert.Equal("a", foo.Bar),
+                foo => Assert.Equal("c", foo.Bar)
+            );
+        }
+
+        [Fact]
+        public void Sort_Nullable_ShouldSortNullableProperlyDesc()
+        {
+            // arrange 
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("nullableInt",
+                    new EnumValueNode(SortOperationKind.Desc)));
+
+            FooSortType sortType = CreateType(new FooSortType());
+
+            IQueryable<Foo> a = new[]
+            {
+                new Foo {Bar = "b"},
+                new Foo {Bar = "c", NullableInt = 2},
+                new Foo {Bar = "a", NullableInt = 1}
+            }.AsQueryable();
+
+            // act
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            IQueryable<Foo> aFiltered = filter.Sort(a);
+
+            // assert 
+            Assert.Collection(aFiltered,
+                foo => Assert.Equal("c", foo.Bar),
+                foo => Assert.Equal("a", foo.Bar),
+                foo => Assert.Equal("b", foo.Bar)
+            );
+        }
+
         public class FooSortType
             : SortInputType<Foo>
         {
@@ -245,6 +300,7 @@ namespace HotChocolate.Types.Sorting
 
         public class Foo
         {
+            public int? NullableInt { get; set; }
             public string Bar { get; set; }
             public string Baz { get; set; }
         }
