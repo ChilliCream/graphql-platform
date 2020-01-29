@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>MarshmallowPie.Processing.InMemory.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.Processing.InMemory</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Processing.InMemory\Processing.InMemory.csproj" />
+  </ItemGroup>
+
+</Project>

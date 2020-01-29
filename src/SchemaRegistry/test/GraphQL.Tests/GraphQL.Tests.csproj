@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>MarshmallowPie.GraphQL.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.GraphQL</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\GraphQL\GraphQL.csproj" />
+    <ProjectReference Include="..\..\src\Repositories.Mongo\Repositories.Mongo.csproj" />
+    <ProjectReference Include="..\Storage.FileSystem.Tests\Storage.FileSystem.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Storage.FileSystem\Storage.FileSystem.csproj" />
+  </ItemGroup>
+
+</Project>

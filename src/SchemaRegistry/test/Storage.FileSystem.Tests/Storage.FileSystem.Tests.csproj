@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.1</TargetFramework>
+    <AssemblyName>MarshmallowPie.Storage.FileSystem.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.Storage.FileSystem</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Storage.FileSystem\Storage.FileSystem.csproj" />
+  </ItemGroup>
+
+</Project>

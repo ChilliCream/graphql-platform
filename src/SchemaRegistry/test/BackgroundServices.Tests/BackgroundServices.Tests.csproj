@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>MarshmallowPie.BackgroundServices.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.BackgroundServices</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BackgroundServices\BackgroundServices.csproj" />
+    <ProjectReference Include="..\Storage.FileSystem.Tests\Storage.FileSystem.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>MarshmallowPie.Processing.AzureServiceBus</PackageId>
+    <AssemblyName>MarshmallowPie.Processing.AzureServiceBus</AssemblyName>
+    <RootNamespace>MarshmallowPie.Processing.AzureServiceBus</RootNamespace>
+    <Description></Description>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="4.1.1" />
+  </ItemGroup>
+
+</Project>

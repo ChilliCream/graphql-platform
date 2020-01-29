@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>MarshmallowPie.Storage.AzureBlob</PackageId>
+    <AssemblyName>MarshmallowPie.Storage.AzureBlob</AssemblyName>
+    <RootNamespace>MarshmallowPie.Storage.AzureBlob</RootNamespace>
+    <Description></Description>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

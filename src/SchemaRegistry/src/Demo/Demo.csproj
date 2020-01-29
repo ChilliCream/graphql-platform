@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GraphQL\GraphQL.csproj" />
+    <ProjectReference Include="..\BackgroundServices\BackgroundServices.csproj" />
+    <ProjectReference Include="..\Repositories.Mongo\Repositories.Mongo.csproj" />
+    <ProjectReference Include="..\..\..\Server\AspNetCore\AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

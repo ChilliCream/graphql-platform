@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>MarshmallowPie.Repositories.Mongo.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.Repositories.Mongo</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Repositories.Mongo\Repositories.Mongo.csproj" />
+  </ItemGroup>
+
+</Project>

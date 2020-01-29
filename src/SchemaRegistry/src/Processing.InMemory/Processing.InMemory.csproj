@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>MarshmallowPie.Processing.InMemory</PackageId>
+    <AssemblyName>MarshmallowPie.Processing.InMemory</AssemblyName>
+    <RootNamespace>MarshmallowPie.Processing.InMemory</RootNamespace>
+    <Description></Description>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>
