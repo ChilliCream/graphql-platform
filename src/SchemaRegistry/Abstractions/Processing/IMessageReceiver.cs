@@ -1,12 +1,13 @@
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace MarshmallowPie.Processing
 {
     public interface IMessageReceiver<TMessage>
+        where TMessage : class
     {
-        ValueTask<IAsyncEnumerable<TMessage>> SubscribeAsync(
+        ValueTask<IMessageStream<TMessage>> SubscribeAsync(
             CancellationToken cancellationToken = default);
     }
 }

@@ -1,6 +1,6 @@
-using BackgroundServices;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using MarshmallowPie.BackgroundServices;
 using MarshmallowPie.GraphQL;
 using MarshmallowPie.Repositories.Mongo;
 using Microsoft.AspNetCore.Builder;
