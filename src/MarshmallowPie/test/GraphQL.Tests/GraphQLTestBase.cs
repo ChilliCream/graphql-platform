@@ -49,10 +49,10 @@ namespace MarshmallowPie.GraphQL
             publishDocumentMessageSender.Setup(t => t.SendAsync(
                 It.IsAny<PublishDocumentMessage>(),
                 It.IsAny<CancellationToken>()))
-                .Returns(new Func<PublishDocumentMessage, CancellationToken, Task>((m, c) =>
+                .Returns(new Func<PublishDocumentMessage, CancellationToken, ValueTask>((m, c) =>
                 {
                     _receivedMessages.Add(m);
-                    return Task.CompletedTask;
+                    return default;
                 }));
             serviceCollection.AddSingleton(publishDocumentMessageSender.Object);
             serviceCollection.AddSingleton(fileStorageResource.CreateStorage());
