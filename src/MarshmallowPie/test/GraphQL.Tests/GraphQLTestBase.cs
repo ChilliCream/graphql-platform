@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using MarshmallowPie.Processing;
+using MarshmallowPie.Processing.InMemory;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Repositories.Mongo;
 using MarshmallowPie.Storage;
@@ -38,9 +38,12 @@ namespace MarshmallowPie.GraphQL
                 builder
                     .AddSchemaRegistry()
                     .EnableRelaySupport());
+
             serviceCollection.AddQueryExecutor();
             serviceCollection.AddSchemaRegistryDataLoader();
             serviceCollection.AddSchemRegistryErrorFilters();
+
+            serviceCollection.AddSingleton<ISessionCreator, SessionCreator>();
 
             var publishDocumentMessageSender = new Mock<IMessageSender<PublishDocumentMessage>>();
             publishDocumentMessageSender.Setup(t => t.SendAsync(

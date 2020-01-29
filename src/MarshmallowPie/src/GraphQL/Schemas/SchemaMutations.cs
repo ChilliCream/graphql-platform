@@ -1,6 +1,5 @@
 using System.Linq;
 using System;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +58,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             PublishSchemaInput input,
             [Service]IMessageSender<PublishDocumentMessage> messageSender,
             [Service]IFileStorage fileStorage,
+            [Service]ISessionCreator sessionCreator,
             [DataLoader]SchemaByNameDataLoader schemaDataLoader,
             [DataLoader]EnvironmentByNameDataLoader environmentDataLoader,
             CancellationToken cancellationToken)
@@ -77,7 +77,8 @@ namespace MarshmallowPie.GraphQL.Schemas
                     Resources.SchemaMutations_HashAndSourceTextAreNull);
             }
 
-            string sessionId = Guid.NewGuid().ToString("N");
+            string sessionId = await sessionCreator.CreateSessionAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             IFileContainer container = await fileStorage.CreateContainerAsync(
                 sessionId, cancellationToken)

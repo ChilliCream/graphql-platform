@@ -15,6 +15,7 @@
     <ProjectReference Include="..\..\src\Repositories.Mongo\Repositories.Mongo.csproj" />
     <ProjectReference Include="..\..\src\Storage.FileSystem\Storage.FileSystem.csproj" />
     <ProjectReference Include="..\Storage.FileSystem.Tests\Storage.FileSystem.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Processing.InMemory\Processing.InMemory.csproj" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
