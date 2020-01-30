@@ -11,15 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Core\Language\Language.csproj" />
-    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
-    <ProjectReference Include="..\Configuration\Configuration.csproj" />
-    <ProjectReference Include="..\Transport.Abstractions\Transport.Abstractions.csproj" />
-    <ProjectReference Include="..\Transport.WebSockets\Transport.WebSockets.csproj" />
+    <PackageReference Include="System.Threading.Channels" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Threading.Channels" Version="4.7.0" />
+    <ProjectReference Include="..\..\..\..\Core\Language\Language.csproj" />
+    <ProjectReference Include="..\Abstractions\StrawberryShake.Abstractions.csproj" />
+    <ProjectReference Include="..\Configuration\StrawberryShake.Configuration.csproj" />
+    <ProjectReference Include="..\Transport.Abstractions\StrawberryShake.Transport.Abstractions.csproj" />
+    <ProjectReference Include="..\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
   </ItemGroup>
 
 </Project>
