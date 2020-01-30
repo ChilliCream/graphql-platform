@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Validation</PackageId>
+    <AssemblyName>HotChocolate.Validation</AssemblyName>
+    <RootNamespace>HotChocolate.Validation</RootNamespace>
+    <Description></Description>
+  </PropertyGroup>
+
+
+</Project>
