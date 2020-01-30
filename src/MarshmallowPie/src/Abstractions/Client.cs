@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MarshmallowPie
 {
@@ -29,4 +31,29 @@ namespace MarshmallowPie
 
         public string? Description { get; }
     }
+
+    public class ClientVersion
+    {
+        public Guid Id { get; }
+
+        public Guid ClientId { get; }
+
+        public ISet<Guid> QueryIds { get; }
+
+        public IReadOnlyList<Tag> Tags { get; }
+
+        public DateTime Published { get; }
+    }
+
+    public class Query
+    {
+        public Guid Id { get; }
+
+        public ISet<DocumentHash> ExternalHashes { get; }
+
+        public DocumentHash Hash { get; }
+
+        public DateTime Published { get; }
+    }
+
 }

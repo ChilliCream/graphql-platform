@@ -38,7 +38,6 @@ namespace MarshmallowPie.GraphQL.Schemas
 
         public Task<Schema> GetSchemaByNameAsync(
             string name,
-            [Service]IIdSerializer idSerializer,
             [DataLoader]SchemaByNameDataLoader dataLoader,
             CancellationToken cancellationToken)
         {
