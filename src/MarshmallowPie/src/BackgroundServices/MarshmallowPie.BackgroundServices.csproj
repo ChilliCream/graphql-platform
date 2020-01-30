@@ -15,9 +15,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Types\Types.csproj" />
     <ProjectReference Include="..\..\..\Core\Language\Language.csproj" />
-    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
-    <ProjectReference Include="..\Processing.InMemory\Processing.InMemory.csproj" />
-    <ProjectReference Include="..\Repositories.Mongo\Repositories.Mongo.csproj" />
+    <ProjectReference Include="..\Abstractions\MarshmallowPie.Abstractions.csproj" />
+    <ProjectReference Include="..\Processing.InMemory\MarshmallowPie.Processing.InMemory.csproj" />
+    <ProjectReference Include="..\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj" />
   </ItemGroup>
 
   <ItemGroup>

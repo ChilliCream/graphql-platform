@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GraphQL\GraphQL.csproj" />
-    <ProjectReference Include="..\BackgroundServices\BackgroundServices.csproj" />
-    <ProjectReference Include="..\Repositories.Mongo\Repositories.Mongo.csproj" />
+    <ProjectReference Include="..\GraphQL\MarshmallowPie.GraphQL.csproj" />
+    <ProjectReference Include="..\BackgroundServices\MarshmallowPie.BackgroundServices.csproj" />
+    <ProjectReference Include="..\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj" />
     <ProjectReference Include="..\..\..\Server\AspNetCore\AspNetCore.csproj" />
   </ItemGroup>
 

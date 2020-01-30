@@ -3,25 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29721.120
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GraphQL.Tests", "test\GraphQL.Tests\GraphQL.Tests.csproj", "{25409D90-DB64-4FFF-96D2-B73D70741098}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.GraphQL.Tests", "test\GraphQL.Tests\MarshmallowPie.GraphQL.Tests.csproj", "{25409D90-DB64-4FFF-96D2-B73D70741098}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions", "src\Abstractions\Abstractions.csproj", "{C8D2C11E-F9A2-4913-8254-6D6D23EE6686}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Abstractions", "src\Abstractions\MarshmallowPie.Abstractions.csproj", "{C8D2C11E-F9A2-4913-8254-6D6D23EE6686}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundServices", "src\BackgroundServices\BackgroundServices.csproj", "{A285FEA6-659F-4B3A-A838-113C9DAD4958}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.BackgroundServices", "src\BackgroundServices\MarshmallowPie.BackgroundServices.csproj", "{A285FEA6-659F-4B3A-A838-113C9DAD4958}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "src\Demo\Demo.csproj", "{2511AE8F-F2EA-4BEC-9EF9-C5B66B5D17C8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GraphQL", "src\GraphQL\GraphQL.csproj", "{FF89F317-0F42-4D00-8217-200BF86B1262}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.GraphQL", "src\GraphQL\MarshmallowPie.GraphQL.csproj", "{FF89F317-0F42-4D00-8217-200BF86B1262}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Processing.AzureServiceBus", "src\Processing.AzureServiceBus\Processing.AzureServiceBus.csproj", "{E5E4F220-F040-4C5D-B495-BB77E4902690}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Processing.AzureServiceBus", "src\Processing.AzureServiceBus\MarshmallowPie.Processing.AzureServiceBus.csproj", "{E5E4F220-F040-4C5D-B495-BB77E4902690}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Processing.InMemory", "src\Processing.InMemory\Processing.InMemory.csproj", "{9D499407-7ECF-47FB-9A5D-19E70997DDC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Processing.InMemory", "src\Processing.InMemory\MarshmallowPie.Processing.InMemory.csproj", "{9D499407-7ECF-47FB-9A5D-19E70997DDC1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repositories.Mongo", "src\Repositories.Mongo\Repositories.Mongo.csproj", "{99BC35EA-2DCA-4851-BB57-60108C615A17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Repositories.Mongo", "src\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj", "{99BC35EA-2DCA-4851-BB57-60108C615A17}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.AzureBlob", "src\Storage.AzureBlob\Storage.AzureBlob.csproj", "{9CB1C51E-539A-497F-B387-7F3039381126}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Storage.AzureBlob", "src\Storage.AzureBlob\MarshmallowPie.Storage.AzureBlob.csproj", "{9CB1C51E-539A-497F-B387-7F3039381126}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.FileSystem", "src\Storage.FileSystem\Storage.FileSystem.csproj", "{DC2C393B-8BAC-4350-B8EC-5034E3A0C82E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Storage.FileSystem", "src\Storage.FileSystem\MarshmallowPie.Storage.FileSystem.csproj", "{DC2C393B-8BAC-4350-B8EC-5034E3A0C82E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".referenced", ".referenced", "{5F669B84-6FE8-45B6-88D2-9A83D2EA8867}"
 EndProject
@@ -67,13 +67,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8DCFC710-EBA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5BF414DD-8EF4-4972-887C-598F96AC5564}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundServices.Tests", "test\BackgroundServices.Tests\BackgroundServices.Tests.csproj", "{36D401CB-1748-4381-B74A-4DF326F43A88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.BackgroundServices.Tests", "test\BackgroundServices.Tests\MarshmallowPie.BackgroundServices.Tests.csproj", "{36D401CB-1748-4381-B74A-4DF326F43A88}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Processing.InMemory.Tests", "test\Processing.InMemory.Tests\Processing.InMemory.Tests.csproj", "{AF5A25E3-3EE1-4879-BA7F-44D791E7FCC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Processing.InMemory.Tests", "test\Processing.InMemory.Tests\MarshmallowPie.Processing.InMemory.Tests.csproj", "{AF5A25E3-3EE1-4879-BA7F-44D791E7FCC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repositories.Mongo.Tests", "test\Repositories.Mongo.Tests\Repositories.Mongo.Tests.csproj", "{85B2A2F7-9BD3-42AE-93C1-D689D0593958}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Repositories.Mongo.Tests", "test\Repositories.Mongo.Tests\MarshmallowPie.Repositories.Mongo.Tests.csproj", "{85B2A2F7-9BD3-42AE-93C1-D689D0593958}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.FileSystem.Tests", "test\Storage.FileSystem.Tests\Storage.FileSystem.Tests.csproj", "{2B82C488-D8D4-41A3-90FD-75475A8681DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarshmallowPie.Storage.FileSystem.Tests", "test\Storage.FileSystem.Tests\MarshmallowPie.Storage.FileSystem.Tests.csproj", "{2B82C488-D8D4-41A3-90FD-75475A8681DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
