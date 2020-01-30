@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MarshmallowPie.GraphQL;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Storage;
 using MarshmallowPie.Storage.FileSystem;
@@ -14,7 +15,7 @@ using Xunit;
 namespace MarshmallowPie.BackgroundServices
 {
     public class PublishSchemaDocumentHandlerTests
-        : BackgroundServiceTestBase
+        : GraphQLIntegrationTestBase
     {
         public PublishSchemaDocumentHandlerTests(
             MongoResource mongoResource,

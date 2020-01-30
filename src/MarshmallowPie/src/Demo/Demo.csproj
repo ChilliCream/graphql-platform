@@ -9,6 +9,12 @@
     <ProjectReference Include="..\BackgroundServices\MarshmallowPie.BackgroundServices.csproj" />
     <ProjectReference Include="..\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj" />
     <ProjectReference Include="..\..\..\Server\AspNetCore\AspNetCore.csproj" />
+    <ProjectReference Include="..\Processing.InMemory\MarshmallowPie.Processing.InMemory.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\Storage.FileSystem\MarshmallowPie.Storage.FileSystem.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

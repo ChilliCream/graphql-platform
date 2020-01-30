@@ -1,0 +1,24 @@
+﻿[
+  {
+    "Data": {
+      "onPublishSchema": {
+        "sessionId": "abc",
+        "isCompleted": false
+      }
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "onPublishSchema": {
+        "sessionId": "abc",
+        "isCompleted": true
+      }
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  }
+]

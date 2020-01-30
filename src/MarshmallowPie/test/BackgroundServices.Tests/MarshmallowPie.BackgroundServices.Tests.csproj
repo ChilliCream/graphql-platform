@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BackgroundServices\MarshmallowPie.BackgroundServices.csproj" />
+    <ProjectReference Include="..\GraphQL.Tests\MarshmallowPie.GraphQL.Tests.csproj" />
     <ProjectReference Include="..\Storage.FileSystem.Tests\MarshmallowPie.Storage.FileSystem.Tests.csproj" />
   </ItemGroup>
 

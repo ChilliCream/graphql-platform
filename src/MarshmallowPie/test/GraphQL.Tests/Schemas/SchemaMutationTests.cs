@@ -13,7 +13,9 @@ namespace MarshmallowPie.GraphQL.Schemas
     public class SchemaMutationTests
         : GraphQLTestBase
     {
-        public SchemaMutationTests(MongoResource mongoResource, FileStorageResource fileStorageResource)
+        public SchemaMutationTests(
+            MongoResource mongoResource,
+            FileStorageResource fileStorageResource)
             : base(mongoResource, fileStorageResource)
         {
         }
