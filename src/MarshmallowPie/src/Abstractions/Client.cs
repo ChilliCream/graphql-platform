@@ -27,6 +27,8 @@ namespace MarshmallowPie
 
         public Guid Id { get; }
 
+        public Guid SchemaId { get; }
+
         public string Name { get; }
 
         public string? Description { get; }
@@ -56,4 +58,52 @@ namespace MarshmallowPie
         public DateTime Published { get; }
     }
 
+    public class ClientPublishReport
+    {
+        public ClientPublishReport(
+
+            Guid clientVersionId,
+            Guid environmentId,
+            string? externalId,
+            IReadOnlyList<Issue> issues,
+            PublishState state,
+            DateTime published)
+            : this(
+                Guid.NewGuid(), schemaVersionId, environmentId,
+                externalId, issues, state, published)
+        {
+        }
+
+        public ClientPublishReport(
+            Guid id,
+            Guid clientVersionId,
+            Guid environmentId,
+            string? externalId,
+            IReadOnlyList<Issue> issues,
+            PublishState state,
+            DateTime published)
+        {
+            Id = id;
+            SchemaVersionId = schemaVersionId;
+            EnvironmentId = environmentId;
+            ExternalId = externalId ?? Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+            Issues = issues;
+            State = state;
+            Published = published;
+        }
+
+        public Guid Id { get; }
+
+        public Guid SchemaVersionId { get; }
+
+        public Guid EnvironmentId { get; }
+
+        public string ExternalId { get; }
+
+        public IReadOnlyList<Issue> Issues { get; }
+
+        public PublishState State { get; }
+
+        public DateTime Published { get; }
+    }
 }
