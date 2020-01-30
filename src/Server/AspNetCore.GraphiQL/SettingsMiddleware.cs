@@ -3,17 +3,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 
-namespace HotChocolate.AspNetCore.Playground
+namespace HotChocolate.AspNetCore.GraphiQL
 {
     internal sealed class SettingsMiddleware
     {
-        private readonly PlaygroundOptions _options;
+        private readonly GraphiQLOptions _options;
         private readonly string _queryPath;
         private readonly string _subscriptionPath;
 
         public SettingsMiddleware(
             RequestDelegate next,
-            PlaygroundOptions options)
+            GraphiQLOptions options)
         {
             Next = next;
             _options = options
@@ -38,16 +38,17 @@ namespace HotChocolate.AspNetCore.Playground
         public async Task InvokeAsync(HttpContext context)
         {
             string queryUrl = BuildUrl(context.Request, false, _queryPath);
-            string subscriptionUrl = _options.EnableSubscription
-                ? $"\"{BuildUrl(context.Request, true, _subscriptionPath)}\""
-                : "null";
+            string subscriptionUrl = BuildUrl(context.Request, true,
+                _subscriptionPath);
+            string enableSubscriptions = _options.EnableSubscription
+                ? "true" : "false";
 
             context.Response.ContentType = "application/javascript";
-
             await context.Response.WriteAsync($@"
                 window.Settings = {{
                     url: ""{queryUrl}"",
-                    subscriptionUrl: {subscriptionUrl},
+                    subscriptionUrl: ""{subscriptionUrl}"",
+                    enableSubscriptions: {enableSubscriptions}
                 }}
             ",
             context.GetCancellationToken())
