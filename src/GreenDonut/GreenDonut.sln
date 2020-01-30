@@ -1,18 +1,64 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29521.150
 MinimumVisualStudioVersion = 15.0.26124.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{251185F7-7E3B-4BB3-B500-56C90564EE8C}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A829F8F0-4468-405C-8A26-3E5921F7324A}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "src\Core\GreenDonut.csproj", "{FD764A95-F950-40F3-9577-E3168BBC330D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{C9294AD2-15ED-4173-A639-8F64B4910714}"
+	ProjectSection(SolutionItems) = preProject
+		benchmarks\Directory.Build.props = benchmarks\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.Benchmarks", "benchmarks\Benchmarks\GreenDonut.Benchmarks.csproj", "{8BD3EDBE-8013-4BB9-BDD7-37DE283B759A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.Tests", "test\Core.Tests\GreenDonut.Tests.csproj", "{1F96BB47-B053-4E9C-865A-5B6FB613CB0D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.DiagnosticSource.Tests", "test\DiagnosticSource.Tests\GreenDonut.DiagnosticSource.Tests.csproj", "{26B1E568-42D4-4300-9114-5D1639F426A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FD764A95-F950-40F3-9577-E3168BBC330D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD764A95-F950-40F3-9577-E3168BBC330D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD764A95-F950-40F3-9577-E3168BBC330D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD764A95-F950-40F3-9577-E3168BBC330D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BD3EDBE-8013-4BB9-BDD7-37DE283B759A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD3EDBE-8013-4BB9-BDD7-37DE283B759A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BD3EDBE-8013-4BB9-BDD7-37DE283B759A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BD3EDBE-8013-4BB9-BDD7-37DE283B759A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F96BB47-B053-4E9C-865A-5B6FB613CB0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F96BB47-B053-4E9C-865A-5B6FB613CB0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F96BB47-B053-4E9C-865A-5B6FB613CB0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F96BB47-B053-4E9C-865A-5B6FB613CB0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26B1E568-42D4-4300-9114-5D1639F426A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26B1E568-42D4-4300-9114-5D1639F426A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26B1E568-42D4-4300-9114-5D1639F426A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26B1E568-42D4-4300-9114-5D1639F426A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FD764A95-F950-40F3-9577-E3168BBC330D} = {251185F7-7E3B-4BB3-B500-56C90564EE8C}
+		{8BD3EDBE-8013-4BB9-BDD7-37DE283B759A} = {C9294AD2-15ED-4173-A639-8F64B4910714}
+		{1F96BB47-B053-4E9C-865A-5B6FB613CB0D} = {A829F8F0-4468-405C-8A26-3E5921F7324A}
+		{26B1E568-42D4-4300-9114-5D1639F426A8} = {A829F8F0-4468-405C-8A26-3E5921F7324A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CC1769AF-BDF5-4EF2-AED8-1719C180F131}
 	EndGlobalSection
 EndGlobal

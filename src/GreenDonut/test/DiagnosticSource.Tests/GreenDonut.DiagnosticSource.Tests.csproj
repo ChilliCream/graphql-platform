@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\GreenDonut.csproj" />
+    <ProjectReference Include="..\..\src\Core\GreenDonut.csproj" />
   </ItemGroup>
 
 </Project>
