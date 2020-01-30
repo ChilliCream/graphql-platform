@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>GreenDonut</PackageId>
+    <AssemblyName>GreenDonut</AssemblyName>
+    <RootNamespace>GreenDonut</RootNamespace>
+    <Description>Green Donut is a port of facebook's DataLoader utility, written in C# for .NET Core and .NET Framework.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
+  </ItemGroup>
+
+</Project>

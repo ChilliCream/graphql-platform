@@ -5,16 +5,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Product>GreenDonut</Product>
+    <Product>Hot Chocolate</Product>
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream</Company>
     <Copyright>Copyright &#169; 2019 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
     <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://hotchocolate.io</PackageProjectUrl>
+    <PackageProjectUrl>https://greendonut.io</PackageProjectUrl>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
-    <PackageTags>GraphQL ChilliCream</PackageTags>
+    <PackageTags>DataLoader Batching Caching GraphQL ChilliCream Facebook</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://chillicream.com/img/projects/hotchocolate-signet.png</PackageIconUrl>
+    <PackageIconUrl>https://chillicream.com/img/projects/greendonut-signet.png</PackageIconUrl>
   </PropertyGroup>
 
   <PropertyGroup>
