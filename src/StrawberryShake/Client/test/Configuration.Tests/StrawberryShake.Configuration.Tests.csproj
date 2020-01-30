@@ -5,14 +5,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>StrawberryShake.Abstractions.Tests</AssemblyName>
-    <RootNamespace>StrawberryShake.Abstractions</RootNamespace>
-    <IsPackable>false</IsPackable>
+    <AssemblyName>StrawberryShake.Configuration.Tests</AssemblyName>
+    <RootNamespace>StrawberryShake.Configuration</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    <ProjectReference Include="..\Configuration\Configuration.csproj" />
+    <ProjectReference Include="..\Http\Http.csproj" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
