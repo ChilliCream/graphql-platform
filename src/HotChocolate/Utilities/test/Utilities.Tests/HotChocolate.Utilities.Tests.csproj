@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Utilities.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Utilities</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Utilities\Utilities.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Utilities</AssemblyName>
+    <RootNamespace>HotChocolate.Utilities</RootNamespace>
+    <PackageId>HotChocolate.Utilities</PackageId>
+    <Description>Contains internal helper classes and utilities used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--PackageReference Include="Newtonsoft.Json" Version="11.0.2" /-->
+    <PackageReference Include="System.Buffers" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\UtilityResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>UtilityResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\UtilityResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>UtilityResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
