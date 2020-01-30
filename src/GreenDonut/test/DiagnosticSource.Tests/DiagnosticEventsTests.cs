@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace GreenDonut
@@ -39,7 +39,7 @@ namespace GreenDonut
                     FetchDataAsync);
                 var batchErrorLoader = new DataLoader<string, string>(
                     batchOptions,
-                    (keys, canncellationToken) =>
+                    (keys, cancellationToken) =>
                         throw new Exception("BatchError: Foo"));
                 var singleOptions = new DataLoaderOptions<string>
                 {
@@ -80,7 +80,7 @@ namespace GreenDonut
                     .ConfigureAwait(false);
 
                 // assert
-                listener.Snapshot();
+                listener.MatchSnapshot();
             }
         }
 
