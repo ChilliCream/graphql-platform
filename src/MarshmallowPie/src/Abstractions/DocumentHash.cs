@@ -5,7 +5,10 @@ namespace MarshmallowPie
     public sealed class DocumentHash
         : IEquatable<DocumentHash>
     {
-        public DocumentHash(string hash, string hashName)
+        public DocumentHash(
+            string hash,
+            string hashName,
+            DocumentHashFormat format = DocumentHashFormat.Hex)
         {
             Hash = hash;
             HashName = hashName;
@@ -50,6 +53,7 @@ namespace MarshmallowPie
         {
             return HashCode.Combine(Hash, HashName);
         }
-    }
 
+        public override string ToString() => Hash;
+    }
 }

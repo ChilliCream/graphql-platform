@@ -9,7 +9,7 @@ namespace MarshmallowPie
         public SchemaVersion(
             Guid schemaId,
             string sourceText,
-            string hash,
+            DocumentHash hash,
             IReadOnlyList<Tag> tags,
             DateTime published)
             : this(Guid.NewGuid(), schemaId, sourceText, hash, tags, published)
@@ -20,7 +20,7 @@ namespace MarshmallowPie
             Guid id,
             Guid schemaId,
             string sourceText,
-            string hash,
+            DocumentHash hash,
             IReadOnlyList<Tag> tags,
             DateTime published)
         {
@@ -43,7 +43,7 @@ namespace MarshmallowPie
 
         public string SourceText { get; }
 
-        public string Hash { get; }
+        public DocumentHash Hash { get; }
 
         public IReadOnlyList<Tag> Tags { get; }
 
