@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,8 +31,13 @@ namespace MarshmallowPie.Repositories.Mongo
 
             _versions.Indexes.CreateOne(
                 new CreateIndexModel<SchemaVersion>(
-                    Builders<SchemaVersion>.IndexKeys.Ascending(x => x.Hash),
+                    Builders<SchemaVersion>.IndexKeys.Ascending(x => x.ExternalId),
                     new CreateIndexOptions { Unique = true }));
+
+            _versions.Indexes.CreateOne(
+                new CreateIndexModel<SchemaVersion>(
+                    Builders<SchemaVersion>.IndexKeys.Ascending(x => x.Hash.Hash),
+                    new CreateIndexOptions { Unique = false }));
 
             _publishReports.Indexes.CreateOne(
                 new CreateIndexModel<SchemaPublishReport>(
@@ -143,12 +147,21 @@ namespace MarshmallowPie.Repositories.Mongo
             return _versions.AsQueryable();
         }
 
-        public Task<SchemaVersion?> GetSchemaVersionAsync(
+        public Task<SchemaVersion?> GetSchemaVersionByHashAsync(
             string hash,
             CancellationToken cancellationToken = default)
         {
             return _versions.AsQueryable()
-                .Where(t => t.Hash == hash)
+                .Where(t => t.Hash.Hash == hash)
+                .FirstOrDefaultAsync(cancellationToken)!;
+        }
+
+        public Task<SchemaVersion?> GetSchemaVersionByExternalIdAsync(
+            string externalId,
+            CancellationToken cancellationToken = default)
+        {
+            return _versions.AsQueryable()
+                .Where(t => t.ExternalId == externalId)
                 .FirstOrDefaultAsync(cancellationToken)!;
         }
 
@@ -197,16 +210,22 @@ namespace MarshmallowPie.Repositories.Mongo
             }
         }
 
-        public async Task UpdateSchemaVersionAsync(
-            SchemaVersion schemaVersion,
+        public async Task UpdateSchemaVersionTagsAsync(
+            Guid schemaVersionId,
+            IReadOnlyList<Tag> tags,
             CancellationToken cancellationToken = default)
         {
+            if (tags.Count > 1)
+            {
+                tags = new HashSet<Tag>(tags, TagComparer.Default).ToList();
+            }
+
             try
             {
-                await _versions.ReplaceOneAsync(
-                    Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersion.Id),
-                    schemaVersion,
-                    options: default(ReplaceOptions),
+                await _versions.UpdateOneAsync(
+                    Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersionId),
+                    Builders<SchemaVersion>.Update.Set(t => t.Tags, tags),
+                    options: default(UpdateOptions),
                     cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -215,7 +234,7 @@ namespace MarshmallowPie.Repositories.Mongo
             {
                 // TODO : resources
                 throw new DuplicateKeyException(
-                    $"The specified schema version hash `{schemaVersion.Hash}` already exists.",
+                    $"The specified schema version hash `{schemaVersionId}` already exists.",
                     ex);
             }
         }

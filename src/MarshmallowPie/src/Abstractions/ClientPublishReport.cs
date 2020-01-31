@@ -9,13 +9,12 @@ namespace MarshmallowPie
         public ClientPublishReport(
             Guid clientVersionId,
             Guid environmentId,
-            string? externalId,
             IReadOnlyList<Issue> issues,
             PublishState state,
             DateTime published)
             : this(
                 Guid.NewGuid(), clientVersionId, environmentId,
-                externalId, issues, state, published)
+                issues, state, published)
         {
         }
 
@@ -23,15 +22,13 @@ namespace MarshmallowPie
             Guid id,
             Guid clientVersionId,
             Guid environmentId,
-            string? externalId,
             IReadOnlyList<Issue> issues,
             PublishState state,
             DateTime published)
         {
             Id = id;
-            SchemaVersionId = clientVersionId;
+            ClientVersionId = clientVersionId;
             EnvironmentId = environmentId;
-            ExternalId = externalId ?? Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
             Issues = issues;
             State = state;
             Published = published;
@@ -39,11 +36,9 @@ namespace MarshmallowPie
 
         public Guid Id { get; }
 
-        public Guid SchemaVersionId { get; }
+        public Guid ClientVersionId { get; }
 
         public Guid EnvironmentId { get; }
-
-        public string ExternalId { get; }
 
         public IReadOnlyList<Issue> Issues { get; }
 

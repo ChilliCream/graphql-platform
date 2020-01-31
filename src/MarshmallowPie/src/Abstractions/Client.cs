@@ -5,8 +5,8 @@ namespace MarshmallowPie
     public class Client
     {
         public Client(
-            string name,
             Guid schemaId,
+            string name,
             string? description = null)
         {
             Id = Guid.NewGuid();

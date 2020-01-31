@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private readonly ISocketConnection _connection;
         private readonly KeepConnectionAliveJob _keepAlive;
         private readonly MessageProcessor _messageProcessor;
-        private readonly MessageReceiver _messageReceiver;
+        private readonly MessageReceiver _messageReciver;
         private readonly bool _disposeConnection;
         private bool _disposed;
 
@@ -34,7 +34,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 messagePipeline,
                 _pipe.Reader);
 
-            _messageReceiver = new MessageReceiver(
+            _messageReciver = new MessageReceiver(
                 connection,
                 _pipe.Writer);
         }
@@ -50,7 +50,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     {
                         _keepAlive.Begin(cts.Token);
                         _messageProcessor.Begin(cts.Token);
-                        await _messageReceiver.ReceiveAsync(cts.Token)
+                        await _messageReciver.ReceiveAsync(cts.Token)
                             .ConfigureAwait(false);
                     }
                     finally

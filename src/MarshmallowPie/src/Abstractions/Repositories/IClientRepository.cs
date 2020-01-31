@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MarshmallowPie.Repositories
 {
-    public interface IQueryRepository
+    public interface IClientRepository
     {
         IQueryable<Client> GetClients(Guid? schemaId = null);
 
@@ -44,8 +44,9 @@ namespace MarshmallowPie.Repositories
             ClientVersion clientVersion,
             CancellationToken cancellationToken = default);
 
-        Task UpdateSchemaVersionAsync(
-            ClientVersion clientVersion,
+        Task UpdateClientVersionTagsAsync(
+            Guid clientVersionId,
+            IReadOnlyList<Tag> tags,
             CancellationToken cancellationToken = default);
 
         Task<Query?> GetQueryAsync(
@@ -56,8 +57,8 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
-        Task AddQueryAsync(
-            Query query,
+        Task AddQueriesAsync(
+            IEnumerable<Query> queries,
             CancellationToken cancellationToken = default);
 
         IQueryable<ClientPublishReport> GetPublishReports(Guid? clientVersionId);

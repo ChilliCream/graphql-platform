@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +11,15 @@ using HotChocolate.Language;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Storage;
+using Location = HotChocolate.Language.Location;
 
 namespace MarshmallowPie.BackgroundServices
 {
+#pragma warning disable CA1031
     public class PublishSchemaDocumentHandler
         : IPublishDocumentHandler
     {
+        private const string _fileName = "schema.graphql";
         private readonly IFileStorage _fileStorage;
         private readonly ISchemaRepository _schemaRepository;
         private readonly IMessageSender<PublishSchemaEvent> _eventSender;
@@ -76,7 +79,7 @@ namespace MarshmallowPie.BackgroundServices
                 DocumentHash documentHash = DocumentHash.FromSourceText(formattedSourceText);
 
                 SchemaVersion? schemaVersion =
-                    await _schemaRepository.GetSchemaVersionAsync(
+                    await _schemaRepository.GetSchemaVersionByHashAsync(
                         documentHash.Hash, cancellationToken)
                         .ConfigureAwait(false);
 
@@ -100,12 +103,16 @@ namespace MarshmallowPie.BackgroundServices
                         cancellationToken)
                         .ConfigureAwait(false);
                 }
+
+                await fileContainer.DeleteAsync(cancellationToken).ConfigureAwait(false);
             }
             catch
             {
                 await issueLogger.LogIssueAsync(new Issue(
                     "PROCESSING_FAILED",
                     "Internal processing error.",
+                    _fileName,
+                    new Location(0, 0, 0, 0),
                     IssueType.Error,
                     ResolutionType.None))
                     .ConfigureAwait(false);
@@ -138,19 +145,31 @@ namespace MarshmallowPie.BackgroundServices
             catch (SyntaxException ex)
             {
                 await logger.LogIssueAsync(
-                    "LANG", ex.Message, IssueType.Error, cancellationToken)
+                    new Issue(
+                        "SYNTAX_ERROR",
+                        ex.Message,
+                        _fileName,
+                        new Location(ex.Position, ex.Position, ex.Line, ex.Column),
+                        IssueType.Error,
+                        ResolutionType.CannotBeFixed),
+                    cancellationToken)
                     .ConfigureAwait(false);
                 return null;
             }
-#pragma warning disable CA1031
             catch (Exception ex)
             {
                 await logger.LogIssueAsync(
-                    ex.Message, IssueType.Error, cancellationToken)
+                    new Issue(
+                        "PARSING_FAILED",
+                        ex.Message,
+                        _fileName,
+                        new Location(0, 0, 0, 0),
+                        IssueType.Error,
+                        ResolutionType.CannotBeFixed),
+                    cancellationToken)
                     .ConfigureAwait(false);
                 return null;
             }
-#pragma warning restore CA1031
         }
 
         private async Task<string> ReadSchemaSourceTextAsync(
@@ -186,20 +205,33 @@ namespace MarshmallowPie.BackgroundServices
                 foreach (ISchemaError error in ex.Errors)
                 {
                     await logger.LogIssueAsync(
-                        error.Code, error.Message, IssueType.Error, cancellationToken)
+                        new Issue(
+                            error.Code ?? "SCHEMA_ERROR",
+                            error.Message,
+                            _fileName,
+                            error.SyntaxNodes.FirstOrDefault()?.Location
+                                ?? new Location(0, 0, 0, 0),
+                            IssueType.Error,
+                            ResolutionType.CannotBeFixed),
+                        cancellationToken)
                         .ConfigureAwait(false);
                 }
                 return null;
             }
-#pragma warning disable CA1031
             catch (Exception ex)
             {
                 await logger.LogIssueAsync(
-                    ex.Message, IssueType.Error, cancellationToken)
+                    new Issue(
+                        "SCHEMA_ERROR",
+                        ex.Message,
+                        _fileName,
+                        new Location(0, 0, 0, 0),
+                        IssueType.Error,
+                        ResolutionType.CannotBeFixed),
+                    cancellationToken)
                     .ConfigureAwait(false);
                 return null;
             }
-#pragma warning restore CA1031
         }
 
         private async Task<SchemaVersion> CreateSchemaVersionAsync(
@@ -236,12 +268,12 @@ namespace MarshmallowPie.BackgroundServices
                 schemaVersion = new SchemaVersion(
                     schemaVersion.Id,
                     schemaVersion.SchemaId,
-                    schemaVersion.SourceText,
+                    schemaVersion.ExternalId,
                     schemaVersion.Hash,
                     list,
                     schemaVersion.Published);
 
-                await _schemaRepository.UpdateSchemaVersionAsync(
+                await _schemaRepository.UpdateSchemaVersionTagsAsync(
                     schemaVersion, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -266,6 +298,21 @@ namespace MarshmallowPie.BackgroundServices
                 {
                     // todo: start looking for incompatibilities
                 }
+            }
+
+            Guid versionId = Guid.NewGuid();
+
+            IFileContainer container = await _fileStorage.CreateContainerAsync(
+                versionId.ToString("N", CultureInfo.InvariantCulture),
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            using (Stream stream = await container.CreateFileAsync(
+                "schema.graphql", cancellationToken)
+                .ConfigureAwait(false))
+            {
+                byte[] buffer = Encoding.UTF8.GetBytes(formattedSourceText);
+                await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
             }
 
             SchemaVersion schemaVersion = await CreateSchemaVersionAsync(
@@ -345,4 +392,5 @@ namespace MarshmallowPie.BackgroundServices
             }
         }
     }
+#pragma warning restore CA1031
 }

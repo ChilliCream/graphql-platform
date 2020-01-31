@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace MarshmallowPie
 {
@@ -7,26 +8,25 @@ namespace MarshmallowPie
     {
         public ClientVersion(
             Guid clientId,
+            string? externalId,
             ISet<Guid> queryIds,
             IReadOnlyList<Tag> tags,
             DateTime published)
+            : this(Guid.NewGuid(), clientId, externalId, queryIds, tags, published)
         {
-            Id = Guid.NewGuid();
-            ClientId = clientId;
-            QueryIds = queryIds;
-            Tags = tags;
-            Published = published;
         }
 
         public ClientVersion(
             Guid id,
             Guid clientId,
+            string? externalId,
             ISet<Guid> queryIds,
             IReadOnlyList<Tag> tags,
             DateTime published)
         {
             Id = id;
             ClientId = clientId;
+            ExternalId = externalId ?? Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
             QueryIds = queryIds;
             Tags = tags;
             Published = published;
@@ -35,6 +35,8 @@ namespace MarshmallowPie
         public Guid Id { get; }
 
         public Guid ClientId { get; }
+
+        public string ExternalId { get; }
 
         public ISet<Guid> QueryIds { get; }
 

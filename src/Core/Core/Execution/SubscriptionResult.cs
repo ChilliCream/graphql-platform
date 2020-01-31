@@ -82,7 +82,7 @@ namespace HotChocolate.Execution
 
             public IReadOnlyQueryResult Current { get; private set; }
 
-            internal bool IsCompleted { get; private set; }
+            internal bool IsCompleted => _disposed;
 
             public async ValueTask<bool> MoveNextAsync()
             {
@@ -96,10 +96,6 @@ namespace HotChocolate.Execution
                 if (hasResult)
                 {
                     Current = await ExecuteQueryAsync(_sourceStream.Current).ConfigureAwait(false);
-                }
-                else
-                {
-                    IsCompleted = true;
                 }
 
                 return hasResult;
@@ -115,7 +111,6 @@ namespace HotChocolate.Execution
             {
                 if (!_disposed)
                 {
-                    IsCompleted = true;
                     await _sourceStream.DisposeAsync();
                     _serviceScope.Dispose();
                     _disposed = true;

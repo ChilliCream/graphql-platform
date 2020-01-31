@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Snapshooter.Xunit;
@@ -24,7 +25,6 @@ namespace MarshmallowPie.Repositories.Mongo
         public async Task GetSchemas()
         {
             // arrange
-            var db = new MongoClient();
             IMongoCollection<Schema> schemas =
                 _mongoResource.CreateCollection<Schema>();
             IMongoCollection<SchemaVersion> versions =
@@ -261,7 +261,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var version = new SchemaVersion(
                 Guid.NewGuid(),
                 "bar",
-                "baz",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow),
@@ -295,7 +295,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var schemaVersion = new SchemaVersion(
                 schema.Id,
                 "bar",
-                "baz",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -313,7 +313,7 @@ namespace MarshmallowPie.Repositories.Mongo
             Assert.Equal(schemaVersion.Id, retrieved.Id);
             Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
             Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
-            Assert.Equal(schemaVersion.SourceText, retrieved.SourceText);
+            Assert.Equal(schemaVersion.ExternalId, retrieved.ExternalId);
             Assert.Equal(schemaVersion.Tags.Count, retrieved.Tags.Count);
         }
 
@@ -336,7 +336,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var schemaVersion = new SchemaVersion(
                 schema.Id,
                 "bar",
-                "baz",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -352,7 +352,7 @@ namespace MarshmallowPie.Repositories.Mongo
             Assert.Equal(schemaVersion.Id, retrieved.Id);
             Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
             Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
-            Assert.Equal(schemaVersion.SourceText, retrieved.SourceText);
+            Assert.Equal(schemaVersion.ExternalId, retrieved.ExternalId);
             Assert.Equal(schemaVersion.Tags.Count, retrieved.Tags.Count);
         }
 
@@ -375,7 +375,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var a = new SchemaVersion(
                 schema.Id,
                 "bar",
-                "baz",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -386,7 +386,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var b = new SchemaVersion(
                 schema.Id,
                 "baz",
-                "bar",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -401,6 +401,86 @@ namespace MarshmallowPie.Repositories.Mongo
             // assert
             Assert.True(retrieved.ContainsKey(a.Id));
             Assert.True(retrieved.ContainsKey(b.Id));
+        }
+
+        [Fact]
+        public async Task GetSchemaVersion_By_Hash()
+        {
+            // arrange
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            var schema = new Schema("foo", "bar");
+            await repository.AddSchemaAsync(schema);
+
+            var schemaVersion = new SchemaVersion(
+                schema.Id,
+                "bar",
+                DocumentHash.FromSourceText("bar"),
+                new[]
+                {
+                    new Tag("a", "b", DateTime.UtcNow)
+                },
+                DateTime.UtcNow);
+            await repository.AddSchemaVersionAsync(schemaVersion);
+
+            // act
+            SchemaVersion retrieved = await repository.GetSchemaVersionByHashAsync(
+                schemaVersion.Hash.Hash);
+
+            // assert
+            Assert.NotNull(retrieved);
+            Assert.Equal(schemaVersion.Id, retrieved.Id);
+            Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
+            Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
+            Assert.Equal(schemaVersion.ExternalId, retrieved.ExternalId);
+            Assert.Equal(schemaVersion.Tags.Count, retrieved.Tags.Count);
+        }
+
+        [Fact]
+        public async Task GetSchemaVersion_By_ExternalId()
+        {
+            // arrange
+            IMongoCollection<Schema> schemas =
+                _mongoResource.CreateCollection<Schema>();
+            IMongoCollection<SchemaVersion> versions =
+                _mongoResource.CreateCollection<SchemaVersion>();
+            IMongoCollection<SchemaPublishReport> publishReports =
+                _mongoResource.CreateCollection<SchemaPublishReport>();
+
+            var repository = new SchemaRepository(schemas, versions, publishReports);
+
+            var schema = new Schema("foo", "bar");
+            await repository.AddSchemaAsync(schema);
+
+            var schemaVersion = new SchemaVersion(
+                schema.Id,
+                "bar",
+                DocumentHash.FromSourceText("bar"),
+                new[]
+                {
+                    new Tag("a", "b", DateTime.UtcNow)
+                },
+                DateTime.UtcNow);
+            await repository.AddSchemaVersionAsync(schemaVersion);
+
+            // act
+            SchemaVersion retrieved = await repository.GetSchemaVersionByExternalIdAsync(
+                schemaVersion.ExternalId);
+
+            // assert
+            Assert.NotNull(retrieved);
+            Assert.Equal(schemaVersion.Id, retrieved.Id);
+            Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
+            Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
+            Assert.Equal(schemaVersion.ExternalId, retrieved.ExternalId);
+            Assert.Equal(schemaVersion.Tags.Count, retrieved.Tags.Count);
         }
 
         [Fact]
@@ -421,7 +501,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var schemaVersion = new SchemaVersion(
                 schema.Id,
                 "bar",
-                "baz",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -439,7 +519,7 @@ namespace MarshmallowPie.Repositories.Mongo
             Assert.Equal(schemaVersion.Id, retrieved.Id);
             Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
             Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
-            Assert.Equal(schemaVersion.SourceText, retrieved.SourceText);
+            Assert.Equal(schemaVersion.ExternalId, retrieved.ExternalId);
             Assert.Equal(schemaVersion.Hash, retrieved.Hash);
             Assert.Equal(schemaVersion.Tags.Count, retrieved.Tags.Count);
         }
@@ -462,7 +542,7 @@ namespace MarshmallowPie.Repositories.Mongo
             var schemaVersion = new SchemaVersion(
                 schema.Id,
                 "bar",
-                "baz",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
                 new[]
                 {
                     new Tag("a", "b", DateTime.UtcNow)
@@ -471,31 +551,20 @@ namespace MarshmallowPie.Repositories.Mongo
 
             await repository.AddSchemaVersionAsync(schemaVersion);
 
-            var updatedSchemaVersion = new SchemaVersion(
+            // act
+            await repository.UpdateSchemaVersionTagsAsync(
                 schemaVersion.Id,
-                schema.Id,
-                "baz",
-                "qux",
                 new[]
                 {
-                    new Tag("a", "b", DateTime.UtcNow)
-                },
-                DateTime.UtcNow);
-
-            // act
-            await repository.UpdateSchemaVersionAsync(updatedSchemaVersion);
+                    new Tag("a", "b", DateTime.UtcNow),
+                    new Tag("a", "c", DateTime.UtcNow)
+                });
 
             // assert
             SchemaVersion retrieved = await versions.AsQueryable()
                 .Where(t => t.Id == schemaVersion.Id)
                 .FirstOrDefaultAsync();
-            Assert.NotNull(retrieved);
-            Assert.Equal(schemaVersion.Id, retrieved.Id);
-            Assert.Equal(schemaVersion.Published, retrieved.Published, TimeSpan.FromSeconds(1));
-            Assert.Equal(schemaVersion.SchemaId, retrieved.SchemaId);
-            Assert.Equal(updatedSchemaVersion.SourceText, retrieved.SourceText);
-            Assert.Equal(updatedSchemaVersion.Hash, retrieved.Hash);
-            Assert.Equal(updatedSchemaVersion.Tags.Count, retrieved.Tags.Count);
+            Assert.Equal(2, retrieved.Tags.Count);
         }
 
         [Fact]
@@ -513,13 +582,19 @@ namespace MarshmallowPie.Repositories.Mongo
             await schemas.InsertOneAsync(initial, options: null, default);
 
             var initialVersion = new SchemaVersion(
-                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                initial.Id,
+                "foo",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
+                Array.Empty<Tag>(),
                 DateTime.UtcNow);
             await versions.InsertOneAsync(initialVersion, options: null, default);
 
             var initialReport = new SchemaPublishReport(
-                initialVersion.Id, Guid.NewGuid(), Array.Empty<Issue>(),
-                PublishState.Published, DateTime.UtcNow);
+                initialVersion.Id,
+                Guid.NewGuid(),
+                Array.Empty<Issue>(),
+                PublishState.Published,
+                DateTime.UtcNow);
             await publishReports.InsertOneAsync(initialReport, options: null, default);
 
             var repository = new SchemaRepository(schemas, versions, publishReports);
@@ -548,7 +623,10 @@ namespace MarshmallowPie.Repositories.Mongo
             await schemas.InsertOneAsync(initial, options: null, default);
 
             var initialVersion = new SchemaVersion(
-                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                initial.Id,
+                "foo",
+                new DocumentHash("baz", "baz", HashFormat.Hex),
+                Array.Empty<Tag>(),
                 DateTime.UtcNow);
             await versions.InsertOneAsync(initialVersion, options: null, default);
 
@@ -582,7 +660,9 @@ namespace MarshmallowPie.Repositories.Mongo
             await schemas.InsertOneAsync(initial, options: null, default);
 
             var initialVersion = new SchemaVersion(
-                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                initial.Id, "foo",
+                DocumentHash.FromSourceText("abc"),
+                Array.Empty<Tag>(),
                 DateTime.UtcNow);
             await versions.InsertOneAsync(initialVersion, options: null, default);
 
@@ -616,7 +696,10 @@ namespace MarshmallowPie.Repositories.Mongo
             await schemas.InsertOneAsync(initial, options: null, default);
 
             var initialVersion = new SchemaVersion(
-                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                initial.Id,
+                "foo",
+                DocumentHash.FromSourceText("bar"),
+                Array.Empty<Tag>(),
                 DateTime.UtcNow);
             await versions.InsertOneAsync(initialVersion, options: null, default);
 
@@ -650,7 +733,10 @@ namespace MarshmallowPie.Repositories.Mongo
             await schemas.InsertOneAsync(initial, options: null, default);
 
             var initialVersion = new SchemaVersion(
-                initial.Id, "foo", "bar", Array.Empty<Tag>(),
+                initial.Id,
+                "foo",
+                DocumentHash.FromSourceText("bar"),
+                Array.Empty<Tag>(),
                 DateTime.UtcNow);
             await versions.InsertOneAsync(initialVersion, options: null, default);
 
