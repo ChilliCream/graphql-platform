@@ -10,14 +10,21 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
+
+
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>HotChocolate.Validation.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Validation</RootNamespace>
+    <AssemblyName>HotChocolate.Core.Diagnostics.CustomObserver.Tests</AssemblyName>
+    <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
+    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
 </Project>

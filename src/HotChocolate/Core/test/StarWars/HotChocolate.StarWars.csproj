@@ -20,8 +20,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+
+
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
 </Project>

@@ -12,4 +12,8 @@
     <Description>This package contains the abstract syntax tree that is used by the Hot Chocolate parsers.</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.3" />
+  </ItemGroup>
+
 </Project>

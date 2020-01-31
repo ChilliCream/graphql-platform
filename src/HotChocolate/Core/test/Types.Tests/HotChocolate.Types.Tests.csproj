@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -12,19 +12,14 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>HotChocolate.Subscriptions.Redis.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
+    <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Subscriptions.Redis\Subscriptions.Redis.csproj" />
-    <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
-    <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.Redis" Version="0.3.0" />
+    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Types.Tests.Documentation\HotChocolate.Types.Tests.Documentation.csproj" />
   </ItemGroup>
 
 </Project>

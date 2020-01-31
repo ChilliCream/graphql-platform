@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -10,22 +10,21 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>HotChocolate.Core.Tests</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
+    <AssemblyName>HotChocolate.Subscriptions.Redis.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
-    <ProjectReference Include="..\StarWars\StarWars.csproj" />
+    <PackageReference Include="Squadron.Redis" Version="0.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Execution\__snapshots__\__mismatch__\" />
+    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Subscriptions.Redis\HotChocolate.Subscriptions.Redis.csproj" />
+    <ProjectReference Include="..\..\src\Subscriptions\HotChocolate.Subscriptions.csproj" />
   </ItemGroup>
 
 </Project>

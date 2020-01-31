@@ -14,7 +14,7 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>HotChocolate.Core.Diagnostics.CustomObserver.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Core.Diagnostics.ApolloTracing.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
 </Project>
