@@ -1,19 +1,9 @@
 using System;
-using HotChocolate.Language;
-
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-using HotChocolate.AspNetClassic.Interceptors;
-#else
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Interceptors;
-#endif
+using HotChocolate.Language;
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public class QueryMiddlewareOptions
     {
@@ -72,9 +62,7 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-#if !ASPNETCLASSIC
         public bool EnableSubscriptions { get; set; } = true;
-#endif
 
         [Obsolete(
             "Use serviceCollection.AddSocketConnectionInterceptor()",

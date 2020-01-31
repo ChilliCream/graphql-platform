@@ -2,25 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Security.Claims;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Server;
 
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-using HttpContext = Microsoft.Owin.IOwinContext;
-using HttpResponse = Microsoft.Owin.IOwinResponse;
-using RequestDelegate = Microsoft.Owin.OwinMiddleware;
-#else
-using Microsoft.AspNetCore.Http;
-#endif
-
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Interceptors
-#else
 namespace HotChocolate.AspNetCore.Interceptors
-#endif
 {
     public delegate Task<ConnectionStatus> OnConnectWebSocketAsync(
         HttpContext context,

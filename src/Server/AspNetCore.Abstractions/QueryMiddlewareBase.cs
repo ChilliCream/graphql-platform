@@ -1,33 +1,18 @@
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Server;
 using HotChocolate.Language;
 
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-using HttpContext = Microsoft.Owin.IOwinContext;
-using HttpResponse = Microsoft.Owin.IOwinResponse;
-using RequestDelegate = Microsoft.Owin.OwinMiddleware;
-#else
-using Microsoft.AspNetCore.Http;
-#endif
-
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     /// <summary>
     /// A base <c>GraphQL</c> query middleware.
     /// </summary>
     public abstract class QueryMiddlewareBase
-#if ASPNETCLASSIC
-        : RequestDelegate
-#endif
     {
         private const int _badRequest = 400;
         private const int _ok = 200;
@@ -38,44 +23,6 @@ namespace HotChocolate.AspNetCore
         private IQueryRequestInterceptor<HttpContext> _interceptor;
         private bool _interceptorInitialized;
 
-#if ASPNETCLASSIC
-        private readonly IServiceProvider _services;
-        private readonly OwinContextAccessor _accessor;
-
-        protected QueryMiddlewareBase(
-            RequestDelegate next,
-            IPathOptionAccessor options,
-            OwinContextAccessor owinContextAccessor,
-            IServiceProvider services,
-            IQueryResultSerializer serializer,
-            IErrorHandler errorHandler)
-            : base(next)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            _accessor = owinContextAccessor;
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
-            _serializer = serializer
-                ?? throw new ArgumentNullException(nameof(serializer));
-            ErrorHandler = errorHandler
-                ??  throw new ArgumentNullException(nameof(serializer));
-
-            if (options.Path.Value.Length > 1)
-            {
-                var path1 = new PathString(options.Path.Value.TrimEnd('/'));
-                PathString path2 = path1.Add(new PathString("/"));
-                _isPathValid = ctx => ctx.IsValidPath(path1, path2);
-            }
-            else
-            {
-                _isPathValid = ctx => ctx.IsValidPath(options.Path);
-            }
-        }
-#else
         protected QueryMiddlewareBase(
             RequestDelegate next,
             IPathOptionAccessor options,
@@ -107,21 +54,15 @@ namespace HotChocolate.AspNetCore
         }
 
         protected RequestDelegate Next { get; }
-#endif
 
         protected IErrorHandler ErrorHandler { get; }
 
-#if ASPNETCLASSIC
-        /// <inheritdoc />
-        public override async Task Invoke(HttpContext context)
-#else
         /// <summary>
         ///
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
-#endif
         {
             if (_isPathValid(context) && CanHandleRequest(context))
             {
@@ -178,34 +119,12 @@ namespace HotChocolate.AspNetCore
         /// </returns>
         protected abstract bool CanHandleRequest(HttpContext context);
 
-
-#if ASPNETCLASSIC
-        private async Task HandleRequestAsync(
-            HttpContext context)
-        {
-            if (_accessor != null)
-            {
-                _accessor.OwinContext = context;
-            }
-
-            using (IServiceScope serviceScope = _services.CreateScope())
-            {
-                IServiceProvider services =
-                    context.CreateRequestServices(
-                        serviceScope.ServiceProvider);
-
-                await ExecuteRequestAsync(context, services)
-                    .ConfigureAwait(false);
-            }
-        }
-#else
         private async Task HandleRequestAsync(
                   HttpContext context)
         {
             await ExecuteRequestAsync(context, context.RequestServices)
                 .ConfigureAwait(false);
         }
-#endif
 
         protected abstract Task ExecuteRequestAsync(
             HttpContext context,

@@ -1,5 +1,5 @@
-﻿using System.Text;
-using System;
+﻿using System;
+using System.Text;
 using HotChocolate.Language;
 using Xunit;
 
@@ -76,7 +76,9 @@ namespace HotChocolate.Types
             var serializedValue = byteArrayType.Serialize(value);
 
             // assert
-            Assert.Equal(value, Assert.IsType<byte[]>(serializedValue));
+            Assert.Equal(
+                Convert.ToBase64String(value),
+                Assert.IsType<string>(serializedValue));
         }
 
         [Fact]
@@ -122,6 +124,22 @@ namespace HotChocolate.Types
 
         [Fact]
         public void Deserialize_String()
+        {
+            // arrange
+            var byteArrayType = new ByteArrayType();
+            byte[] bytes = Encoding.ASCII.GetBytes("value");
+
+            // act
+            var success = byteArrayType.TryDeserialize(
+                Convert.ToBase64String(bytes), out object o);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(bytes, o);
+        }
+
+        [Fact]
+        public void Deserialize_Bytes()
         {
             // arrange
             var byteArrayType = new ByteArrayType();

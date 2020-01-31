@@ -1,19 +1,8 @@
 using System;
 using HotChocolate.Language;
-
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-using HttpContext = Microsoft.Owin.IOwinContext;
-using RequestDelegate = Microsoft.Owin.OwinMiddleware;
-#else
 using Microsoft.AspNetCore.Http;
-#endif
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public class HttpPostMiddlewareOptions
         : IHttpPostMiddlewareOptions
@@ -69,6 +58,4 @@ namespace HotChocolate.AspNetCore
             }
         }
     }
-
-
 }
