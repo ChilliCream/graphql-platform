@@ -73,11 +73,11 @@ namespace MarshmallowPie.BackgroundServices
                     : await ReadSchemaSourceTextAsync(
                         schemaFile, cancellationToken)
                         .ConfigureAwait(false);
-                string hash = Hash.ComputeHash(formattedSourceText);
+                DocumentHash documentHash = DocumentHash.FromSourceText(formattedSourceText);
 
                 SchemaVersion? schemaVersion =
                     await _schemaRepository.GetSchemaVersionAsync(
-                        hash, cancellationToken)
+                        documentHash.Hash, cancellationToken)
                         .ConfigureAwait(false);
 
                 if (schemaVersion is null)
@@ -208,14 +208,10 @@ namespace MarshmallowPie.BackgroundServices
            Guid schemaId,
            CancellationToken cancellationToken)
         {
-            using var sha = SHA256.Create();
-            string hash = Convert.ToBase64String(sha.ComputeHash(
-                Encoding.UTF8.GetBytes(sourceText)));
-
             var schemaVersion = new SchemaVersion(
                 schemaId,
                 sourceText,
-                hash,
+                DocumentHash.FromSourceText(sourceText),
                 tags.Select(t => new Tag(t.Key, t.Value, DateTime.UtcNow)).ToList(),
                 DateTime.UtcNow);
 
@@ -268,7 +264,7 @@ namespace MarshmallowPie.BackgroundServices
 
                 if (schema is { })
                 {
-                    // start looking for incompatibilities
+                    // todo: start looking for incompatibilities
                 }
             }
 
@@ -282,6 +278,7 @@ namespace MarshmallowPie.BackgroundServices
             var report = new SchemaPublishReport(
                schemaVersion.Id,
                message.EnvironmentId,
+               message.ExternalId,
                issueLogger.Issues,
                PublishState.Published,
                DateTime.UtcNow);
@@ -333,12 +330,13 @@ namespace MarshmallowPie.BackgroundServices
             }
             else if (schema is { })
             {
-                // start looking for incompatibilities
+                // todo: start looking for incompatibilities
 
                 await _schemaRepository.AddPublishReportAsync(
                     new SchemaPublishReport(
                         schemaVersion.Id,
                         message.EnvironmentId,
+                        message.ExternalId,
                         issueLogger.Issues,
                         PublishState.Published,
                         DateTime.UtcNow),

@@ -76,7 +76,6 @@ namespace MarshmallowPie.GraphQL.Schemas
         [UseSorting]
         public Task<IReadOnlyList<Schema>> GetSchemasByNameAsync(
             string[] names,
-            [Service]IIdSerializer idSerializer,
             [DataLoader]SchemaByNameDataLoader dataLoader,
             CancellationToken cancellationToken)
         {

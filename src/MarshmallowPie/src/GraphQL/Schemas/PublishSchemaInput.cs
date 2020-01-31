@@ -14,6 +14,7 @@ namespace MarshmallowPie.GraphQL.Schemas
         {
             EnvironmentName = environmentName;
             SchemaName = schemaName;
+            ExternalId = externalId;
             SourceText = sourceText;
             Tags = tags;
             ClientMutationId = clientMutationId;
