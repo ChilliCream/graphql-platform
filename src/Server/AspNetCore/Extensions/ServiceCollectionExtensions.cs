@@ -1,19 +1,14 @@
 using System;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Configuration;
 using HotChocolate.Server;
 using HotChocolate.Execution.Batching;
-using HotChocolate.Types.Relay;
-#if ASPNETCLASSIC
-using HotChocolate.AspNetClassic.Interceptors;
-using HttpContext = Microsoft.Owin.IOwinContext;
-#else
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Interceptors;
-using Microsoft.AspNetCore.Http;
-#endif
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate
 {
@@ -25,9 +20,7 @@ namespace HotChocolate
         {
             return services
                 .AddGraphQLSchema(schemaBuilder)
-#if !ASPNETCLASSIC
                 .AddGraphQLSubscriptions()
-#endif
                 .AddJsonSerializer()
                 .AddQueryExecutor()
                 .AddBatchQueryExecutor();
@@ -392,8 +385,6 @@ namespace HotChocolate
                 .AddJsonSerializer();
         }
 
-#if !ASPNETCLASSIC
-
         public static IServiceCollection AddWebSocketConnectionInterceptor(
             this IServiceCollection services,
             OnConnectWebSocketAsync interceptor)
@@ -402,7 +393,6 @@ namespace HotChocolate
                 .AddSingleton<ISocketConnectionInterceptor<HttpContext>>(
                     new SocketConnectionDelegateInterceptor(interceptor));
         }
-#endif
 
         public static IServiceCollection AddQueryRequestInterceptor(
             this IServiceCollection services,
@@ -424,13 +414,11 @@ namespace HotChocolate
             this IServiceCollection services,
             Func<IServiceProvider, ISchema> factory)
         {
-            services.AddSingleton<IIdSerializer, IdSerializer>();
-            services.AddSingleton(factory);
-            services.AddJsonSerializer();
-#if !ASPNETCLASSIC
-            services.AddGraphQLSubscriptions();
-#endif
-            return services;
+            return services
+                .AddSingleton<IIdSerializer, IdSerializer>()
+                .AddSingleton(factory)
+                .AddJsonSerializer()
+                .AddGraphQLSubscriptions();
         }
 
         private static IServiceCollection AddJsonSerializer(

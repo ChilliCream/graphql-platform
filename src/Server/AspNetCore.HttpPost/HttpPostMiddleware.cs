@@ -2,25 +2,15 @@ using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Server;
 using HotChocolate.Execution.Batching;
-using System.Text;
-
-#if ASPNETCLASSIC
-using HttpContext = Microsoft.Owin.IOwinContext;
-using RequestDelegate = Microsoft.Owin.OwinMiddleware;
-#else
 using Microsoft.AspNetCore.Http;
-#endif
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public class HttpPostMiddleware
         : QueryMiddlewareBase
@@ -32,41 +22,6 @@ namespace HotChocolate.AspNetCore
         private readonly IQueryResultSerializer _resultSerializer;
         private readonly IResponseStreamSerializer _streamSerializer;
 
-#if ASPNETCLASSIC
-        public HttpPostMiddleware(
-            RequestDelegate next,
-            IHttpPostMiddlewareOptions options,
-            OwinContextAccessor owinContextAccessor,
-            IQueryExecutor queryExecutor,
-            IBatchQueryExecutor batchQueryExecutor,
-            IQueryResultSerializer resultSerializer,
-            IResponseStreamSerializer streamSerializer,
-            IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider,
-            IErrorHandler errorHandler)
-            : base(next,
-                options,
-                owinContextAccessor,
-                queryExecutor.Schema.Services,
-                resultSerializer,
-                errorHandler)
-        {
-            _queryExecutor = queryExecutor
-                ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _batchExecutor = batchQueryExecutor
-                ?? throw new ArgumentNullException(nameof(batchQueryExecutor));
-            _resultSerializer = resultSerializer
-                ?? throw new ArgumentNullException(nameof(resultSerializer));
-            _streamSerializer = streamSerializer
-                ?? throw new ArgumentNullException(nameof(streamSerializer));
-
-            _requestHelper = new RequestHelper(
-                documentCache,
-                documentHashProvider,
-                options.MaxRequestSize,
-                options.ParserOptions);
-        }
-#else
         public HttpPostMiddleware(
             RequestDelegate next,
             IHttpPostMiddlewareOptions options,
@@ -94,7 +49,6 @@ namespace HotChocolate.AspNetCore
                 options.MaxRequestSize,
                 options.ParserOptions);
         }
-#endif
 
         protected override bool CanHandleRequest(HttpContext context)
         {

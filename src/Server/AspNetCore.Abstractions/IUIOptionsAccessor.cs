@@ -1,15 +1,6 @@
-
-#if ASPNETCLASSIC
-using Microsoft.Owin;
-#else
 using Microsoft.AspNetCore.Http;
-#endif
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
 namespace HotChocolate.AspNetCore
-#endif
 {
     public interface IUIOptionsAccessor
     {

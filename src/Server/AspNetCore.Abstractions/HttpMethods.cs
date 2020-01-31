@@ -1,8 +1,4 @@
-﻿#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
-namespace HotChocolate.AspNetCore
-#endif
+﻿namespace HotChocolate.AspNetCore
 {
     public static class HttpMethods
     {
