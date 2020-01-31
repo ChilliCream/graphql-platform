@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Buffers.Text;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -69,13 +70,17 @@ namespace HotChocolate.Language
 
         public FloatFormat Format { get; }
 
-        public string Value
+        public unsafe string Value
         {
             get
             {
                 if (_stringValue is null)
                 {
-                    _stringValue = Utf8GraphQLReader.GetScalarValue(AsSpan());
+                    ReadOnlySpan<byte> span = AsSpan();
+                    fixed (byte* b = span)
+                    {
+                        _stringValue = Encoding.UTF8.GetString(b, span.Length);
+                    }
                 }
                 return _stringValue;
             }
@@ -256,7 +261,7 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public Decimal ToDecimal()
+        public decimal ToDecimal()
         {
             if (_decimalValue.HasValue)
             {
@@ -264,7 +269,7 @@ namespace HotChocolate.Language
             }
 
             char format = Format == FloatFormat.FixedPoint ? 'f' : 'e';
-            if (Utf8Parser.TryParse(AsSpan(), out Decimal value, out _, format))
+            if (Utf8Parser.TryParse(AsSpan(), out decimal value, out _, format))
             {
                 _decimalValue = value;
                 return value;

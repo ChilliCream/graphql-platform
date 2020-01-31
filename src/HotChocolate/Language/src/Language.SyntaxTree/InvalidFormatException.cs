@@ -1,15 +1,14 @@
 using System;
+using System.Runtime.Serialization;
 #if netstandard1_4
 using System.Runtime.Serialization;
 #endif
 
 namespace HotChocolate.Language
 {
-#if netstandard1_4
     [Serializable]
-#endif
     public class InvalidFormatException
-        : Exception
+        : LanguageException
     {
         public InvalidFormatException() { }
         public InvalidFormatException(string message)
@@ -17,11 +16,9 @@ namespace HotChocolate.Language
         public InvalidFormatException(string message, Exception innerException)
             : base(message, innerException) { }
 
-#if netstandard1_4
         protected InvalidFormatException(
             SerializationInfo info,
             StreamingContext context)
             : base(info, context) { }
-#endif
     }
 }

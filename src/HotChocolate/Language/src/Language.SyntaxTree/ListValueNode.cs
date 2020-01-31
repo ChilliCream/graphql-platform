@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System;
 using System.Collections.Generic;
 
@@ -184,11 +184,15 @@ namespace HotChocolate.Language
 
         public override string? ToString()
         {
+            // TODO : FIX this;
+            throw new NotImplementedException();
+            /*
             if (_stringValue is null)
             {
                 _stringValue = QuerySyntaxSerializer.Serialize(this, true);
             }
             return _stringValue;
+                */
         }
 
         public ListValueNode WithLocation(Location? location)

@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -62,13 +63,16 @@ namespace HotChocolate.Language
 
         public Location? Location { get; }
 
-        public string Value
+        public unsafe string Value
         {
             get
             {
                 if (_value is null)
                 {
-                    _value = Utf8GraphQLReader.GetScalarValue(_memory.Span);
+                    fixed (byte* b = _memory.Span)
+                    {
+                        _value = Encoding.UTF8.GetString(b, _memory.Span.Length);
+                    }
                 }
                 return _value;
             }
@@ -194,15 +198,23 @@ namespace HotChocolate.Language
             return Value;
         }
 
-        public ReadOnlySpan<byte> AsSpan()
+        public unsafe ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {
                 int length = checked(_value!.Length * 4);
-                Memory<byte> memory = new byte[length];
-                Span<byte> span = memory.Span;
-                int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);
-                _memory = memory.Slice(0, buffered);
+                Span<byte> span = stackalloc byte[length];
+
+                fixed (char* c = _value)
+                fixed (byte* b = span)
+                {
+                    int buffered = Encoding.UTF8.GetBytes(c, _value.Length, b, span.Length);
+
+                    Memory<byte> memory = new byte[buffered];
+                    span.Slice(0, buffered).CopyTo(memory.Span);
+
+                    _memory = memory;
+                }
             }
 
             return _memory.Span;

@@ -1,5 +1,6 @@
-﻿using System.Buffers.Text;
+using System.Buffers.Text;
 using System;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -90,13 +91,17 @@ namespace HotChocolate.Language
 
         public Location? Location { get; }
 
-        public string Value
+        public unsafe string Value
         {
             get
             {
                 if (_stringValue is null)
                 {
-                    _stringValue = Utf8GraphQLReader.GetScalarValue(AsSpan());
+                    ReadOnlySpan<byte> span = AsSpan();
+                    fixed (byte* b = span)
+                    {
+                        _stringValue = Encoding.UTF8.GetString(b, span.Length);
+                    }
                 }
                 return _stringValue;
             }

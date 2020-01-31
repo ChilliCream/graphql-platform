@@ -10,7 +10,6 @@
 
 namespace HotChocolate.Language.Properties {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace HotChocolate.Language.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Language.Properties.LangResources", typeof(LangResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Language.Properties.LangResources", typeof(LangResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
