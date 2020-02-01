@@ -12,15 +12,15 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>HotChocolate.Types.Filters.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Filters</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Sorting.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Sorting</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Types\Types.csproj" />
-    <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
-    <ProjectReference Include="..\Types.Tests\Types.Tests.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Types.Sorting\HotChocolate.Types.Sorting.csproj" />
   </ItemGroup>
 
 </Project>

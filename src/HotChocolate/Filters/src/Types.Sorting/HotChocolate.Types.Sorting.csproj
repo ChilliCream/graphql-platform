@@ -12,27 +12,27 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <PackageId>HotChocolate.Types.Filters</PackageId>
-    <AssemblyName>HotChocolate.Types.Filters</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Filters</RootNamespace>
+    <PackageId>HotChocolate.Types.Sorting</PackageId>
+    <AssemblyName>HotChocolate.Types.Sorting</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Sorting</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types\Types.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\FilterResources.Designer.cs">
+    <Compile Update="Properties\SortingResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>FilterResources.resx</DependentUpon>
+      <DependentUpon>SortingResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\FilterResources.resx">
+    <EmbeddedResource Update="Properties\SortingResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>FilterResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>SortingResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

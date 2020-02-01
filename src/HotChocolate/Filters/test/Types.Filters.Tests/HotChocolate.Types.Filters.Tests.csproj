@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -12,23 +12,15 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>HotChocolate.Types.Sorting.Mongo.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Sorting</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Filters.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Filters</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Types\Types.csproj" />
-    <ProjectReference Include="..\Types.Sorting\Types.Sorting.csproj" />
-    <ProjectReference Include="..\Types.Tests\Types.Tests.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="__snapshots__\" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
+    <ProjectReference Include="..\Types.Sorting.Tests\HotChocolate.Types.Sorting.Tests.csproj" />
   </ItemGroup>
 
 </Project>
