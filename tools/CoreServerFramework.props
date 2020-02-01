@@ -1,7 +1,0 @@
-<Project>
-
-  <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0; netcoreapp2.2; netstandard2.0; netstandard2.1</TargetFrameworks>
-  </PropertyGroup>
-
-</Project>
