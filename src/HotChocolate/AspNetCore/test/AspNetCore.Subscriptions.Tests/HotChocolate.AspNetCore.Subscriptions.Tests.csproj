@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj" />
-    <ProjectReference Include="..\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
+    <ProjectReference Include="..\..\src\AspNetCore.Subscriptions\HotChocolate.AspNetCore.Subscriptions.csproj" />
+    <ProjectReference Include="..\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

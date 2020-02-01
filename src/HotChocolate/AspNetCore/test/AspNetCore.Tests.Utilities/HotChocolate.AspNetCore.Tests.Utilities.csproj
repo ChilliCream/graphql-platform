@@ -21,9 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\..\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\Core\StarWars\StarWars.csproj" />
+    <ProjectReference Include="..\..\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
   </ItemGroup>
 

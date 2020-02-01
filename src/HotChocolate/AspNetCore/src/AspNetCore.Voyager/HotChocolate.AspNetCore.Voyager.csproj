@@ -13,12 +13,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
+    <None Remove="Resources\*.*" />
+    <EmbeddedResource Include="Resources\*.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\*.*" />
-    <EmbeddedResource Include="Resources\*.*" />
+    <ProjectReference Include="..\AspNetCore.Abstractions\HotChocolate.AspNetCore.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

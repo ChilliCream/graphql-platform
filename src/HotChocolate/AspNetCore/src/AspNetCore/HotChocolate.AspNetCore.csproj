@@ -12,13 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Core\Core.csproj" />
-    <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
-    <ProjectReference Include="..\AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj" />
-    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
-    <ProjectReference Include="..\AspNetCore.HttpGet\AspNetCore.HttpGet.csproj" />
-    <ProjectReference Include="..\AspNetCore.HttpGetSchema\AspNetCore.HttpGetSchema.csproj" />
-    <ProjectReference Include="..\AspNetCore.HttpPost\AspNetCore.HttpPost.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\AspNetCore.Abstractions\HotChocolate.AspNetCore.Abstractions.csproj" />
+    <ProjectReference Include="..\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
+    <ProjectReference Include="..\AspNetCore.HttpGetSchema\HotChocolate.AspNetCore.HttpGetSchema.csproj" />
+    <ProjectReference Include="..\AspNetCore.HttpGet\HotChocolate.AspNetCore.HttpGet.csproj" />
+    <ProjectReference Include="..\AspNetCore.HttpPost\HotChocolate.AspNetCore.HttpPost.csproj" />
+    <ProjectReference Include="..\AspNetCore.Subscriptions\HotChocolate.AspNetCore.Subscriptions.csproj" />
   </ItemGroup>
 
 </Project>
