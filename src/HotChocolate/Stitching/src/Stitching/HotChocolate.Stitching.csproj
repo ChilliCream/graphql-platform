@@ -26,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
-    <ProjectReference Include="..\..\Core\Types\Types.csproj" />
-    <ProjectReference Include="..\..\Server\Server\Server.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Server\HotChocolate.Server.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
   <ItemGroup>

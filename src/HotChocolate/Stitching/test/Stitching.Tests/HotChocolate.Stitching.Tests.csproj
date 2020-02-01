@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stitching\Stitching.csproj" />
-    <ProjectReference Include="..\..\Server\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
+    <ProjectReference Include="..\..\src\Stitching\HotChocolate.Stitching.csproj" />
   </ItemGroup>
 
 </Project>
