@@ -19,8 +19,8 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Core\StarWars\StarWars.csproj" />
-    <ProjectReference Include="..\..\..\..\Server\AspNetCore\AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.csproj" />
     <ProjectReference Include="..\..\src\Http\StrawberryShake.Http.csproj" />
   </ItemGroup>
 

@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Core\Language\Language.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
     <ProjectReference Include="..\Abstractions\StrawberryShake.Abstractions.csproj" />
     <ProjectReference Include="..\Configuration\StrawberryShake.Configuration.csproj" />
     <ProjectReference Include="..\Transport.Abstractions\StrawberryShake.Transport.Abstractions.csproj" />
