@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Utilities.Introspection\Utilities.Introspection.csproj" />
-    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests\AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
   </ItemGroup>
 
 </Project>
