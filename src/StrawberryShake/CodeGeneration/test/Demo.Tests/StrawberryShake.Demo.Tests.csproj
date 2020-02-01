@@ -19,11 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Demo\Demo.csproj" />
-    <ProjectReference Include="..\Http\Http.csproj" />
-    <ProjectReference Include="..\..\Core\StarWars\StarWars.csproj" />
-    <ProjectReference Include="..\..\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
-    <ProjectReference Include="..\..\Server\AspNetCore\AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Http\StrawberryShake.Http.csproj" />
+    <ProjectReference Include="..\Demo\StrawberryShake.Demo.csproj" />
   </ItemGroup>
 
   <ItemGroup>

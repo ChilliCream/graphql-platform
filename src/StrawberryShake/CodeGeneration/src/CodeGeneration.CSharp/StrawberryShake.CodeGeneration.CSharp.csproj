@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -12,23 +12,20 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <PackageId>StrawberryShake.Generators</PackageId>
-    <AssemblyName>StrawberryShake.Generators</AssemblyName>
-    <RootNamespace>StrawberryShake.Generators</RootNamespace>
+    <PackageId>StrawberryShake.CodeGeneration.CSharp</PackageId>
+    <AssemblyName>StrawberryShake.CodeGeneration.CSharp</AssemblyName>
+    <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
     <PackageIconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</PackageIconUrl>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Language\Language.csproj" />
-    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
-    <ProjectReference Include="..\..\Stitching\Stitching\Stitching.csproj" />
-    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    <PackageReference Include="System.Text.Json" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.6.0" />
+    <ProjectReference Include="..\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
   </ItemGroup>
 
 </Project>

@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Generators\Generators.csproj" />
+    <ProjectReference Include="..\..\src\Generators\StrawberryShake.Generators.csproj" />
   </ItemGroup>
 
 </Project>

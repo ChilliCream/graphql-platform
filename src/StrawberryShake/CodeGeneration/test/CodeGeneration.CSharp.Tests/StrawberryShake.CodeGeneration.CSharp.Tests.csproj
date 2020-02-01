@@ -18,11 +18,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CodeGeneration.CSharp\CodeGeneration.CSharp.csproj" />
+    <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="__snapshots__\__mismatch__\" />
+    <ProjectReference Include="..\..\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
   </ItemGroup>
 
 </Project>

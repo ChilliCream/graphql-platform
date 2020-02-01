@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -12,20 +12,21 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <PackageId>StrawberryShake.CodeGeneration.CSharp</PackageId>
-    <AssemblyName>StrawberryShake.CodeGeneration.CSharp</AssemblyName>
-    <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
-    <PackageIconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</PackageIconUrl>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>StrawberryShake.Demo</AssemblyName>
+    <RootNamespace>StrawberryShake.Demo</RootNamespace>
+    <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CodeGeneration\CodeGeneration.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Abstractions\StrawberryShake.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Configuration\StrawberryShake.Configuration.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Http\StrawberryShake.Http.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.6.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="2.2.0" />
   </ItemGroup>
 
 </Project>
