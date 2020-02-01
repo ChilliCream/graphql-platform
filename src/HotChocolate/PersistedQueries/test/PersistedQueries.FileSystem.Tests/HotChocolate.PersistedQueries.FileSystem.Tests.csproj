@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj" />
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\src\PersistedQueries.FileSystem\HotChocolate.PersistedQueries.FileSystem.csproj" />
   </ItemGroup>
 
 </Project>

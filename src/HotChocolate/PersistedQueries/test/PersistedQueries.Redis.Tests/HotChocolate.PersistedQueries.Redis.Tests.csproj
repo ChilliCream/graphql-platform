@@ -19,12 +19,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PersistedQueries.Redis\PersistedQueries.Redis.csproj" />
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <PackageReference Include="Squadron.Redis" Version="0.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Redis" Version="0.3.0" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\src\PersistedQueries.Redis\HotChocolate.PersistedQueries.Redis.csproj" />
   </ItemGroup>
 
 </Project>

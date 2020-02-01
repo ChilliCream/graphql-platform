@@ -15,4 +15,5 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Snapshooter.Xunit" Version="0.5.2" />
   </ItemGroup>
+  
 </Project>
