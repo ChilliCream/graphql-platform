@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="**\*.css;**\*.html;**\*.js;**\*.png" />
-    <EmbeddedResource Include="**\*.css;**\*.html;**\*.js;**\*.png" />
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,7 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <None Remove="**\*.css;**\*.html;**\*.js;**\*.png" />
+    <EmbeddedResource Include="**\*.css;**\*.html;**\*.js;**\*.png" />
   </ItemGroup>
 
 </Project>

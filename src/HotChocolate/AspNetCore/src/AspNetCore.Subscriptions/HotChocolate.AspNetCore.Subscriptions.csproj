@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\AspNetCore.Abstractions\HotChocolate.AspNetCore.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\AspNetCore.Abstractions\HotChocolate.AspNetCore.Abstractions.csproj" />
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
   </ItemGroup>
 
 </Project>
