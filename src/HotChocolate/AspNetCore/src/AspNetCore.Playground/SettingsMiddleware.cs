@@ -50,7 +50,7 @@ namespace HotChocolate.AspNetCore.Playground
                     subscriptionUrl: {subscriptionUrl},
                 }}
             ",
-            context.GetCancellationToken())
+            context.RequestAborted)
             .ConfigureAwait(false);
         }
 
@@ -65,7 +65,7 @@ namespace HotChocolate.AspNetCore.Playground
 
             if (websocket)
             {
-                scheme = request.IsHttps() ? "wss" : "ws";
+                scheme = request.IsHttps ? "wss" : "ws";
             }
 
             return UriHelper.BuildAbsolute(

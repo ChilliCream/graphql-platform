@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Batching
         {
             bool delimiter = false;
 
-            outputStream.WriteByte(_leftBracket);
+            await outputStream.WriteAsync(new[] { _leftBracket }, 0, 1).ConfigureAwait(false);
 
             await foreach (IReadOnlyQueryResult result in
                 responseStream.WithCancellation(cancellationToken))
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution.Batching
                 delimiter = true;
             }
 
-            outputStream.WriteByte(_rightBracket);
+            await outputStream.WriteAsync(new[] { _rightBracket }, 0, 1).ConfigureAwait(false);
         }
 
         private async Task WriteNextResultAsync(
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Batching
         {
             if (delimiter)
             {
-                outputStream.WriteByte(_comma);
+                await outputStream.WriteAsync(new[] { _comma }, 0, 1).ConfigureAwait(false);
             }
 
             await _serializer.SerializeAsync(
