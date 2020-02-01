@@ -1,29 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
-    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
-    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
-    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
-  </PropertyGroup>
-
-  <Import Project="$(ChilliFramework)" />
-  <Import Project="$(ChilliBuild)" />
-
-  <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.Stitching</PackageId>
     <AssemblyName>HotChocolate.Stitching</AssemblyName>
     <RootNamespace>HotChocolate.Stitching</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\introspection_phase_1.graphql" />
-    <None Remove="Resources\introspection_phase_2.graphql" />
-    <EmbeddedResource Include="Resources\introspection_phase_1.graphql" />
-    <EmbeddedResource Include="Resources\introspection_phase_2.graphql" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\Server\HotChocolate.Server.csproj" />
@@ -32,8 +14,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
-    <PackageReference Include="System.Text.Json" Version="4.6.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.1" />
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\introspection_phase_1.graphql" />
+    <None Remove="Resources\introspection_phase_2.graphql" />
+    <EmbeddedResource Include="Resources\introspection_phase_1.graphql" />
+    <EmbeddedResource Include="Resources\introspection_phase_2.graphql" />
   </ItemGroup>
 
   <ItemGroup>
