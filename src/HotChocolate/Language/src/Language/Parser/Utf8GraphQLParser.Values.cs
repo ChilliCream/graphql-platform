@@ -66,7 +66,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
-            ReadOnlyMemory<byte> value = ExpectString();
+            string value = ExpectString();
             Location? location = CreateLocation(in start);
 
             return new StringValueNode(location, value, isBlock);

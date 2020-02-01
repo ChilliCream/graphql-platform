@@ -77,11 +77,11 @@ namespace HotChocolate.Language
             Expect(TokenKind.RightBracket);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ReadOnlyMemory<byte> ExpectString()
+        private string ExpectString()
         {
             if (TokenHelper.IsString(in _reader))
             {
-                ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+                string value = _reader.GetString();
                 MoveNext();
                 return value;
             }
