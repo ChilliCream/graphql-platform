@@ -1,0 +1,32 @@
+﻿﻿public interface IHasName
+{
+    string? Name { get; }
+}
+
+public interface IHasFriends
+{
+    global::Foo.Bar.UNKNOWN? Friends { get; }
+}
+
+public interface IHero
+    : IHasName
+    , IHasFriends
+{
+}
+
+public class Hero
+    : IHero
+{
+    public Hero(
+        string? name, 
+        global::Foo.Bar.UNKNOWN? friends)
+    {
+        Name = name;
+        Friends = friends;
+    }
+
+    public string? Name { get; }
+
+    public global::Foo.Bar.UNKNOWN? Friends { get; }
+}
+

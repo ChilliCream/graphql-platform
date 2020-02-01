@@ -1,0 +1,17 @@
+﻿﻿public interface IFoo
+{
+    global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UNKNOWN>? Bars { get; }
+}
+
+public class Foo
+    : IFoo
+{
+    public Foo(
+        global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UNKNOWN>? bars)
+    {
+        Bars = bars;
+    }
+
+    public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UNKNOWN>? Bars { get; }
+}
+

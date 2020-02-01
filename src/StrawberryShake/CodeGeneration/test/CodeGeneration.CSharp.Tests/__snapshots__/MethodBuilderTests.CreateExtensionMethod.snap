@@ -1,0 +1,4 @@
+﻿private static void GetAbc(this String abc)
+{
+    return;
+}

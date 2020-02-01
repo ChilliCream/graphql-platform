@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>StrawberryShake.Http.Tests</AssemblyName>
+    <RootNamespace>StrawberryShake.Http</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.8" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.1" />
+  </ItemGroup>
+
+  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Core\StarWars\StarWars.csproj" />
+    <ProjectReference Include="..\..\..\..\Server\AspNetCore\AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Http\StrawberryShake.Http.csproj" />
+  </ItemGroup>
+
+</Project>

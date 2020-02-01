@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Utilities.Introspection.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Utilities.Introspection</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Utilities.Introspection\Utilities.Introspection.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests\AspNetCore.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

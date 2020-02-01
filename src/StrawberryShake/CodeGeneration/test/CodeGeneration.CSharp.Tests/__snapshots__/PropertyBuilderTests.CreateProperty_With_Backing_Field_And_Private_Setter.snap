@@ -1,0 +1,5 @@
+﻿public Bar Foo
+{
+    get => _foo
+    private set => _foo = value;
+}

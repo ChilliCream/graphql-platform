@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RootNamespace>GreenDonut.Benchmarks</RootNamespace>
+    <AssemblyName>GreenDonut.Benchmarks</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.0" />
+  </ItemGroup>
+
+</Project>

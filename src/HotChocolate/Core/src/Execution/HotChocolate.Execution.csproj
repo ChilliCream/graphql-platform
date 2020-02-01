@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Execution</PackageId>
+    <AssemblyName>HotChocolate.Execution</AssemblyName>
+    <RootNamespace>HotChocolate.Execution</RootNamespace>
+    <Description></Description>
+  </PropertyGroup>
+
+</Project>
