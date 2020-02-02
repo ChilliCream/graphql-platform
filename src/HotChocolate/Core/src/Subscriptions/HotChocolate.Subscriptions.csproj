@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Subscriptions</PackageId>
+    <AssemblyName>HotChocolate.Subscriptions</AssemblyName>
+    <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
+    <Description>Contains Hot Chocolate GraphQL subscriptions abstractions.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

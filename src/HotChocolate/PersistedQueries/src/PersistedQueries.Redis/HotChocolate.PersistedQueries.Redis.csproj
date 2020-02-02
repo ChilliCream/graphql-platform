@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.PersistedQueries.Redis</PackageId>
+    <AssemblyName>HotChocolate.PersistedQueries.Redis</AssemblyName>
+    <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>
+    <Description>An implementation of Hot Chocolate persisted queries using the Redis cache.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.1" />
+    <PackageReference Include="StackExchange.Redis" Version="2.0.601" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Stitching</PackageId>
+    <AssemblyName>HotChocolate.Stitching</AssemblyName>
+    <RootNamespace>HotChocolate.Stitching</RootNamespace>
+    <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\Server\HotChocolate.Server.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.1" />
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\introspection_phase_1.graphql" />
+    <None Remove="Resources\introspection_phase_2.graphql" />
+    <EmbeddedResource Include="Resources\introspection_phase_1.graphql" />
+    <EmbeddedResource Include="Resources\introspection_phase_2.graphql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\StitchingResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StitchingResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\StitchingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>StitchingResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

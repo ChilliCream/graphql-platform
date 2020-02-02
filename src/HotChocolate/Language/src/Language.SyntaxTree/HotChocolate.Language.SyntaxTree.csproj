@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Language.SyntaxTree</PackageId>
+    <AssemblyName>HotChocolate.Language.SyntaxTree</AssemblyName>
+    <RootNamespace>HotChocolate.Language</RootNamespace>
+    <Description>This package contains the abstract syntax tree that is used by the Hot Chocolate parsers.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Visitors\" />
+  </ItemGroup>
+
+</Project>

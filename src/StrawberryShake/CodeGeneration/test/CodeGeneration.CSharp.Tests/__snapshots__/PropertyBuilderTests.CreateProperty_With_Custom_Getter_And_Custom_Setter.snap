@@ -1,0 +1,11 @@
+﻿public Bar Foo
+{
+    get
+    {
+        return _value;
+    }
+    private set
+    {
+        _value = value;
+    }
+}
