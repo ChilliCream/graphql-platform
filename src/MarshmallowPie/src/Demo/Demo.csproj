@@ -5,10 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\GraphQL\MarshmallowPie.GraphQL.csproj" />
     <ProjectReference Include="..\BackgroundServices\MarshmallowPie.BackgroundServices.csproj" />
     <ProjectReference Include="..\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj" />
-    <ProjectReference Include="..\..\..\Server\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\Processing.InMemory\MarshmallowPie.Processing.InMemory.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>

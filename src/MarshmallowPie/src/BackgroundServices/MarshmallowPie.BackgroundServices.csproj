@@ -13,8 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Types\Types.csproj" />
-    <ProjectReference Include="..\..\..\Core\Language\Language.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
     <ProjectReference Include="..\Abstractions\MarshmallowPie.Abstractions.csproj" />
     <ProjectReference Include="..\Processing.InMemory\MarshmallowPie.Processing.InMemory.csproj" />
     <ProjectReference Include="..\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj" />

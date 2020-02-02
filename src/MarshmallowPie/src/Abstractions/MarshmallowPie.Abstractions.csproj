@@ -11,13 +11,12 @@
     <Description></Description>
   </PropertyGroup>
 
-
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Language\Language.csproj" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
+    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
   </ItemGroup>
 
 </Project>
