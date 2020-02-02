@@ -2,7 +2,9 @@ using System;
 
 namespace MarshmallowPie
 {
+#pragma warning disable CA1724
     public class Schema
+#pragma warning restore CA1724
     {
         public Schema(
             string name,

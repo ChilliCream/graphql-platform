@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace MarshmallowPie
@@ -8,19 +9,19 @@ namespace MarshmallowPie
     {
         public SchemaVersion(
             Guid schemaId,
-            string sourceText,
-            string hash,
+            string? externalId,
+            DocumentHash hash,
             IReadOnlyList<Tag> tags,
             DateTime published)
-            : this(Guid.NewGuid(), schemaId, sourceText, hash, tags, published)
+            : this(Guid.NewGuid(), schemaId, externalId, hash, tags, published)
         {
         }
 
         public SchemaVersion(
             Guid id,
             Guid schemaId,
-            string sourceText,
-            string hash,
+            string? externalId,
+            DocumentHash hash,
             IReadOnlyList<Tag> tags,
             DateTime published)
         {
@@ -31,7 +32,7 @@ namespace MarshmallowPie
 
             Id = id;
             SchemaId = schemaId;
-            SourceText = sourceText;
+            ExternalId = externalId ?? Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
             Hash = hash;
             Tags = tags;
             Published = published;
@@ -41,9 +42,9 @@ namespace MarshmallowPie
 
         public Guid SchemaId { get; }
 
-        public string SourceText { get; }
+        public string ExternalId { get; }
 
-        public string Hash { get; }
+        public DocumentHash Hash { get; }
 
         public IReadOnlyList<Tag> Tags { get; }
 

@@ -11,11 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\GraphQL\GraphQL.csproj" />
-    <ProjectReference Include="..\..\src\Repositories.Mongo\Repositories.Mongo.csproj" />
-    <ProjectReference Include="..\..\src\Storage.FileSystem\Storage.FileSystem.csproj" />
-    <ProjectReference Include="..\Storage.FileSystem.Tests\Storage.FileSystem.Tests.csproj" />
-    <ProjectReference Include="..\..\src\Processing.InMemory\Processing.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\GraphQL\MarshmallowPie.GraphQL.csproj" />
+    <ProjectReference Include="..\..\src\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj" />
+    <ProjectReference Include="..\..\src\Storage.FileSystem\MarshmallowPie.Storage.FileSystem.csproj" />
+    <ProjectReference Include="..\..\src\Processing.InMemory\MarshmallowPie.Processing.InMemory.csproj" />
+    <ProjectReference Include="..\Storage.FileSystem.Tests\MarshmallowPie.Storage.FileSystem.Tests.csproj" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->

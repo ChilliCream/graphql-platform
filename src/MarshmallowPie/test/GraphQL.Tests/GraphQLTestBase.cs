@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Execution;
 using MarshmallowPie.Processing;
@@ -10,7 +11,6 @@ using MarshmallowPie.Repositories;
 using MarshmallowPie.Repositories.Mongo;
 using MarshmallowPie.Storage;
 using MarshmallowPie.Storage.FileSystem;
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Moq;
 using Squadron;
@@ -24,7 +24,9 @@ namespace MarshmallowPie.GraphQL
     {
         private readonly List<object> _receivedMessages = new List<object>();
 
-        protected GraphQLTestBase(MongoResource mongoResource, FileStorageResource fileStorageResource)
+        protected GraphQLTestBase(
+            MongoResource mongoResource,
+            FileStorageResource fileStorageResource)
         {
             MongoResource = mongoResource;
             MongoDatabase = mongoResource.CreateDatabase(

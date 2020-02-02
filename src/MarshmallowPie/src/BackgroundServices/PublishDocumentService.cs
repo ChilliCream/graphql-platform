@@ -22,12 +22,17 @@ namespace MarshmallowPie.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            IAsyncEnumerable<PublishDocumentMessage> eventStream =
+            IMessageStream<PublishDocumentMessage> eventStream =
                 await _messageReceiver.SubscribeAsync(stoppingToken).ConfigureAwait(false);
 
-            await foreach (PublishDocumentMessage message in
+            await foreach (PublishDocumentMessage? message in
                 eventStream.WithCancellation(stoppingToken))
             {
+                if (message is null)
+                {
+                    break;
+                }
+
                 foreach (IPublishDocumentHandler handler in _publishDocumentHandlers)
                 {
                     if (handler.Type == message.Type)
@@ -35,6 +40,8 @@ namespace MarshmallowPie.BackgroundServices
                         await handler.HandleAsync(message, stoppingToken).ConfigureAwait(false);
                     }
                 }
+
+                await eventStream.CompleteAsync().ConfigureAwait(false);
             }
         }
     }

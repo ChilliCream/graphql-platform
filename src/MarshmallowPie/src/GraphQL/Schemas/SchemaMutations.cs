@@ -97,7 +97,10 @@ namespace MarshmallowPie.GraphQL.Schemas
                     sessionId,
                     environment.Id,
                     schema.Id,
-                    input.Tags.Select(t => new Tag(t.Key, t.Value)).ToList()),
+                    input.ExternalId,
+                    input.Tags is null
+                        ? Array.Empty<Tag>()
+                        : input.Tags.Select(t => new Tag(t.Key, t.Value)).ToArray()),
                 cancellationToken)
                 .ConfigureAwait(false);
 

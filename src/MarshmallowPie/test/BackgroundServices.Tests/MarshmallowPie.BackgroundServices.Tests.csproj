@@ -6,13 +6,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.1</TargetFramework>
-    <AssemblyName>MarshmallowPie.Storage.FileSystem.Tests</AssemblyName>
-    <RootNamespace>MarshmallowPie.Storage.FileSystem</RootNamespace>
+    <AssemblyName>MarshmallowPie.BackgroundServices.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.BackgroundServices</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Storage.FileSystem\Storage.FileSystem.csproj" />
+    <ProjectReference Include="..\..\src\BackgroundServices\MarshmallowPie.BackgroundServices.csproj" />
+    <ProjectReference Include="..\GraphQL.Tests\MarshmallowPie.GraphQL.Tests.csproj" />
+    <ProjectReference Include="..\Storage.FileSystem.Tests\MarshmallowPie.Storage.FileSystem.Tests.csproj" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->

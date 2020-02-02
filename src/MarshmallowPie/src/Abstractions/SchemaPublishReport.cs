@@ -6,7 +6,6 @@ namespace MarshmallowPie
     public class SchemaPublishReport
     {
         public SchemaPublishReport(
-
             Guid schemaVersionId,
             Guid environmentId,
             IReadOnlyList<Issue> issues,

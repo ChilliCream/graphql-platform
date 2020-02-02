@@ -1,6 +1,5 @@
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using MarshmallowPie.BackgroundServices;
 using MarshmallowPie.GraphQL;
 using MarshmallowPie.Repositories.Mongo;
 using Microsoft.AspNetCore.Builder;
@@ -9,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
+using MarshmallowPie;
 
 namespace Demo
 {
@@ -20,13 +20,17 @@ namespace Demo
         {
             services.AddMongoRepositories(sp => new MongoClient().GetDatabase("foo3"));
 
-            services.AddHostedService<PublishDocumentService>();
+            services.AddPublishDocumentService();
+
+            services.AddInMemoryMessageQueue();
+            services.AddFileSystemStorage("temp");
 
             services.AddSchemaRegistryDataLoader();
 
             services.AddGraphQL(
                 SchemaBuilder.New()
-                    .AddSchemaRegistry());
+                    .AddSchemaRegistry()
+                    .EnableRelaySupport());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,13 +43,15 @@ namespace Demo
 
             app.UseRouting();
 
+            app.UseWebSockets();
+
             app.UseGraphQL();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync("Hello World!");
+                    await context.Response.WriteAsync("Hello World!").ConfigureAwait(false);
                 });
             });
         }

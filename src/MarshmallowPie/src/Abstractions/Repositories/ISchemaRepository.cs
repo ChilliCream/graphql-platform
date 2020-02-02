@@ -36,8 +36,12 @@ namespace MarshmallowPie.Repositories
 
         IQueryable<SchemaVersion> GetSchemaVersions();
 
-        Task<SchemaVersion?> GetSchemaVersionAsync(
+        Task<SchemaVersion?> GetSchemaVersionByHashAsync(
             string hash,
+            CancellationToken cancellationToken = default);
+
+        Task<SchemaVersion?> GetSchemaVersionByExternalIdAsync(
+            string externalId,
             CancellationToken cancellationToken = default);
 
         Task<IReadOnlyDictionary<Guid, SchemaVersion>> GetSchemaVersionsAsync(
@@ -48,8 +52,9 @@ namespace MarshmallowPie.Repositories
             SchemaVersion schemaVersion,
             CancellationToken cancellationToken = default);
 
-        Task UpdateSchemaVersionAsync(
-            SchemaVersion schemaVersion,
+        Task UpdateSchemaVersionTagsAsync(
+            Guid schemaVersionId,
+            IReadOnlyList<Tag> tags,
             CancellationToken cancellationToken = default);
 
         IQueryable<SchemaPublishReport> GetPublishReports();

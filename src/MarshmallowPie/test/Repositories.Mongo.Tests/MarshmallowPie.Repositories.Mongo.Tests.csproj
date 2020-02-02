@@ -6,12 +6,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>MarshmallowPie.Processing.InMemory.Tests</AssemblyName>
-    <RootNamespace>MarshmallowPie.Processing.InMemory</RootNamespace>
+    <AssemblyName>MarshmallowPie.Repositories.Mongo.Tests</AssemblyName>
+    <RootNamespace>MarshmallowPie.Repositories.Mongo</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Processing.InMemory\Processing.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Repositories.Mongo\MarshmallowPie.Repositories.Mongo.csproj" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->

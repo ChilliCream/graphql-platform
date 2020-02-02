@@ -7,10 +7,11 @@ using MarshmallowPie.Processing;
 
 namespace MarshmallowPie.GraphQL.Schemas
 {
+    [ExtendObjectType(Name = "Subscription")]
     public class SchemaSubscriptions
     {
         [Subscribe]
-        public ValueTask<IAsyncEnumerable<PublishSchemaEvent>> SubscribeToPublishSchema(
+        public ValueTask<IAsyncEnumerable<PublishSchemaEvent>> OnPublishSchema(
             string sessionId,
             [Service]ISessionMessageReceiver<PublishSchemaEvent> messageReceiver,
             CancellationToken cancellationToken) =>

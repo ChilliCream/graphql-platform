@@ -10,12 +10,14 @@ namespace MarshmallowPie.Processing
             Guid environmentId,
             Guid schemaId,
             Guid clientId,
+            string? externalId,
             IReadOnlyList<Tag> tags)
         {
             SessionId = sessionId;
             EnvironmentId = environmentId;
             SchemaId = schemaId;
             ClientId = clientId;
+            ExternalId = externalId;
             Type = DocumentType.Query;
             Tags = tags;
         }
@@ -24,11 +26,13 @@ namespace MarshmallowPie.Processing
             string sessionId,
             Guid environmentId,
             Guid schemaId,
+            string? externalId,
             IReadOnlyList<Tag> tags)
         {
             SessionId = sessionId;
             EnvironmentId = environmentId;
             SchemaId = schemaId;
+            ExternalId = externalId;
             Type = DocumentType.Schema;
             Tags = tags;
         }
@@ -40,6 +44,8 @@ namespace MarshmallowPie.Processing
         public Guid SchemaId { get; }
 
         public Guid? ClientId { get; }
+
+        public string? ExternalId { get; }
 
         public DocumentType Type { get; }
 

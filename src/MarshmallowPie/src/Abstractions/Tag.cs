@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MarshmallowPie
 {
-    public class Tag
+    public sealed class Tag
+        : IEquatable<Tag>
     {
         public Tag(string key, string value)
             : this(key, value, DateTime.UtcNow)
@@ -23,6 +23,27 @@ namespace MarshmallowPie
         public string Value { get; }
 
         public DateTime Published { get; }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Tag tag
+                && Key.Equals(tag.Key, StringComparison.Ordinal)
+                && Value.Equals(tag.Value, StringComparison.Ordinal)
+                && Published.Equals(tag.Published);
+        }
+
+        public bool Equals(Tag? other)
+        {
+            return other is { }
+                && Key.Equals(other.Key, StringComparison.Ordinal)
+                && Value.Equals(other.Value, StringComparison.Ordinal)
+                && Published.Equals(other.Published);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Key, Value, Published);
+        }
     }
 
     public sealed class TagComparer : IEqualityComparer<Tag>
@@ -49,11 +70,7 @@ namespace MarshmallowPie
 
         public int GetHashCode(Tag obj)
         {
-            unchecked
-            {
-                return (obj.Key.GetHashCode() * 397) ^
-                    (obj.Value.GetHashCode() * 397);
-            }
+            return obj.GetHashCode();
         }
 
         public static TagComparer Default { get; } = new TagComparer();

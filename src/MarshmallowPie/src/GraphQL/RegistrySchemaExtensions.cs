@@ -16,8 +16,8 @@ namespace MarshmallowPie.GraphQL
             {
                 builder
                     .AddQueryType(d => d.Name("Query"))
-                    .AddMutationType(d => d.Name("Mutation"));
-                //.AddSubscriptionType(d => d.Name("Subscription"))
+                    .AddMutationType(d => d.Name("Mutation"))
+                    .AddSubscriptionType(d => d.Name("Subscription"));
             }
 
             return builder
@@ -25,6 +25,7 @@ namespace MarshmallowPie.GraphQL
                 .AddType<EnvironmentMutations>()
                 .AddType<SchemaQueries>()
                 .AddType<SchemaMutations>()
+                .AddType<SchemaSubscriptions>()
                 .AddType<SchemaExtension>()
                 .AddType<SchemaVersionExtension>()
                 .AddType<SchemaPublishReportExtension>()

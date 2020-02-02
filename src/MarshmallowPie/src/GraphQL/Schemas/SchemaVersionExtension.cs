@@ -18,8 +18,7 @@ namespace MarshmallowPie.GraphQL.Schemas
 
         public IQueryable<SchemaPublishReport> GetPublishReports(
             [Parent]SchemaVersion schemaVersion,
-            [Service]ISchemaRepository repository,
-            CancellationToken cancellationToken) =>
+            [Service]ISchemaRepository repository) =>
             repository.GetPublishReports().Where(t => t.SchemaVersionId == schemaVersion.Id);
 
         public async Task<SchemaPublishReport?> GetPublishReportByEnvironmentAsync(
