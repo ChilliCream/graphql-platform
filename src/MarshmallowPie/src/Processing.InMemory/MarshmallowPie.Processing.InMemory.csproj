@@ -1,15 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>MarshmallowPie.Processing.InMemory</PackageId>
     <AssemblyName>MarshmallowPie.Processing.InMemory</AssemblyName>
     <RootNamespace>MarshmallowPie.Processing.InMemory</RootNamespace>
     <Description></Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +15,4 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DependencyInjection\" />
-  </ItemGroup>
 </Project>

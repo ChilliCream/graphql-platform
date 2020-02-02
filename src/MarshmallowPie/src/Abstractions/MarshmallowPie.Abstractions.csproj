@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>MarshmallowPie.Abstractions</PackageId>
     <AssemblyName>MarshmallowPie.Abstractions</AssemblyName>
     <RootNamespace>MarshmallowPie</RootNamespace>
@@ -12,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
+    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

@@ -1,15 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>MarshmallowPie.GraphQL</PackageId>
     <AssemblyName>MarshmallowPie.GraphQL</AssemblyName>
     <RootNamespace>MarshmallowPie.GraphQL</RootNamespace>
     <Description></Description>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
