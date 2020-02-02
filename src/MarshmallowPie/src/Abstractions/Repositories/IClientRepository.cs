@@ -84,7 +84,7 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
-        Task UpdatePublishedClientAsync(
+        Task SetPublishedClientAsync(
             PublishedClient publishedClient,
             CancellationToken cancellationToken = default);
     }

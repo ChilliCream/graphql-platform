@@ -220,23 +220,12 @@ namespace MarshmallowPie.Repositories.Mongo
                 tags = new HashSet<Tag>(tags, TagComparer.Default).ToList();
             }
 
-            try
-            {
-                await _versions.UpdateOneAsync(
-                    Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersionId),
-                    Builders<SchemaVersion>.Update.Set(t => t.Tags, tags),
-                    options: default(UpdateOptions),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (MongoWriteException ex)
-            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
-            {
-                // TODO : resources
-                throw new DuplicateKeyException(
-                    $"The specified schema version hash `{schemaVersionId}` already exists.",
-                    ex);
-            }
+            await _versions.UpdateOneAsync(
+                Builders<SchemaVersion>.Filter.Eq(t => t.Id, schemaVersionId),
+                Builders<SchemaVersion>.Update.Set(t => t.Tags, tags),
+                options: default(UpdateOptions),
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public IQueryable<SchemaPublishReport> GetPublishReports() =>

@@ -15,17 +15,20 @@ namespace MarshmallowPie.Repositories.Mongo
         private readonly IMongoCollection<ClientVersion> _versions;
         private readonly IMongoCollection<Query> _queries;
         private readonly IMongoCollection<ClientPublishReport> _publishReports;
+        private readonly IMongoCollection<PublishedClient> _publishedClients;
 
         public ClientRepository(
             IMongoCollection<Client> clients,
             IMongoCollection<ClientVersion> versions,
             IMongoCollection<Query> queries,
-            IMongoCollection<ClientPublishReport> publishReports)
+            IMongoCollection<ClientPublishReport> publishReports,
+            IMongoCollection<PublishedClient> publishedClients)
         {
             _clients = clients;
             _versions = versions;
             _queries = queries;
             _publishReports = publishReports;
+            _publishedClients = publishedClients;
 
             _clients.Indexes.CreateOne(
                 new CreateIndexModel<Client>(
@@ -40,7 +43,7 @@ namespace MarshmallowPie.Repositories.Mongo
             _queries.Indexes.CreateOne(
                 new CreateIndexModel<Query>(
                     Builders<Query>.IndexKeys.Ascending(x => x.Hash.Hash),
-                    new CreateIndexOptions { Unique = false }));
+                    new CreateIndexOptions { Unique = true }));
 
             _queries.Indexes.CreateOne(
                 new CreateIndexModel<Query>(
@@ -55,6 +58,14 @@ namespace MarshmallowPie.Repositories.Mongo
                             x.ClientVersionId),
                         Builders<ClientPublishReport>.IndexKeys.Ascending(x =>
                             x.EnvironmentId)),
+                    new CreateIndexOptions { Unique = true }));
+
+            _publishedClients.Indexes.CreateOne(
+                new CreateIndexModel<PublishedClient>(
+                    Builders<PublishedClient>.IndexKeys.Combine(
+                        Builders<PublishedClient>.IndexKeys.Ascending(x => x.EnvironmentId),
+                        Builders<PublishedClient>.IndexKeys.Ascending(x => x.SchemaId),
+                        Builders<PublishedClient>.IndexKeys.Ascending(x => x.ClientId)),
                     new CreateIndexOptions { Unique = true }));
         }
 
@@ -92,10 +103,8 @@ namespace MarshmallowPie.Repositories.Mongo
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default)
         {
-            var list = new List<Guid>(ids);
-
             List<Client> result = await _clients.AsQueryable()
-                .Where(t => list.Contains(t.Id))
+                .Where(t => ids.Contains(t.Id))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
 
@@ -163,95 +172,230 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             IQueryable<ClientVersion> clients = _versions.AsQueryable();
 
-            if (schemaId.HasValue)
+            if (clientId.HasValue)
             {
-                return clients.Where(t => t.SchemaId == schemaId.Value);
+                return clients.Where(t => t.ClientId == clientId.Value);
             }
 
             return clients;
         }
 
-        public Task<IReadOnlyDictionary<Guid, ClientVersion>> GetClientVersionsAsync(
+        public async Task<IReadOnlyDictionary<Guid, ClientVersion>> GetClientVersionsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            List<ClientVersion> result = await _versions.AsQueryable()
+                .Where(t => ids.Contains(t.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Id);
         }
 
-        public Task AddClientVersionAsync(
+        public async Task AddClientVersionAsync(
             ClientVersion clientVersion,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _versions.InsertOneAsync(
+                    clientVersion,
+                    options: null,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    $"The specified external ID `{clientVersion.Id}` is already used.",
+                    ex);
+            }
         }
 
-        public Task UpdateClientVersionTagsAsync(
+        public async Task UpdateClientVersionTagsAsync(
             Guid clientVersionId,
             IReadOnlyList<Tag> tags,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
-        }
+            if (tags.Count > 1)
+            {
+                tags = new HashSet<Tag>(tags, TagComparer.Default).ToList();
+            }
 
-        public Task<IReadOnlyDictionary<Guid, PublishedClient>> GetPublishedClientAsync(
-                  IReadOnlyList<Guid> ids,
-                  CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task AddPublishReportAsync(
-            ClientPublishReport publishReport,
-            CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public Task AddQueriesAsync(IEnumerable<Query> queries, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-
-
-        public Task<ClientPublishReport?> GetPublishReportAsync(Guid clientVersionId, Guid environmentId, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
+            await _versions.UpdateOneAsync(
+                Builders<ClientVersion>.Filter.Eq(t => t.Id, clientVersionId),
+                Builders<ClientVersion>.Update.Set(t => t.Tags, tags),
+                options: default(UpdateOptions),
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public IQueryable<ClientPublishReport> GetPublishReports(Guid? clientVersionId)
         {
-            throw new NotImplementedException();
+            IQueryable<ClientPublishReport> publishReports = _publishReports.AsQueryable();
+
+            if (clientVersionId.HasValue)
+            {
+                return publishReports.Where(t => t.ClientVersionId == clientVersionId.Value);
+            }
+
+            return publishReports;
         }
 
-        public Task<IReadOnlyDictionary<Guid, ClientPublishReport>> GetPublishReportsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
+        public Task<ClientPublishReport?> GetPublishReportAsync(
+            Guid clientVersionId,
+            Guid environmentId,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return _publishReports.AsQueryable()
+                .Where(t => t.ClientVersionId == clientVersionId
+                    || t.EnvironmentId == environmentId)
+                .FirstOrDefaultAsync()!;
         }
 
-        public Task<IReadOnlyDictionary<Guid, Query>> GetQueriesAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyDictionary<Guid, ClientPublishReport>> GetPublishReportsAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            List<ClientPublishReport> result = await _publishReports.AsQueryable()
+                .Where(t => ids.Contains(t.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Id);
         }
 
-        public Task<Query?> GetQueryAsync(string documentHash, CancellationToken cancellationToken = default)
+        public async Task AddPublishReportAsync(
+            ClientPublishReport publishReport,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _publishReports.InsertOneAsync(
+                    publishReport,
+                    options: null,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    "TODO",
+                    ex);
+            }
         }
 
-
-
-        public Task UpdatePublishedClientAsync(PublishedClient publishedClient, CancellationToken cancellationToken = default)
+        public async Task UpdatePublishReportAsync(
+            ClientPublishReport publishReport,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _publishReports.ReplaceOneAsync(
+                    Builders<ClientPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
+                    publishReport,
+                    options: default(ReplaceOptions),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    "TODO",
+                    ex);
+            }
         }
 
-        public Task UpdatePublishReportAsync(ClientPublishReport publishReport, CancellationToken cancellationToken = default)
+        public async Task<Query?> GetQueryAsync(
+            string documentHash,
+            CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            Query? query = await _queries.AsQueryable()
+                .Where(t => t.Hash.Hash == documentHash)
+                .FirstOrDefaultAsync(cancellationToken)!
+                .ConfigureAwait(false);
+
+            if (query is null)
+            {
+                query = await _queries.AsQueryable()
+                    .Where(t => t.ExternalHashes.Any(t => t.Hash == documentHash))
+                    .FirstOrDefaultAsync(cancellationToken)!
+                    .ConfigureAwait(false);
+            }
+
+            return query;
+        }
+
+        public async Task<IReadOnlyDictionary<Guid, Query>> GetQueriesAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken = default)
+        {
+            List<Query> result = await _queries.AsQueryable()
+                .Where(t => ids.Contains(t.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Id);
+        }
+
+        public async Task AddQueriesAsync(
+            IEnumerable<Query> queries,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await _queries.InsertManyAsync(
+                    queries,
+                    options: default(InsertManyOptions),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (MongoWriteException ex)
+            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+            {
+                // TODO : resources
+                throw new DuplicateKeyException(
+                    "TODO.",
+                    ex);
+            }
+        }
+
+        public async Task<IReadOnlyDictionary<Guid, PublishedClient>> GetPublishedClientAsync(
+            IReadOnlyList<Guid> ids,
+            CancellationToken cancellationToken = default)
+        {
+            List<PublishedClient> result = await _publishedClients.AsQueryable()
+                .Where(t => ids.Contains(t.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Id);
+        }
+
+        public async Task SetPublishedClientAsync(
+            PublishedClient publishedClient,
+            CancellationToken cancellationToken = default)
+        {
+            await _publishedClients.UpdateOneAsync(
+                Builders<PublishedClient>.Filter.Eq(t => t.Id, publishedClient.Id),
+                Builders<PublishedClient>.Update.Combine(
+                    Builders<PublishedClient>.Update.SetOnInsert(
+                        t => t.EnvironmentId, publishedClient.EnvironmentId),
+                    Builders<PublishedClient>.Update.SetOnInsert(
+                        t => t.SchemaId, publishedClient.SchemaId),
+                    Builders<PublishedClient>.Update.SetOnInsert(
+                        t => t.ClientId, publishedClient.ClientId),
+                    Builders<PublishedClient>.Update.SetOnInsert(
+                        t => t.ClientVersionId, publishedClient.ClientVersionId)),
+                new UpdateOptions { IsUpsert = true },
+                cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }
