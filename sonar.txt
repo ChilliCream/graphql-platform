@@ -1,0 +1,19 @@
+dotnet sonarscanner begin
+/k:"HotChocolate"
+/v:"$(Version)"
+/d:sonar.login="$(SonarToken)"
+/d:sonar.host.url="https://sonarcloud.io"
+/d:sonar.organization="chillicream"
+/d:sonar.cs.opencover.reportsPaths="**/*.opencover.xml"
+/d:sonar.cs.vscoveragexml.reportsPaths="**/*.trx"
+/d:sonar.pullrequest.key="$(sonarPrKey)"
+/d:sonar.pullrequest.branch="$(sonarBranch)"
+/d:sonar.pullrequest.base="$(sonarBranchBase)"
+/d:sonar.pullrequest.provider="github"
+/d:sonar.pullrequest.github.repository="ChilliCream/hotchocolate"
+
+Organization
+
+
+sonar.sources=src,srcb
+sonar.tests=tests,testb
