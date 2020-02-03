@@ -3,6 +3,7 @@ namespace MarshmallowPie.Processing
     public enum DocumentType
     {
         Schema,
-        Query
+        Query,
+        Relay
     }
 }

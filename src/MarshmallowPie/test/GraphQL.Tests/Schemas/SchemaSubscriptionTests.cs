@@ -36,13 +36,13 @@ namespace MarshmallowPie.GraphQL.Schemas
             string sessionId = await SessionCreator.CreateSessionAsync();
 
             await PublishSchemaEventSender.SendAsync(
-                new PublishSchemaEvent(
+                new PublishDocumentEvent(
                     sessionId,
                     new Issue("foo", "file.graphql", new Location(0, 0, 0, 0),
                     IssueType.Information)));
 
             await PublishSchemaEventSender.SendAsync(
-                PublishSchemaEvent.Completed(sessionId));
+                PublishDocumentEvent.Completed(sessionId));
 
             // act
             var responseStream = (IResponseStream)await Executor.ExecuteAsync(

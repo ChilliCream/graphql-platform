@@ -1,16 +1,16 @@
 namespace MarshmallowPie.Processing
 {
-    public class PublishSchemaEvent
+    public class PublishDocumentEvent
         : ISessionMessage
     {
-        public PublishSchemaEvent(string sessionId, Issue issue)
+        public PublishDocumentEvent(string sessionId, Issue issue)
         {
             SessionId = sessionId;
             Issue = issue;
             IsCompleted = false;
         }
 
-        private PublishSchemaEvent(string sessionId)
+        private PublishDocumentEvent(string sessionId)
         {
             SessionId = sessionId;
             Issue = null;
@@ -23,7 +23,7 @@ namespace MarshmallowPie.Processing
 
         public bool IsCompleted { get; }
 
-        public static PublishSchemaEvent Completed(string sessionId) =>
-            new PublishSchemaEvent(sessionId);
+        public static PublishDocumentEvent Completed(string sessionId) =>
+            new PublishDocumentEvent(sessionId);
     }
 }

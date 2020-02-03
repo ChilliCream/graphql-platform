@@ -10,8 +10,8 @@ namespace MarshmallowPie.Processing.InMemory
         public async Task Send_And_Receive_Message()
         {
             // arrange
-            var test = new MessageQueue<PublishSchemaEvent>();
-            var message = new PublishSchemaEvent(
+            var test = new MessageQueue<PublishDocumentEvent>();
+            var message = new PublishDocumentEvent(
                 "abc",
                 new Issue("def", "file", new Location(0, 0, 0, 0), IssueType.Error));
 
@@ -19,7 +19,7 @@ namespace MarshmallowPie.Processing.InMemory
             await test.SendAsync(message);
 
             // assert
-            await foreach (PublishSchemaEvent m in await test.SubscribeAsync())
+            await foreach (PublishDocumentEvent m in await test.SubscribeAsync())
             {
                 Assert.Equal(message, m);
                 break;

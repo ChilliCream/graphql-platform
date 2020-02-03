@@ -63,11 +63,11 @@ namespace MarshmallowPie.BackgroundServices
             // act
             await service.StartAsync(default);
 
-            var list = new List<PublishSchemaEvent>();
+            var list = new List<PublishDocumentEvent>();
             using var cts = new CancellationTokenSource(5000);
-            IAsyncEnumerable<PublishSchemaEvent> eventStream =
+            IAsyncEnumerable<PublishDocumentEvent> eventStream =
                 await PublishSchemaEventReceiver.SubscribeAsync(sessionId, cts.Token);
-            await foreach (PublishSchemaEvent eventMessage in
+            await foreach (PublishDocumentEvent eventMessage in
                 eventStream.WithCancellation(cts.Token))
             {
                 list.Add(eventMessage);

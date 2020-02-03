@@ -11,9 +11,9 @@ namespace MarshmallowPie.GraphQL.Schemas
     public class SchemaSubscriptions
     {
         [Subscribe]
-        public ValueTask<IAsyncEnumerable<PublishSchemaEvent>> OnPublishSchema(
+        public ValueTask<IAsyncEnumerable<PublishDocumentEvent>> OnPublishSchema(
             string sessionId,
-            [Service]ISessionMessageReceiver<PublishSchemaEvent> messageReceiver,
+            [Service]ISessionMessageReceiver<PublishDocumentEvent> messageReceiver,
             CancellationToken cancellationToken) =>
             messageReceiver.SubscribeAsync(sessionId, cancellationToken);
     }

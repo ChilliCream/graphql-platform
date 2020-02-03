@@ -15,19 +15,18 @@ using Location = HotChocolate.Language.Location;
 
 namespace MarshmallowPie.BackgroundServices
 {
-#pragma warning disable CA1031
     public class PublishNewSchemaDocumentHandler
         : IPublishDocumentHandler
     {
         private const string _fileName = "schema.graphql";
         private readonly IFileStorage _fileStorage;
         private readonly ISchemaRepository _schemaRepository;
-        private readonly IMessageSender<PublishSchemaEvent> _eventSender;
+        private readonly IMessageSender<PublishDocumentEvent> _eventSender;
 
         public PublishNewSchemaDocumentHandler(
             IFileStorage fileStorage,
             ISchemaRepository schemaRepository,
-            IMessageSender<PublishSchemaEvent> eventSender)
+            IMessageSender<PublishDocumentEvent> eventSender)
         {
             _fileStorage = fileStorage
                 ?? throw new ArgumentNullException(nameof(fileStorage));
@@ -67,22 +66,18 @@ namespace MarshmallowPie.BackgroundServices
 
                 IFile schemaFile = files.Single();
 
-                DocumentNode? schemaDocument = await TryParseSchemaAsync(
+                DocumentNode? schemaDocument = await DocumentHelper.TryParseDocumentAsync(
                     schemaFile, issueLogger, cancellationToken)
                     .ConfigureAwait(false);
 
-                string formattedSourceText = schemaDocument is { }
-                    ? PrintSchema(schemaDocument)
-                    : await ReadSchemaSourceTextAsync(
-                        schemaFile, cancellationToken)
-                        .ConfigureAwait(false);
-
-                DocumentHash documentHash = DocumentHash.FromSourceText(formattedSourceText);
+                string sourceText = await DocumentHelper.LoadSourceTextAsync(
+                    schemaFile, schemaDocument, cancellationToken)
+                    .ConfigureAwait(false);
 
                 await PublishNewSchemaVersionAsync(
                     message,
                     schemaDocument,
-                    formattedSourceText,
+                    sourceText,
                     issueLogger,
                     cancellationToken)
                     .ConfigureAwait(false);
@@ -104,67 +99,9 @@ namespace MarshmallowPie.BackgroundServices
             finally
             {
                 await _eventSender.SendAsync(
-                    PublishSchemaEvent.Completed(message.SessionId),
+                    PublishDocumentEvent.Completed(message.SessionId),
                     cancellationToken)
                     .ConfigureAwait(false);
-            }
-        }
-
-        private static async Task<DocumentNode?> TryParseSchemaAsync(
-            IFile file,
-            IssueLogger logger,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                using var fileStream = await file.OpenAsync(cancellationToken)
-                    .ConfigureAwait(false);
-                using var memoryStream = new MemoryStream();
-
-                await fileStream.CopyToAsync(memoryStream).ConfigureAwait(false);
-
-                return Utf8GraphQLParser.Parse(memoryStream.ToArray());
-            }
-            catch (SyntaxException ex)
-            {
-                await logger.LogIssueAsync(
-                    new Issue(
-                        "SYNTAX_ERROR",
-                        ex.Message,
-                        _fileName,
-                        new Location(ex.Position, ex.Position, ex.Line, ex.Column),
-                        IssueType.Error,
-                        ResolutionType.CannotBeFixed),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                await logger.LogIssueAsync(
-                    new Issue(
-                        "PARSING_FAILED",
-                        ex.Message,
-                        _fileName,
-                        new Location(0, 0, 0, 0),
-                        IssueType.Error,
-                        ResolutionType.CannotBeFixed),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-                return null;
-            }
-        }
-
-        private async Task<string> ReadSchemaSourceTextAsync(
-            IFile file,
-            CancellationToken cancellationToken)
-        {
-            using (Stream stream = await file.OpenAsync(cancellationToken).ConfigureAwait(false))
-            {
-                using (var reader = new StreamReader(stream))
-                {
-                    return await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
             }
         }
 
@@ -290,5 +227,4 @@ namespace MarshmallowPie.BackgroundServices
                 .ConfigureAwait(false);
         }
     }
-#pragma warning restore CA1031
 }

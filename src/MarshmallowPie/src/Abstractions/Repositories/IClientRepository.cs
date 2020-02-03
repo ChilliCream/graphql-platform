@@ -57,6 +57,10 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyDictionary<string, Query>> GetQueriesAsync(
+            IReadOnlyList<string> documentHashes,
+            CancellationToken cancellationToken = default);
+
         Task AddQueriesAsync(
             IEnumerable<Query> queries,
             CancellationToken cancellationToken = default);

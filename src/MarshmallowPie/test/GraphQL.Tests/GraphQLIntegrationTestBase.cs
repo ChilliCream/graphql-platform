@@ -50,11 +50,11 @@ namespace MarshmallowPie.GraphQL
             PublishDocumentMessageSender =
                 services.GetRequiredService<IMessageSender<PublishDocumentMessage>>();
             PublishSchemaEventSender =
-                services.GetRequiredService<IMessageSender<PublishSchemaEvent>>();
+                services.GetRequiredService<IMessageSender<PublishDocumentEvent>>();
             PublishDocumentMessageReceiver =
                 services.GetRequiredService<IMessageReceiver<PublishDocumentMessage>>();
             PublishSchemaEventReceiver =
-                services.GetRequiredService<ISessionMessageReceiver<PublishSchemaEvent>>();
+                services.GetRequiredService<ISessionMessageReceiver<PublishDocumentEvent>>();
         }
 
         protected ISchema Schema { get; }
@@ -75,10 +75,10 @@ namespace MarshmallowPie.GraphQL
 
         protected IMessageSender<PublishDocumentMessage> PublishDocumentMessageSender { get; }
 
-        protected IMessageSender<PublishSchemaEvent> PublishSchemaEventSender { get; }
+        protected IMessageSender<PublishDocumentEvent> PublishSchemaEventSender { get; }
 
         protected IMessageReceiver<PublishDocumentMessage> PublishDocumentMessageReceiver { get; }
 
-        protected ISessionMessageReceiver<PublishSchemaEvent> PublishSchemaEventReceiver { get; }
+        protected ISessionMessageReceiver<PublishDocumentEvent> PublishSchemaEventReceiver { get; }
     }
 }

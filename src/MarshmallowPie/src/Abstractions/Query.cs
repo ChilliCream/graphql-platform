@@ -5,6 +5,14 @@ namespace MarshmallowPie
 {
     public class Query
     {
+        public Query(DocumentHash hash)
+        {
+            Id = Guid.NewGuid();
+            Hash = hash;
+            ExternalHashes = new HashSet<DocumentHash>();
+            Published = DateTime.UtcNow;
+        }
+
         public Query(
             DocumentHash hash,
             ISet<DocumentHash> externalHashes,
