@@ -1,0 +1,5 @@
+﻿public partial MyClass
+    : SomeOtherType
+{
+    public Bar Foo { get; }
+}
