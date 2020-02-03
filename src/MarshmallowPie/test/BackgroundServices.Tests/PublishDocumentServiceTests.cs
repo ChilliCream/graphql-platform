@@ -29,7 +29,7 @@ namespace MarshmallowPie.BackgroundServices
         public async Task ExecutePublishDocumentServer_With_SchemaFile_Handler()
         {
             // arrange
-            var handler = new PublishSchemaDocumentHandler(
+            var handler = new PublishNewSchemaDocumentHandler(
                 Storage, SchemaRepository, PublishSchemaEventSender);
 
             using var service = new PublishDocumentService(
@@ -43,7 +43,7 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                "ghi", environment.Id, schema.Id, Array.Empty<Tag>());
+                "ghi", environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
 
             IFileContainer fileContainer = await Storage.CreateContainerAsync("ghi");
             using (Stream stream = await fileContainer.CreateFileAsync("schema.graphql"))
@@ -73,7 +73,7 @@ namespace MarshmallowPie.BackgroundServices
             list.MatchSnapshot();
 
             SchemaVersion schemaVersion = SchemaRepository.GetSchemaVersions().Single();
-            Assert.Equal("oECbw4BIP7gX1R+fCGRDCcqbO2FV/Uf0MhhE0EDAWIw=", schemaVersion.Hash);
+            Assert.Equal("oECbw4BIP7gX1R+fCGRDCcqbO2FV/Uf0MhhE0EDAWIw=", schemaVersion.Hash.Hash);
         }
     }
 }

@@ -14,10 +14,10 @@ using Xunit;
 
 namespace MarshmallowPie.BackgroundServices
 {
-    public class PublishSchemaDocumentHandlerTests
+    public class PublishNewSchemaDocumentHandlerTests
         : GraphQLIntegrationTestBase
     {
-        public PublishSchemaDocumentHandlerTests(
+        public PublishNewSchemaDocumentHandlerTests(
             MongoResource mongoResource,
             FileStorageResource fileStorageResource)
             : base(mongoResource, fileStorageResource)
@@ -28,7 +28,7 @@ namespace MarshmallowPie.BackgroundServices
         public async Task HandleMessage()
         {
             // arrange
-            var handler = new PublishSchemaDocumentHandler(
+            var handler = new PublishNewSchemaDocumentHandler(
                 Storage, SchemaRepository, PublishSchemaEventSender);
 
             var schema = new Schema("abc", "def");
@@ -38,7 +38,7 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                "ghi", environment.Id, schema.Id, Array.Empty<Tag>());
+                "ghi", environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
 
             IFileContainer fileContainer = await Storage.CreateContainerAsync("ghi");
             using (Stream stream = await fileContainer.CreateFileAsync("schema.graphql"))
