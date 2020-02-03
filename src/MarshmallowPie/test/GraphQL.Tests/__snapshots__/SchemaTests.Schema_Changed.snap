@@ -1,9 +1,10 @@
 ﻿schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
-"The node interface is implemented by entities that have a gloabl unique identifier."
+"The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
 }
@@ -16,6 +17,13 @@ type CreateEnvironmentPayload {
 type CreateSchemaPayload {
   clientMutationId: String
   schema: Schema!
+}
+
+type DocumentHash {
+  algorithm: String!
+  equals: Boolean!
+  format: HashFormat!
+  hash: String!
 }
 
 type Environment implements Node {
@@ -45,10 +53,19 @@ type EnvironmentEdge {
 
 type Issue {
   code: String!
+  file: String!
   id: ID!
+  location: Location!
   message: String!
   resolution: ResolutionType!
   type: IssueType!
+}
+
+type Location {
+  column: Int!
+  end: Int!
+  line: Int!
+  start: Int!
 }
 
 type Mutation {
@@ -69,6 +86,12 @@ type PageInfo {
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
+}
+
+type PublishSchemaEvent {
+  isCompleted: Boolean!
+  issue: Issue
+  sessionId: String!
 }
 
 type PublishSchemaPayload {
@@ -130,7 +153,8 @@ type SchemaPublishReport {
 }
 
 type SchemaVersion implements Node {
-  hash: String!
+  externalId: String!
+  hash: DocumentHash!
   id: ID!
   published: DateTime!
   publishReportByEnvironment(environmentName: String!): SchemaPublishReport
@@ -159,7 +183,12 @@ type SchemaVersionEdge {
   node: SchemaVersion!
 }
 
+type Subscription {
+  onPublishSchema(sessionId: String!): PublishSchemaEvent!
+}
+
 type Tag {
+  equals: Boolean!
   key: String!
   published: DateTime!
   value: String!
@@ -185,6 +214,49 @@ input CreateSchemaInput {
   clientMutationId: String
   description: String
   name: String!
+}
+
+input DocumentHashFilter {
+  algorithm: String
+  algorithm_contains: String
+  algorithm_ends_with: String
+  algorithm_in: [String!]
+  algorithm_not: String
+  algorithm_not_contains: String
+  algorithm_not_ends_with: String
+  algorithm_not_in: [String!]
+  algorithm_not_starts_with: String
+  algorithm_starts_with: String
+  AND: [DocumentHashFilter!]
+  format: HashFormat
+  format_gt: HashFormat
+  format_gte: HashFormat
+  format_in: [HashFormat!]
+  format_lt: HashFormat
+  format_lte: HashFormat
+  format_not: HashFormat
+  format_not_gt: HashFormat
+  format_not_gte: HashFormat
+  format_not_in: [HashFormat!]
+  format_not_lt: HashFormat
+  format_not_lte: HashFormat
+  hash: String
+  hash_contains: String
+  hash_ends_with: String
+  hash_in: [String!]
+  hash_not: String
+  hash_not_contains: String
+  hash_not_ends_with: String
+  hash_not_in: [String!]
+  hash_not_starts_with: String
+  hash_starts_with: String
+  OR: [DocumentHashFilter!]
+}
+
+input DocumentHashSort {
+  algorithm: SortOperationKind
+  format: SortOperationKind
+  hash: SortOperationKind
 }
 
 input EnvironmentFilter {
@@ -233,6 +305,7 @@ input EnvironmentSort {
 input PublishSchemaInput {
   clientMutationId: String
   environmentName: String!
+  externalId: String
   schemaName: String!
   sourceText: String!
   tags: [TagInput!]
@@ -283,16 +356,17 @@ input SchemaSort {
 
 input SchemaVersionFilter {
   AND: [SchemaVersionFilter!]
-  hash: String
-  hash_contains: String
-  hash_ends_with: String
-  hash_in: [String!]
-  hash_not: String
-  hash_not_contains: String
-  hash_not_ends_with: String
-  hash_not_in: [String!]
-  hash_not_starts_with: String
-  hash_starts_with: String
+  externalId: String
+  externalId_contains: String
+  externalId_ends_with: String
+  externalId_in: [String!]
+  externalId_not: String
+  externalId_not_contains: String
+  externalId_not_ends_with: String
+  externalId_not_in: [String!]
+  externalId_not_starts_with: String
+  externalId_starts_with: String
+  hash: DocumentHashFilter
   id: ID
   id_gt: ID
   id_gte: ID
@@ -330,16 +404,6 @@ input SchemaVersionFilter {
   schemaId_not_in: [ID!]
   schemaId_not_lt: ID
   schemaId_not_lte: ID
-  sourceText: String
-  sourceText_contains: String
-  sourceText_ends_with: String
-  sourceText_in: [String!]
-  sourceText_not: String
-  sourceText_not_contains: String
-  sourceText_not_ends_with: String
-  sourceText_not_in: [String!]
-  sourceText_not_starts_with: String
-  sourceText_starts_with: String
   tags_all: TagFilter
   tags_any: Boolean
   tags_none: TagFilter
@@ -347,11 +411,11 @@ input SchemaVersionFilter {
 }
 
 input SchemaVersionSort {
-  hash: SortOperationKind
+  externalId: SortOperationKind
+  hash: DocumentHashSort
   id: SortOperationKind
   published: SortOperationKind
   schemaId: SortOperationKind
-  sourceText: SortOperationKind
 }
 
 input TagFilter {
@@ -410,6 +474,11 @@ input UpdateSchemaInput {
   name: String!
 }
 
+enum HashFormat {
+  BASE64
+  HEX
+}
+
 enum IssueType {
   INFORMATION
   WARNING
@@ -422,9 +491,11 @@ enum PublishState {
 }
 
 enum ResolutionType {
+  NONE
   OPEN
   FIXED
   WONTFIXED
+  CANNOTBEFIXED
 }
 
 enum SortOperationKind {

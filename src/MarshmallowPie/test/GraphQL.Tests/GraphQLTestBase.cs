@@ -45,7 +45,7 @@ namespace MarshmallowPie.GraphQL
             serviceCollection.AddSchemaRegistryDataLoader();
             serviceCollection.AddSchemRegistryErrorFilters();
 
-            serviceCollection.AddSingleton<ISessionCreator, SessionCreator>();
+            serviceCollection.AddSingleton<ISessionCreator, SessionManager>();
 
             var publishDocumentMessageSender = new Mock<IMessageSender<PublishDocumentMessage>>();
             publishDocumentMessageSender.Setup(t => t.SendAsync(

@@ -33,7 +33,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             var environment = new Environment("abc", "def");
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
-            string sessionId = "abc";
+            string sessionId = await SessionCreator.CreateSessionAsync();
 
             await PublishSchemaEventSender.SendAsync(
                 new PublishSchemaEvent(

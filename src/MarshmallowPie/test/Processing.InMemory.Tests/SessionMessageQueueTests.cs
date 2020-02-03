@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using Xunit;
 
 namespace MarshmallowPie.Processing.InMemory
@@ -11,8 +12,15 @@ namespace MarshmallowPie.Processing.InMemory
         public async Task Send_And_Receive_Message()
         {
             // arrange
-            var test = new SessionMessageQueue<PublishSchemaEvent>();
-            var message = new PublishSchemaEvent("abc", new Issue("def", IssueType.Error));
+            var sessionManager = new SessionManager();
+            var test = new SessionMessageQueue<PublishSchemaEvent>(sessionManager);
+
+            string sessionId = await sessionManager.CreateSessionAsync();
+
+            var message = new PublishSchemaEvent(
+                sessionId,
+                new Issue("def", "foo", new Location(0, 0, 0, 0),
+                IssueType.Error));
 
             // act
             await test.SendAsync(message);
@@ -29,9 +37,16 @@ namespace MarshmallowPie.Processing.InMemory
         public async Task Unsubscribe_On_Complete_Message()
         {
             // arrange
-            var test = new SessionMessageQueue<PublishSchemaEvent>();
-            var message = new PublishSchemaEvent("abc", new Issue("def", IssueType.Error));
-            var completeMessage = PublishSchemaEvent.Completed("abc");
+            var sessionManager = new SessionManager();
+            var test = new SessionMessageQueue<PublishSchemaEvent>(sessionManager);
+
+            string sessionId = await sessionManager.CreateSessionAsync();
+
+            var message = new PublishSchemaEvent(
+                sessionId,
+                new Issue("def", "foo", new Location(0, 0, 0, 0),
+                IssueType.Error));
+            var completeMessage = PublishSchemaEvent.Completed(sessionId);
             var received = new List<PublishSchemaEvent>();
 
             await test.SendAsync(message);

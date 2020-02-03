@@ -28,6 +28,8 @@ namespace MarshmallowPie.BackgroundServices
         public async Task HandleMessage()
         {
             // arrange
+            string sessionId = await SessionCreator.CreateSessionAsync();
+
             var handler = new PublishNewSchemaDocumentHandler(
                 Storage, SchemaRepository, PublishSchemaEventSender);
 
@@ -38,9 +40,9 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                "ghi", environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
+                sessionId, environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
 
-            IFileContainer fileContainer = await Storage.CreateContainerAsync("ghi");
+            IFileContainer fileContainer = await Storage.CreateContainerAsync(sessionId);
             using (Stream stream = await fileContainer.CreateFileAsync("schema.graphql"))
             {
                 byte[] buffer = Encoding.UTF8.GetBytes(@"
@@ -58,13 +60,15 @@ namespace MarshmallowPie.BackgroundServices
             var list = new List<PublishSchemaEvent>();
             using var cts = new CancellationTokenSource(5000);
             IAsyncEnumerable<PublishSchemaEvent> eventStream =
-                await PublishSchemaEventReceiver.SubscribeAsync("ghi", cts.Token);
+                await PublishSchemaEventReceiver.SubscribeAsync(sessionId, cts.Token);
             await foreach (PublishSchemaEvent eventMessage in
                 eventStream.WithCancellation(cts.Token))
             {
                 list.Add(eventMessage);
             }
-            list.MatchSnapshot();
+            list.MatchSnapshot(matchOption =>
+                matchOption.Assert(fieldOption =>
+                    Assert.Equal(sessionId, fieldOption.Field<string>("[0].SessionId"))));
         }
     }
 }
