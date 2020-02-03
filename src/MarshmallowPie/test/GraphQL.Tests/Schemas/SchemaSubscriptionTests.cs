@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types.Relay;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Storage.FileSystem;
@@ -35,7 +36,10 @@ namespace MarshmallowPie.GraphQL.Schemas
             string sessionId = "abc";
 
             await PublishSchemaEventSender.SendAsync(
-                new PublishSchemaEvent(sessionId, new Issue("foo", IssueType.Information)));
+                new PublishSchemaEvent(
+                    sessionId,
+                    new Issue("foo", "file.graphql", new Location(0, 0, 0, 0),
+                    IssueType.Information)));
 
             await PublishSchemaEventSender.SendAsync(
                 PublishSchemaEvent.Completed(sessionId));
