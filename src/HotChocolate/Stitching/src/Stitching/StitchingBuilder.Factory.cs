@@ -156,7 +156,7 @@ namespace HotChocolate.Stitching
                         foreach (ScalarTypeDefinitionNode typeDefinition in
                             schema.Definitions.OfType<ScalarTypeDefinitionNode>())
                         {
-                            c.RegisterType(new StringType(
+                            c.RegisterType(new CustomScalarType(
                                 typeDefinition.Name.Value,
                                 typeDefinition.Description?.Value));
                         }
