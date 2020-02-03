@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;
         private bool _isStatic = false;
+        private bool _isAsync = false;
         private string _returnType = "void";
         private string? _name;
         private List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
@@ -24,6 +25,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public MethodBuilder SetStatic()
         {
             _isStatic = true;
+            return this;
+        }
+
+        public MethodBuilder SetAsync()
+        {
+            _isAsync = true;
             return this;
         }
 
@@ -74,6 +81,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
             if (_isStatic)
             {
                 await writer.WriteAsync("static ").ConfigureAwait(false);
+            }
+
+            if (_isAsync)
+            {
+                await writer.WriteAsync("async ").ConfigureAwait(false);
             }
 
             await writer.WriteAsync(

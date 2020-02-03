@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public class OutputModelInterfaceDescriptor
+    public class OutputModelDescriptor
         : ICodeDescriptor
     {
-        public OutputModelInterfaceDescriptor(
+        public OutputModelDescriptor(
             string name,
             string @namespace,
             IReadOnlyList<string>? implements,
