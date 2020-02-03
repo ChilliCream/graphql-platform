@@ -1,9 +1,11 @@
 ﻿{
   "Data": {
     "node": {
-      "id": "U2NoZW1hVmVyc2lvbgpnYzVhZDY3MzIzYWQzNDNjNWIxYjIxMWM2MjQ2YTc3OTM=",
-      "sourceText": "abc",
-      "hash": "def"
+      "id": "U2NoZW1hVmVyc2lvbgpnNTlmYTgyYjUzNjhmNDZiZDhlYTZlNDYyOWQyMTJjMjg=",
+      "sourceText": "SourceTextAbc",
+      "hash": {
+        "hash": "CB8379AC2098AA165029E3938A51DA0BCECFC008FD6795F401178647F96C5B34"
+      }
     }
   },
   "Extensions": {},
