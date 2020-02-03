@@ -16,7 +16,7 @@ using Location = HotChocolate.Language.Location;
 namespace MarshmallowPie.BackgroundServices
 {
 #pragma warning disable CA1031
-    public class PublishSchemaDocumentHandler
+    public class PublishNewSchemaDocumentHandler
         : IPublishDocumentHandler
     {
         private const string _fileName = "schema.graphql";
@@ -24,7 +24,7 @@ namespace MarshmallowPie.BackgroundServices
         private readonly ISchemaRepository _schemaRepository;
         private readonly IMessageSender<PublishSchemaEvent> _eventSender;
 
-        public PublishSchemaDocumentHandler(
+        public PublishNewSchemaDocumentHandler(
             IFileStorage fileStorage,
             ISchemaRepository schemaRepository,
             IMessageSender<PublishSchemaEvent> eventSender)
@@ -76,33 +76,16 @@ namespace MarshmallowPie.BackgroundServices
                     : await ReadSchemaSourceTextAsync(
                         schemaFile, cancellationToken)
                         .ConfigureAwait(false);
+
                 DocumentHash documentHash = DocumentHash.FromSourceText(formattedSourceText);
 
-                SchemaVersion? schemaVersion =
-                    await _schemaRepository.GetSchemaVersionByHashAsync(
-                        documentHash.Hash, cancellationToken)
-                        .ConfigureAwait(false);
-
-                if (schemaVersion is null)
-                {
-                    await PublishNewSchemaVersionAsync(
-                        message,
-                        schemaDocument,
-                        formattedSourceText,
-                        issueLogger,
-                        cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await PublishExistingSchemaVersionAsync(
-                        message,
-                        schemaDocument,
-                        schemaVersion,
-                        issueLogger,
-                        cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                await PublishNewSchemaVersionAsync(
+                    message,
+                    schemaDocument,
+                    formattedSourceText,
+                    issueLogger,
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
                 await fileContainer.DeleteAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -254,33 +237,6 @@ namespace MarshmallowPie.BackgroundServices
             return schemaVersion;
         }
 
-        private async Task<SchemaVersion> UpdateSchemaVersionAsync(
-            SchemaVersion schemaVersion,
-            IReadOnlyList<Tag> tags,
-            CancellationToken cancellationToken)
-        {
-            if (tags is { })
-            {
-                var list = new List<Tag>(schemaVersion.Tags);
-                list.AddRange(tags.Select(t => new Tag(
-                    t.Key, t.Value, DateTime.UtcNow)));
-
-                schemaVersion = new SchemaVersion(
-                    schemaVersion.Id,
-                    schemaVersion.SchemaId,
-                    schemaVersion.ExternalId,
-                    schemaVersion.Hash,
-                    list,
-                    schemaVersion.Published);
-
-                await _schemaRepository.UpdateSchemaVersionTagsAsync(
-                    schemaVersion, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            return schemaVersion;
-        }
-
         private async Task PublishNewSchemaVersionAsync(
             PublishDocumentMessage message,
             DocumentNode? schemaDocument,
@@ -323,73 +279,15 @@ namespace MarshmallowPie.BackgroundServices
                 .ConfigureAwait(false);
 
             var report = new SchemaPublishReport(
-               schemaVersion.Id,
-               message.EnvironmentId,
-               message.ExternalId,
-               issueLogger.Issues,
-               PublishState.Published,
-               DateTime.UtcNow);
+                schemaVersion.Id,
+                message.EnvironmentId,
+                issueLogger.Issues,
+                PublishState.Published,
+                DateTime.UtcNow);
 
             await _schemaRepository.AddPublishReportAsync(
                 report, cancellationToken)
                 .ConfigureAwait(false);
-        }
-
-        private async Task PublishExistingSchemaVersionAsync(
-            PublishDocumentMessage message,
-            DocumentNode? schemaDocument,
-            SchemaVersion schemaVersion,
-            IssueLogger issueLogger,
-            CancellationToken cancellationToken)
-        {
-            ISchema? schema = null;
-
-            if (schemaDocument is { })
-            {
-                schema = await TryCreateSchema(
-                   schemaDocument, issueLogger, cancellationToken)
-                   .ConfigureAwait(false);
-            }
-
-            schemaVersion = await UpdateSchemaVersionAsync(
-                schemaVersion,
-                message.Tags,
-                cancellationToken)
-                .ConfigureAwait(false);
-
-            SchemaPublishReport? report =
-                await _schemaRepository.GetPublishReportAsync(
-                    schemaVersion.Id,
-                    message.EnvironmentId,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-            if (report is { })
-            {
-                foreach (Issue issue in report.Issues.Where(t =>
-                    t.Resolution == ResolutionType.Open
-                    || t.Resolution == ResolutionType.CannotBeFixed))
-                {
-                    await issueLogger.LogIssueAsync(
-                        issue, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            else if (schema is { })
-            {
-                // todo: start looking for incompatibilities
-
-                await _schemaRepository.AddPublishReportAsync(
-                    new SchemaPublishReport(
-                        schemaVersion.Id,
-                        message.EnvironmentId,
-                        message.ExternalId,
-                        issueLogger.Issues,
-                        PublishState.Published,
-                        DateTime.UtcNow),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
         }
     }
 #pragma warning restore CA1031
