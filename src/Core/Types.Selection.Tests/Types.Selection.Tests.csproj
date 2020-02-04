@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -6,16 +7,18 @@
     <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreTestFramework.props'))</ChilliFramework>
     <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'TestSettings.props'))</ChilliBuild>
   </PropertyGroup>
+
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Selection.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selection</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types\Types.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Types.Selection\Types.Selection.csproj" />
-    <ProjectReference Include="..\Types.Tests\Types.Tests.csproj" />
+    <ProjectReference Include="..\Types\Types.csproj" />
   </ItemGroup>
 </Project>
