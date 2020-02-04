@@ -75,5 +75,14 @@ namespace MarshmallowPie.Repositories
         Task UpdatePublishReportAsync(
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default);
+
+        Task<PublishedSchema> GetPublishedSchemaAsync(
+            Guid schemaId,
+            Guid environmentId,
+            CancellationToken cancellationToken = default);
+
+        Task SetPublishedSchemaAsync(
+            PublishedSchema publishedClient,
+            CancellationToken cancellationToken = default);
     }
 }

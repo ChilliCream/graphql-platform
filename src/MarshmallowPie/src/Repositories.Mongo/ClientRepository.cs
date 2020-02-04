@@ -64,7 +64,6 @@ namespace MarshmallowPie.Repositories.Mongo
                 new CreateIndexModel<PublishedClient>(
                     Builders<PublishedClient>.IndexKeys.Combine(
                         Builders<PublishedClient>.IndexKeys.Ascending(x => x.EnvironmentId),
-                        Builders<PublishedClient>.IndexKeys.Ascending(x => x.SchemaId),
                         Builders<PublishedClient>.IndexKeys.Ascending(x => x.ClientId)),
                     new CreateIndexOptions { Unique = true }));
         }
@@ -344,6 +343,18 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
+        public async Task<IReadOnlyDictionary<string, Query>> GetQueriesAsync(
+            IReadOnlyList<string> documentHashes,
+            CancellationToken cancellationToken = default)
+        {
+            List<Query> result = await _queries.AsQueryable()
+                .Where(t => documentHashes.Contains(t.Hash.Hash))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return result.ToDictionary(t => t.Hash.Hash);
+        }
+
         public async Task AddQueriesAsync(
             IEnumerable<Query> queries,
             CancellationToken cancellationToken = default)
@@ -378,6 +389,26 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
+        public async Task<PublishedClient> GetPublishedClientAsync(
+            Guid clientId,
+            Guid environmentId,
+            CancellationToken cancellationToken = default)
+        {
+            PublishedClient? client = await _publishedClients.AsQueryable()
+                .Where(t => t.ClientId == clientId && t.EnvironmentId == environmentId)
+                .FirstOrDefaultAsync(cancellationToken)!
+                .ConfigureAwait(false);
+
+            if (client is null)
+            {
+                throw new InvalidOperationException(
+                    "There is no client version published with the client " +
+                    $"id `{clientId}` to the environment `{environmentId}`.");
+            }
+
+           return client;
+        }
+
         public async Task SetPublishedClientAsync(
             PublishedClient publishedClient,
             CancellationToken cancellationToken = default)
@@ -391,9 +422,9 @@ namespace MarshmallowPie.Repositories.Mongo
                         t => t.SchemaId, publishedClient.SchemaId),
                     Builders<PublishedClient>.Update.SetOnInsert(
                         t => t.ClientId, publishedClient.ClientId),
-                    Builders<PublishedClient>.Update.SetOnInsert(
+                    Builders<PublishedClient>.Update.Set(
                         t => t.ClientVersionId, publishedClient.ClientVersionId)),
-                new UpdateOptions { IsUpsert = true },
+                new UpdateOptions { IsUpsert = true },
                 cancellationToken)
                 .ConfigureAwait(false);
         }

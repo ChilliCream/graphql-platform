@@ -65,5 +65,12 @@ namespace MarshmallowPie.Storage.FileSystem
 
             return Task.FromResult<IFileContainer>(new FileContainer(fullContainerPath));
         }
+
+        public Task<IFileContainer> GetOrCreateContainerAsync(
+            string containerName,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

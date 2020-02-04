@@ -28,12 +28,9 @@ namespace MarshmallowPie.BackgroundServices
             ISchemaRepository schemaRepository,
             IMessageSender<PublishDocumentEvent> eventSender)
         {
-            _fileStorage = fileStorage
-                ?? throw new ArgumentNullException(nameof(fileStorage));
-            _schemaRepository = schemaRepository
-                ?? throw new ArgumentNullException(nameof(schemaRepository));
-            _eventSender = eventSender
-                ?? throw new ArgumentNullException(nameof(eventSender));
+            _fileStorage = fileStorage;
+            _schemaRepository = schemaRepository;
+            _eventSender = eventSender;
         }
 
         public DocumentType Type => DocumentType.Schema;

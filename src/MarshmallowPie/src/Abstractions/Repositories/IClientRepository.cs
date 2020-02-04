@@ -84,8 +84,8 @@ namespace MarshmallowPie.Repositories
             ClientPublishReport publishReport,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyDictionary<Guid, PublishedClient>> GetPublishedClientAsync(
-            IReadOnlyList<Guid> ids,
+        Task<PublishedClient> GetPublishedClientAsync(
+            Guid clientId, Guid environmentId,
             CancellationToken cancellationToken = default);
 
         Task SetPublishedClientAsync(

@@ -14,15 +14,18 @@ namespace MarshmallowPie.Repositories.Mongo
         private readonly IMongoCollection<Schema> _schemas;
         private readonly IMongoCollection<SchemaVersion> _versions;
         private readonly IMongoCollection<SchemaPublishReport> _publishReports;
+        private readonly IMongoCollection<PublishedSchema> _publishedSchemas;
 
         public SchemaRepository(
             IMongoCollection<Schema> schemas,
             IMongoCollection<SchemaVersion> versions,
-            IMongoCollection<SchemaPublishReport> publishReports)
+            IMongoCollection<SchemaPublishReport> publishReports,
+            IMongoCollection<PublishedSchema> publishedSchemas)
         {
             _schemas = schemas;
             _versions = versions;
             _publishReports = publishReports;
+            _publishedSchemas = publishedSchemas;
 
             _schemas.Indexes.CreateOne(
                 new CreateIndexModel<Schema>(
@@ -46,6 +49,13 @@ namespace MarshmallowPie.Repositories.Mongo
                             x.SchemaVersionId),
                         Builders<SchemaPublishReport>.IndexKeys.Ascending(x =>
                             x.EnvironmentId)),
+                    new CreateIndexOptions { Unique = true }));
+
+            _publishedSchemas.Indexes.CreateOne(
+                new CreateIndexModel<PublishedSchema>(
+                    Builders<PublishedSchema>.IndexKeys.Combine(
+                        Builders<PublishedSchema>.IndexKeys.Ascending(x => x.EnvironmentId),
+                        Builders<PublishedSchema>.IndexKeys.Ascending(x => x.SchemaId)),
                     new CreateIndexOptions { Unique = true }));
         }
 
@@ -301,6 +311,44 @@ namespace MarshmallowPie.Repositories.Mongo
                     "schema version and environment.",
                     ex);
             }
+        }
+
+        public async Task<PublishedSchema> GetPublishedSchemaAsync(
+            Guid schemaId,
+            Guid environmentId,
+            CancellationToken cancellationToken = default)
+        {
+            PublishedSchema? schema = await _publishedSchemas.AsQueryable()
+                .Where(t => t.SchemaId == schemaId && t.EnvironmentId == environmentId)
+                .FirstOrDefaultAsync(cancellationToken)!
+                .ConfigureAwait(false);
+
+            if (schema is null)
+            {
+                throw new InvalidOperationException(
+                    "There is no client version published with the client " +
+                    $"id `{schemaId}` to the environment `{environmentId}`.");
+            }
+
+           return schema;
+        }
+
+        public async Task SetPublishedSchemaAsync(
+            PublishedSchema publishedClient,
+            CancellationToken cancellationToken = default)
+        {
+            await _publishedSchemas.UpdateOneAsync(
+                Builders<PublishedSchema>.Filter.Eq(t => t.Id, publishedClient.Id),
+                Builders<PublishedSchema>.Update.Combine(
+                    Builders<PublishedSchema>.Update.SetOnInsert(
+                        t => t.EnvironmentId, publishedClient.EnvironmentId),
+                    Builders<PublishedSchema>.Update.SetOnInsert(
+                        t => t.SchemaId, publishedClient.SchemaId),
+                    Builders<PublishedSchema>.Update.Set(
+                        t => t.SchemaVersionId, publishedClient.SchemaVersionId)),
+                new UpdateOptions { IsUpsert = true },
+                cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }
