@@ -1,9 +1,8 @@
 using System.Linq;
 using HotChocolate.Execution;
-using HotChocolate.Types.Selection.Extensions;
 using Xunit;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types
 {
     public class SelectionTests
     {
@@ -248,51 +247,51 @@ namespace HotChocolate.Types.Selection
                     Assert.Equal(6, x.NestedCollection[0].Baz);
                 });
         }
-    }
-
-
-    public class Query
-    {
-        public IQueryable<Foo> Foos { get; }
-    }
-
-    public class Foo
-    {
-        public string Bar { get; set; }
-
-        public int Baz { get; set; }
-
-        public NestedFoo Nested { get; set; }
-        public NestedFoo[] NestedCollection { get; set; }
-
-
-        public static Foo Create(string bar, int baz)
+        private class Query
         {
-            return new Foo
+            public IQueryable<Foo> Foos { get; }
+        }
+
+        private class Foo
+        {
+            public string Bar { get; set; }
+
+            public int Baz { get; set; }
+
+            public NestedFoo Nested { get; set; }
+            public NestedFoo[] NestedCollection { get; set; }
+
+
+            public static Foo Create(string bar, int baz)
             {
-                Bar = bar,
-                Baz = baz,
-                Nested = new NestedFoo()
+                return new Foo
                 {
-                    Bar = "nested" + bar,
-                    Baz = baz * 2
-                },
-                NestedCollection = new NestedFoo[]
-                   {
+                    Bar = bar,
+                    Baz = baz,
+                    Nested = new NestedFoo()
+                    {
+                        Bar = "nested" + bar,
+                        Baz = baz * 2
+                    },
+                    NestedCollection = new NestedFoo[]
+                       {
                         new NestedFoo()
                         {
                             Bar = "nestedcollection" + bar,
                             Baz = baz * 3
                         },
-                   }
-            };
+                       }
+                };
+            }
+        }
+
+        private class NestedFoo
+        {
+            public string Bar { get; set; }
+
+            public int Baz { get; set; }
         }
     }
 
-    public class NestedFoo
-    {
-        public string Bar { get; set; }
 
-        public int Baz { get; set; }
-    }
 }

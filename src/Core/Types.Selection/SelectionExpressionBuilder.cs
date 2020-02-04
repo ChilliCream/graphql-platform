@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types
 {
     public static class SelectionExpressionBuilder
     {

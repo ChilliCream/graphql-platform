@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types
 {
     public class SelectionMiddleware<T>
     {

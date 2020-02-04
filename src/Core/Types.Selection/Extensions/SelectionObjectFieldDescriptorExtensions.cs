@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Selection.Extensions
+namespace HotChocolate.Types
 {
     public static class SelectionObjectFieldDescriptorExtensions
     {
