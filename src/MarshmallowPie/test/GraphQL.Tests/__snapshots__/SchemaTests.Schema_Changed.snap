@@ -9,6 +9,49 @@ interface Node {
   id: ID!
 }
 
+type Client implements Node {
+  clientVersions: [ClientVersion!]!
+  description: String
+  id: ID!
+  name: String!
+  schemaId: ID!
+}
+
+"A connection to a list of items."
+type ClientConnection {
+  "A list of edges."
+  edges: [ClientEdge!]
+  "A flattened list of the nodes."
+  nodes: [Client!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ClientEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Client!
+}
+
+type ClientVersion {
+  clientId: ID!
+  externalId: String!
+  id: ID!
+  published: DateTime!
+  queryDocuments: [QueryDocument!]!
+  queryIds: [ID]!
+  tags: [Tag!]!
+}
+
+type CreateClientPayload {
+  client: Client!
+  clientMutationId: String
+  schema: Schema!
+}
+
 type CreateEnvironmentPayload {
   clientMutationId: String
   environment: Environment!
@@ -68,9 +111,27 @@ type Location {
   start: Int!
 }
 
+type MarkClientPublishedPayload {
+  clientMutationId: String
+  clientVersion: ClientVersion!
+  environment: Environment!
+  schema: Schema!
+}
+
+type MarkSchemaPublishedPayload {
+  clientMutationId: String
+  environment: Environment!
+  schema: Schema!
+  schemaVersion: SchemaVersion!
+}
+
 type Mutation {
+  createClient(input: CreateClientInput!): CreateClientPayload!
   createEnvironment(input: CreateEnvironmentInput!): CreateEnvironmentPayload
   createSchema(input: CreateSchemaInput!): CreateSchemaPayload!
+  markClientPublished(input: MarkClientPublishedInput!): MarkClientPublishedPayload!
+  markSchemaPublished(input: MarkSchemaPublishedInput!): MarkSchemaPublishedPayload!
+  publishClient(input: PublishClientInput!): PublishClientPayload!
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
   updateEnvironment(input: UpdateEnvironmentInput!): UpdateEnvironmentPayload
   updateSchema(input: UpdateSchemaInput!): UpdateSchemaPayload!
@@ -88,7 +149,12 @@ type PageInfo {
   startCursor: String
 }
 
-type PublishSchemaEvent {
+type PublishClientPayload {
+  clientMutationId: String
+  sessionId: String!
+}
+
+type PublishDocumentEvent {
   isCompleted: Boolean!
   issue: Issue
   sessionId: String!
@@ -100,19 +166,31 @@ type PublishSchemaPayload {
 }
 
 type Query {
+  clients(after: String before: String first: PaginationAmount last: PaginationAmount order_by: ClientSort where: ClientFilter): ClientConnection
   environmentById(id: ID!): Environment!
   environmentByName(name: String!): Environment!
   environments(after: String before: String first: PaginationAmount last: PaginationAmount order_by: EnvironmentSort where: EnvironmentFilter): EnvironmentConnection
   environmentsById(ids: [ID!]! order_by: EnvironmentSort): [Environment!]!
   environmentsByName(names: [String!]! order_by: EnvironmentSort): [Environment!]!
+  queryDocumentByHash(environmentName: String! hash: String! schemaName: String!): QueryDocument
   schemaById(id: ID!): Schema!
   schemaByName(name: String!): Schema!
   schemas(after: String before: String first: PaginationAmount last: PaginationAmount order_by: SchemaSort where: SchemaFilter): SchemaConnection
   schemasById(ids: [ID!]! order_by: SchemaSort): [Schema!]!
   schemasByName(names: [String!]! order_by: SchemaSort): [Schema!]!
+  schemaVersionByExternalId(externalId: String!): SchemaVersion
   schemaVersionById(id: ID!): SchemaVersion!
   schemaVersions(after: String before: String first: PaginationAmount last: PaginationAmount order_by: SchemaVersionSort where: SchemaVersionFilter): SchemaVersionConnection
   schemaVersionsById(ids: [ID!]! order_by: SchemaVersionSort): [SchemaVersion!]!
+}
+
+type QueryDocument {
+  externalHashes: [DocumentHash]!
+  hash: DocumentHash!
+  id: ID!
+  published: DateTime!
+  schemaId: ID!
+  sourceText: String!
 }
 
 type Schema implements Node {
@@ -184,7 +262,7 @@ type SchemaVersionEdge {
 }
 
 type Subscription {
-  onPublishSchema(sessionId: String!): PublishSchemaEvent!
+  onPublishSchema(sessionId: String!): PublishDocumentEvent!
 }
 
 type Tag {
@@ -202,6 +280,69 @@ type UpdateEnvironmentPayload {
 type UpdateSchemaPayload {
   clientMutationId: String
   schema: Schema!
+}
+
+input ClientFilter {
+  AND: [ClientFilter!]
+  description: String
+  description_contains: String
+  description_ends_with: String
+  description_in: [String]
+  description_not: String
+  description_not_contains: String
+  description_not_ends_with: String
+  description_not_in: [String]
+  description_not_starts_with: String
+  description_starts_with: String
+  id: ID
+  id_gt: ID
+  id_gte: ID
+  id_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_not: ID
+  id_not_gt: ID
+  id_not_gte: ID
+  id_not_in: [ID!]
+  id_not_lt: ID
+  id_not_lte: ID
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_in: [String!]
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: [String!]
+  name_not_starts_with: String
+  name_starts_with: String
+  OR: [ClientFilter!]
+  schemaId: ID
+  schemaId_gt: ID
+  schemaId_gte: ID
+  schemaId_in: [ID!]
+  schemaId_lt: ID
+  schemaId_lte: ID
+  schemaId_not: ID
+  schemaId_not_gt: ID
+  schemaId_not_gte: ID
+  schemaId_not_in: [ID!]
+  schemaId_not_lt: ID
+  schemaId_not_lte: ID
+}
+
+input ClientSort {
+  description: SortOperationKind
+  id: SortOperationKind
+  name: SortOperationKind
+  schemaId: SortOperationKind
+}
+
+input CreateClientInput {
+  clientMutationId: String
+  description: String
+  name: String!
+  schemaId: ID!
 }
 
 input CreateEnvironmentInput {
@@ -302,13 +443,43 @@ input EnvironmentSort {
   name: SortOperationKind
 }
 
+input MarkClientPublishedInput {
+  clientMutationId: String
+  environmentName: String!
+  externalId: String!
+  schemaName: String!
+}
+
+input MarkSchemaPublishedInput {
+  clientMutationId: String
+  environmentName: String!
+  externalId: String!
+  schemaName: String!
+}
+
+input PublishClientInput {
+  clientMutationId: String
+  clientName: String!
+  environmentName: String!
+  externalId: String
+  files: [QueryFileInput!]!
+  format: QueryFileFormat!
+  schemaName: String!
+  tags: [TagInput!]
+}
+
 input PublishSchemaInput {
   clientMutationId: String
   environmentName: String!
   externalId: String
   schemaName: String!
-  sourceText: String!
+  sourceText: String
   tags: [TagInput!]
+}
+
+input QueryFileInput {
+  name: String!
+  sourceText: String!
 }
 
 input SchemaFilter {
@@ -488,6 +659,11 @@ enum IssueType {
 enum PublishState {
   REJECTED
   PUBLISHED
+}
+
+enum QueryFileFormat {
+  GRAPHQL
+  RELAY
 }
 
 enum ResolutionType {

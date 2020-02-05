@@ -1,14 +1,14 @@
-using HotChocolate;
-using HotChocolate.AspNetCore;
-using MarshmallowPie.GraphQL;
-using MarshmallowPie.Repositories.Mongo;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MongoDB.Driver;
+using HotChocolate;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
 using MarshmallowPie;
+using MarshmallowPie.GraphQL;
+using MongoDB.Driver;
 
 namespace Demo
 {
@@ -46,6 +46,7 @@ namespace Demo
             app.UseWebSockets();
 
             app.UseGraphQL();
+            app.UseVoyager();
 
             app.UseEndpoints(endpoints =>
             {
