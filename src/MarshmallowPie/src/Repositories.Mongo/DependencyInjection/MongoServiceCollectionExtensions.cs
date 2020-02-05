@@ -22,7 +22,7 @@ namespace MarshmallowPie
                 .AddMongoCollection<ClientVersion>(getMongoDatabase)
                 .AddMongoCollection<ClientPublishReport>(getMongoDatabase)
                 .AddMongoCollection<PublishedClient>(getMongoDatabase)
-                .AddMongoCollection<Query>(getMongoDatabase)
+                .AddMongoCollection<QueryDocument>(getMongoDatabase)
                 .AddSingleton<IEnvironmentRepository, EnvironmentRepository>()
                 .AddSingleton<ISchemaRepository, SchemaRepository>()
                 .AddSingleton<IClientRepository, ClientRepository>();

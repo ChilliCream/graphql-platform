@@ -1,21 +1,25 @@
 using System.Collections.Generic;
 
-namespace MarshmallowPie.GraphQL.Schemas
+namespace MarshmallowPie.GraphQL.Clients
 {
-    public class PublishSchemaInput
+    public class PublishClientInput
     {
-        public PublishSchemaInput(
+        public PublishClientInput(
             string environmentName,
             string schemaName,
+            string clientName,
             string? externalId,
-            string? sourceText,
+            QueryFileFormat format,
+            IReadOnlyList<QueryFile> files,
             IReadOnlyList<TagInput>? tags,
             string? clientMutationId)
         {
             EnvironmentName = environmentName;
             SchemaName = schemaName;
+            ClientName = clientName;
             ExternalId = externalId;
-            SourceText = sourceText;
+            Format = format;
+            Files = files;
             Tags = tags;
             ClientMutationId = clientMutationId;
         }
@@ -24,9 +28,13 @@ namespace MarshmallowPie.GraphQL.Schemas
 
         public string SchemaName { get; }
 
+        public string ClientName { get; }
+
         public string? ExternalId { get; }
 
-        public string? SourceText { get; }
+        public QueryFileFormat Format { get; }
+
+        public IReadOnlyList<QueryFile> Files { get; }
 
         public IReadOnlyList<TagInput>? Tags { get; }
 

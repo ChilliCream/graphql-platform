@@ -1,4 +1,4 @@
-namespace MarshmallowPie.GraphQL.Schemas
+namespace MarshmallowPie.GraphQL
 {
     public class TagInput
     {

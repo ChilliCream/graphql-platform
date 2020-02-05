@@ -266,30 +266,7 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
-        public async Task AddPublishReportAsync(
-            SchemaPublishReport publishReport,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                await _publishReports.InsertOneAsync(
-                    publishReport,
-                    options: null,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (MongoWriteException ex)
-            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
-            {
-                // TODO : resources
-                throw new DuplicateKeyException(
-                    "A schema publish report was already created for the specified " +
-                    "schema version and environment.",
-                    ex);
-            }
-        }
-
-        public async Task UpdatePublishReportAsync(
+        public async Task SetPublishReportAsync(
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
@@ -298,7 +275,7 @@ namespace MarshmallowPie.Repositories.Mongo
                 await _publishReports.ReplaceOneAsync(
                     Builders<SchemaPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
                     publishReport,
-                    options: default(ReplaceOptions),
+                    options: new ReplaceOptions { IsUpsert = true },
                     cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -330,7 +307,7 @@ namespace MarshmallowPie.Repositories.Mongo
                     $"id `{schemaId}` to the environment `{environmentId}`.");
             }
 
-           return schema;
+            return schema;
         }
 
         public async Task SetPublishedSchemaAsync(

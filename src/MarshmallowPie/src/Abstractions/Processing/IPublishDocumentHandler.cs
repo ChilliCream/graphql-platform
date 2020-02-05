@@ -5,8 +5,12 @@ namespace MarshmallowPie.Processing
 {
     public interface IPublishDocumentHandler
     {
-        DocumentType Type { get; }
+        ValueTask<bool> CanHandleAsync(
+            PublishDocumentMessage message,
+            CancellationToken cancellationToken);
 
-        Task HandleAsync(PublishDocumentMessage message, CancellationToken cancellationToken);
+        Task HandleAsync(
+            PublishDocumentMessage message,
+            CancellationToken cancellationToken);
     }
 }

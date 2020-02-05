@@ -70,7 +70,24 @@ namespace MarshmallowPie.Storage.FileSystem
             string containerName,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            string fullContainerPath = Path.Combine(_fullDirectoryPath, containerName);
+
+            if (Directory.Exists(fullContainerPath))
+            {
+                return GetContainerAsync(containerName);
+            }
+            else
+            {
+                return CreateContainerAsync(containerName);
+            }
+        }
+
+        public Task<bool> ContainerExistsAsync(
+            string containerName,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                Directory.Exists(Path.Combine(_fullDirectoryPath, containerName)));
         }
     }
 }

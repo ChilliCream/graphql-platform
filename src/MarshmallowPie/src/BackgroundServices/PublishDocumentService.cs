@@ -33,15 +33,20 @@ namespace MarshmallowPie.BackgroundServices
                     break;
                 }
 
-                foreach (IPublishDocumentHandler handler in _publishDocumentHandlers)
+                try
                 {
-                    if (handler.Type == message.Type)
+                    foreach (IPublishDocumentHandler handler in _publishDocumentHandlers)
                     {
-                        await handler.HandleAsync(message, stoppingToken).ConfigureAwait(false);
+                        if (await handler.CanHandleAsync(message, stoppingToken).ConfigureAwait(false))
+                        {
+                            await handler.HandleAsync(message, stoppingToken).ConfigureAwait(false);
+                            break;
+                        }
                     }
-                }
 
-                await eventStream.CompleteAsync().ConfigureAwait(false);
+                    await eventStream.CompleteAsync().ConfigureAwait(false);
+                }
+                catch { }
             }
         }
     }

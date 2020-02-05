@@ -68,11 +68,7 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
-        Task AddPublishReportAsync(
-            SchemaPublishReport publishReport,
-            CancellationToken cancellationToken = default);
-
-        Task UpdatePublishReportAsync(
+        Task SetPublishReportAsync(
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default);
 

@@ -13,14 +13,14 @@ namespace MarshmallowPie.Repositories.Mongo
     {
         private readonly IMongoCollection<Client> _clients;
         private readonly IMongoCollection<ClientVersion> _versions;
-        private readonly IMongoCollection<Query> _queries;
+        private readonly IMongoCollection<QueryDocument> _queries;
         private readonly IMongoCollection<ClientPublishReport> _publishReports;
         private readonly IMongoCollection<PublishedClient> _publishedClients;
 
         public ClientRepository(
             IMongoCollection<Client> clients,
             IMongoCollection<ClientVersion> versions,
-            IMongoCollection<Query> queries,
+            IMongoCollection<QueryDocument> queries,
             IMongoCollection<ClientPublishReport> publishReports,
             IMongoCollection<PublishedClient> publishedClients)
         {
@@ -41,14 +41,14 @@ namespace MarshmallowPie.Repositories.Mongo
                     new CreateIndexOptions { Unique = true }));
 
             _queries.Indexes.CreateOne(
-                new CreateIndexModel<Query>(
-                    Builders<Query>.IndexKeys.Ascending(x => x.Hash.Hash),
+                new CreateIndexModel<QueryDocument>(
+                    Builders<QueryDocument>.IndexKeys.Ascending(x => x.Hash.Hash),
                     new CreateIndexOptions { Unique = true }));
 
             _queries.Indexes.CreateOne(
-                new CreateIndexModel<Query>(
-                    Builders<Query>.IndexKeys.Ascending(
-                        $"{nameof(Query.ExternalHashes)}.{nameof(DocumentHash.Hash)}"),
+                new CreateIndexModel<QueryDocument>(
+                    Builders<QueryDocument>.IndexKeys.Ascending(
+                        $"{nameof(QueryDocument.ExternalHashes)}.{nameof(DocumentHash.Hash)}"),
                     new CreateIndexOptions { Unique = false }));
 
             _publishReports.Indexes.CreateOne(
@@ -311,11 +311,11 @@ namespace MarshmallowPie.Repositories.Mongo
             }
         }
 
-        public async Task<Query?> GetQueryAsync(
+        public async Task<QueryDocument?> GetQueryDocumentAsync(
             string documentHash,
             CancellationToken cancellationToken = default)
         {
-            Query? query = await _queries.AsQueryable()
+            QueryDocument? query = await _queries.AsQueryable()
                 .Where(t => t.Hash.Hash == documentHash)
                 .FirstOrDefaultAsync(cancellationToken)!
                 .ConfigureAwait(false);
@@ -331,11 +331,11 @@ namespace MarshmallowPie.Repositories.Mongo
             return query;
         }
 
-        public async Task<IReadOnlyDictionary<Guid, Query>> GetQueriesAsync(
+        public async Task<IReadOnlyDictionary<Guid, QueryDocument>> GetQueryDocumentsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default)
         {
-            List<Query> result = await _queries.AsQueryable()
+            List<QueryDocument> result = await _queries.AsQueryable()
                 .Where(t => ids.Contains(t.Id))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -343,11 +343,11 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
-        public async Task<IReadOnlyDictionary<string, Query>> GetQueriesAsync(
+        public async Task<IReadOnlyDictionary<string, QueryDocument>> GetQueryDocumentsAsync(
             IReadOnlyList<string> documentHashes,
             CancellationToken cancellationToken = default)
         {
-            List<Query> result = await _queries.AsQueryable()
+            List<QueryDocument> result = await _queries.AsQueryable()
                 .Where(t => documentHashes.Contains(t.Hash.Hash))
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -355,8 +355,8 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Hash.Hash);
         }
 
-        public async Task AddQueriesAsync(
-            IEnumerable<Query> queries,
+        public async Task AddQueryDocumentAsync(
+            IEnumerable<QueryDocument> queries,
             CancellationToken cancellationToken = default)
         {
             try

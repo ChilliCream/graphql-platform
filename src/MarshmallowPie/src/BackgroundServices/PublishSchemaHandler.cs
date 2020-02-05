@@ -15,7 +15,7 @@ using Location = HotChocolate.Language.Location;
 
 namespace MarshmallowPie.BackgroundServices
 {
-    public class PublishNewSchemaDocumentHandler
+    public class PublishSchemaHandler
         : IPublishDocumentHandler
     {
         private const string _fileName = "schema.graphql";
@@ -23,7 +23,7 @@ namespace MarshmallowPie.BackgroundServices
         private readonly ISchemaRepository _schemaRepository;
         private readonly IMessageSender<PublishDocumentEvent> _eventSender;
 
-        public PublishNewSchemaDocumentHandler(
+        public PublishSchemaHandler(
             IFileStorage fileStorage,
             ISchemaRepository schemaRepository,
             IMessageSender<PublishDocumentEvent> eventSender)
@@ -37,9 +37,9 @@ namespace MarshmallowPie.BackgroundServices
             PublishDocumentMessage message,
             CancellationToken cancellationToken)
         {
-            if (message is { Type: DocumentType.Schema })
+            if (message is { Type: DocumentType.Schema, ExternalId: { } })
             {
-                return await _fileStorage.ContainerExistsAsync(
+                return !await _fileStorage.ContainerExistsAsync(
                     message.SessionId, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -66,8 +66,28 @@ namespace MarshmallowPie.BackgroundServices
 
             try
             {
+                SchemaVersion? version = await _schemaRepository.GetSchemaVersionByExternalIdAsync(
+                    message.ExternalId!, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (version is null)
+                {
+                    await issueLogger.LogIssueAsync(new Issue(
+                        "PROCESSING_FAILED",
+                        "There is now schema version associated with external " +
+                        $"ID `{message.ExternalId}`.",
+                        _fileName,
+                        new Location(0, 0, 0, 0),
+                        IssueType.Error,
+                        ResolutionType.None))
+                        .ConfigureAwait(false);
+                    return;
+                }
+
                 IFileContainer fileContainer =
-                    await _fileStorage.GetContainerAsync(message.SessionId).ConfigureAwait(false);
+                    await _fileStorage.GetContainerAsync(
+                        version.Id.ToString("N", CultureInfo.InvariantCulture))
+                        .ConfigureAwait(false);
 
                 IEnumerable<IFile> files =
                     await fileContainer.GetFilesAsync(cancellationToken).ConfigureAwait(false);
@@ -82,15 +102,13 @@ namespace MarshmallowPie.BackgroundServices
                     schemaFile, schemaDocument, cancellationToken)
                     .ConfigureAwait(false);
 
-                await PublishNewSchemaVersionAsync(
+                await PublishSchemaVersionAsync(
                     message,
+                    version,
                     schemaDocument,
-                    sourceText,
                     issueLogger,
                     cancellationToken)
                     .ConfigureAwait(false);
-
-                await fileContainer.DeleteAsync(cancellationToken).ConfigureAwait(false);
             }
             catch
             {
@@ -162,10 +180,10 @@ namespace MarshmallowPie.BackgroundServices
             }
         }
 
-        private async Task PublishNewSchemaVersionAsync(
+        private async Task PublishSchemaVersionAsync(
             PublishDocumentMessage message,
+            SchemaVersion schemaVersion,
             DocumentNode? schemaDocument,
-            string formattedSourceText,
             IssueLogger issueLogger,
             CancellationToken cancellationToken)
         {
@@ -181,28 +199,8 @@ namespace MarshmallowPie.BackgroundServices
                 }
             }
 
-            Guid versionId = Guid.NewGuid();
-
-            IFileContainer container = await _fileStorage.CreateContainerAsync(
-                versionId.ToString("N", CultureInfo.InvariantCulture),
-                cancellationToken)
-                .ConfigureAwait(false);
-
-            await container.CreateTextFileAsync(
-                _fileName, formattedSourceText, cancellationToken)
-                .ConfigureAwait(false);
-
-            SchemaVersion schemaVersion = await CreateSchemaVersionAsync(
-                message.SchemaId,
-                versionId,
-                message.ExternalId,
-                DocumentHash.FromSourceText(formattedSourceText),
-                message.Tags,
-                cancellationToken)
-                .ConfigureAwait(false);
-
             var report = new SchemaPublishReport(
-                versionId,
+                schemaVersion.Id,
                 message.EnvironmentId,
                 issueLogger.Issues,
                 PublishState.Published,
@@ -211,29 +209,6 @@ namespace MarshmallowPie.BackgroundServices
             await _schemaRepository.SetPublishReportAsync(
                 report, cancellationToken)
                 .ConfigureAwait(false);
-        }
-
-        private async Task<SchemaVersion> CreateSchemaVersionAsync(
-            Guid schemaId,
-            Guid schemaVersionId,
-            string? externalId,
-            DocumentHash documentHash,
-            IReadOnlyList<Tag> tags,
-            CancellationToken cancellationToken)
-        {
-            var schemaVersion = new SchemaVersion(
-                schemaVersionId,
-                schemaId,
-                externalId,
-                documentHash,
-                tags.Select(t => new Tag(t.Key, t.Value, DateTime.UtcNow)).ToList(),
-                DateTime.UtcNow);
-
-            await _schemaRepository.AddSchemaVersionAsync(
-                schemaVersion, cancellationToken)
-                .ConfigureAwait(false);
-
-            return schemaVersion;
         }
     }
 }

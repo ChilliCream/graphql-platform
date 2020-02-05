@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -60,11 +61,19 @@ namespace MarshmallowPie.BackgroundServices
             DocumentNode? document,
             CancellationToken cancellationToken)
         {
-            return document is { }
-                ? SchemaSyntaxSerializer.Serialize(document, true)
-                : await ReadSchemaSourceTextAsync(
-                    file, cancellationToken)
-                    .ConfigureAwait(false);
+            if (document is { })
+            {
+                if (document.Definitions.OfType<IExecutableDefinitionNode>().Any())
+                {
+                    return QuerySyntaxSerializer.Serialize(document, true);
+                }
+                else
+                {
+                    return SchemaSyntaxSerializer.Serialize(document, true);
+                }
+            }
+
+            return await ReadSchemaSourceTextAsync(file, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<string> ReadSchemaSourceTextAsync(

@@ -16,5 +16,9 @@ namespace MarshmallowPie.Storage
         Task<IFileContainer> GetOrCreateContainerAsync(
             string containerName,
             CancellationToken cancellationToken = default);
+
+        Task<bool> ContainerExistsAsync(
+            string containerName,
+            CancellationToken cancellationToken = default);
     }
 }

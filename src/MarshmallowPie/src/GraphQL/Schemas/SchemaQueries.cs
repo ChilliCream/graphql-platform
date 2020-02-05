@@ -110,6 +110,13 @@ namespace MarshmallowPie.GraphQL.Schemas
             return dataLoader.LoadAsync((Guid)deserializedId.Value, cancellationToken);
         }
 
+        public Task<SchemaVersion?> GetSchemaVersionByExternalIdAsync(
+            string externalId,
+            [Service]IIdSerializer idSerializer,
+            [Service]ISchemaRepository repository,
+            CancellationToken cancellationToken) =>
+            repository.GetSchemaVersionByExternalIdAsync(externalId, cancellationToken);
+
         [UseSorting]
         public Task<IReadOnlyList<SchemaVersion>> GetSchemaVersionsByIdAsync(
             [GraphQLType(typeof(NonNullType<ListType<NonNullType<IdType>>>))]string[] ids,

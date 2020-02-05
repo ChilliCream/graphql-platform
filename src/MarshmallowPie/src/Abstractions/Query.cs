@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace MarshmallowPie
 {
-    public class Query
+    public class QueryDocument
     {
-        public Query(DocumentHash hash)
+        public QueryDocument(DocumentHash hash)
         {
             Id = Guid.NewGuid();
             Hash = hash;
@@ -13,7 +13,7 @@ namespace MarshmallowPie
             Published = DateTime.UtcNow;
         }
 
-        public Query(
+        public QueryDocument(
             DocumentHash hash,
             ISet<DocumentHash> externalHashes,
             DateTime published)
@@ -24,7 +24,7 @@ namespace MarshmallowPie
             Published = published;
         }
 
-        public Query(
+        public QueryDocument(
             Guid id,
             DocumentHash hash,
             ISet<DocumentHash> externalHashes,

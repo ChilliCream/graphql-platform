@@ -49,20 +49,20 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Tag> tags,
             CancellationToken cancellationToken = default);
 
-        Task<Query?> GetQueryAsync(
+        Task<QueryDocument?> GetQueryDocumentAsync(
             string documentHash,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyDictionary<Guid, Query>> GetQueriesAsync(
+        Task<IReadOnlyDictionary<Guid, QueryDocument>> GetQueryDocumentsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyDictionary<string, Query>> GetQueriesAsync(
+        Task<IReadOnlyDictionary<string, QueryDocument>> GetQueryDocumentsAsync(
             IReadOnlyList<string> documentHashes,
             CancellationToken cancellationToken = default);
 
-        Task AddQueriesAsync(
-            IEnumerable<Query> queries,
+        Task AddQueryDocumentAsync(
+            IEnumerable<QueryDocument> queries,
             CancellationToken cancellationToken = default);
 
         IQueryable<ClientPublishReport> GetPublishReports(Guid? clientVersionId);

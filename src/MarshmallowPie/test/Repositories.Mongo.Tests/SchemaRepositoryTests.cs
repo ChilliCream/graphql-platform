@@ -770,7 +770,7 @@ namespace MarshmallowPie.Repositories.Mongo
                 schemas, versions, publishReports, publishedSchemas);
 
             // act
-            await repository.AddPublishReportAsync(initialReport);
+            await repository.SetPublishReportAsync(initialReport);
 
             // assert
             IReadOnlyDictionary<Guid, SchemaPublishReport> retrieved =
@@ -811,7 +811,7 @@ namespace MarshmallowPie.Repositories.Mongo
                 schemas, versions, publishReports, publishedSchemas);
 
             // act
-            await repository.UpdatePublishReportAsync(new SchemaPublishReport(
+            await repository.SetPublishReportAsync(new SchemaPublishReport(
                 initialReport.Id, initialReport.SchemaVersionId,
                 initialReport.EnvironmentId, initialReport.Issues,
                 PublishState.Rejected, DateTime.UtcNow));

@@ -1,11 +1,15 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
+using MarshmallowPie.GraphQL.Environments;
 using MarshmallowPie.GraphQL.Schemas;
+using MarshmallowPie.Processing;
 using MarshmallowPie.Repositories;
+using MarshmallowPie.Storage;
 
 namespace MarshmallowPie.GraphQL.Clients
 {
@@ -38,6 +42,66 @@ namespace MarshmallowPie.GraphQL.Clients
                 .ConfigureAwait(false);
 
             return new CreateClientPayload(schema, client, input.ClientMutationId);
+        }
+
+        public async Task<PublishClientPayload> PublishClientAsync(
+            PublishClientInput input,
+            [Service]IMessageSender<PublishDocumentMessage> messageSender,
+            [Service]IFileStorage fileStorage,
+            [Service]ISessionCreator sessionCreator,
+            [DataLoader]SchemaByNameDataLoader schemaDataLoader,
+            [DataLoader]ClientByNameDataLoader clientDataLoader,
+            [DataLoader]EnvironmentByNameDataLoader environmentDataLoader,
+            CancellationToken cancellationToken)
+        {
+            if (input.Files.Count == 0)
+            {
+                throw new GraphQLException("You have to provide at least one query file.");
+            }
+
+            Schema schema = await schemaDataLoader.LoadAsync(
+                input.SchemaName, cancellationToken)
+                .ConfigureAwait(false);
+
+            Client client = await clientDataLoader.LoadAsync(
+                input.ClientName, cancellationToken)
+                .ConfigureAwait(false);
+
+            Environment environment = await environmentDataLoader.LoadAsync(
+                input.EnvironmentName, cancellationToken)
+                .ConfigureAwait(false);
+
+            string sessionId = await sessionCreator.CreateSessionAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            IFileContainer container = await fileStorage.CreateContainerAsync(
+                sessionId, cancellationToken)
+                .ConfigureAwait(false);
+
+            foreach (QueryFile file in input.Files)
+            {
+                await container.CreateTextFileAsync(
+                    file.Name, file.SourceText, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            await messageSender.SendAsync(
+                new PublishDocumentMessage(
+                    sessionId,
+                    environment.Id,
+                    schema.Id,
+                    client.Id,
+                    input.ExternalId,
+                    input.Format == QueryFileFormat.GraphQL
+                        ? DocumentType.Query
+                        : DocumentType.Schema,
+                    input.Tags is null
+                        ? Array.Empty<Tag>()
+                        : input.Tags.Select(t => new Tag(t.Key, t.Value)).ToArray()),
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            return new PublishClientPayload(sessionId, input.ClientMutationId);
         }
 
         /*

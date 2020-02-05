@@ -36,7 +36,18 @@ namespace MarshmallowPie.BackgroundServices
             _validationRules = validationRules?.ToArray() ?? Array.Empty<IQueryValidationRule>();
         }
 
-        public DocumentType Type => DocumentType.Schema;
+        public async ValueTask<bool> CanHandleAsync(
+            PublishDocumentMessage message,
+            CancellationToken cancellationToken)
+        {
+            if (message is { Type: DocumentType.Query })
+            {
+                return await _fileStorage.ContainerExistsAsync(
+                    message.SessionId, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            return false;
+        }
 
         public Task HandleAsync(
             PublishDocumentMessage message,
@@ -73,10 +84,13 @@ namespace MarshmallowPie.BackgroundServices
 
                 if (schema is { })
                 {
-                    IFileContainer fileContainer =
-                        await _fileStorage.GetContainerAsync(message.SessionId).ConfigureAwait(false);
-                    IEnumerable<IFile> files =
-                        await fileContainer.GetFilesAsync(cancellationToken).ConfigureAwait(false);
+                    IFileContainer fileContainer = await _fileStorage.GetContainerAsync(
+                        message.SessionId, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    IEnumerable<IFile> files = await fileContainer.GetFilesAsync(
+                        cancellationToken)
+                        .ConfigureAwait(false);
 
                     foreach (IFile file in files)
                     {
@@ -93,7 +107,7 @@ namespace MarshmallowPie.BackgroundServices
                         if (document is { })
                         {
                             await ValidateQueryDocumentAsync(
-                                schema, file, document, logger, cancellationToken)
+                                schema, document, logger, cancellationToken)
                                 .ConfigureAwait(false);
                         }
 
@@ -141,7 +155,6 @@ namespace MarshmallowPie.BackgroundServices
 
         private async Task ValidateQueryDocumentAsync(
             ISchema schema,
-            IFile file,
             DocumentNode document,
             IssueLogger logger,
             CancellationToken cancellationToken)
@@ -164,20 +177,20 @@ namespace MarshmallowPie.BackgroundServices
             IFileContainer container,
             CancellationToken cancellationToken)
         {
-            IReadOnlyDictionary<string, Query> queries =
-                await _clientRepository.GetQueriesAsync(
+            IReadOnlyDictionary<string, QueryDocument> queries =
+                await _clientRepository.GetQueryDocumentsAsync(
                     documents.Select(t => t.Hash.Hash).ToArray(),
                     cancellationToken)
                     .ConfigureAwait(false);
 
-            var newQueries = new List<Query>();
+            var newQueries = new List<QueryDocument>();
             var queryIds = new List<Guid>(queries.Select(t => t.Value.Id));
 
             foreach (DocumentInfo document in documents)
             {
                 if (!queries.ContainsKey(document.Hash.Hash))
                 {
-                    var query = new Query(document.Hash);
+                    var query = new QueryDocument(document.Hash);
 
                     await container.CreateTextFileAsync(
                         query.Id, document.SourceText, cancellationToken)
@@ -188,9 +201,12 @@ namespace MarshmallowPie.BackgroundServices
                 }
             }
 
-            await _clientRepository.AddQueriesAsync(
-                newQueries, cancellationToken)
-                .ConfigureAwait(false);
+            if (newQueries.Count > 0)
+            {
+                await _clientRepository.AddQueryDocumentAsync(
+                    newQueries, cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
             return queryIds;
         }
