@@ -3,5 +3,5 @@ type Query {
 }
 
 type Bar {
-  field: String
+  field_abc: String
 }

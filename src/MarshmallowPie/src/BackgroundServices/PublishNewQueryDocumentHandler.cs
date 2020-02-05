@@ -120,7 +120,7 @@ namespace MarshmallowPie.BackgroundServices
                         .ConfigureAwait(false);
 
                     queryIds = await SaveQueryDocumentsAsync(
-                        documents, queryContainer, cancellationToken)
+                        message.SchemaId, documents, queryContainer, cancellationToken)
                         .ConfigureAwait(false);
                 }
 
@@ -173,12 +173,14 @@ namespace MarshmallowPie.BackgroundServices
         }
 
         private async Task<IReadOnlyList<Guid>> SaveQueryDocumentsAsync(
+            Guid schemaId,
             IEnumerable<DocumentInfo> documents,
             IFileContainer container,
             CancellationToken cancellationToken)
         {
             IReadOnlyDictionary<string, QueryDocument> queries =
                 await _clientRepository.GetQueryDocumentsAsync(
+                    schemaId,
                     documents.Select(t => t.Hash.Hash).ToArray(),
                     cancellationToken)
                     .ConfigureAwait(false);
@@ -190,7 +192,7 @@ namespace MarshmallowPie.BackgroundServices
             {
                 if (!queries.ContainsKey(document.Hash.Hash))
                 {
-                    var query = new QueryDocument(document.Hash);
+                    var query = new QueryDocument(schemaId, document.Hash);
 
                     await container.CreateTextFileAsync(
                         query.Id, document.SourceText, cancellationToken)
@@ -219,7 +221,7 @@ namespace MarshmallowPie.BackgroundServices
             var clientVersion = new ClientVersion(
                 message.ClientId!.Value,
                 message.ExternalId,
-                new HashSet<Guid>(queryIds),
+                new HashSet<Guid>(queryIds).ToList(),
                 message.Tags,
                 DateTime.UtcNow);
 

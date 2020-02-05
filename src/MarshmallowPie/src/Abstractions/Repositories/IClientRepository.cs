@@ -36,6 +36,10 @@ namespace MarshmallowPie.Repositories
 
         IQueryable<ClientVersion> GetClientVersions(Guid? clientId = null);
 
+        Task<ClientVersion?> GetClientVersionByExternalIdAsync(
+            string externalId,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyDictionary<Guid, ClientVersion>> GetClientVersionsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
@@ -50,6 +54,13 @@ namespace MarshmallowPie.Repositories
             CancellationToken cancellationToken = default);
 
         Task<QueryDocument?> GetQueryDocumentAsync(
+            Guid schemaId,
+            string documentHash,
+            CancellationToken cancellationToken = default);
+
+        Task<QueryDocument?> GetQueryDocumentAsync(
+            Guid environmentId,
+            Guid schemaId,
             string documentHash,
             CancellationToken cancellationToken = default);
 
@@ -58,6 +69,7 @@ namespace MarshmallowPie.Repositories
             CancellationToken cancellationToken = default);
 
         Task<IReadOnlyDictionary<string, QueryDocument>> GetQueryDocumentsAsync(
+            Guid schemaId,
             IReadOnlyList<string> documentHashes,
             CancellationToken cancellationToken = default);
 

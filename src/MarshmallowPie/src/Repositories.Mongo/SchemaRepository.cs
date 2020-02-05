@@ -315,7 +315,13 @@ namespace MarshmallowPie.Repositories.Mongo
             CancellationToken cancellationToken = default)
         {
             await _publishedSchemas.UpdateOneAsync(
-                Builders<PublishedSchema>.Filter.Eq(t => t.Id, publishedClient.Id),
+                Builders<PublishedSchema>.Filter.And(
+                    Builders<PublishedSchema>.Filter.Eq(
+                        t => t.EnvironmentId,
+                        publishedClient.EnvironmentId),
+                    Builders<PublishedSchema>.Filter.Eq(
+                        t => t.SchemaId,
+                        publishedClient.SchemaId)),
                 Builders<PublishedSchema>.Update.Combine(
                     Builders<PublishedSchema>.Update.SetOnInsert(
                         t => t.EnvironmentId, publishedClient.EnvironmentId),

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace MarshmallowPie
 {
@@ -8,13 +9,15 @@ namespace MarshmallowPie
             Guid environmentId,
             Guid schemaId,
             Guid clientId,
-            Guid clientVersionId)
+            Guid clientVersionId,
+            IReadOnlyList<Guid> queryIds)
         {
             Id = Guid.NewGuid();
             EnvironmentId = environmentId;
             SchemaId = schemaId;
             ClientId = clientId;
             ClientVersionId = clientVersionId;
+            QueryIds = queryIds;
         }
 
         public PublishedClient(
@@ -22,13 +25,15 @@ namespace MarshmallowPie
             Guid environmentId,
             Guid schemaId,
             Guid clientId,
-            Guid clientVersionId)
+            Guid clientVersionId,
+            IReadOnlyList<Guid> queryIds)
         {
             Id = id;
             EnvironmentId = environmentId;
             SchemaId = schemaId;
             ClientId = clientId;
             ClientVersionId = clientVersionId;
+            QueryIds = queryIds;
         }
 
         public Guid Id { get; }
@@ -40,5 +45,7 @@ namespace MarshmallowPie
         public Guid ClientId { get; }
 
         public Guid ClientVersionId { get; }
+
+        public IReadOnlyList<Guid> QueryIds { get; }
     }
 }

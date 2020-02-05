@@ -34,6 +34,7 @@ namespace MarshmallowPie.GraphQL
                 .AddType<ClientMutations>()
                 .AddType<ClientExtension>()
                 .AddType<ClientVersionExtension>()
+                .AddType<QueryDocumentExtension>()
                 .BindClrType<string, StringType>()
                 .BindClrType<Guid, IdType>();
         }

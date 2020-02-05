@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,6 +103,48 @@ namespace MarshmallowPie.GraphQL.Clients
                 .ConfigureAwait(false);
 
             return new PublishClientPayload(sessionId, input.ClientMutationId);
+        }
+
+        public async Task<MarkClientPublishedPayload> MarkClientPublishedAsync(
+            MarkClientPublishedInput input,
+            [Service]IClientRepository clientRepository,
+            [DataLoader]SchemaByNameDataLoader schemaDataLoader,
+            [DataLoader]EnvironmentByNameDataLoader environmentDataLoader,
+            CancellationToken cancellationToken)
+        {
+            Environment environment = await environmentDataLoader.LoadAsync(
+                input.EnvironmentName, cancellationToken)
+                .ConfigureAwait(false);
+
+            Schema schema = await schemaDataLoader.LoadAsync(
+                input.SchemaName, cancellationToken)
+                .ConfigureAwait(false);
+
+            ClientVersion? clientVersion = await clientRepository.GetClientVersionByExternalIdAsync(
+                input.ExternalId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (clientVersion is null)
+            {
+                throw new GraphQLException(
+                    "There is no client version associated with the " +
+                    $"specified external ID `{input.ExternalId}`.");
+            }
+
+            await clientRepository.SetPublishedClientAsync(
+                new PublishedClient(
+                    environment.Id,
+                    schema.Id,
+                    clientVersion.ClientId,
+                    clientVersion.Id,
+                    new HashSet<Guid>(clientVersion.QueryIds).ToList()))
+                .ConfigureAwait(false);
+
+            return new MarkClientPublishedPayload(
+                environment,
+                schema,
+                clientVersion,
+                input.ClientMutationId);
         }
 
         /*

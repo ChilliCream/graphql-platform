@@ -112,7 +112,6 @@ namespace MarshmallowPie.GraphQL.Schemas
 
         public Task<SchemaVersion?> GetSchemaVersionByExternalIdAsync(
             string externalId,
-            [Service]IIdSerializer idSerializer,
             [Service]ISchemaRepository repository,
             CancellationToken cancellationToken) =>
             repository.GetSchemaVersionByExternalIdAsync(externalId, cancellationToken);

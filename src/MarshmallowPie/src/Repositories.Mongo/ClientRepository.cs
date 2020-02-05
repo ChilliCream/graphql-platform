@@ -42,7 +42,9 @@ namespace MarshmallowPie.Repositories.Mongo
 
             _queries.Indexes.CreateOne(
                 new CreateIndexModel<QueryDocument>(
-                    Builders<QueryDocument>.IndexKeys.Ascending(x => x.Hash.Hash),
+                    Builders<QueryDocument>.IndexKeys.Combine(
+                        Builders<QueryDocument>.IndexKeys.Ascending(x => x.Hash.Hash),
+                        Builders<QueryDocument>.IndexKeys.Ascending(x => x.SchemaId)),
                     new CreateIndexOptions { Unique = true }));
 
             _queries.Indexes.CreateOne(
@@ -179,6 +181,15 @@ namespace MarshmallowPie.Repositories.Mongo
             return clients;
         }
 
+        public async Task<ClientVersion?> GetClientVersionByExternalIdAsync(
+            string externalId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _versions.AsQueryable()
+                .Where(t => t.ExternalId == externalId)
+                .FirstOrDefaultAsync(cancellationToken)!;
+        }
+
         public async Task<IReadOnlyDictionary<Guid, ClientVersion>> GetClientVersionsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default)
@@ -312,23 +323,54 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         public async Task<QueryDocument?> GetQueryDocumentAsync(
+            Guid schemaId,
             string documentHash,
             CancellationToken cancellationToken = default)
         {
-            QueryDocument? query = await _queries.AsQueryable()
+            QueryDocument? document = await _queries.AsQueryable()
                 .Where(t => t.Hash.Hash == documentHash)
                 .FirstOrDefaultAsync(cancellationToken)!
                 .ConfigureAwait(false);
 
-            if (query is null)
+            if (document is null)
             {
-                query = await _queries.AsQueryable()
+                document = await _queries.AsQueryable()
                     .Where(t => t.ExternalHashes.Any(t => t.Hash == documentHash))
                     .FirstOrDefaultAsync(cancellationToken)!
                     .ConfigureAwait(false);
             }
 
-            return query;
+            return document;
+        }
+
+        public async Task<QueryDocument?> GetQueryDocumentAsync(
+            Guid environmentId,
+            Guid schemaId,
+            string documentHash,
+            CancellationToken cancellationToken = default)
+        {
+            QueryDocument? document = await GetQueryDocumentAsync(
+                schemaId, documentHash, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (document is { })
+            {
+                IAsyncCursor<PublishedClient> cursor = await _publishedClients.FindAsync(
+                    Builders<PublishedClient>.Filter.And(
+                        Builders<PublishedClient>.Filter.Eq(t => t.EnvironmentId, environmentId),
+                        Builders<PublishedClient>.Filter.Eq(t => t.SchemaId, schemaId),
+                        Builders<PublishedClient>.Filter.AnyEq(t => t.QueryIds, document.Id)),
+                    options: default,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (await cursor.AnyAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return document;
+                }
+            }
+
+            return null;
         }
 
         public async Task<IReadOnlyDictionary<Guid, QueryDocument>> GetQueryDocumentsAsync(
@@ -344,6 +386,7 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         public async Task<IReadOnlyDictionary<string, QueryDocument>> GetQueryDocumentsAsync(
+            Guid schemaId,
             IReadOnlyList<string> documentHashes,
             CancellationToken cancellationToken = default)
         {
@@ -406,7 +449,7 @@ namespace MarshmallowPie.Repositories.Mongo
                     $"id `{clientId}` to the environment `{environmentId}`.");
             }
 
-           return client;
+            return client;
         }
 
         public async Task SetPublishedClientAsync(
@@ -414,7 +457,13 @@ namespace MarshmallowPie.Repositories.Mongo
             CancellationToken cancellationToken = default)
         {
             await _publishedClients.UpdateOneAsync(
-                Builders<PublishedClient>.Filter.Eq(t => t.Id, publishedClient.Id),
+                Builders<PublishedClient>.Filter.And(
+                    Builders<PublishedClient>.Filter.Eq(
+                        t => t.EnvironmentId,
+                        publishedClient.EnvironmentId),
+                    Builders<PublishedClient>.Filter.Eq(
+                        t => t.SchemaId,
+                        publishedClient.SchemaId)),
                 Builders<PublishedClient>.Update.Combine(
                     Builders<PublishedClient>.Update.SetOnInsert(
                         t => t.EnvironmentId, publishedClient.EnvironmentId),
@@ -423,7 +472,9 @@ namespace MarshmallowPie.Repositories.Mongo
                     Builders<PublishedClient>.Update.SetOnInsert(
                         t => t.ClientId, publishedClient.ClientId),
                     Builders<PublishedClient>.Update.Set(
-                        t => t.ClientVersionId, publishedClient.ClientVersionId)),
+                        t => t.ClientVersionId, publishedClient.ClientVersionId),
+                    Builders<PublishedClient>.Update.Set(
+                        t => t.QueryIds, publishedClient.QueryIds)),
                 new UpdateOptions { IsUpsert = true },
                 cancellationToken)
                 .ConfigureAwait(false);
