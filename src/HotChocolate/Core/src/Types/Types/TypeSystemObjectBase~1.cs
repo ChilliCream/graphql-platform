@@ -15,7 +15,7 @@ namespace HotChocolate.Types
         where TDefinition : DefinitionBase
     {
         private TDefinition? _definition;
-        private Dictionary<string, object?>? _contextData;
+        private ExtensionData? _contextData;
 
         protected TypeSystemObjectBase() { }
 
@@ -129,7 +129,7 @@ namespace HotChocolate.Types
             Description = definition.Description;
             OnCompleteType(context, definition);
 
-            _contextData = new Dictionary<string, object?>(definition.ContextData);
+            _contextData = definition.ContextData;
             _definition = null;
 
             base.CompleteType(context);

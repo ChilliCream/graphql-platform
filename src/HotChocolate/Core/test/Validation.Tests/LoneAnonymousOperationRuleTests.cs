@@ -29,7 +29,7 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.False(result.HasErrors);
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
         }
 
         [Fact]

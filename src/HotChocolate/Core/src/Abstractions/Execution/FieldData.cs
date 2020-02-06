@@ -72,7 +72,7 @@ namespace HotChocolate.Execution
             }
             else if (o is IList list)
             {
-                for (var i = 0; i < _capacity; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     DisposeNested(list[i]);
                 }

@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         public async Task TypeNameIntrospectionOnQuery()
         {
             // arrange
-            string query = "{ __typename }";
+            var query = "{ __typename }";
             IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
         public async Task TypeNameIntrospectionNotOnQuery()
         {
             // arrange
-            string query = "{ b { __typename } }";
+            var query = "{ b { __typename } }";
             IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
         public async Task TypeIntrospectionOnQuery()
         {
             // arrange
-            string query = "{ __type (name: \"Foo\") { name } }";
+            var query = "{ __type (name: \"Foo\") { name } }";
             IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
@@ -58,7 +58,7 @@ namespace HotChocolate.Execution
         public async Task TypeIntrospectionOnQueryWithFields()
         {
             // arrange
-            string query =
+            var query =
                 "{ __type (name: \"Foo\") " +
                 "{ name fields { name type { name } } } }";
             IQueryExecutor executor = CreateSchema().MakeExecutable();
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution
         public async Task ExecuteGraphiQLIntrospectionQuery()
         {
             // arrange
-            string query = FileResource.Open("IntrospectionQuery.graphql");
+            var query = FileResource.Open("IntrospectionQuery.graphql");
             IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
@@ -84,6 +84,25 @@ namespace HotChocolate.Execution
             // assert
             Assert.Null(result.Errors);
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteGraphiQLIntrospectionQuery_ToJson()
+        {
+            // arrange
+            var query = FileResource.Open("IntrospectionQuery.graphql");
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+
+            using ((FieldData) ((IReadOnlyQueryResult)result).Data)
+            {
+                Assert.Null(result.Errors);
+                result.ToJson().MatchSnapshot();
+            }
         }
 
         [Fact]
