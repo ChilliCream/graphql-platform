@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", list } });
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -76,7 +76,7 @@ namespace HotChocolate.Execution
                     "query { a(foo:[1 2 3 4 5]) { foo } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -117,7 +117,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", list } });
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -148,7 +148,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", value } });
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -183,7 +183,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", obj } });
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -223,7 +223,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", obj } });
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 

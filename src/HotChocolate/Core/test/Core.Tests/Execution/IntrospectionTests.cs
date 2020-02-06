@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -82,7 +82,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -144,7 +144,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -167,7 +167,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -184,7 +184,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 

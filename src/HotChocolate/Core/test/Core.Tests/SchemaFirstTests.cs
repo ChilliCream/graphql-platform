@@ -25,7 +25,7 @@ namespace HotChocolate
                     "{ test testProp }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -59,7 +59,7 @@ namespace HotChocolate
                     "{ foo(bar: { baz: \"hello\"}) }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -87,7 +87,7 @@ namespace HotChocolate
                     "{ enumValue }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -115,7 +115,7 @@ namespace HotChocolate
                     "{ setEnumValue(value:BAZ) }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -150,7 +150,7 @@ namespace HotChocolate
                     "{ enumInInputObject(payload: { value:BAZ } ) }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
