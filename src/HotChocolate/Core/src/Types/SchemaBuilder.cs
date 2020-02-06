@@ -1,14 +1,14 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using HotChocolate.Configuration;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using HotChocolate.Configuration;
-using HotChocolate.Configuration.Bindings;
-using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -30,8 +30,6 @@ namespace HotChocolate
             new Dictionary<FieldReference, FieldResolver>();
         private readonly List<ConfigureNamedConvention> _conventions =
             new List<ConfigureNamedConvention>();
-        private readonly Dictionary<Type, CreateConvention> _conventions =
-            new Dictionary<Type, CreateConvention>();
         private readonly Dictionary<IClrTypeReference, ITypeReference> _clrTypes =
             new Dictionary<IClrTypeReference, ITypeReference>();
         private readonly List<Type> _interceptors = new List<Type>();
