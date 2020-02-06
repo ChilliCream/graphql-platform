@@ -1,6 +1,5 @@
 ﻿{
-  "Data": {},
-  "Extensions": {},
+  "Data": null,
   "Errors": [
     {
       "Message": "Variable `a` got invalid value.",
@@ -19,5 +18,6 @@
       }
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }
