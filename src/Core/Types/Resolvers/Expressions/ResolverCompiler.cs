@@ -81,7 +81,6 @@ namespace HotChocolate.Resolvers.Expressions
                     metadata = metadataAnnotator.Annotate(
                         metadata, parameter, sourceType);
                 }
-
             }
             return metadata;
         }

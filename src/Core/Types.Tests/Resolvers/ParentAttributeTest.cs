@@ -51,9 +51,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var objectType = new ObjectType<Foo>(
                 t => t.Field<FooResolver>(f => f.GetParentProperty(default)).Name("desc"));
-
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -76,9 +74,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var objectType = new ObjectType<Foo>(
                 t => t.Field<FooResolver>(f => f.GetParentPropertyBar(default)).Name("desc"));
-
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -101,9 +97,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var objectType = new ObjectType<Foo>(
                 t => t.Field<FooResolver>(f => f.GetParentPropertyIBar(default)).Name("desc"));
-
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -126,9 +120,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var objectType = new ObjectType<Foo>(
                 t => t.Field<FooResolver>(f => f.GetParent(default)).Name("desc"));
-
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -172,9 +164,7 @@ namespace HotChocolate.Resolvers
                 .Field<FooResolver>(f => f.GetParent(default))
                 .Name("desc")
                 .Type<StringType>());
-
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -197,7 +187,6 @@ namespace HotChocolate.Resolvers
             // arrange 
             var schema = Schema.Create(
                 t => t.RegisterQueryType<Foo>().RegisterType<FooExtension>());
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -237,7 +226,6 @@ namespace HotChocolate.Resolvers
             // arrange  
             var schema = Schema.Create(
                 t => t.RegisterQueryType<Foo>().RegisterType<FooWorkingResolvers>());
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -260,7 +248,6 @@ namespace HotChocolate.Resolvers
             // arrange  
             var schema = Schema.Create(
                 t => t.RegisterQueryType<Foo>().RegisterType<FooSkippingResolvers>());
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -283,7 +270,6 @@ namespace HotChocolate.Resolvers
             // arrange  
             var schema = Schema.Create(
                 t => t.RegisterQueryType<FooCollision>().RegisterType<FooCollisionResolver>());
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -307,7 +293,6 @@ namespace HotChocolate.Resolvers
             // arrange  
             var schema = Schema.Create(
                 t => t.RegisterQueryType<FooCollision>().RegisterType<FooNoCollisionResolver>());
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -331,10 +316,8 @@ namespace HotChocolate.Resolvers
             // arrange  
             var objectType = new ObjectType<FooCollision>(
                 t => t.Name("FooCollision").Include<FooCollisionResolver>());
-
             var schema = Schema.Create(
                 t => t.RegisterQueryType(objectType));
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -358,10 +341,8 @@ namespace HotChocolate.Resolvers
             // arrange  
             var objectType = new ObjectType<FooCollision>(
                 t => t.Name("FooCollision").Include<FooNoCollisionResolver>());
-
             var schema = Schema.Create(
                 t => t.RegisterQueryType(objectType));
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -395,7 +376,6 @@ namespace HotChocolate.Resolvers
         public class Bar : IBar
         {
             public string Description { get; } = "nested";
-
         }
 
         public interface IBar
@@ -417,7 +397,6 @@ namespace HotChocolate.Resolvers
         public class FooExtension
         {
             public string GetParentProperty([Parent("Description")]string desc) => desc;
-
         }
 
         [GraphQLResolverOf("Foo")]
@@ -441,7 +420,6 @@ namespace HotChocolate.Resolvers
                 return foo;
             }
         }
-
 
         [GraphQLResolverOf("FooCollision")]
         public class FooNoCollisionResolver

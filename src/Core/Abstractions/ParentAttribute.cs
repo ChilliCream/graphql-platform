@@ -8,7 +8,6 @@ namespace HotChocolate
     {
         public ParentAttribute()
         {
-
         }
 
         public ParentAttribute(string property)

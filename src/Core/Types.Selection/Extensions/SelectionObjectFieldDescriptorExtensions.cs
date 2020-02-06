@@ -19,7 +19,6 @@ namespace HotChocolate.Types
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
-
             return UseSelection(descriptor, null);
         }
 
@@ -30,10 +29,8 @@ namespace HotChocolate.Types
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
-
             return UseSelection(descriptor, typeof(T));
         }
-
 
         private static IObjectFieldDescriptor UseSelection(
             IObjectFieldDescriptor descriptor,
@@ -62,7 +59,6 @@ namespace HotChocolate.Types
 
                         selectionType = typeInfo.ClrType;
                     }
-
 
                     ILazyTypeConfiguration lazyConfiguration =
                         LazyTypeConfigurationBuilder
@@ -93,6 +89,5 @@ namespace HotChocolate.Types
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
-
     }
 }

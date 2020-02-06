@@ -18,7 +18,6 @@ namespace HotChocolate.Types
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
-
         public async Task InvokeAsync(IMiddlewareContext context)
         {
             await _next(context).ConfigureAwait(false);
@@ -27,7 +26,7 @@ namespace HotChocolate.Types
             IReadOnlyList<IFieldSelection> selection;
             if (context.Result is PageableData<T> p)
             {
-                // TODO add support for pagable data!
+                //TODO: add support for pagable data!
                 throw new Exception("NOT SUPPORTED");
                 source = p.Source;
             }

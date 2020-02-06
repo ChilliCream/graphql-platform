@@ -27,7 +27,6 @@ namespace HotChocolate.Types
                         })
                         .UseSelection())
                 .Create();
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -74,7 +73,6 @@ namespace HotChocolate.Types
                         })
                         .UseSelection())
                 .Create();
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -121,7 +119,6 @@ namespace HotChocolate.Types
                         })
                         .UseSelection())
                 .Create();
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -168,7 +165,6 @@ namespace HotChocolate.Types
                         })
                         .UseSelection())
                 .Create();
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -218,7 +214,6 @@ namespace HotChocolate.Types
                         })
                         .UseSelection())
                 .Create();
-
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -255,13 +250,9 @@ namespace HotChocolate.Types
         private class Foo
         {
             public string Bar { get; set; }
-
             public int Baz { get; set; }
-
             public NestedFoo Nested { get; set; }
             public NestedFoo[] NestedCollection { get; set; }
-
-
             public static Foo Create(string bar, int baz)
             {
                 return new Foo
@@ -288,10 +279,7 @@ namespace HotChocolate.Types
         private class NestedFoo
         {
             public string Bar { get; set; }
-
             public int Baz { get; set; }
         }
     }
-
-
 }

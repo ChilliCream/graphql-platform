@@ -8,7 +8,6 @@ namespace HotChocolate.Resolvers
         public ResolverMetadata()
             : this(new List<string>(), new List<string>())
         {
-
         }
 
         public ResolverMetadata(
@@ -35,6 +34,5 @@ namespace HotChocolate.Resolvers
 
             return new ResolverMetadata(dependsOn, Resources);
         }
-
     }
 }

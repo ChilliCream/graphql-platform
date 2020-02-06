@@ -62,13 +62,11 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             var metadata = new ResolverMetadata();
-
             if (member is MethodInfo method)
             {
                 metadata = CreateMetadata(
                     metadata, method.GetParameters(), sourceType);
             }
-
             if (member is PropertyInfo property)
             {
                 metadata = metadata.WithDependsOn(property.Name);

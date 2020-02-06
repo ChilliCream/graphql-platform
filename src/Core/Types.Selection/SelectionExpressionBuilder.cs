@@ -19,11 +19,9 @@ namespace HotChocolate.Types
                         x, Expression.Property(parameter, x)))
                 .ToArray();
 
-
             MemberInitExpression memberInit = Expression.MemberInit(ctor, inits);
 
             return Expression.Lambda<Func<T, T>>(memberInit, parameter);
         }
-
     }
 }

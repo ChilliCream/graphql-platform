@@ -37,7 +37,6 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             {
                 MethodInfo argumentMethod = _genericMethod.MakeGenericMethod(
                     parameter.ParameterType);
-
                 return Expression.Call(context, argumentMethod);
             }
             else
@@ -47,9 +46,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                     throw new InvalidOperationException(
                                 TypeResources.ResolverCompiler_ParentPropertyInvalidSource);
                 }
-
                 MethodInfo argumentMethod = _genericMethod.MakeGenericMethod(
-                sourceType);
+                    sourceType);
 
                 Expression acessor
                     = Expression.Call(context, argumentMethod);
