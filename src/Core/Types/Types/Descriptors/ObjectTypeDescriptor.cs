@@ -136,8 +136,13 @@ namespace HotChocolate.Types.Descriptors
             {
                 ParameterInfo parent = m.GetParameters()
                     .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                return parent == null
-                    || parent.ParameterType.IsAssignableFrom(sourceType);
+                ParentAttribute attribute
+                    = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
+
+                return attribute.Property == null && (
+                        parent == null
+                        || parent.ParameterType.IsAssignableFrom(sourceType)
+                    );
             }
 
             return false;

@@ -44,5 +44,17 @@ namespace HotChocolate.Configuration
                 ResolverType, SourceType,
                 field);
         }
+
+        public RegisteredResolver WithSourceType(Type sourceType)
+        {
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            return new RegisteredResolver(
+                ResolverType, sourceType,
+                Field);
+        }
     }
 }

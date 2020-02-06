@@ -20,8 +20,9 @@ namespace HotChocolate.Resolvers.Expressions
         }
 
         public ResolveCompiler(
-            IEnumerable<IResolverParameterCompiler> compilers)
-            : base(compilers)
+            IEnumerable<IResolverParameterCompiler> compilers,
+            IEnumerable<IResolverMetadataAnnotator> annotators)
+            : base(compilers, annotators)
         {
         }
 
@@ -39,10 +40,41 @@ namespace HotChocolate.Resolvers.Expressions
                 descriptor.Field.Member,
                 descriptor.SourceType);
 
+            ResolverMetadata metadata = CreateMetadata(
+                descriptor.Field.Member,
+                descriptor.SourceType);
+
+            //TODO: add meta data to field resolver
+
             return new FieldResolver(
                 descriptor.Field.TypeName,
                 descriptor.Field.FieldName,
                 resolver);
+        }
+
+        private ResolverMetadata CreateMetadata(
+            MemberInfo member,
+            Type sourceType)
+        {
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            var metadata = new ResolverMetadata();
+
+            if (member is MethodInfo method)
+            {
+                metadata = CreateMetadata(
+                    metadata, method.GetParameters(), sourceType);
+            }
+
+            if (member is PropertyInfo property)
+            {
+                metadata = metadata.WithDependsOn(property.Name);
+            }
+
+            return metadata;
         }
 
         private FieldResolverDelegate CreateResolver(

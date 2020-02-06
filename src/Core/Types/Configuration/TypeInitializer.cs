@@ -196,6 +196,14 @@ namespace HotChocolate.Configuration
                         && extension.Type is INamedTypeExtensionMerger m
                         && type.Type is INamedType n)
                     {
+                        // replace resolvers
+                        InitializationContext initContext = extension.InitializationContext;
+                        foreach (FieldReference reference in initContext.Resolvers.Keys)
+                        {
+                            _resolvers[reference]
+                                = initContext.Resolvers[reference].WithSourceType(type.ClrType);
+                        }
+
                         // merge
                         CompletionContext context = _completionContext[extension];
                         context.Status = TypeStatus.Named;
@@ -324,8 +332,13 @@ namespace HotChocolate.Configuration
             {
                 ParameterInfo parent = m.GetParameters()
                     .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                return parent == null
-                    || parent.ParameterType.IsAssignableFrom(sourceType);
+                ParentAttribute attribute
+                    = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
+
+                return attribute.Property == null && (
+                        parent == null ||
+                        parent.ParameterType.IsAssignableFrom(sourceType)
+                    );
             }
 
             return false;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChocolate
 {
@@ -6,5 +6,16 @@ namespace HotChocolate
     public sealed class ParentAttribute
         : Attribute
     {
+        public ParentAttribute()
+        {
+
+        }
+
+        public ParentAttribute(string property)
+        {
+            Property = property;
+        }
+
+        public string Property { get; }
     }
 }

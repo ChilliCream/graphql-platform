@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -19,22 +18,23 @@ namespace HotChocolate.Resolvers.Expressions
             typeof(IResolverContext).GetMethod("Resolver")!;
 
         private readonly IResolverParameterCompiler[] _compilers;
+        private readonly IResolverMetadataAnnotator[] _annotators;
         private readonly ParameterExpression _context;
 
         protected ResolverCompiler()
-            : this(ParameterCompilerFactory.Create())
+            : this(ParameterCompilerFactory.Create(),
+                  MetadataAnnotationFactory.Create())
         {
         }
 
         protected ResolverCompiler(
-            IEnumerable<IResolverParameterCompiler> compilers)
+            IEnumerable<IResolverParameterCompiler> compilers,
+            IEnumerable<IResolverMetadataAnnotator> annotators)
         {
-            if (compilers == null)
-            {
+            _compilers = compilers?.ToArray() ??
                 throw new ArgumentNullException(nameof(compilers));
-            }
-
-            _compilers = compilers.ToArray();
+            _annotators = annotators?.ToArray() ??
+                throw new ArgumentNullException(nameof(annotators));
             _context = Expression.Parameter(typeof(IResolverContext));
         }
 
@@ -63,6 +63,27 @@ namespace HotChocolate.Resolvers.Expressions
                 yield return parameterCompiler.Compile(
                     _context, parameter, sourceType);
             }
+        }
+
+        protected ResolverMetadata CreateMetadata(
+            ResolverMetadata metadata,
+            IEnumerable<ParameterInfo> parameters,
+            Type sourceType)
+        {
+            foreach (ParameterInfo parameter in parameters)
+            {
+                IResolverMetadataAnnotator metadataAnnotator =
+                    _annotators.FirstOrDefault(t =>
+                        t.CanHandle(parameter, sourceType));
+
+                if (metadataAnnotator != null)
+                {
+                    metadata = metadataAnnotator.Annotate(
+                        metadata, parameter, sourceType);
+                }
+
+            }
+            return metadata;
         }
 
         public static SubscribeCompiler Subscribe { get; } = new SubscribeCompiler();
