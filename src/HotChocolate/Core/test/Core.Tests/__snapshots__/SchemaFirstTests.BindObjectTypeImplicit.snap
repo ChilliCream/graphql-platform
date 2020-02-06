@@ -3,7 +3,7 @@
     "test": "Hello World 1!",
     "testProp": "Hello World 2!"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }
