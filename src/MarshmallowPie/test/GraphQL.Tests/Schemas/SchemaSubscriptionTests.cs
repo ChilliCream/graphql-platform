@@ -64,7 +64,14 @@ namespace MarshmallowPie.GraphQL.Schemas
             {
                 results.Add(result);
             }
-            results.MatchSnapshot();
+
+            results.MatchSnapshot(matchOptions =>
+                matchOptions.Assert(fieldOption =>
+                    Assert.Collection(
+                        fieldOption.Fields<string>("[*].Data.onPublishSchema.sessionId"),
+                        t => Assert.Equal(sessionId, t),
+                        t => Assert.Equal(sessionId, t))));
         }
     }
 }
+

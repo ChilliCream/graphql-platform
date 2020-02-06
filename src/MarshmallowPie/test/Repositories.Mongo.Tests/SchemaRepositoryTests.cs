@@ -281,29 +281,6 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         [Fact]
-        public void EnsureDuplicateTagsLeadToAnError()
-        {
-            // arrange
-            // act
-            var version = new SchemaVersion(
-                Guid.NewGuid(),
-                "bar",
-                new DocumentHash("baz", "baz", HashFormat.Hex),
-                new[]
-                {
-                    new Tag("a", "b", DateTime.UtcNow),
-                    new Tag("a", "b", DateTime.UtcNow),
-                    new Tag("a", "c", DateTime.UtcNow)
-                },
-                DateTime.UtcNow);
-
-            // assert
-            Assert.Collection(version.Tags.OrderBy(t => t.Value),
-                tag => Assert.Equal("b", tag.Value),
-                tag => Assert.Equal("c", tag.Value));
-        }
-
-        [Fact]
         public async Task GetSchemaVersions()
         {
             // arrange

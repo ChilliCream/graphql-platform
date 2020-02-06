@@ -471,6 +471,8 @@ namespace MarshmallowPie.Repositories.Mongo
                         t => t.SchemaId, publishedClient.SchemaId),
                     Builders<PublishedClient>.Update.SetOnInsert(
                         t => t.ClientId, publishedClient.ClientId),
+                        Builders<PublishedClient>.Update.Set(
+                        t => t.Id, publishedClient.Id),
                     Builders<PublishedClient>.Update.Set(
                         t => t.ClientVersionId, publishedClient.ClientVersionId),
                     Builders<PublishedClient>.Update.Set(

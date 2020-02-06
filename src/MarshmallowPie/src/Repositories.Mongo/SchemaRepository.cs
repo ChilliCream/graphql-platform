@@ -327,6 +327,8 @@ namespace MarshmallowPie.Repositories.Mongo
                         t => t.EnvironmentId, publishedClient.EnvironmentId),
                     Builders<PublishedSchema>.Update.SetOnInsert(
                         t => t.SchemaId, publishedClient.SchemaId),
+                        Builders<PublishedSchema>.Update.Set(
+                        t => t.Id, publishedClient.Id),
                     Builders<PublishedSchema>.Update.Set(
                         t => t.SchemaVersionId, publishedClient.SchemaVersionId)),
                 new UpdateOptions { IsUpsert = true },
