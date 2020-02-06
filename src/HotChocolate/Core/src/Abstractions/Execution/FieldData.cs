@@ -40,18 +40,6 @@ namespace HotChocolate.Execution
             _count++;
         }
 
-        public void RemoveFieldValue(int index)
-        {
-            if (_values.Length <= index)
-            {
-                throw new ArgumentException(
-                    "The specified index does not exist.",
-                    nameof(index));
-            }
-            _values[index] = default;
-            _count--;
-        }
-
         public void Clear()
         {
             _values = Array.Empty<FieldValue>();

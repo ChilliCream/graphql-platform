@@ -55,7 +55,10 @@ namespace HotChocolate.Execution
 
             PropagateNonNullViolation = () =>
             {
-                serializedResult.RemoveFieldValue(fieldSelection.ResponseIndex);
+                serializedResult.SetFieldValue(
+                    fieldSelection.ResponseIndex,
+                    fieldSelection.ResponseName,
+                    null);
             };
         }
 
@@ -98,7 +101,10 @@ namespace HotChocolate.Execution
                         parentPropagateNonNullViolation.Invoke();
                     }
                 }
-                serializedResult.RemoveFieldValue(fieldSelection.ResponseIndex);
+                serializedResult.SetFieldValue(
+                    fieldSelection.ResponseIndex,
+                    fieldSelection.ResponseName,
+                    null);
             };
         }
 
