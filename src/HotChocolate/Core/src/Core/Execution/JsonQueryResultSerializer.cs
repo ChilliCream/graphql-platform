@@ -1,10 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace HotChocolate.Execution
 {
@@ -12,19 +12,28 @@ namespace HotChocolate.Execution
         : IQueryResultSerializer
     {
         private const string _contentType = "application/json";
-        private readonly UTF8Encoding _encoding = new UTF8Encoding();
+        private const string _data = "data";
+        private const string _errors = "errors";
+        private const string _extensions = "extensions";
+        private const string _message = "message";
+        private const string _locations = "locations";
+        private const string _path = "path";
+        private const string _line = "line";
+        private const string _column = "column";
+
+        private readonly JsonWriterOptions _options;
+
+        public JsonQueryResultSerializer(bool indented = false)
+        {
+            _options = new JsonWriterOptions { Indented = indented };
+        }
 
         public string ContentType => _contentType;
 
-        public Task SerializeAsync(
-            IReadOnlyQueryResult result,
-            Stream stream) =>
-            SerializeAsync(result, stream, CancellationToken.None);
-
-        public Task SerializeAsync(
+        public async Task SerializeAsync(
             IReadOnlyQueryResult result,
             Stream stream,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (result is null)
             {
@@ -36,10 +45,249 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            IReadOnlyDictionary<string, object> dict = result.ToDictionary();
-            string json = JsonConvert.SerializeObject(dict);
-            byte[] buffer = _encoding.GetBytes(json);
-            return stream.WriteAsync(buffer, 0, buffer.Length);
+            using var writer = new Utf8JsonWriter(stream, _options);
+
+            writer.WriteStartObject();
+
+            WriteErrors(writer, result.Errors);
+            WriteData(writer, result.Data);
+            WriteExtensions(writer, result.Extensions);
+
+            writer.WriteEndObject();
+
+            await writer.FlushAsync(cancellationToken);
+        }
+
+        public static void WriteData(
+            Utf8JsonWriter writer,
+            IReadOnlyDictionary<string, object> data)
+        {
+            if (data is { } && data.Count > 0)
+            {
+                writer.WritePropertyName(_data);
+
+                if (data is FieldData fieldData)
+                {
+                    WriteFieldData(writer, fieldData);
+                }
+                else
+                {
+                    WriteDictionary(writer, data);
+                }
+            }
+        }
+
+        private static void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError> errors)
+        {
+            if (errors is { } && errors.Count > 0)
+            {
+                writer.WritePropertyName(_errors);
+
+                writer.WriteStartArray();
+
+                for (int i = 0; i < errors.Count; i++)
+                {
+                    WriteError(writer, errors[i]);
+                }
+
+                writer.WriteEndArray();
+            }
+        }
+
+        private static void WriteError(Utf8JsonWriter writer, IError error)
+        {
+            writer.WriteStartObject();
+
+            writer.WriteString(_message, error.Message);
+
+            WriteLocations(writer, error.Locations);
+            WritePath(writer, error.Path);
+            WriteExtensions(writer, error.Extensions);
+
+            writer.WriteEndObject();
+        }
+
+        private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location> locations)
+        {
+            if (locations is { } && locations.Count > 0)
+            {
+                writer.WritePropertyName(_locations);
+
+                writer.WriteStartArray();
+
+                for (int i = 0; i < locations.Count; i++)
+                {
+                    WriteLocation(writer, locations[i]);
+                }
+
+                writer.WriteEndArray();
+            }
+        }
+
+        private static void WriteLocation(Utf8JsonWriter writer, Location location)
+        {
+            writer.WriteStartObject();
+            writer.WriteNumber(_line, location.Line);
+            writer.WriteNumber(_column, location.Column);
+            writer.WriteEndObject();
+        }
+
+        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object> path)
+        {
+            if (path is { } && path.Count > 0)
+            {
+                writer.WritePropertyName(_path);
+
+                writer.WriteStartArray();
+
+                for (int i = 0; i < path.Count; i++)
+                {
+                    switch (path[i])
+                    {
+                        case string s:
+                            writer.WriteStringValue(s);
+                            break;
+
+                        case int n:
+                            writer.WriteNumberValue(n);
+                            break;
+
+                        default:
+                            throw new InvalidOperationException(
+                                "The specified value is of an invalid type " +
+                                "for the error path.");
+                    }
+                }
+
+                writer.WriteEndArray();
+            }
+        }
+
+        private static void WriteExtensions(
+            Utf8JsonWriter writer,
+            IReadOnlyDictionary<string, object> dict)
+        {
+            if (dict is { } && dict.Count > 0)
+            {
+                writer.WritePropertyName(_extensions);
+                WriteDictionary(writer, dict);
+            }
+        }
+
+        private static void WriteDictionary(
+            Utf8JsonWriter writer,
+            IReadOnlyDictionary<string, object> dict)
+        {
+            writer.WriteStartObject();
+
+            foreach (KeyValuePair<string, object> item in dict)
+            {
+                writer.WritePropertyName(item.Key);
+                WriteFieldValue(writer, item.Value);
+            }
+
+            writer.WriteEndObject();
+        }
+
+        private static void WriteFieldData(
+            Utf8JsonWriter writer,
+            FieldData fieldData)
+        {
+            writer.WriteStartObject();
+
+            foreach (FieldValue item in fieldData)
+            {
+                writer.WritePropertyName(item.Key);
+                WriteFieldValue(writer, item.Value);
+            }
+
+            writer.WriteEndObject();
+        }
+
+        private static void WriteList(
+            Utf8JsonWriter writer,
+            IList list)
+        {
+            writer.WriteStartArray();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                WriteFieldValue(writer, list[i]);
+            }
+
+            writer.WriteEndArray();
+        }
+
+        private static void WriteFieldValue(
+            Utf8JsonWriter writer,
+            object value)
+        {
+            if (value is null)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+
+            switch (value)
+            {
+                case FieldData fieldData:
+                    break;
+
+                case IReadOnlyDictionary<string, object> dict:
+                    break;
+
+                case IList list:
+                    break;
+
+                case string s:
+                    writer.WriteStringValue(s);
+                    break;
+
+                case short s:
+                    writer.WriteNumberValue(s);
+                    break;
+
+                case ushort s:
+                    writer.WriteNumberValue(s);
+                    break;
+
+                case int i:
+                    writer.WriteNumberValue(i);
+                    break;
+
+                case uint i:
+                    writer.WriteNumberValue(i);
+                    break;
+
+                case long l:
+                    writer.WriteNumberValue(l);
+                    break;
+
+                case ulong l:
+                    writer.WriteNumberValue(l);
+                    break;
+
+                case float f:
+                    writer.WriteNumberValue(f);
+                    break;
+
+                case double d:
+                    writer.WriteNumberValue(d);
+                    break;
+
+                case decimal d:
+                    writer.WriteNumberValue(d);
+                    break;
+
+                case bool b:
+                    writer.WriteBooleanValue(b);
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        $"The specified type `{value.GetType().FullName}` " +
+                        "is not supported by the result serializer.");
+            }
         }
     }
 }

@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                context.Result = QueryResult.CreateError(
+                context.Result = QueryResultBuilder.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.ParseQueryMiddleware_InComplete)
                         .SetCode(ErrorCodes.Execution.Incomplete)
@@ -150,7 +150,7 @@ namespace HotChocolate.Execution
         {
             if (context.Document is null)
             {
-                context.Result = QueryResult.CreateError(
+                context.Result = QueryResultBuilder.CreateError(
                     _errorHandler.Handle(ErrorBuilder.New()
                         .SetMessage("CachedQueryNotFound")
                         .SetCode(ErrorCodes.Execution.CachedQueryNotFound)

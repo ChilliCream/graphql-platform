@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
             FieldSelection fieldSelection,
             IImmutableStack<object> source,
             object sourceObject,
-            IDictionary<string, object> serializedResult,
+            FieldData serializedResult,
             Path path,
             Action propagateNonNullViolation)
         {
@@ -26,7 +26,7 @@ namespace HotChocolate.Execution
 
         public void SetCompletedValue(object completedValue)
         {
-            _serializedResult[ResponseName] = completedValue;
+            _serializedResult.SetFieldValue(ResponseIndex, ResponseName, completedValue);
         }
     }
 }

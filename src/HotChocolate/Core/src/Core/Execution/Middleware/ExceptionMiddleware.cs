@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
             catch (GraphQLException ex)
             {
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(
+                context.Result = QueryResultBuilder.CreateError(
                     _errorHandler.Handle(ex.Errors));
             }
             catch (SyntaxException ex)
@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
                 error = _errorHandler.Handle(error);
 
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(error);
+                context.Result = QueryResultBuilder.CreateError(error);
             }
             catch (ScalarSerializationException ex)
             {
@@ -53,7 +53,7 @@ namespace HotChocolate.Execution
                 error = _errorHandler.Handle(error);
 
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(error);
+                context.Result = QueryResultBuilder.CreateError(error);
             }
             catch (InputObjectSerializationException ex)
             {
@@ -64,7 +64,7 @@ namespace HotChocolate.Execution
                 error = _errorHandler.Handle(error);
 
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(error);
+                context.Result = QueryResultBuilder.CreateError(error);
             }
             catch (Exception ex)
             {
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution
                 error = _errorHandler.Handle(error);
 
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(error);
+                context.Result = QueryResultBuilder.CreateError(error);
             }
         }
     }

@@ -38,7 +38,7 @@ namespace HotChocolate.Execution
 
             ErrorHandler = services.GetRequiredService<IErrorHandler>();
 
-            Result = new QueryResult();
+            Result = new QueryResultBuilder();
 
             var fragments = new FragmentCollection(
                 schema, operation.Document);
@@ -69,7 +69,7 @@ namespace HotChocolate.Execution
 
         public IVariableValueCollection Variables => Operation.Variables;
 
-        public IQueryResult Result { get; private set; }
+        public IQueryResultBuilder Result { get; private set; }
 
         public IDictionary<string, object> ContextData =>
             _requestContext.ContextData;
@@ -92,7 +92,7 @@ namespace HotChocolate.Execution
 
             lock (_syncRoot)
             {
-                Result.Errors.Add(error);
+                Result.AddError(error);
             }
         }
 

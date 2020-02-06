@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
 
-        internal FieldSelection(FieldInfo fieldInfo)
+        internal FieldSelection(FieldInfo fieldInfo, int responseIndex)
         {
             _args = fieldInfo.Arguments ?? _empty;
             _vars = fieldInfo.VarArguments;
@@ -45,7 +45,10 @@ namespace HotChocolate.Execution
             }
 
             Middleware = fieldInfo.Middleware;
+            ResponseIndex = responseIndex;
         }
+
+        public int ResponseIndex { get; }
 
         public string ResponseName { get; }
 

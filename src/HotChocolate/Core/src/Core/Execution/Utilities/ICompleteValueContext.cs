@@ -29,9 +29,6 @@ namespace HotChocolate.Execution
 
         void AddError(IError error);
 
-        void EnqueueForProcessing(
-            ObjectType objectType,
-            OrderedDictionary serializedResult,
-            object resolverResult);
+        FieldData EnqueueForProcessing(ObjectType objectType, object resolverResult);
     }
 }

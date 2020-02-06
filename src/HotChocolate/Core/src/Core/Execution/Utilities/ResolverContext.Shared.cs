@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             FieldSelection fieldSelection,
             IImmutableStack<object> source,
-            IDictionary<string, object> serializedResult)
+            FieldData serializedResult)
         {
             _executionContext = executionContext;
             _serializedResult = serializedResult;
@@ -53,10 +53,9 @@ namespace HotChocolate.Execution
                 executionContext.Variables,
                 executionContext.Converter);
 
-            string responseName = fieldSelection.ResponseName;
             PropagateNonNullViolation = () =>
             {
-                serializedResult[responseName] = null;
+                serializedResult.RemoveFieldValue(fieldSelection.ResponseIndex);
             };
         }
 
@@ -65,7 +64,7 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source,
             object sourceObject,
             ResolverContext sourceContext,
-            IDictionary<string, object> serializedResult,
+            FieldData serializedResult,
             Path path,
             Action propagateNonNullViolation)
         {
@@ -84,9 +83,7 @@ namespace HotChocolate.Execution
             LocalContextData = ImmutableDictionary<string, object>.Empty;
 
             bool isNonNullType = fieldSelection.Field.Type.IsNonNullType();
-            string responseName = fieldSelection.ResponseName;
-            Action parentPropagateNonNullViolation =
-                sourceContext.PropagateNonNullViolation;
+            Action parentPropagateNonNullViolation = sourceContext.PropagateNonNullViolation;
 
             PropagateNonNullViolation = () =>
             {
@@ -101,7 +98,7 @@ namespace HotChocolate.Execution
                         parentPropagateNonNullViolation.Invoke();
                     }
                 }
-                serializedResult[responseName] = null;
+                serializedResult.RemoveFieldValue(fieldSelection.ResponseIndex);
             };
         }
 
@@ -109,7 +106,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             FieldSelection fieldSelection,
             IImmutableStack<object> source,
-            IDictionary<string, object> serializedResult)
+            FieldData serializedResult)
         {
             var context = new ResolverContext();
             context.Initialize(
@@ -125,7 +122,7 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source,
             object sourceObject,
             ResolverContext sourceContext,
-            IDictionary<string, object> serializedResult,
+            FieldData serializedResult,
             Path path,
             Action propagateNonNullViolation)
         {
