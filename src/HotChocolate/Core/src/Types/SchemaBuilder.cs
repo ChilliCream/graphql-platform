@@ -28,6 +28,8 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
+        private readonly List<ConfigureNamedConvention> _conventions =
+            new List<ConfigureNamedConvention>();
         private readonly Dictionary<Type, CreateConvention> _conventions =
             new Dictionary<Type, CreateConvention>();
         private readonly Dictionary<IClrTypeReference, ITypeReference> _clrTypes =
@@ -154,9 +156,19 @@ namespace HotChocolate
             return this;
         }
 
+        public ISchemaBuilder AddConvention(Type convention, CreateConvention factory) =>
+            AddNamedConvention(Convention.DefaultName, convention, factory);
 
-        public ISchemaBuilder AddConvention(Type convention, CreateConvention factory)
+        public ISchemaBuilder AddNamedConvention(
+            string name,
+            Type convention,
+            CreateConvention factory)
         {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             if (convention is null)
             {
                 throw new ArgumentNullException(nameof(convention));
@@ -167,7 +179,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            _conventions[convention] = factory;
+            _conventions.Add(new ConfigureNamedConvention(name, convention, factory));
             return this;
         }
 

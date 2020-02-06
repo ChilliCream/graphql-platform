@@ -74,6 +74,24 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Bind_Filter_FilterDescirptor_ConfigureName()
+        {
+            // arrange
+            // act 
+            ISchema schema = CreateSchema(
+                new FilterInputType<FooSimple>(descriptor =>
+                {
+                    descriptor
+                       .BindFieldsExplicitly()
+                       .List(x => x.BarDatetime).Name("Test");
+
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Bind_Filter_FilterDescirptor_Override()
         {
             // arrange

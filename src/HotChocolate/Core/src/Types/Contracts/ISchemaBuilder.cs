@@ -62,6 +62,8 @@ namespace HotChocolate
 
         ISchemaBuilder AddConvention(Type convention, CreateConvention factory);
 
+        ISchemaBuilder AddNamedConvention(string name, Type convention, CreateConvention factory);
+        
         ISchema Create();
     }
 }

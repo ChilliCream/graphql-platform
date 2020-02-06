@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
@@ -17,14 +18,15 @@ namespace HotChocolate.Types
             typeof(QueryableFilterMiddleware<>);
 
         public static IObjectFieldDescriptor UseFiltering(
-            this IObjectFieldDescriptor descriptor)
+            this IObjectFieldDescriptor descriptor,
+            string conventionName = Convention.DefaultName)
         {
             if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return UseFiltering(descriptor, null);
+            return UseFiltering(descriptor, null, conventionName: conventionName);
         }
 
         public static IObjectFieldDescriptor UseFiltering<T>(
@@ -64,7 +66,8 @@ namespace HotChocolate.Types
         private static IObjectFieldDescriptor UseFiltering(
             IObjectFieldDescriptor descriptor,
             Type filterType,
-            ITypeSystemMember filterTypeInstance = null)
+            ITypeSystemMember filterTypeInstance = null,
+            string conventionName = Convention.DefaultName)
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
@@ -91,6 +94,14 @@ namespace HotChocolate.Types
                                 typeInfo.ClrType);
                     }
 
+                    if (conventionName != Convention.DefaultName &&
+                        filterTypeInstance == null)
+                    {
+                        filterTypeInstance
+                            = FilterActivator.CompileFilter<ITypeSystemMember>(
+                                argumentType, conventionName);
+                    }
+
                     ITypeReference argumentTypeReference =
                         filterTypeInstance is null
                             ? (ITypeReference)new ClrTypeReference(
@@ -109,8 +120,7 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Type = new ClrTypeReference(
-                            argumentType, TypeContext.Input)
+                        Type = argumentTypeReference
                     };
 
                     argumentDefinition.ConfigureArgumentName();
@@ -125,7 +135,8 @@ namespace HotChocolate.Types
                                     context,
                                     definition,
                                     argumentTypeReference,
-                                    placeholder))
+                                    placeholder,
+                                    conventionName))
                             .On(ApplyConfigurationOn.Completion)
                             .DependsOn(argumentTypeReference, true)
                             .Build();
@@ -139,17 +150,18 @@ namespace HotChocolate.Types
             ICompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder)
+            FieldMiddleware placeholder,
+            string conventionName)
         {
-            IFilterNamingConvention convention =
-                context.DescriptorContext.GetFilterNamingConvention();
+            IFilterConvention convention
+                = context.DescriptorContext.GetFilterConvention(conventionName);
             IFilterInputType type =
                 context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition
                 .MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType,
-                    FilterMiddlewareContext.Create(convention.ArgumentName));
+                    FilterMiddlewareContext.Create(convention.GetArgumentName()));
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
@@ -196,9 +208,9 @@ namespace HotChocolate.Types
                     .Definition(definition)
                     .Configure((context, definition) =>
                     {
-                        IFilterNamingConvention convention =
-                            context.DescriptorContext.GetFilterNamingConvention();
-                        definition.Name = convention.ArgumentName;
+                        IFilterConvention convention
+                            = context.DescriptorContext.GetFilterConvention();
+                        definition.Name = convention.GetArgumentName();
                     })
                    .On(ApplyConfigurationOn.Completion)
                    .Build();

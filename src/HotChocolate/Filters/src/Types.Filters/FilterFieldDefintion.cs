@@ -18,5 +18,7 @@ namespace HotChocolate.Types.Filters
         /// </summary>
         public IBindableList<FilterOperationDefintion> Filters { get; } =
             new BindableList<FilterOperationDefintion>();
+
+        public FilterKind Kind { get; set; }
     }
 }

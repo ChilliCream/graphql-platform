@@ -10,17 +10,17 @@ namespace HotChocolate.Types.Descriptors
         : IDescriptorContext
     {
         private readonly IServiceProvider _services;
-        private readonly Dictionary<Type, IConvention> _conventions;
+        private readonly ConventionCache _conventionCache;
         private INamingConventions _naming;
         private ITypeInspector _inspector;
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<Type, IConvention> conventions,
+            ConventionCache conventionCache,
             IServiceProvider services)
         {
             Options = options;
-            _conventions = conventions.ToDictionary(t => t.Key, t => t.Value);
+            _conventionCache = conventionCache;
             _services = services;
         }
 
@@ -54,9 +54,17 @@ namespace HotChocolate.Types.Descriptors
 
         public T GetConventionOrDefault<T>(T defaultConvention)
             where T : class, IConvention =>
-            GetConventionOrDefault<T>(() => defaultConvention);
+            GetConventionOrDefault<T>(Convention.DefaultName, defaultConvention);
+
+        public T GetConventionOrDefault<T>(string name, T defaultConvention)
+            where T : class, IConvention =>
+            GetConventionOrDefault<T>(name, () => defaultConvention);
 
         public T GetConventionOrDefault<T>(Func<T> defaultConvention)
+            where T : class, IConvention =>
+            GetConventionOrDefault<T>(Convention.DefaultName, defaultConvention);
+
+        public T GetConventionOrDefault<T>(string name, Func<T> defaultConvention)
             where T : class, IConvention
         {
             if (defaultConvention is null)
@@ -64,37 +72,24 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(defaultConvention));
             }
 
-            if (!TryGetConvention<T>(out T convention))
-            {
-                convention = _services.GetService(typeof(T)) as T;
-            }
-
-            if (convention is null)
-            {
-                convention = defaultConvention();
-                _conventions[typeof(T)] = convention;
-            }
-
-            return convention;
-        }
-
-        private bool TryGetConvention<T>(out T convention)
-            where T : IConvention
-        {
-            if (_conventions.TryGetValue(typeof(T), out IConvention outConvetion)
-                && outConvetion is T conventionOfT)
-            {
-                convention = conventionOfT;
-                return true;
-            }
-            convention = default;
-            return false;
+            return _conventionCache.GetOrAdd<T>(name, (sp) =>
+                {
+                    // TODO: add test case!
+                    // Conventions that are registered with dependency injection are only allowed
+                    // in default 
+                    if (name != Convention.DefaultName ||
+                        !(sp.GetService(typeof(T)) is T convention))
+                    {
+                        convention = defaultConvention();
+                    }
+                    return convention;
+                });
         }
 
         public static DescriptorContext Create(
             IReadOnlySchemaOptions options,
             IServiceProvider services,
-            IReadOnlyDictionary<Type, IConvention> conventions)
+            IEnumerable<ConfigureNamedConvention> conventions)
         {
             if (options == null)
             {
@@ -113,16 +108,17 @@ namespace HotChocolate.Types.Descriptors
 
             return new DescriptorContext(
                 options,
-                conventions,
+                ConventionCache.Create(services, conventions),
                 services);
         }
 
         public static DescriptorContext Create()
         {
+            var services = new EmptyServiceProvider();
             return new DescriptorContext(
                 new SchemaOptions(),
-                new Dictionary<Type, IConvention>(),
-                new EmptyServiceProvider());
+                ConventionCache.Create(services, Enumerable.Empty<ConfigureNamedConvention>()),
+                services);
         }
     }
 }

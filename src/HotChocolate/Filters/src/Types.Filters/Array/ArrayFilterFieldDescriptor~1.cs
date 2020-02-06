@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -12,11 +13,18 @@ namespace HotChocolate.Types.Filters
     {
         public ArrayFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property)
-            : base(context, property, typeof(TArray))
+            PropertyInfo property,
+            IFilterConvention filterConventions)
+            : base(context, property, typeof(TArray), filterConventions)
         {
         }
 
+        /// <inheritdoc/>
+        public new IArrayFilterFieldDescriptor<TArray> Name(NameString value)
+        {
+            base.Name(value);
+            return this;
+        }
 
         /// <inheritdoc/>
         public new IArrayFilterFieldDescriptor<TArray> BindFilters(
@@ -136,7 +144,8 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 typeReference,
-                operation);
+                operation,
+                FilterConventions);
         }
     }
 }

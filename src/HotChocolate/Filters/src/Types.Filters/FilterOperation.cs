@@ -10,15 +10,19 @@ namespace HotChocolate.Types.Filters
 
         public FilterOperation(
             Type type,
+            FilterKind filterKind,
             FilterOperationKind kind,
             PropertyInfo property)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Kind = kind;
+            FilterKind = filterKind;
             Property = property ?? throw new ArgumentNullException(nameof(property));
         }
 
         public Type Type { get; }
+
+        public FilterKind FilterKind { get; }
 
         public FilterOperationKind Kind { get; }
 

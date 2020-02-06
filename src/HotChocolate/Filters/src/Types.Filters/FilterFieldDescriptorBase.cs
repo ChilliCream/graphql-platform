@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
@@ -12,14 +13,17 @@ namespace HotChocolate.Types.Filters
     public abstract class FilterFieldDescriptorBase
         : DescriptorBase<FilterFieldDefintion>
     {
-        private readonly IFilterNamingConvention _namingConvention;
 
         protected FilterFieldDescriptorBase(
+            FilterKind filterKind,
             IDescriptorContext context,
-            PropertyInfo property)
+            PropertyInfo property,
+            IFilterConvention filterConventions)
             : base(context)
         {
-            _namingConvention = context.GetFilterNamingConvention();
+            FilterConventions = filterConventions;
+
+            Definition.Kind = filterKind;
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -29,16 +33,19 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
-            _namingConvention = context.GetFilterNamingConvention();
+
+            AllowedOperations = FilterConventions.GetAllowedOperations(Definition);
         }
 
         internal protected sealed override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
+        protected readonly IFilterConvention FilterConventions;
+
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
 
-        protected abstract ISet<FilterOperationKind> AllowedOperations { get; }
+        protected ISet<FilterOperationKind> AllowedOperations { get; }
 
         protected virtual ISet<FilterOperationKind> ListOperations { get; } =
             new HashSet<FilterOperationKind>
@@ -46,6 +53,11 @@ namespace HotChocolate.Types.Filters
                 FilterOperationKind.In,
                 FilterOperationKind.NotIn
             };
+
+        protected void Name(NameString value)
+        {
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+        }
 
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
@@ -220,9 +232,9 @@ namespace HotChocolate.Types.Filters
         {
             if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
             {
-                Definition.Name = _namingConvention.ArrayFilterPropertyName;
+                Definition.Name = FilterConventions.GetArrayFilterPropertyName();
             }
-            return _namingConvention.CreateFieldName(Definition, kind);
+            return FilterConventions.CreateFieldName(Definition, kind);
         }
 
         protected virtual ITypeReference RewriteType(

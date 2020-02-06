@@ -593,4 +593,10 @@ Type: `{0}`</value>
   <data name="SchemaBuilder_Convention_NotSuppported" xml:space="preserve">
     <value>The specified convention type is not supported.</value>
   </data>
+  <data name="ConventionCache_WrongType" xml:space="preserve">
+    <value>The requested convention of type `{0}` with name `{1}` is of wrong type `{2}` </value>
+  </data>
+  <data name="ConventionCache_NonNull" xml:space="preserve">
+    <value>Convention of type `{0}` with name `{1}` can not be null.</value>
+  </data>
 </root>

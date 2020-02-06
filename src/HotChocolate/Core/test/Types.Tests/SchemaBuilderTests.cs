@@ -1185,6 +1185,316 @@ namespace HotChocolate
                 item => Assert.Equal("touched", item.Key));
         }
 
+        [Fact]
+        public void AddNamedConvention_NameIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention(null, typeof(IConvention), new TestConvention());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_TypeIsNullConcreteIsSet_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention("name", null, new TestConvention());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_ConventionIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention("name", typeof(IConvention), default(TestConvention));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_NameTypeIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention(null, typeof(IConvention), typeof(IConvention));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_ConventionTypeIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention("name", null, typeof(IConvention));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_ConcreteConventionTypeIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention("name", typeof(IConvention), default(Type));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+
+
+        [Fact]
+        public void AddNamedConvention_ConventionHasInvalidTypeConcrete_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention("name", typeof(IInvalidTestConvention), new TestConvention());
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_ConventionTypeHasInvalidType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention("name", typeof(IInvalidTestConvention), typeof(IConvention));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_ConventionHasInvalidType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddNamedConvention("name", typeof(IConvention), typeof(IInvalidTestConvention));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddNamedConvention_WithImplementation_Generic()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddNamedConvention<ITestConvention>("Test", TestConvention.Default)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention notNamed =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                    new TestConvention());
+            Assert.NotEqual(TestConvention.Default, notNamed);
+            Assert.Equal(TestConvention.Default, convention);
+        }
+
+        [Fact]
+        public void AddNamedConvention_WithImplementation()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddNamedConvention("Test", typeof(ITestConvention), TestConvention.Default)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention notNamed =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                    new TestConvention());
+            Assert.NotEqual(TestConvention.Default, notNamed);
+            Assert.Equal(TestConvention.Default, convention);
+        }
+
+        [Fact]
+        public void AddNamedConvention_NoImplementation_Generic()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddNamedConvention<ITestConvention, TestConvention>("Test")
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention notNamed =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                    new TestConvention());
+            Assert.NotNull(convention);
+            Assert.IsType<TestConvention>(convention);
+            Assert.NotEqual(notNamed, convention);
+        }
+
+        [Fact]
+        public void AddNamedConvention_NoImplementation()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddNamedConvention("Test", typeof(ITestConvention), typeof(TestConvention))
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention notNamed =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                    new TestConvention());
+            Assert.NotNull(convention);
+            Assert.IsType<TestConvention>(convention);
+            Assert.NotEqual(notNamed, convention);
+        }
+
+
+        [Fact]
+        public void AddNamedConvention_Override_TypeOverType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddNamedConvention("Test", typeof(ITestConvention), typeof(TestConvention))
+                .AddNamedConvention("Test", typeof(ITestConvention), typeof(TestConvention2))
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention notNamed =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                    new TestConvention());
+            Assert.NotNull(convention);
+            Assert.IsType<TestConvention2>(convention);
+            Assert.NotEqual(notNamed, convention);
+        }
+
+
+        [Fact]
+        public void AddNamedConvention_ServiceDependency()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            ServiceProvider provider
+                = services.AddSingleton<MyInterceptor, MyInterceptor>().BuildServiceProvider();
+            MyInterceptor dependencyOfConvention = provider.GetService<MyInterceptor>();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(provider)
+                .AddNamedConvention(
+                    "Test",
+                    typeof(ITestConvention),
+                    typeof(TestConventionServiceDependency))
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention notNamed =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                    new TestConvention());
+            Assert.IsType<TestConventionServiceDependency>(convention);
+            Assert.Equal(
+                dependencyOfConvention,
+                ((TestConventionServiceDependency)convention).Dependency);
+            Assert.NotEqual(notNamed, convention);
+        }
+
+        [Fact]
+        public void AddNamedConvention_Through_ServiceCollection_ShouldNotBePossible()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddTransient<ITestConvention, TestConvention>();
+            ServiceProvider provider = services.BuildServiceProvider();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(provider)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>("Test",
+                new TestConvention2());
+            Assert.IsType<TestConvention2>(convention);
+        }
 
         [Fact]
         public void AddConvention_TypeIsNullConcreteIsSet_ArgumentException()
@@ -1272,6 +1582,7 @@ namespace HotChocolate
             Assert.Throws<ArgumentException>(action);
         }
 
+
         [Fact]
         public void AddConvention_WithImplementation_Generic()
         {
@@ -1287,9 +1598,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
             Assert.Equal(TestConvention.Default, convention);
         }
 
@@ -1308,9 +1620,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention2());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
             Assert.NotNull(convention);
             Assert.Equal(TestConvention.Default, convention);
         }
@@ -1330,9 +1643,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention2());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
             Assert.NotNull(convention);
             Assert.IsType<TestConvention>(convention);
         }
@@ -1352,9 +1666,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention2());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
             Assert.NotNull(convention);
             Assert.IsType<TestConvention>(convention);
         }
@@ -1376,9 +1691,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
             Assert.NotNull(convention);
             Assert.IsType<TestConvention2>(convention);
         }
@@ -1389,9 +1705,9 @@ namespace HotChocolate
         {
             // arrange
             var services = new ServiceCollection();
-            var provider = services.AddSingleton<MyInterceptor, MyInterceptor>()
-                .BuildServiceProvider();
-            var dependencyOfConvention = provider.GetService<MyInterceptor>();
+            ServiceProvider provider =
+                services.AddSingleton<MyInterceptor, MyInterceptor>().BuildServiceProvider();
+            MyInterceptor dependencyOfConvention = provider.GetService<MyInterceptor>();
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -1407,9 +1723,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention());
             Assert.IsType<TestConventionServiceDependency>(convention);
             Assert.Equal(
                 dependencyOfConvention,
@@ -1435,9 +1752,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention2());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
             Assert.IsType<TestConvention>(convention);
         }
 
@@ -1448,7 +1766,7 @@ namespace HotChocolate
             var services = new ServiceCollection();
             var conventionImpl = new TestConvention();
             services.AddSingleton<ITestConvention>(conventionImpl);
-            var provider = services.BuildServiceProvider();
+            ServiceProvider provider = services.BuildServiceProvider();
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -1461,9 +1779,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention2());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
             Assert.IsType<TestConvention>(convention);
             Assert.Equal(convention, conventionImpl);
         }
@@ -1474,7 +1793,7 @@ namespace HotChocolate
             // arrange
             var services = new ServiceCollection();
             services.AddSingleton<IConvention, TestConvention>();
-            var provider = services.BuildServiceProvider();
+            IServiceProvider provider = services.BuildServiceProvider();
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -1488,9 +1807,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention2());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
             Assert.IsType<TestConvention2>(convention);
         }
 
@@ -1511,9 +1831,11 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<INamingConventions>(
-                new DefaultNamingConventions());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            INamingConventions convention
+                = testType.Context.GetConventionOrDefault<INamingConventions>(
+                    new DefaultNamingConventions());
             Assert.IsType<DefaultNamingConventions>(convention);
             Assert.Equal(convention, myNamingConvention);
             Assert.Equal(testType.Context.Naming, myNamingConvention);
@@ -1533,16 +1855,17 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention2());
+            ConventionTestType testType =
+                schema.GetType<ConventionTestType>("ConventionTestType");
+            ITestConvention convention =
+                testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
             Assert.IsType<TestConvention2>(convention);
         }
 
         public class DynamicFooType
             : ObjectType
         {
-            private NameString _typeName;
+            private readonly NameString _typeName;
 
             public DynamicFooType(NameString typeName)
             {

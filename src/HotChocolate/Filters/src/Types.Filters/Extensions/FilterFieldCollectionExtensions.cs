@@ -81,7 +81,6 @@ namespace HotChocolate.Types.Filters.Extensions
                                , typeof(T).Name))
                         .SetCode(ErrorCodes.Filtering.FilterFieldDescriptorType)
                         .Build());
-
                 }
             }
 

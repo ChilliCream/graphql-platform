@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 using Xunit;
@@ -13,7 +14,9 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
-            var conventions = new Dictionary<Type, IConvention>();
+
+            IEnumerable<ConfigureNamedConvention> conventions
+                = Enumerable.Empty<ConfigureNamedConvention>();
 
             // act
             Action action = () => DescriptorContext.Create(options, null, conventions);
@@ -27,7 +30,9 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var service = new EmptyServiceProvider();
-            var conventions = new Dictionary<Type, IConvention>();
+
+            IEnumerable<ConfigureNamedConvention> conventions
+                = Enumerable.Empty<ConfigureNamedConvention>();
 
             // act
             Action action = () => DescriptorContext.Create(null, service, conventions);
@@ -56,7 +61,8 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<Type, IConvention>();
+            IEnumerable<ConfigureNamedConvention> conventions
+                = Enumerable.Empty<ConfigureNamedConvention>();
             var services = new DictionaryServiceProvider(
                 typeof(INamingConventions),
                 naming);
@@ -78,8 +84,11 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<Type, IConvention>();
-            conventions.Add(typeof(INamingConventions), naming);
+            var configureNaming = new ConfigureNamedConvention(
+                Convention.DefaultName, typeof(INamingConventions), (s) => naming);
+            IEnumerable<ConfigureNamedConvention> conventions
+                = Enumerable.Empty<ConfigureNamedConvention>().Append(configureNaming);
+
             var services = new DictionaryServiceProvider();
 
             // act
@@ -98,7 +107,9 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var inspector = new DefaultTypeInspector();
-            var conventions = new Dictionary<Type, IConvention>();
+
+            IEnumerable<ConfigureNamedConvention> conventions
+                = Enumerable.Empty<ConfigureNamedConvention>();
             var services = new DictionaryServiceProvider(
                 typeof(ITypeInspector),
                 inspector);
@@ -126,9 +137,9 @@ namespace HotChocolate.Types.Descriptors
             Assert.NotNull(context.Inspector);
         }
 
-        private class Convention : IConvention
+        private class TestConvention : IConvention
         {
-            public static Convention Default { get; } = new Convention();
+            public static TestConvention Default { get; } = new TestConvention();
         }
     }
 }

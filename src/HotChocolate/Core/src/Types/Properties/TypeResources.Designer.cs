@@ -133,6 +133,25 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convention of type `{0}` with name `{1}` can not be null..
+        /// </summary>
+        internal static string ConventionCache_NonNull {
+            get {
+                return ResourceManager.GetString("ConventionCache_NonNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The requested convention of type `{0}` with name `{1}` is of wrong type `{2}` .
+        /// </summary>
+        internal static string ConventionCache_WrongType {
+            get {
+                return ResourceManager.GetString("ConventionCache_WrongType", resourceCulture);
+            }
+        }
+        
+        
+        /// <summary>
         ///   Looks up a localized string similar to The DataLoader key cannot be null or empty..
         /// </summary>
         internal static string DataLoaderRegistry_KeyNullOrEmpty {

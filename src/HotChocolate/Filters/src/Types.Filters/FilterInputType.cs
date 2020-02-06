@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -11,17 +13,31 @@ namespace HotChocolate.Types.Filters
         , IFilterInputType
     {
         private readonly Action<IFilterInputTypeDescriptor<T>> _configure;
+        private readonly string _conventionName;
 
         public FilterInputType()
+            : this(Convention.DefaultName)
+        {
+        }
+
+        public FilterInputType(Action<IFilterInputTypeDescriptor<T>> configure)
+            : this(Convention.DefaultName, configure)
+        {
+        }
+
+        public FilterInputType(string conventionName)
         {
             _configure = Configure;
+            _conventionName = conventionName;
         }
 
         public FilterInputType(
+            string conventionName,
             Action<IFilterInputTypeDescriptor<T>> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
+            _conventionName = conventionName;
         }
 
         public Type EntityType { get; private set; }
@@ -33,7 +49,8 @@ namespace HotChocolate.Types.Filters
         {
             var descriptor = FilterInputTypeDescriptor<T>.New(
                 context.DescriptorContext,
-                typeof(T));
+                typeof(T),
+                _conventionName);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
