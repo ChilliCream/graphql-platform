@@ -231,12 +231,15 @@ namespace HotChocolate.Execution
             switch (value)
             {
                 case FieldData fieldData:
+                    WriteFieldData(writer, fieldData);
                     break;
 
                 case IReadOnlyDictionary<string, object> dict:
+                    WriteDictionary(writer, dict);
                     break;
 
                 case IList list:
+                    WriteList(writer, list);
                     break;
 
                 case string s:
