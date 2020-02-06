@@ -9,6 +9,6 @@ namespace HotChocolate.Language
 
         double ToDouble();
 
-        Decimal ToDecimal();
+        decimal ToDecimal();
     }
 }

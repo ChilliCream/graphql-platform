@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -30,6 +32,20 @@ namespace HotChocolate.Execution
 
         public string ContentType => _contentType;
 
+        public unsafe string Serialize(IReadOnlyQueryResult result)
+        {
+            using var buffer = new ArrayWriter();
+
+            using var writer = new Utf8JsonWriter(buffer);
+            WriteResult(writer, result);
+            writer.Flush();
+
+            fixed (byte* b = buffer.GetInternalBuffer())
+            {
+                return Encoding.UTF8.GetString(b, buffer.Length);
+            }
+        }
+
         public async Task SerializeAsync(
             IReadOnlyQueryResult result,
             Stream stream,
@@ -45,8 +61,15 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            using var writer = new Utf8JsonWriter(stream, _options);
+            await using var writer = new Utf8JsonWriter(stream, _options);
 
+            WriteResult(writer, result);
+
+            await writer.FlushAsync(cancellationToken);
+        }
+
+        private static void WriteResult(Utf8JsonWriter writer, IReadOnlyQueryResult result)
+        {
             writer.WriteStartObject();
 
             WriteErrors(writer, result.Errors);
@@ -54,11 +77,9 @@ namespace HotChocolate.Execution
             WriteExtensions(writer, result.Extensions);
 
             writer.WriteEndObject();
-
-            await writer.FlushAsync(cancellationToken);
         }
 
-        public static void WriteData(
+        private static void WriteData(
             Utf8JsonWriter writer,
             IReadOnlyDictionary<string, object> data)
         {
