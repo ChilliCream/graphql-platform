@@ -4,12 +4,12 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class OutputModelGenerator
-        : CodeGenerator<OutputModelDescriptor>
+    public class OutputModelInterfaceGenerator
+        : CodeGenerator<OutputModelInterfaceDescriptor>
     {
         protected override Task WriteAsync(
             CodeWriter writer,
-            OutputModelDescriptor descriptor)
+            OutputModelInterfaceDescriptor descriptor)
         {
             if (writer is null)
             {
@@ -21,12 +21,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            ClassBuilder builder =
-                ClassBuilder.New()
+            InterfaceBuilder builder =
+                InterfaceBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(descriptor.Name);
 
-            foreach (var typeName in descriptor.Implements)
+            foreach(var typeName in descriptor.Implements)
             {
                 builder.AddImplements(typeName);
             }
@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (OutputFieldDescriptor field in descriptor.Fields)
             {
                 builder.AddProperty(
-                    PropertyBuilder.New()
+                    InterfacePropertyBuilder.New()
                         .SetAccessModifier(AccessModifier.Public)
                         .SetName(field.Name)
                         .SetType(field.Type));

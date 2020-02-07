@@ -6,6 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     public class FieldBuilder : ICodeBuilder
     {
         private AccessModifier _accessModifier;
+        private bool _isConst;
         private bool _isStatic;
         private bool _isReadOnly;
         private string? _type;
@@ -33,15 +34,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public FieldBuilder SetConst()
+        {
+            _isConst = true;
+            _isStatic = false;
+            _isReadOnly = false;
+            return this;
+        }
+
         public FieldBuilder SetStatic()
         {
             _isStatic = true;
+            _isConst = false;
             return this;
         }
 
         public FieldBuilder SetReadOnly()
         {
             _isReadOnly = true;
+            _isConst = false;
             return this;
         }
 
@@ -71,6 +82,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync($"{modifier} ")
                 .ConfigureAwait(false);
+
+            if(_isConst)
+            {
+                await writer.WriteAsync("const ").ConfigureAwait(false);
+            }
 
             if (_isStatic)
             {
