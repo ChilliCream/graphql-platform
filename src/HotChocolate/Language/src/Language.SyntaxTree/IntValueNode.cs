@@ -323,14 +323,14 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public Decimal ToDecimal()
+        public decimal ToDecimal()
         {
             if (_decimalValue.HasValue)
             {
                 return _decimalValue.Value;
             }
 
-            if (Utf8Parser.TryParse(AsSpan(), out Decimal value, out _, 'f'))
+            if (Utf8Parser.TryParse(AsSpan(), out decimal value, out _, 'f'))
             {
                 _decimalValue = value;
                 return value;
@@ -344,7 +344,7 @@ namespace HotChocolate.Language
             if (_memory.IsEmpty)
             {
                 Span<byte> buffer = stackalloc byte[32];
-                int written = 0;
+                var written = 0;
 
                 if (_shortValue.HasValue)
                 {

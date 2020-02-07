@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        internal protected override FilterInputTypeDefinition Definition { get; } =
+        protected internal sealed override FilterInputTypeDefinition Definition { get; } =
             new FilterInputTypeDefinition();
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =
@@ -87,8 +87,7 @@ namespace HotChocolate.Types.Filters
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
-            List<FilterFieldDefintion> explicitFields =
-                Fields.Select(t => t.CreateDefinition()).ToList();
+            var explicitFields = Fields.Select(t => t.CreateDefinition()).ToList();
 
             FieldDescriptorUtilities.AddExplicitFields(
                 explicitFields.Where(t => !t.Ignore).SelectMany(t => t.Filters),
@@ -117,17 +116,15 @@ namespace HotChocolate.Types.Filters
                     .GetMembers(Definition.EntityType)
                     .OfType<PropertyInfo>())
                 {
-                    if (!handledProperties.Contains(property))
-                    {
-                        if (TryCreateImplicitFilter(property,
+                    if (!handledProperties.Contains(property)
+                        && TryCreateImplicitFilter(property,
                             out FilterFieldDefintion definition))
+                    {
+                        foreach (FilterOperationDefintion filter in definition.Filters)
                         {
-                            foreach (FilterOperationDefintion filter in definition.Filters)
+                            if (!fields.ContainsKey(filter.Name))
                             {
-                                if (!fields.ContainsKey(filter.Name))
-                                {
-                                    fields[filter.Name] = filter;
-                                }
+                                fields[filter.Name] = filter;
                             }
                         }
                     }
@@ -142,7 +139,7 @@ namespace HotChocolate.Types.Filters
             Type type = property.PropertyType;
 
             if (type.IsGenericType
-                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
+                && System.Nullable.GetUnderlyingType(type) is { } nullableType)
             {
                 type = nullableType;
             }
