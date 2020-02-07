@@ -7,7 +7,7 @@ namespace StrawberryShake.Tools
     {
         internal static Task<int> Main(string[] args)
         {
-            var root = new CommandLineApplication();
+            using var root = new CommandLineApplication();
             root.HelpTextGenerator = new RootHelpTextGenerator();
             root.AddSubcommand(InitCommand.Create());
             root.AddSubcommand(UpdateCommand.Create());

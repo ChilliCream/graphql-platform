@@ -18,9 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Generators\Generators.csproj" />
-    <ProjectReference Include="..\Http\Http.csproj" />
-    <ProjectReference Include="..\..\Core\Utilities.Introspection\Utilities.Introspection.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Http\StrawberryShake.Http.csproj" />
+    <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration\StrawberryShake.CodeGeneration.csproj" />
+    <ProjectReference Include="..\..\..\CodeGeneration\src\Generators\StrawberryShake.Generators.csproj" />
   </ItemGroup>
 
 </Project>
