@@ -7,7 +7,7 @@ namespace HotChocolate.Types
         : TypeTestBase
     {
         [Fact]
-        public void IntializeExplicitFieldWithImplicitResolver()
+        public void InitializeExplicitFieldWithImplicitResolver()
         {
             // arrange
             // act
