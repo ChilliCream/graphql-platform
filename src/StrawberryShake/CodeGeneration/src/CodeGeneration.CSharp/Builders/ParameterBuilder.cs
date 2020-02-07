@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
@@ -28,9 +29,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public Task BuildAsync(CodeWriter writer) =>
-            _default is null
+        public Task BuildAsync(CodeWriter writer)
+        {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            return _default is null
                 ? writer.WriteAsync($"{_type} {_name}")
                 : writer.WriteAsync($"{_type} {_name} = {_default}");
+        }
     }
 }

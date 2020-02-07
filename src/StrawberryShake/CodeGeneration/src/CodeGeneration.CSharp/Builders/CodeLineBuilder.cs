@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
@@ -17,10 +18,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             if (_value is null)
             {
                 return Task.CompletedTask;
             }
+
             return writer.WriteIndentedLineAsync(_value);
         }
     }

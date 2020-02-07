@@ -33,6 +33,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             if (_types.Count == 0 && _usings.Count == 0)
             {
                 return Task.CompletedTask;

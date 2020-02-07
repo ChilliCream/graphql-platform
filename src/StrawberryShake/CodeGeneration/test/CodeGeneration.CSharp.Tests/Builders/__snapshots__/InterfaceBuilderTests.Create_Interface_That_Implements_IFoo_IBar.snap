@@ -1,0 +1,5 @@
+﻿public partial interface IMarker
+    : IFoo
+    , IBar
+{
+}

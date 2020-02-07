@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -24,6 +25,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public async Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             foreach (ICode code in _lines)
             {
                 await code.BuildAsync(writer).ConfigureAwait(false);

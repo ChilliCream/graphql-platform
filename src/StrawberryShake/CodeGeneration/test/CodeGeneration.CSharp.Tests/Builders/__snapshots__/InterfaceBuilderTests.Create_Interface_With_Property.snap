@@ -1,0 +1,4 @@
+﻿public partial interface IMarker
+{
+    public Bar Property1 { get; }
+}

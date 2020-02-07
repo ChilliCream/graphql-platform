@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -5,12 +6,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class InterfaceMethodBuilder : ICodeBuilder
     {
-        private AccessModifier _accessModifier = AccessModifier.Private;
+        private AccessModifier _accessModifier = AccessModifier.Public;
         private bool _isAsync = false;
         private string _returnType = "void";
         private string? _name;
         private readonly List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
-        private readonly List<ICode> _lines = new List<ICode>();
 
         public static InterfaceMethodBuilder New() => new InterfaceMethodBuilder();
 
@@ -46,6 +46,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public async Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             var modifier = _accessModifier.ToString().ToLowerInvariant();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
@@ -93,7 +98,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                             }
                         }
                     }
-
                     break;
                 }
             }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
@@ -10,6 +11,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CodeWriter writer,
             OutputModelDescriptor descriptor)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             ClassBuilder builder =
                 ClassBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
