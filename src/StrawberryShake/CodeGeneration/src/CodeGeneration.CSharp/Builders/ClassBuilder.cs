@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ClassBuilder
         : ITypeBuilder
@@ -13,11 +12,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private bool _isSealed = false;
         private bool _isAbstract = false;
         private string? _name;
-        private List<string> _implements = new List<string>();
-        private List<FieldBuilder> _fields = new List<FieldBuilder>();
-        private List<ConstructorBuilder> _constructors = new List<ConstructorBuilder>();
-        private List<PropertyBuilder> _properties = new List<PropertyBuilder>();
-        private List<MethodBuilder> _methods = new List<MethodBuilder>();
+        private readonly List<string> _implements = new List<string>();
+        private readonly List<FieldBuilder> _fields = new List<FieldBuilder>();
+        private readonly List<ConstructorBuilder> _constructors = new List<ConstructorBuilder>();
+        private readonly List<PropertyBuilder> _properties = new List<PropertyBuilder>();
+        private readonly List<MethodBuilder> _methods = new List<MethodBuilder>();
 
         public static ClassBuilder New() => new ClassBuilder();
 

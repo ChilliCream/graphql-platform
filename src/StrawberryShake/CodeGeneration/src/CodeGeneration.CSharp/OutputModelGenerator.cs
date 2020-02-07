@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -14,7 +15,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(descriptor.Name);
 
-            foreach(string typeName in descriptor.Implements)
+            foreach(var typeName in descriptor.Implements)
             {
                 builder.AddImplements(typeName);
             }

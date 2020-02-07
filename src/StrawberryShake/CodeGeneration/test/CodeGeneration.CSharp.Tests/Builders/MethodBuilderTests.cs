@@ -4,7 +4,7 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class MethodBuilderTests
     {

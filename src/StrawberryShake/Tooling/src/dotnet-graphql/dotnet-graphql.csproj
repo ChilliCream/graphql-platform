@@ -2,19 +2,18 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.1;net462</TargetFrameworks>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.1</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>StrawberryShake.Tools</PackageId>
     <AssemblyName>dotnet-graphql</AssemblyName>
     <RootNamespace>StrawberryShake.Tools</RootNamespace>
-    <PackageIconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</PackageIconUrl>
-    <IsPackable>true</IsPackable>
-    <PackAsTool>true</PackAsTool>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.4.2" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.5.1" />
     <PackageReference Include="IdentityModel" Version="4.1.1" />
   </ItemGroup>
 

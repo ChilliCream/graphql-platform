@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class CodeLineBuilderTests
     {

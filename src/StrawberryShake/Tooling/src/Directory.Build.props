@@ -1,6 +1,7 @@
 <Project>
 
   <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1; netcoreapp2.1</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class MethodBuilder : ICodeBuilder
     {
@@ -11,8 +11,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private bool _isAsync = false;
         private string _returnType = "void";
         private string? _name;
-        private List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
-        private List<ICode> _lines = new List<ICode>();
+        private readonly List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
+        private readonly List<ICode> _lines = new List<ICode>();
 
         public static MethodBuilder New() => new MethodBuilder();
 

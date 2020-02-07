@@ -1,4 +1,4 @@
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public enum AccessModifier
     {

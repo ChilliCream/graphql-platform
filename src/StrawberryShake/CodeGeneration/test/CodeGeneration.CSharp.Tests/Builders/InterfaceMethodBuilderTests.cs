@@ -1,24 +1,23 @@
-﻿using System.Text;
+using System.Text;
 using System.Threading.Tasks;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class ConstructorBuilderTests
+    public class InterfaceMethodBuilderTests
     {
         [Fact]
-        public async Task CreateConstructor()
+        public async Task CreateMethod()
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
+            await InterfaceMethodBuilder.New()
+                .SetName("GetAbc")
                 .BuildAsync(writer);
 
             // assert
@@ -26,16 +25,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
-        public async Task CreateConstructor_With_One_Parameter()
+        public async Task CreateMethod_With_One_Parameter()
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
+            await InterfaceMethodBuilder.New()
+                .SetName("GetAbc")
                 .AddParameter(ParameterBuilder.New().SetName("abc").SetType("String"))
                 .BuildAsync(writer);
 
@@ -44,18 +42,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
-        public async Task CreateConstructor_With_Two_Parameter()
+        public async Task CreateMethod_With_Two_Parameter()
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
+            await InterfaceMethodBuilder.New()
+                .SetName("GetAbc")
                 .AddParameter(ParameterBuilder.New().SetName("abc").SetType("String"))
                 .AddParameter(ParameterBuilder.New().SetName("def").SetType("String").SetDefault())
+                .BuildAsync(writer);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateMethod_With_ReturnType()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            // act
+            await InterfaceMethodBuilder.New()
+                .SetName("GetAbc")
+                .SetReturnType("Int32")
                 .BuildAsync(writer);
 
             // assert
@@ -67,17 +81,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
         [InlineData(AccessModifier.Protected)]
         [InlineData(AccessModifier.Private)]
         [Theory]
-        public async Task CreateConstructor_With_AccessModifier(AccessModifier accessModifier)
+        public async Task CreateMethod_With_AccessModifier(AccessModifier accessModifier)
         {
             // arrange
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
             // act
-            await ConstructorBuilder.New()
-                .SetTypeName("GetAbc")
+            await InterfaceMethodBuilder.New()
+                .SetName("GetAbc")
                 .SetAccessModifier(accessModifier)
-                .AddCode(CodeLineBuilder.New().SetLine("return;"))
                 .BuildAsync(writer);
 
             // assert

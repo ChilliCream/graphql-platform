@@ -1,0 +1,5 @@
+﻿public partial Test
+    : ITest
+{
+    public Bar Foo { get; }
+}
