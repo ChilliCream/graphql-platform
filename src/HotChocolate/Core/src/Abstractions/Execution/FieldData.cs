@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
             fieldValue = Array.Find(
                 _rented,
                 t => string.Equals(t.Key, key, StringComparison.Ordinal));
-            return !fieldValue.Equals(default(FieldValue));
+            return fieldValue.HasValue;
         }
 
         object IReadOnlyDictionary<string, object>.this[string key]
@@ -93,7 +93,7 @@ namespace HotChocolate.Execution
             {
                 if (TryGetFieldValue(key, out FieldValue value))
                 {
-                    return value;
+                    return value.Value;
                 }
 
                 throw new KeyNotFoundException($"The key {key} does not exist.");
