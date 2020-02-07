@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Filters
         /// that can be accessd via introspection.
         /// </summary>
         /// <param name="value">The filter type description.</param>
-        /// 
+        ///
         IFilterInputTypeDescriptor<T> Description(string value);
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Filters
         /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
-        /// <param name="behavior">
+        /// <param name="bindingBehavior">
         /// The binding behavior.
         ///
         /// Implicit:
@@ -120,9 +120,10 @@ namespace HotChocolate.Types.Filters
         /// <param name="property">
         /// The property for which a filter shall be applied.
         /// </param>
+        /// <param name="ignore"></param>
         IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct>>> property, 
-            RequireStruct<TStruct> ignore = null) 
+            Expression<Func<T, IEnumerable<TStruct>>> property,
+            RequireStruct<TStruct> ignore = null)
             where TStruct : struct;
 
         /// <summary>
@@ -131,9 +132,10 @@ namespace HotChocolate.Types.Filters
         /// <param name="property">
         /// The property for which a filter shall be applied.
         /// </param>
+        /// <param name="ignore"></param>
         IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct?>>> property, 
-            RequireStruct<TStruct> ignore = null) 
+            Expression<Func<T, IEnumerable<TStruct?>>> property,
+            RequireStruct<TStruct> ignore = null)
             where TStruct : struct;
 
         /// <summary>
