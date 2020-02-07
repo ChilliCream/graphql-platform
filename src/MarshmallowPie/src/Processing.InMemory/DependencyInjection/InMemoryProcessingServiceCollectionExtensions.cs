@@ -8,20 +8,22 @@ namespace MarshmallowPie
     {
         public static IServiceCollection AddInMemoryMessageQueue(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton(new MessageQueue<PublishDocumentMessage>());
-            serviceCollection.AddSingleton(new SessionMessageQueue<PublishSchemaEvent>());
-
-            serviceCollection.AddSingleton<ISessionCreator, SessionCreator>();
+            serviceCollection.AddSingleton<MessageQueue<PublishDocumentMessage>>();
+            serviceCollection.AddSingleton<SessionMessageQueue<PublishDocumentEvent>>();
+            serviceCollection.AddSingleton<SessionManager>();
 
             serviceCollection.AddSingleton<IMessageSender<PublishDocumentMessage>>(sp =>
                 sp.GetRequiredService<MessageQueue<PublishDocumentMessage>>());
-            serviceCollection.AddSingleton<IMessageSender<PublishSchemaEvent>>(sp =>
-                sp.GetRequiredService<SessionMessageQueue<PublishSchemaEvent>>());
+            serviceCollection.AddSingleton<IMessageSender<PublishDocumentEvent>>(sp =>
+                sp.GetRequiredService<SessionMessageQueue<PublishDocumentEvent>>());
 
             serviceCollection.AddSingleton<IMessageReceiver<PublishDocumentMessage>>(sp =>
                 sp.GetRequiredService<MessageQueue<PublishDocumentMessage>>());
-            serviceCollection.AddSingleton<ISessionMessageReceiver<PublishSchemaEvent>>(sp =>
-                sp.GetRequiredService<SessionMessageQueue<PublishSchemaEvent>>());
+            serviceCollection.AddSingleton<ISessionMessageReceiver<PublishDocumentEvent>>(sp =>
+                sp.GetRequiredService<SessionMessageQueue<PublishDocumentEvent>>());
+
+            serviceCollection.AddSingleton<ISessionCreator>(sp =>
+                sp.GetRequiredService<SessionManager>());
 
             return serviceCollection;
         }

@@ -12,6 +12,10 @@ namespace MarshmallowPie.Storage
         Task<IEnumerable<IFile>> GetFilesAsync(
             CancellationToken cancellationToken = default);
 
+        Task<IFile> GetFileAsync(
+            string fileName,
+            CancellationToken cancellationToken = default);
+
         Task<Stream> CreateFileAsync(
             string fileName,
             CancellationToken cancellationToken = default);

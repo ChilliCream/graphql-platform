@@ -71,7 +71,7 @@ namespace MarshmallowPie.GraphQL.Schemas
                 input.EnvironmentName, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (string.IsNullOrEmpty(input.SourceText))
+            if (input.ExternalId == null && string.IsNullOrEmpty(input.SourceText))
             {
                 throw new GraphQLException(
                     Resources.SchemaMutations_HashAndSourceTextAreNull);
@@ -80,16 +80,15 @@ namespace MarshmallowPie.GraphQL.Schemas
             string sessionId = await sessionCreator.CreateSessionAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            IFileContainer container = await fileStorage.CreateContainerAsync(
-                sessionId, cancellationToken)
-                .ConfigureAwait(false);
-
-            using (Stream stream = await container.CreateFileAsync(
-                "schema.graphql", cancellationToken)
-                .ConfigureAwait(false))
+            if (input.SourceText is { })
             {
-                byte[] buffer = Encoding.UTF8.GetBytes(input.SourceText);
-                await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                IFileContainer container = await fileStorage.CreateContainerAsync(
+                    sessionId, cancellationToken)
+                    .ConfigureAwait(false);
+
+                await container.CreateTextFileAsync(
+                    "schema.graphql", input.SourceText, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             await messageSender.SendAsync(
@@ -105,6 +104,43 @@ namespace MarshmallowPie.GraphQL.Schemas
                 .ConfigureAwait(false);
 
             return new PublishSchemaPayload(sessionId, input.ClientMutationId);
+        }
+
+        public async Task<MarkSchemaPublishedPayload> MarkSchemaPublishedAsync(
+            MarkSchemaPublishedInput input,
+            [Service]ISchemaRepository schemaRepository,
+            [DataLoader]SchemaByNameDataLoader schemaDataLoader,
+            [DataLoader]EnvironmentByNameDataLoader environmentDataLoader,
+            CancellationToken cancellationToken)
+        {
+            Environment environment = await environmentDataLoader.LoadAsync(
+                input.EnvironmentName, cancellationToken)
+                .ConfigureAwait(false);
+
+            Schema schema = await schemaDataLoader.LoadAsync(
+                input.SchemaName, cancellationToken)
+                .ConfigureAwait(false);
+
+            SchemaVersion? schemaVersion = await schemaRepository.GetSchemaVersionByExternalIdAsync(
+                input.ExternalId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (schemaVersion is null)
+            {
+                throw new GraphQLException(
+                    "There is no schema version associated with the " +
+                    $"specified external ID `{input.ExternalId}`.");
+            }
+
+            await schemaRepository.SetPublishedSchemaAsync(new PublishedSchema(
+                environment.Id, schema.Id, schemaVersion.Id))
+                .ConfigureAwait(false);
+
+            return new MarkSchemaPublishedPayload(
+                environment,
+                schema,
+                schemaVersion,
+                input.ClientMutationId);
         }
     }
 }

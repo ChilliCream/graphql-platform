@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types.Relay;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Storage.FileSystem;
@@ -32,13 +33,16 @@ namespace MarshmallowPie.GraphQL.Schemas
             var environment = new Environment("abc", "def");
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
-            string sessionId = "abc";
+            string sessionId = await SessionCreator.CreateSessionAsync();
 
             await PublishSchemaEventSender.SendAsync(
-                new PublishSchemaEvent(sessionId, new Issue("foo", IssueType.Information)));
+                new PublishDocumentEvent(
+                    sessionId,
+                    new Issue("foo", "file.graphql", new Location(0, 0, 0, 0),
+                    IssueType.Information)));
 
             await PublishSchemaEventSender.SendAsync(
-                PublishSchemaEvent.Completed(sessionId));
+                PublishDocumentEvent.Completed(sessionId));
 
             // act
             var responseStream = (IResponseStream)await Executor.ExecuteAsync(
@@ -60,7 +64,14 @@ namespace MarshmallowPie.GraphQL.Schemas
             {
                 results.Add(result);
             }
-            results.MatchSnapshot();
+
+            results.MatchSnapshot(matchOptions =>
+                matchOptions.Assert(fieldOption =>
+                    Assert.Collection(
+                        fieldOption.Fields<string>("[*].Data.onPublishSchema.sessionId"),
+                        t => Assert.Equal(sessionId, t),
+                        t => Assert.Equal(sessionId, t))));
         }
     }
 }
+

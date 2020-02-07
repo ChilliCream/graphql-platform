@@ -9,7 +9,7 @@ namespace MarshmallowPie
         public ClientVersion(
             Guid clientId,
             string? externalId,
-            ISet<Guid> queryIds,
+            IReadOnlyList<Guid> queryIds,
             IReadOnlyList<Tag> tags,
             DateTime published)
             : this(Guid.NewGuid(), clientId, externalId, queryIds, tags, published)
@@ -20,7 +20,7 @@ namespace MarshmallowPie
             Guid id,
             Guid clientId,
             string? externalId,
-            ISet<Guid> queryIds,
+            IReadOnlyList<Guid> queryIds,
             IReadOnlyList<Tag> tags,
             DateTime published)
         {
@@ -38,7 +38,7 @@ namespace MarshmallowPie
 
         public string ExternalId { get; }
 
-        public ISet<Guid> QueryIds { get; }
+        public IReadOnlyList<Guid> QueryIds { get; }
 
         public IReadOnlyList<Tag> Tags { get; }
 

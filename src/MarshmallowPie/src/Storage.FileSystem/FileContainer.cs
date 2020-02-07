@@ -63,6 +63,19 @@ namespace MarshmallowPie.Storage.FileSystem
                 $"The directory `{_fullDirectoryPath}` does not exist.");
         }
 
+        public Task<IFile> GetFileAsync(string fileName, CancellationToken cancellationToken = default)
+        {
+            string fullFilePath = Path.Combine(_fullDirectoryPath, fileName);
+
+            if (!IOFile.Exists(fullFilePath))
+            {
+                throw new DirectoryNotFoundException(
+                    $"The file `{fullFilePath}` does not exist.");
+            }
+
+            return Task.FromResult<IFile>(new File(fullFilePath));
+        }
+
         public async Task<IEnumerable<IFile>> GetFilesAsync(
             CancellationToken cancellationToken = default)
         {

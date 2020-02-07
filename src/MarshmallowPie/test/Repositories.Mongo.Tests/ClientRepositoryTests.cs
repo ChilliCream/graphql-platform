@@ -14,8 +14,9 @@ namespace MarshmallowPie.Repositories.Mongo
         private readonly MongoResource _mongoResource;
         private readonly IMongoCollection<Client> _clients;
         private readonly IMongoCollection<ClientVersion> _versions;
-        private readonly IMongoCollection<Query> _queries;
+        private readonly IMongoCollection<QueryDocument> _queries;
         private readonly IMongoCollection<ClientPublishReport> _publishReports;
+        private readonly IMongoCollection<PublishedClient> _publishedClients;
         private readonly ClientRepository _repository;
 
         public ClientRepositoryTests(MongoResource mongoResource)
@@ -24,9 +25,12 @@ namespace MarshmallowPie.Repositories.Mongo
 
             _clients = mongoResource.CreateCollection<Client>();
             _versions = mongoResource.CreateCollection<ClientVersion>();
-            _queries = mongoResource.CreateCollection<Query>();
+            _queries = mongoResource.CreateCollection<QueryDocument>();
             _publishReports = mongoResource.CreateCollection<ClientPublishReport>();
-            _repository = new ClientRepository(_clients, _versions, _queries, _publishReports);
+            _publishedClients = mongoResource.CreateCollection<PublishedClient>();
+            _repository = new ClientRepository(
+                _clients, _versions, _queries,
+                _publishReports, _publishedClients);
         }
 
         [Fact]

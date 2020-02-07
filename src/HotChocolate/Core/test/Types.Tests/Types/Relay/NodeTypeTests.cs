@@ -7,7 +7,7 @@ namespace HotChocolate.Types
         : TypeTestBase
     {
         [Fact]
-        public void IntializeExplicitFieldWithImplicitResolver()
+        public void InitializeExplicitFieldWithImplicitResolver()
         {
             // arrange
             // act
@@ -22,7 +22,7 @@ namespace HotChocolate.Types
 
             Assert.Equal(
                 "The node interface is implemented by entities that have " +
-                "a gloabl unique identifier.",
+                "a global unique identifier.",
                 nodeInterface.Description);
 
             Assert.Collection(nodeInterface.Fields,
