@@ -28,6 +28,8 @@ namespace StrawberryShake.CodeGeneration
 
         public override Encoding Encoding { get; } = Encoding.UTF8;
 
+        public static string Indent { get; } = new string(' ', 4);
+
         public override void Write(char value) =>
             _writer.Write(value);
 

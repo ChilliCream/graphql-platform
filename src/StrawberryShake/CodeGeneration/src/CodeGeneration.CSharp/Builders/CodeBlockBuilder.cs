@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
@@ -10,6 +12,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private readonly List<ICode> _lines = new List<ICode>();
 
         public static CodeBlockBuilder New() => new CodeBlockBuilder();
+
+        public static CodeBlockBuilder FromStringBuilder(StringBuilder sb) =>
+            FromString(sb.ToString());
+
+        public static CodeBlockBuilder FromString(string s)
+        {
+            CodeBlockBuilder builder = new CodeBlockBuilder();
+
+            using var stringReader = new StringReader(s);
+
+            while (stringReader.Peek() != -1)
+            {
+                string? line = stringReader.ReadLine();
+                if (line is { })
+                {
+                    builder.AddCode(line);
+                }
+            }
+
+            return builder;
+        }
 
         public CodeBlockBuilder AddCode(ICode value)
         {

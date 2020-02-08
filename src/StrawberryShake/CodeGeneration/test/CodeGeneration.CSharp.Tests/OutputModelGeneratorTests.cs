@@ -19,8 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var descriptor = new OutputModelDescriptor(
                 "Test",
                 "Demo",
-                new[] {"ITest"},
-                new[] {new OutputFieldDescriptor("Foo", "Bar")});
+                new[] { "ITest" },
+                new[] { new OutputFieldDescriptor("Foo", "Bar") });
 
             // act
             await generator.WriteAsync(writer, descriptor);
@@ -38,8 +38,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var descriptor = new OutputModelDescriptor(
                 "Test",
                 "Demo",
-                new[] {"ITest"},
-                new[] {new OutputFieldDescriptor("Foo", "Bar")});
+                new[] { "ITest" },
+                new[] { new OutputFieldDescriptor("Foo", "Bar") });
 
             // act
             var canHandle = generator.CanHandle(descriptor);
@@ -48,4 +48,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             Assert.True(canHandle);
         }
     }
+
+
 }

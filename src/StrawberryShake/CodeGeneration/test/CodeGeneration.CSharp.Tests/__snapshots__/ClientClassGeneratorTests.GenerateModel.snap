@@ -1,0 +1,25 @@
+﻿public partial TestClient
+    : ITestClient
+{
+    private const string _clientName = "TestClient";
+    private readonly global::StrawberryShake.IOperationExecutor _executor;
+    private readonly global::StrawberryShake.IOperationStreamExecutor _streamExecutor;
+
+    public TestClient(global::StrawberryShake.IOperationExecutorPool executorPool)
+    {
+        _executor = executorPool.CreateExecutor(_clientName);
+        _streamExecutor = executorPool.CreateStreamExecutor(_clientName);
+    }
+
+    public global::System.Threading.Tasks.Task<global::StrawberryShale.IOperationResult<global::Demo.IGetHero>> GetHeroAsync(
+        global::Demo.Episode episode = NewHope,
+        global::System.Threading.CancellationToken cancellationToken = default)
+    {
+        return _executor.ExecuteAsync(
+            new global::Demo.GetHeroOperation
+            {
+                Episode = episode
+            },
+            cancellationToken);
+    }
+}

@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class FieldBuilder : ICodeBuilder
     {
-        private AccessModifier _accessModifier;
+        private AccessModifier _accessModifier = AccessModifier.Private;
         private bool _isConst;
         private bool _isStatic;
         private bool _isReadOnly;

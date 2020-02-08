@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class ClientClassGenerator
         : CodeGenerator<ClientClassDescriptor>
     {
-        protected override async Task WriteAsync(
+        protected override Task WriteAsync(
             CodeWriter writer,
             ClientClassDescriptor descriptor)
         {
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FieldBuilder.New()
                     .SetConst()
                     .SetName("_clientName")
-                    .SetType(descriptor.Name)
+                    .SetType("string")
                     .SetValue($"\"{descriptor.Name}\""));
 
             ConstructorBuilder constructor = ConstructorBuilder.New()
@@ -67,6 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (ClientOperationMethodDescriptor operation in descriptor.Operations)
             {
                 MethodBuilder methodBuilder = MethodBuilder.New()
+                    .SetAccessModifier(AccessModifier.Public)
                     .SetName(operation.Name + "Async")
                     .SetReturnType(operation.ReturnType);
 
@@ -76,9 +77,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetName(parameter.Name)
                         .SetType(parameter.TypeName);
 
-                    if (parameter.IsOptional)
+                    if (parameter.IsOptional && parameter.Default is null)
                     {
                         parameterBuilder.SetDefault();
+                    }
+
+                    if (parameter.Default is { })
+                    {
+                        parameterBuilder.SetDefault(parameter.Default);
                     }
 
                     methodBuilder.AddParameter(parameterBuilder);
@@ -90,11 +96,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType("global::System.Threading.CancellationToken")
                         .SetDefault());
 
-                methodBuilder.AddCode("")
+                methodBuilder.AddCode(CreateExecuteMethodCode(operation, CodeWriter.Indent));
+
+                builder.AddMethod(methodBuilder);
             }
+
+            return builder.BuildAsync(writer);
         }
 
-        private Index CreateExecutorCode(
+        private CodeBlockBuilder CreateExecuteMethodCode(
             ClientOperationMethodDescriptor operation,
             string indent)
         {
@@ -119,29 +129,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
             else
             {
                 stringBuilder.AppendLine();
-                stringBuilder.AppendLine($"{indent}new {operation.OperationModelName}{{ ");
+                stringBuilder.AppendLine($"{indent}new {operation.OperationModelName}");
+                stringBuilder.AppendLine($"{indent}{{");
 
                 for (int i = 0; i < operation.Parameters.Count; i++)
                 {
-                    if (i > 0)
-                    {
+                    ClientOperationMethodParameterDescriptor parameter = operation.Parameters[i];
+                    stringBuilder.Append(
+                        $"{indent}{indent}{parameter.PropertyName} = {parameter.Name}");
 
+                    if (i + 1 < operation.Parameters.Count)
+                    {
+                        stringBuilder.AppendLine(",");
                     }
                 }
 
-
-                $"{operation.Parameters[0].PropertyName} = " +
-                $"{operation.Parameters[0].Name} }},");
-                stringBuilder.Append("cancellationToken);");
+                stringBuilder.AppendLine();
+                stringBuilder.AppendLine($"{indent}}},");
+                stringBuilder.Append($"{indent}cancellationToken);");
             }
 
-            foreach (ClientOperationMethodParameterDescriptor parameter in operation.Parameters)
-            {
-
-                if (operation.)
-
-
-            }
+            return CodeBlockBuilder.FromStringBuilder(stringBuilder);
         }
     }
 }

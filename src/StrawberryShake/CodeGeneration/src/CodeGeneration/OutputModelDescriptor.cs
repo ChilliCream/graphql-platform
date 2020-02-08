@@ -26,48 +26,4 @@ namespace StrawberryShake.CodeGeneration
 
         public IReadOnlyList<OutputFieldDescriptor> Fields { get; }
     }
-
-    public class ClientClassDescriptor
-        : ICodeDescriptor
-    {
-        public string Name { get; }
-
-        public string InterfaceName { get; }
-
-        public string OperationExecutorPool { get; }
-
-        public string OperationExecutor { get; }
-
-        public string OperationStreamExecutor { get; }
-
-        public IReadOnlyList<ClientOperationMethodDescriptor> Operations { get; }
-    }
-
-    public class ClientOperationMethodDescriptor
-        : ICodeDescriptor
-    {
-        public string Name { get; }
-
-        public string OperationModelName { get; }
-
-        public bool IsStreamExecutor { get; }
-
-        public string ReturnType { get; }
-
-        public IReadOnlyList<ClientOperationMethodParameterDescriptor> Parameters { get; }
-    }
-
-    public class ClientOperationMethodParameterDescriptor
-        : ICodeDescriptor
-    {
-        public string Name { get; }
-
-        public string PropertyName { get; }
-
-        public string TypeName { get; }
-
-        public bool IsOptional { get; }
-
-        public string Default { get; }
-    }
 }
