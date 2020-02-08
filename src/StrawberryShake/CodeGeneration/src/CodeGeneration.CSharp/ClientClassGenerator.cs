@@ -66,10 +66,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (ClientOperationMethodDescriptor operation in descriptor.Operations)
             {
+                string returnType = CreateReturnType(
+                    operation.ResponseModelName,
+                    operation.IsStreamExecutor);
+
                 MethodBuilder methodBuilder = MethodBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(operation.Name + "Async")
-                    .SetReturnType(operation.ReturnType);
+                    .SetReturnType(returnType);
 
                 foreach (ClientOperationMethodParameterDescriptor parameter in operation.Parameters)
                 {
@@ -97,6 +101,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetDefault());
 
                 methodBuilder.AddCode(CreateExecuteMethodCode(operation, CodeWriter.Indent));
+
+                builder.AddMethod(methodBuilder);
+
+                methodBuilder = MethodBuilder.New()
+                    .SetAccessModifier(AccessModifier.Public)
+                    .SetName(operation.Name + "Async")
+                    .SetReturnType(returnType);
+
+                methodBuilder.AddParameter(
+                    ParameterBuilder.New()
+                        .SetName("operation")
+                        .SetType(operation.OperationModelName));
+
+                methodBuilder.AddParameter(
+                    ParameterBuilder.New()
+                        .SetName("cancellationToken")
+                        .SetType("global::System.Threading.CancellationToken")
+                        .SetDefault());
+
+                methodBuilder.AddCode(CreateExecuteOperationMethodCode(operation, CodeWriter.Indent));
 
                 builder.AddMethod(methodBuilder);
             }
@@ -150,6 +174,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             return CodeBlockBuilder.FromStringBuilder(stringBuilder);
+        }
+
+        private static CodeBlockBuilder CreateExecuteOperationMethodCode(
+            ClientOperationMethodDescriptor operation,
+            string indent)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("if (operation is null)");
+            stringBuilder.AppendLine("{");
+            stringBuilder.AppendLine(
+                $"{indent}throw new ArgumentNullException(nameof(operation));");
+            stringBuilder.AppendLine("}");
+            stringBuilder.AppendLine();
+            stringBuilder.Append("return _executor.ExecuteAsync(operation, cancellationToken);");
+
+            return CodeBlockBuilder.FromStringBuilder(stringBuilder);
+        }
+
+        private static string CreateReturnType(string responseModelName, bool isStream)
+        {
+            if (isStream)
+            {
+                return "global::System.Threading.Tasks.Task<" +
+                    $"global::StrawberryShale.IResponseStream<{responseModelName}>>";
+            }
+            else
+            {
+                return "global::System.Threading.Tasks.Task<" +
+                    $"global::StrawberryShale.IOperationResult<{responseModelName}>>";
+            }
         }
     }
 }

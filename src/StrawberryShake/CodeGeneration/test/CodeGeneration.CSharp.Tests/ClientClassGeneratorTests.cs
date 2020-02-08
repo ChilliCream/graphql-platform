@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class ClientClassGeneratorTests
     {
         [Fact]
-        public async Task GenerateModel()
+        public async Task GenerateClient_With_OperationExecutor()
         {
             // arrange
             var sb = new StringBuilder();
@@ -28,8 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "GetHero",
                         "global::Demo.GetHeroOperation",
                         false,
-                        "global::System.Threading.Tasks.Task<" +
-                        "global::StrawberryShale.IOperationResult<global::Demo.IGetHero>>",
+                        "global::Demo.IGetHero",
                         new[]
                         {
                             new ClientOperationMethodParameterDescriptor(
@@ -37,7 +36,47 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 "Episode",
                                 "global::Demo.Episode",
                                 true,
-                                "NewHope")
+                                "global::Demo.Episode.NewHope")
+                        })
+                });
+
+            // act
+            await generator.WriteAsync(writer, descriptor);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task GenerateClient_With_OperationStreamExecutor()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            var generator = new ClientClassGenerator();
+
+            var descriptor = new ClientClassDescriptor(
+                "TestClient",
+                "ITestClient",
+                "global::StrawberryShake.IOperationExecutorPool",
+                "global::StrawberryShake.IOperationExecutor",
+                "global::StrawberryShake.IOperationStreamExecutor",
+                new []
+                {
+                    new ClientOperationMethodDescriptor(
+                        "GetHero",
+                        "global::Demo.GetHeroOperation",
+                        true,
+                        "global::Demo.IGetHero",
+                        new[]
+                        {
+                            new ClientOperationMethodParameterDescriptor(
+                                "episode",
+                                "Episode",
+                                "global::Demo.Episode",
+                                true,
+                                "global::Demo.Episode.NewHope")
                         })
                 });
 

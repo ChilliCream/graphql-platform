@@ -15,7 +15,7 @@ namespace StrawberryShake.CodeGeneration
             Name = name;
             OperationModelName = operationModelName;
             IsStreamExecutor = isStreamExecutor;
-            ReturnType = returnType;
+            ResponseModelName = returnType;
             Parameters = parameters;
         }
 
@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration
 
         public bool IsStreamExecutor { get; }
 
-        public string ReturnType { get; }
+        public string ResponseModelName { get; }
 
         public IReadOnlyList<ClientOperationMethodParameterDescriptor> Parameters { get; }
     }

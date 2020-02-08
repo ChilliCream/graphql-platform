@@ -11,8 +11,8 @@
         _streamExecutor = executorPool.CreateStreamExecutor(_clientName);
     }
 
-    public global::System.Threading.Tasks.Task<global::StrawberryShale.IOperationResult<global::Demo.IGetHero>> GetHeroAsync(
-        global::Demo.Episode episode = NewHope,
+    public global::System.Threading.Tasks.Task<global::StrawberryShale.IResponseStream<global::Demo.IGetHero>> GetHeroAsync(
+        global::Demo.Episode episode = global::Demo.Episode.NewHope,
         global::System.Threading.CancellationToken cancellationToken = default)
     {
         return _executor.ExecuteAsync(
@@ -21,5 +21,17 @@
                 Episode = episode
             },
             cancellationToken);
+    }
+
+    public global::System.Threading.Tasks.Task<global::StrawberryShale.IResponseStream<global::Demo.IGetHero>> GetHeroAsync(
+        global::Demo.GetHeroOperation operation,
+        global::System.Threading.CancellationToken cancellationToken = default)
+    {
+        if (operation is null)
+        {
+            throw new ArgumentNullException(nameof(operation));
+        }
+
+        return _executor.ExecuteAsync(operation, cancellationToken);
     }
 }
