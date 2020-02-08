@@ -11,9 +11,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public static ParameterBuilder New() => new ParameterBuilder();
 
-        public ParameterBuilder SetType(string value)
+        public ParameterBuilder SetType(string value, bool condition = true)
         {
-            _type = value;
+            if (condition)
+            {
+                _type = value;
+            }
             return this;
         }
 

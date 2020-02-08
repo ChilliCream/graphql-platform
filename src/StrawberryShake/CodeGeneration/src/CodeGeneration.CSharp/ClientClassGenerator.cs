@@ -120,7 +120,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType("global::System.Threading.CancellationToken")
                         .SetDefault());
 
-                methodBuilder.AddCode(CreateExecuteOperationMethodCode(operation, CodeWriter.Indent));
+                methodBuilder.AddCode(CreateExecuteOperationMethodCode(CodeWriter.Indent));
 
                 builder.AddMethod(methodBuilder);
             }
@@ -176,9 +176,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return CodeBlockBuilder.FromStringBuilder(stringBuilder);
         }
 
-        private static CodeBlockBuilder CreateExecuteOperationMethodCode(
-            ClientOperationMethodDescriptor operation,
-            string indent)
+        private static CodeBlockBuilder CreateExecuteOperationMethodCode(string indent)
         {
             var stringBuilder = new StringBuilder();
 

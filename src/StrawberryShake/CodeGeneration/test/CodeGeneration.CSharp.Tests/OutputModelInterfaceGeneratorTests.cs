@@ -5,7 +5,7 @@ using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
-    public class OutputModelGeneratorTests
+    public class OutputModelInterfaceGeneratorTests
     {
         [Fact]
         public async Task GenerateModel()
@@ -14,9 +14,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var sb = new StringBuilder();
             var writer = new CodeWriter(sb);
 
-            var generator = new OutputModelGenerator();
+            var generator = new OutputModelInterfaceGenerator();
 
-            var descriptor = new OutputModelDescriptor(
+            var descriptor = new OutputModelInterfaceDescriptor(
                 "Test",
                 "Demo",
                 new[] { "ITest" },
@@ -33,9 +33,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public void CanHandle()
         {
             // arrange
-            var generator = new OutputModelGenerator();
+            var generator = new OutputModelInterfaceGenerator();
 
-            var descriptor = new OutputModelDescriptor(
+            var descriptor = new OutputModelInterfaceDescriptor(
                 "Test",
                 "Demo",
                 new[] { "ITest" },

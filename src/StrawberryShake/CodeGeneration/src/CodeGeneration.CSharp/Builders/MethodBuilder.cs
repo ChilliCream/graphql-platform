@@ -41,9 +41,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public MethodBuilder SetReturnType(string value)
+        public MethodBuilder SetReturnType(string value, bool condition = true)
         {
-            _returnType = value;
+            if (condition)
+            {
+                _returnType = value;
+            }
             return this;
         }
 
