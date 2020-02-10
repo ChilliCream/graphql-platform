@@ -15,18 +15,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public CodeFileBuilder AddUsing(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "The namespace cannot be null or empty.",
+                    nameof(value));
+            }
+
             _usings.Add(value);
             return this;
         }
 
         public CodeFileBuilder SetNamespace(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "The namespace cannot be null or empty.",
+                    nameof(value));
+            }
+
             _namespace = value;
             return this;
         }
 
         public CodeFileBuilder AddType(ITypeBuilder value)
         {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             _types.Add(value);
             return this;
         }
@@ -53,6 +72,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         private async Task BuildInternal(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             if (_types.Count == 0 && _usings.Count == 0)
             {
                 return;

@@ -28,6 +28,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 return Task.CompletedTask;
             }
 
+            if (_value.Length == 0)
+            {
+                return writer.WriteLineAsync();
+            }
+
             return writer.WriteIndentedLineAsync(_value);
         }
     }

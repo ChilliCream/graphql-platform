@@ -32,7 +32,7 @@ public partial TestClient
         {
             throw new ArgumentNullException(nameof(operation));
         }
-        
+
         return _executor.ExecuteAsync(operation, cancellationToken);
     }
 }

@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetAccessModifier(AccessModifier.Public)
                     .SetReturnType("object?", NullableRefTypes)
                     .SetReturnType("object", !NullableRefTypes)
-                    .SetName("Serialize")
+                    .SetName("Deserialize")
                     .AddParameter(ParameterBuilder.New()
                         .SetType("object?", NullableRefTypes)
                         .SetType("object", !NullableRefTypes)

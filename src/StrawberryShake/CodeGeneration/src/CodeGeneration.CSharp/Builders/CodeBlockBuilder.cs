@@ -13,11 +13,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public static CodeBlockBuilder New() => new CodeBlockBuilder();
 
-        public static CodeBlockBuilder FromStringBuilder(StringBuilder sb) =>
-            FromString(sb.ToString());
+        public static CodeBlockBuilder FromStringBuilder(StringBuilder sb)
+        {
+            if (sb is null)
+            {
+                throw new ArgumentNullException(nameof(sb));
+            }
+
+            return FromString(sb.ToString());
+        }
 
         public static CodeBlockBuilder FromString(string s)
         {
+            if (s is null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
             CodeBlockBuilder builder = new CodeBlockBuilder();
 
             using var stringReader = new StringReader(s);
@@ -36,12 +48,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public CodeBlockBuilder AddCode(ICode value)
         {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             _lines.Add(value);
             return this;
         }
 
         public CodeBlockBuilder AddCode(string value)
         {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             _lines.Add(CodeLineBuilder.New().SetLine(value));
             return this;
         }

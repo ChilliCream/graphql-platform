@@ -29,36 +29,70 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public ClassBuilder SetName(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "The class name cannot be null or empty.",
+                    nameof(value));
+            }
+
             _name = value;
             return this;
         }
 
         public ClassBuilder AddImplements(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "The type name cannot be null or empty.",
+                    nameof(value));
+            }
+
             _implements.Add(value);
             return this;
         }
 
         public ClassBuilder AddConstructor(ConstructorBuilder constructor)
         {
+            if (constructor is null)
+            {
+                throw new ArgumentNullException(nameof(constructor));
+            }
+
             _constructors.Add(constructor);
             return this;
         }
 
         public ClassBuilder AddField(FieldBuilder field)
         {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
             _fields.Add(field);
             return this;
         }
 
         public ClassBuilder AddProperty(PropertyBuilder property)
         {
+            if (property is null)
+            {
+                throw new ArgumentNullException(nameof(property));
+            }
+
             _properties.Add(property);
             return this;
         }
 
         public ClassBuilder AddMethod(MethodBuilder method)
         {
+            if (method is null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
             _methods.Add(method);
             return this;
         }

@@ -40,9 +40,9 @@ public sealed partial EpisodeValueSerializer
         {
             return null;
         }
-        
+
         var enumValue = (global::Demo.Episode)value
-        
+
         switch(enumValue)
         {
             case global::Demo.Episode.NewHope:
@@ -54,15 +54,15 @@ public sealed partial EpisodeValueSerializer
         }
     }
 
-    public object Serialize(object serialized)
+    public object Deserialize(object serialized)
     {
         if (serialized is null)
         {
             return null;
         }
-        
+
         var stringValue = (string)serialized
-        
+
         switch(serialized)
         {
             case "NEWHOPE":

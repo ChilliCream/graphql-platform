@@ -22,9 +22,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public FieldBuilder SetType(string value)
+        public FieldBuilder SetType(string value, bool condition = true)
         {
-            _type = value;
+            if (condition)
+            {
+                _type = value;
+            }
             return this;
         }
 
@@ -83,7 +86,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             await writer.WriteAsync($"{modifier} ")
                 .ConfigureAwait(false);
 
-            if(_isConst)
+            if (_isConst)
             {
                 await writer.WriteAsync("const ").ConfigureAwait(false);
             }
