@@ -1,5 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
+using HotChocolate.Execution;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Repositories.Mongo;
@@ -8,8 +10,6 @@ using MarshmallowPie.Storage.FileSystem;
 using MongoDB.Driver;
 using Squadron;
 using Xunit;
-using HotChocolate;
-using HotChocolate.Execution;
 
 namespace MarshmallowPie.GraphQL
 {
@@ -46,10 +46,15 @@ namespace MarshmallowPie.GraphQL
             EnvironmentRepository = services.GetRequiredService<IEnvironmentRepository>();
             SchemaRepository = services.GetRequiredService<ISchemaRepository>();
             Storage = services.GetRequiredService<IFileStorage>();
-            PublishDocumentMessageSender = services.GetRequiredService<IMessageSender<PublishDocumentMessage>>();
-            PublishSchemaEventSender = services.GetRequiredService<IMessageSender<PublishSchemaEvent>>();
-            PublishDocumentMessageReceiver = services.GetRequiredService<IMessageReceiver<PublishDocumentMessage>>();
-            PublishSchemaEventReceiver = services.GetRequiredService<ISessionMessageReceiver<PublishSchemaEvent>>();
+            SessionCreator = services.GetRequiredService<ISessionCreator>();
+            PublishDocumentMessageSender =
+                services.GetRequiredService<IMessageSender<PublishDocumentMessage>>();
+            PublishSchemaEventSender =
+                services.GetRequiredService<IMessageSender<PublishDocumentEvent>>();
+            PublishDocumentMessageReceiver =
+                services.GetRequiredService<IMessageReceiver<PublishDocumentMessage>>();
+            PublishSchemaEventReceiver =
+                services.GetRequiredService<ISessionMessageReceiver<PublishDocumentEvent>>();
         }
 
         protected ISchema Schema { get; }
@@ -66,12 +71,14 @@ namespace MarshmallowPie.GraphQL
 
         protected IFileStorage Storage { get; }
 
+        protected ISessionCreator SessionCreator { get; }
+
         protected IMessageSender<PublishDocumentMessage> PublishDocumentMessageSender { get; }
 
-        protected IMessageSender<PublishSchemaEvent> PublishSchemaEventSender { get; }
+        protected IMessageSender<PublishDocumentEvent> PublishSchemaEventSender { get; }
 
         protected IMessageReceiver<PublishDocumentMessage> PublishDocumentMessageReceiver { get; }
 
-        protected ISessionMessageReceiver<PublishSchemaEvent> PublishSchemaEventReceiver { get; }
+        protected ISessionMessageReceiver<PublishDocumentEvent> PublishSchemaEventReceiver { get; }
     }
 }

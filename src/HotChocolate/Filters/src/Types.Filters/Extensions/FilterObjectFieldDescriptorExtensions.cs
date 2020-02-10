@@ -79,22 +79,20 @@ namespace HotChocolate.Types
                     if (filterType == null)
                     {
                         if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType, out TypeInfo typeInfo))
+                            definition.ResultType,
+                            out TypeInfo typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterResources.FilterObjectFieldDescriptor_InvalidType,
                                 nameof(descriptor));
                         }
 
-                        argumentType =
-                            typeof(FilterInputType<>).MakeGenericType(
-                                typeInfo.ClrType);
+                        argumentType = typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
                     }
 
                     ITypeReference argumentTypeReference =
                         filterTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(
-                                argumentType, TypeContext.Input)
+                            ? (ITypeReference)new ClrTypeReference(argumentType, TypeContext.Input)
                             : new SchemaTypeReference(filterTypeInstance);
 
                     if (argumentType == typeof(object))
@@ -109,8 +107,7 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Type = new ClrTypeReference(
-                            argumentType, TypeContext.Input)
+                        Type = new ClrTypeReference(argumentType, TypeContext.Input)
                     };
 
                     argumentDefinition.ConfigureArgumentName();
@@ -143,10 +140,8 @@ namespace HotChocolate.Types
         {
             IFilterNamingConvention convention =
                 context.DescriptorContext.GetFilterNamingConvention();
-            IFilterInputType type =
-                context.GetType<IFilterInputType>(argumentTypeReference);
-            Type middlewareType = _middlewareDefinition
-                .MakeGenericType(type.EntityType);
+            IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
+            Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType,
                     FilterMiddlewareContext.Create(convention.ArgumentName));

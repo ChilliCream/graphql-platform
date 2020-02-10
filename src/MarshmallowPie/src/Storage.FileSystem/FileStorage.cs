@@ -65,5 +65,29 @@ namespace MarshmallowPie.Storage.FileSystem
 
             return Task.FromResult<IFileContainer>(new FileContainer(fullContainerPath));
         }
+
+        public Task<IFileContainer> GetOrCreateContainerAsync(
+            string containerName,
+            CancellationToken cancellationToken = default)
+        {
+            string fullContainerPath = Path.Combine(_fullDirectoryPath, containerName);
+
+            if (Directory.Exists(fullContainerPath))
+            {
+                return GetContainerAsync(containerName);
+            }
+            else
+            {
+                return CreateContainerAsync(containerName);
+            }
+        }
+
+        public Task<bool> ContainerExistsAsync(
+            string containerName,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                Directory.Exists(Path.Combine(_fullDirectoryPath, containerName)));
+        }
     }
 }

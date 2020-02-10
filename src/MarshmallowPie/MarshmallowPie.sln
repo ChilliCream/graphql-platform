@@ -83,6 +83,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Sub
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Server", "..\HotChocolate\AspNetCore\src\Server\HotChocolate.Server.csproj", "{10315959-9570-4E24-8127-F5C84EC8F6D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Voyager", "..\HotChocolate\AspNetCore\src\AspNetCore.Voyager\HotChocolate.AspNetCore.Voyager.csproj", "{764C3030-8615-4E61-B9A0-726A999F2445}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -501,6 +503,18 @@ Global
 		{10315959-9570-4E24-8127-F5C84EC8F6D4}.Release|x64.Build.0 = Release|Any CPU
 		{10315959-9570-4E24-8127-F5C84EC8F6D4}.Release|x86.ActiveCfg = Release|Any CPU
 		{10315959-9570-4E24-8127-F5C84EC8F6D4}.Release|x86.Build.0 = Release|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Debug|x64.Build.0 = Debug|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Debug|x86.Build.0 = Debug|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Release|Any CPU.Build.0 = Release|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Release|x64.ActiveCfg = Release|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Release|x64.Build.0 = Release|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Release|x86.ActiveCfg = Release|Any CPU
+		{764C3030-8615-4E61-B9A0-726A999F2445}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -540,6 +554,7 @@ Global
 		{A0D509B5-29E8-43A7-BE7B-251DCC8D46FC} = {5F669B84-6FE8-45B6-88D2-9A83D2EA8867}
 		{03D5473A-0C65-4036-9CA2-E659808C5EBC} = {5F669B84-6FE8-45B6-88D2-9A83D2EA8867}
 		{10315959-9570-4E24-8127-F5C84EC8F6D4} = {5F669B84-6FE8-45B6-88D2-9A83D2EA8867}
+		{764C3030-8615-4E61-B9A0-726A999F2445} = {5F669B84-6FE8-45B6-88D2-9A83D2EA8867}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F827ED5D-F6AE-4C84-B354-74AC96353FBC}

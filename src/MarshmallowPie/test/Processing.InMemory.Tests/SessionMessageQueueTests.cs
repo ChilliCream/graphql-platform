@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using Xunit;
 
 namespace MarshmallowPie.Processing.InMemory
@@ -11,14 +12,21 @@ namespace MarshmallowPie.Processing.InMemory
         public async Task Send_And_Receive_Message()
         {
             // arrange
-            var test = new SessionMessageQueue<PublishSchemaEvent>();
-            var message = new PublishSchemaEvent("abc", new Issue("def", IssueType.Error));
+            var sessionManager = new SessionManager();
+            var test = new SessionMessageQueue<PublishDocumentEvent>(sessionManager);
+
+            string sessionId = await sessionManager.CreateSessionAsync();
+
+            var message = new PublishDocumentEvent(
+                sessionId,
+                new Issue("def", "foo", new Location(0, 0, 0, 0),
+                IssueType.Error));
 
             // act
             await test.SendAsync(message);
 
             // assert
-            await foreach (PublishSchemaEvent m in await test.SubscribeAsync(message.SessionId))
+            await foreach (PublishDocumentEvent m in await test.SubscribeAsync(message.SessionId))
             {
                 Assert.Equal(message, m);
                 break;
@@ -29,10 +37,17 @@ namespace MarshmallowPie.Processing.InMemory
         public async Task Unsubscribe_On_Complete_Message()
         {
             // arrange
-            var test = new SessionMessageQueue<PublishSchemaEvent>();
-            var message = new PublishSchemaEvent("abc", new Issue("def", IssueType.Error));
-            var completeMessage = PublishSchemaEvent.Completed("abc");
-            var received = new List<PublishSchemaEvent>();
+            var sessionManager = new SessionManager();
+            var test = new SessionMessageQueue<PublishDocumentEvent>(sessionManager);
+
+            string sessionId = await sessionManager.CreateSessionAsync();
+
+            var message = new PublishDocumentEvent(
+                sessionId,
+                new Issue("def", "foo", new Location(0, 0, 0, 0),
+                IssueType.Error));
+            var completeMessage = PublishDocumentEvent.Completed(sessionId);
+            var received = new List<PublishDocumentEvent>();
 
             await test.SendAsync(message);
 
@@ -43,7 +58,7 @@ namespace MarshmallowPie.Processing.InMemory
              });
 
             // act
-            await foreach (PublishSchemaEvent m in await test.SubscribeAsync(message.SessionId))
+            await foreach (PublishDocumentEvent m in await test.SubscribeAsync(message.SessionId))
             {
                 received.Add(m);
 

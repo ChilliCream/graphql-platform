@@ -29,7 +29,9 @@ namespace MarshmallowPie.BackgroundServices
         public async Task ExecutePublishDocumentServer_With_SchemaFile_Handler()
         {
             // arrange
-            var handler = new PublishSchemaDocumentHandler(
+            string sessionId = await SessionCreator.CreateSessionAsync();
+
+            var handler = new PublishNewSchemaDocumentHandler(
                 Storage, SchemaRepository, PublishSchemaEventSender);
 
             using var service = new PublishDocumentService(
@@ -43,9 +45,9 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                "ghi", environment.Id, schema.Id, Array.Empty<Tag>());
+                sessionId, environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
 
-            IFileContainer fileContainer = await Storage.CreateContainerAsync("ghi");
+            IFileContainer fileContainer = await Storage.CreateContainerAsync(sessionId);
             using (Stream stream = await fileContainer.CreateFileAsync("schema.graphql"))
             {
                 byte[] buffer = Encoding.UTF8.GetBytes(@"
@@ -61,19 +63,23 @@ namespace MarshmallowPie.BackgroundServices
             // act
             await service.StartAsync(default);
 
-            var list = new List<PublishSchemaEvent>();
+            var list = new List<PublishDocumentEvent>();
             using var cts = new CancellationTokenSource(5000);
-            IAsyncEnumerable<PublishSchemaEvent> eventStream =
-                await PublishSchemaEventReceiver.SubscribeAsync("ghi", cts.Token);
-            await foreach (PublishSchemaEvent eventMessage in
+            IAsyncEnumerable<PublishDocumentEvent> eventStream =
+                await PublishSchemaEventReceiver.SubscribeAsync(sessionId, cts.Token);
+            await foreach (PublishDocumentEvent eventMessage in
                 eventStream.WithCancellation(cts.Token))
             {
                 list.Add(eventMessage);
             }
-            list.MatchSnapshot();
+            list.MatchSnapshot(matchOption =>
+                matchOption.Assert(fieldOption =>
+                    Assert.Equal(sessionId, fieldOption.Field<string>("[0].SessionId"))));
 
             SchemaVersion schemaVersion = SchemaRepository.GetSchemaVersions().Single();
-            Assert.Equal("oECbw4BIP7gX1R+fCGRDCcqbO2FV/Uf0MhhE0EDAWIw=", schemaVersion.Hash);
+            Assert.Equal(
+                "A0409BC380483FB817D51F9F08644309CA9B3B6155FD47F4321844D040C0588C",
+                schemaVersion.Hash.Hash);
         }
     }
 }

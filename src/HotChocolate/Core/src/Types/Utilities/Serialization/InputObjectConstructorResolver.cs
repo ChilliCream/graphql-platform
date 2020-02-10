@@ -52,7 +52,10 @@ namespace HotChocolate.Utilities.Serialization
             }
 
             throw new InvalidOperationException(
-                $"No compatible constructor found for input type type `{type.FullName}`.");
+                $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
+                "Either you have to provide a public constructor with settable properties or " +
+                "a public constructor that allows to pass in values for read-only properties." +
+                $"There was now way to set the following properties: {string.Join(", ", required)}.");
         }
 
         private static bool IsCompatibleConstructor(

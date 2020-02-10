@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
@@ -12,7 +10,6 @@ namespace HotChocolate.Types.Filters
         NameString ArrayFilterPropertyName { get; }
 
         NameString CreateFieldName(FilterFieldDefintion definition, FilterOperationKind kind);
-
 
         NameString GetFilterTypeName(IDescriptorContext context, Type entityType);
     }

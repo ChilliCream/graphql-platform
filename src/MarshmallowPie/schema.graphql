@@ -54,7 +54,9 @@ type Issue {
 type Mutation {
   createEnvironment(input: CreateEnvironmentInput!): CreateEnvironmentPayload
   createSchema(input: CreateSchemaInput!): CreateSchemaPayload!
-  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
+  publishNewSchema(input: PublishNewSchemaInput!): PublishNewSchemaPayload!
+  publishSchemaToEnvironment(input: PublishSchemaInput!): PublishSchemaPayload!
+  markSchemaAsPublished(input: MarkSchemaAsPublished!)
   updateEnvironment(input: UpdateEnvironmentInput!): UpdateEnvironmentPayload
   updateSchema(input: UpdateSchemaInput!): UpdateSchemaPayload!
 }

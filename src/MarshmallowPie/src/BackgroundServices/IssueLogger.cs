@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MarshmallowPie.Processing;
@@ -9,11 +10,11 @@ namespace MarshmallowPie.BackgroundServices
     {
         private readonly List<Issue> _issues = new List<Issue>();
         private readonly string _sessionId;
-        private readonly IMessageSender<PublishSchemaEvent> _eventSender;
+        private readonly IMessageSender<PublishDocumentEvent> _eventSender;
 
         public IssueLogger(
             string sessionId,
-            IMessageSender<PublishSchemaEvent> eventSender)
+            IMessageSender<PublishDocumentEvent> eventSender)
         {
             _sessionId = sessionId;
             _eventSender = eventSender;
@@ -28,9 +29,26 @@ namespace MarshmallowPie.BackgroundServices
             _issues.Add(issue);
 
             await _eventSender.SendAsync(
-                new PublishSchemaEvent(_sessionId, issue),
+                new PublishDocumentEvent(_sessionId, issue),
                 cancellationToken)
                 .ConfigureAwait(false);
+        }
+
+        public async Task LogIssuesAsync(
+            IEnumerable<Issue> issues,
+            CancellationToken cancellationToken = default)
+        {
+            Issue[] localIssues = issues.ToArray();
+
+            _issues.AddRange(localIssues);
+
+            foreach (Issue issue in localIssues)
+            {
+                await _eventSender.SendAsync(
+                    new PublishDocumentEvent(_sessionId, issue),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
     }
 }

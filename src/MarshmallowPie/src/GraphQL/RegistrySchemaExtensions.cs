@@ -1,6 +1,7 @@
 using System;
 using HotChocolate;
 using HotChocolate.Types;
+using MarshmallowPie.GraphQL.Clients;
 using MarshmallowPie.GraphQL.Environments;
 using MarshmallowPie.GraphQL.Schemas;
 
@@ -29,6 +30,11 @@ namespace MarshmallowPie.GraphQL
                 .AddType<SchemaExtension>()
                 .AddType<SchemaVersionExtension>()
                 .AddType<SchemaPublishReportExtension>()
+                .AddType<ClientQueries>()
+                .AddType<ClientMutations>()
+                .AddType<ClientExtension>()
+                .AddType<ClientVersionExtension>()
+                .AddType<QueryDocumentExtension>()
                 .BindClrType<string, StringType>()
                 .BindClrType<Guid, IdType>();
         }

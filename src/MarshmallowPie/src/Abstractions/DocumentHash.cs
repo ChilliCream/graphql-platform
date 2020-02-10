@@ -80,8 +80,9 @@ namespace MarshmallowPie
 
                 if (sha.TryComputeHash(content.Slice(0, bytesConsumed), hash, out int written))
                 {
+                    // TODO : refactor the replace
                     return new DocumentHash(
-                        BitConverter.ToString(rentedHash, 0, written),
+                        BitConverter.ToString(rentedHash, 0, written).Replace("-", string.Empty),
                         "SHA256",
                         HashFormat.Hex);
 
