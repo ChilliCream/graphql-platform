@@ -82,15 +82,12 @@ namespace HotChocolate.Resolvers
             // act
             var schema = Schema.Create(
                 t => t.RegisterQueryType(objectType)
-                        .RegisterType<FooExtensions>());
+                        .RegisterType<FooExtensionsNonGeneric>());
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["method1"].Metadata.IsPure);
 
-            Assert.False(type.Fields["method2"].Metadata.IsPure);
-            Assert.Single(type.Fields["method2"].Metadata.DependsOn);
-            Assert.Equal("Description", type.Fields["method2"].Metadata.DependsOn[0]);
 
             Assert.True(type.Fields["method3"].Metadata.IsPure);
 
@@ -145,8 +142,7 @@ namespace HotChocolate.Resolvers
             Assert.False(type.Fields["method4"].Metadata.IsPure);
             Assert.Empty(type.Fields["method4"].Metadata.DependsOn);
 
-            Assert.False(type.Fields["method5"].Metadata.IsPure);
-            Assert.Empty(type.Fields["method5"].Metadata.DependsOn);
+            Assert.False(type.Fields.ContainsField("method5"));
         }
 
         [Fact]
@@ -193,7 +189,6 @@ namespace HotChocolate.Resolvers
                 {
                     t.Name("Foo");
                     t.Field<FooExtensions>(x => x.Method1());
-                    t.Field<FooExtensions>(x => x.Method2(default));
                     t.Field<FooExtensions>(x => x.Method3(default));
                     t.Field<FooExtensions>(x => x.Method4(default));
                     t.Field<FooExtensions>(x => x.Method5(default));
@@ -206,10 +201,6 @@ namespace HotChocolate.Resolvers
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["method1"].Metadata.IsPure);
-
-            Assert.False(type.Fields["method2"].Metadata.IsPure);
-            Assert.Single(type.Fields["method2"].Metadata.DependsOn);
-            Assert.Equal("Description", type.Fields["method2"].Metadata.DependsOn[0]);
 
             Assert.True(type.Fields["method3"].Metadata.IsPure);
 
@@ -275,6 +266,31 @@ namespace HotChocolate.Resolvers
             }
         }
 
+        [ExtendObjectType(Name = "Foo")]
+        private class FooExtensionsNonGeneric
+        {
+
+            public string Method1()
+            {
+                return "";
+            }
+
+
+            public string Method3(string arg)
+            {
+                return arg;
+            }
+
+            public string Method4(IResolverContext context)
+            {
+                return "asdasd";
+            }
+
+            public string Method5([Parent]Foo foo)
+            {
+                return foo.Description;
+            }
+        }
 
         [ExtendObjectType(Name = "Foo")]
         private class FooExtensions

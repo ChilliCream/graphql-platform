@@ -17,7 +17,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            return metadata.AsNotPure();
+            return metadata.AsNonPure();
         }
     }
 }

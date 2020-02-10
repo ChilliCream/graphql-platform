@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
             if (attribute?.Property == null)
             {
-                return metadata.AsNotPure();
+                return metadata.AsNonPure();
             }
             else
             {

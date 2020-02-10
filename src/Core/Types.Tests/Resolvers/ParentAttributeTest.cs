@@ -243,7 +243,7 @@ namespace HotChocolate.Resolvers
         }
 
         [Fact]
-        public async Task ExternalResolver_ParentProperty_ShouldSkipResolver()
+        public void ExternalResolver_ParentProperty_ShouldSkipResolver()
         {
             // arrange  
             // act
@@ -260,7 +260,7 @@ namespace HotChocolate.Resolvers
         }
 
         [Fact]
-        public async Task ExternalResolver_ParentProperty_Collision()
+        public void ExternalResolver_ParentProperty_Collision()
         {
             // arrange  
             // act
@@ -300,7 +300,7 @@ namespace HotChocolate.Resolvers
         }
 
         [Fact]
-        public async Task ExternalResolverInclude_ParentProperty_Collision()
+        public void ExternalResolverInclude_ParentProperty_Collision()
         {
             // arrange  
             var objectType = new ObjectType<FooCollision>(

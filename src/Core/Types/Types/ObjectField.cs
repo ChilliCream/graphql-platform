@@ -29,6 +29,7 @@ namespace HotChocolate.Types
             Resolver = definition.Resolver;
             SubscribeResolver = definition.SubscribeResolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
+            Metadata = ResolverMetadata.Default;
         }
 
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
@@ -113,7 +114,6 @@ namespace HotChocolate.Types
                 || DeclaringType.IsIntrospectionType();
 
             Resolver = definition.Resolver;
-            Metadata = definition.Metadata;
 
             if (!isIntrospectionField || Resolver == null)
             {
@@ -129,7 +129,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    Metadata = Metadata.AsNotPure();
+                    Metadata = Metadata.AsNonPure();
                 }
             }
 

@@ -42,7 +42,7 @@ namespace HotChocolate.Resolvers
             return new ResolverMetadata(dependsOn, Resources, false);
         }
 
-        public ResolverMetadata AsNotPure()
+        public ResolverMetadata AsNonPure()
         {
             return new ResolverMetadata(DependsOn, Resources, false);
         }
