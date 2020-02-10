@@ -1,10 +1,10 @@
 ﻿public partial interface TestClient
 {
-    public global::System.Threading.Tasks.Task<global::StrawberryShale.IOperationResult<global::Demo.IGetHero>> GetHeroAsync(
+    global::System.Threading.Tasks.Task<global::StrawberryShale.IOperationResult<global::Demo.IGetHero>> GetHeroAsync(
         global::Demo.Episode episode = global::Demo.Episode.NewHope,
         global::System.Threading.CancellationToken cancellationToken = default);
 
-    public global::System.Threading.Tasks.Task<global::StrawberryShale.IOperationResult<global::Demo.IGetHero>> GetHeroAsync(
+    global::System.Threading.Tasks.Task<global::StrawberryShale.IOperationResult<global::Demo.IGetHero>> GetHeroAsync(
         global::Demo.GetHeroOperation operation,
         global::System.Threading.CancellationToken cancellationToken = default);
 }

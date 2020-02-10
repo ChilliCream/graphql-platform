@@ -1,1 +1,1 @@
-﻿public Bar Foo { get; set; }
+﻿Bar Foo { get; set; }

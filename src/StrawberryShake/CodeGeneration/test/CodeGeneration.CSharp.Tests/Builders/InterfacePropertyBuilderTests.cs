@@ -54,7 +54,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 .SetName("Foo")
                 .SetType("Bar")
                 .MakeSettable()
-                .SetAccessModifier(AccessModifier.Internal)
                 .BuildAsync(writer);
 
             // assert

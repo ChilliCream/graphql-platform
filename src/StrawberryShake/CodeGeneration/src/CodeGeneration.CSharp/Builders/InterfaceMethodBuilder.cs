@@ -6,26 +6,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class InterfaceMethodBuilder : ICodeBuilder
     {
-        private AccessModifier _accessModifier = AccessModifier.Public;
-        private bool _isAsync = false;
         private string _returnType = "void";
         private string? _name;
         private readonly List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
 
         public static InterfaceMethodBuilder New() => new InterfaceMethodBuilder();
-
-        public InterfaceMethodBuilder SetAccessModifier(AccessModifier value)
-        {
-            _accessModifier = value;
-            return this;
-        }
-
-        public InterfaceMethodBuilder SetAsync()
-        {
-            _isAsync = true;
-            return this;
-        }
-
+        
         public InterfaceMethodBuilder SetReturnType(string value)
         {
             _returnType = value;
@@ -51,16 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            var modifier = _accessModifier.ToString().ToLowerInvariant();
-
             await writer.WriteIndentAsync().ConfigureAwait(false);
-
-            await writer.WriteAsync($"{modifier} ").ConfigureAwait(false);
-
-            if (_isAsync)
-            {
-                await writer.WriteAsync("async ").ConfigureAwait(false);
-            }
 
             await writer.WriteAsync(
                 $"{_returnType} {_name}(")

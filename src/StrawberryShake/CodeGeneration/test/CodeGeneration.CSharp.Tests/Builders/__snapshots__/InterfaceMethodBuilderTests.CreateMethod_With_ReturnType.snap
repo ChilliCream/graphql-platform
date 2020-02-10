@@ -1,1 +1,1 @@
-﻿private Int32 GetAbc();
+﻿Int32 GetAbc();

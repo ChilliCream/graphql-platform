@@ -1,1 +1,1 @@
-﻿public List<string> _foo = new List<string>();
+﻿private List<string> _foo = new List<string>();

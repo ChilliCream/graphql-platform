@@ -1,1 +1,1 @@
-﻿public string _foo = new string();
+﻿private string _foo = new string();

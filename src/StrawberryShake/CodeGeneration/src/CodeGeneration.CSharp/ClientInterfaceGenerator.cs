@@ -33,7 +33,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     operation.IsStreamExecutor);
 
                 InterfaceMethodBuilder methodBuilder = InterfaceMethodBuilder.New()
-                    .SetAccessModifier(AccessModifier.Public)
                     .SetName(operation.Name + "Async")
                     .SetReturnType(returnType);
 
@@ -65,7 +64,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 builder.AddMethod(methodBuilder);
 
                 methodBuilder = InterfaceMethodBuilder.New()
-                    .SetAccessModifier(AccessModifier.Public)
                     .SetName(operation.Name + "Async")
                     .SetReturnType(returnType);
 

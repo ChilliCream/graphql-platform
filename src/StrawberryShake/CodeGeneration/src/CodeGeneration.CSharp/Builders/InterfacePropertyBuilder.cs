@@ -5,18 +5,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class InterfacePropertyBuilder : ICodeBuilder
     {
-        private AccessModifier _accessModifier;
         private bool _isReadOnly = true;
         private string? _type;
         private string? _name;
 
         public static InterfacePropertyBuilder New() => new InterfacePropertyBuilder();
-
-        public InterfacePropertyBuilder SetAccessModifier(AccessModifier value)
-        {
-            _accessModifier = value;
-            return this;
-        }
 
         public InterfacePropertyBuilder SetType(string value)
         {
@@ -43,10 +36,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            string modifier = _accessModifier.ToString().ToLowerInvariant();
-
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync($"{modifier} {_type} {_name}").ConfigureAwait(false);
+            await writer.WriteAsync($"{_type} {_name}").ConfigureAwait(false);
 
             await writer.WriteAsync(" { get; ").ConfigureAwait(false);
 

@@ -1,1 +1,1 @@
-﻿public string _foo;
+﻿private string _foo;

@@ -1,1 +1,1 @@
-﻿public static string _foo;
+﻿private static string _foo;

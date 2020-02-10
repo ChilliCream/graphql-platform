@@ -35,7 +35,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 builder.AddProperty(
                     InterfacePropertyBuilder.New()
-                        .SetAccessModifier(AccessModifier.Public)
                         .SetName(field.Name)
                         .SetType(field.Type));
             }

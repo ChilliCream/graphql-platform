@@ -1,1 +1,1 @@
-﻿public static readonly string _foo;
+﻿private static readonly string _foo;

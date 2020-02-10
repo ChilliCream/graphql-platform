@@ -75,28 +75,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             // assert
             sb.ToString().MatchSnapshot();
         }
-
-        [InlineData(AccessModifier.Public)]
-        [InlineData(AccessModifier.Internal)]
-        [InlineData(AccessModifier.Protected)]
-        [InlineData(AccessModifier.Private)]
-        [Theory]
-        public async Task CreateMethod_With_AccessModifier(AccessModifier accessModifier)
-        {
-            // arrange
-            var sb = new StringBuilder();
-            var writer = new CodeWriter(sb);
-
-            // act
-            await InterfaceMethodBuilder.New()
-                .SetName("GetAbc")
-                .SetAccessModifier(accessModifier)
-                .BuildAsync(writer);
-
-            // assert
-            sb.ToString().MatchSnapshot(
-                new SnapshotNameExtension(
-                    accessModifier.ToString()));
-        }
     }
 }
