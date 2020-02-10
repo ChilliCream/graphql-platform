@@ -246,45 +246,34 @@ namespace HotChocolate.Resolvers
         public async Task ExternalResolver_ParentProperty_ShouldSkipResolver()
         {
             // arrange  
-            var schema = Schema.Create(
-                t => t.RegisterQueryType<Foo>().RegisterType<FooSkippingResolvers>());
-            IQueryExecutor executor = schema.MakeExecutable();
-
             // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ description }")
-                    .SetInitialValue(new Foo())
-                    .Create());
-
             // assert
-            var queryResult = result as ReadOnlyQueryResult;
-            Assert.NotNull(queryResult);
-            Assert.Empty(queryResult.Errors);
-            Assert.Equal("hello", queryResult.Data["description"]);
+            SchemaException ex
+                = Assert.Throws<SchemaException>(() =>
+                {
+                    Schema.Create(
+                        t => t.RegisterQueryType<Foo>()
+                        .RegisterType<FooSkippingResolvers>());
+                });
+
+            ex.Message.MatchSnapshot();
         }
 
         [Fact]
         public async Task ExternalResolver_ParentProperty_Collision()
         {
             // arrange  
-            var schema = Schema.Create(
-                t => t.RegisterQueryType<FooCollision>().RegisterType<FooCollisionResolver>());
-            IQueryExecutor executor = schema.MakeExecutable();
-
             // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ recursive {description} }")
-                    .SetInitialValue(new FooCollision())
-                    .Create());
-
             // assert
-            var queryResult = result as ReadOnlyQueryResult;
-            Assert.NotNull(queryResult);
-            Assert.Empty(queryResult.Errors);
-            var nested = queryResult.Data["recursive"] as IReadOnlyDictionary<string, object>;
-            Assert.Equal("hello", nested["description"]);
+            SchemaException ex
+                = Assert.Throws<SchemaException>(() =>
+                {
+                    Schema.Create(
+                        t => t.RegisterQueryType<FooCollision>()
+                        .RegisterType<FooCollisionResolver>());
+                });
+
+            ex.Message.MatchSnapshot();
         }
 
         [Fact]
@@ -316,23 +305,15 @@ namespace HotChocolate.Resolvers
             // arrange  
             var objectType = new ObjectType<FooCollision>(
                 t => t.Name("FooCollision").Include<FooCollisionResolver>());
-            var schema = Schema.Create(
-                t => t.RegisterQueryType(objectType));
-            IQueryExecutor executor = schema.MakeExecutable();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ recursive {description} }")
-                    .SetInitialValue(new FooCollision())
-                    .Create());
+            //act & assert
+            SchemaException ex
+                = Assert.Throws<SchemaException>(() =>
+                {
+                    Schema.Create(t => t.RegisterQueryType(objectType));
+                });
 
-            // assert
-            var queryResult = result as ReadOnlyQueryResult;
-            Assert.NotNull(queryResult);
-            Assert.Empty(queryResult.Errors);
-            var nested = queryResult.Data["recursive"] as IReadOnlyDictionary<string, object>;
-            Assert.Equal("hello", nested["description"]);
+            ex.Message.MatchSnapshot();
         }
 
         [Fact]

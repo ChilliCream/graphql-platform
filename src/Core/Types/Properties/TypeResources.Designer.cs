@@ -1226,6 +1226,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The member {0} of type {1} is invalid. Parent property selections are not allowed in external resolvers!.
+        /// </summary>
+        internal static string TypeInitializer_ParentPropertyNotAllowedInExtResolver {
+            get {
+                return ResourceManager.GetString("TypeInitializer_ParentPropertyNotAllowedInExtResolver", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An enum describing what kind of type a given `__Type` is..
         /// </summary>
         internal static string TypeKind_Description {

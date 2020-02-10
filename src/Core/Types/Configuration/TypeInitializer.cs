@@ -306,6 +306,8 @@ namespace HotChocolate.Configuration
             foreach (MemberInfo member in
                 context.Inspector.GetMembers(resolverType))
             {
+                ValidateResolverConfiguration(objectType.ClrType, member);
+
                 if (IsResolverRelevant(objectType.ClrType, member))
                 {
                     NameString fieldName = context.Naming.GetMemberName(
@@ -315,6 +317,28 @@ namespace HotChocolate.Configuration
                     var resolver = new RegisteredResolver(
                         resolverType, objectType.ClrType, fieldMember);
                     _resolvers[fieldMember.ToFieldReference()] = resolver;
+                }
+            }
+        }
+
+        private void ValidateResolverConfiguration(Type clrType, MemberInfo resolver)
+        {
+            if (resolver is MethodInfo m)
+            {
+                ParameterInfo parent = m.GetParameters()
+                .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                ParentAttribute attribute
+                    = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
+                if (attribute.Property != null)
+                {
+
+                    throw new SchemaException(
+                        SchemaErrorBuilder.New()
+                            .SetMessage(
+                                string.Format(
+                               TypeResources.TypeInitializer_ParentPropertyNotAllowedInExtResolver,
+                                    m.Name, clrType.Name))
+                            .Build());
                 }
             }
         }
@@ -335,10 +359,8 @@ namespace HotChocolate.Configuration
                 ParentAttribute attribute
                     = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
 
-                return attribute.Property == null && (
-                        parent == null ||
-                        parent.ParameterType.IsAssignableFrom(sourceType)
-                    );
+                return parent == null ||
+                        parent.ParameterType.IsAssignableFrom(sourceType);
             }
 
             return false;

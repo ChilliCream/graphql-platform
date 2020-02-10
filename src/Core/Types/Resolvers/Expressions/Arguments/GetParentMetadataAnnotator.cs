@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParentAttribute attribute = parameter.GetCustomAttributes<ParentAttribute>()
                .FirstOrDefault();
 
-            if (attribute.Property == null)
+            if (attribute?.Property == null)
             {
                 return sourceType
                     .GetProperties()

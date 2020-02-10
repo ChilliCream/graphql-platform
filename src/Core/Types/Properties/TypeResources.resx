@@ -590,4 +590,7 @@ Type: `{0}`</value>
   <data name="ResolverCompiler_ParentPropertyInvalidSource" xml:space="preserve">
     <value>The parent of the resolver is of type object. No property can be selected. Parent properties can only be injected in ObjectType&lt;T&gt;.</value>
   </data>
+  <data name="TypeInitializer_ParentPropertyNotAllowedInExtResolver" xml:space="preserve">
+    <value>The member {0} of type {1} is invalid. Parent property selections are not allowed in external resolvers!</value>
+  </data>
 </root>

@@ -22,21 +22,21 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType) =>
-            ArgumentHelper.IsParent(parameter, sourceType);
+                ArgumentHelper.IsParent(parameter, sourceType);
 
         public override Expression Compile(
          Expression context,
          ParameterInfo parameter,
          Type sourceType)
         {
+            ParentAttribute attribute =
+                parameter.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
 
-            ParentAttribute attribute = parameter.GetCustomAttributes<ParentAttribute>()
-                .FirstOrDefault();
-
-            if (attribute.Property == null)
+            if (attribute?.Property == null)
             {
-                MethodInfo argumentMethod = _genericMethod.MakeGenericMethod(
-                    parameter.ParameterType);
+                MethodInfo argumentMethod =
+                    _genericMethod.MakeGenericMethod(parameter.ParameterType);
+
                 return Expression.Call(context, argumentMethod);
             }
             else
@@ -44,13 +44,13 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 if (sourceType == typeof(object))
                 {
                     throw new InvalidOperationException(
-                                TypeResources.ResolverCompiler_ParentPropertyInvalidSource);
+                        TypeResources.ResolverCompiler_ParentPropertyInvalidSource);
                 }
                 MethodInfo argumentMethod = _genericMethod.MakeGenericMethod(
                     sourceType);
 
-                Expression acessor
-                    = Expression.Call(context, argumentMethod);
+                Expression acessor =
+                    Expression.Call(context, argumentMethod);
 
                 PropertyInfo property = sourceType.GetProperty(attribute.Property);
 

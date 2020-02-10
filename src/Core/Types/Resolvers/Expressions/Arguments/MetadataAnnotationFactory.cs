@@ -13,6 +13,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             where T : IResolverContext
         {
             yield return new GetParentMetadataAnnotator<T>();
+            yield return new GetContextMetadataAnnotator<T, IResolverContext>();
         }
     }
 }

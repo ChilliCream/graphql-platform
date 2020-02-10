@@ -6,7 +6,7 @@ namespace HotChocolate.Resolvers
     public class ResolverMetadata
     {
         public ResolverMetadata()
-            : this(new List<string>(), new List<string>())
+            : this(Array.Empty<string>(), Array.Empty<string>())
         {
         }
 
