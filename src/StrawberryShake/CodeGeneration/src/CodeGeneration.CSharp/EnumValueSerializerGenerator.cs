@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -11,6 +12,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CodeWriter writer,
             EnumValueSerializerDescriptor descriptor)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             return ClassBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetSealed()

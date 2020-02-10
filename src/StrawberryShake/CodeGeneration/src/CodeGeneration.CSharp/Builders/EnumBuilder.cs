@@ -31,6 +31,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
+            await writer.WriteGeneratedAttributeAsync().ConfigureAwait(false);
+
             await writer.WriteIndentedLineAsync($"public enum {_name}").ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 

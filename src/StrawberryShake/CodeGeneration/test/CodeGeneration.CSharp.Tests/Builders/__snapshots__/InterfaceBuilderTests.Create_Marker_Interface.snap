@@ -1,3 +1,4 @@
-﻿public partial interface IMarker
+﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+public partial interface IMarker
 {
 }

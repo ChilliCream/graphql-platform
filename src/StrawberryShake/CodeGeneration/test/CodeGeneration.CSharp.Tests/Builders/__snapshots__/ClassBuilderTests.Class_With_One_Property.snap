@@ -1,4 +1,5 @@
-﻿public partial MyClass
+﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+public partial MyClass
 {
     public Bar Foo { get; }
 }

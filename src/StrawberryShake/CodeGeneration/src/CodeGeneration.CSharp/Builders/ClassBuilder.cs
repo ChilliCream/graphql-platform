@@ -97,6 +97,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 throw new ArgumentNullException(nameof(writer));
             }
 
+            await writer.WriteGeneratedAttributeAsync().ConfigureAwait(false);
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
