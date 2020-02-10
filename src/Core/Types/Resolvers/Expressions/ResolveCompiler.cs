@@ -44,12 +44,11 @@ namespace HotChocolate.Resolvers.Expressions
                 descriptor.Field.Member,
                 descriptor.SourceType);
 
-            //TODO: add meta data to field resolver
-
             return new FieldResolver(
                 descriptor.Field.TypeName,
                 descriptor.Field.FieldName,
-                resolver);
+                resolver,
+                metadata);
         }
 
         private ResolverMetadata CreateMetadata(
@@ -69,7 +68,7 @@ namespace HotChocolate.Resolvers.Expressions
             }
             if (member is PropertyInfo property)
             {
-                metadata = metadata.WithDependsOn(property.Name);
+                metadata = metadata.WithDependsOn(property);
             }
 
             return metadata;

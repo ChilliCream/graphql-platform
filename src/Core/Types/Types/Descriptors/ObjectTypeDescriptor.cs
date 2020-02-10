@@ -130,19 +130,22 @@ namespace HotChocolate.Types.Descriptors
             if (resolver is MethodInfo m)
             {
                 ParameterInfo parent = m.GetParameters()
-                .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                ParentAttribute attribute
-                    = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
-                if (attribute.Property != null)
+                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                if (parent != null)
                 {
+                    ParentAttribute attribute =
+                        parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
 
-                    throw new SchemaException(
-                        SchemaErrorBuilder.New()
-                            .SetMessage(
-                                string.Format(
-                               TypeResources.TypeInitializer_ParentPropertyNotAllowedInExtResolver,
-                                    m.Name, clrType.Name))
-                            .Build());
+                    if (attribute.Property != null)
+                    {
+                        throw new SchemaException(
+                            SchemaErrorBuilder.New()
+                                .SetMessage(
+                                    string.Format(
+                            TypeResources.TypeInitializer_ParentPropertyNotAllowedInExtResolver,
+                                        m.Name, clrType.Name))
+                                .Build());
+                    }
                 }
             }
         }
@@ -160,13 +163,9 @@ namespace HotChocolate.Types.Descriptors
             {
                 ParameterInfo parent = m.GetParameters()
                     .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                ParentAttribute attribute
-                    = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
 
-                return attribute.Property == null && (
-                        parent == null
-                        || parent.ParameterType.IsAssignableFrom(sourceType)
-                    );
+                return parent == null
+                        || parent.ParameterType.IsAssignableFrom(sourceType);
             }
 
             return false;

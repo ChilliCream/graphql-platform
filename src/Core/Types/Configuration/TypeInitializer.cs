@@ -326,19 +326,23 @@ namespace HotChocolate.Configuration
             if (resolver is MethodInfo m)
             {
                 ParameterInfo parent = m.GetParameters()
-                .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                ParentAttribute attribute
-                    = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
-                if (attribute.Property != null)
-                {
+                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
 
-                    throw new SchemaException(
-                        SchemaErrorBuilder.New()
-                            .SetMessage(
-                                string.Format(
-                               TypeResources.TypeInitializer_ParentPropertyNotAllowedInExtResolver,
-                                    m.Name, clrType.Name))
-                            .Build());
+                if (parent != null)
+                {
+                    ParentAttribute attribute =
+                        parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
+
+                    if (attribute.Property != null)
+                    {
+                        throw new SchemaException(
+                            SchemaErrorBuilder.New()
+                                .SetMessage(
+                                    string.Format(
+                            TypeResources.TypeInitializer_ParentPropertyNotAllowedInExtResolver,
+                                        m.Name, clrType.Name))
+                                .Build());
+                    }
                 }
             }
         }
@@ -356,8 +360,6 @@ namespace HotChocolate.Configuration
             {
                 ParameterInfo parent = m.GetParameters()
                     .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                ParentAttribute attribute
-                    = parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
 
                 return parent == null ||
                         parent.ParameterType.IsAssignableFrom(sourceType);

@@ -54,6 +54,11 @@ namespace HotChocolate.Types
         public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
 
         /// <summary>
+        /// Gets the metadata of the resolver associated with this field
+        /// </summary>
+        public ResolverMetadata Metadata { get; private set; }
+
+        /// <summary>
         /// Gets the associated .net type member of this field.
         /// This member can be <c>null</c>.
         /// </summary>
@@ -108,6 +113,7 @@ namespace HotChocolate.Types
                 || DeclaringType.IsIntrospectionType();
 
             Resolver = definition.Resolver;
+            Metadata = definition.Metadata;
 
             if (!isIntrospectionField || Resolver == null)
             {
@@ -116,6 +122,15 @@ namespace HotChocolate.Types
                 // resolver compiler.
                 FieldResolver resolver = context.GetResolver(definition.Name);
                 Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver);
+
+                if (resolver?.Resolver != null && resolver.Resolver == Resolver)
+                {
+                    Metadata = resolver.Metadata;
+                }
+                else
+                {
+                    Metadata = Metadata.AsNotPure();
+                }
             }
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;

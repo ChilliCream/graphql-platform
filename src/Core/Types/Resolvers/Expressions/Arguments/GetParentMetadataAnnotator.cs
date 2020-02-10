@@ -24,14 +24,13 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
             if (attribute?.Property == null)
             {
-                return sourceType
-                    .GetProperties()
-                    .Aggregate(metadata,
-                        (m, property) => m.WithDependsOn(property.Name));
+                return metadata.AsNotPure();
             }
             else
             {
-                return metadata.WithDependsOn(attribute.Property);
+                PropertyInfo property = sourceType.GetProperty(attribute.Property);
+
+                return metadata.WithDependsOn(property);
             }
         }
     }

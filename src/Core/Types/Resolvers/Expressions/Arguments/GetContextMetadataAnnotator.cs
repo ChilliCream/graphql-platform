@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
@@ -18,11 +17,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            return sourceType
-                .GetProperties()
-                .Aggregate(metadata,
-                    (m, property) => m.WithDependsOn(property.Name));
-
+            return metadata.AsNotPure();
         }
     }
 }
