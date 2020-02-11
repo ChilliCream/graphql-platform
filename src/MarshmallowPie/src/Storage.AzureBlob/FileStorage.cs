@@ -15,7 +15,14 @@ namespace MarshmallowPie.Storage.AzureBlob
 
         public FileStorage(CloudBlobClient client, string containerName)
         {
-            _client = client;
+            if (string.IsNullOrEmpty(containerName))
+            {
+                throw new ArgumentException(
+                    "The container name mustn't be null or empty.",
+                    nameof(containerName));
+            }
+
+            _client = client ?? throw new ArgumentNullException(nameof(client));
             _container = client.GetContainerReference(containerName);
         }
 
