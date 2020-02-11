@@ -1,6 +1,5 @@
 using System;
 using System.Linq.Expressions;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -8,7 +7,8 @@ namespace HotChocolate.Types
     {
         public static IDirectiveTypeDescriptor<T> Ignore<T>(
             this IDirectiveTypeDescriptor<T> descriptor,
-            Expression<Func<T, object>> property)
+            Expression<Func<T, object>> property,
+            bool ignore = true)
         {
             if (descriptor == null)
             {
@@ -20,7 +20,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(property));
             }
 
-            descriptor.Argument(property).Ignore();
+            descriptor.Argument(property).Ignore(ignore);
             return descriptor;
         }
     }

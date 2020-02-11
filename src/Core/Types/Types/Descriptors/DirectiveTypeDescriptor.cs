@@ -99,7 +99,10 @@ namespace HotChocolate.Types.Descriptors
         public IDirectiveArgumentDescriptor Argument(NameString name)
         {
             DirectiveArgumentDescriptor descriptor =
-                Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name));
+                Arguments.FirstOrDefault(t =>
+                    t.Definition.Name.Equals(name)
+                    && !t.Definition.Ignore);
+
             if (descriptor is { })
             {
                 return descriptor;

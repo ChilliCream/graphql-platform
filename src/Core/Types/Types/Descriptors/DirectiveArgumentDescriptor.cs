@@ -106,9 +106,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IDirectiveArgumentDescriptor Ignore()
+        public IDirectiveArgumentDescriptor Ignore(bool ignore)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

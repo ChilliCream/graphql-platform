@@ -95,7 +95,10 @@ namespace HotChocolate.Types.Descriptors
         public IInputFieldDescriptor Field(NameString name)
         {
             InputFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+                Fields.FirstOrDefault(t =>
+                    t.Definition.Name.Equals(name)
+                    && !t.Definition.Ignore);
+
             if (fieldDescriptor is { })
             {
                 return fieldDescriptor;
