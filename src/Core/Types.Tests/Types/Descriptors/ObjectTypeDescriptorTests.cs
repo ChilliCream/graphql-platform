@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -102,6 +102,26 @@ namespace HotChocolate.Types
                 t => Assert.Equal("c", t));
         }
 
+        [Fact]
+        public void UnignoreOverridenPropertyField()
+        {
+            // arrange
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
+
+            // act
+            descriptor.Field(t => t.B).Ignore();
+            descriptor.Field(t => t.B).Ignore(false);
+
+            // assert
+            Assert.Collection(
+                descriptor.CreateDefinition().Fields
+                    .Select(t => t.Name)
+                    .OrderBy(t => t),
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("b", t),
+                t => Assert.Equal("c", t));
+        }
+
 
         [Fact]
         public void IgnoreOverridenMethodField()
@@ -121,6 +141,28 @@ namespace HotChocolate.Types
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t),
                 t => Assert.Equal("c", t));
+        }
+
+        [Fact]
+        public void UnignoreOverridenMethodField()
+        {
+            // arrange
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
+
+            // act
+            IObjectTypeDescriptor<Foo> desc = descriptor;
+            desc.Field(t => t.Equals(default)).Ignore();
+            desc.Field(t => t.Equals(default)).Ignore(false);
+
+            // assert
+            Assert.Collection(
+                descriptor.CreateDefinition().Fields
+                    .Select(t => t.Name)
+                    .OrderBy(t => t),
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("b", t),
+                t => Assert.Equal("c", t),
+                t => Assert.Equal("equals", t));
         }
 
         [Fact]
