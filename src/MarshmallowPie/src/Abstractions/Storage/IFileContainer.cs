@@ -16,8 +16,11 @@ namespace MarshmallowPie.Storage
             string fileName,
             CancellationToken cancellationToken = default);
 
-        Task<Stream> CreateFileAsync(
+        Task CreateFileAsync(
             string fileName,
+            byte[] buffer,
+            int offset,
+            int count,
             CancellationToken cancellationToken = default);
 
         Task DeleteAsync(CancellationToken cancellationToken = default);

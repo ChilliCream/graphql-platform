@@ -122,10 +122,7 @@ namespace MarshmallowPie.Storage.FileSystem
             IFileContainer container = await fileStorage.CreateContainerAsync("abc");
 
             // act
-            using (Stream stream = await container.CreateFileAsync("def"))
-            {
-                stream.WriteByte(1);
-            }
+            await container.CreateFileAsync("def", new byte[] { 0 }, 0, 1);
 
             // assert
             Assert.True(IOFile.Exists(Path.Combine(_path, "abc", "def")));
@@ -140,7 +137,8 @@ namespace MarshmallowPie.Storage.FileSystem
             Directory.Delete(Path.Combine(_path, "abc"));
 
             // act
-            Func<Task> action = () => container.CreateFileAsync("def");
+            Func<Task> action = () => container.CreateFileAsync(
+                "def", Array.Empty<byte>(), 0, 0);
 
             // assert
             await Assert.ThrowsAsync<DirectoryNotFoundException>(action);
@@ -155,7 +153,8 @@ namespace MarshmallowPie.Storage.FileSystem
             IOFile.WriteAllText(Path.Combine(_path, "abc", "def"), "ghi");
 
             // act
-            Func<Task> action = () => container.CreateFileAsync("def");
+            Func<Task> action = () => container.CreateFileAsync(
+                "def", Array.Empty<byte>(), 0, 0);
 
             // assert
             await Assert.ThrowsAsync<ArgumentException>(action);

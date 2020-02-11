@@ -13,24 +13,21 @@ namespace MarshmallowPie.Storage
             this IFileContainer container,
             Guid fileName,
             string text,
-            CancellationToken cancellationToken) =>
+            CancellationToken cancellationToken = default) =>
             CreateTextFileAsync(
                 container,
                 fileName.ToString("N", CultureInfo.InvariantCulture),
                 text,
                 cancellationToken);
 
-        public static async Task CreateTextFileAsync(
+        public static Task CreateTextFileAsync(
             this IFileContainer container,
             string fileName,
             string text,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
-            using Stream stream = await container.CreateFileAsync(
-                fileName, cancellationToken)
-                .ConfigureAwait(false);
             byte[] buffer = Encoding.UTF8.GetBytes(text);
-            await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            return container.CreateFileAsync(fileName, buffer, 0, buffer.Length, cancellationToken);
         }
     }
 }

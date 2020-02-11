@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -48,16 +47,12 @@ namespace MarshmallowPie.BackgroundServices
                 sessionId, environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
 
             IFileContainer fileContainer = await Storage.CreateContainerAsync(sessionId);
-            using (Stream stream = await fileContainer.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes(@"
+            byte[] buffer = Encoding.UTF8.GetBytes(@"
                     type Query {
                         foo: String
                     }
                 ");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
-
+            await fileContainer.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
             await PublishDocumentMessageSender.SendAsync(message);
 
             // act
