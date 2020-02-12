@@ -1,9 +1,9 @@
-﻿﻿public interface IFoo
+﻿﻿public partial interface IFoo
 {
     global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UNKNOWN>? Bars { get; }
 }
 
-public class Foo
+public partial class Foo
     : IFoo
 {
     public Foo(
