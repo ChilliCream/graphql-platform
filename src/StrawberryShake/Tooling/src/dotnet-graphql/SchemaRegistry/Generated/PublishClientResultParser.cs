@@ -11,12 +11,12 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PublishSchemaResultParser
-        : JsonResultParserBase<IPublishSchema>
+    public partial class PublishClientResultParser
+        : JsonResultParserBase<IPublishClient>
     {
         private readonly IValueSerializer _stringSerializer;
 
-        public PublishSchemaResultParser(IValueSerializerCollection serializerResolver)
+        public PublishClientResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -25,22 +25,22 @@ namespace StrawberryShake.Tools.SchemaRegistry
             _stringSerializer = serializerResolver.Get("String");
         }
 
-        protected override IPublishSchema ParserData(JsonElement data)
+        protected override IPublishClient ParserData(JsonElement data)
         {
-            return new PublishSchema1
+            return new PublishClient1
             (
-                ParsePublishSchemaPublishSchema(data, "publishSchema")
+                ParsePublishClientPublishClient(data, "publishClient")
             );
 
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IPublishSchemaPayload ParsePublishSchemaPublishSchema(
+        private global::StrawberryShake.Tools.SchemaRegistry.IPublishClientPayload ParsePublishClientPublishClient(
             JsonElement parent,
             string field)
         {
             JsonElement obj = parent.GetProperty(field);
 
-            return new PublishSchemaPayload
+            return new PublishClientPayload
             (
                 DeserializeString(obj, "sessionId")
             );

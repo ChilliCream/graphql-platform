@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using StrawberryShake.Tools.OAuth;
 using StrawberryShake.Tools.SchemaRegistry;
 using System.Collections.Generic;
+using HCErrorBuilder = HotChocolate.ErrorBuilder;
+using HCLocation = HotChocolate.Location;
 
 namespace StrawberryShake.Tools
 {
@@ -58,11 +60,12 @@ namespace StrawberryShake.Tools
                 accessToken?.Token,
                 accessToken?.Scheme);
 
-            await PublishSchemaAsync(context, cancellationToken);
-            return 0;
+            return await PublishSchemaAsync(
+                context, cancellationToken)
+                .ConfigureAwait(false);
         }
 
-        private async Task PublishSchemaAsync(
+        private async Task<int> PublishSchemaAsync(
             PublishSchemaCommandContext context,
             CancellationToken cancellationToken)
         {
@@ -72,16 +75,52 @@ namespace StrawberryShake.Tools
                 context.Registry, context.Token, context.Scheme);
             ISchemaRegistryClient client = clientFactory.Create();
 
-            string sourceText = await Task.Run(() => File.ReadAllText(context.SchemaFileName));
+            string sourceText = File.ReadAllText(context.SchemaFileName);
 
             IOperationResult<IPublishSchema> result =
                 await client.PublishSchemaAsync(
+                    context.ExternalId,
                     context.SchemaName,
                     context.EnvironmentName,
                     sourceText,
                     new Optional<IReadOnlyList<TagInput>?>(context.Tags),
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
             result.EnsureNoErrors();
+
+            IResponseStream<IOnPublishDocument> responseStream =
+                await client.OnPublishDocumentAsync(
+                    result.Data!.PublishSchema.SessionId,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
+            bool hasErrors = false;
+
+            await foreach (IOnPublishDocument documentEvent in
+                responseStream.WithCancellation(cancellationToken))
+            {
+                if (documentEvent.OnPublishDocument.IsCompleted)
+                {
+                    break;
+                }
+
+                if (documentEvent.OnPublishDocument.Issue is { } issue
+                    && issue.Type == IssueType.Error)
+                {
+                    hasErrors = true;
+                    activity.WriteError(
+                        HCErrorBuilder.New()
+                            .SetCode(issue.Code)
+                            .SetMessage(issue.Message)
+                            .AddLocation(new HCLocation(
+                                issue.Location.Line,
+                                issue.Location.Column))
+                            .SetExtension("fileName", issue.File)
+                            .Build());
+                }
+            }
+
+            return hasErrors ? 1 : 0;
         }
     }
 }

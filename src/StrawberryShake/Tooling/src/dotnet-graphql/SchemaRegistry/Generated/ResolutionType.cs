@@ -6,15 +6,12 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class Environment
-        : IEnvironment
+    public enum ResolutionType
     {
-        public Environment(
-            string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
+        None,
+        Open,
+        Fixed,
+        Wontfixed,
+        Cannotbefixed
     }
 }

@@ -6,16 +6,16 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PublishSchemaOperation
-        : IOperation<IPublishSchema>
+    public partial class PublishClientOperation
+        : IOperation<IPublishClient>
     {
-        public string Name => "publishSchema";
+        public string Name => "publishClient";
 
         public IDocument Document => Queries.Default;
 
         public OperationKind Kind => OperationKind.Mutation;
 
-        public Type ResultType => typeof(IPublishSchema);
+        public Type ResultType => typeof(IPublishClient);
 
         public Optional<string> ExternalId { get; set; }
 
@@ -23,7 +23,11 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         public Optional<string> EnvironmentName { get; set; }
 
-        public Optional<string> SourceText { get; set; }
+        public Optional<string> ClientName { get; set; }
+
+        public Optional<QueryFileFormat> Format { get; set; }
+
+        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.QueryFileInput>> Files { get; set; }
 
         public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.TagInput>?> Tags { get; set; }
 
@@ -46,9 +50,19 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 variables.Add(new VariableValue("environmentName", "String", EnvironmentName.Value));
             }
 
-            if (SourceText.HasValue)
+            if (ClientName.HasValue)
             {
-                variables.Add(new VariableValue("sourceText", "String", SourceText.Value));
+                variables.Add(new VariableValue("clientName", "String", ClientName.Value));
+            }
+
+            if (Format.HasValue)
+            {
+                variables.Add(new VariableValue("format", "QueryFileFormat", Format.Value));
+            }
+
+            if (Files.HasValue)
+            {
+                variables.Add(new VariableValue("files", "QueryFileInput", Files.Value));
             }
 
             if (Tags.HasValue)

@@ -6,8 +6,9 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISchemaVersion
+    public enum HashFormat
     {
-        string Hash { get; }
+        Base64,
+        Hex
     }
 }

@@ -17,6 +17,11 @@ namespace StrawberryShake.Tools
                 "The URL to the GraphQL schema registry.",
                 c => c.IsRequired());
 
+            CommandArgument externalId = publish.Argument(
+                "externalId",
+                "An external identifier to track the schema through the publish process.",
+                c => c.IsRequired());
+
             CommandArgument environmentNameArg = publish.Argument(
                 "environmentName",
                 "The name of the environment.",

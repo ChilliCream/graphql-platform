@@ -6,8 +6,9 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IPublishSchema
+    public enum QueryFileFormat
     {
-        global::StrawberryShake.Tools.SchemaRegistry.IPublishSchemaPayload PublishSchema { get; }
+        Graphql,
+        Relay
     }
 }

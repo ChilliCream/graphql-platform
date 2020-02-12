@@ -11,12 +11,12 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PublishSchemaResultParser
-        : JsonResultParserBase<IPublishSchema>
+    public partial class MarkClientPublishedResultParser
+        : JsonResultParserBase<IMarkClientPublished>
     {
         private readonly IValueSerializer _stringSerializer;
 
-        public PublishSchemaResultParser(IValueSerializerCollection serializerResolver)
+        public MarkClientPublishedResultParser(IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
             {
@@ -25,24 +25,36 @@ namespace StrawberryShake.Tools.SchemaRegistry
             _stringSerializer = serializerResolver.Get("String");
         }
 
-        protected override IPublishSchema ParserData(JsonElement data)
+        protected override IMarkClientPublished ParserData(JsonElement data)
         {
-            return new PublishSchema1
+            return new MarkClientPublished
             (
-                ParsePublishSchemaPublishSchema(data, "publishSchema")
+                ParseMarkClientPublishedMarkSchemaPublished(data, "markSchemaPublished")
             );
 
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IPublishSchemaPayload ParsePublishSchemaPublishSchema(
+        private global::StrawberryShake.Tools.SchemaRegistry.IMarkSchemaPublishedPayload1 ParseMarkClientPublishedMarkSchemaPublished(
             JsonElement parent,
             string field)
         {
             JsonElement obj = parent.GetProperty(field);
 
-            return new PublishSchemaPayload
+            return new MarkSchemaPublishedPayload1
             (
-                DeserializeString(obj, "sessionId")
+                ParseMarkClientPublishedMarkSchemaPublishedEnvironment(obj, "environment")
+            );
+        }
+
+        private global::StrawberryShake.Tools.SchemaRegistry.IEnvironmentName ParseMarkClientPublishedMarkSchemaPublishedEnvironment(
+            JsonElement parent,
+            string field)
+        {
+            JsonElement obj = parent.GetProperty(field);
+
+            return new EnvironmentName
+            (
+                DeserializeString(obj, "name")
             );
         }
 

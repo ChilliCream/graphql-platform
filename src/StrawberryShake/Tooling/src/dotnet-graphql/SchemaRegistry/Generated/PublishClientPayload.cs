@@ -6,10 +6,10 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PublishSchemaPayload
-        : IPublishSchemaPayload
+    public partial class PublishClientPayload
+        : IPublishClientPayload
     {
-        public PublishSchemaPayload(
+        public PublishClientPayload(
             string sessionId)
         {
             SessionId = sessionId;

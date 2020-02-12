@@ -6,8 +6,14 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IPublishSchema
+    public partial interface ILocation
     {
-        global::StrawberryShake.Tools.SchemaRegistry.IPublishSchemaPayload PublishSchema { get; }
+        int Column { get; }
+
+        int Line { get; }
+
+        int Start { get; }
+
+        int End { get; }
     }
 }

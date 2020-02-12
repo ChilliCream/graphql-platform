@@ -8,6 +8,7 @@ namespace StrawberryShake.Tools
     {
         public PublishSchemaCommandContext(
             Uri registry,
+            string externalId,
             string schemaName,
             string environmentName,
             string schemaFileName,
@@ -16,6 +17,7 @@ namespace StrawberryShake.Tools
             string? scheme)
         {
             Registry = registry;
+            ExternalId = externalId;
             SchemaName = schemaName;
             EnvironmentName = environmentName;
             SchemaFileName = schemaFileName;
@@ -25,6 +27,7 @@ namespace StrawberryShake.Tools
         }
 
         public Uri Registry { get; }
+        public string ExternalId { get; }
         public string SchemaName { get; }
         public string EnvironmentName { get; }
         public string SchemaFileName { get; }

@@ -6,26 +6,22 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class PublishSchemaOperation
-        : IOperation<IPublishSchema>
+    public partial class MarkClientPublishedOperation
+        : IOperation<IMarkClientPublished>
     {
-        public string Name => "publishSchema";
+        public string Name => "markClientPublished";
 
         public IDocument Document => Queries.Default;
 
         public OperationKind Kind => OperationKind.Mutation;
 
-        public Type ResultType => typeof(IPublishSchema);
+        public Type ResultType => typeof(IMarkClientPublished);
 
         public Optional<string> ExternalId { get; set; }
 
         public Optional<string> SchemaName { get; set; }
 
         public Optional<string> EnvironmentName { get; set; }
-
-        public Optional<string> SourceText { get; set; }
-
-        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.TagInput>?> Tags { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
@@ -44,16 +40,6 @@ namespace StrawberryShake.Tools.SchemaRegistry
             if (EnvironmentName.HasValue)
             {
                 variables.Add(new VariableValue("environmentName", "String", EnvironmentName.Value));
-            }
-
-            if (SourceText.HasValue)
-            {
-                variables.Add(new VariableValue("sourceText", "String", SourceText.Value));
-            }
-
-            if (Tags.HasValue)
-            {
-                variables.Add(new VariableValue("tags", "TagInput", Tags.Value));
             }
 
             return variables;

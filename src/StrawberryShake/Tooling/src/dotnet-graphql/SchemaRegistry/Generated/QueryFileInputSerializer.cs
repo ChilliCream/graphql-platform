@@ -6,17 +6,18 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TagInputSerializer
+    public partial class QueryFileInputSerializer
         : IInputSerializer
     {
         private bool _needsInitialization = true;
         private IValueSerializer? _stringSerializer;
+        private IValueSerializer? _hashFormatSerializer;
 
-        public string Name { get; } = "TagInput";
+        public string Name { get; } = "QueryFileInput";
 
         public ValueKind Kind { get; } = ValueKind.InputObject;
 
-        public Type ClrType => typeof(TagInput);
+        public Type ClrType => typeof(QueryFileInput);
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
@@ -27,6 +28,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
             _stringSerializer = serializerResolver.Get("String");
+            _hashFormatSerializer = serializerResolver.Get("HashFormat");
             _needsInitialization = false;
         }
 
@@ -43,17 +45,32 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 return null;
             }
 
-            var input = (TagInput)value;
+            var input = (QueryFileInput)value;
             var map = new Dictionary<string, object?>();
 
-            if (input.Key.HasValue)
+            if (input.Hash.HasValue)
             {
-                map.Add("key", SerializeNullableString(input.Key.Value));
+                map.Add("hash", SerializeNullableString(input.Hash.Value));
             }
 
-            if (input.Value.HasValue)
+            if (input.HashAlgorithm.HasValue)
             {
-                map.Add("value", SerializeNullableString(input.Value.Value));
+                map.Add("hashAlgorithm", SerializeNullableString(input.HashAlgorithm.Value));
+            }
+
+            if (input.HashFormat.HasValue)
+            {
+                map.Add("hashFormat", SerializeNullableHashFormat(input.HashFormat.Value));
+            }
+
+            if (input.Name.HasValue)
+            {
+                map.Add("name", SerializeNullableString(input.Name.Value));
+            }
+
+            if (input.SourceText.HasValue)
+            {
+                map.Add("sourceText", SerializeNullableString(input.SourceText.Value));
             }
 
             return map;
@@ -61,7 +78,17 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         private object? SerializeNullableString(object? value)
         {
+            if (value is null)
+            {
+                return null;
+            }
+
+
             return _stringSerializer!.Serialize(value);
+        }
+        private object? SerializeNullableHashFormat(object? value)
+        {
+            return _hashFormatSerializer!.Serialize(value);
         }
 
         public object? Deserialize(object? value)
