@@ -22,6 +22,6 @@
     <file src="GraphQL.xaml" target="build\GraphQL.xaml" />
     <file src="StrawberryShake.props" target="build\StrawberryShake.props" />
     <file src="StrawberryShake.targets" target="build\StrawberryShake.targets" />
-    <file src="..\dotnet-graphql\bin\Release\netcoreapp2.1\publish\*.*" target="tools" />
+    <file src="..\..\Tooling\src\dotnet-graphql\bin\Release\netcoreapp2.1\publish\*.*" target="tools" />
   </files>
 </package>
