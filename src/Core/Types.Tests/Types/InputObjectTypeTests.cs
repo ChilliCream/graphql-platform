@@ -1050,7 +1050,6 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
-
         public class SimpleInput
         {
             public int Id { get; set; }
