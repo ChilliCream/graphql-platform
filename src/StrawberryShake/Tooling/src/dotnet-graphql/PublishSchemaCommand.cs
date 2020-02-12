@@ -53,6 +53,7 @@ namespace StrawberryShake.Tools
             {
                 var arguments = new PublishSchemaCommandArguments(
                     registryArg,
+                    externalId,
                     schemaNameArg,
                     environmentNameArg,
                     schemaFileNameArg,

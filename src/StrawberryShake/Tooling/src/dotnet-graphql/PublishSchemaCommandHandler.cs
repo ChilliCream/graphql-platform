@@ -47,6 +47,7 @@ namespace StrawberryShake.Tools
 
             var context = new PublishSchemaCommandContext(
                 new Uri(arguments.Registry.Value!),
+                arguments.ExternalId.Value!,
                 arguments.EnvironmentName.Value!,
                 arguments.SchemaName.Value!,
                 arguments.SchemaFileName.Value!,
