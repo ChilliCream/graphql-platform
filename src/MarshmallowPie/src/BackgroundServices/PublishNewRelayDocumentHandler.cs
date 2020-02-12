@@ -10,10 +10,10 @@ using MarshmallowPie.Storage;
 
 namespace MarshmallowPie.BackgroundServices
 {
-    public class PublishNewQueryDocumentHandler
+    public class PublishNewRelayDocumentHandler
         : PublishNewQueryDocumentHandlerBase
     {
-        public PublishNewQueryDocumentHandler(
+        public PublishNewRelayDocumentHandler(
             IFileStorage fileStorage,
             ISchemaRepository schemaRepository,
             IClientRepository clientRepository,
@@ -23,11 +23,11 @@ namespace MarshmallowPie.BackgroundServices
         {
         }
 
-        public override async ValueTask<bool> CanHandleAsync(
+        public async override ValueTask<bool> CanHandleAsync(
             PublishDocumentMessage message,
             CancellationToken cancellationToken)
         {
-            if (message is { Type: DocumentType.Query })
+            if (message is { Type: DocumentType.Relay })
             {
                 return await FileStorage.ContainerExistsAsync(
                     message.SessionId, cancellationToken)
@@ -45,36 +45,33 @@ namespace MarshmallowPie.BackgroundServices
             IssueLogger logger,
             CancellationToken cancellationToken)
         {
-            DocumentNode? document =
-               await DocumentHelper.TryParseDocumentAsync(
-                   file, logger, cancellationToken)
-                   .ConfigureAwait(false);
-
-            string sourceText =
-                await DocumentHelper.LoadSourceTextAsync(
-                    file, document, cancellationToken)
+            RelayDocument? relayDocument =
+                await DocumentHelper.TryParseRelayDocumentAsync(
+                    file, documentInfo, logger, cancellationToken)
                     .ConfigureAwait(false);
 
-            DocumentHash hash = DocumentHash.FromSourceText(sourceText);
-            DocumentHash? externalHash = null;
-
-            if (documentInfo.Hash is { })
+            if (relayDocument is { })
             {
-                string algorithm = documentInfo.HashAlgorithm?.ToUpperInvariant() ?? "MD5";
-                HashFormat format = documentInfo.HashFormat ?? HashFormat.Hex;
-                externalHash = new DocumentHash(documentInfo.Hash, algorithm, format);
-            }
+                foreach (RelayQuery query in relayDocument.Queries)
+                {
+                    DocumentNode? document =
+                        await DocumentHelper.TryParseDocumentAsync(
+                            query.Hash.Hash, query.SourceText, logger, cancellationToken)
+                            .ConfigureAwait(false);
 
-            if (document is { })
-            {
-                string fileName = (externalHash ?? hash).Hash;
-                await ValidateQueryDocumentAsync(
-                    schema, fileName, document, logger, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+                    DocumentHash hash = DocumentHash.FromSourceText(query.SourceText);
 
-            queryDocuments.Add(new QueryDocumentInfo(
-                file, document, sourceText, hash, externalHash));
+                    if (document is { })
+                    {
+                        await ValidateQueryDocumentAsync(
+                            schema, query.Hash.Hash, document, logger, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
+                    queryDocuments.Add(new QueryDocumentInfo(
+                        file, document, query.SourceText, hash, query.Hash));
+                }
+            }
         }
     }
 }

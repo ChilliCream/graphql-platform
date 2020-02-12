@@ -44,7 +44,12 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                sessionId, environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
+                sessionId,
+                environment.Id,
+                schema.Id,
+                "externalId",
+                Array.Empty<DocumentInfo>(),
+                Array.Empty<Tag>());
 
             IFileContainer fileContainer = await Storage.CreateContainerAsync(sessionId);
             byte[] buffer = Encoding.UTF8.GetBytes(@"
@@ -73,7 +78,7 @@ namespace MarshmallowPie.BackgroundServices
 
             SchemaVersion schemaVersion = SchemaRepository.GetSchemaVersions().Single();
             Assert.Equal(
-                "A0409BC380483FB817D51F9F08644309CA9B3B6155FD47F4321844D040C0588C",
+                "a0409bc380483fb817d51f9f08644309ca9b3b6155fd47f4321844d040c0588c",
                 schemaVersion.Hash.Hash);
         }
     }

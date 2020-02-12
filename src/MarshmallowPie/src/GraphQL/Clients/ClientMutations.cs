@@ -57,7 +57,8 @@ namespace MarshmallowPie.GraphQL.Clients
         {
             if (input.Files.Count == 0)
             {
-                throw new GraphQLException("You have to provide at least one query file.");
+                throw new GraphQLException(
+                    "You have to provide at least one query file.");
             }
 
             Schema schema = await schemaDataLoader.LoadAsync(
@@ -72,18 +73,27 @@ namespace MarshmallowPie.GraphQL.Clients
                 input.EnvironmentName, cancellationToken)
                 .ConfigureAwait(false);
 
-            string sessionId = await sessionCreator.CreateSessionAsync(cancellationToken)
+            string sessionId = await sessionCreator.CreateSessionAsync(
+                cancellationToken)
                 .ConfigureAwait(false);
 
             IFileContainer container = await fileStorage.CreateContainerAsync(
                 sessionId, cancellationToken)
                 .ConfigureAwait(false);
 
+            var documentInfos = new List<DocumentInfo>();
+
             foreach (QueryFile file in input.Files)
             {
                 await container.CreateTextFileAsync(
                     file.Name, file.SourceText, cancellationToken)
                     .ConfigureAwait(false);
+
+                documentInfos.Add(new DocumentInfo(
+                    file.Name,
+                    file.Hash,
+                    file.HashAlgorithm,
+                    file.HashFormat));
             }
 
             await messageSender.SendAsync(
@@ -95,7 +105,8 @@ namespace MarshmallowPie.GraphQL.Clients
                     input.ExternalId,
                     input.Format == QueryFileFormat.GraphQL
                         ? DocumentType.Query
-                        : DocumentType.Schema,
+                        : DocumentType.Relay,
+                    documentInfos,
                     input.Tags is null
                         ? Array.Empty<Tag>()
                         : input.Tags.Select(t => new Tag(t.Key, t.Value)).ToArray()),

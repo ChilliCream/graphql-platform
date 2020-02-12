@@ -97,6 +97,7 @@ namespace MarshmallowPie.GraphQL.Schemas
                     environment.Id,
                     schema.Id,
                     input.ExternalId,
+                    Array.Empty<DocumentInfo>(),
                     input.Tags is null
                         ? Array.Empty<Tag>()
                         : input.Tags.Select(t => new Tag(t.Key, t.Value)).ToArray()),

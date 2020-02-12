@@ -478,6 +478,9 @@ input PublishSchemaInput {
 }
 
 input QueryFileInput {
+  hash: String
+  hashAlgorithm: String! = "MD5"
+  hashFormat: HashFormat! = HEX
   name: String!
   sourceText: String!
 }

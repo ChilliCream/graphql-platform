@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using HotChocolate.Properties;
 using System.Collections.Concurrent;
+using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -269,9 +270,9 @@ namespace HotChocolate.Types.Descriptors
 
         public virtual bool TryGetDefaultValue(ParameterInfo parameter, out object defaultValue)
         {
-            if (parameter.IsDefined(typeof(DefaultValueAttribute)))
+            if (parameter.IsDefined(typeof(CompDefaultValueAttribute)))
             {
-                defaultValue = parameter.GetCustomAttribute<DefaultValueAttribute>().Value;
+                defaultValue = parameter.GetCustomAttribute<CompDefaultValueAttribute>().Value;
                 return true;
             }
 
@@ -287,9 +288,9 @@ namespace HotChocolate.Types.Descriptors
 
         public virtual bool TryGetDefaultValue(PropertyInfo parameter, out object defaultValue)
         {
-            if (parameter.IsDefined(typeof(DefaultValueAttribute)))
+            if (parameter.IsDefined(typeof(CompDefaultValueAttribute)))
             {
-                defaultValue = parameter.GetCustomAttribute<DefaultValueAttribute>().Value;
+                defaultValue = parameter.GetCustomAttribute<CompDefaultValueAttribute>().Value;
                 return true;
             }
 

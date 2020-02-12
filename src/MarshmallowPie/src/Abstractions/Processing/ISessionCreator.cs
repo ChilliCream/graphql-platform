@@ -5,6 +5,7 @@ namespace MarshmallowPie.Processing
 {
     public interface ISessionCreator
     {
-        ValueTask<string> CreateSessionAsync(CancellationToken cancellationToken = default);
+        ValueTask<string> CreateSessionAsync(
+            CancellationToken cancellationToken = default);
     }
 }

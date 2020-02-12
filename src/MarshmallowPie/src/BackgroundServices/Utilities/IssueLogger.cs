@@ -6,7 +6,7 @@ using MarshmallowPie.Processing;
 
 namespace MarshmallowPie.BackgroundServices
 {
-    internal sealed class IssueLogger
+    public sealed class IssueLogger
     {
         private readonly List<Issue> _issues = new List<Issue>();
         private readonly string _sessionId;

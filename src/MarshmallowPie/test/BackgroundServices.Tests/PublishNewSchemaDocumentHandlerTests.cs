@@ -40,7 +40,12 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                sessionId, environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
+                sessionId,
+                environment.Id,
+                schema.Id,
+                "externalId",
+                Array.Empty<DocumentInfo>(),
+                Array.Empty<Tag>());
 
             IFileContainer fileContainer = await Storage.CreateContainerAsync(sessionId);
             byte[] buffer = Encoding.UTF8.GetBytes(@"

@@ -82,7 +82,10 @@ namespace MarshmallowPie
                 {
                     // TODO : refactor the replace
                     return new DocumentHash(
-                        BitConverter.ToString(rentedHash, 0, written).Replace("-", string.Empty),
+                        BitConverter
+                            .ToString(rentedHash, 0, written)
+                            .Replace("-", string.Empty)
+                            .ToLowerInvariant(),
                         "SHA256",
                         HashFormat.Hex);
 
