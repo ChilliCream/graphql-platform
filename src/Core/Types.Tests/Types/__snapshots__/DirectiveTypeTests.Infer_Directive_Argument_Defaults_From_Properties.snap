@@ -1,0 +1,12 @@
+﻿schema {
+  query: Query
+}
+
+type Query @foo {
+  foo: String
+}
+
+directive @foo(argument1: String = "abc" argument2: String) on OBJECT
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
