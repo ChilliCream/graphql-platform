@@ -1612,6 +1612,19 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Infer_Argument_Default_Values()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithArgumentDefaults>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1760,6 +1773,17 @@ namespace HotChocolate.Types
             public bool? Bar { get; set; }
 
             public List<bool?> Bars { get; set; }
+        }
+
+        public class QueryWithArgumentDefaults
+        {
+            public string Field1(
+                string a = null,
+                string b = "abc") => null;
+
+            public string Field2(
+                [DefaultValue(null)]string a,
+                [DefaultValue("abc")]string b) => null;
         }
     }
 }

@@ -16,7 +16,6 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
-            Definition.DefaultValue = NullValueNode.Default;
         }
 
         public ArgumentDescriptor(
@@ -32,7 +31,6 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = argumentName;
             Definition.Type = argumentType.GetInputType();
-            Definition.DefaultValue = NullValueNode.Default;
         }
 
         public ArgumentDescriptor(
@@ -43,8 +41,12 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = context.Naming.GetArgumentName(parameter);
             Definition.Description = context.Naming.GetArgumentDescription(parameter);
             Definition.Type = context.Inspector.GetArgumentType(parameter);
-            Definition.DefaultValue = NullValueNode.Default;
             Definition.Parameter = parameter;
+
+            if (context.Inspector.TryGetDefaultValue(parameter, out object defaultValue))
+            {
+                Definition.NativeDefaultValue = defaultValue;
+            }
         }
 
         protected override void OnCreateDefinition(ArgumentDefinition definition)

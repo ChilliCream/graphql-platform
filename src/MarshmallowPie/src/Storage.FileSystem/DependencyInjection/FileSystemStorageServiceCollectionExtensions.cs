@@ -1,7 +1,7 @@
+using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using MarshmallowPie.Storage;
 using MarshmallowPie.Storage.FileSystem;
-using System.IO;
 
 namespace MarshmallowPie
 {

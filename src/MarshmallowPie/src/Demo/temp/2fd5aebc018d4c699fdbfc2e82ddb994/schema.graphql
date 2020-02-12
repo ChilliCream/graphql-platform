@@ -1,1 +1,0 @@
-type Query { field: Bar } type Bar { field_abc: String }

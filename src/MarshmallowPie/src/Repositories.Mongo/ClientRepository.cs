@@ -187,7 +187,8 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             return await _versions.AsQueryable()
                 .Where(t => t.ExternalId == externalId)
-                .FirstOrDefaultAsync(cancellationToken)!;
+                .FirstOrDefaultAsync(cancellationToken)!
+                .ConfigureAwait(false);
         }
 
         public async Task<IReadOnlyDictionary<Guid, ClientVersion>> GetClientVersionsAsync(
@@ -277,29 +278,7 @@ namespace MarshmallowPie.Repositories.Mongo
             return result.ToDictionary(t => t.Id);
         }
 
-        public async Task AddPublishReportAsync(
-            ClientPublishReport publishReport,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                await _publishReports.InsertOneAsync(
-                    publishReport,
-                    options: null,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (MongoWriteException ex)
-            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
-            {
-                // TODO : resources
-                throw new DuplicateKeyException(
-                    "TODO",
-                    ex);
-            }
-        }
-
-        public async Task UpdatePublishReportAsync(
+        public async Task SetPublishReportAsync(
             ClientPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
@@ -308,7 +287,7 @@ namespace MarshmallowPie.Repositories.Mongo
                 await _publishReports.ReplaceOneAsync(
                     Builders<ClientPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
                     publishReport,
-                    options: default(ReplaceOptions),
+                    options: new ReplaceOptions { IsUpsert = true },
                     cancellationToken)
                     .ConfigureAwait(false);
             }

@@ -48,5 +48,9 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider);
+
+        bool TryGetDefaultValue(ParameterInfo parameter, out object defaultValue);
+
+        bool TryGetDefaultValue(PropertyInfo parameter, out object defaultValue);
     }
 }
