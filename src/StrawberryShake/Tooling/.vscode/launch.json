@@ -1,0 +1,35 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [{
+      "name": ".NET Core Launch (console)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/dotnet-graphql/bin/Debug/netcoreapp3.1/dotnet-graphql.dll",
+      "args": [
+        "publish",
+        "schema",
+        "A",
+        "Fusion-API",
+        "Fusion-API_0.0.0-preview.1",
+        "https://schema-registry-api.a.portals.swisslife.ch",
+        "--clientId f3f4ea0917de4f2dbd78d2e6456ce842",
+        "--clientSecret 7cXTF9VqYCdZQmYKrWZChXqY4KrrREvn",
+        "--scope api.graphql.schemaregistry.access",
+        "--tokenEndpoint https://login.a.portals.swisslife.ch/connect/token"
+      ],
+      "cwd": "${workspaceFolder}/src/dotnet-graphql",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickProcess}"
+    }
+  ]
+}

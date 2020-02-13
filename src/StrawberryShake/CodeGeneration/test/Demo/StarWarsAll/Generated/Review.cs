@@ -5,7 +5,7 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.StarWarsAll
 {
-    [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public class Review
         : IReview
     {

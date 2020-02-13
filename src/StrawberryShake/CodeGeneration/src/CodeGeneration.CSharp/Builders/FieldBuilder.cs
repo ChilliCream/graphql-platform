@@ -1,10 +1,12 @@
+using System;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class FieldBuilder : ICodeBuilder
     {
-        private AccessModifier _accessModifier;
+        private AccessModifier _accessModifier = AccessModifier.Private;
+        private bool _isConst;
         private bool _isStatic;
         private bool _isReadOnly;
         private string? _type;
@@ -20,9 +22,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return this;
         }
 
-        public FieldBuilder SetType(string value)
+        public FieldBuilder SetType(string value, bool condition = true)
         {
-            _type = value;
+            if (condition)
+            {
+                _type = value;
+            }
             return this;
         }
 
@@ -32,15 +37,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return this;
         }
 
+        public FieldBuilder SetConst()
+        {
+            _isConst = true;
+            _isStatic = false;
+            _isReadOnly = false;
+            return this;
+        }
+
         public FieldBuilder SetStatic()
         {
             _isStatic = true;
+            _isConst = false;
             return this;
         }
 
         public FieldBuilder SetReadOnly()
         {
             _isReadOnly = true;
+            _isConst = false;
             return this;
         }
 
@@ -60,11 +75,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public async Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync($"{modifier} ")
                 .ConfigureAwait(false);
+
+            if (_isConst)
+            {
+                await writer.WriteAsync("const ").ConfigureAwait(false);
+            }
 
             if (_isStatic)
             {

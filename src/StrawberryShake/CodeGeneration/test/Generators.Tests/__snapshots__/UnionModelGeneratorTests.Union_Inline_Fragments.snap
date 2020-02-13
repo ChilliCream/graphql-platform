@@ -1,23 +1,23 @@
-﻿﻿public interface ISearchResult
+﻿﻿public partial interface ISearchResult
 {
 }
 
-public interface IStarship
+public partial interface IStarship
 {
     string? Name { get; }
 }
 
-public interface IHuman
+public partial interface IHuman
 {
     string? HomePlanet { get; }
 }
 
-public interface IDroid
+public partial interface IDroid
 {
     string? PrimaryFunction { get; }
 }
 
-public class Starship
+public partial class Starship
     : ISearchResult
     , IStarship
 {
@@ -30,7 +30,7 @@ public class Starship
     public string? Name { get; }
 }
 
-public class Human
+public partial class Human
     : ISearchResult
     , IHuman
 {
@@ -43,7 +43,7 @@ public class Human
     public string? HomePlanet { get; }
 }
 
-public class Droid
+public partial class Droid
     : ISearchResult
     , IDroid
 {

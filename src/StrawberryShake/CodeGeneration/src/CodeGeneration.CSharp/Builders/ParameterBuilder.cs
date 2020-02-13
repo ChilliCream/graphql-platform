@@ -1,6 +1,7 @@
+using System;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ParameterBuilder : ICodeBuilder
     {
@@ -10,9 +11,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public static ParameterBuilder New() => new ParameterBuilder();
 
-        public ParameterBuilder SetType(string value)
+        public ParameterBuilder SetType(string value, bool condition = true)
         {
-            _type = value;
+            if (condition)
+            {
+                _type = value;
+            }
             return this;
         }
 
@@ -28,9 +32,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return this;
         }
 
-        public Task BuildAsync(CodeWriter writer) =>
-            _default is null
+        public Task BuildAsync(CodeWriter writer)
+        {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            return _default is null
                 ? writer.WriteAsync($"{_type} {_name}")
                 : writer.WriteAsync($"{_type} {_name} = {_default}");
+        }
     }
 }

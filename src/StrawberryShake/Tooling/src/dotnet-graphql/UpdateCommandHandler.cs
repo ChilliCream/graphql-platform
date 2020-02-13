@@ -41,7 +41,7 @@ namespace StrawberryShake.Tools
                     .ConfigureAwait(false);
 
             var context = new UpdateCommandContext(
-                arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()?.Trim()) : null,
+                arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()!.Trim()) : null,
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 accessToken?.Token,
                 accessToken?.Scheme);

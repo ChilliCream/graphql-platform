@@ -13,6 +13,8 @@ namespace StrawberryShake.CodeGeneration
         : ICodeGenerator
         where TDescriptor : ICodeDescriptor
     {
+        protected bool NullableRefTypes { get; } = false;
+
         public bool CanHandle(ICodeDescriptor descriptor) =>
             descriptor is TDescriptor d && CanHandle(d);
 
@@ -26,6 +28,5 @@ namespace StrawberryShake.CodeGeneration
         protected abstract Task WriteAsync(
             CodeWriter writer,
             TDescriptor descriptor);
-
     }
 }

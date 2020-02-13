@@ -1,20 +1,20 @@
-﻿﻿public interface IHasName
+﻿﻿public partial interface IHasName
 {
     string? Name { get; }
 }
 
-public interface IHasFriends
+public partial interface IHasFriends
 {
     global::Foo.Bar.UNKNOWN? Friends { get; }
 }
 
-public interface IHero
+public partial interface IHero
     : IHasName
     , IHasFriends
 {
 }
 
-public class Hero
+public partial class Hero
     : IHero
 {
     public Hero(

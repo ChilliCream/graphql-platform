@@ -1,6 +1,7 @@
+using System;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class PropertyBuilder : ICodeBuilder
     {
@@ -68,6 +69,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public async Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
             string setterModifier = string.Empty;
 

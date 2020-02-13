@@ -1,4 +1,0 @@
-﻿public partial MyClass
-{
-    public Bar Foo { get; }
-}

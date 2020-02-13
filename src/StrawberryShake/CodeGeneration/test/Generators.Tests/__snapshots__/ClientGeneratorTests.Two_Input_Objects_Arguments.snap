@@ -6,7 +6,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetFoo
+    public partial class GetFoo
         : IGetFoo
     {
         public GetFoo(
@@ -32,7 +32,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class FooInput
+    public partial class FooInput
     {
         public Optional<global::StrawberryShake.Client.BarInput?> Bar { get; set; }
     }
@@ -47,7 +47,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class BarInput
+    public partial class BarInput
     {
         public Optional<int?> Baz { get; set; }
     }
@@ -62,7 +62,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class FooInputSerializer
+    public partial class FooInputSerializer
         : IInputSerializer
     {
         private bool _needsInitialization = true;
@@ -138,7 +138,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class BarInputSerializer
+    public partial class BarInputSerializer
         : IInputSerializer
     {
         private bool _needsInitialization = true;
@@ -214,7 +214,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo
+    public partial interface IGetFoo
     {
         string? A { get; }
 
@@ -236,7 +236,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetFooResultParser
+    public partial class GetFooResultParser
         : JsonResultParserBase<IGetFoo>
     {
         private readonly IValueSerializer _stringSerializer;
@@ -286,7 +286,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetFooOperation
+    public partial class GetFooOperation
         : IOperation<IGetFoo>
     {
         public string Name => "getFoo";
@@ -331,7 +331,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISchemaClient
+    public partial interface ISchemaClient
     {
         Task<IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
             Optional<global::StrawberryShake.Client.FooInput> input1 = default,
@@ -355,22 +355,22 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class SchemaClient
+    public partial class SchemaClient
         : ISchemaClient
     {
         private const string _clientName = "SchemaClient";
 
-        private readonly IOperationExecutor _executor;
+        private readonly global::StrawberryShake.IOperationExecutor _executor;
 
-        public SchemaClient(IOperationExecutorPool executorPool)
+        public SchemaClient(global::StrawberryShake.IOperationExecutorPool executorPool)
         {
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
-            Optional<global::StrawberryShake.Client.FooInput> input1 = default,
-            Optional<global::StrawberryShake.Client.FooInput> input2 = default,
-            CancellationToken cancellationToken = default)
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
+            global::StrawberryShake.Optional<global::StrawberryShake.Client.FooInput> input1 = default,
+            global::StrawberryShake.Optional<global::StrawberryShake.Client.FooInput> input2 = default,
+            global::System.Threading.CancellationToken cancellationToken = default)
         {
             if (input1.HasValue && input1.Value is null)
             {
@@ -391,9 +391,9 @@ namespace StrawberryShake.Client
                 cancellationToken);
         }
 
-        public Task<IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Client.IGetFoo>> GetFooAsync(
             GetFooOperation operation,
-            CancellationToken cancellationToken = default)
+            global::System.Threading.CancellationToken cancellationToken = default)
         {
             if (operation is null)
             {
@@ -423,7 +423,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static class SchemaClientServiceCollectionExtensions
+    public static partial class SchemaClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaClient";
 

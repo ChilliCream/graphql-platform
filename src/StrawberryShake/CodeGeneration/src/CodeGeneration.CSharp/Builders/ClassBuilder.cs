@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ClassBuilder
         : ITypeBuilder
@@ -13,11 +13,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private bool _isSealed = false;
         private bool _isAbstract = false;
         private string? _name;
-        private List<string> _implements = new List<string>();
-        private List<FieldBuilder> _fields = new List<FieldBuilder>();
-        private List<ConstructorBuilder> _constructors = new List<ConstructorBuilder>();
-        private List<PropertyBuilder> _properties = new List<PropertyBuilder>();
-        private List<MethodBuilder> _methods = new List<MethodBuilder>();
+        private readonly List<string> _implements = new List<string>();
+        private readonly List<FieldBuilder> _fields = new List<FieldBuilder>();
+        private readonly List<ConstructorBuilder> _constructors = new List<ConstructorBuilder>();
+        private readonly List<PropertyBuilder> _properties = new List<PropertyBuilder>();
+        private readonly List<MethodBuilder> _methods = new List<MethodBuilder>();
 
         public static ClassBuilder New() => new ClassBuilder();
 
@@ -29,36 +29,70 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public ClassBuilder SetName(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "The class name cannot be null or empty.",
+                    nameof(value));
+            }
+
             _name = value;
             return this;
         }
 
         public ClassBuilder AddImplements(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "The type name cannot be null or empty.",
+                    nameof(value));
+            }
+
             _implements.Add(value);
             return this;
         }
 
         public ClassBuilder AddConstructor(ConstructorBuilder constructor)
         {
+            if (constructor is null)
+            {
+                throw new ArgumentNullException(nameof(constructor));
+            }
+
             _constructors.Add(constructor);
             return this;
         }
 
         public ClassBuilder AddField(FieldBuilder field)
         {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
             _fields.Add(field);
             return this;
         }
 
         public ClassBuilder AddProperty(PropertyBuilder property)
         {
+            if (property is null)
+            {
+                throw new ArgumentNullException(nameof(property));
+            }
+
             _properties.Add(property);
             return this;
         }
 
         public ClassBuilder AddMethod(MethodBuilder method)
         {
+            if (method is null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
             _methods.Add(method);
             return this;
         }
@@ -92,6 +126,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public async Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            await writer.WriteGeneratedAttributeAsync().ConfigureAwait(false);
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
