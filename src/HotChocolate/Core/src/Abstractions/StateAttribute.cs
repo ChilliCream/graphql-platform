@@ -4,7 +4,7 @@ using HotChocolate.Properties;
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class StateAttribute
+    public class StateAttribute
         : Attribute
     {
         public StateAttribute(string key)
