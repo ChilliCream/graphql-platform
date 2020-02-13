@@ -98,7 +98,7 @@ namespace MarshmallowPie.BackgroundServices
                     "PROCESSING_FAILED",
                     "Internal processing error.",
                     _fileName,
-                    new Location(0, 0, 0, 0),
+                    new Location(0, 0, 1, 1),
                     IssueType.Error,
                     ResolutionType.None))
                     .ConfigureAwait(false);
@@ -138,7 +138,7 @@ namespace MarshmallowPie.BackgroundServices
                             error.Message,
                             _fileName,
                             error.SyntaxNodes.FirstOrDefault()?.Location
-                                ?? new Location(0, 0, 0, 0),
+                                ?? new Location(0, 0, 1, 1),
                             IssueType.Error,
                             ResolutionType.CannotBeFixed),
                         cancellationToken)
@@ -153,7 +153,7 @@ namespace MarshmallowPie.BackgroundServices
                         "SCHEMA_ERROR",
                         ex.Message,
                         _fileName,
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.CannotBeFixed),
                     cancellationToken)

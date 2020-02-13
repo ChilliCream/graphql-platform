@@ -55,7 +55,7 @@ namespace MarshmallowPie.BackgroundServices
                         "SCHEMA_ERROR",
                         ex.Message,
                         "schema.graphql",
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.CannotBeFixed),
                     cancellationToken)
@@ -89,7 +89,7 @@ namespace MarshmallowPie.BackgroundServices
                             error.Message,
                             "schema.graphql",
                             error.SyntaxNodes.FirstOrDefault()?.Location
-                                ?? new Location(0, 0, 0, 0),
+                                ?? new Location(0, 0, 1, 1),
                             IssueType.Error,
                             ResolutionType.CannotBeFixed),
                         cancellationToken)
@@ -104,7 +104,7 @@ namespace MarshmallowPie.BackgroundServices
                         "SCHEMA_ERROR",
                         ex.Message,
                         "schema.graphql",
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.CannotBeFixed),
                     cancellationToken)

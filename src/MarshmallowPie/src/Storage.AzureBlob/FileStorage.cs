@@ -12,6 +12,7 @@ namespace MarshmallowPie.Storage.AzureBlob
     {
         private readonly CloudBlobClient _client;
         private readonly CloudBlobContainer _container;
+        private bool _isInitialized;
 
         public FileStorage(CloudBlobClient client, string containerName)
         {
@@ -26,18 +27,33 @@ namespace MarshmallowPie.Storage.AzureBlob
             _container = client.GetContainerReference(containerName);
         }
 
-        public Task<bool> ContainerExistsAsync(
+        public async Task<bool> ContainerExistsAsync(
             string containerName,
             CancellationToken cancellationToken = default)
         {
+            await EnsureContainerExistsAsync(cancellationToken).ConfigureAwait(false);
+
             CloudBlobDirectory directory = _container.GetDirectoryReference(containerName);
-            return Task.Run(() => directory.ListBlobs().Any(), cancellationToken);
+
+            try
+            {
+                return await Task.Run(
+                    () => directory.ListBlobs().Any(), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // TODO : FIX THIS
+                return false;
+            }
         }
 
         public async Task<IFileContainer> CreateContainerAsync(
             string containerName,
             CancellationToken cancellationToken = default)
         {
+            await EnsureContainerExistsAsync(cancellationToken).ConfigureAwait(false);
+
             if (await ContainerExistsAsync(
                 containerName, cancellationToken)
                 .ConfigureAwait(false) == false)
@@ -56,9 +72,11 @@ namespace MarshmallowPie.Storage.AzureBlob
             string containerName,
             CancellationToken cancellationToken = default)
         {
+            await EnsureContainerExistsAsync(cancellationToken).ConfigureAwait(false);
+
             if (await ContainerExistsAsync(
                 containerName, cancellationToken)
-                .ConfigureAwait(false) == false)
+                .ConfigureAwait(false))
             {
                 return await GetOrCreateContainerAsync(
                     containerName, cancellationToken)
@@ -73,12 +91,24 @@ namespace MarshmallowPie.Storage.AzureBlob
             string containerName,
             CancellationToken cancellationToken = default)
         {
+            await EnsureContainerExistsAsync(cancellationToken).ConfigureAwait(false);
+
             await _container.CreateIfNotExistsAsync(cancellationToken).ConfigureAwait(false);
 
             return new FileContainer(
                 _client,
                 _container.GetDirectoryReference(containerName),
                 containerName);
+        }
+
+        private async Task EnsureContainerExistsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            if (!_isInitialized)
+            {
+                await _container.CreateIfNotExistsAsync(cancellationToken).ConfigureAwait(false);
+                _isInitialized = true;
+            }
         }
     }
 }

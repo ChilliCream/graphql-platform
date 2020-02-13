@@ -94,7 +94,7 @@ namespace StrawberryShake.Tools
                     cancellationToken)
                     .ConfigureAwait(false);
             result.EnsureNoErrors();
-            return -1;
+            return 0;
         }
 
         private async Task<int> PublishSchemaAsync(
@@ -128,15 +128,16 @@ namespace StrawberryShake.Tools
 
             bool hasErrors = false;
 
-            await foreach (IOnPublishDocument documentEvent in
+            await foreach (IOperationResult<IOnPublishDocument> documentEvent in
                 responseStream.WithCancellation(cancellationToken))
             {
-                if (documentEvent.OnPublishDocument.IsCompleted)
+                if (documentEvent.Data is null
+                    || documentEvent.Data.OnPublishDocument.IsCompleted)
                 {
                     break;
                 }
 
-                if (documentEvent.OnPublishDocument.Issue is { } issue
+                if (documentEvent.Data?.OnPublishDocument.Issue is { } issue
                     && issue.Type == IssueType.Error)
                 {
                     hasErrors = true;

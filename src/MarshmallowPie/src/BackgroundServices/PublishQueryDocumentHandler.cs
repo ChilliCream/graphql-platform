@@ -89,7 +89,7 @@ namespace MarshmallowPie.BackgroundServices
                         "There is now client version associated with external " +
                         $"ID `{message.ExternalId}`.",
                         "query.graphql",
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.None))
                         .ConfigureAwait(false);
@@ -131,7 +131,7 @@ namespace MarshmallowPie.BackgroundServices
                     "PROCESSING_FAILED",
                     "Internal processing error.",
                     "schema.graphql",
-                    new Location(0, 0, 0, 0),
+                    new Location(0, 0, 1, 1),
                     IssueType.Error,
                     ResolutionType.None))
                     .ConfigureAwait(false);
