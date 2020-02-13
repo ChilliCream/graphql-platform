@@ -10,7 +10,8 @@ namespace StrawberryShake.Tools
         {
             output.WriteLine(
                 "dotnet graphql update [-p|--Path] [-u|--uri] " +
-                "[-t|--token] [-s|--scheme]");
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
         }
     }
 }
