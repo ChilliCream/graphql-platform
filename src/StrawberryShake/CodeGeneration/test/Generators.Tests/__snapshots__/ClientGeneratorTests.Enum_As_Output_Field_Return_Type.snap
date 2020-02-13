@@ -378,7 +378,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial enum Bar
+    public enum Bar
     {
         Abc
     }
