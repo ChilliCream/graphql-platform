@@ -149,9 +149,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IInterfaceFieldDescriptor Ignore()
+        public new IInterfaceFieldDescriptor Ignore(bool ignore = true)
         {
-            base.Ignore();
+            base.Ignore(ignore);
             return this;
         }
 

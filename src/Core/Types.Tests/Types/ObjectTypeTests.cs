@@ -1208,6 +1208,26 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void UnignoreFieldWithShortcut()
+        {
+            // arrange
+            // act
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d =>
+            {
+                d.Ignore(t => t.Description);
+                d.Field("foo").Type<StringType>().Resolver("abc");
+                d.Field(t => t.Description).Ignore(false);
+            }));
+
+            // assert
+            Assert.Collection(
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                t => Assert.Equal("description", t.Name),
+                t => Assert.Equal("foo", t.Name));
+
+        }
+
+        [Fact]
         public void IgnoreField_DescriptorIsNull_ArgumentNullException()
         {
             // arrange
@@ -1481,6 +1501,19 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Infer_Argument_Default_Values()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithArgumentDefaults>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1622,6 +1655,17 @@ namespace HotChocolate.Types
         public class MyListQuery
         {
             public MyList List { get; set; }
+        }
+
+        public class QueryWithArgumentDefaults
+        {
+            public string Field1(
+                string a = null,
+                string b = "abc") => null;
+
+            public string Field2(
+                [DefaultValue(null)]string a,
+                [DefaultValue("abc")]string b) => null;
         }
     }
 }
