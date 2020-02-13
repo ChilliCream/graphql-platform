@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
+    <NoWarn>$(NoWarn);CA1062</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

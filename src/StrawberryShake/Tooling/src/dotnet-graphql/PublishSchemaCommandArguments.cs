@@ -10,8 +10,9 @@ namespace StrawberryShake.Tools
             CommandArgument externalId,
             CommandArgument environmentName,
             CommandArgument schemaName,
-            CommandArgument schemaFileName,
+            CommandOption schemaFileName,
             CommandOption tag,
+            CommandOption published,
             AuthArguments authArguments)
         {
             Registry = registry;
@@ -20,6 +21,7 @@ namespace StrawberryShake.Tools
             SchemaName = schemaName;
             SchemaFileName = schemaFileName;
             Tag = tag;
+            Published = published;
             AuthArguments = authArguments;
         }
 
@@ -31,9 +33,11 @@ namespace StrawberryShake.Tools
 
         public CommandArgument SchemaName { get; }
 
-        public CommandArgument SchemaFileName { get; }
+        public CommandOption SchemaFileName { get; }
 
         public CommandOption Tag { get; }
+
+        public CommandOption Published { get; }
 
         public AuthArguments AuthArguments { get; }
     }

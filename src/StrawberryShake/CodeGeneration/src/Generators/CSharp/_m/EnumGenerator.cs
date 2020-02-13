@@ -18,7 +18,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentedLineAsync(
-                $"{ModelAccessModifier} partial enum {descriptor.Name}")
+                $"{ModelAccessModifier} enum {descriptor.Name}")
                 .ConfigureAwait(false);
             await writer.WriteIndentedLineAsync("{")
                 .ConfigureAwait(false);

@@ -47,10 +47,10 @@ namespace StrawberryShake.Tools
 
             var context = new PublishSchemaCommandContext(
                 new Uri(arguments.Registry.Value!),
-                arguments.ExternalId.Value!,
                 arguments.EnvironmentName.Value!,
                 arguments.SchemaName.Value!,
-                arguments.SchemaFileName.Value!,
+                arguments.ExternalId.Value!,
+                arguments.SchemaFileName.Value(),
                 arguments.Tag.HasValue()
                     ? arguments.Tag.Values
                         .Where(t => t! is { })
@@ -58,12 +58,43 @@ namespace StrawberryShake.Tools
                         .Select(t => new TagInput { Key = t[0], Value = t[1] })
                         .ToList()
                     : null,
+                arguments.Published.HasValue(),
                 accessToken?.Token,
                 accessToken?.Scheme);
 
-            return await PublishSchemaAsync(
-                context, cancellationToken)
-                .ConfigureAwait(false);
+            if (context.Published)
+            {
+                return await MarkAsPublishedAsync(
+                    context, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                return await PublishSchemaAsync(
+                    context, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private async Task<int> MarkAsPublishedAsync(
+            PublishSchemaCommandContext context,
+            CancellationToken cancellationToken)
+        {
+            using IActivity activity = Output.WriteActivity("Mark schema published");
+
+            var clientFactory = new SchemaRegistryClientFactory(
+                context.Registry, context.Token, context.Scheme);
+            ISchemaRegistryClient client = clientFactory.Create();
+
+            IOperationResult<IMarkSchemaPublished> result =
+                await client.MarkSchemaPublishedAsync(
+                    context.ExternalId,
+                    context.SchemaName,
+                    context.EnvironmentName,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            result.EnsureNoErrors();
+            return -1;
         }
 
         private async Task<int> PublishSchemaAsync(

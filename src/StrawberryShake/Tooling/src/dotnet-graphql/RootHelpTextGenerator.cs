@@ -14,13 +14,15 @@ namespace StrawberryShake.Tools
             output.WriteLine("  dotnet graphql init http://localhost");
             output.WriteLine(
                 "  dotnet graphql init {url} [-p|--Path] [-n|--SchemaName] " +
-                "[-t|--token] [-s|--scheme]");
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
             output.WriteLine();
             output.WriteLine("- Update local schema");
             output.WriteLine("  dotnet graphql update");
             output.WriteLine(
                 "  dotnet graphql update [-p|--Path] [-u|--uri] " +
-                "[-t|--token] [-s|--scheme]");
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
             output.WriteLine();
             output.WriteLine("- Compile queries");
             output.WriteLine("  dotnet graphql compile");
@@ -38,16 +40,29 @@ namespace StrawberryShake.Tools
             output.WriteLine("  dotnet graphql download http://localhost");
             output.WriteLine(
                 "  dotnet graphql download {url} [-f|--FileName] " +
-                "[-t|--token] [-s|--scheme]");
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
             output.WriteLine();
             output.WriteLine("- Publish schema to schema registry");
             output.WriteLine(
-                "  dotnet graphql publish schema -r http://localhost " +
-                "-s Foo -e Dev -f schema.graphql -t version:1.0.0");
+                "  dotnet graphql publish schema http://localhost " +
+                " Dev Foo Foo_1.0.0 -f schema.graphql -t version:1.0.0");
             output.WriteLine(
-                "  dotnet graphql publish schema [-r|--Registry] " +
-                "[-s|--SchemaName] [-e|--EnvironmentName] [-f|--SchemaFileName] " +
-                "[-t|--Tag]");
+                "  dotnet graphql publish schema {Registry} " +
+                "{EnvironmentName} {SchemaName} {ExternalId} [-f|--SchemaFileName] " +
+                "[-t|--Tag] " +
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
+            output.WriteLine("- Mark schema published on schema registry");
+            output.WriteLine(
+                "  dotnet graphql publish schema http://localhost " +
+                " Dev Foo Foo_1.0.0 -p");
+            output.WriteLine(
+                "  dotnet graphql publish schema {Registry} " +
+                "{EnvironmentName} {SchemaName} {ExternalId} " +
+                "[-p|--Published] " +
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
 
         }
     }
