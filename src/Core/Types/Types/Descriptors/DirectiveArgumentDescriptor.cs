@@ -15,7 +15,6 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.Name = argumentName;
-            Definition.DefaultValue = NullValueNode.Default;
         }
 
         public DirectiveArgumentDescriptor(
@@ -29,6 +28,11 @@ namespace HotChocolate.Types.Descriptors
                 property, MemberKind.DirectiveArgument);
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Property = property;
+
+            if (context.Inspector.TryGetDefaultValue(property, out object defaultValue))
+            {
+                Definition.NativeDefaultValue = defaultValue;
+            }
         }
 
         protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
