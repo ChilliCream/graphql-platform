@@ -27,26 +27,26 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         protected override IMarkClientPublished ParserData(JsonElement data)
         {
-            return new MarkClientPublished
+            return new MarkClientPublished1
             (
-                ParseMarkClientPublishedMarkSchemaPublished(data, "markSchemaPublished")
+                ParseMarkClientPublishedMarkClientPublished(data, "markClientPublished")
             );
 
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IMarkSchemaPublishedPayload1 ParseMarkClientPublishedMarkSchemaPublished(
+        private global::StrawberryShake.Tools.SchemaRegistry.IMarkClientPublishedPayload ParseMarkClientPublishedMarkClientPublished(
             JsonElement parent,
             string field)
         {
             JsonElement obj = parent.GetProperty(field);
 
-            return new MarkSchemaPublishedPayload1
+            return new MarkClientPublishedPayload
             (
-                ParseMarkClientPublishedMarkSchemaPublishedEnvironment(obj, "environment")
+                ParseMarkClientPublishedMarkClientPublishedEnvironment(obj, "environment")
             );
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IEnvironmentName ParseMarkClientPublishedMarkSchemaPublishedEnvironment(
+        private global::StrawberryShake.Tools.SchemaRegistry.IEnvironmentName ParseMarkClientPublishedMarkClientPublishedEnvironment(
             JsonElement parent,
             string field)
         {

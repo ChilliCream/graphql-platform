@@ -10,18 +10,7 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/dotnet-graphql/bin/Debug/netcoreapp3.1/dotnet-graphql.dll",
       "args": [
-        "publish",
-        "schema",
-        "http://localhost:5000",
-        "A",
-        "GraphQL-SchemaRegistry",
-        "GraphQL-SchemaRegistry_0.0.0-preview.1",
-        "-f ./SchemaRegistry/SchemaRegistry.graphql",
-        "--clientId f3f4ea0917de4f2dbd78d2e6456ce842",
-        "--clientSecret 7cXTF9VqYCdZQmYKrWZChXqY4KrrREvn",
-        "--scope api.graphql.schemaregistry.access",
-        "--tokenEndpoint https://login.a.portals.swisslife.ch/connect/token",
-        "-p"
+
       ],
       "cwd": "${workspaceFolder}/src/dotnet-graphql",
       "console": "internalConsole",

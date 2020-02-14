@@ -8,6 +8,6 @@ namespace StrawberryShake.Tools.SchemaRegistry
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IMarkClientPublished
     {
-        global::StrawberryShake.Tools.SchemaRegistry.IMarkSchemaPublishedPayload1 MarkSchemaPublished { get; }
+        global::StrawberryShake.Tools.SchemaRegistry.IMarkClientPublishedPayload MarkClientPublished { get; }
     }
 }

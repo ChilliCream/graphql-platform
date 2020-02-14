@@ -65,7 +65,7 @@ mutation markClientPublished(
   $schemaName: String!
   $environmentName: String!
 ) {
-  markSchemaPublished(
+  markClientPublished(
     input: {
       externalId: $externalId
       schemaName: $schemaName

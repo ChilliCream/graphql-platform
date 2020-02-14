@@ -8,7 +8,7 @@ namespace MarshmallowPie.GraphQL.Clients
     [ExtendObjectType(Name = "Client")]
     public class ClientExtension
     {
-        public IQueryable<ClientVersion> GetClientVersions(
+        public IQueryable<ClientVersion> GetVersions(
             [Parent]Client client,
             [Service]IClientRepository repository) =>
             repository.GetClientVersions().Where(t => t.ClientId == client.Id);

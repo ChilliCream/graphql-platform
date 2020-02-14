@@ -21,28 +21,28 @@ namespace StrawberryShake.Tools.SchemaRegistry
         };
         private readonly byte[] _hash = new byte[]
         {
-            81,
-            80,
-            80,
-            89,
-            101,
-            116,
-            87,
-            89,
-            117,
-            85,
-            83,
+            98,
             65,
-            119,
-            119,
-            89,
-            50,
-            112,
+            98,
+            76,
+            113,
+            77,
+            122,
+            72,
+            108,
             49,
-            56,
             47,
-            85,
+            55,
+            117,
+            109,
+            43,
+            106,
+            113,
+            120,
+            111,
             119,
+            111,
+            65,
             61,
             61
         };
@@ -1149,12 +1149,12 @@ namespace StrawberryShake.Tools.SchemaRegistry
             97,
             114,
             107,
-            83,
-            99,
-            104,
+            67,
+            108,
+            105,
             101,
-            109,
-            97,
+            110,
+            116,
             80,
             117,
             98,
@@ -1707,7 +1707,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             }
             
             mutation markClientPublished($externalId: String!, $schemaName: String!, $environmentName: String!) {
-              markSchemaPublished(input: { externalId: $externalId, schemaName: $schemaName, environmentName: $environmentName }) {
+              markClientPublished(input: { externalId: $externalId, schemaName: $schemaName, environmentName: $environmentName }) {
                 environment {
                   ... EnvironmentName
                 }

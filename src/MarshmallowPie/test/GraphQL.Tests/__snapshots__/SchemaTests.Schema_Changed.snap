@@ -10,11 +10,11 @@ interface Node {
 }
 
 type Client implements Node {
-  clientVersions: [ClientVersion!]!
   description: String
   id: ID!
   name: String!
   schemaId: ID!
+  versions: [ClientVersion!]!
 }
 
 "A connection to a list of items."
@@ -38,10 +38,10 @@ type ClientEdge {
 
 type ClientVersion {
   clientId: ID!
+  documents: [QueryDocument!]!
   externalId: String!
   id: ID!
   published: DateTime!
-  queryDocuments: [QueryDocument!]!
   queryIds: [ID]!
   tags: [Tag!]!
 }
