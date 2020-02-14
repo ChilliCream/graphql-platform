@@ -38,17 +38,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            var attribute =
-                parameter.GetCustomAttribute<DataLoaderAttribute>();
+            var attribute = parameter.GetCustomAttribute<DataLoaderAttribute>();
 
             return string.IsNullOrEmpty(attribute?.Key)
                 ? Expression.Call(
-                    _dataLoader.MakeGenericMethod(
-                        parameter.ParameterType),
+                    _dataLoader.MakeGenericMethod(parameter.ParameterType),
                     context)
                 : Expression.Call(
-                    _dataLoaderWithKey.MakeGenericMethod(
-                        parameter.ParameterType),
+                    _dataLoaderWithKey.MakeGenericMethod(parameter.ParameterType),
                     context,
                     Expression.Constant(attribute.Key));
         }
