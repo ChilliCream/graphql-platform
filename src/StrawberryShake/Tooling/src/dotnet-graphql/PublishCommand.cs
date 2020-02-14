@@ -9,6 +9,7 @@ namespace StrawberryShake.Tools
             var publish = new CommandLineApplication();
             publish.AddName("publish");
             publish.AddSubcommand(PublishSchemaCommand.Create());
+            publish.AddSubcommand(PublishClientCommand.Create());
             return publish;
         }
     }

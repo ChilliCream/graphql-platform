@@ -75,7 +75,7 @@ namespace MarshmallowPie.BackgroundServices
                         "There is now schema version associated with external " +
                         $"ID `{message.ExternalId}`.",
                         _fileName,
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.None))
                         .ConfigureAwait(false);
@@ -114,7 +114,7 @@ namespace MarshmallowPie.BackgroundServices
                     "PROCESSING_FAILED",
                     "Internal processing error.",
                     _fileName,
-                    new Location(0, 0, 0, 0),
+                    new Location(0, 0, 1, 1),
                     IssueType.Error,
                     ResolutionType.None))
                     .ConfigureAwait(false);

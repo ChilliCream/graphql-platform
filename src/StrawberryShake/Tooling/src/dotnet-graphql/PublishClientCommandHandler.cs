@@ -11,10 +11,10 @@ using HCLocation = HotChocolate.Location;
 
 namespace StrawberryShake.Tools
 {
-    public class PublishSchemaCommandHandler
-        : CommandHandler<PublishSchemaCommandArguments>
+    public class PublishClientCommandHandler
+        : CommandHandler<PublishClientCommandArguments>
     {
-        public PublishSchemaCommandHandler(
+        public PublishClientCommandHandler(
             IFileSystem fileSystem,
             IHttpClientFactory httpClientFactory,
             IConfigurationStore configurationStore,
@@ -35,7 +35,7 @@ namespace StrawberryShake.Tools
         public IConsoleOutput Output { get; }
 
         public override async Task<int> ExecuteAsync(
-            PublishSchemaCommandArguments arguments,
+            PublishClientCommandArguments arguments,
             CancellationToken cancellationToken)
         {
             using IDisposable command = Output.WriteCommand();
@@ -45,12 +45,15 @@ namespace StrawberryShake.Tools
                     .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
 
-            var context = new PublishSchemaCommandContext(
+            var context = new PublishClientCommandContext(
                 new Uri(arguments.Registry.Value!),
                 arguments.EnvironmentName.Value!,
                 arguments.SchemaName.Value!,
+                arguments.ClientName.Value!,
                 arguments.ExternalId.Value!,
-                arguments.SchemaFileName.Value(),
+                arguments.SearchDirectory.Value()?.Trim() ?? FileSystem.CurrentDirectory,
+                arguments.QueryFileName.Values.Where(t => t is { }).ToList()!,
+                arguments.RelayFileFormat.HasValue(),
                 arguments.Tag.HasValue()
                     ? arguments.Tag.Values
                         .Where(t => t! is { })
@@ -70,24 +73,24 @@ namespace StrawberryShake.Tools
             }
             else
             {
-                return await PublishSchemaAsync(
+                return await PublishClientAsync(
                     context, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
 
         private async Task<int> MarkAsPublishedAsync(
-            PublishSchemaCommandContext context,
+            PublishClientCommandContext context,
             CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Mark schema version published");
+            using IActivity activity = Output.WriteActivity("Mark client version published");
 
             var clientFactory = new SchemaRegistryClientFactory(
                 context.Registry, context.Token, context.Scheme);
             ISchemaRegistryClient client = clientFactory.Create();
 
-            IOperationResult<IMarkSchemaPublished> result =
-                await client.MarkSchemaPublishedAsync(
+            IOperationResult<IMarkClientPublished> result =
+                await client.MarkClientPublishedAsync(
                     context.ExternalId,
                     context.SchemaName,
                     context.EnvironmentName,
@@ -97,24 +100,38 @@ namespace StrawberryShake.Tools
             return 0;
         }
 
-        private async Task<int> PublishSchemaAsync(
-            PublishSchemaCommandContext context,
+        private async Task<int> PublishClientAsync(
+            PublishClientCommandContext context,
             CancellationToken cancellationToken)
         {
-            using IActivity activity = Output.WriteActivity("Publish schema version");
+            using IActivity activity = Output.WriteActivity("Publish client version");
 
             var clientFactory = new SchemaRegistryClientFactory(
                 context.Registry, context.Token, context.Scheme);
             ISchemaRegistryClient client = clientFactory.Create();
 
-            string sourceText = File.ReadAllText(context.SchemaFileName);
+            var files = new List<QueryFileInput>();
 
-            IOperationResult<IPublishSchema> result =
-                await client.PublishSchemaAsync(
+            foreach (string fileName in context.QueryFileNames.SelectMany(filter =>
+                Directory.GetFiles(context.SearchDirectory, filter)))
+            {
+                files.Add(new QueryFileInput
+                {
+                    Name = Path.GetFileName(fileName),
+                    SourceText = File.ReadAllText(fileName)
+                });
+            }
+
+            IOperationResult<IPublishClient> result =
+                await client.PublishClientAsync(
                     context.ExternalId,
                     context.SchemaName,
                     context.EnvironmentName,
-                    sourceText,
+                    context.ClientName,
+                    context.RelayFileFormat
+                        ? QueryFileFormat.Relay
+                        : QueryFileFormat.Graphql,
+                    files,
                     new Optional<IReadOnlyList<TagInput>?>(context.Tags),
                     cancellationToken)
                     .ConfigureAwait(false);
@@ -122,7 +139,7 @@ namespace StrawberryShake.Tools
 
             IResponseStream<IOnPublishDocument> responseStream =
                 await client.OnPublishDocumentAsync(
-                    result.Data!.PublishSchema.SessionId,
+                    result.Data!.PublishClient.SessionId,
                     cancellationToken)
                     .ConfigureAwait(false);
 

@@ -6,10 +6,10 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class MarkSchemaPublishedPayload1
-        : IMarkSchemaPublishedPayload1
+    public partial class MarkClientPublishedPayload
+        : IMarkClientPublishedPayload
     {
-        public MarkSchemaPublishedPayload1(
+        public MarkClientPublishedPayload(
             global::StrawberryShake.Tools.SchemaRegistry.IEnvironmentName environment)
         {
             Environment = environment;

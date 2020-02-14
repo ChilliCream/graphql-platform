@@ -27,7 +27,7 @@ namespace StrawberryShake.Tools
             output.WriteLine("- Compile queries");
             output.WriteLine("  dotnet graphql compile");
             output.WriteLine(
-                "dotnet graphql compile [-s|--Search] [-f|--Force] [-j|--json]");
+                "  dotnet graphql compile [-s|--Search] [-f|--Force] [-j|--json]");
             output.WriteLine();
             output.WriteLine("- Compile queries and generate C# client files");
             output.WriteLine("  dotnet graphql generate");
@@ -43,7 +43,7 @@ namespace StrawberryShake.Tools
                 "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
                 "[--clientSecret] [--scope]");
             output.WriteLine();
-            output.WriteLine("- Publish schema to schema registry");
+            output.WriteLine("- Publish schema version to schema registry");
             output.WriteLine(
                 "  dotnet graphql publish schema http://localhost " +
                 " Dev Foo Foo_1.0.0 -f schema.graphql -t version:1.0.0");
@@ -53,7 +53,8 @@ namespace StrawberryShake.Tools
                 "[-t|--Tag] " +
                 "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
                 "[--clientSecret] [--scope]");
-            output.WriteLine("- Mark schema published on schema registry");
+            output.WriteLine();
+            output.WriteLine("- Mark schema version published on schema registry");
             output.WriteLine(
                 "  dotnet graphql publish schema http://localhost " +
                 " Dev Foo Foo_1.0.0 -p");
@@ -63,7 +64,29 @@ namespace StrawberryShake.Tools
                 "[-p|--Published] " +
                 "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
                 "[--clientSecret] [--scope]");
-
+            output.WriteLine();
+            output.WriteLine("- Publish client version to schema registry");
+            output.WriteLine(
+                "  dotnet graphql publish client http://localhost " +
+                " Dev Foo Bar Bar_1.0.0 -f query.graphql -t version:1.0.0");
+            output.WriteLine(
+                "  dotnet graphql publish client {Registry} " +
+                "{EnvironmentName} {SchemaName} {ClientName} {ExternalId} " +
+                "[-d|--searchDirectory] [-f|--queryFileName] [-r|--relayFileFormat] " +
+                "[-t|--Tag] " +
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
+            output.WriteLine();
+            output.WriteLine("- Mark client version published on schema registry");
+            output.WriteLine(
+                "  dotnet graphql publish client http://localhost " +
+                " Dev Foo Bar Bar_1.0.0 -p");
+            output.WriteLine(
+                "  dotnet graphql publish client {Registry} " +
+                "{EnvironmentName} {SchemaName} {ClientName} {ExternalId} " +
+                "[-p|--Published] " +
+                "[--token] [--scheme] [--tokenEndpoint] [--clientId]" +
+                "[--clientSecret] [--scope]");
         }
     }
 }

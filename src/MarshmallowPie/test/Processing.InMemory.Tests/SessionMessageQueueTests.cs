@@ -19,7 +19,7 @@ namespace MarshmallowPie.Processing.InMemory
 
             var message = new PublishDocumentEvent(
                 sessionId,
-                new Issue("def", "foo", new Location(0, 0, 0, 0),
+                new Issue("def", "foo", new Location(0, 0, 1, 1),
                 IssueType.Error));
 
             // act
@@ -44,7 +44,7 @@ namespace MarshmallowPie.Processing.InMemory
 
             var message = new PublishDocumentEvent(
                 sessionId,
-                new Issue("def", "foo", new Location(0, 0, 0, 0),
+                new Issue("def", "foo", new Location(0, 0, 1, 1),
                 IssueType.Error));
             var completeMessage = PublishDocumentEvent.Completed(sessionId);
             var received = new List<PublishDocumentEvent>();

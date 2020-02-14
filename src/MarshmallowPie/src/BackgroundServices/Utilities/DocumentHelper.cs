@@ -48,7 +48,7 @@ namespace MarshmallowPie.BackgroundServices
                         "PARSING_FAILED",
                         ex.Message,
                         file.Name,
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.CannotBeFixed),
                     cancellationToken)
@@ -88,7 +88,7 @@ namespace MarshmallowPie.BackgroundServices
                         "PARSING_FAILED",
                         ex.Message,
                         fileName,
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.CannotBeFixed),
                     cancellationToken)
@@ -119,7 +119,7 @@ namespace MarshmallowPie.BackgroundServices
                         "PARSING_FAILED",
                         ex.Message,
                         file.Name,
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.CannotBeFixed),
                     cancellationToken)

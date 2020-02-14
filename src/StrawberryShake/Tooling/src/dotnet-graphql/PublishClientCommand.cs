@@ -4,12 +4,12 @@ using StrawberryShake.Tools.OAuth;
 namespace StrawberryShake.Tools
 {
 
-    public static class PublishSchemaCommand
+    public static class PublishClientCommand
     {
         public static CommandLineApplication Create()
         {
             var publish = new CommandLineApplication();
-            publish.AddName("schema");
+            publish.AddName("client");
             //publish.AddHelp<InitHelpTextGenerator>();
 
             CommandArgument registryArg = publish.Argument(
@@ -27,15 +27,30 @@ namespace StrawberryShake.Tools
                 "The name of the schema.",
                 c => c.IsRequired());
 
+            CommandArgument clientNameArg = publish.Argument(
+                "clientName",
+                "The name of the client.",
+                c => c.IsRequired());
+
             CommandArgument externalId = publish.Argument(
                 "externalId",
                 "An external identifier to track the schema through the publish process.",
                 c => c.IsRequired());
 
-            CommandOption schemaFileNameArg = publish.Option(
-                "-f|--schemaFileName",
-                "schemaFileName",
-                CommandOptionType.SingleValue);
+            CommandOption searchDirectoryArg = publish.Option(
+                "-d|--searchDirectory",
+                "Files containing queries.",
+                CommandOptionType.MultipleValue);
+
+            CommandOption queryFileNameArg = publish.Option(
+                "-f|--queryFileName",
+                "Files containing queries.",
+                CommandOptionType.MultipleValue);
+
+            CommandOption relayFileFormatArg = publish.Option(
+                "-r|--relayFileFormat",
+                "Defines that the files are in the relay persisted query file format.",
+                CommandOptionType.NoValue);
 
             CommandOption tagArg = publish.Option(
                 "-t|--tag",
@@ -56,16 +71,19 @@ namespace StrawberryShake.Tools
 
             publish.OnExecuteAsync(cancellationToken =>
             {
-                var arguments = new PublishSchemaCommandArguments(
+                var arguments = new PublishClientCommandArguments(
                     registryArg,
                     externalId,
                     environmentNameArg,
                     schemaNameArg,
-                    schemaFileNameArg,
+                    clientNameArg,
+                    searchDirectoryArg,
+                    queryFileNameArg,
+                    relayFileFormatArg,
                     tagArg,
                     publishedArg,
                     authArguments);
-                var handler = CommandTools.CreateHandler<PublishSchemaCommandHandler>(jsonArg);
+                var handler = CommandTools.CreateHandler<PublishClientCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
 

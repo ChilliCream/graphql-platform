@@ -13,7 +13,7 @@ namespace MarshmallowPie.Processing.InMemory
             var test = new MessageQueue<PublishDocumentEvent>();
             var message = new PublishDocumentEvent(
                 "abc",
-                new Issue("def", "file", new Location(0, 0, 0, 0), IssueType.Error));
+                new Issue("def", "file", new Location(0, 0, 1, 1), IssueType.Error));
 
             // act
             await test.SendAsync(message);
