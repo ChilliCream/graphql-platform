@@ -22,6 +22,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             yield return new SetGlobalStateCompiler<T>();
             yield return new GetScopedStateCompiler<T>();
             yield return new SetScopedStateCompiler<T>();
+            yield return new GetLocalStateCompiler<T>();
+            yield return new SetLocalStateCompiler<T>();
             yield return new GetDataLoaderCompiler<T>();
             yield return new GetEventMessageCompiler<T>();
             yield return new GetFieldSelectionCompiler<T>();

@@ -14,11 +14,15 @@ using System;
                      nameof(IResolverContext.ContextData));
              ScopedContextData = ContextTypeInfo.GetDeclaredProperty(
                  nameof(IResolverContext.ScopedContextData));
+            LocalContextData = ContextTypeInfo.GetDeclaredProperty(
+                 nameof(IResolverContext.LocalContextData));
          }
 
          protected PropertyInfo ContextData { get; }
 
          protected PropertyInfo ScopedContextData { get; }
+
+         protected PropertyInfo LocalContextData { get; }
 
          protected bool IsSetter(Type parameterType)
          {

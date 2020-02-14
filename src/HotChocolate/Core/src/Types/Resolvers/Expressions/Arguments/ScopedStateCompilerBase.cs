@@ -9,28 +9,17 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         : CustomContextCompilerBase<T>
         where T : IResolverContext
     {
-        public override bool CanHandle(
-            ParameterInfo parameter,
-            Type sourceType)
-        {
-            return ArgumentHelper.IsScopedState(parameter)
-                && CanHandle(parameter.ParameterType);
-        }
-
-        protected abstract bool CanHandle(Type parameterType);
-
         public override Expression Compile(
             Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
-            ScopedStateAttribute attribute =
-                parameter.GetCustomAttribute<ScopedStateAttribute>();
+            string explicitKey = GetKey(parameter);
 
             ConstantExpression key =
-                attribute.Key is null
+                explicitKey is null
                     ? Expression.Constant(parameter.Name, typeof(string))
-                    : Expression.Constant(attribute.Key, typeof(string));
+                    : Expression.Constant(explicitKey, typeof(string));
 
             return Compile(context, parameter, key);
         }
@@ -39,5 +28,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             Expression context,
             ParameterInfo parameter,
             ConstantExpression key);
+
+        protected abstract string GetKey(ParameterInfo parameter);
     }
 }

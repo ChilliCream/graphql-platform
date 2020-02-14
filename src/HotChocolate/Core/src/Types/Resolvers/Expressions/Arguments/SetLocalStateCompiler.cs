@@ -5,23 +5,23 @@ using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class SetScopedStateCompiler<T>
+    internal sealed class SetLocalStateCompiler<T>
         : ScopedStateCompilerBase<T>
         where T : IResolverContext
     {
         private static readonly MethodInfo _setScopedState =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.SetScopedState));
+                nameof(ExpressionHelper.SetLocalState));
 
         private static readonly MethodInfo _setScopedStateGeneric =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.SetScopedStateGeneric));
+                nameof(ExpressionHelper.SetLocalStateGeneric));
 
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType)
         {
-            return ArgumentHelper.IsScopedState(parameter)
+            return ArgumentHelper.IsLocalState(parameter)
                 && IsSetter(parameter.ParameterType);
         }
 
@@ -43,6 +43,6 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         }
 
         protected override string GetKey(ParameterInfo parameter) =>
-            parameter.GetCustomAttribute<ScopedStateAttribute>().Key;
+            parameter.GetCustomAttribute<LocalStateAttribute>().Key;
     }
 }

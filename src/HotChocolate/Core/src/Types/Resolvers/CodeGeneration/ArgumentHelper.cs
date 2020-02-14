@@ -131,7 +131,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
 #pragma warning disable CS0612
             if (IsState(parameter)
                 || IsGlobalState(parameter)
-                || IsScopedState(parameter))
+                || IsScopedState(parameter)
+                || IsLocalState(parameter))
             {
                 argumentKind = ArgumentKind.CustomContext;
                 return true;
@@ -182,6 +183,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         internal static bool IsScopedState(ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(ScopedStateAttribute));
+        }
+
+        internal static bool IsLocalState(ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(LocalStateAttribute));
         }
 
         internal static bool IsService(ParameterInfo parameter)

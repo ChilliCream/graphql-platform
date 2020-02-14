@@ -1,11 +1,10 @@
 using System;
-using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class GetScopedStateCompiler<T>
+    internal sealed class GetLocalStateCompiler<T>
         : GetImmutableStateCompiler<T>
         where T : IResolverContext
     {
@@ -13,14 +12,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            return ArgumentHelper.IsScopedState(parameter)
+            return ArgumentHelper.IsLocalState(parameter)
                 && !IsSetter(parameter.ParameterType);
         }
 
         protected override PropertyInfo GetStateProperty() =>
-            ScopedContextData;
+            LocalContextData;
 
         protected override string GetKey(ParameterInfo parameter) =>
-            parameter.GetCustomAttribute<ScopedStateAttribute>().Key;
+            parameter.GetCustomAttribute<LocalStateAttribute>().Key;
     }
 }

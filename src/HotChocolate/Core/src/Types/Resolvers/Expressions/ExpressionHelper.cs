@@ -181,5 +181,25 @@ namespace HotChocolate.Resolvers.Expressions
                 context.ScopedContextData = context.ScopedContextData.SetItem(key ,value);
             });
         }
+
+        public static SetState<TContextData> SetLocalStateGeneric<TContextData>(
+            IResolverContext context,
+            string key)
+        {
+            return new SetState<TContextData>(value =>
+            {
+                context.LocalContextData = context.LocalContextData.SetItem(key ,value);
+            });
+        }
+
+        public static SetState SetLocalState(
+            IResolverContext context,
+            string key)
+        {
+            return new SetState(value =>
+            {
+                context.LocalContextData = context.LocalContextData.SetItem(key ,value);
+            });
+        }
     }
 }

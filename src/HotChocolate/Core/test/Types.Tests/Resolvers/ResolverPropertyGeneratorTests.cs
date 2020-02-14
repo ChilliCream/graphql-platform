@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
@@ -1231,6 +1230,180 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.Equal("abc", resolverContext.ScopedContextData["foo"]);
         }
 
+        [Fact]
+        public async Task Compile_GetLocalState_With_Key()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("GetLocalStateWithKey");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = new Dictionary<string, object>
+            {
+                { "foo", "bar" }
+            }.ToImmutableDictionary();
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupProperty(t => t.LocalContextData, contextData);
+            object value = await resolver.Resolver(context.Object);
+            Assert.Equal("bar", Assert.IsType<string>(value));
+        }
+
+        [Fact]
+        public async Task Compile_GetLocalState()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("GetLocalState");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = new Dictionary<string, object>
+            {
+                { "foo", "bar" }
+            }.ToImmutableDictionary();
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupProperty(t => t.LocalContextData, contextData);
+            object value = await resolver.Resolver(context.Object);
+            Assert.Equal("bar", Assert.IsType<string>(value));
+        }
+
+        [Fact]
+        public async Task Compile_GetLocalState_State_Does_Not_Exist()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("GetLocalState");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty;
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupProperty(t => t.LocalContextData, contextData);
+            await Assert.ThrowsAsync<ArgumentException>(() => resolver.Resolver(context.Object));
+        }
+
+        [Fact]
+        public async Task Compile_GetLocalState_With_Default_Abc()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("GetLocalStateWithDefaultAbc");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty;
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupProperty(t => t.LocalContextData, contextData);
+            object value = await resolver.Resolver(context.Object);
+            Assert.Equal("abc", Assert.IsType<string>(value));
+        }
+
+        [Fact]
+        public async Task Compile_GetLocalState_With_Default()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("GetLocalStateWithDefault");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty;
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupProperty(t => t.LocalContextData, contextData);
+            object value = await resolver.Resolver(context.Object);
+            Assert.Null(value);
+        }
+
+        [Fact]
+        public async Task Compile_SetLocalState()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("SetLocalState");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty;
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupProperty(t => t.LocalContextData, contextData);
+            IResolverContext resolverContext = context.Object;
+
+            await resolver.Resolver(resolverContext);
+
+            Assert.True(resolverContext.LocalContextData.ContainsKey("foo"));
+            Assert.Equal("abc", resolverContext.LocalContextData["foo"]);
+        }
+
+        [Fact]
+        public async Task Compile_SetLocalState_Generic()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("SetLocalStateGeneric");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty;
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupProperty(t => t.LocalContextData, contextData);
+            IResolverContext resolverContext = context.Object;
+
+            await resolver.Resolver(resolverContext);
+
+            Assert.True(resolverContext.LocalContextData.ContainsKey("foo"));
+            Assert.Equal("abc", resolverContext.LocalContextData["foo"]);
+        }
+
         public class Resolvers
         {
             public Task<object> ObjectTaskResolver() =>
@@ -1373,6 +1546,38 @@ namespace HotChocolate.Resolvers.Expressions
 
             public string SetScopedState(
                 [ScopedState]
+                SetState foo)
+            {
+                foo("abc");
+                return "foo";
+            }
+
+            public string GetLocalStateWithKey(
+               [LocalState("foo")]
+                string s) => s;
+
+            public string GetLocalState(
+                [LocalState]
+                string foo) => foo;
+
+            public string GetLocalStateWithDefaultAbc(
+                [LocalState]
+                string foo = "abc") => foo;
+
+            public string GetLocalStateWithDefault(
+                [LocalState]
+                string foo = default) => foo;
+
+            public string SetLocalStateGeneric(
+                [LocalState]
+                SetState<string> foo)
+            {
+                foo("abc");
+                return "foo";
+            }
+
+            public string SetLocalState(
+                [LocalState]
                 SetState foo)
             {
                 foo("abc");
