@@ -11,18 +11,18 @@ namespace HotChocolate.Types
         private const string _dateFormat = "yyyy-MM-dd";
 
         public DateType()
-            : base(ScalarNames.Date, BindingBehavior.Implicit)
+            : base(ScalarNames.Date, BindingBehavior.Explicit)
         {
             Description = TypeResources.DateType_Description;
         }
 
         public DateType(NameString name)
-            : base(name, BindingBehavior.Implicit)
+            : base(name, BindingBehavior.Explicit)
         {
         }
 
         public DateType(NameString name, string description)
-            : base(name, BindingBehavior.Implicit)
+            : base(name, BindingBehavior.Explicit)
         {
             Description = description;
         }
