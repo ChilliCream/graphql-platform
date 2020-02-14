@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetCore.Authorization
         | AttributeTargets.Method,
         Inherited = true,
         AllowMultiple = true)]
-    public sealed class AuthorizeAttribute : DescriptorAttribute
+    public class AuthorizeAttribute : DescriptorAttribute
     {
         public string? Policy { get; set; }
 
