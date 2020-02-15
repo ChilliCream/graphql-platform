@@ -6,7 +6,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetBars
+    public partial class GetBars
         : IGetBars
     {
         public GetBars(
@@ -28,7 +28,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class Foo
+    public partial class Foo
         : IFoo
     {
         public Foo(
@@ -50,7 +50,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetBars
+    public partial interface IGetBars
     {
         global::StrawberryShake.Client.IFoo Foo { get; }
     }
@@ -65,7 +65,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFoo
+    public partial interface IFoo
     {
         IReadOnlyList<string> Bars { get; }
     }
@@ -85,7 +85,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetBarsResultParser
+    public partial class GetBarsResultParser
         : JsonResultParserBase<IGetBars>
     {
 
@@ -143,7 +143,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetBarsOperation
+    public partial class GetBarsOperation
         : IOperation<IGetBars>
     {
         public string Name => "getBars";
@@ -172,7 +172,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISchemaClient
+    public partial interface ISchemaClient
     {
         Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             CancellationToken cancellationToken = default);
@@ -194,20 +194,20 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class SchemaClient
+    public partial class SchemaClient
         : ISchemaClient
     {
         private const string _clientName = "SchemaClient";
 
-        private readonly IOperationExecutor _executor;
+        private readonly global::StrawberryShake.IOperationExecutor _executor;
 
-        public SchemaClient(IOperationExecutorPool executorPool)
+        public SchemaClient(global::StrawberryShake.IOperationExecutorPool executorPool)
         {
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
-            CancellationToken cancellationToken = default)
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
+            global::System.Threading.CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
@@ -215,9 +215,9 @@ namespace StrawberryShake.Client
                 cancellationToken);
         }
 
-        public Task<IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Client.IGetBars>> GetBarsAsync(
             GetBarsOperation operation,
-            CancellationToken cancellationToken = default)
+            global::System.Threading.CancellationToken cancellationToken = default)
         {
             if (operation is null)
             {
@@ -247,7 +247,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static class SchemaClientServiceCollectionExtensions
+    public static partial class SchemaClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaClient";
 

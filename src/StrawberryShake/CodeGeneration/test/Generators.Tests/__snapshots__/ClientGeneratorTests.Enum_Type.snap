@@ -6,7 +6,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetEpisode
+    public partial class GetEpisode
         : IGetEpisode
     {
         public GetEpisode(
@@ -28,7 +28,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetEpisode
+    public partial interface IGetEpisode
     {
         IReadOnlyList<Episode?>? AppearsIn { get; }
     }
@@ -48,7 +48,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetEpisodeResultParser
+    public partial class GetEpisodeResultParser
         : JsonResultParserBase<IGetEpisode>
     {
 
@@ -110,7 +110,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class GetEpisodeOperation
+    public partial class GetEpisodeOperation
         : IOperation<IGetEpisode>
     {
         public string Name => "getEpisode";
@@ -139,7 +139,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISchemaClient
+    public partial interface ISchemaClient
     {
         Task<IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
             CancellationToken cancellationToken = default);
@@ -161,20 +161,20 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class SchemaClient
+    public partial class SchemaClient
         : ISchemaClient
     {
         private const string _clientName = "SchemaClient";
 
-        private readonly IOperationExecutor _executor;
+        private readonly global::StrawberryShake.IOperationExecutor _executor;
 
-        public SchemaClient(IOperationExecutorPool executorPool)
+        public SchemaClient(global::StrawberryShake.IOperationExecutorPool executorPool)
         {
             _executor = executorPool.CreateExecutor(_clientName);
         }
 
-        public Task<IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
-            CancellationToken cancellationToken = default)
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
+            global::System.Threading.CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
@@ -182,9 +182,9 @@ namespace StrawberryShake.Client
                 cancellationToken);
         }
 
-        public Task<IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Client.IGetEpisode>> GetEpisodeAsync(
             GetEpisodeOperation operation,
-            CancellationToken cancellationToken = default)
+            global::System.Threading.CancellationToken cancellationToken = default)
         {
             if (operation is null)
             {
@@ -222,7 +222,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class EpisodeValueSerializer
+    public partial class EpisodeValueSerializer
         : IValueSerializer
     {
         public string Name => "Episode";
@@ -298,7 +298,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Client
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static class SchemaClientServiceCollectionExtensions
+    public static partial class SchemaClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaClient";
 

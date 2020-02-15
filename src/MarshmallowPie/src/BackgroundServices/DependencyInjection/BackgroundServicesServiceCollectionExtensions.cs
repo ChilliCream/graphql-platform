@@ -13,7 +13,9 @@ namespace MarshmallowPie
                 .AddHostedService<PublishDocumentService>()
                 .AddSingleton<IPublishDocumentHandler, PublishNewSchemaDocumentHandler>()
                 .AddSingleton<IPublishDocumentHandler, PublishSchemaHandler>()
-                .AddSingleton<IPublishDocumentHandler, PublishNewQueryDocumentHandler>();
+                .AddSingleton<IPublishDocumentHandler, PublishNewQueryDocumentHandler>()
+                .AddSingleton<IPublishDocumentHandler, PublishNewRelayDocumentHandler>()
+                .AddSingleton<IPublishDocumentHandler, PublishQueryDocumentHandler>();
         }
     }
 }

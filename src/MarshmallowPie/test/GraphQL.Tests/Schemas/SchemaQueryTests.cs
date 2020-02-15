@@ -349,11 +349,8 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             IFileContainer container = await Storage.CreateContainerAsync(
                 schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
-            using (Stream stream = await container.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -394,11 +391,8 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             IFileContainer container = await Storage.CreateContainerAsync(
                 schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
-            using (Stream stream = await container.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -434,11 +428,8 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             IFileContainer container = await Storage.CreateContainerAsync(
                 schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
-            using (Stream stream = await container.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -472,11 +463,8 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             IFileContainer container = await Storage.CreateContainerAsync(
                 schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
-            using (Stream stream = await container.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -512,11 +500,8 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             IFileContainer container = await Storage.CreateContainerAsync(
                 schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
-            using (Stream stream = await container.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -550,11 +535,8 @@ namespace MarshmallowPie.GraphQL.Schemas
 
             IFileContainer container = await Storage.CreateContainerAsync(
                 schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
-            using (Stream stream = await container.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(

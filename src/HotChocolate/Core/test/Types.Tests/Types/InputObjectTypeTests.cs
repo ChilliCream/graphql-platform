@@ -1074,6 +1074,23 @@ namespace HotChocolate.Types
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void Input_Infer_Default_Values()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("abc")
+                    .Argument("def", a => a.Type<InputObjectType<InputWithDefault>>())
+                    .Resolver("ghi"))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class SimpleInput
         {
             public int Id { get; set; }
@@ -1210,6 +1227,17 @@ namespace HotChocolate.Types
             public string Bar { get; }
             public string Baz { get; set; }
             public string Qux { get; private set; }
+        }
+
+        public class InputWithDefault
+        {
+            [DefaultValue("abc")]
+            public string WithStringDefault { get; set; }
+
+            [DefaultValue(null)]
+            public string WithNullDefault { get; set; }
+
+            public string WithoutDefault { get; set; }
         }
     }
 }

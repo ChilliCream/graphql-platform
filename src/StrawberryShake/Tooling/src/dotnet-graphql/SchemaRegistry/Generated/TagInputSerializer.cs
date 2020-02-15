@@ -6,7 +6,7 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class TagInputSerializer
+    public partial class TagInputSerializer
         : IInputSerializer
     {
         private bool _needsInitialization = true;

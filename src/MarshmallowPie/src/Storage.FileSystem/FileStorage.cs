@@ -7,7 +7,7 @@ namespace MarshmallowPie.Storage.FileSystem
 {
     public class FileStorage : IFileStorage
     {
-        private string _fullDirectoryPath;
+        private readonly string _fullDirectoryPath;
 
         public FileStorage(string fullDirectoryPath)
         {
@@ -55,7 +55,7 @@ namespace MarshmallowPie.Storage.FileSystem
             string containerName,
             CancellationToken cancellationToken = default)
         {
-            string fullContainerPath = Path.Combine(_fullDirectoryPath, containerName);
+            var fullContainerPath = Path.Combine(_fullDirectoryPath, containerName);
 
             if (!Directory.Exists(fullContainerPath))
             {

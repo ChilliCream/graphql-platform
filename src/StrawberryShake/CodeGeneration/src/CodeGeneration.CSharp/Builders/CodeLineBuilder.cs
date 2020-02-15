@@ -1,6 +1,7 @@
+using System;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class CodeLineBuilder
         : ICode
@@ -17,10 +18,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             if (_value is null)
             {
                 return Task.CompletedTask;
             }
+
+            if (_value.Length == 0)
+            {
+                return writer.WriteLineAsync();
+            }
+
             return writer.WriteIndentedLineAsync(_value);
         }
     }

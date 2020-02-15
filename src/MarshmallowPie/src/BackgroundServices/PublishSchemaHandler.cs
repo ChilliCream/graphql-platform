@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
@@ -77,7 +75,7 @@ namespace MarshmallowPie.BackgroundServices
                         "There is now schema version associated with external " +
                         $"ID `{message.ExternalId}`.",
                         _fileName,
-                        new Location(0, 0, 0, 0),
+                        new Location(0, 0, 1, 1),
                         IssueType.Error,
                         ResolutionType.None))
                         .ConfigureAwait(false);
@@ -116,7 +114,7 @@ namespace MarshmallowPie.BackgroundServices
                     "PROCESSING_FAILED",
                     "Internal processing error.",
                     _fileName,
-                    new Location(0, 0, 0, 0),
+                    new Location(0, 0, 1, 1),
                     IssueType.Error,
                     ResolutionType.None))
                     .ConfigureAwait(false);
@@ -134,52 +132,6 @@ namespace MarshmallowPie.BackgroundServices
         private static string PrintSchema(DocumentNode document) =>
             SchemaSyntaxSerializer.Serialize(document, true);
 
-        private static async Task<ISchema?> TryCreateSchema(
-            DocumentNode document,
-            IssueLogger logger,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                return SchemaBuilder.New()
-                    .AddDocument(sp => document)
-                    .Use(next => context => Task.CompletedTask)
-                    .Create();
-            }
-            catch (SchemaException ex)
-            {
-                foreach (ISchemaError error in ex.Errors)
-                {
-                    await logger.LogIssueAsync(
-                        new Issue(
-                            error.Code ?? "SCHEMA_ERROR",
-                            error.Message,
-                            _fileName,
-                            error.SyntaxNodes.FirstOrDefault()?.Location
-                                ?? new Location(0, 0, 0, 0),
-                            IssueType.Error,
-                            ResolutionType.CannotBeFixed),
-                        cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                await logger.LogIssueAsync(
-                    new Issue(
-                        "SCHEMA_ERROR",
-                        ex.Message,
-                        _fileName,
-                        new Location(0, 0, 0, 0),
-                        IssueType.Error,
-                        ResolutionType.CannotBeFixed),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-                return null;
-            }
-        }
-
         private async Task PublishSchemaVersionAsync(
             PublishDocumentMessage message,
             SchemaVersion schemaVersion,
@@ -189,9 +141,10 @@ namespace MarshmallowPie.BackgroundServices
         {
             if (schemaDocument is { })
             {
-                ISchema? schema = await TryCreateSchema(
-                    schemaDocument, issueLogger, cancellationToken)
-                    .ConfigureAwait(false);
+                ISchema? schema =
+                    await SchemaHelper.TryCreateSchemaAsync(
+                        schemaDocument, issueLogger, cancellationToken)
+                        .ConfigureAwait(false);
 
                 if (schema is { })
                 {

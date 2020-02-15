@@ -10,7 +10,7 @@ namespace MarshmallowPie.GraphQL.Clients
     [ExtendObjectType(Name = "ClientVersion")]
     public class ClientVersionExtension
     {
-        public Task<IReadOnlyList<QueryDocument>> GetQueryDocuments(
+        public Task<IReadOnlyList<QueryDocument>> GetDocuments(
             [Parent]ClientVersion clientVersion,
             [DataLoader]QueryDocumentByIdDataLoader dataLoader) =>
             dataLoader.LoadAsync(clientVersion.QueryIds.ToArray());

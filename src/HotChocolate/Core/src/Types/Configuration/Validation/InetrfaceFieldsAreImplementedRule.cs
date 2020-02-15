@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Validation
 {
-    internal class InetrfaceFieldsAreImplementedRule
+    internal class InterfaceFieldsAreImplementedRule
         : ISchemaValidationRule
     {
         public IEnumerable<ISchemaError> Validate(
@@ -80,6 +80,8 @@ namespace HotChocolate.Configuration.Validation
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)
+                        .SetExtension("objectField", field)
+                        .SetExtension("interfaceField", first)
                         .Build());
                     return false;
                 }
@@ -97,6 +99,8 @@ namespace HotChocolate.Configuration.Validation
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)
+                        .SetExtension("objectField", field)
+                        .SetExtension("interfaceField", first)
                         .Build());
                     return false;
                 }
@@ -123,6 +127,8 @@ namespace HotChocolate.Configuration.Validation
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)
+                        .SetExtension("objectField", field)
+                        .SetExtension("interfaceField", first)
                         .Build());
                 }
 
@@ -138,6 +144,8 @@ namespace HotChocolate.Configuration.Validation
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)
+                        .SetExtension("objectField", field)
+                        .SetExtension("interfaceField", first)
                         .Build());
                 }
             }

@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class MethodBuilder : ICodeBuilder
     {
@@ -11,8 +12,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private bool _isAsync = false;
         private string _returnType = "void";
         private string? _name;
-        private List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
-        private List<ICode> _lines = new List<ICode>();
+        private readonly List<ParameterBuilder> _parameters = new List<ParameterBuilder>();
+        private readonly List<ICode> _lines = new List<ICode>();
 
         public static MethodBuilder New() => new MethodBuilder();
 
@@ -40,9 +41,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return this;
         }
 
-        public MethodBuilder SetReturnType(string value)
+        public MethodBuilder SetReturnType(string value, bool condition = true)
         {
-            _returnType = value;
+            if (condition)
+            {
+                _returnType = value;
+            }
             return this;
         }
 
@@ -72,6 +76,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public async Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -45,19 +44,20 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                sessionId, environment.Id, schema.Id, "externalId", Array.Empty<Tag>());
+                sessionId,
+                environment.Id,
+                schema.Id,
+                "externalId",
+                Array.Empty<DocumentInfo>(),
+                Array.Empty<Tag>());
 
             IFileContainer fileContainer = await Storage.CreateContainerAsync(sessionId);
-            using (Stream stream = await fileContainer.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes(@"
+            byte[] buffer = Encoding.UTF8.GetBytes(@"
                     type Query {
                         foo: String
                     }
                 ");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
-
+            await fileContainer.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
             await PublishDocumentMessageSender.SendAsync(message);
 
             // act
@@ -78,7 +78,7 @@ namespace MarshmallowPie.BackgroundServices
 
             SchemaVersion schemaVersion = SchemaRepository.GetSchemaVersions().Single();
             Assert.Equal(
-                "A0409BC380483FB817D51F9F08644309CA9B3B6155FD47F4321844D040C0588C",
+                "a0409bc380483fb817d51f9f08644309ca9b3b6155fd47f4321844d040c0588c",
                 schemaVersion.Hash.Hash);
         }
     }

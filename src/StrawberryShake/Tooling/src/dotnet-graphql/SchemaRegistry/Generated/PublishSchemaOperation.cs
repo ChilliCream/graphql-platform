@@ -6,7 +6,7 @@ using StrawberryShake;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public class PublishSchemaOperation
+    public partial class PublishSchemaOperation
         : IOperation<IPublishSchema>
     {
         public string Name => "publishSchema";
@@ -17,17 +17,24 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         public Type ResultType => typeof(IPublishSchema);
 
+        public Optional<string> ExternalId { get; set; }
+
         public Optional<string> SchemaName { get; set; }
 
         public Optional<string> EnvironmentName { get; set; }
 
         public Optional<string> SourceText { get; set; }
 
-        public Optional<IReadOnlyList<TagInput>?> Tags { get; set; }
+        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.TagInput>?> Tags { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
+
+            if (ExternalId.HasValue)
+            {
+                variables.Add(new VariableValue("externalId", "String", ExternalId.Value));
+            }
 
             if (SchemaName.HasValue)
             {

@@ -38,7 +38,7 @@ namespace MarshmallowPie.GraphQL.Schemas
             await PublishSchemaEventSender.SendAsync(
                 new PublishDocumentEvent(
                     sessionId,
-                    new Issue("foo", "file.graphql", new Location(0, 0, 0, 0),
+                    new Issue("foo", "file.graphql", new Location(0, 0, 1, 1),
                     IssueType.Information)));
 
             await PublishSchemaEventSender.SendAsync(

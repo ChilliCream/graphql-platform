@@ -87,6 +87,7 @@ namespace HotChocolate.Types
                         .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
+                        .SetExtension("Source", _source)
                         .Build());
                 }
                 else if (directiveType.Locations.Contains(_location))
@@ -104,6 +105,7 @@ namespace HotChocolate.Types
                         .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
+                        .SetExtension("Source", _source)
                         .Build());
                 }
             }
@@ -132,6 +134,7 @@ namespace HotChocolate.Types
                             .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
                             .SetTypeSystemObject(context.Type)
                             .AddSyntaxNode(directive.ToNode())
+                            .SetExtension("Source", _source)
                             .Build());
                     }
                 }
@@ -148,6 +151,7 @@ namespace HotChocolate.Types
                         .SetCode(ErrorCodes.Schema.InvalidArgument)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(directive.ToNode())
+                        .SetExtension("Source", _source)
                         .Build());
                 }
             }
@@ -169,6 +173,7 @@ namespace HotChocolate.Types
                         .SetCode(ErrorCodes.Schema.NonNullArgument)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(directive.ToNode())
+                        .SetExtension("Source", _source)
                         .Build());
                 }
             }

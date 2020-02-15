@@ -14,6 +14,15 @@ namespace MarshmallowPie
             Published = DateTime.UtcNow;
         }
 
+        public QueryDocument(Guid schemaId, DocumentHash hash, DocumentHash externalHash)
+        {
+            Id = Guid.NewGuid();
+            SchemaId = schemaId;
+            Hash = hash;
+            ExternalHashes = new HashSet<DocumentHash> { externalHash };
+            Published = DateTime.UtcNow;
+        }
+
         public QueryDocument(
             Guid schemaId,
             DocumentHash hash,

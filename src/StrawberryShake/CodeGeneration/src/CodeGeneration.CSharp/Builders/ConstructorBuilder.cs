@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ConstructorBuilder : ICodeBuilder
     {
@@ -44,6 +45,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public async Task BuildAsync(CodeWriter writer)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);

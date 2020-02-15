@@ -27,15 +27,25 @@ namespace StrawberryShake.Tools
                 "The name of the schema.",
                 c => c.IsRequired());
 
-            CommandArgument schemaFileNameArg = publish.Argument(
-                "schemaFileName",
-                "The schema file name.",
+            CommandArgument externalId = publish.Argument(
+                "externalId",
+                "An external identifier to track the schema through the publish process.",
                 c => c.IsRequired());
+
+            CommandOption schemaFileNameArg = publish.Option(
+                "-f|--schemaFileName",
+                "schemaFileName",
+                CommandOptionType.SingleValue);
 
             CommandOption tagArg = publish.Option(
                 "-t|--tag",
                 "A custom tag that can be passed to the schema registry.",
                 CommandOptionType.MultipleValue);
+
+            CommandOption publishedArg = publish.Option(
+                "-p|--published",
+                "A custom tag that can be passed to the schema registry.",
+                CommandOptionType.NoValue);
 
             CommandOption jsonArg = publish.Option(
                 "-j|--json",
@@ -48,10 +58,12 @@ namespace StrawberryShake.Tools
             {
                 var arguments = new PublishSchemaCommandArguments(
                     registryArg,
-                    schemaNameArg,
+                    externalId,
                     environmentNameArg,
+                    schemaNameArg,
                     schemaFileNameArg,
                     tagArg,
+                    publishedArg,
                     authArguments);
                 var handler = CommandTools.CreateHandler<PublishSchemaCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);

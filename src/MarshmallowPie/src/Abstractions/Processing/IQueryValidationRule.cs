@@ -12,6 +12,7 @@ namespace MarshmallowPie.Processing
 
         ValueTask<IEnumerable<Issue>> ValidateAsync(
             ISchema schema,
+            string fileName,
             DocumentNode document,
             CancellationToken cancellationToken);
     }

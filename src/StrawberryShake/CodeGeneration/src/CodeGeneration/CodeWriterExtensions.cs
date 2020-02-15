@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration
             this CodeWriter writer)
         {
             return writer.WriteIndentedLineAsync(
-                $"[System.CodeDom.Compiler.GeneratedCode(\"StrawberryShake\", \"11.0.0\")]");
+                $"[global::System.CodeDom.Compiler.GeneratedCode(\"StrawberryShake\", \"11.0.0\")]");
         }
     }
 }
