@@ -12,9 +12,18 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         private static IEnumerable<IResolverParameterCompiler> CreateFor<T>()
             where T : IResolverContext
         {
+#pragma warning disable CS0612
+            yield return new GetCustomContextCompiler<T>();
+#pragma warning restore CS0612
+
             yield return new GetCancellationTokenCompiler<T>();
             yield return new GetContextCompiler<T, IResolverContext>();
-            yield return new GetCustomContextCompiler<T>();
+            yield return new GetGlobalStateCompiler<T>();
+            yield return new SetGlobalStateCompiler<T>();
+            yield return new GetScopedStateCompiler<T>();
+            yield return new SetScopedStateCompiler<T>();
+            yield return new GetLocalStateCompiler<T>();
+            yield return new SetLocalStateCompiler<T>();
             yield return new GetDataLoaderCompiler<T>();
             yield return new GetEventMessageCompiler<T>();
             yield return new GetFieldSelectionCompiler<T>();

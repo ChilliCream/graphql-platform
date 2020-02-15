@@ -128,11 +128,16 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (IsState(parameter))
+#pragma warning disable CS0612
+            if (IsState(parameter)
+                || IsGlobalState(parameter)
+                || IsScopedState(parameter)
+                || IsLocalState(parameter))
             {
                 argumentKind = ArgumentKind.CustomContext;
                 return true;
             }
+#pragma warning restore CS0612
 
             if (IsService(parameter))
             {
@@ -164,9 +169,25 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 || parameter.IsDefined(typeof(DataLoaderAttribute));
         }
 
+        [Obsolete]
         internal static bool IsState(ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(StateAttribute));
+        }
+
+        internal static bool IsGlobalState(ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(GlobalStateAttribute));
+        }
+
+        internal static bool IsScopedState(ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(ScopedStateAttribute));
+        }
+
+        internal static bool IsLocalState(ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(LocalStateAttribute));
         }
 
         internal static bool IsService(ParameterInfo parameter)
