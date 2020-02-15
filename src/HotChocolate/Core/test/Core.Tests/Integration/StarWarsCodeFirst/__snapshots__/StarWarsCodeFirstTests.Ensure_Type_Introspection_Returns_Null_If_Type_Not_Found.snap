@@ -1,0 +1,11 @@
+﻿{
+  "Data": {
+    "a": null,
+    "b": {
+      "name": "Query"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}
