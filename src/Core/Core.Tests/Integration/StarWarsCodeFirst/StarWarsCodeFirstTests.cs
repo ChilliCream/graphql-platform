@@ -9,6 +9,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Subscriptions;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -754,6 +755,57 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [InlineData("true")]
+        [InlineData("false")]
+        [Theory]
+        public void Include_With_Literal(string ifValue)
+        {
+            // arrange
+            var query = $@"
+            {{
+                human(id: ""1000"") {{
+                    name @include(if: {ifValue})
+                    height
+                }}
+            }}";
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(query);
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void Include_With_Variable(bool ifValue)
+        {
+            // arrange
+            var query = $@"
+            query ($if: Boolean!) {{
+                human(id: ""1000"") {{
+                    name @include(if: $if)
+                    height
+                }}
+            }}";
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                query,
+                new Dictionary<string, object>
+                {
+                    { "if", ifValue }
+                });
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
         }
 
         private static Schema CreateSchema()
