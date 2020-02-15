@@ -5,26 +5,15 @@ using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
+    [Obsolete]
     internal sealed class GetCustomContextCompiler<T>
-        : ResolverParameterCompilerBase<T>
+        : CustomContextCompilerBase<T>
         where T : IResolverContext
     {
         private static readonly MethodInfo _resolveContextData =
             typeof(ExpressionHelper).GetMethod("ResolveContextData");
         private static readonly MethodInfo _resolveScopedContextData =
             typeof(ExpressionHelper).GetMethod("ResolveScopedContextData");
-
-        private readonly PropertyInfo _contextData;
-        private readonly PropertyInfo _scopedContextData;
-
-        public GetCustomContextCompiler()
-        {
-            _contextData = typeof(IHasContextData)
-                .GetTypeInfo().GetDeclaredProperty(
-                    nameof(IResolverContext.ContextData));
-            _scopedContextData = ContextTypeInfo.GetDeclaredProperty(
-                nameof(IResolverContext.ScopedContextData));
-        }
 
         public override bool CanHandle(
             ParameterInfo parameter,
@@ -46,8 +35,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 Expression.Constant(attribute.DefaultIfNotExists);
 
             MemberExpression contextData = attribute.IsScoped
-                ? Expression.Property(context, _scopedContextData)
-                : Expression.Property(context, _contextData);
+                ? Expression.Property(context, ScopedContextData)
+                : Expression.Property(context, ContextData);
 
             MethodInfo resolveContextData = attribute.IsScoped
                 ? _resolveScopedContextData.MakeGenericMethod(
