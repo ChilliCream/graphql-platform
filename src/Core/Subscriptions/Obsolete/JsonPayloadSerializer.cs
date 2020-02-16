@@ -1,10 +1,11 @@
+using System;
 using System.Globalization;
-using System.Runtime.Serialization.Formatters;
 using System.Text;
 using Newtonsoft.Json;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete("This type will be removed and has no replacement.")]
     public class JsonPayloadSerializer
         : IPayloadSerializer
     {

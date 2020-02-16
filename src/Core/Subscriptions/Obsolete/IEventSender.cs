@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
@@ -12,6 +13,7 @@ namespace HotChocolate.Subscriptions
     /// the GraphQL schema process to raise events that than will trigger
     /// subscriptions to yield new results to their subscribers.
     /// </summary>
+    [Obsolete("Use HotChocolate.Subscriptions.IEventDispatcher.")]
     public interface IEventSender
     {
         /// <summary>
