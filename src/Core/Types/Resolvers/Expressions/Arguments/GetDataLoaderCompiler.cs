@@ -1,7 +1,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using GreenDonut;
 using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
@@ -44,12 +43,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
             return string.IsNullOrEmpty(attribute?.Key)
                 ? Expression.Call(
-                    _dataLoader.MakeGenericMethod(
-                        parameter.ParameterType),
+                    _dataLoader.MakeGenericMethod(parameter.ParameterType),
                     context)
                 : Expression.Call(
-                    _dataLoaderWithKey.MakeGenericMethod(
-                        parameter.ParameterType),
+                    _dataLoaderWithKey.MakeGenericMethod(parameter.ParameterType),
                     context,
                     Expression.Constant(attribute.Key));
         }

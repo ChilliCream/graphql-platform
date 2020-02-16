@@ -3,8 +3,9 @@ using HotChocolate.Properties;
 
 namespace HotChocolate
 {
+    [Obsolete("Use GlobalStateAttribute or ScopedStateAttribute.")]
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class StateAttribute
+    public class StateAttribute
         : Attribute
     {
         public StateAttribute(string key)

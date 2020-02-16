@@ -27,8 +27,15 @@ namespace HotChocolate.Types.Introspection
                 TypeResources.TypeField_Description)
                 .Argument("name", a => a.Type<NonNullType<StringType>>())
                 .Type<__Type>()
-                .Resolver(ctx => ctx.Schema.GetType<INamedType>(
-                    ctx.Argument<string>("name")));
+                .Resolver(ctx =>
+                {
+                    string name = ctx.Argument<string>("name");
+                    if (ctx.Schema.TryGetType(name, out INamedType type))
+                    {
+                        return type;
+                    }
+                    return null;
+                });
 
             return descriptor.CreateDefinition();
         }
