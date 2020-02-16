@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
+using System;
 using Xunit;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete]
     public class JsonPayloadSerializerTests
     {
         [Fact]
