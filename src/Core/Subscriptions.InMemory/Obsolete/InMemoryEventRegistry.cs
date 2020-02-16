@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete]
     public class InMemoryEventRegistry
         : IEventRegistry
         , IEventSender
