@@ -51,13 +51,13 @@ namespace HotChocolate.Types
                 });
         }
 
-        private class Query
+        public class Query
         {
             [UseSelection]
             public IQueryable<Foo> Foos { get; }
         }
 
-        private class Foo
+        public class Foo
         {
             public string Bar { get; set; }
             public int Baz { get; set; }
@@ -86,7 +86,7 @@ namespace HotChocolate.Types
             }
         }
 
-        private class NestedFoo
+        public class NestedFoo
         {
             public string Bar { get; set; }
             public int Baz { get; set; }

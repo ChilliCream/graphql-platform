@@ -39,7 +39,7 @@ namespace HotChocolate.Resolvers
             {
                 propertyInfo.Name
             };
-            return new ResolverMetadata(dependsOn, Resources, false);
+            return new ResolverMetadata(dependsOn, Resources, IsPure);
         }
 
         public ResolverMetadata AsNonPure()
@@ -64,8 +64,7 @@ namespace HotChocolate.Resolvers
         {
             unchecked
             {
-                return (base.GetHashCode() * 487579150)
-                ^ (-1521134295 * DependsOn.Aggregate(
+                return (-1521134295 * DependsOn.Aggregate(
                     487579150, (current, x) => current ^ -1521134295 * x?.GetHashCode() ?? 0))
                 ^ (-1521134295 * Resources.Aggregate(
                     487579150, (current, x) => current ^ -1521134295 * x?.GetHashCode() ?? 0))

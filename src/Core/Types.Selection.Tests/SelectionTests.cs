@@ -15,6 +15,7 @@ namespace HotChocolate.Types
                 Foo.Create("aa",1),
                 Foo.Create("bb",2),
             };
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query>(
@@ -180,7 +181,7 @@ namespace HotChocolate.Types
                     Assert.Equal(0, x.Baz);
                     Assert.NotNull(x.Nested);
                     Assert.Equal("nestedaa", x.Nested.Bar);
-                    Assert.Equal(2, x.Nested.Baz);
+                    Assert.Equal(0, x.Nested.Baz);
                     Assert.Null(x.NestedCollection);
                 },
                 x =>
@@ -189,10 +190,11 @@ namespace HotChocolate.Types
                     Assert.Equal(0, x.Baz);
                     Assert.NotNull(x.Nested);
                     Assert.Equal("nestedbb", x.Nested.Bar);
-                    Assert.Equal(4, x.Nested.Baz);
+                    Assert.Equal(0, x.Nested.Baz);
                     Assert.Null(x.NestedCollection);
                 });
         }
+
         [Fact]
         public void Execute_Selection_Collection()
         {
@@ -230,7 +232,7 @@ namespace HotChocolate.Types
                     Assert.Null(x.Nested);
                     Assert.Single(x.NestedCollection);
                     Assert.Equal("nestedcollectionaa", x.NestedCollection[0].Bar);
-                    Assert.Equal(3, x.NestedCollection[0].Baz);
+                    Assert.Equal(0, x.NestedCollection[0].Baz);
                 },
                 x =>
                 {
@@ -239,15 +241,15 @@ namespace HotChocolate.Types
                     Assert.Null(x.Nested);
                     Assert.Single(x.NestedCollection);
                     Assert.Equal("nestedcollectionbb", x.NestedCollection[0].Bar);
-                    Assert.Equal(6, x.NestedCollection[0].Baz);
+                    Assert.Equal(0, x.NestedCollection[0].Baz);
                 });
         }
-        private class Query
+        public class Query
         {
             public IQueryable<Foo> Foos { get; }
         }
 
-        private class Foo
+        public class Foo
         {
             public string Bar { get; set; }
             public int Baz { get; set; }
@@ -276,7 +278,7 @@ namespace HotChocolate.Types
             }
         }
 
-        private class NestedFoo
+        public class NestedFoo
         {
             public string Bar { get; set; }
             public int Baz { get; set; }

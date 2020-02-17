@@ -74,6 +74,35 @@ namespace HotChocolate.Resolvers
         }
 
         [Fact]
+        public void ObjectType_Inferred()
+        {
+            // arrange
+            var objectType = new ObjectType<FooInferred>();
+
+            // act
+            var schema = Schema.Create(
+                t => t.RegisterQueryType(objectType));
+
+            // assert
+            ObjectType<FooInferred> type =
+                schema.GetType<ObjectType<FooInferred>>("FooInferred");
+            Assert.True(type.Fields["method1"].Metadata.IsPure);
+            Assert.True(type.Fields["description"].Metadata.IsPure);
+
+            Assert.False(type.Fields["method2"].Metadata.IsPure);
+            Assert.Single(type.Fields["method2"].Metadata.DependsOn);
+            Assert.Equal("Description", type.Fields["method2"].Metadata.DependsOn[0]);
+
+            Assert.True(type.Fields["method3"].Metadata.IsPure);
+
+            Assert.False(type.Fields["method4"].Metadata.IsPure);
+            Assert.Empty(type.Fields["method4"].Metadata.DependsOn);
+
+            Assert.False(type.Fields["method5"].Metadata.IsPure);
+            Assert.Empty(type.Fields["method5"].Metadata.DependsOn);
+        }
+
+        [Fact]
         public void ObjectType_ExtensionType()
         {
             // arrange
@@ -328,6 +357,35 @@ namespace HotChocolate.Resolvers
             public string Description { get; } = "hello";
         }
 
+        private class FooInferred
+        {
+            public string Description { get; } = "hello";
+
+            public string Method1()
+            {
+                return "";
+            }
+
+            public string Method2([Parent("Description")]string str)
+            {
+                return str;
+            }
+
+            public string Method3(string arg)
+            {
+                return arg;
+            }
+
+            public string Method4(IResolverContext context)
+            {
+                return "asdasd";
+            }
+
+            public string Method5([Parent]Foo foo)
+            {
+                return foo.Description;
+            }
+        }
     }
 
 

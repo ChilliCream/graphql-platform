@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using HotChocolate.Types.Selection;
 
 namespace HotChocolate.Types
 {
@@ -51,10 +50,9 @@ namespace HotChocolate.Types
             {
                 source = e.AsQueryable();
             }
-
-            IEnumerable<MemberInfo> members = selection.Select(x => x.Field.Member);
-            Expression<Func<T, T>> projection = SelectionExpressionBuilder.Project<T>(members);
-            context.Result = source.Select(projection);
+            var visitor = new SelectionVisitor(context);
+            visitor.Accept(context.Field);
+            context.Result = source.Select(visitor.Project<T>());
         }
     }
 }
