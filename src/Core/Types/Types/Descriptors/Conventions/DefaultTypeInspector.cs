@@ -263,5 +263,35 @@ namespace HotChocolate.Types.Descriptors
                 attribute.TryConfigure(context, descriptor, attributeProvider);
             }
         }
+
+        public virtual bool TryGetDefaultValue(ParameterInfo parameter, out object defaultValue)
+        {
+            if (parameter.IsDefined(typeof(DefaultValueAttribute)))
+            {
+                defaultValue = parameter.GetCustomAttribute<DefaultValueAttribute>().Value;
+                return true;
+            }
+
+            if (parameter.HasDefaultValue)
+            {
+                defaultValue = parameter.RawDefaultValue;
+                return true;
+            }
+
+            defaultValue = null;
+            return false;
+        }
+
+        public virtual bool TryGetDefaultValue(PropertyInfo parameter, out object defaultValue)
+        {
+            if (parameter.IsDefined(typeof(DefaultValueAttribute)))
+            {
+                defaultValue = parameter.GetCustomAttribute<DefaultValueAttribute>().Value;
+                return true;
+            }
+
+            defaultValue = null;
+            return false;
+        }
     }
 }
