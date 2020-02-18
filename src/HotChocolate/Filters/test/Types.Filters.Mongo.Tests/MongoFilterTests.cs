@@ -377,11 +377,19 @@ namespace HotChocolate.Types.Filters
         public class Model
         {
             public ObjectId Id { get; set; }
+
             public string Foo { get; set; }
+
             public int Bar { get; set; }
+
             public bool Baz { get; set; }
+
             public Model Nested { get; set; }
+
+            [GraphQLType(typeof(NonNullType<DateTimeType>))]
             public DateTime Time { get; set; }
+
+            [GraphQLType(typeof(NonNullType<DateType>))]
             public DateTime Date { get; set; }
         }
     }

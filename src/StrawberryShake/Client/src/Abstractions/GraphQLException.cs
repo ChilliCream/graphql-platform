@@ -55,7 +55,7 @@ namespace StrawberryShake
             if (errors is null || errors.Count == 0)
             {
                 // TODO : resources
-                return "Unexpected GraphQL exception occured.";
+                return "Unexpected GraphQL exception occurred.";
             }
 
             if (errors.Count == 1)
@@ -66,7 +66,7 @@ namespace StrawberryShake
             var message = new StringBuilder();
 
             // TODO : resources
-            message.AppendLine("Multiple GraphQL errors occured:");
+            message.AppendLine("Multiple GraphQL errors occurred:");
             foreach (IError error in errors)
             {
                 message.AppendLine(error.Message);
@@ -80,7 +80,7 @@ namespace StrawberryShake
             if (error is null)
             {
                 // TODO : resources
-                return "Unexpected GraphQL exception occured.";
+                return "Unexpected GraphQL exception occurred.";
             }
             return error.Message;
         }
