@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "global::StrawberryShake.IOperationExecutorPool",
                 "global::StrawberryShake.IOperationExecutor",
                 "global::StrawberryShake.IOperationStreamExecutor",
-                new []
+                new[]
                 {
                     new ClientOperationMethodDescriptor(
                         "GetHero",
@@ -62,7 +62,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "global::StrawberryShake.IOperationExecutorPool",
                 "global::StrawberryShake.IOperationExecutor",
                 "global::StrawberryShake.IOperationStreamExecutor",
-                new []
+                new[]
                 {
                     new ClientOperationMethodDescriptor(
                         "GetHero",
@@ -99,7 +99,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "global::StrawberryShake.IOperationExecutorPool",
                 "global::StrawberryShake.IOperationExecutor",
                 "global::StrawberryShake.IOperationStreamExecutor",
-                new []
+                new[]
                 {
                     new ClientOperationMethodDescriptor(
                         "episode",

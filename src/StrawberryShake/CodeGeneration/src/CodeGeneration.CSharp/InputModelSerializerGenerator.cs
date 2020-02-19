@@ -206,7 +206,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .AddCode(CreateDeserializeBody(CodeWriter.Indent)));
         }
 
-        private CodeBlockBuilder CreateDeserializeBody(string indent)
+        private static CodeBlockBuilder CreateDeserializeBody(string indent)
         {
             var body = new StringBuilder();
 

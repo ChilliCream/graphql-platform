@@ -26,9 +26,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ParameterBuilder SetDefault(string value = "default")
+        public ParameterBuilder SetDefault(string value = "default", bool condition = true)
         {
-            _default = value;
+            if (condition)
+            {
+                _default = value;
+            }
             return this;
         }
 

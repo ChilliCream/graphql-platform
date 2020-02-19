@@ -121,12 +121,15 @@ namespace StrawberryShake.CodeGeneration
         {
             WriteLeftBrace();
             WriteLine();
-            IncreaseIndent();
+
+#pragma warning disable CA2000
+            IDisposable indent = IncreaseIndent();
+#pragma warning restore CA2000
 
             return new Block(() =>
             {
                 WriteLine();
-                DecreaseIndent();
+                indent.Dispose();
                 WriteIndent();
                 WriteRightBrace();
             });

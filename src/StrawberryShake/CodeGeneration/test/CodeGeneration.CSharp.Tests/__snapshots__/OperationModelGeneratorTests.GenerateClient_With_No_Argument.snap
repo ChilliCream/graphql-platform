@@ -1,0 +1,41 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+public partial OnReviewOperation
+    : global::StrawberryShake.IOperation<global::Demo.IOnReview>
+{
+    public string Name
+    {
+        get
+        {
+            return "onReview";
+        }
+    }
+
+    public global::StrawberryShake.IDocument Document
+    {
+        get
+        {
+            return Queries.Default;
+        }
+    }
+
+    public global::StrawberryShake.OperationKind Kind
+    {
+        get
+        {
+            return OperationKind.Subscription;
+        }
+    }
+
+    public global::System.Type ResultType
+    {
+        get
+        {
+            return typeof(global::Demo.IOnReview);
+        }
+    }
+
+    public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.VariableValue> GetVariableValues()
+    {
+        return global::System.Array.Empty<global::StrawberryShake.VariableValue>();
+    }
+}

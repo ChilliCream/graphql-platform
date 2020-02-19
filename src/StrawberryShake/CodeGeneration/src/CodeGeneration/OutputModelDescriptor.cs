@@ -26,14 +26,4 @@ namespace StrawberryShake.CodeGeneration
 
         public IReadOnlyList<OutputFieldDescriptor> Fields { get; }
     }
-
-    public class OperationModelDescriptor
-        : ICodeDescriptor
-    {
-        public string Name { get; }
-
-        public string ResultType { get; }
-
-        
-    }
 }
