@@ -17,40 +17,21 @@ namespace HotChocolate.AspNetCore
         private const int _badRequest = 400;
         private const int _ok = 200;
 
-        private readonly Func<HttpContext, bool> _isPathValid;
         private readonly IQueryResultSerializer _serializer;
 
-        private IQueryRequestInterceptor<HttpContext> _interceptor;
+        private IQueryRequestInterceptor<HttpContext>? _interceptor;
         private bool _interceptorInitialized;
 
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IPathOptionAccessor options,
             IQueryResultSerializer serializer,
             IErrorHandler errorHandler)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             _serializer = serializer
                 ?? throw new ArgumentNullException(nameof(serializer));
             ErrorHandler = errorHandler
                 ?? throw new ArgumentNullException(nameof(serializer));
-
             Next = next;
-
-            if (options.Path.Value.Length > 1)
-            {
-                var path1 = new PathString(options.Path.Value.TrimEnd('/'));
-                PathString path2 = path1.Add(new PathString("/"));
-                _isPathValid = ctx => ctx.IsValidPath(path1, path2);
-            }
-            else
-            {
-                _isPathValid = ctx => ctx.IsValidPath(options.Path);
-            }
         }
 
         protected RequestDelegate Next { get; }
@@ -64,7 +45,7 @@ namespace HotChocolate.AspNetCore
         /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
-            if (_isPathValid(context) && CanHandleRequest(context))
+            if (CanHandleRequest(context))
             {
                 try
                 {
@@ -153,7 +134,7 @@ namespace HotChocolate.AspNetCore
 
             builder.SetServices(services);
             builder.TryAddProperty(nameof(HttpContext), context);
-            builder.TryAddProperty(nameof(ClaimsPrincipal), context.GetUser());
+            builder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
 
             if (context.IsTracingEnabled())
             {

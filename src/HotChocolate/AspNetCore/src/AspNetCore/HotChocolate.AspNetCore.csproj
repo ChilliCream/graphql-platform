@@ -17,8 +17,4 @@
     <ProjectReference Include="..\AspNetCore.Subscriptions\HotChocolate.AspNetCore.Subscriptions.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.1" />
-  </ItemGroup>
-
 </Project>

@@ -1,14 +1,14 @@
-using System.Threading;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Language;
 using HotChocolate.Server;
-using HotChocolate.Execution.Batching;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
 {
@@ -32,7 +32,7 @@ namespace HotChocolate.AspNetCore
             IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider,
             IErrorHandler errorHandler)
-            : base(next, options, resultSerializer, errorHandler)
+            : base(next, resultSerializer, errorHandler)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
@@ -90,7 +90,7 @@ namespace HotChocolate.AspNetCore
                         .ConfigureAwait(false);
                 }
                 else if (TryParseOperations(operations,
-                    out IReadOnlyList<string> operationNames))
+                    out IReadOnlyList<string>? operationNames))
                 {
                     await ExecuteOperationBatchAsync(
                         context, services, batch[0], operationNames)
@@ -248,7 +248,7 @@ namespace HotChocolate.AspNetCore
         {
             using (Stream stream = context.Request.Body)
             {
-                IReadOnlyList<GraphQLRequest> batch = null;
+                IReadOnlyList<GraphQLRequest>? batch = null;
 
                 switch (ParseContentType(context.Request.ContentType))
                 {
@@ -304,7 +304,8 @@ namespace HotChocolate.AspNetCore
 
         private static bool TryParseOperations(
             string operationNameString,
-            out IReadOnlyList<string> operationNames)
+            [NotNullWhen(returnValue: true)]
+            out IReadOnlyList<string>? operationNames)
         {
             var reader = new Utf8GraphQLReader(
                 Encoding.UTF8.GetBytes(operationNameString));

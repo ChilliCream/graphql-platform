@@ -1,6 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.AspNetCore.Interceptors;
+using Microsoft.AspNetCore.Routing.Patterns;
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore
@@ -8,6 +8,7 @@ namespace HotChocolate.AspNetCore
     public class QueryMiddlewareOptions
     {
         private PathString _path = new PathString("/");
+        private RoutePattern _pathPattern = RoutePatternFactory.Parse("/");
         private PathString _subscriptionPath = new PathString("/");
         private ParserOptions _parserOptions = new ParserOptions();
 
@@ -46,6 +47,34 @@ namespace HotChocolate.AspNetCore
             }
         }
 
+        public RoutePattern Pattern
+        {
+            get => _pathPattern;
+            set
+            {
+                if (value is null)
+                {
+                    throw new ArgumentNullException(nameof(Pattern));
+                }
+
+                _pathPattern = value;
+            }
+        }
+
+        public string PatternString
+        {
+            get => _pathPattern.ToString()!;
+            set
+            {
+                if (value is null)
+                {
+                    throw new ArgumentNullException(nameof(PatternString));
+                }
+
+                _pathPattern = RoutePatternFactory.Parse(value);
+            }
+        }
+
         public PathString SubscriptionPath
         {
             get => _subscriptionPath;
@@ -53,7 +82,7 @@ namespace HotChocolate.AspNetCore
             {
                 if (!value.HasValue)
                 {
-                    // TODO : resurces
+                    // TODO : resources
                     throw new ArgumentException(
                         "The subscription-path cannot be empty.");
                 }
@@ -62,16 +91,12 @@ namespace HotChocolate.AspNetCore
             }
         }
 
+        public bool EnableHttpPost { get; set; } = true;
+
+        public bool EnableHttpGet { get; set; } = true;
+
+        public bool EnableHttpGetSdl { get; set; } = true;
+
         public bool EnableSubscriptions { get; set; } = true;
-
-        [Obsolete(
-            "Use serviceCollection.AddSocketConnectionInterceptor()",
-            true)]
-        public OnConnectWebSocketAsync OnConnectWebSocket { get; set; }
-
-        [Obsolete(
-            "Use serviceCollection.AddQueryRequestInterceptor()",
-            true)]
-        public OnCreateRequestAsync OnCreateRequest { get; set; }
     }
 }

@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Http;
+
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {

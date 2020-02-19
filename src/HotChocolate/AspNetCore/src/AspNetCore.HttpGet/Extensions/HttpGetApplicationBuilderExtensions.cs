@@ -1,5 +1,8 @@
 using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
 
 namespace HotChocolate.AspNetCore
 {
@@ -7,26 +10,20 @@ namespace HotChocolate.AspNetCore
     {
         public static IApplicationBuilder UseGraphQLHttpGet(
             this IApplicationBuilder applicationBuilder) =>
-            UseGraphQLHttpGet(
-                applicationBuilder,
-                new HttpGetMiddlewareOptions());
+            UseGraphQLHttpGet(applicationBuilder, new PathString());
 
         public static IApplicationBuilder UseGraphQLHttpGet(
             this IApplicationBuilder applicationBuilder,
-            IHttpGetMiddlewareOptions options)
+            PathString path)
         {
             if (applicationBuilder == null)
             {
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return applicationBuilder
-                .UseMiddleware<HttpGetMiddleware>(options);
+            return applicationBuilder.Map(
+                path,
+                b => b.UseMiddleware<HttpGetMiddleware>());
         }
     }
 }

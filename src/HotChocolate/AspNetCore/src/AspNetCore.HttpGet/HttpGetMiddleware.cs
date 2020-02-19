@@ -20,11 +20,10 @@ namespace HotChocolate.AspNetCore
 
         public HttpGetMiddleware(
             RequestDelegate next,
-            IHttpGetMiddlewareOptions options,
             IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
             IErrorHandler errorHandler)
-            : base(next, options, resultSerializer, errorHandler)
+            : base(next, resultSerializer, errorHandler)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
@@ -33,14 +32,9 @@ namespace HotChocolate.AspNetCore
         }
 
         /// <inheritdoc />
-        protected override bool CanHandleRequest(HttpContext context)
-        {
-            return string.Equals(
-                context.Request.Method,
-                HttpMethods.Get,
-                StringComparison.Ordinal) &&
-                    HasQueryParameter(context);
-        }
+        protected override bool CanHandleRequest(HttpContext context) =>
+            string.Equals(context.Request.Method, HttpMethods.Get, StringComparison.Ordinal)
+                && HasQueryParameter(context);
 
         protected override async Task ExecuteRequestAsync(
             HttpContext context,
@@ -74,9 +68,7 @@ namespace HotChocolate.AspNetCore
                 .ExecuteAsync(request, context.GetCancellationToken())
                 .ConfigureAwait(false);
 
-            SetResponseHeaders(
-                context.Response,
-                _resultSerializer.ContentType);
+            SetResponseHeaders(context.Response, _resultSerializer.ContentType);
 
             await _resultSerializer.SerializeAsync(
                 result,

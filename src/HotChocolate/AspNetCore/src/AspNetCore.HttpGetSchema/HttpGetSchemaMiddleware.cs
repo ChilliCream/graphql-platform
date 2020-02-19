@@ -7,25 +7,17 @@ using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore
 {
-    internal sealed class HttpGetSchemaMiddleware
+    public sealed class HttpGetSchemaMiddleware
     {
-        private readonly PathString _path;
         private readonly IQueryExecutor _queryExecutor;
 
         public HttpGetSchemaMiddleware(
             RequestDelegate next,
-            IHttpGetSchemaMiddlewareOptions options,
             IQueryExecutor queryExecutor)
         {
             Next = next;
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _path = options.Path;
         }
 
         internal RequestDelegate Next { get; }
@@ -34,8 +26,7 @@ namespace HotChocolate.AspNetCore
         {
             if (context.Request.Method.Equals(
                 HttpMethods.Get,
-                StringComparison.Ordinal)
-                && context.IsValidPath(_path))
+                StringComparison.Ordinal))
             {
                 context.Response.ContentType = ContentType.GraphQL;
                 context.Response.Headers.Add(
