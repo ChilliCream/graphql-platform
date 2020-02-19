@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         : MessageHandler<DataStartMessage>
     {
         private readonly IQueryExecutor _queryExecutor;
-        private readonly ISocketQueryRequestInterceptor[] _requestInterceptors;
+        private readonly ISocketQueryRequestInterceptor[]? _requestInterceptors;
 
         public DataStartMessageHandler(
             IQueryExecutor queryExecutor,
@@ -62,7 +62,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                         new Subscription(
                             connection,
                             responseStream,
-                            message.Id));
+                            message.Id!));
                     break;
 
                 case IReadOnlyQueryResult queryResult:
@@ -86,12 +86,12 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             CancellationToken cancellationToken)
         {
             await connection.SendAsync(
-                new DataResultMessage(message.Id, queryResult).Serialize(),
+                new DataResultMessage(message.Id!, queryResult).Serialize(),
                 cancellationToken)
                 .ConfigureAwait(false);
 
             await connection.SendAsync(
-                new DataCompleteMessage(message.Id).Serialize(),
+                new DataCompleteMessage(message.Id!).Serialize(),
                 cancellationToken)
                 .ConfigureAwait(false);
         }

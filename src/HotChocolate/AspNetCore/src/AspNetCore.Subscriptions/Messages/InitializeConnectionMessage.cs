@@ -3,10 +3,10 @@
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
     public sealed class InitializeConnectionMessage
-        : OperationMessage<IReadOnlyDictionary<string, object>>
+        : OperationMessage<IReadOnlyDictionary<string, object>?>
     {
         public InitializeConnectionMessage(
-            IReadOnlyDictionary<string, object> payload)
+            IReadOnlyDictionary<string, object>? payload)
             : base(MessageTypes.Connection.Initialize, payload)
         {
         }

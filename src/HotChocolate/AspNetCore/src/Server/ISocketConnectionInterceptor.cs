@@ -8,7 +8,7 @@ namespace HotChocolate.Server
     {
         Task<ConnectionStatus> OnOpenAsync(
             TContext context,
-            IReadOnlyDictionary<string, object> properties,
+            IReadOnlyDictionary<string, object>? properties,
             CancellationToken cancellationToken);
     }
 }

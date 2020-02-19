@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             DataStopMessage message,
             CancellationToken cancellationToken)
         {
-            connection.Subscriptions.Unregister(message.Id);
+            connection.Subscriptions.Unregister(message.Id!);
             return Task.CompletedTask;
         }
     }

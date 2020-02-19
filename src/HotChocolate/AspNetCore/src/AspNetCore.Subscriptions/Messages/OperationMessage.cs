@@ -10,7 +10,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             {
                 // TODO : resources
                 throw new ArgumentException(
-                    "The message type mustn`t be null or empty.",
+                    "The message type mustn't be null or empty.",
                     nameof(type));
             }
 
@@ -23,7 +23,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             Id = id;
         }
 
-        public string Id { get; }
+        public string? Id { get; }
 
         public string Type { get; }
     }

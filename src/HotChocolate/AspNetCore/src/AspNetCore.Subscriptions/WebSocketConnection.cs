@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     {
         private const string _protocol = "graphql-ws";
         private const int _maxMessageSize = 1024 * 4;
-        private WebSocket _webSocket;
+        private WebSocket? _webSocket;
         private bool _disposed;
 
         public WebSocketConnection(HttpContext httpContext)
@@ -66,7 +66,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             byte[] message,
             CancellationToken cancellationToken)
         {
-            WebSocket webSocket = _webSocket;
+            WebSocket? webSocket = _webSocket;
 
             if (_disposed || webSocket == null)
             {
@@ -83,7 +83,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             PipeWriter writer,
             CancellationToken cancellationToken)
         {
-            WebSocket webSocket = _webSocket;
+            WebSocket? webSocket = _webSocket;
 
             if (_disposed || webSocket == null)
             {
@@ -92,7 +92,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             try
             {
-                WebSocketReceiveResult socketResult = null;
+                WebSocketReceiveResult? socketResult = null;
                 do
                 {
                     Memory<byte> memory = writer.GetMemory(_maxMessageSize);
@@ -142,7 +142,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             try
             {
-                if (_disposed || Closed)
+                if (_webSocket is null || _disposed || Closed)
                 {
                     return;
                 }

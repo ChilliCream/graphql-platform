@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Server;
 using HotChocolate.Language;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
@@ -30,7 +31,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             ReadOnlySequence<byte> slice,
             CancellationToken cancellationToken)
         {
-            if (TryParseMessage(slice, out OperationMessage message))
+            if (TryParseMessage(slice, out OperationMessage? message))
             {
                 await HandleMessageAsync(connection, message, cancellationToken)
                     .ConfigureAwait(false);
@@ -46,10 +47,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private static bool TryParseMessage(
             ReadOnlySequence<byte> slice,
-            out OperationMessage message)
+            [NotNullWhen(true)]
+            out OperationMessage? message)
         {
             ReadOnlySpan<byte> messageData;
-            byte[] buffer = null;
+            byte[]? buffer = null;
 
             if (slice.IsSingleSegment)
             {
@@ -116,7 +118,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private static bool TryDeserializeMessage(
             GraphQLSocketMessage parsedMessage,
-            out OperationMessage message)
+            [NotNullWhen(true)]out OperationMessage? message)
         {
             switch (parsedMessage.Type)
             {
@@ -148,7 +150,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             if (parsedMessage.HasPayload)
             {
-                object parsed = Utf8GraphQLRequestParser.ParseJson(
+                object? parsed = Utf8GraphQLRequestParser.ParseJson(
                     parsedMessage.Payload);
 
                 if (parsed is IReadOnlyDictionary<string, object> payload)
@@ -161,7 +163,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private static bool TryDeserializeDataStartMessage(
             GraphQLSocketMessage parsedMessage,
-            out OperationMessage message)
+            [NotNullWhen(true)]out OperationMessage? message)
         {
             if (!parsedMessage.HasPayload)
             {
@@ -172,7 +174,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             IReadOnlyList<GraphQLRequest> batch =
                 Utf8GraphQLRequestParser.Parse(parsedMessage.Payload);
 
-            message = new DataStartMessage(parsedMessage.Id, batch[0]);
+            message = new DataStartMessage(parsedMessage.Id!, batch[0]);
             return true;
         }
 
@@ -185,7 +187,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     "Invalid message structure.");
             }
 
-            return new DataStopMessage(parsedMessage.Id);
+            return new DataStopMessage(parsedMessage.Id!);
         }
 
         private async Task HandleMessageAsync(

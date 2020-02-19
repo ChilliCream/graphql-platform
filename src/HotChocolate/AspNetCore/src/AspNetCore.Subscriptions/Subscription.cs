@@ -16,7 +16,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private readonly IResponseStream _responseStream;
         private bool _disposed;
 
-        public event EventHandler Completed;
+        public event EventHandler? Completed;
 
         public Subscription(
             ISocketConnection connection,

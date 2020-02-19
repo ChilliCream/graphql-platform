@@ -44,9 +44,9 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             {
                 var rejectMessage = connectionStatus.Extensions == null
                     ? new RejectConnectionMessage(
-                        connectionStatus.Message)
+                        connectionStatus.Message!)
                     : new RejectConnectionMessage(
-                        connectionStatus.Message,
+                        connectionStatus.Message!,
                         connectionStatus.Extensions);
 
                 await connection.SendAsync(
@@ -54,9 +54,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                // TODO : resources
                 await connection.CloseAsync(
-                    connectionStatus.Message,
+                    connectionStatus.Message!,
                     SocketCloseStatus.PolicyViolation,
                     cancellationToken)
                     .ConfigureAwait(false);

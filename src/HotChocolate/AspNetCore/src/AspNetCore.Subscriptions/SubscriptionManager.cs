@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Server;
 
@@ -57,7 +57,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
 
             if (_subs.TryRemove(subscriptionId,
-                out ISubscription subscription))
+                out ISubscription? subscription))
             {
                 subscription.Dispose();
             }
@@ -80,7 +80,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     for (int i = 0; i < subs.Length; i++)
                     {
                         subs[i].Dispose();
-                        subs[i] = null;
                     }
 
                     _subs.Clear();
