@@ -54,6 +54,4 @@ namespace HotChocolate.Subscriptions.InMemory
             throw new InvalidMessageTypeException();
         }
     }
-
-
 }
