@@ -10,7 +10,10 @@ namespace HotChocolate.Utilities
 {
     internal static class ExtendedTypeRewriter
     {
-        public static Type Rewrite(IExtendedType type, params Nullable[] nullable)
+        public static Type Rewrite(
+            IExtendedType type,
+            Type? namedType = null,
+            params Nullable[] nullable)
         {
             var components = new Stack<IExtendedType>();
             IExtendedType? current = type;
@@ -53,7 +56,15 @@ namespace HotChocolate.Utilities
                 if (rewritten is null)
                 {
                     current = components.Pop();
-                    rewritten = Rewrite(current.Type, current.IsNullable);
+
+                    if (namedType is null)
+                    {
+                        rewritten = Rewrite(current.Type, current.IsNullable);
+                    }
+                    else
+                    {
+                        rewritten = Rewrite(namedType, current.IsNullable);
+                    }
                 }
                 else
                 {

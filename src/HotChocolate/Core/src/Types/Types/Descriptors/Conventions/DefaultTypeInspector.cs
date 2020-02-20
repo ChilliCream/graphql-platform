@@ -85,14 +85,22 @@ namespace HotChocolate.Types.Descriptors
             return Enumerable.Empty<Type>();
         }
 
-        public virtual ITypeReference GetReturnType(MemberInfo member, TypeContext context)
+        public ITypeReference GetReturnType(
+            MemberInfo member,
+            TypeContext context) =>
+            GetReturnType(member, null, context);
+
+        public virtual ITypeReference GetReturnType(
+            MemberInfo member,
+            Type namedType,
+            TypeContext context)
         {
             if (member == null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            Type returnType = GetReturnType(member);
+            Type returnType = GetReturnType(member, namedType);
 
             if (member.IsDefined(typeof(GraphQLTypeAttribute)))
             {
@@ -115,17 +123,17 @@ namespace HotChocolate.Types.Descriptors
             return new ClrTypeReference(returnType, context);
         }
 
-        protected Type GetReturnType(MemberInfo member)
+        protected Type GetReturnType(MemberInfo member, Type namedType = null)
         {
             if (member is MethodInfo m)
             {
                 IExtendedMethodTypeInfo info = m.GetExtendedMethodTypeInfo();
                 _methods.TryAdd(m, info);
-                return ExtendedTypeRewriter.Rewrite(info.ReturnType);
+                return ExtendedTypeRewriter.Rewrite(info.ReturnType, namedType);
             }
             else if (member is PropertyInfo p)
             {
-                return ExtendedTypeRewriter.Rewrite(p.GetExtendedReturnType());
+                return ExtendedTypeRewriter.Rewrite(p.GetExtendedReturnType(), namedType);
             }
             else
             {

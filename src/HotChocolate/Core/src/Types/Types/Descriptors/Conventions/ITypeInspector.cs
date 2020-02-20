@@ -26,6 +26,25 @@ namespace HotChocolate.Types.Descriptors
         ITypeReference GetReturnType(MemberInfo member, TypeContext context);
 
         /// <summary>
+        /// Gets the field type from a <see cref="MemberInfo" /> and
+        /// replaces the inner named type with the provided
+        /// <paramref name="namedType" />.
+        /// </summary>
+        /// <param name="member">
+        /// The member from which the field type shall be extracted.
+        /// </param>
+        /// <param name="namedType">
+        /// The named type component that will replace the original named type component.
+        /// </param>
+        /// <param name="context">
+        /// The context defines if the field has an input or output context.
+        /// </param>
+        /// <returns>
+        /// Returns a type reference describing the type of the field.
+        /// </returns>
+        ITypeReference GetReturnType(MemberInfo member, Type namedType, TypeContext context);
+
+        /// <summary>
         /// Gets the field argument type from a <see cref="ParameterInfo" />.
         /// </summary>
         /// <param name="parameter">

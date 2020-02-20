@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -25,5 +27,4 @@ namespace HotChocolate.Types
             }
         }
     }
-
 }
