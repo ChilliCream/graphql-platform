@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -51,8 +52,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AddToStringMethod(
                 classBuilder,
-                descriptor.OriginalDocument,
-                CodeWriter.Indent);
+                descriptor.OriginalDocument);
 
             return classBuilder.BuildAsync(writer);
         }
@@ -119,8 +119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private static void AddToStringMethod(
             ClassBuilder classBuilder,
-            string originalDocument,
-            string indent)
+            string originalDocument)
         {
             classBuilder
                 .AddMethod(MethodBuilder.New()
@@ -128,22 +127,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetInheritance(Inheritance.Override)
                     .SetReturnType("string")
                     .SetName("ToString")
-                    .AddCode(CreateToStringBody(originalDocument, indent)));
+                    .AddCode(CreateToStringBody(originalDocument)));
         }
 
         private static CodeBlockBuilder CreateToStringBody(
-            string originalDocument,
-            string indent)
+            string originalDocument)
         {
             var body = new StringBuilder();
 
             body.Append("return @\"");
+#pragma warning disable CA1307
             body.Append(originalDocument
                 .Replace("\"", "\"\"")
                 .Replace("\r\n", "\n")
                 .Replace("\n\r", "\n")
                 .Replace("\r", "\n")
                 .Replace("\n", "\n"));
+#pragma warning restore CA1307
             body.Append("\";");
 
             return CodeBlockBuilder.FromStringBuilder(body);

@@ -54,17 +54,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetGetter(CodeLineBuilder.New()
                             .SetLine($"return typeof({descriptor.ResultType});")));
 
-            AddConstructor(classBuilder, descriptor.Arguments, CodeWriter.Indent);
+            AddConstructor(classBuilder, descriptor.Arguments);
             AddArgumentProperties(classBuilder, descriptor.Arguments);
             AddGetVariableValues(classBuilder, descriptor.Arguments, CodeWriter.Indent);
 
             return classBuilder.BuildAsync(writer);
         }
 
-        public static void AddConstructor(
+        private static void AddConstructor(
             ClassBuilder classBuilder,
-            IReadOnlyList<OperationArgumentDescriptor> arguments,
-            string indent)
+            IReadOnlyList<OperationArgumentDescriptor> arguments)
         {
             if (arguments.Count == 0)
             {
@@ -84,14 +83,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetDefault(condition: argument.IsOptional));
             }
 
-            constructorBuilder.AddCode(CreateConstructorBody(arguments, indent));
+            constructorBuilder.AddCode(CreateConstructorBody(arguments));
 
             classBuilder.AddConstructor(constructorBuilder);
         }
 
         private static CodeBlockBuilder CreateConstructorBody(
-            IReadOnlyList<OperationArgumentDescriptor> arguments,
-            string indent)
+            IReadOnlyList<OperationArgumentDescriptor> arguments)
         {
             var body = new StringBuilder();
 
