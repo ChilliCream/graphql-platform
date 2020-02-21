@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -30,7 +31,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Fields.IsImplicitBinding())
             {
-                FieldDescriptorUtilities.AddImplicitFields(
+                FieldDescriptorUtilities.AddImplicitFields<MemberInfo, ObjectFieldDefinition>(
                     this,
                     Definition.FieldBindingType,
                     p =>
@@ -41,7 +42,25 @@ namespace HotChocolate.Types.Descriptors
                         return descriptor.CreateDefinition();
                     },
                     fields,
-                    handledMembers);
+                    m => handledMembers.Add(m) && !m.IsDefined(typeof(SubscribeAttribute)));
+            }
+
+            foreach (MemberInfo member in handledMembers.Where(t =>
+                t.IsDefined(typeof(SubscribeAttribute))))
+            {
+                SubscribeAttribute attribute = member.GetCustomAttribute<SubscribeAttribute>();
+                if (attribute.MemberName is { })
+                {
+
+                }
+                else if (attribute.FieldName is { })
+                {
+
+                }
+                else
+                {
+
+                }
             }
 
             base.OnCompleteFields(fields, handledMembers);

@@ -115,7 +115,7 @@ namespace HotChocolate.Types
                 // explicit resolver results or are provided through the
                 // resolver compiler.
                 FieldResolver resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver);
+                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver)!;
             }
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;

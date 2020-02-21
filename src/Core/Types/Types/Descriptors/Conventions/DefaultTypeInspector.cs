@@ -205,13 +205,19 @@ namespace HotChocolate.Types.Descriptors
             return null;
         }
 
-        private static bool IsIgnored(MemberInfo member)
+        protected static bool IsIgnored(MemberInfo member)
         {
             if (IsToString(member) || IsGetHashCode(member) || IsEquals(member))
             {
                 return true;
             }
-            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
+
+            if (member.IsDefined(typeof(GraphQLIgnoreAttribute)))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool IsToString(MemberInfo member) =>
