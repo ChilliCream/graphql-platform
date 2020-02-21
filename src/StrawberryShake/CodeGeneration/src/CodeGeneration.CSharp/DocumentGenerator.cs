@@ -49,14 +49,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 descriptor.Document,
                 CodeWriter.Indent);
 
+            AddToStringMethod(
+                classBuilder,
+                descriptor.OriginalDocument,
+                CodeWriter.Indent);
 
+            return classBuilder.BuildAsync(writer);
         }
 
         private static void AddArrayProperty(
             ClassBuilder classBuilder,
             string name,
             string fieldName,
-            byte[] bytes,
+            ReadOnlySpan<byte> bytes,
             string indent)
         {
             classBuilder
@@ -70,6 +75,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetType("global::System.ReadOnlySpan<byte>")
                     .SetBackingField(fieldName)
                     .SetName(name));
+        }
+
+        private static string CreateNewByteArray(
+            ReadOnlySpan<byte> bytes,
+            string indent)
+        {
+            var body = new StringBuilder();
+
+            body.AppendLine("new byte[]");
+            body.AppendLine("{");
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if (i > 0)
+                {
+                    body.AppendLine(",");
+                }
+                body.Append($"{indent}{bytes[i]}");
+            }
+            body.AppendLine();
+            body.Append("}");
+
+            return body.ToString();
         }
 
         private static void AddDefaultProperty(
@@ -90,26 +117,36 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName("Default"));
         }
 
-        private static string CreateNewByteArray(
-            byte[] bytes,
+        private static void AddToStringMethod(
+            ClassBuilder classBuilder,
+            string originalDocument,
+            string indent)
+        {
+            classBuilder
+                .AddMethod(MethodBuilder.New()
+                    .SetAccessModifier(AccessModifier.Public)
+                    .SetInheritance(Inheritance.Override)
+                    .SetReturnType("string")
+                    .SetName("ToString")
+                    .AddCode(CreateToStringBody(originalDocument, indent)));
+        }
+
+        private static CodeBlockBuilder CreateToStringBody(
+            string originalDocument,
             string indent)
         {
             var body = new StringBuilder();
 
-            body.AppendLine("new byte[]");
-            body.AppendLine("{");
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                if (i > 0)
-                {
-                    body.AppendLine(",");
-                }
-                body.Append($"{indent}{bytes[i]}");
-            }
-            body.AppendLine();
-            body.Append("};");
+            body.Append("return @\"");
+            body.Append(originalDocument
+                .Replace("\"", "\"\"")
+                .Replace("\r\n", "\n")
+                .Replace("\n\r", "\n")
+                .Replace("\r", "\n")
+                .Replace("\n", "\n"));
+            body.Append("\";");
 
-            return body.ToString();
+            return CodeBlockBuilder.FromStringBuilder(body);
         }
     }
 }
