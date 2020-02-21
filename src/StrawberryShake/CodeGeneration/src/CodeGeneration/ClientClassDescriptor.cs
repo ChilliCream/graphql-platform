@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration
     {
         public ClientClassDescriptor(
             string name,
+            string @namespace,
             string interfaceName,
             string operationExecutorPool,
             string? operationExecutor,
@@ -14,6 +15,7 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<ClientOperationMethodDescriptor> operations)
         {
             Name = name;
+            Namespace = @namespace;
             InterfaceName = interfaceName;
             OperationExecutorPool = operationExecutorPool;
             OperationExecutor = operationExecutor;
@@ -22,6 +24,8 @@ namespace StrawberryShake.CodeGeneration
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public string InterfaceName { get; }
 

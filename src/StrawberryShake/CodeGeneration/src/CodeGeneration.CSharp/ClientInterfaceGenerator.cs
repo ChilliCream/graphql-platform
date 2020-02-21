@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
@@ -22,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            InterfaceBuilder builder = InterfaceBuilder.New()
+            InterfaceBuilder interfaceBuilder = InterfaceBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(descriptor.Name);
 
@@ -61,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType("global::System.Threading.CancellationToken")
                         .SetDefault());
 
-                builder.AddMethod(methodBuilder);
+                interfaceBuilder.AddMethod(methodBuilder);
 
                 methodBuilder = InterfaceMethodBuilder.New()
                     .SetName(operation.Name + "Async")
@@ -78,10 +77,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType("global::System.Threading.CancellationToken")
                         .SetDefault());
 
-                builder.AddMethod(methodBuilder);
+                interfaceBuilder.AddMethod(methodBuilder);
             }
 
-            return builder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(interfaceBuilder)
+                .BuildAsync(writer);
         }
 
         private static string CreateReturnType(string responseModelName, bool isStream)

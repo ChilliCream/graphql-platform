@@ -22,12 +22,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            ClassBuilder builder = ClassBuilder.New()
+            ClassBuilder classBuilder = ClassBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetName(descriptor.Name)
                 .AddImplements(descriptor.InterfaceName);
 
-            builder.AddField(
+            classBuilder.AddField(
                 FieldBuilder.New()
                     .SetConst()
                     .SetName("_clientName")
@@ -42,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (descriptor.OperationExecutor is { })
             {
-                builder.AddField(
+                classBuilder.AddField(
                     FieldBuilder.New()
                         .SetReadOnly()
                         .SetName("_executor")
@@ -53,7 +53,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (descriptor.OperationStreamExecutor is { })
             {
-                builder.AddField(
+                classBuilder.AddField(
                     FieldBuilder.New()
                         .SetReadOnly()
                         .SetName("_streamExecutor")
@@ -62,7 +62,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddCode("_streamExecutor = executorPool.CreateStreamExecutor(_clientName);");
             }
 
-            builder.AddConstructor(constructor);
+            classBuilder.AddConstructor(constructor);
 
             foreach (ClientOperationMethodDescriptor operation in descriptor.Operations)
             {
@@ -102,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 methodBuilder.AddCode(CreateExecuteMethodCode(operation, CodeWriter.Indent));
 
-                builder.AddMethod(methodBuilder);
+                classBuilder.AddMethod(methodBuilder);
 
                 methodBuilder = MethodBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
@@ -122,10 +122,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 methodBuilder.AddCode(CreateExecuteOperationMethodCode(CodeWriter.Indent));
 
-                builder.AddMethod(methodBuilder);
+                classBuilder.AddMethod(methodBuilder);
             }
 
-            return builder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
+                .BuildAsync(writer);
         }
 
         private CodeBlockBuilder CreateExecuteMethodCode(

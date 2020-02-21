@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new ClientClassDescriptor(
                 "TestClient",
+                "Demo",
                 "ITestClient",
                 "global::StrawberryShake.IOperationExecutorPool",
                 "global::StrawberryShake.IOperationExecutor",
@@ -58,6 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new ClientClassDescriptor(
                 "TestClient",
+                "Demo",
                 "ITestClient",
                 "global::StrawberryShake.IOperationExecutorPool",
                 "global::StrawberryShake.IOperationExecutor",
@@ -91,10 +93,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public void CanHandle()
         {
             // arrange
-            var generator = new ClientClassGenerator();
+            var generator = new ClientInterfaceGenerator();
 
             var descriptor = new ClientClassDescriptor(
                 "TestClient",
+                "Demo",
                 "ITestClient",
                 "global::StrawberryShake.IOperationExecutorPool",
                 "global::StrawberryShake.IOperationExecutor",

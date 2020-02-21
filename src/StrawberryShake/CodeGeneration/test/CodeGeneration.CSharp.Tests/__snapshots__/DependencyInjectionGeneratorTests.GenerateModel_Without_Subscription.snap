@@ -1,0 +1,36 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+namespace Demo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial StarWarsClientServiceCollectionExtensions
+    {
+        private const string _clientName = "StarWarsClient";
+
+        public static global::StrawberryShake.Configuration.IOperationClientBuilder AddStarWarsClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection)
+        {
+            if (serviceCollection is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(serviceCollection));
+            }
+
+            serviceCollection.AddSingleton<global::Demo.StarWarsClient, global::Demo.IStarWarsClient>();
+
+            serviceCollection.AddSingleton<global::StrawberryShake.IOperationExecutorFactory>(sp =>
+                new global::StrawberryShake.Http.HttpOperationExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<global::System.Net.Http.IHttpClientFactory>().CreateClient,
+                    sp.GetRequiredService<global::StrawberryShake.Configuration.IClientOptions>().GetOperationPipeline<global::StrawberryShake.Http.IHttpOperationContext>(_clientName),
+                    sp.GetRequiredService<global::StrawberryShake.Configuration.IClientOptions>().GetOperationFormatter(_clientName),
+                    sp.GetRequiredService<global::StrawberryShake.Configuration.IClientOptions>().GetResultParsers(_clientName)));
+
+            global::StrawberryShake.Configuration.IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
+                .AddValueSerializer(() => new Abc())
+                .AddResultParser(serializers => new Def(serializers))
+            .AddOperationFormatter(serializers => new global::StrawberryShake.Http.JsonOperationFormatter(serializers))
+            .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
+            serviceCollection.TryAddSingleton<global::StrawberryShake.IOperationExecutorPool, global::StrawberryShake.OperationExecutorPool>();
+        }
+    }
+}

@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http;
-using StrawberryShake.Http.Pipelines;
 
 namespace StrawberryShake.Http
 {

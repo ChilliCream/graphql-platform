@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(descriptor.Name);
 
-            foreach(var typeName in descriptor.Implements)
+            foreach (var typeName in descriptor.Implements)
             {
                 builder.AddImplements(typeName);
             }
