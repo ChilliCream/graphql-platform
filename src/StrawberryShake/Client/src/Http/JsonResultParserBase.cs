@@ -75,7 +75,7 @@ namespace StrawberryShake.Http
             if (document.RootElement.TryGetProperty(
                 _data, out JsonElement data))
             {
-                resultBuilder.SetData(ParserData(data));
+                resultBuilder.SetData(ParseData(data));
             }
 
             if (document.RootElement.TryGetProperty(
@@ -104,7 +104,7 @@ namespace StrawberryShake.Http
             }
         }
 
-        protected abstract T ParserData(JsonElement parent);
+        protected abstract T ParseData(JsonElement parent);
 
         private IEnumerable<IError> ParseErrors(JsonElement parent)
         {

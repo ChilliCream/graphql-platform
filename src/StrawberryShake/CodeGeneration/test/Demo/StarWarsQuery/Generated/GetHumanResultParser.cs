@@ -27,7 +27,7 @@ namespace StrawberryShake.Client.StarWarsQuery
             _stringSerializer = serializerResolver.Get("String");
         }
 
-        protected override IGetHuman ParserData(JsonElement data)
+        protected override IGetHuman ParseData(JsonElement data)
         {
             return new GetHuman
             (

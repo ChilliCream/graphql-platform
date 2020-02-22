@@ -9,6 +9,10 @@ namespace StrawberryShake.CodeGeneration
             FieldName = fieldName;
         }
 
+        /// <summary>
+        /// Gets the name of the GraphQL scalar.
+        /// </summary>
+        /// <value></value>
         public string Name { get; }
 
         public string FieldName { get; }

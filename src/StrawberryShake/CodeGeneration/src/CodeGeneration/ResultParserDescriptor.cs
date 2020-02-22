@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration
 
         public string ResultType { get; }
 
-        public IReadOnlyList<ResultParserMethodDescriptor> Methods { get; }
+        public IReadOnlyList<ResultParserMethodDescriptor> ParseMethods { get; }
 
         public IReadOnlyList<ResultParserDeserializerMethod> DeserializerMethods { get; }
 
@@ -22,6 +22,26 @@ namespace StrawberryShake.CodeGeneration
         : ICodeDescriptor
     {
         public string Name { get; }
+
+        public string ResultType { get; }
+
+        public string ResultModelType { get; }
+
+        public bool IsNullable { get; }
+
+        public bool IsReferenceType { get; }
+
+        public bool IsRoot { get; }
+
+        public IReadOnlyList<ResultFieldDescriptor> Fields { get; }
+    }
+
+    public class ResultFieldDescriptor
+        : ICodeDescriptor
+    {
+        public string Name { get; }
+
+        public string ParserMethodName { get; }
     }
 
     public class ResultParserDeserializerMethod

@@ -7,7 +7,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class InputModelSerializerGenerator
-        : CodeGenerator<InputModelSerializerDescriptor>
+        : CSharpCodeGenerator<InputModelSerializerDescriptor>
     {
         protected override Task WriteAsync(
             CodeWriter writer,
@@ -56,8 +56,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 builder
                     .AddField(FieldBuilder.New()
                         .SetName(serializer.FieldName)
-                        .SetType("global::StrawberryShake.IValueSerializer?", NullableRefTypes)
-                        .SetType("global::StrawberryShake.IValueSerializer", !NullableRefTypes));
+                        .SetType($"{Types.ValueSerializer}?", NullableRefTypes)
+                        .SetType(Types.ValueSerializer, !NullableRefTypes));
             }
         }
 
@@ -94,7 +94,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             "IReadOnlyDictionary<string, object>);")));
         }
 
-        private static void AddInitializeMethod(
+        private void AddInitializeMethod(
             IReadOnlyList<ValueSerializerDescriptor> serializerDescriptors,
             ClassBuilder builder)
         {
@@ -103,7 +103,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName("Initialize")
                     .AddParameter(ParameterBuilder.New()
-                        .SetType("global::StrawberryShake.IValueSerializerCollection")
+                        .SetType(Types.ValueSerializerCollection)
                         .SetName("serializerResolver"))
                 .AddCode(CreateInitializeBody(serializerDescriptors, CodeWriter.Indent)));
         }
