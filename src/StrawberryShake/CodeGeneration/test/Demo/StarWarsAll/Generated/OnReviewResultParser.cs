@@ -25,7 +25,7 @@ namespace StrawberryShake.Client.StarWarsAll
             _stringSerializer = serializerResolver.Get("String");
         }
 
-        protected override IOnReview ParserData(JsonElement data)
+        protected override IOnReview ParseData(JsonElement data)
         {
             return new OnReview1
             (

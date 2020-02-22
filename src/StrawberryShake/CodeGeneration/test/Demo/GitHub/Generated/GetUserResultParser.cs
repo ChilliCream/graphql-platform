@@ -29,7 +29,7 @@ namespace StrawberryShake.Client.GitHub
             _intSerializer = serializerResolver.Get("Int");
         }
 
-        protected override IGetUser ParserData(JsonElement data)
+        protected override IGetUser ParseData(JsonElement data)
         {
             return new GetUser
             (

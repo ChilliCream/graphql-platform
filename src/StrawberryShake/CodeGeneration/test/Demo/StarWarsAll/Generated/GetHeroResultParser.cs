@@ -27,7 +27,7 @@ namespace StrawberryShake.Client.StarWarsAll
             _floatSerializer = serializerResolver.Get("Float");
         }
 
-        protected override IGetHero ParserData(JsonElement data)
+        protected override IGetHero ParseData(JsonElement data)
         {
             return new GetHero
             (
