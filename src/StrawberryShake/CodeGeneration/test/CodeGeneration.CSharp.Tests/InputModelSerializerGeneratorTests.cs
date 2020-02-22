@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new InputModelSerializerDescriptor(
                 "ReviewInputSerializer",
+                "Demo",
                 "ReviewInput",
                 "global::Demo.ReviewInput",
                 new []
@@ -70,6 +71,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new InputModelSerializerDescriptor(
                 "ReviewInputSerializer",
+                "Demo",
                 "ReviewInput",
                 "global::Demo.ReviewInput",
                 new []
@@ -117,6 +119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new InputModelSerializerDescriptor(
                 "ReviewInputSerializer",
+                "Demo",
                 "ReviewInput",
                 "global::Demo.ReviewInput",
                 new []
@@ -167,6 +170,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new InputModelSerializerDescriptor(
                 "ReviewInputSerializer",
+                "Demo",
                 "ReviewInput",
                 "global::Demo.ReviewInput",
                 new []

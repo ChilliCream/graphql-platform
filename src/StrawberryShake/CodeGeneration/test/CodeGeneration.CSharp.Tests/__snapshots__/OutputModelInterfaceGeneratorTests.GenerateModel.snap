@@ -1,6 +1,9 @@
-﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-public partial interface Test
-    : ITest
+﻿namespace Demo
 {
-    Bar Foo { get; }
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface Test
+        : ITest
+    {
+        Bar Foo { get; }
+    }
 }

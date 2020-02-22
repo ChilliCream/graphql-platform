@@ -54,7 +54,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 classBuilder,
                 descriptor.OriginalDocument);
 
-            return classBuilder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
+                .BuildAsync(writer);
         }
 
         private static void AddArrayProperty(

@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new EnumDescriptor(
                 "Episode",
+                "Demo",
                 new []
                 {
                     new EnumElementDescriptor("NewHope", "NEWHOPE"),
@@ -43,6 +44,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new EnumDescriptor(
                 "Episode",
+                "Demo",
                 new []
                 {
                     new EnumElementDescriptor("NewHope", "NEWHOPE", 1),
@@ -68,6 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new EnumDescriptor(
                 "Episode",
+                "Demo",
                 new []
                 {
                     new EnumElementDescriptor("NewHope", "NEWHOPE", 1),

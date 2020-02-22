@@ -1,6 +1,9 @@
-﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-public enum Episode
+﻿namespace Demo
 {
-    NewHope = 1
-    Empire = 2,
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public enum Episode
+    {
+        NewHope = 1
+        Empire = 2,
+    }
 }

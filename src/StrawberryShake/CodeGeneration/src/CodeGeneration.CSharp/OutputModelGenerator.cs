@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            ClassBuilder builder =
+            ClassBuilder classBuilder =
                 ClassBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(descriptor.Name);
@@ -30,16 +30,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ConstructorBuilder constructorBuilder =
                 ConstructorBuilder.New()
                     .AddCode(CreateConstructorBody(descriptor));
-            builder.AddConstructor(constructorBuilder);
+            classBuilder.AddConstructor(constructorBuilder);
 
             foreach (var typeName in descriptor.Implements)
             {
-                builder.AddImplements(typeName);
+                classBuilder.AddImplements(typeName);
             }
 
             foreach (OutputFieldDescriptor field in descriptor.Fields)
             {
-                builder.AddProperty(
+                classBuilder.AddProperty(
                     PropertyBuilder.New()
                         .SetAccessModifier(AccessModifier.Public)
                         .SetName(field.Name)
@@ -51,7 +51,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType(field.Type));
             }
 
-            return builder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
+                .BuildAsync(writer);
         }
 
         private CodeBlockBuilder CreateConstructorBody(

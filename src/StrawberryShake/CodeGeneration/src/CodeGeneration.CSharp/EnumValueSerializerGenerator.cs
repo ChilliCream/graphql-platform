@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return ClassBuilder.New()
+            ClassBuilder classBuilder = ClassBuilder.New()
                 .SetAccessModifier(AccessModifier.Public)
                 .SetSealed()
                 .SetName(descriptor.Name)
@@ -70,7 +70,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType("object?", NullableRefTypes)
                         .SetType("object", !NullableRefTypes)
                         .SetName("serialized"))
-                    .AddCode(CreateDeserializerMethodBody(descriptor, CodeWriter.Indent)))
+                    .AddCode(CreateDeserializerMethodBody(descriptor, CodeWriter.Indent)));
+
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
                 .BuildAsync(writer);
         }
 

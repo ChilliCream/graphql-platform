@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class EnumBuilder
-        : ICodeBuilder
+        : ITypeBuilder
     {
         private readonly List<(string, int?)> _elements = new List<(string, int?)>();
         private string? _name;

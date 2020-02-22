@@ -35,7 +35,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AddDeserializeMethod(classBuilder);
             AddTypeSerializerMethods(descriptor.TypeSerializerMethods, classBuilder);
 
-            return classBuilder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
+                .BuildAsync(writer);
         }
 
         private void AddFields(

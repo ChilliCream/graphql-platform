@@ -58,7 +58,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AddArgumentProperties(classBuilder, descriptor.Arguments);
             AddGetVariableValues(classBuilder, descriptor.Arguments, CodeWriter.Indent);
 
-            return classBuilder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
+                .BuildAsync(writer);
         }
 
         private static void AddConstructor(

@@ -7,11 +7,13 @@ namespace StrawberryShake.CodeGeneration
     {
         public EnumValueSerializerDescriptor(
             string name,
+            string @namespace,
             string enumGraphQLTypeName,
             string enumTypeName,
             IReadOnlyList<EnumElementDescriptor> elements)
         {
             Name = name;
+            Namespace = @namespace;
             EnumGraphQLTypeName = enumGraphQLTypeName;
             EnumTypeName = enumTypeName;
             Elements = elements;
@@ -21,6 +23,8 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the name of the serializer class.
         /// </summary>
         public string Name { get; }
+
+        public string Namespace { get; }
 
         /// <summary>
         /// Gets the GraphQL type name of the enum type.

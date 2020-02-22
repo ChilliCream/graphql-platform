@@ -21,25 +21,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            InterfaceBuilder builder =
+            InterfaceBuilder classBuilder =
                 InterfaceBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(descriptor.Name);
 
             foreach (var typeName in descriptor.Implements)
             {
-                builder.AddImplements(typeName);
+                classBuilder.AddImplements(typeName);
             }
 
             foreach (OutputFieldDescriptor field in descriptor.Fields)
             {
-                builder.AddProperty(
+                classBuilder.AddProperty(
                     InterfacePropertyBuilder.New()
                         .SetName(field.Name)
                         .SetType(field.Type));
             }
 
-            return builder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
+                .BuildAsync(writer);
         }
     }
 }

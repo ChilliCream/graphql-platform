@@ -11,12 +11,14 @@ namespace StrawberryShake.CodeGeneration
 
         public DocumentDescriptor(
             string name,
+            string @namespace,
             byte[] hashAlgorithm,
             byte[] hash,
             byte[] document,
             string originalDocument)
         {
             Name = name;
+            Namespace = @namespace;
             _hashAlgorithm = hashAlgorithm;
             _hash = hash;
             _document = document;
@@ -24,6 +26,8 @@ namespace StrawberryShake.CodeGeneration
         }
 
         public string Name { get; }
+
+        public string Namespace { get;}
 
         public ReadOnlySpan<byte> HashAlgorithm => _hashAlgorithm;
 

@@ -1,11 +1,14 @@
-﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-public partial Test
-    : ITest
+﻿namespace Demo
 {
-    public Test(Bar foo)
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial Test
+        : ITest
     {
-        Foo = foo;
-    }
+        public Test(Bar foo)
+        {
+            Foo = foo;
+        }
 
-    public Bar Foo { get; }
+        public Bar Foo { get; }
+    }
 }

@@ -21,14 +21,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            ClassBuilder builder =
+            ClassBuilder classBuilder =
                 ClassBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(descriptor.Name);
 
             foreach (InputFieldDescriptor field in descriptor.Fields)
             {
-                builder.AddProperty(
+                classBuilder.AddProperty(
                     PropertyBuilder.New()
                         .SetAccessModifier(AccessModifier.Public)
                         .SetName(field.Name)
@@ -36,7 +36,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .MakeSettable());
             }
 
-            return builder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(classBuilder)
+                .BuildAsync(writer);
         }
     }
 }

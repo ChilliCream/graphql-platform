@@ -19,15 +19,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            EnumBuilder builder = EnumBuilder.New()
+            EnumBuilder enumBuilder = EnumBuilder.New()
                 .SetName(descriptor.Name);
 
             foreach (EnumElementDescriptor element in descriptor.Elements)
             {
-                builder.AddElement(element.Name, element.Value);
+                enumBuilder.AddElement(element.Name, element.Value);
             }
 
-            return builder.BuildAsync(writer);
+            return CodeFileBuilder.New()
+                .SetNamespace(descriptor.Namespace)
+                .AddType(enumBuilder)
+                .BuildAsync(writer);
         }
     }
 }

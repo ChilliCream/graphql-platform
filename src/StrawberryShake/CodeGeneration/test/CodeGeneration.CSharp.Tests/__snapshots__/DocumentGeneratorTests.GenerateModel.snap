@@ -1,45 +1,48 @@
-﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-public partial Queries
-    : global::StrawberryShake.IDocument
+﻿namespace Demo
 {
-    private readonly byte[] _hashName = new byte[]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial Queries
+        : global::StrawberryShake.IDocument
+    {
+        private readonly byte[] _hashName = new byte[]
 {
     1,
     2,
     3
 };
-    private readonly byte[] _hash = new byte[]
+        private readonly byte[] _hash = new byte[]
 {
     4,
     5,
     6
 };
-    private readonly byte[] _content = new byte[]
+        private readonly byte[] _content = new byte[]
 {
     7,
     8,
     9
 };
 
-    public global::System.ReadOnlySpan<byte> HashName
-    {
-        get => _hashName
-    }
+        public global::System.ReadOnlySpan<byte> HashName
+        {
+            get => _hashName
+        }
 
-    public global::System.ReadOnlySpan<byte> Hash
-    {
-        get => _hash
-    }
+        public global::System.ReadOnlySpan<byte> Hash
+        {
+            get => _hash
+        }
 
-    public global::System.ReadOnlySpan<byte> Content
-    {
-        get => _content
-    }
+        public global::System.ReadOnlySpan<byte> Content
+        {
+            get => _content
+        }
 
-    public override string ToString()
-    {
-        return @"type Query {
-                            s: String
-                        }";
+        public override string ToString()
+        {
+            return @"type Query {
+                                s: String
+                            }";
+        }
     }
 }

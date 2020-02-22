@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new EnumValueSerializerDescriptor(
                 "EpisodeValueSerializer",
+                "Demo",
                 "Episode",
                 "global::Demo.Episode",
                 new []
@@ -45,6 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new EnumValueSerializerDescriptor(
                 "EpisodeValueSerializer",
+                "Demo",
                 "Episode",
                 "global::Demo.Episode",
                 new []
@@ -72,6 +74,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new EnumValueSerializerDescriptor(
                 "EpisodeValueSerializer",
+                "Demo",
                 "Episode",
                 "global::Demo.Episode",
                 new []

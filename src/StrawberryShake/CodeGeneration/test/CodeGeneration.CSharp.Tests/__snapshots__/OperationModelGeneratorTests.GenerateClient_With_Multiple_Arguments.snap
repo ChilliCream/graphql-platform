@@ -1,67 +1,70 @@
-﻿[global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-public partial OnReviewOperation
-    : global::StrawberryShake.IOperation<global::Demo.IOnReview>
+﻿namespace Demo
 {
-    public OnReviewOperation(
-        string abcd,
-        int defg,
-        global::StrawberryShake.Optional<global::Demo.Episode> episode = default)
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial OnReviewOperation
+        : global::StrawberryShake.IOperation<global::Demo.IOnReview>
     {
-
-        Episode = episode;Episode = episode;Episode = episode;
-    }
-
-    public string Name
-    {
-        get
+        public OnReviewOperation(
+            string abcd,
+            int defg,
+            global::StrawberryShake.Optional<global::Demo.Episode> episode = default)
         {
-            return "onReview";
-        }
-    }
 
-    public global::StrawberryShake.IDocument Document
-    {
-        get
-        {
-            return Queries.Default;
-        }
-    }
-
-    public global::StrawberryShake.OperationKind Kind
-    {
-        get
-        {
-            return OperationKind.Subscription;
-        }
-    }
-
-    public global::System.Type ResultType
-    {
-        get
-        {
-            return typeof(global::Demo.IOnReview);
-        }
-    }
-
-    public global::StrawberryShake.Optional<global::Demo.Episode> Episode { get; set; }
-
-    public string Abc { get; set; }
-
-    public int Def { get; set; }
-
-    public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.VariableValue> GetVariableValues()
-    {
-        var variables = new List<VariableValue>();
-
-        if (Episode.HasValue)
-        {
-            variables.Add(new VariableValue("episode", "Episode", Episode.Value));
+            Episode = episode;Episode = episode;Episode = episode;
         }
 
-        variables.Add(new VariableValue("abc", "String", Abc));
+        public string Name
+        {
+            get
+            {
+                return "onReview";
+            }
+        }
 
-        variables.Add(new VariableValue("def", "Int", Def));
+        public global::StrawberryShake.IDocument Document
+        {
+            get
+            {
+                return Queries.Default;
+            }
+        }
 
-        return variables;
+        public global::StrawberryShake.OperationKind Kind
+        {
+            get
+            {
+                return OperationKind.Subscription;
+            }
+        }
+
+        public global::System.Type ResultType
+        {
+            get
+            {
+                return typeof(global::Demo.IOnReview);
+            }
+        }
+
+        public global::StrawberryShake.Optional<global::Demo.Episode> Episode { get; set; }
+
+        public string Abc { get; set; }
+
+        public int Def { get; set; }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.VariableValue> GetVariableValues()
+        {
+            var variables = new List<VariableValue>();
+
+            if (Episode.HasValue)
+            {
+                variables.Add(new VariableValue("episode", "Episode", Episode.Value));
+            }
+
+            variables.Add(new VariableValue("abc", "String", Abc));
+
+            variables.Add(new VariableValue("def", "Int", Def));
+
+            return variables;
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration
     {
         public OperationModelDescriptor(
             string name,
+            string @namespace,
             string graphQLName,
             string resultType,
             string documentType,
@@ -14,6 +15,7 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<OperationArgumentDescriptor> arguments)
         {
             Name = name;
+            Namespace = @namespace;
             GraphQLName = graphQLName;
             ResultType = resultType;
             DocumentType = documentType;
@@ -22,6 +24,8 @@ namespace StrawberryShake.CodeGeneration
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public string GraphQLName { get; }
 

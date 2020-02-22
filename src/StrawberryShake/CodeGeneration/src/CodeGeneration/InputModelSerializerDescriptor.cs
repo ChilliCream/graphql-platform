@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration
     {
         public InputModelSerializerDescriptor(
             string name,
+            string @namespace,
             string inputGraphQLTypeName,
             string inputTypeName,
             IReadOnlyList<InputFieldSerializerDescriptor> fieldSerializers,
@@ -14,6 +15,7 @@ namespace StrawberryShake.CodeGeneration
             IReadOnlyList<InputTypeSerializerMethodDescriptor> typeSerializerMethods)
         {
             Name = name;
+            Namespace = @namespace;
             InputGraphQLTypeName = inputGraphQLTypeName;
             InputTypeName = inputTypeName;
             FieldSerializers = fieldSerializers;
@@ -26,6 +28,8 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         /// <value></value>
         public string Name { get; }
+
+        public string Namespace { get; }
 
         /// <summary>
         /// Gets the GraphQL type name of the input object type.

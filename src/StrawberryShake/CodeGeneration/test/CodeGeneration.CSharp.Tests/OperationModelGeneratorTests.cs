@@ -19,6 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new OperationModelDescriptor(
                 "OnReviewOperation",
+                "Demo",
                 "onReview",
                 "global::Demo.IOnReview",
                 "Queries",
@@ -52,6 +53,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new OperationModelDescriptor(
                 "OnReviewOperation",
+                "Demo",
                 "onReview",
                 "global::Demo.IOnReview",
                 "Queries",
@@ -76,6 +78,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new OperationModelDescriptor(
                 "OnReviewOperation",
+                "Demo",
                 "onReview",
                 "global::Demo.IOnReview",
                 "Queries",
@@ -120,6 +123,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new OperationModelDescriptor(
                 "OnReviewOperation",
+                "Demo",
                 "onReview",
                 "global::Demo.IOnReview",
                 "Queries",

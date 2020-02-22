@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new DocumentDescriptor(
                 "Queries",
+                "Demo",
                 new byte[] { 1,2 ,3 },
                 new byte[] { 4,5 ,6 },
                 new byte[] { 7,8 ,9 },
@@ -40,6 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var descriptor = new DocumentDescriptor(
                 "Queries",
+                "Demo",
                 new byte[] { 1,2 ,3 },
                 new byte[] { 4,5 ,6 },
                 new byte[] { 7,8 ,9 },
