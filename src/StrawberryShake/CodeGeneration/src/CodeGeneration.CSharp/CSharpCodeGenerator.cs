@@ -16,6 +16,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public string JsonElement {get;} =
                 "global::System.Text.Json.JsonElement";
 
+            public string JsonValueKind {get;} =
+                "global::System.Text.Json.JsonValueKind";
             public string ValueSerializerCollection { get; } =
                 "global::StrawberryShake.IValueSerializerCollection";
 

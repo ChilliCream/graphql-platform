@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -135,6 +136,36 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return CodeBlockBuilder.FromStringBuilder(body);
         }
 
+        private void AppendList(
+            StringBuilder body,
+            ListInfo list,
+            Action appendSetElement,
+            string indent,
+            string initialIndent)
+        {
+            body.AppendLine($"{initialIndent}int {list.Length} = {list.Data}.GetArrayLength();");
+            body.AppendLine($"{initialIndent}var {list.Result} = new {list.ResultType}[{list.Length}];");
+            body.AppendLine($"{initialIndent}for (int {list.Counter} = 0; {list.Counter} < {list.Length}; {list.Counter}++)");
+            body.AppendLine($"{initialIndent}{{");
+            body.AppendLine($"{initialIndent}{indent}{Types.JsonElement} {list.Element} = {list.Data}[{list.Counter}];");
+            body.AppendLine("");
+            appendSetElement();
+            body.Append($"{initialIndent}}}");
+        }
+
+        private void AppendNullHandling(
+            StringBuilder body,
+            string field,
+            string indent,
+            string initialIndent)
+        {
+            body.AppendLine($"{initialIndent}if (!parent.TryGetProperty(field, out {Types.JsonElement} {field})");
+            body.AppendLine($"{initialIndent}{indent}|| obj.ValueKind == {Types.JsonValueKind}.Null)");
+            body.AppendLine("{");
+            body.AppendLine($"{initialIndent}{indent}return null;");
+            body.Append("}");
+        }
+
         private bool IsNullable(ResultParserMethodDescriptor methodDescriptor)
         {
             if (methodDescriptor.IsNullable)
@@ -147,5 +178,110 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
             return false;
         }
+
+        private readonly ref struct ListInfo
+        {
+            public ListInfo(
+                string data,
+                string counter,
+                string length,
+                string element,
+                string result,
+                string resultType)
+            {
+                Data = data;
+                Counter = counter;
+                Length = length;
+                Element = element;
+                Result = result;
+                ResultType = resultType;
+            }
+
+            public string Data { get; }
+
+            public string Counter { get; }
+
+            public string Length { get; }
+
+            public string Element { get; }
+
+            public string Result { get; }
+
+            public string ResultType { get; }
+        }
     }
 }
+
+/*
+
+1. Object
+2. List of Leaf Types
+3. List of List of Lead Types
+4. List of Object Types
+6. List of List of Object Types
+
+if (!parent.TryGetProperty(field, out JsonElement obj)
+    || obj.ValueKind == JsonValueKind.Null)
+{
+    return null;
+}
+
+
+int count = obj.GetArrayLength();
+var result = new IHasName[objLength];
+
+for (int i = 0; i < count; i++)
+{
+    JsonElement element = obj[i];
+
+    if (!parent.TryGetProperty(field, out JsonElement obj)
+        || obj.ValueKind == JsonValueKind.Null)
+    {
+        list[i] = null;
+    }
+    else
+    {
+        list[i] = new HasName
+        (
+            DeserializeNullableString(element, "name")
+        );
+    }
+}
+
+int count = obj.GetArrayLength();
+var result = new IHasName[objLength];
+
+for (int i = 0; i < count; i++)
+{
+    JsonElement element = obj[i];
+
+    result[i] = new HasName
+    (
+        DeserializeNullableString(element, "name")
+    );
+}
+
+int count = obj.GetArrayLength();
+var result = new IReadOnlyList<IHasName>[objLength];
+
+for (int i = 0; i < count; i++)
+{
+    JsonElement element = obj[i];
+
+    int innerCount = obj.GetArrayLength();
+    var innerResult = new IHasName[objLength];
+
+    for (int j = 0; j < innerCount; j++)
+    {
+        JsonElement innerElement = element[j];
+
+        innerResult[i] = new HasName
+        (
+            DeserializeNullableString(element, "name")
+        );
+    }
+
+    result[i] = innerResult
+}
+
+*/
