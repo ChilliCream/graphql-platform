@@ -23,17 +23,25 @@ namespace StrawberryShake.CodeGeneration
     {
         public string Name { get; }
 
-        public string ResultType { get; }
+        public string ResultTypeInterface { get; }
 
-        public string ResultModelType { get; }
-
-        public bool IsNullable { get; }
-
-        public bool IsReferenceType { get; }
+        public IReadOnlyList<ResultTypeDescriptor> ResultType { get; }
 
         public bool IsRoot { get; }
 
         public IReadOnlyList<ResultFieldDescriptor> Fields { get; }
+    }
+
+    public class ResultTypeDescriptor
+        : ICodeDescriptor
+    {
+        public string Name { get; }
+
+        public bool IsNullable { get; }
+
+        public bool IsList { get; }
+
+        public bool IsReferenceType { get; }
     }
 
     public class ResultFieldDescriptor

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -26,7 +27,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (ResultParserMethodDescriptor parserMethod in descriptor.ParseMethods)
             {
+                if (parserMethod.IsRoot)
+                {
+                    AddParseDataMethod(classBuilder, parserMethod, CodeWriter.Indent);
+                }
+                else
+                {
 
+                }
             }
 
             return CodeFileBuilder.New()
@@ -97,8 +105,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 MethodBuilder.New()
                     .SetAccessModifier(AccessModifier.Protected)
                     .SetInheritance(Inheritance.Override)
-                    .SetReturnType($"{methodDescriptor.ResultType}?", IsNullable(methodDescriptor))
-                    .SetReturnType($"{methodDescriptor.ResultType}?", !IsNullable(methodDescriptor))
+                    .SetReturnType($"{methodDescriptor.ResultTypeInterface}?", IsNullable(methodDescriptor))
+                    .SetReturnType($"{methodDescriptor.ResultTypeInterface}?", !IsNullable(methodDescriptor))
                     .SetName("ParseData")
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
@@ -114,7 +122,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var body = new StringBuilder();
 
-            body.AppendLine($"return new {methodDescriptor.ResultModelType}");
+            body.AppendLine($"return new {methodDescriptor.ResultType[0].Name}");
             body.AppendLine("(");
 
             for (int i = 0; i < methodDescriptor.Fields.Count; i++)
@@ -132,6 +140,68 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             body.AppendLine();
             body.Append(");");
+
+            return CodeBlockBuilder.FromStringBuilder(body);
+        }
+
+        private void AddParseMethod(
+            ClassBuilder classBuilder,
+            ResultParserMethodDescriptor methodDescriptor,
+            string indent)
+        {
+            ImmutableStack<ResultTypeDescriptor> resultType =
+                ImmutableStack.CreateRange<ResultTypeDescriptor>(methodDescriptor.ResultType);
+
+            classBuilder.AddMethod(
+                MethodBuilder.New()
+                    .SetAccessModifier(AccessModifier.Protected)
+                    .SetInheritance(Inheritance.Override)
+                    .SetReturnType(
+                        $"{methodDescriptor.ResultTypeInterface}?",
+                        IsNullable(methodDescriptor))
+                    .SetReturnType(
+                        $"{methodDescriptor.ResultTypeInterface}?",
+                        !IsNullable(methodDescriptor))
+                    .SetName(methodDescriptor.Name)
+                    .AddParameter(ParameterBuilder.New()
+                        .SetType(Types.JsonElement)
+                        .SetName("obj"))
+                    .AddCode(CreateParseMethodBody(
+                        classBuilder, methodDescriptor, resultType, indent, string.Empty)));
+        }
+
+        private CodeBlockBuilder CreateParseMethodBody(
+            ClassBuilder classBuilder,
+            ResultParserMethodDescriptor methodDescriptor,
+            IImmutableStack<ResultTypeDescriptor> resultType,
+            string indent,
+            string initialIndent)
+        {
+            var body = new StringBuilder();
+
+            IImmutableStack<ResultTypeDescriptor> next =
+                resultType.Pop(out ResultTypeDescriptor type);
+
+            if (type.IsList)
+            {
+                AppendList(
+                    body,
+                    new ListInfo(
+                        "obj",
+                        "i",
+                        "count",
+                        "element",
+                        "result",
+                        type.Name),
+                    () => CreateParseMethodBody(
+                        classBuilder, methodDescriptor, next,
+                        indent, indent + initialIndent),
+                    indent, initialIndent);
+            }
+            else
+            {
+
+            }
 
             return CodeBlockBuilder.FromStringBuilder(body);
         }
@@ -164,6 +234,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
             body.AppendLine("{");
             body.AppendLine($"{initialIndent}{indent}return null;");
             body.Append("}");
+        }
+
+        private void AppendSetElement(
+            StringBuilder body,
+            string field,
+            string indent,
+            string initialIndent)
+        {
+
+        }
+
+        private void AppendNewObject(
+            StringBuilder body,
+            string ResultModelType,
+            string indent,
+            string initialIndent)
+        {
+
         }
 
         private bool IsNullable(ResultParserMethodDescriptor methodDescriptor)
