@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -86,7 +86,7 @@ namespace HotChocolate
                 name = name.Substring(_get.Length);
             }
 
-            if (typeof(Task).IsAssignableFrom(method.ReturnType)
+            if (IsAsyncMethod(method.ReturnType)
                 && name.Length > _async.Length
                 && name.EndsWith(_async, StringComparison.Ordinal))
             {
@@ -94,6 +94,24 @@ namespace HotChocolate
             }
 
             return NormalizeName(name);
+        }
+
+        private static bool IsAsyncMethod(Type returnType)
+        {
+            if (typeof(Task).IsAssignableFrom(returnType)
+                || typeof(ValueTask).IsAssignableFrom(returnType))
+            {
+                return true;
+            }
+
+            if (returnType.IsGenericType)
+            {
+                Type typeDefinition = returnType.GetGenericTypeDefinition();
+                return typeof(ValueTask<>) == typeDefinition
+                    || typeof(IAsyncEnumerable<>) == typeDefinition;
+            }
+
+            return false;
         }
 
         public static string GetGraphQLDescription(
