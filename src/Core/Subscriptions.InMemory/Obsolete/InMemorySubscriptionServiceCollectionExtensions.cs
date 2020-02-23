@@ -1,8 +1,10 @@
 using System;
+using HotChocolate.Subscriptions.InMemory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete]
     public static class InMemorySubscriptionServiceCollectionExtensions
     {
         public static IServiceCollection AddInMemorySubscriptionProvider(
@@ -22,3 +24,4 @@ namespace HotChocolate.Subscriptions
         }
     }
 }
+

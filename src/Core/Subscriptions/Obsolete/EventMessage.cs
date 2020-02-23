@@ -5,6 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete("Use HotChocolate.Subscriptions.IEventStream<TMessage>.")]
     public class EventMessage
         : IEventMessage
     {

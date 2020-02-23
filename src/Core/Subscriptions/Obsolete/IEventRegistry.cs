@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Subscriptions
@@ -6,6 +7,7 @@ namespace HotChocolate.Subscriptions
     /// <summary>
     /// The event registry manages the subscriptions to events.
     /// </summary>
+    [Obsolete("Use HotChocolate.Subscriptions.IEventTopicObserver.")]
     public interface IEventRegistry
     {
         /// <summary>
