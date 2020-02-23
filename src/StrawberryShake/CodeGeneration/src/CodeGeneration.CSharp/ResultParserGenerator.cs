@@ -167,15 +167,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType(Types.JsonElement)
                         .SetName("obj"))
                     .AddCode(CreateParseMethodBody(
-                        classBuilder, methodDescriptor, resultType, indent, string.Empty)));
+                        classBuilder, methodDescriptor, resultType, indent)));
         }
 
         private CodeBlockBuilder CreateParseMethodBody(
             ClassBuilder classBuilder,
             ResultParserMethodDescriptor methodDescriptor,
             IImmutableStack<ResultTypeDescriptor> resultType,
-            string indent,
-            string initialIndent)
+            string indent)
         {
             var body = new StringBuilder();
 
@@ -193,10 +192,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "element",
                         "result",
                         type.Name),
-                    () => CreateParseMethodBody(
-                        classBuilder, methodDescriptor, next,
-                        indent, indent + initialIndent),
-                    indent, initialIndent);
+                    () => AppendList(
+                        body,
+                        new ListInfo(
+                            "obj",
+                            "i",
+                            "count",
+                            "element",
+                            "result",
+                            type.Name),
+                        () => AppendSetElement(
+                            body,
+                            null,
+                            indent,
+                            indent + indent),
+                        indent, indent),
+                    indent, string.Empty);
             }
             else
             {
@@ -256,9 +267,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private bool IsNullable(ResultParserMethodDescriptor methodDescriptor)
         {
-            if (methodDescriptor.IsNullable)
+            if (methodDescriptor.ResultType[0].IsNullable)
             {
-                if (methodDescriptor.IsReferenceType)
+                if (methodDescriptor.ResultType[0].IsReferenceType)
                 {
                     return NullableRefTypes;
                 }
