@@ -60,9 +60,13 @@ namespace HotChocolate.Types
         public class Foo
         {
             public string Bar { get; set; }
+
             public int Baz { get; set; }
+
             public NestedFoo Nested { get; set; }
+
             public NestedFoo[] NestedCollection { get; set; }
+
             public static Foo Create(string bar, int baz)
             {
                 return new Foo

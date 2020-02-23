@@ -230,16 +230,6 @@ namespace HotChocolate.Types
             Type type = result.GetType();
             return Name.Equals(type.Name);
         }
-
-        public IEnumerable<PropertyInfo> GetPublicProperties(Type type)
-        {
-            if (!type.IsInterface)
-                return type.GetProperties();
-
-            return (new Type[] { type })
-                   .Concat(type.GetInterfaces())
-                   .SelectMany(i => i.GetProperties());
-        }
         #endregion
     }
 }

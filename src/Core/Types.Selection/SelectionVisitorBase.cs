@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -33,10 +34,17 @@ namespace HotChocolate.Types.Selection
             }
             else
             {
-                throw new Exception("Illegal type");
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            string.Format(
+                                "UseSelection is in a invalid state. Type {0} " +
+                                "is illegal!",
+                                field.Type.NamedType().Name))
+                        .Build());
             }
-
         }
+
         protected virtual void LeaveSelection(
              IFieldSelection selection)
         {
@@ -56,7 +64,6 @@ namespace HotChocolate.Types.Selection
             {
                 EnterLeaf(selection);
                 LeaveLeaf(selection);
-
             }
             else if (selection.Field.Type.IsObjectType())
             {
@@ -65,8 +72,14 @@ namespace HotChocolate.Types.Selection
             }
             else
             {
-                throw new Exception("Illegal type");
-
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            string.Format(
+                                "UseSelection is in a invalid state. Type {0} " +
+                                "is illegal!",
+                                selection.Field.Type.NamedType().Name))
+                        .Build());
             }
         }
 
@@ -77,16 +90,14 @@ namespace HotChocolate.Types.Selection
 
         protected virtual void LeaveList(IFieldSelection selection)
         {
-
         }
 
         protected virtual void EnterLeaf(IFieldSelection selection)
         {
-
         }
+
         protected virtual void LeaveLeaf(IFieldSelection selection)
         {
-
         }
 
         protected virtual void EnterObject(IFieldSelection selection)
@@ -96,8 +107,6 @@ namespace HotChocolate.Types.Selection
 
         protected virtual void LeaveObject(IFieldSelection selection)
         {
-
         }
-
     }
 }

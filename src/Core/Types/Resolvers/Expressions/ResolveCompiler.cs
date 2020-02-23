@@ -71,6 +71,7 @@ namespace HotChocolate.Resolvers.Expressions
                     metadata = metadata.AsNonPure();
                 }
             }
+            
             if (member is PropertyInfo property)
             {
                 metadata = metadata.WithDependsOn(property);

@@ -109,7 +109,6 @@ namespace HotChocolate.Resolvers
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["method1"].Metadata.IsPure);
 
-
             Assert.True(type.Fields["method3"].Metadata.IsPure);
 
             Assert.False(type.Fields["method4"].Metadata.IsPure);
@@ -260,7 +259,6 @@ namespace HotChocolate.Resolvers
         [GraphQLResolverOf("Foo")]
         private class FooResolver
         {
-
             public string Method1()
             {
                 return "";
@@ -313,7 +311,6 @@ namespace HotChocolate.Resolvers
             {
                 return "";
             }
-
 
             public string Method3(string arg)
             {

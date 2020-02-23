@@ -23,7 +23,9 @@ namespace HotChocolate.Types.Selection
         }
 
         public Stack<Expression> Instance { get; }
+
         public Type ClrType { get; }
+
         public ParameterExpression Parameter { get; }
 
         public Dictionary<string, MemberAssignment> Projections { get; }
@@ -33,6 +35,7 @@ namespace HotChocolate.Types.Selection
             NewExpression ctor = Expression.New(ClrType);
             return Expression.MemberInit(ctor, Projections.Values);
         }
+
         public Expression CreateMemberInitLambda()
         {
             return Expression.Lambda(CreateMemberInit(), Parameter);
@@ -110,6 +113,5 @@ namespace HotChocolate.Types.Selection
             setType = null;
             return false;
         }
-
     }
 }

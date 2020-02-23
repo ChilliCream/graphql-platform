@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Selection
 
         protected override void LeaveObject(IFieldSelection selection)
         {
-            if (selection.Field.Member is PropertyInfo propertyInfo)
+            if (selection.Field.Member is PropertyInfo)
             {
                 Expression memberInit = Closures.Pop().CreateMemberInit();
 
@@ -57,7 +57,8 @@ namespace HotChocolate.Types.Selection
                     ErrorBuilder.New()
                         .SetMessage(
                             string.Format(
-                                "UseSelection is in a invalid state. Field {0} should never have been visited!",
+                                "UseSelection is in a invalid state. Field {0}" +
+                                " should never have been visited!",
                                 selection.Field.Name))
                         .Build());
             }
@@ -88,7 +89,8 @@ namespace HotChocolate.Types.Selection
                     ErrorBuilder.New()
                         .SetMessage(
                             string.Format(
-                                "UseSelection is in a invalid state. Field {0} should never have been visited!",
+                                "UseSelection is in a invalid state. Field {0}" +
+                                " should never have been visited!",
                                 selection.Field.Name))
                         .Build());
             }
@@ -123,5 +125,4 @@ namespace HotChocolate.Types.Selection
             }
         }
     }
-
 }

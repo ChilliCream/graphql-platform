@@ -6,9 +6,5 @@ namespace HotChocolate
     public sealed class ParentAttribute
         : Attribute
     {
-        public ParentAttribute()
-        {
-        }
-
     }
 }

@@ -22,26 +22,6 @@ namespace HotChocolate.Types
             await _next(context).ConfigureAwait(false);
 
             IQueryable<T> source = null;
-            IReadOnlyList<IFieldSelection> selection;
-            if (context.Result is PageableData<T> p)
-            {
-                //TODO: add support for pagable data!
-                throw new Exception("NOT SUPPORTED");
-                source = p.Source;
-            }
-            else
-            {
-                if (context.Field.Type.NamedType() is ObjectType type)
-                {
-                    selection = context.CollectFields(type);
-                }
-                else
-                {
-                    throw new Exception("Illegal type");
-                }
-                p = null;
-            }
-
             if (context.Result is IQueryable<T> q)
             {
                 source = q;

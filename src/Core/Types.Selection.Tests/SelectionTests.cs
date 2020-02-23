@@ -618,13 +618,21 @@ namespace HotChocolate.Types
         public class Foo
         {
             public string Bar { get; set; }
+
             public int Baz { get; set; }
+
             public NestedFoo Nested { get; set; }
+
             public NestedFoo[] ObjectArray { get; set; }
+
             public List<NestedFoo> ObjectList { get; set; }
+
             public IList<NestedFoo> IObjectList { get; set; }
+
             public HashSet<NestedFoo> HashSet { get; set; }
+
             public SortedSet<NestedFoo> SortedSet { get; set; }
+
             public ISet<NestedFoo> ISet { get; set; }
 
             public static Foo Create(string bar, int baz)
@@ -704,8 +712,11 @@ namespace HotChocolate.Types
         public class NestedFoo
         {
             public string Bar { get; set; }
+
             public int Baz { get; set; }
+
             public NestedFoo Nested { get; set; }
+
             public NestedFoo[] ObjectArray { get; set; }
         }
     }
