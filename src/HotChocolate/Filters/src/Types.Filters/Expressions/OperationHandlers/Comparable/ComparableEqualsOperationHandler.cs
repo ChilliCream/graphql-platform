@@ -20,10 +20,8 @@ namespace HotChocolate.Types.Filters.Expressions
                     return true;
 
                 case FilterOperationKind.NotEquals:
-                    expression = FilterExpressionBuilder.Not(
-                        FilterExpressionBuilder.Equals(
-                            property, parseValue())
-                     );
+                    expression = FilterExpressionBuilder.NotEquals(
+                        property, parseValue());
                     return true;
 
                 default:
