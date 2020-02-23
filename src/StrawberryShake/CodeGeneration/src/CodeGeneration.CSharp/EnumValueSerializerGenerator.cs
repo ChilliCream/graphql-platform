@@ -6,7 +6,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class EnumValueSerializerGenerator
-        : CodeGenerator<EnumValueSerializerDescriptor>
+        : CSharpCodeGenerator<EnumValueSerializerDescriptor>
     {
         protected override Task WriteAsync(
             CodeWriter writer,
@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetAccessModifier(AccessModifier.Public)
                 .SetSealed()
                 .SetName(descriptor.Name)
-                .AddImplements("global::StrawberryShake.IValueSerializer")
+                .AddImplements(Types.ValueSerializer)
                 .AddProperty(PropertyBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetType("string")
@@ -35,19 +35,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetLine($"return \"{descriptor.EnumGraphQLTypeName}\";")))
                 .AddProperty(PropertyBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
-                    .SetType("global::StrawberryShake.ValueKind")
+                    .SetType(Types.ValueKind)
                     .SetName("Kind")
                     .SetGetter(CodeLineBuilder.New()
-                        .SetLine($"return global::StrawberryShake.ValueKind.Enum;")))
+                        .SetLine($"return {Types.ValueKind}.Enum;")))
                 .AddProperty(PropertyBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
-                    .SetType("global::System.Type")
+                    .SetType(Types.Type)
                     .SetName("ClrType")
                     .SetGetter(CodeLineBuilder.New()
                         .SetLine($"return typeof({descriptor.EnumTypeName});")))
                 .AddProperty(PropertyBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
-                    .SetType("global::System.Type")
+                    .SetType(Types.Type)
                     .SetName("SerializationType")
                     .SetGetter(CodeLineBuilder.New()
                         .SetLine($"return typeof(string);")))
@@ -103,7 +103,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             code.AppendLine($"{indent}default:");
-            code.AppendLine($"{indent}{indent}throw new NotSupportedException();");
+            code.AppendLine($"{indent}{indent}throw new {Types.NotSupportedException}();");
 
             code.AppendLine("}");
 
@@ -137,7 +137,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             code.AppendLine($"{indent}default:");
-            code.AppendLine($"{indent}{indent}throw new NotSupportedException();");
+            code.AppendLine($"{indent}{indent}throw new {Types.NotSupportedException}();");
 
             code.AppendLine("}");
 

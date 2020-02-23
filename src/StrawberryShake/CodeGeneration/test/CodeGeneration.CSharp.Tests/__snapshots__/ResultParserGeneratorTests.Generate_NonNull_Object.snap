@@ -1,0 +1,30 @@
+﻿namespace Demo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial GetHumanResultParser
+        : global::StrawberryShake.Http.JsonResultParserBase<IFoo>
+    {
+        public GetHumanResultParser(global::StrawberryShake.IValueSerializerCollection serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(serializerResolver));
+            }
+
+        }
+
+        private override IBar? ParseFooBar(global::System.Text.Json.JsonElement parent)
+        {
+            if (!parent.TryGetProperty(field, out global::System.Text.Json.JsonElement obj)
+                || obj.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.InvalidOperationException(field);
+            }
+
+            return new Ghi
+            (
+                ParseThisAndThat(obj, "FieldA")
+            );
+        }
+    }
+}

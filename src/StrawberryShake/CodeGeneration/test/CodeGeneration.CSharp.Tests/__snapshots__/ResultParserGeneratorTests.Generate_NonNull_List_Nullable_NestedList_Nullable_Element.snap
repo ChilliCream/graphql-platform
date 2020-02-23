@@ -1,0 +1,62 @@
+﻿namespace Demo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial GetHumanResultParser
+        : global::StrawberryShake.Http.JsonResultParserBase<IFoo>
+    {
+        public GetHumanResultParser(global::StrawberryShake.IValueSerializerCollection serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(serializerResolver));
+            }
+
+        }
+
+        private override IBar? ParseFooBar(global::System.Text.Json.JsonElement parent)
+        {
+            if (!parent.TryGetProperty(field, out global::System.Text.Json.JsonElement obj)
+                || obj.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.InvalidOperationException(field);
+            }
+
+            int count = obj.GetArrayLength();
+            var result = new Abc[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                global::System.Text.Json.JsonElement element = obj[i];
+
+                if(element.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+                {
+                    result[i] = null;
+                }
+                else
+                {
+                    int innerCount = element.GetArrayLength();
+                    var innerResult = new Def[innerCount];
+
+                    for (int j = 0; j < innerCount; j++)
+                    {
+                        global::System.Text.Json.JsonElement innerElement = element[j];
+
+                        if(innerElement.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+                        {
+                            innerResult[j] = null;
+                        }
+                        else
+                        {
+                            innerResult[j] = new Ghi
+                            (
+                                ParseThisAndThat(innerElement, "FieldA")
+                            );
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+    }
+}

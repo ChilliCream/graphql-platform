@@ -5,6 +5,22 @@ namespace StrawberryShake.CodeGeneration
     public class ResultParserDescriptor
         : ICodeDescriptor
     {
+        public ResultParserDescriptor(
+            string name,
+            string @namespace,
+            string resultType,
+            IReadOnlyList<ResultParserMethodDescriptor> parseMethods,
+            IReadOnlyList<ResultParserDeserializerMethod> deserializerMethods,
+            IReadOnlyList<ValueSerializerDescriptor> valueSerializers)
+        {
+            Name = name;
+            Namespace = @namespace;
+            ResultType = resultType;
+            ParseMethods = parseMethods;
+            DeserializerMethods = deserializerMethods;
+            ValueSerializers = valueSerializers;
+        }
+
         public string Name { get; }
 
         public string Namespace { get; }
@@ -21,6 +37,20 @@ namespace StrawberryShake.CodeGeneration
     public class ResultParserMethodDescriptor
         : ICodeDescriptor
     {
+        public ResultParserMethodDescriptor(
+            string name,
+            string resultTypeInterface,
+            IReadOnlyList<ResultTypeDescriptor> resultType,
+            bool isRoot,
+            IReadOnlyList<ResultFieldDescriptor> fields)
+        {
+            Name = name;
+            ResultTypeInterface = resultTypeInterface;
+            ResultType = resultType;
+            IsRoot = isRoot;
+            Fields = fields;
+        }
+
         public string Name { get; }
 
         public string ResultTypeInterface { get; }
@@ -35,6 +65,18 @@ namespace StrawberryShake.CodeGeneration
     public class ResultTypeDescriptor
         : ICodeDescriptor
     {
+        public ResultTypeDescriptor(
+            string name,
+            bool isNullable,
+            bool isList,
+            bool isReferenceType)
+        {
+            Name = name;
+            IsNullable = isNullable;
+            IsList = isList;
+            IsReferenceType = isReferenceType;
+        }
+
         public string Name { get; }
 
         public bool IsNullable { get; }
@@ -47,6 +89,14 @@ namespace StrawberryShake.CodeGeneration
     public class ResultFieldDescriptor
         : ICodeDescriptor
     {
+        public ResultFieldDescriptor(
+            string name,
+            string parserMethodName)
+        {
+            Name = name;
+            ParserMethodName = parserMethodName;
+        }
+
         public string Name { get; }
 
         public string ParserMethodName { get; }
@@ -55,6 +105,12 @@ namespace StrawberryShake.CodeGeneration
     public class ResultParserDeserializerMethod
         : ICodeDescriptor
     {
+        public ResultParserDeserializerMethod(
+            string name)
+        {
+            Name = name;
+        }
+
         public string Name { get; }
     }
 }

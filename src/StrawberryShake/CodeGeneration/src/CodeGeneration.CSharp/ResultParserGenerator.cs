@@ -33,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 else
                 {
-
+                    AddParseMethod(classBuilder, parserMethod, CodeWriter.Indent);
                 }
             }
 
@@ -71,9 +71,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var body = new StringBuilder();
 
-            body.AppendLine(
-                $"public OnReviewResultParser({Types.ValueSerializerCollection} " +
-                "serializerResolver)");
             body.AppendLine("if (serializerResolver is null)");
             body.AppendLine("{");
             body.AppendLine(
@@ -112,34 +109,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetType(Types.JsonElement)
                         .SetName("data"))
                     .AddCode(CreateParseDataMethodBody(
-                        classBuilder, methodDescriptor, indent)));
+                        methodDescriptor, indent)));
         }
 
         private CodeBlockBuilder CreateParseDataMethodBody(
-            ClassBuilder classBuilder,
             ResultParserMethodDescriptor methodDescriptor,
             string indent)
         {
             var body = new StringBuilder();
 
-            body.AppendLine($"return new {methodDescriptor.ResultType[0].Name}");
-            body.AppendLine("(");
+            body.Append($"return ");
 
-            for (int i = 0; i < methodDescriptor.Fields.Count; i++)
-            {
-                ResultFieldDescriptor field = methodDescriptor.Fields[i];
+            AppendNewObject(
+                body,
+                methodDescriptor.ResultType[0].Name,
+                "data",
+                methodDescriptor.Fields,
+                indent,
+                string.Empty);
 
-                if (i > 0)
-                {
-                    body.Append(", ");
-                    body.AppendLine();
-                }
-
-                body.Append($"{indent}{field.ParserMethodName}(data, \"{field.Name}\")");
-            }
-
-            body.AppendLine();
-            body.Append(");");
+            body.Append(";");
 
             return CodeBlockBuilder.FromStringBuilder(body);
         }
@@ -149,12 +138,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ResultParserMethodDescriptor methodDescriptor,
             string indent)
         {
-            ImmutableStack<ResultTypeDescriptor> resultType =
-                ImmutableStack.CreateRange<ResultTypeDescriptor>(methodDescriptor.ResultType);
+            ImmutableQueue<ResultTypeDescriptor> resultType =
+                ImmutableQueue.CreateRange<ResultTypeDescriptor>(
+                    methodDescriptor.ResultType);
 
             classBuilder.AddMethod(
                 MethodBuilder.New()
-                    .SetAccessModifier(AccessModifier.Protected)
+                    .SetAccessModifier(AccessModifier.Private)
                     .SetInheritance(Inheritance.Override)
                     .SetReturnType(
                         $"{methodDescriptor.ResultTypeInterface}?",
@@ -165,104 +155,267 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetName(methodDescriptor.Name)
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
-                        .SetName("obj"))
+                        .SetName("parent"))
                     .AddCode(CreateParseMethodBody(
-                        classBuilder, methodDescriptor, resultType, indent)));
+                        methodDescriptor, resultType, indent)));
         }
 
         private CodeBlockBuilder CreateParseMethodBody(
-            ClassBuilder classBuilder,
             ResultParserMethodDescriptor methodDescriptor,
-            IImmutableStack<ResultTypeDescriptor> resultType,
+            ImmutableQueue<ResultTypeDescriptor> resultType,
             string indent)
         {
             var body = new StringBuilder();
 
-            IImmutableStack<ResultTypeDescriptor> next =
-                resultType.Pop(out ResultTypeDescriptor type);
+            ImmutableQueue<ResultTypeDescriptor> next =
+                resultType.Dequeue(out ResultTypeDescriptor type);
 
-            if (type.IsList)
+            if (type.IsList && next.Peek().IsList)
             {
-                AppendList(
-                    body,
-                    new ListInfo(
-                        "obj",
-                        "i",
-                        "count",
-                        "element",
-                        "result",
-                        type.Name),
-                    () => AppendList(
-                        body,
-                        new ListInfo(
-                            "obj",
-                            "i",
-                            "count",
-                            "element",
-                            "result",
-                            type.Name),
-                        () => AppendSetElement(
-                            body,
-                            null,
-                            indent,
-                            indent + indent),
-                        indent, indent),
-                    indent, string.Empty);
+                AppendNestedList(body, methodDescriptor, type, next, indent);
+            }
+            else if (type.IsList)
+            {
+                AppendList(body, methodDescriptor, type, next, indent);
             }
             else
             {
-
+                AppendObject(body, methodDescriptor, type, indent);
             }
 
             return CodeBlockBuilder.FromStringBuilder(body);
         }
 
+        private void AppendNestedList(
+            StringBuilder body,
+            ResultParserMethodDescriptor methodDescriptor,
+            ResultTypeDescriptor type,
+            ImmutableQueue<ResultTypeDescriptor> elementType,
+            string indent)
+        {
+            AppendNullHandling(
+                body,
+                "obj",
+                type.IsNullable,
+                indent,
+                string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+
+            AppendList(
+                body,
+                new ListInfo(
+                    "obj",
+                    "i",
+                    "count",
+                    "element",
+                    "result",
+                    type.Name),
+                    elementType.Peek().IsNullable,
+                listIndent => AppendList(
+                    body,
+                    new ListInfo(
+                        "element",
+                        "j",
+                        "innerCount",
+                        "innerElement",
+                        "innerResult",
+                        elementType.Peek().Name),
+                    elementType.Dequeue().Peek().IsNullable,
+                    elementIndent => AppendSetElement(
+                        body,
+                        "innerResult",
+                        "j",
+                        elementType.Dequeue().Peek().Name,
+                        "innerElement",
+                        methodDescriptor.Fields,
+                        indent,
+                        elementIndent),
+                    indent, listIndent),
+                indent, string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+            body.AppendLine("return result;");
+        }
+
+        private void AppendList(
+            StringBuilder body,
+            ResultParserMethodDescriptor methodDescriptor,
+            ResultTypeDescriptor type,
+            ImmutableQueue<ResultTypeDescriptor> elementType,
+            string indent)
+        {
+            AppendNullHandling(
+                body,
+                "obj",
+                type.IsNullable,
+                indent,
+                string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+
+            AppendList(
+                body,
+                new ListInfo(
+                    "obj",
+                    "i",
+                    "count",
+                    "element",
+                    "result",
+                    type.Name),
+                elementType.Peek().IsNullable,
+                initialIndent => AppendSetElement(
+                    body,
+                    "result",
+                    "i",
+                    elementType.Peek().Name,
+                    "element",
+                    methodDescriptor.Fields,
+                    indent,
+                    initialIndent),
+                indent, string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+            body.AppendLine("return result;");
+        }
+
+        private void AppendObject(
+            StringBuilder body,
+            ResultParserMethodDescriptor methodDescriptor,
+            ResultTypeDescriptor type,
+            string indent)
+        {
+            AppendNullHandling(
+                body,
+                "obj",
+                type.IsNullable,
+                indent,
+                string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+
+            body.Append($"return ");
+
+            AppendNewObject(
+                body,
+                type.Name,
+                "obj",
+                methodDescriptor.Fields,
+                indent,
+                string.Empty);
+
+            body.Append(";");
+        }
+
         private void AppendList(
             StringBuilder body,
             ListInfo list,
-            Action appendSetElement,
+            bool isElementNullable,
+            Action<string> appendSetElement,
             string indent,
             string initialIndent)
         {
             body.AppendLine($"{initialIndent}int {list.Length} = {list.Data}.GetArrayLength();");
             body.AppendLine($"{initialIndent}var {list.Result} = new {list.ResultType}[{list.Length}];");
+            body.AppendLine();
+
             body.AppendLine($"{initialIndent}for (int {list.Counter} = 0; {list.Counter} < {list.Length}; {list.Counter}++)");
             body.AppendLine($"{initialIndent}{{");
             body.AppendLine($"{initialIndent}{indent}{Types.JsonElement} {list.Element} = {list.Data}[{list.Counter}];");
-            body.AppendLine("");
-            appendSetElement();
+            body.AppendLine();
+            if (isElementNullable)
+            {
+                body.AppendLine($"{initialIndent}{indent}if({list.Element}.ValueKind == {Types.JsonValueKind}.Null)");
+                body.AppendLine($"{initialIndent}{indent}{{");
+                body.AppendLine($"{initialIndent}{indent}{indent}{list.Result}[{list.Counter}] = null;");
+                body.AppendLine($"{initialIndent}{indent}}}");
+                body.AppendLine($"{initialIndent}{indent}else");
+                body.AppendLine($"{initialIndent}{indent}{{");
+                appendSetElement($"{initialIndent}{indent}{indent}");
+                body.AppendLine();
+                body.AppendLine($"{initialIndent}{indent}}}");
+            }
+            else
+            {
+                appendSetElement($"{initialIndent}{indent}");
+                body.AppendLine();
+            }
             body.Append($"{initialIndent}}}");
         }
 
         private void AppendNullHandling(
             StringBuilder body,
-            string field,
+            string element,
+            bool isNullable,
             string indent,
             string initialIndent)
         {
-            body.AppendLine($"{initialIndent}if (!parent.TryGetProperty(field, out {Types.JsonElement} {field})");
-            body.AppendLine($"{initialIndent}{indent}|| obj.ValueKind == {Types.JsonValueKind}.Null)");
-            body.AppendLine("{");
-            body.AppendLine($"{initialIndent}{indent}return null;");
-            body.Append("}");
+            if (isNullable)
+            {
+                body.AppendLine($"{initialIndent}if (!parent.TryGetProperty(field, out {Types.JsonElement} {element})");
+                body.AppendLine($"{initialIndent}{indent}|| obj.ValueKind == {Types.JsonValueKind}.Null)");
+                body.AppendLine("{");
+                body.AppendLine($"{initialIndent}{indent}return null;");
+                body.Append("}");
+            }
+            else
+            {
+                body.AppendLine($"{initialIndent}if (!parent.TryGetProperty(field, out {Types.JsonElement} {element})");
+                body.AppendLine($"{initialIndent}{indent}|| obj.ValueKind == {Types.JsonValueKind}.Null)");
+                body.AppendLine("{");
+                body.AppendLine($"{initialIndent}{indent}throw new {Types.InvalidOperationException}(field);");
+                body.Append("}");
+            }
         }
 
         private void AppendSetElement(
             StringBuilder body,
-            string field,
+            string array,
+            string counter,
+            string resultType,
+            string element,
+            IReadOnlyList<ResultFieldDescriptor> fields,
             string indent,
             string initialIndent)
         {
-
+            body.Append($"{initialIndent}{array}[{counter}] = ");
+            AppendNewObject(body, resultType, element, fields, indent, initialIndent);
+            body.Append(";");
         }
 
         private void AppendNewObject(
             StringBuilder body,
-            string ResultModelType,
+            string resultType,
+            string element,
+            IReadOnlyList<ResultFieldDescriptor> fields,
             string indent,
             string initialIndent)
         {
+            body.AppendLine($"new {resultType}");
+            body.AppendLine($"{initialIndent}(");
 
+            for (int i = 0; i < fields.Count; i++)
+            {
+                ResultFieldDescriptor field = fields[i];
+
+                if (i > 0)
+                {
+                    body.Append(", ");
+                    body.AppendLine();
+                }
+
+                body.Append(
+                    $"{initialIndent}{indent}{field.ParserMethodName}" +
+                    $"({element}, \"{field.Name}\")");
+            }
+
+            body.AppendLine();
+            body.Append($"{initialIndent})");
         }
 
         private bool IsNullable(ResultParserMethodDescriptor methodDescriptor)
@@ -342,7 +495,7 @@ for (int i = 0; i < count; i++)
     {
         list[i] = new HasName
         (
-            DeserializeNullableString(element, "name")
+            DeserializeNullableString(obj, "name")
         );
     }
 }
