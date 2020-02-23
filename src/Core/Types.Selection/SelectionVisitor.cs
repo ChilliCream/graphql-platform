@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Selection
@@ -31,26 +32,35 @@ namespace HotChocolate.Types.Selection
         protected override void LeaveLeaf(IFieldSelection selection)
         {
             SelectionClosure closure = Closures.Peek();
-            foreach (PropertyInfo member in
-                selection.Field.DeclaringType.FieldMembers[selection.Field])
+            if (selection.Field.Member is PropertyInfo member)
             {
-                if (!closure.Projections.ContainsKey(member.Name))
-                {
-                    closure.Projections[member.Name] = Expression.Bind(
-                        member, Expression.Property(closure.Instance.Peek(), member));
-                }
+                closure.Projections[member.Name] = Expression.Bind(
+                    member, Expression.Property(closure.Instance.Peek(), member));
             }
             base.LeaveLeaf(selection);
         }
 
         protected override void LeaveObject(IFieldSelection selection)
         {
-            Expression memberInit = Closures.Pop().CreateMemberInit();
+            if (selection.Field.Member is PropertyInfo propertyInfo)
+            {
+                Expression memberInit = Closures.Pop().CreateMemberInit();
 
-            Closures.Peek().Projections[selection.Field.Name] =
-                Expression.Bind(selection.Field.Member, memberInit);
+                Closures.Peek().Projections[selection.Field.Name] =
+                    Expression.Bind(selection.Field.Member, memberInit);
 
-            base.LeaveObject(selection);
+                base.LeaveObject(selection);
+            }
+            else
+            {
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            string.Format(
+                                "UseSelection is in a invalid state. Field {0} should never have been visited!",
+                                selection.Field.Name))
+                        .Build());
+            }
         }
 
         protected override void LeaveList(IFieldSelection selection)
@@ -74,24 +84,26 @@ namespace HotChocolate.Types.Selection
             }
             else
             {
-                throw new Exception();
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            string.Format(
+                                "UseSelection is in a invalid state. Field {0} should never have been visited!",
+                                selection.Field.Name))
+                        .Build());
             }
-        }
-
-        protected override void LeaveSelection(
-             IFieldSelection selection)
-        {
-            base.LeaveSelection(selection);
         }
 
         protected override void EnterList(IFieldSelection selection)
         {
-            Closures.Push(
+            if (selection.Field.Member is PropertyInfo)
+            {
+                Closures.Push(
                 new SelectionClosure(
                     selection.Field.Type.ElementType().ToClrType(),
                     "e" + Closures.Count));
-
-            base.EnterList(selection);
+                base.EnterList(selection);
+            }
         }
 
         protected override void EnterObject(IFieldSelection selection)
@@ -109,12 +121,7 @@ namespace HotChocolate.Types.Selection
                 Closures.Push(nextClosure);
                 base.EnterObject(selection);
             }
-            else
-            {
-                throw new Exception();
-            }
         }
-
     }
 
 }

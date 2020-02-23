@@ -17,8 +17,8 @@ namespace HotChocolate.Resolvers
             IReadOnlyList<string> resources,
             bool isPure)
         {
-            DependsOn = dependsOn;
-            Resources = resources;
+            DependsOn = dependsOn.ToArray();
+            Resources = resources.ToArray();
             IsPure = isPure;
         }
 

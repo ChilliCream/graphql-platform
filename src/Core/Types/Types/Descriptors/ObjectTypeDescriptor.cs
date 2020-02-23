@@ -108,8 +108,6 @@ namespace HotChocolate.Types.Descriptors
         {
             foreach (MemberInfo member in Context.Inspector.GetMembers(resolverType))
             {
-                ValidateResolverConfiguration(sourceType, member);
-
                 if (IsResolverRelevant(sourceType, member))
                 {
                     ObjectFieldDefinition fieldDefinition =
@@ -120,31 +118,6 @@ namespace HotChocolate.Types.Descriptors
                     if (processed.Add(fieldDefinition.Name))
                     {
                         fields[fieldDefinition.Name] = fieldDefinition;
-                    }
-                }
-            }
-        }
-
-        private void ValidateResolverConfiguration(Type clrType, MemberInfo resolver)
-        {
-            if (resolver is MethodInfo m)
-            {
-                ParameterInfo parent = m.GetParameters()
-                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                if (parent != null)
-                {
-                    ParentAttribute attribute =
-                        parent.GetCustomAttributes<ParentAttribute>().FirstOrDefault();
-
-                    if (attribute.Property != null)
-                    {
-                        throw new SchemaException(
-                            SchemaErrorBuilder.New()
-                                .SetMessage(
-                                    string.Format(
-                            TypeResources.TypeInitializer_ParentPropertyNotAllowedInExtResolver,
-                                        m.Name, clrType.Name))
-                                .Build());
                     }
                 }
             }

@@ -45,8 +45,6 @@ namespace HotChocolate.Types
 
         public FieldCollection<ObjectField> Fields { get; private set; }
 
-        public IReadOnlyDictionary<ObjectField, PropertyInfo[]> FieldMembers { get; private set; }
-
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public bool IsOfType(IResolverContext context, object resolverResult)
@@ -97,44 +95,6 @@ namespace HotChocolate.Types
                 CompleteIsOfType(context);
                 FieldInitHelper.CompleteFields(context, definition, Fields);
             }
-
-            InitializeMetaData(context);
-        }
-
-        private void InitializeMetaData(ICompletionContext context)
-        {
-            if (Fields != null)
-            {
-                var fieldMembers = new Dictionary<ObjectField, PropertyInfo[]>();
-
-                var properties = GetPublicProperties(ClrType)
-                    .ToLookup(x => x.Name)
-                    .ToDictionary(x => x.Key, x => x.FirstOrDefault());
-
-                foreach (ObjectField field in Fields)
-                {
-                    var membersOfCurrentField = new List<PropertyInfo>();
-                    if (field.Metadata.IsPure)
-                    {
-                        foreach (string member in field.Metadata.DependsOn)
-                        {
-                            if (!properties.TryGetValue(member, out PropertyInfo propertyOfMember))
-                            {
-                                //TODO:  Resources & Exception
-                                throw new SchemaException();
-                            }
-                            membersOfCurrentField.Add(propertyOfMember);
-                        }
-                    }
-                    else
-                    {
-                        membersOfCurrentField = properties.Values.ToList();
-                    }
-                    fieldMembers[field] = membersOfCurrentField.ToArray();
-                }
-                FieldMembers = fieldMembers;
-            }
-
         }
 
         private void AddIntrospectionFields(

@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers
             // assert
             ObjectType<Foo> type = schema.GetType<ObjectType<Foo>>("Foo");
             Assert.False(type.Fields["foo1"].Metadata.IsPure);
-            Assert.False(type.Fields["description"].Metadata.IsPure);
+            Assert.True(type.Fields["description"].Metadata.IsPure);
             Assert.Single(type.Fields["description"].Metadata.DependsOn);
             Assert.Equal("Description", type.Fields["description"].Metadata.DependsOn[0]);
         }
@@ -60,10 +60,6 @@ namespace HotChocolate.Resolvers
             ObjectType<Foo> type = schema.GetType<ObjectType<Foo>>("Foo");
             Assert.True(type.Fields["method1"].Metadata.IsPure);
 
-            Assert.False(type.Fields["method2"].Metadata.IsPure);
-            Assert.Single(type.Fields["method2"].Metadata.DependsOn);
-            Assert.Equal("Description", type.Fields["method2"].Metadata.DependsOn[0]);
-
             Assert.True(type.Fields["method3"].Metadata.IsPure);
 
             Assert.False(type.Fields["method4"].Metadata.IsPure);
@@ -86,14 +82,10 @@ namespace HotChocolate.Resolvers
             // assert
             ObjectType<FooInferred> type =
                 schema.GetType<ObjectType<FooInferred>>("FooInferred");
-            Assert.True(type.Fields["method1"].Metadata.IsPure);
+            Assert.False(type.Fields["method1"].Metadata.IsPure);
             Assert.True(type.Fields["description"].Metadata.IsPure);
 
-            Assert.False(type.Fields["method2"].Metadata.IsPure);
-            Assert.Single(type.Fields["method2"].Metadata.DependsOn);
-            Assert.Equal("Description", type.Fields["method2"].Metadata.DependsOn[0]);
-
-            Assert.True(type.Fields["method3"].Metadata.IsPure);
+            Assert.False(type.Fields["method3"].Metadata.IsPure);
 
             Assert.False(type.Fields["method4"].Metadata.IsPure);
             Assert.Empty(type.Fields["method4"].Metadata.DependsOn);
@@ -182,7 +174,6 @@ namespace HotChocolate.Resolvers
                 t =>
                 {
                     t.Field<FooExtensions>(x => x.Method1());
-                    t.Field<FooExtensions>(x => x.Method2(default));
                     t.Field<FooExtensions>(x => x.Method3(default));
                     t.Field<FooExtensions>(x => x.Method4(default));
                     t.Field<FooExtensions>(x => x.Method5(default));
@@ -195,10 +186,6 @@ namespace HotChocolate.Resolvers
             // assert
             ObjectType<Foo> type = schema.GetType<ObjectType<Foo>>("Foo");
             Assert.True(type.Fields["method1"].Metadata.IsPure);
-
-            Assert.False(type.Fields["method2"].Metadata.IsPure);
-            Assert.Single(type.Fields["method2"].Metadata.DependsOn);
-            Assert.Equal("Description", type.Fields["method2"].Metadata.DependsOn[0]);
 
             Assert.True(type.Fields["method3"].Metadata.IsPure);
 
@@ -298,12 +285,10 @@ namespace HotChocolate.Resolvers
         [ExtendObjectType(Name = "Foo")]
         private class FooExtensionsNonGeneric
         {
-
             public string Method1()
             {
                 return "";
             }
-
 
             public string Method3(string arg)
             {
@@ -324,16 +309,11 @@ namespace HotChocolate.Resolvers
         [ExtendObjectType(Name = "Foo")]
         private class FooExtensions
         {
-
             public string Method1()
             {
                 return "";
             }
 
-            public string Method2([Parent("Description")]string str)
-            {
-                return str;
-            }
 
             public string Method3(string arg)
             {
@@ -351,7 +331,6 @@ namespace HotChocolate.Resolvers
             }
         }
 
-
         private class Foo
         {
             public string Description { get; } = "hello";
@@ -364,11 +343,6 @@ namespace HotChocolate.Resolvers
             public string Method1()
             {
                 return "";
-            }
-
-            public string Method2([Parent("Description")]string str)
-            {
-                return str;
             }
 
             public string Method3(string arg)
@@ -387,7 +361,4 @@ namespace HotChocolate.Resolvers
             }
         }
     }
-
-
-
 }

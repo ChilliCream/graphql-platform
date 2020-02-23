@@ -10,11 +10,5 @@ namespace HotChocolate
         {
         }
 
-        public ParentAttribute(string property)
-        {
-            Property = property;
-        }
-
-        public string Property { get; }
     }
 }

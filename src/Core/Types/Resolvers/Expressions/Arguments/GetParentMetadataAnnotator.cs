@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
@@ -19,19 +18,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            ParentAttribute attribute = parameter.GetCustomAttributes<ParentAttribute>()
-               .FirstOrDefault();
-
-            if (attribute?.Property == null)
-            {
-                return metadata.AsNonPure();
-            }
-            else
-            {
-                PropertyInfo property = sourceType.GetProperty(attribute.Property);
-
-                return metadata.WithDependsOn(property);
-            }
+            return metadata.AsNonPure();
         }
     }
 }

@@ -65,6 +65,11 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 metadata = CreateMetadata(
                     metadata, method.GetParameters(), sourceType);
+
+                if (method.DeclaringType == sourceType)
+                {
+                    metadata = metadata.AsNonPure();
+                }
             }
             if (member is PropertyInfo property)
             {

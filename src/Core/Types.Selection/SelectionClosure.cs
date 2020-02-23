@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace HotChocolate.Types.Selection
 {
@@ -50,7 +51,13 @@ namespace HotChocolate.Types.Selection
             {
                 return ToArray(selection);
             }
-            return selection;
+
+            if (TryGetSetType(sourceType, out Type setType))
+            {
+                return ToSet(selection, setType);
+            }
+
+            return ToList(selection);
         }
 
         private Expression ToArray(Expression source)
@@ -61,5 +68,48 @@ namespace HotChocolate.Types.Selection
                   new[] { ClrType },
                   source);
         }
+
+        private Expression ToList(Expression source)
+        {
+            return Expression.Call(
+                typeof(Enumerable),
+                  "ToList",
+                  new[] { ClrType },
+                  source);
+        }
+
+        private Expression ToSet(
+            Expression source,
+            Type setType)
+        {
+            Type typedGeneric =
+                setType.MakeGenericType(source.Type.GetGenericArguments()[0]);
+            ConstructorInfo ctor =
+                typedGeneric.GetConstructor(new[] { source.Type });
+            return Expression.New(ctor, source);
+        }
+
+        private bool TryGetSetType(
+            Type type, out Type setType)
+        {
+            if (type.IsGenericType)
+            {
+                Type typeDefinition = type.GetGenericTypeDefinition();
+                if (typeDefinition == typeof(ISet<>)
+                    || typeDefinition == typeof(HashSet<>))
+                {
+                    setType = typeof(HashSet<>);
+                    return true;
+                }
+                else if (typeDefinition == typeof(SortedSet<>))
+                {
+                    setType = typeof(SortedSet<>);
+                    return true;
+                }
+            }
+            setType = null;
+            return false;
+        }
+
     }
 }
