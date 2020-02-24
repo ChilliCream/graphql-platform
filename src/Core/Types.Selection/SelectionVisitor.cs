@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Selection
@@ -20,8 +21,10 @@ namespace HotChocolate.Types.Selection
 
         public void Accept(ObjectField field)
         {
+            SelectionSetNode selectionSet = Context.FieldSelection.SelectionSet;
+            (field, selectionSet) = UnwrapPaging(field, selectionSet);
             Closures.Push(new SelectionClosure(field.Type.ElementType().ToClrType(), "e"));
-            VisitSelections(field, Context.FieldSelection.SelectionSet);
+            VisitSelections(field, selectionSet);
         }
 
         public Expression<Func<T, T>> Project<T>()

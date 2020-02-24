@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types.Selection
 {
@@ -24,6 +25,7 @@ namespace HotChocolate.Types.Selection
             ObjectField field,
             SelectionSetNode selectionSet)
         {
+            (field, selectionSet) = UnwrapPaging(field, selectionSet);
             if (field.Type.NamedType() is ObjectType type)
             {
                 foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
@@ -107,6 +109,24 @@ namespace HotChocolate.Types.Selection
 
         protected virtual void LeaveObject(IFieldSelection selection)
         {
+        }
+
+        protected (ObjectField, SelectionSetNode) UnwrapPaging(
+            ObjectField field,
+            SelectionSetNode selectionSet)
+        {
+            if (field.Type.ToClrType() == typeof(IConnection) &&
+                field.Type.NamedType() is ObjectType type)
+            {
+                foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
+                {
+                    if (selection.Field.Name == "nodes")
+                    {
+                        return (selection.Field, selection.Selection.SelectionSet);
+                    }
+                }
+            }
+            return (field, selectionSet);
         }
     }
 }

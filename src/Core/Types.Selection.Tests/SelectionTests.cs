@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Types.Relay;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -143,6 +144,59 @@ namespace HotChocolate.Types
                     Assert.Equal(2, x.Baz);
                     Assert.Null(x.Nested);
                     Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public void Execute_Selection_Object_Paging()
+        {
+            // arrange
+            Foo[] foos = new[]
+            {
+                Foo.Create("aa",1),
+                Foo.Create("bb",2),
+            };
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(foos)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos { nodes { nested { bar } } } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.NotNull(x.Node.Nested);
+                    Assert.Equal("nestedaa", x.Node.Nested.Bar);
+                    Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.NotNull(x.Node.Nested);
+                    Assert.Equal("nestedbb", x.Node.Nested.Bar);
+                    Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
