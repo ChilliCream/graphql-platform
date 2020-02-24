@@ -1,10 +1,10 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using System.Reflection;
-using System.Linq;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -170,9 +170,9 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected void Ignore()
+        protected void Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
         }
 
         protected void Directive<T>(T directive)

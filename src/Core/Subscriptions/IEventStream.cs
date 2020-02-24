@@ -1,21 +1,15 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
+
+#nullable enable
 
 namespace HotChocolate.Subscriptions
 {
     /// <summary>
-    /// The event stream represents the subscription to an event
-    /// as a stream of messages.
+    /// <see cref="IEventStream{TMessage}" /> is a stream of internal messages
+    /// that is used to process stream results.
     /// </summary>
-    public interface IEventStream : IAsyncEnumerable<IEventMessage>
+    public interface IEventStream<out TMessage>
+        : IAsyncEnumerable<TMessage>
     {
-        /// <summary>
-        /// Completes the event stream and deletes the pub/sub system subscription.
-        /// </summary>
-        ValueTask CompleteAsync(
-            CancellationToken cancellationToken = default);
     }
 }

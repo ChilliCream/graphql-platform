@@ -4,26 +4,25 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Subscriptions
-{
-    public class InMemoryEventStream
-        : IEventStream
-    {
-        private readonly Channel<IEventMessage> _channel;
-        private InMemoryEventStreamEnumerator _enumerator;
-        private bool _isCompleted;
+#nullable enable
 
-        public InMemoryEventStream()
+namespace HotChocolate.Subscriptions.InMemory
+{
+    public class InMemoryEventStream<TMessage>
+        : IEventStream<TMessage>
+    {
+        private readonly Channel<TMessage> _channel;
+        private InMemoryEventStreamEnumerator? _enumerator;
+
+        public InMemoryEventStream(Channel<TMessage> channel)
         {
-            _channel = Channel.CreateUnbounded<IEventMessage>();
+            _channel = channel;
         }
 
-        public event EventHandler Completed;
-
-        public IAsyncEnumerator<IEventMessage> GetAsyncEnumerator(
+        public IAsyncEnumerator<TMessage> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            if (_isCompleted || (_enumerator is { IsCompleted: true }))
+            if (_channel.Reader.Completion.IsCompleted)
             {
                 throw new InvalidOperationException(
                     "The stream has been completed and cannot be replayed.");
@@ -33,105 +32,71 @@ namespace HotChocolate.Subscriptions
             {
                 _enumerator = new InMemoryEventStreamEnumerator(
                     _channel,
-                    () => Completed?.Invoke(this, EventArgs.Empty),
                     cancellationToken);
             }
 
             return _enumerator;
         }
 
-        public ValueTask TriggerAsync(
-            IEventMessage message,
-            CancellationToken cancellationToken = default)
-        {
-            if (message is null)
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return TriggerInternalAsync(message, cancellationToken);
-        }
-
-        private async ValueTask TriggerInternalAsync(
-            IEventMessage message,
-            CancellationToken cancellationToken = default)
-        {
-            if (await _channel.Writer.WaitToWriteAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await _channel.Writer.WriteAsync(message, cancellationToken);
-            }
-        }
-
-        public ValueTask CompleteAsync(CancellationToken cancellationToken = default)
-        {
-            if (!_isCompleted)
-            {
-                _channel.Writer.Complete();
-                Completed?.Invoke(this, EventArgs.Empty);
-                _isCompleted = true;
-            }
-            return default;
-        }
-
         private class InMemoryEventStreamEnumerator
-            : IAsyncEnumerator<IEventMessage>
+            : IAsyncEnumerator<TMessage>
         {
-            private readonly Channel<IEventMessage> _channel;
-            private readonly Action _completed;
+            private readonly Channel<TMessage> _channel;
             private readonly CancellationToken _cancellationToken;
-            private bool _isCompleted;
+            private bool _disposed;
 
             public InMemoryEventStreamEnumerator(
-                Channel<IEventMessage> channel,
-                Action completed,
+                Channel<TMessage> channel,
                 CancellationToken cancellationToken)
             {
                 _channel = channel;
-                _completed = completed;
                 _cancellationToken = cancellationToken;
+                Current = default!;
             }
 
-            public IEventMessage Current { get; private set; }
-
-            internal bool IsCompleted => _isCompleted;
+            // [AllowNull]
+            // [MaybeNull]
+            public TMessage Current { get; private set; }
 
             public async ValueTask<bool> MoveNextAsync()
             {
-                if (_isCompleted || _channel.Reader.Completion.IsCompleted)
+                if (_disposed || _channel.Reader.Completion.IsCompleted)
                 {
+                    Current = default!;
                     return false;
                 }
 
                 try
                 {
-                    if (await _channel.Reader.WaitToReadAsync(_cancellationToken)
+                    if (await _channel.Reader.WaitToReadAsync(
+                        _cancellationToken)
                         .ConfigureAwait(false))
                     {
-                        Current = await _channel.Reader.ReadAsync(_cancellationToken)
+                        Current = await _channel.Reader.ReadAsync(
+                            _cancellationToken)
                             .ConfigureAwait(false);
                         return true;
                     }
 
-                    Current = null;
+                    Current = default!;
                     return false;
                 }
                 catch
                 {
-                    Current = null;
+                    Current = default!;
                     return false;
                 }
             }
 
             public ValueTask DisposeAsync()
             {
-                if (!_isCompleted)
+                if (!_disposed)
                 {
                     if (!_channel.Reader.Completion.IsCompleted)
                     {
-                        _channel.Writer.Complete();
+                        _channel.Writer.TryComplete();
                     }
-                    _completed();
-                    _isCompleted = true;
+                    _disposed = true;
                 }
                 return default;
             }

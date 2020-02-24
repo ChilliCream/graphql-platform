@@ -1,0 +1,11 @@
+﻿schema {
+  query: QueryWithArgumentDefaults
+}
+
+type QueryWithArgumentDefaults {
+  field1(a: String b: String = "abc"): String
+  field2(a: String b: String = "abc"): String
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

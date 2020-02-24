@@ -502,6 +502,28 @@ namespace HotChocolate.Types
             Assert.Throws<SchemaException>(action);
         }
 
+        [Fact]
+        public void Infer_Directive_Argument_Defaults_From_Properties()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType<DirectiveWithDefaults>(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use<DirectiveMiddleware>()))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class CustomDirectiveType
             : DirectiveType<CustomDirective>
         {
@@ -549,6 +571,13 @@ namespace HotChocolate.Types
 
         public class CustomDirective2
         {
+            public string Argument1 { get; set; }
+            public string Argument2 { get; set; }
+        }
+
+        public class DirectiveWithDefaults
+        {
+            [DefaultValue("abc")]
             public string Argument1 { get; set; }
             public string Argument2 { get; set; }
         }
