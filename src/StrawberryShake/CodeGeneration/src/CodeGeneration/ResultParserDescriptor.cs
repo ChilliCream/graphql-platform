@@ -39,23 +39,23 @@ namespace StrawberryShake.CodeGeneration
     {
         public ResultParserMethodDescriptor(
             string name,
-            string resultTypeInterface,
-            IReadOnlyList<ResultTypeDescriptor> resultType,
+            string resultType,
+            IReadOnlyList<ResultTypeDescriptor> resultTypeComponents,
             bool isRoot,
             IReadOnlyList<ResultFieldDescriptor> fields)
         {
             Name = name;
-            ResultTypeInterface = resultTypeInterface;
             ResultType = resultType;
+            ResultTypeComponents = resultTypeComponents;
             IsRoot = isRoot;
             Fields = fields;
         }
 
         public string Name { get; }
 
-        public string ResultTypeInterface { get; }
+        public string ResultType { get; }
 
-        public IReadOnlyList<ResultTypeDescriptor> ResultType { get; }
+        public IReadOnlyList<ResultTypeDescriptor> ResultTypeComponents { get; }
 
         public bool IsRoot { get; }
 
@@ -106,11 +106,27 @@ namespace StrawberryShake.CodeGeneration
         : ICodeDescriptor
     {
         public ResultParserDeserializerMethod(
-            string name)
+            string name,
+            string serializationType,
+            string runtimeType,
+            IReadOnlyList<ResultTypeDescriptor> runtimeTypeComponents,
+            ValueSerializerDescriptor serializer)
         {
             Name = name;
+            SerializationType = serializationType;
+            RuntimeType = runtimeType;
+            RuntimeTypeComponents = runtimeTypeComponents;
+            Serializer = serializer;
         }
 
         public string Name { get; }
+
+        public string SerializationType { get; }
+
+        public string RuntimeType { get; }
+
+        public IReadOnlyList<ResultTypeDescriptor> RuntimeTypeComponents { get; }
+
+        public ValueSerializerDescriptor Serializer { get; }
     }
 }

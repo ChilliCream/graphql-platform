@@ -10,6 +10,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class ResultParserGenerator
         : CSharpCodeGenerator<ResultParserDescriptor>
     {
+        private static readonly Dictionary<string, string> _jsonMethod =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "string", "GetString" },
+                { "bool", "GetBoolean" },
+                { "byte", "GetByte" },
+                { "short", "GetInt16" },
+                { "int", "GetInt32" },
+                { "long", "GetInt64" },
+                { "ushort", "GetUInt16" },
+                { "uint", "GetUInt32" },
+                { "ulong", "GetUInt64" },
+                { "decimal", "GetDecimal" },
+                { "float", "GetSingle" },
+                { "double", "GetDouble" }
+            };
+
         protected override Task WriteAsync(
             CodeWriter writer,
             ResultParserDescriptor descriptor)
@@ -35,6 +52,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 {
                     AddParseMethod(classBuilder, parserMethod, CodeWriter.Indent);
                 }
+            }
+
+            foreach (ResultParserDeserializerMethod deserializerMethod in
+                descriptor.DeserializerMethods)
+            {
+                AddDeserializeMethod(classBuilder, deserializerMethod, CodeWriter.Indent);
             }
 
             return CodeFileBuilder.New()
@@ -102,8 +125,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 MethodBuilder.New()
                     .SetAccessModifier(AccessModifier.Protected)
                     .SetInheritance(Inheritance.Override)
-                    .SetReturnType($"{methodDescriptor.ResultTypeInterface}?", IsNullable(methodDescriptor))
-                    .SetReturnType($"{methodDescriptor.ResultTypeInterface}?", !IsNullable(methodDescriptor))
+                    .SetReturnType(
+                        $"{methodDescriptor.ResultType}?",
+                        IsNullable(methodDescriptor.ResultTypeComponents))
+                    .SetReturnType(
+                        $"{methodDescriptor.ResultType}",
+                        !IsNullable(methodDescriptor.ResultTypeComponents))
                     .SetName("ParseData")
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
@@ -122,7 +149,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AppendNewObject(
                 body,
-                methodDescriptor.ResultType[0].Name,
+                methodDescriptor.ResultTypeComponents[0].Name,
                 "data",
                 methodDescriptor.Fields,
                 indent,
@@ -140,18 +167,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             ImmutableQueue<ResultTypeDescriptor> resultType =
                 ImmutableQueue.CreateRange<ResultTypeDescriptor>(
-                    methodDescriptor.ResultType);
+                    methodDescriptor.ResultTypeComponents);
 
             classBuilder.AddMethod(
                 MethodBuilder.New()
                     .SetAccessModifier(AccessModifier.Private)
                     .SetInheritance(Inheritance.Override)
                     .SetReturnType(
-                        $"{methodDescriptor.ResultTypeInterface}?",
-                        IsNullable(methodDescriptor))
+                        $"{methodDescriptor.ResultType}?",
+                        IsNullable(methodDescriptor.ResultTypeComponents))
                     .SetReturnType(
-                        $"{methodDescriptor.ResultTypeInterface}?",
-                        !IsNullable(methodDescriptor))
+                        $"{methodDescriptor.ResultType}",
+                        !IsNullable(methodDescriptor.ResultTypeComponents))
                     .SetName(methodDescriptor.Name)
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
@@ -162,13 +189,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private CodeBlockBuilder CreateParseMethodBody(
             ResultParserMethodDescriptor methodDescriptor,
-            ImmutableQueue<ResultTypeDescriptor> resultType,
+            ImmutableQueue<ResultTypeDescriptor> resultTypeComponents,
             string indent)
         {
             var body = new StringBuilder();
 
             ImmutableQueue<ResultTypeDescriptor> next =
-                resultType.Dequeue(out ResultTypeDescriptor type);
+                resultTypeComponents.Dequeue(out ResultTypeDescriptor type);
 
             if (type.IsList && next.Peek().IsList)
             {
@@ -186,6 +213,61 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return CodeBlockBuilder.FromStringBuilder(body);
         }
 
+        private void AddDeserializeMethod(
+            ClassBuilder classBuilder,
+            ResultParserDeserializerMethod methodDescriptor,
+            string indent)
+        {
+            ImmutableQueue<ResultTypeDescriptor> runtimeTypeComponents =
+                ImmutableQueue.CreateRange<ResultTypeDescriptor>(
+                    methodDescriptor.RuntimeTypeComponents);
+
+            classBuilder.AddMethod(
+                MethodBuilder.New()
+                    .SetAccessModifier(AccessModifier.Private)
+                    .SetInheritance(Inheritance.Override)
+                    .SetReturnType(
+                        $"{methodDescriptor.RuntimeType}?",
+                        IsNullable(methodDescriptor.RuntimeTypeComponents))
+                    .SetReturnType(
+                        $"{methodDescriptor.RuntimeType}",
+                        !IsNullable(methodDescriptor.RuntimeTypeComponents))
+                    .SetName(methodDescriptor.Name)
+                    .AddParameter(ParameterBuilder.New()
+                        .SetType(Types.JsonElement)
+                        .SetName("obj"))
+                    .AddParameter(ParameterBuilder.New()
+                        .SetType("string")
+                        .SetName("field"))
+                    .AddCode(CreateDeserializeMethodBody(
+                        methodDescriptor, runtimeTypeComponents, indent)));
+        }
+
+        private CodeBlockBuilder CreateDeserializeMethodBody(
+            ResultParserDeserializerMethod methodDescriptor,
+            ImmutableQueue<ResultTypeDescriptor> runtimeTypeComponents,
+            string indent)
+        {
+            var body = new StringBuilder();
+
+            ImmutableQueue<ResultTypeDescriptor> next =
+                runtimeTypeComponents.Dequeue(out ResultTypeDescriptor type);
+
+            if (type.IsList && next.Peek().IsList)
+            {
+            }
+            else if (type.IsList)
+            {
+                AppendDeserializeLeafList(body, methodDescriptor, type, next, indent);
+            }
+            else
+            {
+                AppendDeserializeLeaf(body, methodDescriptor, type, indent);
+            }
+
+            return CodeBlockBuilder.FromStringBuilder(body);
+        }
+
         private void AppendNestedList(
             StringBuilder body,
             ResultParserMethodDescriptor methodDescriptor,
@@ -195,8 +277,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AppendNullHandling(
                 body,
+                "parent",
                 "obj",
-                type.IsNullable,
+                IsNullable(type),
                 indent,
                 string.Empty);
 
@@ -212,7 +295,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     "element",
                     "result",
                     type.Name),
-                    elementType.Peek().IsNullable,
+                    IsNullable(elementType.Peek()),
                 listIndent => AppendList(
                     body,
                     new ListInfo(
@@ -222,7 +305,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "innerElement",
                         "innerResult",
                         elementType.Peek().Name),
-                    elementType.Dequeue().Peek().IsNullable,
+                    IsNullable(elementType.Dequeue().Peek()),
                     elementIndent => AppendSetElement(
                         body,
                         "innerResult",
@@ -249,8 +332,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AppendNullHandling(
                 body,
+                "parent",
                 "obj",
-                type.IsNullable,
+                IsNullable(type),
                 indent,
                 string.Empty);
 
@@ -266,7 +350,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     "element",
                     "result",
                     type.Name),
-                elementType.Peek().IsNullable,
+                IsNullable(elementType.Peek()),
                 initialIndent => AppendSetElement(
                     body,
                     "result",
@@ -291,8 +375,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             AppendNullHandling(
                 body,
+                "parent",
                 "obj",
-                type.IsNullable,
+                IsNullable(type),
                 indent,
                 string.Empty);
 
@@ -350,14 +435,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private void AppendNullHandling(
             StringBuilder body,
-            string element,
+            string parent,
+            string field,
             bool isNullable,
             string indent,
             string initialIndent)
         {
             if (isNullable)
             {
-                body.AppendLine($"{initialIndent}if (!parent.TryGetProperty(field, out {Types.JsonElement} {element})");
+                body.AppendLine($"{initialIndent}if (!{parent}.TryGetProperty(field, out {Types.JsonElement} {field})");
                 body.AppendLine($"{initialIndent}{indent}|| obj.ValueKind == {Types.JsonValueKind}.Null)");
                 body.AppendLine("{");
                 body.AppendLine($"{initialIndent}{indent}return null;");
@@ -365,7 +451,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
             else
             {
-                body.AppendLine($"{initialIndent}if (!parent.TryGetProperty(field, out {Types.JsonElement} {element})");
+                body.AppendLine($"{initialIndent}if (!{parent}.TryGetProperty(field, out {Types.JsonElement} {field})");
                 body.AppendLine($"{initialIndent}{indent}|| obj.ValueKind == {Types.JsonValueKind}.Null)");
                 body.AppendLine("{");
                 body.AppendLine($"{initialIndent}{indent}throw new {Types.InvalidOperationException}(field);");
@@ -388,7 +474,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             body.Append(";");
         }
 
-        private void AppendNewObject(
+        private static void AppendNewObject(
             StringBuilder body,
             string resultType,
             string element,
@@ -418,11 +504,133 @@ namespace StrawberryShake.CodeGeneration.CSharp
             body.Append($"{initialIndent})");
         }
 
-        private bool IsNullable(ResultParserMethodDescriptor methodDescriptor)
+        private void AppendDeserializeLeafList(
+            StringBuilder body,
+            ResultParserDeserializerMethod methodDescriptor,
+            ResultTypeDescriptor type,
+            ImmutableQueue<ResultTypeDescriptor> runtimeTypeComponents,
+            string indent)
         {
-            if (methodDescriptor.ResultType[0].IsNullable)
+            AppendNullHandling(
+                body,
+                "obj",
+                "value",
+                IsNullable(type),
+                indent,
+                string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+
+            AppendList(
+                body,
+                new ListInfo(
+                    "value",
+                    "i",
+                    "count",
+                    "element",
+                    "result",
+                    type.Name),
+                IsNullable(runtimeTypeComponents.Peek()),
+                initialIndent => AppendSetLeafElement(
+                    body,
+                    "result",
+                    "i",
+                    methodDescriptor.Serializer.FieldName,
+                    "element",
+                    methodDescriptor.SerializationType,
+                    runtimeTypeComponents.Peek().Name,
+                    IsNullable(runtimeTypeComponents.Peek()),
+                    indent,
+                    initialIndent),
+                indent, string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+            body.AppendLine("return result;");
+        }
+
+        private void AppendDeserializeLeaf(
+            StringBuilder body,
+            ResultParserDeserializerMethod methodDescriptor,
+            ResultTypeDescriptor type,
+            string indent)
+        {
+            AppendNullHandling(
+                body,
+                "obj",
+                "value",
+                IsNullable(type),
+                indent,
+                string.Empty);
+
+            body.AppendLine();
+            body.AppendLine();
+
+            body.Append($"return ");
+
+            AppendDeserializeLeafValue(
+                body,
+                methodDescriptor.Serializer.FieldName,
+                "value",
+                methodDescriptor.SerializationType,
+                methodDescriptor.RuntimeType,
+                IsNullable(type));
+
+            body.Append(";");
+        }
+
+        private void AppendSetLeafElement(
+            StringBuilder body,
+            string array,
+            string counter,
+            string serializer,
+            string element,
+            string serializationType,
+            string runtimeType,
+            bool isNullable,
+
+            string indent,
+            string initialIndent)
+        {
+            body.Append($"{initialIndent}{array}[{counter}] = ");
+            AppendDeserializeLeafValue(
+                body, serializer, element,
+                serializationType, runtimeType,
+                isNullable);
+            body.Append(";");
+        }
+
+        private static void AppendDeserializeLeafValue(
+            StringBuilder body,
+            string serializer,
+            string element,
+            string serializationType,
+            string resultType,
+            bool isNullable)
+        {
+            string jsonMethod = _jsonMethod[serializationType];
+
+            if (isNullable)
             {
-                if (methodDescriptor.ResultType[0].IsReferenceType)
+                body.Append($"({resultType}?)");
+            }
+            else
+            {
+                body.Append($"({resultType})");
+            }
+
+            body.Append($"{serializer}.Deserialize({element}.{jsonMethod}())!");
+        }
+
+        private bool IsNullable(IReadOnlyList<ResultTypeDescriptor> typeComponents) =>
+            IsNullable(typeComponents[0]);
+
+        private bool IsNullable(ResultTypeDescriptor typeComponent)
+        {
+            if (typeComponent.IsNullable)
+            {
+                if (typeComponent.IsReferenceType)
                 {
                     return NullableRefTypes;
                 }

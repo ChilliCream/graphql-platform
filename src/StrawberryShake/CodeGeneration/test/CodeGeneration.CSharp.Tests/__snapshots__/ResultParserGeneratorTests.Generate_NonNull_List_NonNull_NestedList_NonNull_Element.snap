@@ -13,7 +13,7 @@
 
         }
 
-        private override IBar? ParseFooBar(global::System.Text.Json.JsonElement parent)
+        private override IBar ParseFooBar(global::System.Text.Json.JsonElement parent)
         {
             if (!parent.TryGetProperty(field, out global::System.Text.Json.JsonElement obj)
                 || obj.ValueKind == global::System.Text.Json.JsonValueKind.Null)

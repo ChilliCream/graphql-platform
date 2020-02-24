@@ -4,7 +4,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         : CodeGenerator<TDescriptor>
         where TDescriptor : ICodeDescriptor
     {
-        protected bool NullableRefTypes { get; } = false;
+        protected bool NullableRefTypes { get; } = true;
 
         protected WellKnownTypes Types { get; } = new WellKnownTypes();
 

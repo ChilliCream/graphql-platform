@@ -4,6 +4,8 @@
     public partial GetHumanResultParser
         : global::StrawberryShake.Http.JsonResultParserBase<IFoo>
     {
+        private global::StrawberryShake.IValueSerializer _stringSerializer;
+
         public GetHumanResultParser(global::StrawberryShake.IValueSerializerCollection serializerResolver)
         {
             if (serializerResolver is null)
@@ -11,30 +13,20 @@
                 throw new global::System.ArgumentNullException(nameof(serializerResolver));
             }
 
+            _stringSerializer = serializerResolver.Get("String");
         }
 
-        private override IBar ParseFooBar(global::System.Text.Json.JsonElement parent)
+        private override string? DeserializeNullableString(
+            global::System.Text.Json.JsonElement obj,
+            string field)
         {
-            if (!parent.TryGetProperty(field, out global::System.Text.Json.JsonElement obj)
+            if (!obj.TryGetProperty(field, out global::System.Text.Json.JsonElement value)
                 || obj.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
-                throw new global::System.InvalidOperationException(field);
+                return null;
             }
 
-            int count = obj.GetArrayLength();
-            var result = new Abc[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                global::System.Text.Json.JsonElement element = obj[i];
-
-                result[i] = new Def
-                (
-                    ParseThisAndThat(element, "FieldA")
-                );
-            }
-
-            return result;
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
         }
     }
 }

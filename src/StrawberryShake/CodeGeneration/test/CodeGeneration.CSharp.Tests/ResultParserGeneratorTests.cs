@@ -335,6 +335,41 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public async Task Generate_Deserialize_Nullable_String_Deserializer()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            var generator = new ResultParserGenerator();
+
+            var descriptor = new ResultParserDescriptor(
+                "GetHumanResultParser",
+                "Demo",
+                "IFoo",
+                Array.Empty<ResultParserMethodDescriptor>(),
+                new[] {
+                    new ResultParserDeserializerMethod(
+                        "DeserializeNullableString",
+                        "string",
+                        "string",
+                        new [] {
+                            new ResultTypeDescriptor("string", true, false, true)
+                        },
+                        new ValueSerializerDescriptor("String", "_stringSerializer"))
+                },
+                new[] {
+                    new ValueSerializerDescriptor("String", "_stringSerializer")
+                });
+
+            // act
+            await generator.WriteAsync(writer, descriptor);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void CanHandle()
         {
             // arrange
