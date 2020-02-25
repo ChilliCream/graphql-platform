@@ -335,7 +335,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
-        public async Task Generate_Deserialize_Nullable_String_Deserializer()
+        public async Task Generate_Deserializer_Nullable_String()
         {
             // arrange
             var sb = new StringBuilder();
@@ -354,6 +354,77 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "string",
                         "string",
                         new [] {
+                            new ResultTypeDescriptor("string", true, false, true)
+                        },
+                        new ValueSerializerDescriptor("String", "_stringSerializer"))
+                },
+                new[] {
+                    new ValueSerializerDescriptor("String", "_stringSerializer")
+                });
+
+            // act
+            await generator.WriteAsync(writer, descriptor);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Generate_Deserializer_NonNull_String()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            var generator = new ResultParserGenerator();
+
+            var descriptor = new ResultParserDescriptor(
+                "GetHumanResultParser",
+                "Demo",
+                "IFoo",
+                Array.Empty<ResultParserMethodDescriptor>(),
+                new[] {
+                    new ResultParserDeserializerMethod(
+                        "DeserializeNullableString",
+                        "string",
+                        "string",
+                        new [] {
+                            new ResultTypeDescriptor("string", false, false, true)
+                        },
+                        new ValueSerializerDescriptor("String", "_stringSerializer"))
+                },
+                new[] {
+                    new ValueSerializerDescriptor("String", "_stringSerializer")
+                });
+
+            // act
+            await generator.WriteAsync(writer, descriptor);
+
+            // assert
+            sb.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Generate_Deserializer_Nullable_List_Nullable_String()
+        {
+            // arrange
+            var sb = new StringBuilder();
+            var writer = new CodeWriter(sb);
+
+            var generator = new ResultParserGenerator();
+
+            var descriptor = new ResultParserDescriptor(
+                "GetHumanResultParser",
+                "Demo",
+                "IFoo",
+                Array.Empty<ResultParserMethodDescriptor>(),
+                new[] {
+                    new ResultParserDeserializerMethod(
+                        "DeserializeNullableString",
+                        "string",
+                        "string",
+                        new [] {
+                            new ResultTypeDescriptor("IReadOnlyList", true, true, true),
                             new ResultTypeDescriptor("string", true, false, true)
                         },
                         new ValueSerializerDescriptor("String", "_stringSerializer"))

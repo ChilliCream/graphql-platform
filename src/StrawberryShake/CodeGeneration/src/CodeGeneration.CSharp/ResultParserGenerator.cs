@@ -294,7 +294,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     "count",
                     "element",
                     "result",
-                    type.Name),
+                    BuildTypeName(elementType)),
                     IsNullable(elementType.Peek()),
                 listIndent => AppendList(
                     body,
@@ -304,13 +304,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "innerCount",
                         "innerElement",
                         "innerResult",
-                        elementType.Peek().Name),
+                        BuildTypeName(elementType.Dequeue())),
                     IsNullable(elementType.Dequeue().Peek()),
                     elementIndent => AppendSetElement(
                         body,
                         "innerResult",
                         "j",
-                        elementType.Dequeue().Peek().Name,
+                        BuildTypeName(elementType.Dequeue()),
                         "innerElement",
                         methodDescriptor.Fields,
                         indent,
@@ -349,13 +349,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     "count",
                     "element",
                     "result",
-                    type.Name),
+                    BuildTypeName(elementType)),
                 IsNullable(elementType.Peek()),
                 initialIndent => AppendSetElement(
                     body,
                     "result",
                     "i",
-                    elementType.Peek().Name,
+                    BuildTypeName(elementType),
                     "element",
                     methodDescriptor.Fields,
                     indent,
@@ -637,6 +637,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 return true;
             }
             return false;
+        }
+
+        private string BuildTypeName(ImmutableQueue<ResultTypeDescriptor> typeComponents)
+        {
+            ImmutableQueue<ResultTypeDescriptor> current = typeComponents;
+            var typeName = new StringBuilder();
+            int count = 0;
+
+            while (!current.IsEmpty)
+            {
+                current = current.Dequeue(out ResultTypeDescriptor component);
+
+                if (typeName.Length == 0)
+                {
+                    typeName.Append(IsNullable(component)
+                        ? $"{component.Name}?"
+                        : component.Name);
+                }
+                else
+                {
+                    count++;
+                    typeName.Append(IsNullable(component)
+                        ? $"<{component.Name}?"
+                        : $"<{component.Name}");
+                }
+            }
+
+            return typeName.Append(new string('>', count)).ToString();
         }
 
         private readonly ref struct ListInfo
