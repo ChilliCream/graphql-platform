@@ -59,6 +59,29 @@ namespace HotChocolate.Types.Sorting
             return sortedSource;
         }
 
+        public Expression Compile(
+            Expression source)
+        {
+            if (Instance.Count == 0)
+            {
+                return source;
+            }
+
+            if (!OrderingMethodFinder.OrderMethodExists(source))
+            {
+                source = source.CompileInitialSortOperation(
+                    Instance.Dequeue(), _parameter);
+            }
+
+            while (Instance.Count != 0)
+            {
+                source = source.CompileSortOperation(
+                        Instance.Dequeue(), _parameter);
+            }
+
+            return source;
+        }
+
         #region Object Value
 
         public override VisitorAction Enter(

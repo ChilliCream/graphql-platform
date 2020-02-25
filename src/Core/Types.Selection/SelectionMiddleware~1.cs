@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Relay;
 using HotChocolate.Types.Selection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -12,9 +12,13 @@ namespace HotChocolate.Types
     {
         private readonly FieldDelegate _next;
 
-        public SelectionMiddleware(FieldDelegate next)
+        private readonly ITypeConversion _converter;
+        public SelectionMiddleware(
+            FieldDelegate next, 
+            ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _converter = converter ?? TypeConversion.Default;
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
@@ -30,7 +34,7 @@ namespace HotChocolate.Types
             {
                 source = e.AsQueryable();
             }
-            var visitor = new SelectionVisitor(context);
+            var visitor = new SelectionVisitor(context, _converter);
             visitor.Accept(context.Field);
             context.Result = source.Select(visitor.Project<T>());
         }

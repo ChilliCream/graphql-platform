@@ -39,6 +39,59 @@ namespace HotChocolate.Types.Sorting
             return source.ThenBy(lambda);
         }
 
+        internal static Expression CompileInitialSortOperation(
+            this Expression source,
+            SortOperationInvocation operation,
+            ParameterExpression parameter)
+        {
+            Expression lambda
+                = HandleProperty(operation, parameter);
+
+            if (operation.Kind == SortOperationKind.Desc)
+            {
+                return Expression.Call(
+                    typeof(Enumerable),
+                    "OrderByDescending",
+                    new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                    source,
+                    lambda);
+            }
+
+            return Expression.Call(
+                typeof(Enumerable),
+                "OrderBy",
+                new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                source,
+                lambda);
+        }
+
+        internal static Expression CompileSortOperation(
+            this Expression source,
+            SortOperationInvocation operation,
+            ParameterExpression parameter)
+        {
+
+            Expression lambda
+                = HandleProperty(operation, parameter);
+
+            if (operation.Kind == SortOperationKind.Desc)
+            {
+                return Expression.Call(
+                    typeof(Enumerable),
+                    "ThenByDescending",
+                    new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                    source,
+                    lambda);
+            }
+
+            return Expression.Call(
+                typeof(Enumerable),
+                "ThenBy",
+                new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                source,
+                lambda);
+        }
+
         internal static Expression<Func<TSource, object>> HandleProperty<TSource>(
             SortOperationInvocation operation, ParameterExpression parameter)
         {
@@ -47,6 +100,15 @@ namespace HotChocolate.Types.Sorting
             MemberExpression property = Expression.Property(parameter, propertyInfo);
             UnaryExpression propAsObject = Expression.Convert(property, typeof(object));
             return Expression.Lambda<Func<TSource, object>>(propAsObject, parameter);
+        }
+
+        internal static Expression HandleProperty(
+            SortOperationInvocation operation, ParameterExpression parameter)
+        {
+            PropertyInfo propertyInfo = operation.Property;
+
+            MemberExpression property = Expression.Property(parameter, propertyInfo);
+            return Expression.Lambda(property, parameter);
         }
     }
 }

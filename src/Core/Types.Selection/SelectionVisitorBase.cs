@@ -57,7 +57,8 @@ namespace HotChocolate.Types.Selection
              IFieldSelection selection)
         {
             Fields.Push(selection.Field);
-            if (selection.Field.Type.IsListType())
+            if (selection.Field.Type.IsListType() ||
+                selection.Field.Type.ToClrType() == typeof(IConnection))
             {
                 EnterList(selection);
                 LeaveList(selection);
@@ -87,6 +88,7 @@ namespace HotChocolate.Types.Selection
 
         protected virtual void EnterList(IFieldSelection selection)
         {
+            selection = UnwrapPaging(selection);
             VisitSelections(selection.Field, selection.Selection.SelectionSet);
         }
 
@@ -109,6 +111,24 @@ namespace HotChocolate.Types.Selection
 
         protected virtual void LeaveObject(IFieldSelection selection)
         {
+        }
+
+        protected IFieldSelection UnwrapPaging(
+            IFieldSelection fieldSelection)
+        {
+            if (fieldSelection.Field.Type.ToClrType() == typeof(IConnection) &&
+                fieldSelection.Field.Type.NamedType() is ObjectType type)
+            {
+                foreach (IFieldSelection selection in Context.CollectFields(
+                    type, fieldSelection.Selection.SelectionSet))
+                {
+                    if (selection.Field.Name == "nodes")
+                    {
+                        return selection;
+                    }
+                }
+            }
+            return fieldSelection;
         }
 
         protected (ObjectField, SelectionSetNode) UnwrapPaging(

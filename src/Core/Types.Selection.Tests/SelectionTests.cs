@@ -148,59 +148,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Object_Paging()
-        {
-            // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
-            Connection<Foo> resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(
-                    d => d.Field(t => t.Foos)
-                        .Resolver(foos)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx);
-                            resultCtx = ctx.Result as Connection<Foo>;
-                        })
-                        .UsePaging<ObjectType<Foo>>()
-                        .UseFiltering()
-                        .UseSorting()
-                        .UseSelection())
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(
-                "{ foos { nodes { nested { bar } } } }");
-
-            // assert
-            Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.Edges.ToArray(),
-                x =>
-                {
-                    Assert.Null(x.Node.Bar);
-                    Assert.Equal(0, x.Node.Baz);
-                    Assert.NotNull(x.Node.Nested);
-                    Assert.Equal("nestedaa", x.Node.Nested.Bar);
-                    Assert.Equal(0, x.Node.Nested.Baz);
-                    Assert.Null(x.Node.ObjectArray);
-                },
-                x =>
-                {
-                    Assert.Null(x.Node.Bar);
-                    Assert.Equal(0, x.Node.Baz);
-                    Assert.NotNull(x.Node.Nested);
-                    Assert.Equal("nestedbb", x.Node.Nested.Bar);
-                    Assert.Equal(0, x.Node.Nested.Baz);
-                    Assert.Null(x.Node.ObjectArray);
-                });
-        }
-
-        [Fact]
         public void Execute_Selection_Object()
         {
             // arrange
@@ -664,6 +611,262 @@ namespace HotChocolate.Types
                 });
         }
 
+
+        [Fact]
+        public void Execute_Selection_Object_Paging()
+        {
+            // arrange
+            Foo[] foos = new[]
+            {
+                Foo.Create("aa",1),
+                Foo.Create("bb",2),
+            };
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(foos)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos { nodes { nested { bar } } } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.NotNull(x.Node.Nested);
+                    Assert.Equal("nestedaa", x.Node.Nested.Bar);
+                    Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.NotNull(x.Node.Nested);
+                    Assert.Equal("nestedbb", x.Node.Nested.Bar);
+                    Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public void Execute_Selection_DeepPaging()
+        {
+            // arrange
+            Foo[] foos = new[]
+            {
+                Foo.Create("aa",1),
+                Foo.Create("bb",2),
+            };
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(foos)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos   { middlewareList { nodes { bar } } } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray()[0].MiddlewareList,
+                x =>
+                {
+                    Assert.Equal("ccaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("aaaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("bbaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public void Execute_Selection_Nested_Filtering()
+        {
+            // arrange
+            Foo[] foos = new[]
+            {
+                Foo.Create("aa",1),
+                Foo.Create("bb",2),
+            };
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(foos)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos   { middlewareList(where:{bar: \"ccaa\"}) { nodes { bar } } } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Single(resultCtx.ToArray()[0].MiddlewareList);
+            Assert.Collection(resultCtx.ToArray()[0].MiddlewareList,
+                x =>
+                {
+                    Assert.Equal("ccaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public void Execute_Selection_Nested_Sorting()
+        {
+            // arrange
+            Foo[] foos = new[]
+            {
+                Foo.Create("aa",1),
+                Foo.Create("bb",2),
+            };
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(foos)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos   { middlewareList(order_by:{baz: ASC, bar: ASC}) { nodes { bar } } } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray()[0].MiddlewareList,
+                x =>
+                {
+                    Assert.Equal("aaaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("ccaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("bbaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+
+        [Fact]
+        public void Execute_Selection_Nested_FilteringAndSorting()
+        {
+            // arrange
+            Foo[] foos = new[]
+            {
+                Foo.Create("aa",1),
+                Foo.Create("bb",2),
+            };
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(foos)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos   { middlewareList(where: {bar_in:[\"aaaa\",\"bbaa\"]}, " +
+                "order_by:{baz: ASC, bar: ASC}) { nodes { bar } } } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray()[0].MiddlewareList,
+                x =>
+                {
+                    Assert.Equal("aaaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("bbaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
         public class Query
         {
             public IQueryable<Foo> Foos { get; }
@@ -678,7 +881,6 @@ namespace HotChocolate.Types
             public NestedFoo Nested { get; set; }
 
             public NestedFoo[] ObjectArray { get; set; }
-
             public List<NestedFoo> ObjectList { get; set; }
 
             public IList<NestedFoo> IObjectList { get; set; }
@@ -688,6 +890,11 @@ namespace HotChocolate.Types
             public SortedSet<NestedFoo> SortedSet { get; set; }
 
             public ISet<NestedFoo> ISet { get; set; }
+
+            [UsePaging]
+            [UseFiltering]
+            [UseSorting]
+            public List<NestedFoo> MiddlewareList { get; set; }
 
             public static Foo Create(string bar, int baz)
             {
@@ -758,7 +965,25 @@ namespace HotChocolate.Types
                             Bar = "iSet" + bar,
                             Baz = baz * 3
                         },
-                       }
+                       },
+                    MiddlewareList = new List<NestedFoo>
+                       {
+                        new NestedFoo()
+                        {
+                            Bar = "cc" + bar,
+                            Baz = baz * 1
+                        },
+                        new NestedFoo()
+                        {
+                            Bar = "aa" + bar,
+                            Baz = baz * 1
+                        },
+                        new NestedFoo()
+                        {
+                            Bar = "bb" + bar,
+                            Baz = baz * 2
+                        },
+                    }
                 };
             }
         }
