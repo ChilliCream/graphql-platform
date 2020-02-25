@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Subscriptions
@@ -6,6 +7,7 @@ namespace HotChocolate.Subscriptions
     /// <summary>
     /// Describes an event in the GraphQL schema.
     /// </summary>
+    [Obsolete("Use HotChocolate.Subscriptions.IEventStream<TMessage>.")]
     public interface IEventDescription
     {
         /// <summary>

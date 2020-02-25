@@ -1,8 +1,11 @@
+using System;
+
 namespace HotChocolate.Subscriptions
 {
     /// <summary>
     /// The event message of the pub/sub system.
     /// </summary>
+    [Obsolete("Use HotChocolate.Subscriptions.IEventStream<TMessage>.")]
     public interface IEventMessage
     {
         /// <summary>
