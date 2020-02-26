@@ -4,6 +4,7 @@
     <PackageId>StrawberryShake.CodeGeneration</PackageId>
     <AssemblyName>StrawberryShake.CodeGeneration</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

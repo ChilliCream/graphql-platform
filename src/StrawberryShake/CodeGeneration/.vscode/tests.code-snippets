@@ -1,0 +1,12 @@
+{
+
+	"Print to console": {
+	 	"scope": "csharp",
+	 	"prefix": "micha",
+	 	"body": [
+	 		"console.log('$1');",
+	 		"$2"
+	 	],
+	 	"description": "Log output to console"
+	 }
+}
