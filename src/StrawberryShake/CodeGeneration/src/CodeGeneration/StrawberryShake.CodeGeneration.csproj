@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Stitching\src\Stitching\HotChocolate.Stitching.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="4.7.0" />
   </ItemGroup>
 
