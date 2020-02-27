@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Extensions;
 
@@ -54,6 +55,27 @@ namespace HotChocolate.Types.Filters
         /// <inheritdoc/>
         public IComparableFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
+
+        public new IComparableFilterFieldDescriptor Type<TInputType>()
+        {
+            base.Type<TInputType>();
+            return this;
+        }
+
+        public IComparableFilterFieldDescriptor Type<TOutputType>(TOutputType outputType)
+        {
+            throw new NotImplementedException();
+        }
+
+        IComparableFilterFieldDescriptor IComparableFilterFieldDescriptor.Type(ITypeNode typeNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        IComparableFilterFieldDescriptor IComparableFilterFieldDescriptor.Type(Type type)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
         public IComparableFilterOperationDescriptor AllowEquals()

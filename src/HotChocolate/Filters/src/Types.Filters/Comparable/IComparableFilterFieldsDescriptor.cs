@@ -1,3 +1,6 @@
+using System;
+using HotChocolate.Language;
+
 namespace HotChocolate.Types.Filters
 {
     public interface IComparableFilterFieldDescriptor
@@ -32,6 +35,16 @@ namespace HotChocolate.Types.Filters
         /// all available comparable filter operations.
         /// </summary>
         IComparableFilterFieldDescriptor BindFiltersImplicitly();
+
+        IComparableFilterFieldDescriptor Type<TInputType>()
+            where TInputType : class, IInputType;
+
+        IComparableFilterFieldDescriptor Type<TInputType>(TInputType inputType)
+            where TInputType : class, IInputType;
+
+        IComparableFilterFieldDescriptor Type(ITypeNode typeNode);
+
+        IComparableFilterFieldDescriptor Type(Type type);
 
         /// <summary>
         /// Allow equals filter operations.
