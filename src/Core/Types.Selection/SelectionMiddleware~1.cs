@@ -14,7 +14,7 @@ namespace HotChocolate.Types
 
         private readonly ITypeConversion _converter;
         public SelectionMiddleware(
-            FieldDelegate next, 
+            FieldDelegate next,
             ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
@@ -26,6 +26,7 @@ namespace HotChocolate.Types
             await _next(context).ConfigureAwait(false);
 
             IQueryable<T> source = null;
+
             if (context.Result is IQueryable<T> q)
             {
                 source = q;
@@ -34,6 +35,7 @@ namespace HotChocolate.Types
             {
                 source = e.AsQueryable();
             }
+
             var visitor = new SelectionVisitor(context, _converter);
             visitor.Accept(context.Field);
             context.Result = source.Select(visitor.Project<T>());

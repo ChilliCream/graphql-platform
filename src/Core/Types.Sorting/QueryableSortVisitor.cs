@@ -37,26 +37,8 @@ namespace HotChocolate.Types.Sorting
             {
                 return source;
             }
+            return source.Provider.CreateQuery<TSource>(Compile(source.Expression));
 
-            IOrderedQueryable<TSource> sortedSource;
-            if (!OrderingMethodFinder.OrderMethodExists(source.Expression))
-            {
-                sortedSource = source.AddInitialSortOperation(
-                    Instance.Dequeue(), _parameter);
-            }
-            else
-            {
-                sortedSource = (IOrderedQueryable<TSource>)source;
-            }
-
-            while (Instance.Any())
-            {
-                sortedSource
-                    = sortedSource.AddSortOperation(
-                        Instance.Dequeue(), _parameter);
-            }
-
-            return sortedSource;
         }
 
         public Expression Compile(

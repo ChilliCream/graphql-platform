@@ -87,8 +87,10 @@ namespace HotChocolate.Types.Selection
         {
             Type typedGeneric =
                 setType.MakeGenericType(source.Type.GetGenericArguments()[0]);
+
             ConstructorInfo ctor =
                 typedGeneric.GetConstructor(new[] { source.Type });
+
             return Expression.New(ctor, source);
         }
 

@@ -70,14 +70,19 @@ namespace HotChocolate.Types.Sorting
             SortOperationInvocation operation,
             ParameterExpression parameter)
         {
-
             Expression lambda
                 = HandleProperty(operation, parameter);
+
+            Type type = typeof(Enumerable);
+            if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type))
+            {
+                type = typeof(Queryable);
+            }
 
             if (operation.Kind == SortOperationKind.Desc)
             {
                 return Expression.Call(
-                    typeof(Enumerable),
+                    type,
                     "ThenByDescending",
                     new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
                     source,
@@ -85,7 +90,7 @@ namespace HotChocolate.Types.Sorting
             }
 
             return Expression.Call(
-                typeof(Enumerable),
+                type,
                 "ThenBy",
                 new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
                 source,

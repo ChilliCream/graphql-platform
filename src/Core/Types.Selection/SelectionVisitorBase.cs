@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -22,11 +23,11 @@ namespace HotChocolate.Types.Selection
         protected readonly IResolverContext Context;
 
         protected virtual void VisitSelections(
-            ObjectField field,
+            IOutputType outputType,
             SelectionSetNode selectionSet)
         {
-            (field, selectionSet) = UnwrapPaging(field, selectionSet);
-            if (field.Type.NamedType() is ObjectType type)
+            (outputType, selectionSet) = UnwrapPaging(outputType, selectionSet);
+            if (outputType.NamedType() is ObjectType type)
             {
                 foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
                 {
@@ -42,7 +43,7 @@ namespace HotChocolate.Types.Selection
                             string.Format(
                                 "UseSelection is in a invalid state. Type {0} " +
                                 "is illegal!",
-                                field.Type.NamedType().Name))
+                                outputType.NamedType().Name))
                         .Build());
             }
         }
@@ -88,8 +89,9 @@ namespace HotChocolate.Types.Selection
 
         protected virtual void EnterList(IFieldSelection selection)
         {
-            selection = UnwrapPaging(selection);
-            VisitSelections(selection.Field, selection.Selection.SelectionSet);
+            (IOutputType type, SelectionSetNode selectionSet) =
+                UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
+            VisitSelections(type, selectionSet);
         }
 
         protected virtual void LeaveList(IFieldSelection selection)
@@ -106,47 +108,69 @@ namespace HotChocolate.Types.Selection
 
         protected virtual void EnterObject(IFieldSelection selection)
         {
-            VisitSelections(selection.Field, selection.Selection.SelectionSet);
+            VisitSelections(selection.Field.Type, selection.Selection.SelectionSet);
         }
 
         protected virtual void LeaveObject(IFieldSelection selection)
         {
         }
 
-        protected IFieldSelection UnwrapPaging(
-            IFieldSelection fieldSelection)
-        {
-            if (fieldSelection.Field.Type.ToClrType() == typeof(IConnection) &&
-                fieldSelection.Field.Type.NamedType() is ObjectType type)
-            {
-                foreach (IFieldSelection selection in Context.CollectFields(
-                    type, fieldSelection.Selection.SelectionSet))
-                {
-                    if (selection.Field.Name == "nodes")
-                    {
-                        return selection;
-                    }
-                }
-            }
-            return fieldSelection;
-        }
-
-        protected (ObjectField, SelectionSetNode) UnwrapPaging(
-            ObjectField field,
+        protected (IOutputType, SelectionSetNode) UnwrapPaging(
+            IOutputType outputType,
             SelectionSetNode selectionSet)
         {
-            if (field.Type.ToClrType() == typeof(IConnection) &&
-                field.Type.NamedType() is ObjectType type)
+            if (TryUnwrapPaging(
+                outputType,
+                selectionSet,
+                out (IOutputType, SelectionSetNode) result))
+            {
+                return result;
+            }
+            return (outputType, selectionSet);
+        }
+
+        private bool TryUnwrapPaging(
+            IOutputType outputType,
+            SelectionSetNode selectionSet,
+            out (IOutputType, SelectionSetNode) result)
+        {
+            result = (null, null);
+            if (outputType.ToClrType() == typeof(IConnection) &&
+               outputType.NamedType() is ObjectType type)
             {
                 foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
                 {
+                    IFieldSelection currentSelection = null;
                     if (selection.Field.Name == "nodes")
                     {
-                        return (selection.Field, selection.Selection.SelectionSet);
+                        currentSelection = selection;
+                    }
+                    else if (selection.Field.Name == "edges" &&
+                        selection.Field.Type.NamedType() is ObjectType edgeType)
+                    {
+                        currentSelection = Context
+                            .CollectFields(edgeType, selection.Selection.SelectionSet)
+                            .FirstOrDefault(x => x.Field.Name == "node");
+                    }
+                    if (currentSelection != null)
+                    {
+                        if (result.Item2 == null)
+                        {
+                            result.Item1 = currentSelection.Field.Type;
+                            result.Item2 = currentSelection.Selection.SelectionSet;
+                        }
+                        else
+                        {
+                            result.Item1 = currentSelection.Field.Type;
+                            result.Item2 = result.Item2.WithSelections(
+                                result.Item2.Selections.Concat(
+                                    currentSelection.Selection.SelectionSet.Selections)
+                                .ToList());
+                        }
                     }
                 }
             }
-            return (field, selectionSet);
+            return result.Item2 != null;
         }
     }
 }
