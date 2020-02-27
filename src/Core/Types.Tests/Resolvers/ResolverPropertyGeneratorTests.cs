@@ -475,6 +475,7 @@ namespace HotChocolate.Resolvers.Expressions
         }
 
         [Fact]
+        [Obsolete]
         public async Task Compile_Arguments_EventMessage()
         {
             // arrange
@@ -1264,6 +1265,7 @@ namespace HotChocolate.Resolvers.Expressions
                 IResolverContext context) =>
                 context != null;
 
+            [Obsolete]
             public bool ResolverWithEventMessage(
                 IEventMessage message) =>
                 message != null;
