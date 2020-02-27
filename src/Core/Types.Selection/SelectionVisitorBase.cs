@@ -48,14 +48,12 @@ namespace HotChocolate.Types.Selection
             }
         }
 
-        protected virtual void LeaveSelection(
-             IFieldSelection selection)
+        protected virtual void LeaveSelection(IFieldSelection selection)
         {
             Fields.Pop();
         }
 
-        protected virtual void EnterSelection(
-             IFieldSelection selection)
+        protected virtual void EnterSelection(IFieldSelection selection)
         {
             Fields.Push(selection.Field);
             if (selection.Field.Type.IsListType() ||
@@ -135,42 +133,55 @@ namespace HotChocolate.Types.Selection
             out (IOutputType, SelectionSetNode) result)
         {
             result = (null, null);
+
             if (outputType.ToClrType() == typeof(IConnection) &&
                outputType.NamedType() is ObjectType type)
             {
                 foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
                 {
-                    IFieldSelection currentSelection = null;
-                    if (selection.Field.Name == "nodes")
-                    {
-                        currentSelection = selection;
-                    }
-                    else if (selection.Field.Name == "edges" &&
-                        selection.Field.Type.NamedType() is ObjectType edgeType)
-                    {
-                        currentSelection = Context
-                            .CollectFields(edgeType, selection.Selection.SelectionSet)
-                            .FirstOrDefault(x => x.Field.Name == "node");
-                    }
+                    IFieldSelection currentSelection = GetPagingFieldOrDefault(selection);
+
                     if (currentSelection != null)
                     {
-                        if (result.Item2 == null)
-                        {
-                            result.Item1 = currentSelection.Field.Type;
-                            result.Item2 = currentSelection.Selection.SelectionSet;
-                        }
-                        else
-                        {
-                            result.Item1 = currentSelection.Field.Type;
-                            result.Item2 = result.Item2.WithSelections(
-                                result.Item2.Selections.Concat(
-                                    currentSelection.Selection.SelectionSet.Selections)
-                                .ToList());
-                        }
+                        result = MergeSelection(result.Item2, currentSelection);
                     }
                 }
             }
             return result.Item2 != null;
+        }
+
+        private IFieldSelection GetPagingFieldOrDefault(IFieldSelection selection)
+        {
+            if (selection.Field.Name == "nodes")
+            {
+                return selection;
+            }
+            else if (selection.Field.Name == "edges" &&
+                selection.Field.Type.NamedType() is ObjectType edgeType)
+            {
+                return Context
+                    .CollectFields(edgeType, selection.Selection.SelectionSet)
+                    .FirstOrDefault(x => x.Field.Name == "node");
+            }
+            return null;
+        }
+
+        private (IOutputType, SelectionSetNode) MergeSelection(
+            SelectionSetNode selectionSet,
+            IFieldSelection selection)
+        {
+            if (selectionSet == null)
+            {
+                selectionSet = selection.Selection.SelectionSet;
+            }
+            else
+            {
+                selectionSet = selectionSet.WithSelections(
+                    selectionSet.Selections.Concat(
+                        selection.Selection.SelectionSet.Selections)
+                    .ToList());
+            }
+            return (selection.Field.Type, selectionSet);
         }
     }
 }
