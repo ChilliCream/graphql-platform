@@ -50,17 +50,17 @@
             if (node.Name != null)
             {
                 VisitName(node.Name, context);
-
-                VisitMany(
-                    node.VariableDefinitions,
-                    context,
-                    VisitVariableDefinition);
-
-                VisitMany(
-                    node.Directives,
-                    context,
-                    VisitDirective);
             }
+
+            VisitMany(
+                node.VariableDefinitions,
+                context,
+                VisitVariableDefinition);
+
+            VisitMany(
+                node.Directives,
+                context,
+                VisitDirective);
 
             if (node.SelectionSet != null)
             {
@@ -150,8 +150,8 @@
             VisitName(node.Name, context);
 
             VisitMany(
-                node.Directives, 
-                context, 
+                node.Directives,
+                context,
                 VisitDirective);
         }
 
@@ -165,8 +165,8 @@
             }
 
             VisitMany(
-                node.Directives, 
-                context, 
+                node.Directives,
+                context,
                 VisitDirective);
 
             if (node.SelectionSet != null)
