@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -8,6 +9,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public class DocumentAnalyzer
     {
+        private ISchema? _schema;
+        private readonly List<DocumentNode> _documents = new List<DocumentNode>();
+
         public DocumentAnalyzer SetSchema(ISchema schema)
         {
             return this;
@@ -20,7 +24,35 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public IDocumentModel Analyze()
         {
+            if (_schema is null)
+            {
+                throw new InvalidOperationException(
+                    "You must provide a schema.");
+            }
+
+            if (_documents.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "You must at least provide one document.");
+            }
+
+
+
             throw new NotImplementedException();
+        }
+
+        private static IReadOnlyList<EnumType> CollectEnumTypes(
+            ISchema schema,
+            IReadOnlyList<DocumentNode> documents)
+        {
+            var analyzer = new EnumTypeUsageAnalyzer(schema);
+
+            foreach (DocumentNode document in documents)
+            {
+                analyzer.Analyze(document);
+            }
+
+            return analyzer.EnumTypes.ToArray();
         }
     }
 
@@ -34,25 +66,37 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         INamedType Type { get; }
     }
 
-    public interface IEnumTypeModel
+    public class EnumTypeModel
         : ITypeModel
     {
-        string Description { get; }
+        public string Description { get; }
 
-        string UnderlyingType { get; }
+        public string UnderlyingType { get; }
 
-        IReadOnlyList<IEnumValueModel> Values { get; }
+        public IReadOnlyList<EnumValueModel> Values { get; }
     }
 
-    public interface IEnumValueModel
+    public class EnumValueModel
     {
-        string Name { get; }
+        public EnumValueModel(
+            string name,
+            EnumValue value,
+            string description,
+            string underlyingValue)
+        {
+            Name = name;
+            Value = value;
+            Description = description;
+            UnderlyingValue = underlyingValue;
+        }
 
-        string Value { get; }
+        public string Name { get; }
 
-        string Description { get; }
+        public EnumValue Value { get; }
 
-        string UnderlyingValue { get; }
+        public string Description { get; }
+
+        public string UnderlyingValue { get; }
     }
 
     public interface IComplexOutputTypeModel : ITypeModel

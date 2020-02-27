@@ -6,21 +6,25 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal class EnumTypeUsageAnalyzer
+    internal sealed class EnumTypeUsageAnalyzer
         : QuerySyntaxWalker<object?>
     {
         private readonly HashSet<EnumType> _enumTypes = new HashSet<EnumType>();
         private readonly HashSet<IInputType> _visitedTypes = new HashSet<IInputType>();
         private readonly Stack<IType> _typeContext = new Stack<IType>();
         private readonly Stack<IOutputField> _fieldContext = new Stack<IOutputField>();
-        private ISchema? _schema;
+        private readonly ISchema _schema;
 
-        public static IReadOnlyList<EnumType> Analyze(ISchema schema, DocumentNode node)
+        public EnumTypeUsageAnalyzer(ISchema schema)
         {
-            var visitor = new EnumTypeUsageAnalyzer();
-            visitor._schema = schema;
-            visitor.Visit(node, null);
-            return visitor._enumTypes.ToArray();
+            _schema = schema;
+        }
+
+        public ISet<EnumType> EnumTypes => _enumTypes;
+
+        public void Analyze(DocumentNode document)
+        {
+            Visit(document, null);
         }
 
         protected override void VisitOperationDefinition(
