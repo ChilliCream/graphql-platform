@@ -4,6 +4,8 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Analyzers.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -36,14 +38,19 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     "You must at least provide one document.");
             }
 
+            var types = new List<ITypeModel>();
+
+            CollectEnumTypes(_schema, _documents, types);
+            CollectInputObjectTypes(_schema, _documents, types);
 
 
             throw new NotImplementedException();
         }
 
-        private static IReadOnlyList<EnumType> CollectEnumTypes(
+        private static void CollectEnumTypes(
             ISchema schema,
-            IReadOnlyList<DocumentNode> documents)
+            IReadOnlyList<DocumentNode> documents,
+            ICollection<ITypeModel> types)
         {
             var analyzer = new EnumTypeUsageAnalyzer(schema);
 
@@ -52,91 +59,75 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 analyzer.Analyze(document);
             }
 
-            return analyzer.EnumTypes.ToArray();
+            foreach (EnumType enumType in analyzer.EnumTypes)
+            {
+                RenameDirective? rename;
+                var values = new List<EnumValueModel>();
+
+                foreach (EnumValue enumValue in enumType.Values)
+                {
+                    rename = enumValue.Directives.SingleOrDefault<RenameDirective>();
+
+                    EnumValueDirective? value =
+                        enumValue.Directives.SingleOrDefault<EnumValueDirective>();
+
+                    values.Add(new EnumValueModel(
+                        Utilities.NameUtils.GetClassName(rename?.Name ?? enumValue.Name),
+                        enumValue,
+                        enumValue.Description,
+                        value?.Value));
+                }
+
+                rename = enumType.Directives.SingleOrDefault<RenameDirective>();
+
+                SerializationTypeDirective? serializationType =
+                    enumType.Directives.SingleOrDefault<SerializationTypeDirective>();
+
+                types.Add(new EnumTypeModel(
+                    Utilities.NameUtils.GetClassName(rename?.Name ?? enumType.Name),
+                    enumType.Description,
+                    enumType,
+                    serializationType?.Name,
+                    values));
+            }
         }
-    }
 
-    public interface IDocumentModel
-    {
-        IReadOnlyList<ITypeModel> Types { get; }
-    }
-
-    public interface ITypeModel
-    {
-        INamedType Type { get; }
-    }
-
-    public class EnumTypeModel
-        : ITypeModel
-    {
-        public string Description { get; }
-
-        public string UnderlyingType { get; }
-
-        public IReadOnlyList<EnumValueModel> Values { get; }
-    }
-
-    public class EnumValueModel
-    {
-        public EnumValueModel(
-            string name,
-            EnumValue value,
-            string description,
-            string underlyingValue)
+        private void CollectInputObjectTypes(
+            ISchema schema,
+            IReadOnlyList<DocumentNode> documents,
+            ICollection<ITypeModel> types)
         {
-            Name = name;
-            Value = value;
-            Description = description;
-            UnderlyingValue = underlyingValue;
+            var analyzer = new InputObjectTypeUsageAnalyzer(schema);
+
+            foreach (DocumentNode document in documents)
+            {
+                analyzer.Analyze(document);
+            }
+
+            foreach (InputObjectType inputObjectType in analyzer.InputObjectTypes)
+            {
+                RenameDirective? rename;
+                var fields = new List<InputFieldModel>();
+
+                foreach (IInputField inputField in inputObjectType.Fields)
+                {
+                    rename = inputField.Directives.SingleOrDefault<RenameDirective>();
+
+                    fields.Add(new InputFieldModel(
+                        Utilities.NameUtils.GetClassName(rename?.Name ?? inputField.Name),
+                        inputField.Description,
+                        inputField,
+                        inputField.Type));
+                }
+
+                rename = inputObjectType.Directives.SingleOrDefault<RenameDirective>();
+
+                types.Add(new ComplexInputTypeModel(
+                    Utilities.NameUtils.GetClassName(rename?.Name ?? inputObjectType.Name),
+                    inputObjectType.Description,
+                    inputObjectType,
+                    fields));
+            }
         }
-
-        public string Name { get; }
-
-        public EnumValue Value { get; }
-
-        public string Description { get; }
-
-        public string UnderlyingValue { get; }
-    }
-
-    public interface IComplexOutputTypeModel : ITypeModel
-    {
-        string Description { get; }
-
-        IReadOnlyList<IComplexOutputTypeModel> Types { get; }
-
-        IReadOnlyList<IOutputFieldModel> Fields { get; }
-    }
-
-    public interface IComplexInputTypeModel : ITypeModel
-    {
-        string Description { get; }
-
-        IReadOnlyList<IInputFieldModel> Fields { get; }
-    }
-
-    public interface IFieldModel
-    {
-        string Name { get; }
-
-        string Description { get; }
-
-        Path Path { get; }
-
-        IField Field { get; }
-
-        FieldNode Selection { get; }
-
-        IType Type { get; }
-    }
-
-    public interface IOutputFieldModel : IFieldModel
-    {
-        new IOutputField Field { get; }
-    }
-
-    public interface IInputFieldModel : IFieldModel
-    {
-        new IOutputField Field { get; }
     }
 }

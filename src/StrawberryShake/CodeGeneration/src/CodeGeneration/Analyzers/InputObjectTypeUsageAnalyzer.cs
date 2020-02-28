@@ -5,21 +5,20 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal sealed class EnumTypeUsageAnalyzer
+    internal sealed class InputObjectTypeUsageAnalyzer
         : QuerySyntaxWalker<object?>
     {
-        private readonly HashSet<EnumType> _enumTypes = new HashSet<EnumType>();
+        private readonly HashSet<InputObjectType> _inputObjectTypes =
+            new HashSet<InputObjectType>();
         private readonly HashSet<IInputType> _visitedTypes = new HashSet<IInputType>();
-        private readonly Stack<IType> _typeContext = new Stack<IType>();
-        private readonly Stack<IOutputField> _fieldContext = new Stack<IOutputField>();
         private readonly ISchema _schema;
 
-        public EnumTypeUsageAnalyzer(ISchema schema)
+        public InputObjectTypeUsageAnalyzer(ISchema schema)
         {
             _schema = schema;
         }
 
-        public ISet<EnumType> EnumTypes => _enumTypes;
+        public ISet<InputObjectType> InputObjectTypes => _inputObjectTypes;
 
         public void Analyze(DocumentNode document)
         {
@@ -31,11 +30,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             ObjectType operationType = _schema.GetOperationType(node.Operation);
 
-            _typeContext.Push(operationType);
-
-            base.VisitOperationDefinition(node, context);
-
-            _typeContext.Pop();
+            VisitMany(
+                node.VariableDefinitions,
+                context,
+                VisitVariableDefinition);
         }
 
         protected override void VisitVariableDefinition(
@@ -47,43 +45,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 VisitInputType(inputType);
             }
-        }
-
-        protected override void VisitField(FieldNode node, object? context)
-        {
-            IType currentType = _typeContext.Peek();
-
-            if (currentType is IComplexOutputType complexType
-                && complexType.Fields.TryGetField(node.Name.Value, out IOutputField field))
-            {
-                INamedType fieldType = field.Type.NamedType();
-                if (fieldType is IInputType inputType)
-                {
-                    VisitInputType(inputType);
-                }
-
-                _typeContext.Push(fieldType);
-                _fieldContext.Push(field);
-
-                base.VisitField(node, context);
-
-                _fieldContext.Pop();
-                _typeContext.Pop();
-            }
-        }
-
-        protected override void VisitFragmentDefinition(
-            FragmentDefinitionNode node,
-            object? context)
-        {
-            INamedType type = _schema!.GetType<INamedType>(
-                node.TypeCondition.Name.Value);
-
-            _typeContext.Push(type);
-
-            base.VisitFragmentDefinition(node, context);
-
-            _typeContext.Pop();
         }
 
         private void VisitInputType(IInputType type)
@@ -104,18 +65,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 {
                     VisitInputObjectType(inputObjectType);
                 }
-                else if (type is EnumType enumType)
-                {
-                    _enumTypes.Add(enumType);
-                }
             }
         }
 
         private void VisitInputObjectType(InputObjectType type)
         {
-            foreach (IInputField field in type.Fields)
+            if (_inputObjectTypes.Add(type))
             {
-                VisitInputType(field.Type);
+                foreach (IInputField field in type.Fields)
+                {
+                    VisitInputType(field.Type);
+                }
             }
         }
     }
