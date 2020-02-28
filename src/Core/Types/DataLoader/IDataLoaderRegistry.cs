@@ -45,7 +45,7 @@ namespace HotChocolate.DataLoader
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// The DataLoader-registry holds the instances of DataLoders
+    /// The DataLoader-registry holds the instances of DataLoaders
     /// that are used by the execution engine.
     /// </summary>
     public interface IDataLoaderRegistry
