@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
-using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Utilities;
-using HotChocolate.Stitching.Merge.Rewriters;
-using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Configuration;
-using HotChocolate.Types.Introspection;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
@@ -144,8 +142,7 @@ namespace HotChocolate.Stitching
 
                 foreach (NameString name in schemas.Keys)
                 {
-                    DocumentNode schema =
-                        IntrospectionClient.RemoveBuiltInTypes(schemas[name]);
+                    DocumentNode schema = IntrospectionClient.RemoveBuiltInTypes(schemas[name]);
 
                     IQueryExecutor executor = Schema.Create(schema, c =>
                     {

@@ -55,12 +55,6 @@ namespace MarshmallowPie.GraphQL.Clients
             [DataLoader]EnvironmentByNameDataLoader environmentDataLoader,
             CancellationToken cancellationToken)
         {
-            if (input.Files.Count == 0)
-            {
-                throw new GraphQLException(
-                    "You have to provide at least one query file.");
-            }
-
             Schema schema = await schemaDataLoader.LoadAsync(
                 input.SchemaName, cancellationToken)
                 .ConfigureAwait(false);
@@ -77,23 +71,26 @@ namespace MarshmallowPie.GraphQL.Clients
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            IFileContainer container = await fileStorage.CreateContainerAsync(
-                sessionId, cancellationToken)
-                .ConfigureAwait(false);
-
             var documentInfos = new List<DocumentInfo>();
 
-            foreach (QueryFile file in input.Files)
+            if (input.Files.Count > 0)
             {
-                await container.CreateTextFileAsync(
-                    file.Name, file.SourceText, cancellationToken)
+                IFileContainer container = await fileStorage.CreateContainerAsync(
+                    sessionId, cancellationToken)
                     .ConfigureAwait(false);
 
-                documentInfos.Add(new DocumentInfo(
-                    file.Name,
-                    file.Hash,
-                    file.HashAlgorithm,
-                    file.HashFormat));
+                foreach (QueryFile file in input.Files)
+                {
+                    await container.CreateTextFileAsync(
+                        file.Name, file.SourceText, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    documentInfos.Add(new DocumentInfo(
+                        file.Name,
+                        file.Hash,
+                        file.HashAlgorithm,
+                        file.HashFormat));
+                }
             }
 
             await messageSender.SendAsync(

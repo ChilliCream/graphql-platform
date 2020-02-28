@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -9,6 +10,7 @@ namespace HotChocolate
     /// </summary>
     public readonly struct Optional<T>
         : IEquatable<Optional<T>>
+        , IOptional
     {
 
         /// <summary>
@@ -24,7 +26,10 @@ namespace HotChocolate
         /// <summary>
         /// The name value.
         /// </summary>
+        [MaybeNull]
         public T Value { get; }
+
+        object? IOptional.Value => Value;
 
         /// <summary>
         /// <c>true</c> if the optional has a value.
@@ -137,6 +142,7 @@ namespace HotChocolate
         /// Implicitly gets the optional value.
         /// </summary>
         /// <param name="name"></param>
+        [return : MaybeNull]
         public static implicit operator T(Optional<T> optional)
             => optional.Value;
     }

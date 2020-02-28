@@ -64,7 +64,6 @@ type CreateSchemaPayload {
 
 type DocumentHash {
   algorithm: String!
-  equals: Boolean!
   format: HashFormat!
   hash: String!
 }
@@ -266,7 +265,6 @@ type Subscription {
 }
 
 type Tag {
-  equals: Boolean!
   key: String!
   published: DateTime!
   value: String!

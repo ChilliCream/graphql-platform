@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -285,6 +284,11 @@ namespace HotChocolate.Stitching
             result.Data["__1__a"] = "b";
             result.Data["__1__b"] = "c";
 
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo: String }")
+                .AddResolver("Query", "foo", c => "bar")
+                .Create();
+
             var executor = new Mock<IQueryExecutor>();
             executor.Setup(t => t.ExecuteAsync(
                 It.IsAny<IReadOnlyQueryRequest>(),
@@ -296,6 +300,7 @@ namespace HotChocolate.Stitching
                     mergedRequest = r;
                     return Task.FromResult<IExecutionResult>(result);
                 }));
+            executor.Setup(t => t.Schema).Returns(schema);
 
             var request_a = QueryRequestBuilder.New()
                 .SetQuery("query a($a: String) { a(b: $a) }")
@@ -319,7 +324,15 @@ namespace HotChocolate.Stitching
             await task_b;
 
             Assert.Equal(1, count);
-            mergedRequest.MatchSnapshot();
+            new
+            {
+                Query = mergedRequest.Query.ToString(),
+                QueryName = mergedRequest.QueryName,
+                QueryHash = mergedRequest.QueryHash,
+                OperationName = mergedRequest.OperationName,
+                Varables = mergedRequest.VariableValues,
+                Extensions = mergedRequest.Extensions,
+            }.MatchSnapshot();
         }
     }
 }

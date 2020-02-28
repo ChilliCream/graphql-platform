@@ -121,6 +121,56 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        protected void Type<TInputType>()
+            where TInputType : IInputType
+        {
+            Type(typeof(TInputType));
+        }
+
+        protected void Type<TInputType>(TInputType inputType)
+            where TInputType : class, IInputType
+        {
+            if (inputType == null)
+            {
+                throw new ArgumentNullException(nameof(inputType));
+            }
+
+            if (!inputType.IsInputType())
+            {
+                // TODO : resource
+                throw new ArgumentException(
+                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
+            }
+
+            Definition.Type = new SchemaTypeReference(inputType);
+        }
+
+        protected void Type(Type type)
+        {
+            Type extractedType = Context.Inspector.ExtractType(type);
+
+            if (Context.Inspector.IsSchemaType(extractedType)
+                && !typeof(IInputType).IsAssignableFrom(extractedType))
+            {
+                // TODO : resource
+                throw new ArgumentException(
+                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
+            }
+
+            Definition.SetMoreSpecificType(
+                type,
+                TypeContext.Input);
+        }
+
+        protected void Type(ITypeNode typeNode)
+        {
+            if (typeNode == null)
+            {
+                throw new ArgumentNullException(nameof(typeNode));
+            }
+            Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
+        }
+
         protected ITypeReference RewriteTypeListType()
         {
             ITypeReference reference = Definition.Type;
