@@ -56,25 +56,44 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
-        public new IComparableFilterFieldDescriptor Type<TInputType>()
+        /// <inheritdoc/>
+        public new IComparableFilterFieldDescriptor Type<TLeafType>()
+            where TLeafType : class, ILeafType
         {
-            base.Type<TInputType>();
+            base.Type<TLeafType>();
             return this;
         }
 
-        public IComparableFilterFieldDescriptor Type<TOutputType>(TOutputType outputType)
+        /// <inheritdoc/>
+        public new IComparableFilterFieldDescriptor Type<TLeafType>(TLeafType leafType)
+            where TLeafType : class, ILeafType
         {
-            throw new NotImplementedException();
+            base.Type<TLeafType>(leafType);
+            return this;
         }
 
-        IComparableFilterFieldDescriptor IComparableFilterFieldDescriptor.Type(ITypeNode typeNode)
+        /// <inheritdoc/>
+        public IComparableFilterFieldDescriptor Type(NamedTypeNode typeNode)
         {
-            throw new NotImplementedException();
+            base.Type(typeNode);
+            return this;
         }
 
-        IComparableFilterFieldDescriptor IComparableFilterFieldDescriptor.Type(Type type)
+        /// <inheritdoc/>
+        public new IComparableFilterFieldDescriptor Type(Type type)
         {
-            throw new NotImplementedException();
+            Type extractedType = Context.Inspector.ExtractType(type);
+
+            if (Context.Inspector.IsSchemaType(extractedType)
+                && !typeof(ILeafType).IsAssignableFrom(extractedType))
+            {
+                // TODO : resource
+                throw new ArgumentException(
+                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
+            }
+
+            base.Type(type);
+            return this;
         }
 
         /// <inheritdoc/>

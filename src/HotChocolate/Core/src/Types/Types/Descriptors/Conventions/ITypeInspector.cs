@@ -40,6 +40,13 @@ namespace HotChocolate.Types.Descriptors
 
         MemberInfo GetEnumValueMember(object value);
 
+        /// <summary>
+        /// Extracts the named type from a type structure.
+        /// </summary>
+        /// <param name="type">The original type structure.</param>
+        /// <returns>
+        /// Returns the named type form a type structure.
+        /// </returns>
         Type ExtractType(Type type);
 
         bool IsSchemaType(Type type);

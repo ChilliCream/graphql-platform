@@ -36,15 +36,32 @@ namespace HotChocolate.Types.Filters
         /// </summary>
         IComparableFilterFieldDescriptor BindFiltersImplicitly();
 
-        IComparableFilterFieldDescriptor Type<TInputType>()
-            where TInputType : class, IInputType;
+        /// <summary>
+        /// Specifies the GraphQL leaf type for this filter field.
+        /// </summary>
+        /// <typeparam name="TInputType">The GraphQL leaf type.</typeparam>
+        IComparableFilterFieldDescriptor Type<TLeafType>()
+            where TLeafType : class, ILeafType;
 
-        IComparableFilterFieldDescriptor Type<TInputType>(TInputType inputType)
-            where TInputType : class, IInputType;
+        /// <summary>
+        /// Specifies the GraphQL leaf type for this filter field.
+        /// </summary>
+        /// <param name="inputType">The GraphQL leaf type instance.</param>
+        /// <typeparam name="TInputType">The GraphQL leaf type.</typeparam>
+        IComparableFilterFieldDescriptor Type<TLeafType>(TLeafType inputType)
+            where TLeafType : class, ILeafType;
 
-        IComparableFilterFieldDescriptor Type(ITypeNode typeNode);
-
+        /// <summary>
+        /// Specifies the GraphQL leaf type for this filter field.
+        /// </summary>
+        /// <param name="type">The GraphQL leaf type.</param>
         IComparableFilterFieldDescriptor Type(Type type);
+
+        /// <summary>
+        /// Specifies the GraphQL leaf type for this filter field.
+        /// </summary>
+        /// <param name="typeNode">The GraphQL leaf type reference.</param>
+        IComparableFilterFieldDescriptor Type(NamedTypeNode typeNode);
 
         /// <summary>
         /// Allow equals filter operations.

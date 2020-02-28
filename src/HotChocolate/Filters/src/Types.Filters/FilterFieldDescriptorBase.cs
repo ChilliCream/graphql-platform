@@ -127,23 +127,6 @@ namespace HotChocolate.Types.Filters
             Type(typeof(TInputType));
         }
 
-        protected void Type(Type type)
-        {
-            Type extractedType = Context.Inspector.ExtractType(type);
-
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(IInputType).IsAssignableFrom(extractedType))
-            {
-                // TODO : resource
-                throw new ArgumentException(
-                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
-            }
-
-            Definition.SetMoreSpecificType(
-                type,
-                TypeContext.Input);
-        }
-
         protected void Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
@@ -160,6 +143,23 @@ namespace HotChocolate.Types.Filters
             }
 
             Definition.Type = new SchemaTypeReference(inputType);
+        }
+
+        protected void Type(Type type)
+        {
+            Type extractedType = Context.Inspector.ExtractType(type);
+
+            if (Context.Inspector.IsSchemaType(extractedType)
+                && !typeof(IInputType).IsAssignableFrom(extractedType))
+            {
+                // TODO : resource
+                throw new ArgumentException(
+                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
+            }
+
+            Definition.SetMoreSpecificType(
+                type,
+                TypeContext.Input);
         }
 
         protected void Type(ITypeNode typeNode)
