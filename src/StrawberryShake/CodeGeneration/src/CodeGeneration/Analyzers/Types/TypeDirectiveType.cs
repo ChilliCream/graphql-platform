@@ -2,6 +2,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Types
 {
+    /*
     public class TypeDirectiveType
         : DirectiveType<TypeDirective>
     {
@@ -13,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Types
             descriptor.Location(DirectiveLocation.Field);
         }
     }
+    */
 
     public class RuntimeTypeDirective
     {

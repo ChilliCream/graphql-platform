@@ -6,6 +6,8 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
+using StrawberryShake.CodeGeneration.Utilities;
+using FieldSelection = StrawberryShake.CodeGeneration.Utilities.FieldSelection;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -45,6 +47,108 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
 
             throw new NotImplementedException();
+        }
+
+        private void CollectOutputTypes(FieldCollector fieldCollector, DocumentNode document)
+        {
+            var backlog = new Queue<FieldSelection>();
+
+            foreach (OperationDefinitionNode operation in
+                document.Definitions.OfType<OperationDefinitionNode>())
+            {
+                var root = Path.New(operation.Name!.Value);
+
+                ObjectType operationType = _schema.GetOperationType(operation.Operation);
+
+                ICodeDescriptor resultType =
+                    GenerateOperationSelectionSet(
+                        fieldCollector, operationType, operation, root, backlog);
+
+                while (backlog.Any())
+                {
+                    FieldSelection current = backlog.Dequeue();
+                    Path path = current.Path.Append(current.ResponseName);
+
+                    if (!current.Field.Type.NamedType().IsLeafType())
+                    {
+                        GenerateFieldSelectionSet(
+                            operation, current.Field.Type,
+                            current.Selection, path, backlog);
+                    }
+                }
+
+                // GenerateResultParserDescriptor(operation, resultType);
+            }
+        }
+
+        private void GenerateFieldSelectionSet(
+            FieldCollector fieldCollector,
+            OperationDefinitionNode operation,
+            IType fieldType,
+            FieldNode fieldSelection,
+            Path path,
+            Queue<FieldSelection> backlog)
+        {
+            var namedType = (INamedOutputType)fieldType.NamedType();
+
+            PossibleSelections possibleSelections =
+                fieldCollector.CollectFields(
+                    namedType,
+                    fieldSelection.SelectionSet!,
+                    path);
+
+            foreach (SelectionInfo selectionInfo in possibleSelections.Variants)
+            {
+                EnqueueFields(backlog, selectionInfo.Fields, path);
+            }
+
+            if (namedType is UnionType unionType)
+            {
+                _unionModelGenerator.Generate(
+                    _context,
+                    operation,
+                    unionType,
+                    fieldType,
+                    fieldSelection,
+                    possibleSelections,
+                    path);
+            }
+            else if (namedType is InterfaceType interfaceType)
+            {
+                _interfaceModelGenerator.Generate(
+                    _context,
+                    operation,
+                    interfaceType,
+                    fieldType,
+                    fieldSelection,
+                    possibleSelections,
+                    path);
+            }
+            else if (namedType is ObjectType objectType)
+            {
+                _objectModelGenerator.Generate(
+                    _context,
+                    operation,
+                    objectType,
+                    fieldType,
+                    fieldSelection,
+                    possibleSelections,
+                    path);
+            }
+        }
+
+        private static void EnqueueFields(
+            Queue<FieldSelection> backlog,
+            IEnumerable<FieldSelection> fieldSelections,
+            Path path)
+        {
+            foreach (FieldSelection fieldSelection in fieldSelections)
+            {
+                backlog.Enqueue(new FieldSelection(
+                    fieldSelection.Field,
+                    fieldSelection.Selection,
+                    path));
+            }
         }
 
         private static void CollectEnumTypes(
@@ -129,5 +233,55 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fields));
             }
         }
+    }
+
+    internal interface IFoo
+    {
+        ICodeDescriptor Generate(
+            IModelGeneratorContext context,
+            OperationDefinitionNode operation,
+            T namedType,
+            IType returnType,
+            FieldNode fieldSelection,
+            PossibleSelections possibleSelections,
+            Path path);
+    }
+
+    internal interface IModelGeneratorContext
+    {
+        ISchema Schema { get; }
+
+        IQueryDescriptor Query { get; }
+
+        string ClientName { get; }
+
+        string Namespace { get; }
+
+        IReadOnlyCollection<ICodeDescriptor> Descriptors { get; }
+
+        IReadOnlyDictionary<FieldNode, string> FieldTypes { get; }
+
+        NameString GetOrCreateName(
+            ISyntaxNode node,
+            NameString name);
+
+        NameString GetOrCreateName(
+            ISyntaxNode node,
+            NameString name,
+            ISet<string> skipNames);
+
+        bool TryGetDescriptor<T>(string name, out T? descriptor)
+            where T : class, ICodeDescriptor;
+
+        void Register(FieldNode field, ICodeDescriptor descriptor);
+
+        void Register(ICodeDescriptor descriptor, bool update);
+
+        void Register(ICodeDescriptor descriptor);
+
+        PossibleSelections CollectFields(
+            INamedOutputType type,
+            SelectionSetNode selectionSet,
+            Path path);
     }
 }

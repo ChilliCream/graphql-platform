@@ -42,11 +42,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 "query($a: A) { foo(input: $a) }");
 
             // act
-            IReadOnlyList<EnumType> enums =
-                EnumTypeUsageAnalyzer.Analyze(schema, document);
+            var analyzer = new EnumTypeUsageAnalyzer(schema);
+            analyzer.Analyze(document);
 
             // assert
-            Assert.Collection(enums,
+            Assert.Collection(analyzer.EnumTypes,
                 t => Assert.Equal("C", t.Name));
         }
 
@@ -87,11 +87,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 "query { foo(input: { }) }");
 
             // act
-            IReadOnlyList<EnumType> enums =
-                EnumTypeUsageAnalyzer.Analyze(schema, document);
+            var analyzer = new EnumTypeUsageAnalyzer(schema);
+            analyzer.Analyze(document);
 
             // assert
-            Assert.Collection(enums,
+            Assert.Collection(analyzer.EnumTypes,
                 t => Assert.Equal("D", t.Name));
         }
 
@@ -118,11 +118,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 "query($a: [C!]!) { foo(input: $a) }");
 
             // act
-            IReadOnlyList<EnumType> enums =
-                EnumTypeUsageAnalyzer.Analyze(schema, document);
+            var analyzer = new EnumTypeUsageAnalyzer(schema);
+            analyzer.Analyze(document);
 
             // assert
-            Assert.Collection(enums,
+            Assert.Collection(analyzer.EnumTypes,
                 t => Assert.Equal("C", t.Name));
         }
 
@@ -162,11 +162,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 "query($a: [C!]!) { a c }");
 
             // act
-            IReadOnlyList<EnumType> enums =
-                EnumTypeUsageAnalyzer.Analyze(schema, document);
+            var analyzer = new EnumTypeUsageAnalyzer(schema);
+            analyzer.Analyze(document);
 
             // assert
-            Assert.Collection(enums.OrderBy(t => t.Name),
+            Assert.Collection(analyzer.EnumTypes.OrderBy(t => t.Name),
                 t => Assert.Equal("A", t.Name),
                 t => Assert.Equal("C", t.Name));
         }

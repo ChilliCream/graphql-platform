@@ -1,0 +1,32 @@
+﻿namespace Demo
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial GetHumanResultParser
+        : global::StrawberryShake.Http.JsonResultParserBase<IFoo>
+    {
+        private global::StrawberryShake.IValueSerializer _stringSerializer;
+
+        public GetHumanResultParser(global::StrawberryShake.IValueSerializerCollection serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(serializerResolver));
+            }
+
+            _stringSerializer = serializerResolver.Get("String");
+        }
+
+        private override string DeserializeNullableString(
+            global::System.Text.Json.JsonElement obj,
+            string field)
+        {
+            if (!obj.TryGetProperty(field, out global::System.Text.Json.JsonElement value)
+                || obj.ValueKind == global::System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.InvalidOperationException(field);
+            }
+
+            return (string)_stringSerializer.Deserialize(value.GetString())!;
+        }
+    }
+}
