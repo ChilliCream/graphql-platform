@@ -14,26 +14,17 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
         {
-            var configs = ImmutableList<ILazyTypeConfiguration>.Empty;
+            var configs = new List<ILazyTypeConfiguration>();
 
-            if (Configurations.Count > 0)
-            {
-                configs = configs.AddRange(Configurations);
-            }
+            configs.AddRange(Configurations);
 
             foreach (InterfaceFieldDefinition field in Fields)
             {
-                if (field.Configurations.Count > 0)
-                {
-                    configs = configs.AddRange(field.Configurations);
-                }
+                configs.AddRange(field.Configurations);
 
                 foreach (ArgumentDefinition argument in field.Arguments)
                 {
-                    if (argument.Configurations.Count > 0)
-                    {
-                        configs = configs.AddRange(argument.Configurations);
-                    }
+                    configs.AddRange(argument.Configurations);
                 }
             }
 
