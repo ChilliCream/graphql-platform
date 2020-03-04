@@ -12,6 +12,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
 
         public IList<ArgumentDefinition> Arguments { get; } =
-            new LazyList<ArgumentDefinition>();
+            new List<ArgumentDefinition>();
     }
 }

@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Gets or the associated middleware components.
         /// </summary>
         public IList<DirectiveMiddleware> MiddlewareComponents { get; } =
-            new LazyList<DirectiveMiddleware>();
+            new List<DirectiveMiddleware>();
 
         /// <summary>
         /// Defines the location on which a directive can be annotated.

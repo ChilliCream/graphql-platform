@@ -29,10 +29,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Gets access to additional type dependencies.
         /// </summary>
         public IList<TypeDependency> Dependencies { get; } =
-            new LazyList<TypeDependency>();
+            new List<TypeDependency>();
 
         public IList<ILazyTypeConfiguration> Configurations { get; } =
-            new LazyList<ILazyTypeConfiguration>();
+            new List<ILazyTypeConfiguration>();
 
         internal virtual IEnumerable<ILazyTypeConfiguration> GetConfigurations()
         {

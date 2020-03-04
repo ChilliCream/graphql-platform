@@ -21,6 +21,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public SubscribeResolverDelegate SubscribeResolver { get; set; }
 
         public IList<FieldMiddleware> MiddlewareComponents { get; } =
-            new LazyList<FieldMiddleware>();
+            new List<FieldMiddleware>();
     }
 }

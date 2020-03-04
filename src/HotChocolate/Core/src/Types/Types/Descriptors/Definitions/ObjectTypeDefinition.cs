@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IsOfType IsOfType { get; set; }
 
         public IList<ITypeReference> Interfaces { get; } =
-            new LazyList<ITypeReference>();
+            new List<ITypeReference>();
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
