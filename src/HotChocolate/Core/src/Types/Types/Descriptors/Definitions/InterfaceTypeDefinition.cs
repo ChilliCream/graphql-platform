@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
@@ -11,19 +12,28 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<InterfaceFieldDefinition> Fields { get; } =
             new BindableList<InterfaceFieldDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration>
-            GetConfigurations()
+        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
         {
-            var configs = new List<ILazyTypeConfiguration>();
-            configs.AddRange(Configurations);
+            var configs = ImmutableList<ILazyTypeConfiguration>.Empty;
+
+            if (Configurations.Count > 0)
+            {
+                configs = configs.AddRange(Configurations);
+            }
 
             foreach (InterfaceFieldDefinition field in Fields)
             {
-                configs.AddRange(field.Configurations);
+                if (field.Configurations.Count > 0)
+                {
+                    configs = configs.AddRange(field.Configurations);
+                }
 
                 foreach (ArgumentDefinition argument in field.Arguments)
                 {
-                    configs.AddRange(argument.Configurations);
+                    if (argument.Configurations.Count > 0)
+                    {
+                        configs = configs.AddRange(argument.Configurations);
+                    }
                 }
             }
 

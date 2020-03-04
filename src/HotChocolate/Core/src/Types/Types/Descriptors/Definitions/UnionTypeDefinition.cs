@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
     {
         public ResolveAbstractType ResolveAbstractType { get; set; }
 
-        public ICollection<ITypeReference> Types { get; } =
-            new List<ITypeReference>();
+        public IList<ITypeReference> Types { get; } =
+            new LazyList<ITypeReference>();
     }
 }

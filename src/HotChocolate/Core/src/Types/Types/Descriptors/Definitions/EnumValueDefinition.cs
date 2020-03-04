@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public object? Value { get; set; }
 
-        // <summary>
+        /// <summary>
         /// Gets or sets the enum value member.
         /// </summary>
         public MemberInfo? Member { get; set; }

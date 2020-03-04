@@ -11,6 +11,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Gets the list of directives that are annotated to this schema.
         /// </summary>
         public IList<DirectiveDefinition> Directives { get; } =
-            new List<DirectiveDefinition>();
+            new LazyList<DirectiveDefinition>();
     }
 }
