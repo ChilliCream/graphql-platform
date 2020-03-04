@@ -218,3 +218,5 @@ Component | Description
  Persisted Queries | Persisted queries contains the persisted queries storage implementations for the file system, redis cache and others.
  Stitching | Stitching represents the stitching layer version 1.
  Utilities | Utilities contains helpers like the 2-phase introspection that are used by multiple components.
+ AspNetCore | AspNetCore contains the server implementation for AspNetCore servers.
+ AzureFunctions | AzureFunctions contains the server implementation for AzureFunctions.
