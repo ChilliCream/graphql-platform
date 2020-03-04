@@ -99,7 +99,7 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
-        private static object ParseJson(byte[] buffer, int bytesBuffered)
+        private static object? ParseJson(byte[] buffer, int bytesBuffered)
         {
             var json = new ReadOnlySpan<byte>(buffer, 0, bytesBuffered);
             return Utf8GraphQLRequestParser.ParseJson(json);

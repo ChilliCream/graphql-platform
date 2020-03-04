@@ -13,8 +13,8 @@ namespace StrawberryShake.Http.Subscriptions
         , ISubscription
     {
         private static MethodInfo _genericNew = typeof(Subscription)
-            .GetMethods(BindingFlags.Static)
-            .Single(t => t.IsGenericMethodDefinition);
+            .GetMethods()
+            .Single(t => t.IsStatic && t.IsGenericMethodDefinition);
 
         public abstract string Id { get; }
 

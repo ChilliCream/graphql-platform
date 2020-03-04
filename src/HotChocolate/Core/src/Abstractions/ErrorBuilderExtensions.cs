@@ -2,30 +2,28 @@ using System.Globalization;
 using System;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public static class ErrorBuilderExtensions
     {
         public static IErrorBuilder AddLocation(
             this IErrorBuilder builder,
-            ISyntaxNode syntaxNode)
+            ISyntaxNode? syntaxNode)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (syntaxNode == null)
-            {
-                throw new ArgumentNullException(nameof(syntaxNode));
-            }
-
-            if (syntaxNode.Location != null)
+            if (syntaxNode is { Location: { } })
             {
                 return builder.AddLocation(
                     syntaxNode.Location.Line,
                     syntaxNode.Location.Column);
             }
+
             return builder;
         }
 
