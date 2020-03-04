@@ -340,12 +340,13 @@ namespace MarshmallowPie.Repositories.Mongo
             return document;
         }
 
-        public async Task<QueryDocument?> GetQueryDocumentAsync(
+        public Task<QueryDocument?> GetQueryDocumentAsync(
             Guid environmentId,
             Guid schemaId,
             string documentHash,
             CancellationToken cancellationToken = default)
         {
+            /*
             QueryDocument? document = await GetQueryDocumentAsync(
                 schemaId, documentHash, cancellationToken)
                 .ConfigureAwait(false);
@@ -367,7 +368,9 @@ namespace MarshmallowPie.Repositories.Mongo
                 }
             }
 
-            return null;
+            return null;*/
+
+            return GetQueryDocumentAsync(schemaId, documentHash, cancellationToken);
         }
 
         public async Task<IReadOnlyDictionary<Guid, QueryDocument>> GetQueryDocumentsAsync(
