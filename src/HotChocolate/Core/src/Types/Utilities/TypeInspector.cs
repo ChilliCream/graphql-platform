@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Utilities
 {
@@ -16,7 +17,7 @@ namespace HotChocolate.Utilities
         private readonly ConcurrentDictionary<Type, TypeInfo> _cache =
             new ConcurrentDictionary<Type, TypeInfo>();
 
-        public bool TryCreate(Type type, out TypeInfo typeInfo)
+        public bool TryCreate(Type type, [NotNullWhen(true)]out TypeInfo typeInfo)
         {
             if (!_cache.TryGetValue(type, out typeInfo))
             {
