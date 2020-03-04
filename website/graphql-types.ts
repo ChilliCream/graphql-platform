@@ -2304,6 +2304,11 @@ export type Unnamed_2_QueryVariables = {};
 
 export type Unnamed_2_Query = { site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'title' | 'description' | 'author'>> }> };
 
+export type GetStartpageHeaderQueryVariables = {};
+
+
+export type GetStartpageHeaderQuery = { file: Maybe<Pick<File, 'publicURL'>> };
+
 export type GatsbyImageSharpFixedFragment = Pick<ImageSharpFixed, 'base64' | 'width' | 'height' | 'src' | 'srcSet'>;
 
 export type GatsbyImageSharpFixed_TracedSvgFragment = Pick<ImageSharpFixed, 'tracedSVG' | 'width' | 'height' | 'src' | 'srcSet'>;
