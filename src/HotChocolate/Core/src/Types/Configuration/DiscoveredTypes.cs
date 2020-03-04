@@ -1,6 +1,5 @@
-using System.Security.AccessControl;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
@@ -31,7 +30,7 @@ namespace HotChocolate.Configuration
 
         public bool TryGetType(
             ITypeReference typeReference,
-            out RegisteredType? registeredType)
+            [NotNullWhen(true)]out RegisteredType? registeredType)
         {
             ITypeReference typeRef = typeReference;
 
