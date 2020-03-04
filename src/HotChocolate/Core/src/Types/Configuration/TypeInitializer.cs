@@ -244,23 +244,6 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private static void MergeTypeExtension(
-            ICompletionContext context,
-            INamedTypeExtensionMerger extension,
-            INamedType type)
-        {
-            if (extension.Kind != type.Kind)
-            {
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.TypeInitializer_Merge_KindDoesNotMatch,
-                        type.Name))
-                    .SetTypeSystemObject((ITypeSystemObject)type)
-                    .Build());
-            }
-        }
-
         private static void CopyAlternateNames(
             CompletionContext source,
             CompletionContext destination)
