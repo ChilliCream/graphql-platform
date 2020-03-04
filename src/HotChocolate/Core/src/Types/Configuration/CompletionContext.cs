@@ -17,8 +17,7 @@ namespace HotChocolate.Configuration
         private readonly InitializationContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
         private readonly Func<ISchema> _schemaResolver;
-        private readonly HashSet<NameString> _alternateNames =
-            new HashSet<NameString>();
+        private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
 
         public CompletionContext(
             InitializationContext initializationContext,
@@ -27,15 +26,12 @@ namespace HotChocolate.Configuration
             Func<ISchema> schemaResolver)
         {
             _initializationContext = initializationContext
-                ?? throw new ArgumentNullException(
-                    nameof(initializationContext));
+                ?? throw new ArgumentNullException(nameof(initializationContext));
             _typeInitializer = typeInitializer
-                ?? throw new ArgumentNullException(
-                    nameof(typeInitializer));
+                ?? throw new ArgumentNullException(nameof(typeInitializer));
             IsOfType = isOfType;
             _schemaResolver = schemaResolver
-                ?? throw new ArgumentNullException(
-                    nameof(schemaResolver));
+                ?? throw new ArgumentNullException(nameof(schemaResolver));
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
 
@@ -54,23 +50,19 @@ namespace HotChocolate.Configuration
 
         public bool IsType => _initializationContext.IsType;
 
-        public bool IsIntrospectionType =>
-            _initializationContext.IsIntrospectionType;
+        public bool IsIntrospectionType => _initializationContext.IsIntrospectionType;
 
         public bool IsDirective => _initializationContext.IsDirective;
 
         public IServiceProvider Services => _initializationContext.Services;
 
-        public IDictionary<string, object> ContextData =>
-            _initializationContext.ContextData;
+        public IDictionary<string, object> ContextData => _initializationContext.ContextData;
 
         public ISet<NameString> AlternateTypeNames => _alternateNames;
 
-        public IDescriptorContext DescriptorContext =>
-            _initializationContext.DescriptorContext;
+        public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
-        public ITypeInitializationInterceptor Interceptor =>
-            _initializationContext.Interceptor;
+        public ITypeInitializationInterceptor Interceptor => _initializationContext.Interceptor;
 
         public T GetType<T>(ITypeReference reference)
             where T : IType
