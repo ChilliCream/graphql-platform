@@ -1,12 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+
+#nullable enable
 
 namespace HotChocolate.Execution
 {
     public interface ISchemaFactory
     {
-        ISchema CreateSchema(string name);
+        ValueTask<ISchema> CreateSchemaAsync(
+            string name,
+            CancellationToken CancellationToken = default);
+    }
+
+    public interface ISchemaProvider
+    {
+        ValueTask<ISchema> GetSchemaAsync(
+            string name,
+            CancellationToken CancellationToken = default);
     }
 
     /// <summary>
@@ -41,8 +54,11 @@ namespace HotChocolate.Execution
 
     public class NamedSchemaOptions
     {
-        public IList<Action<ISchemaBuilder>> Options { get; } =
-           new List<Action<ISchemaBuilder>>();
+        public IList<Func<ISchemaBuilder, CancellationToken, ValueTask>> SchemaOptions { get; } =
+           new List<Func<ISchemaBuilder, CancellationToken, ValueTask>>();
+
+        public IList<Func<IQueryPipelineBuilder, CancellationToken, ValueTask>> ExecutorOptions { get; } =
+           new List<Func<IQueryPipelineBuilder, CancellationToken, ValueTask>>();
     }
 
     /*
@@ -53,11 +69,4 @@ namespace HotChocolate.Execution
             .WithExecutionOptions(options);
     */
 
-    /*
-        services.AddSchema("test",
-            builder => builder.AddQueryType<Foo>()
-                .AddMutationType<Bar>())
-            .UseDefaultPipeline()
-            .WithExecutionOptions(options);
-    */
 }
