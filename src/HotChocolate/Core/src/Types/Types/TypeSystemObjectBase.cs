@@ -52,14 +52,14 @@ namespace HotChocolate.Types
 
         public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
-        protected bool IsCompleted =>
+        internal protected bool IsCompleted =>
             _status == TypeStatus.Completed;
 
-        protected bool IsNamed =>
+        internal protected bool IsNamed =>
             _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
-        protected bool IsInitialized =>
+        internal protected bool IsInitialized =>
             _status == TypeStatus.Initialized
             || _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
