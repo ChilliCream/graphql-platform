@@ -2,7 +2,7 @@
   "Data": {
     "description": "BAR"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }
