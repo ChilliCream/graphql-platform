@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
                 cancellationToken);
         }
 
-        public IReadOnlyCollection<IError> Errors { get; }
+        public IReadOnlyList<IError> Errors { get; }
 
         public IReadOnlyDictionary<string, object> Extensions { get; } =
             new OrderedDictionary();

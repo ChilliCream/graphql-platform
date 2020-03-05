@@ -2,14 +2,14 @@
   "Data": {
     "createSchema": {
       "schema": {
-        "id": "U2NoZW1hCmdlMTFlNGExYzA2NDg0YjliOGZiNjg0NjgzZmE0MzkwZQ==",
+        "id": "U2NoZW1hCmdhNDE3ODI2ZjMwZTM0ZDlhYTlmODBkYTUxYjc4ODVlMg==",
         "name": "abc",
         "description": "def"
       },
       "clientMutationId": "ghi"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

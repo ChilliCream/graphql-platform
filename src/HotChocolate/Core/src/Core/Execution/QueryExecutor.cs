@@ -73,15 +73,10 @@ namespace HotChocolate.Execution
 
                 if (context.Result == null)
                 {
-                    return QueryResult.CreateError(new Error
+                    return QueryResultBuilder.CreateError(new Error
                     {
                         Message = CoreResources.QueryExecutor_NoResult
                     });
-                }
-
-                if (context.Result is IQueryResult queryResult)
-                {
-                    return queryResult.AsReadOnly();
                 }
 
                 return context.Result;

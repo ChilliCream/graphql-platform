@@ -4,24 +4,24 @@
       "a": "aaabacadae",
       "b": "babbbcbdbe"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   },
   {
     "Data": {
       "a": "aaabacadae"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   },
   {
     "Data": {
       "c": "cacbcccdce"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   }
 ]

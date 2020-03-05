@@ -16,7 +16,6 @@
       ]
     }
   },
-  "Extensions": {},
   "Errors": [
     {
       "Message": "Error_Message",
@@ -89,5 +88,6 @@
       }
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

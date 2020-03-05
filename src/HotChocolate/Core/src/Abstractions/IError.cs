@@ -78,7 +78,7 @@ namespace HotChocolate
         /// but with the specified <paramref name="path" />.
         /// </summary>
         /// <param name="path">
-        /// A path representing a ceratain syntax node of a query or schema.
+        /// A path representing a certain syntax node of a query or schema.
         /// </param>
         /// <returns>
         /// Returns a new error that contains all properties of this error
@@ -91,7 +91,7 @@ namespace HotChocolate
         /// but with the specified <paramref name="path" />.
         /// </summary>
         /// <param name="path">
-        /// A path representing a ceratain syntax node of a query or schema.
+        /// A path representing a certain syntax node of a query or schema.
         /// </param>
         /// <returns>
         /// Returns a new error that contains all properties of this error
@@ -154,7 +154,7 @@ namespace HotChocolate
         /// but with and additional custom error property.
         /// </summary>
         /// <param name="key">The custom error property name.</param>
-        /// <param name="value">The value of the custiom error property.</param>
+        /// <param name="value">The value of the custom error property.</param>
         /// <returns>
         /// Returns a new error that contains all properties of this error
         /// but with and additional custom error property.

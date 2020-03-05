@@ -2,7 +2,7 @@
   "Data": {
     "case3": "abc"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

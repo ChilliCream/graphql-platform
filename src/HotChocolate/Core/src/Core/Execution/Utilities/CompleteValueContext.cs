@@ -91,12 +91,9 @@ namespace HotChocolate.Execution
             _resolverContext.ReportError(error);
         }
 
-        public void EnqueueForProcessing(
-            ObjectType objectType,
-            OrderedDictionary serializedResult,
-            object resolverResult)
+        public FieldData EnqueueForProcessing(ObjectType objectType, object resolverResult)
         {
-            IReadOnlyCollection<FieldSelection> fields =
+            IReadOnlyList<FieldSelection> fields =
                 ResolverContext.CollectFields(
                     objectType, _selectionSet);
 
@@ -107,16 +104,22 @@ namespace HotChocolate.Execution
                 CreateListNonNullViolationPropagation(
                         ResolverContext, SetElementNull);
 
-            foreach (FieldSelection field in fields)
+            var serializedResult = new FieldData(fields.Count);
+
+            for(int i = 0; i < fields.Count; i++)
             {
+                FieldSelection selection = fields[i];
+
                 EnqueueNext(_resolverContext.Branch(
-                    field,
+                    selection,
                     source,
                     resolverResult,
                     serializedResult,
-                    Path.Append(field.ResponseName),
+                    Path.Append(selection.ResponseName),
                     listNonNullViolationPropagation));
             }
+
+            return serializedResult;
         }
 
         private static Action CreateListNonNullViolationPropagation(

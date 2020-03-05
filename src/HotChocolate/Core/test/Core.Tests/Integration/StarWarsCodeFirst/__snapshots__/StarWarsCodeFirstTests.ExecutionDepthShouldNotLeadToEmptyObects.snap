@@ -1,6 +1,5 @@
 ﻿{
-  "Data": {},
-  "Extensions": {},
+  "Data": null,
   "Errors": [
     {
       "Exception": null,
@@ -17,5 +16,6 @@
       ]
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

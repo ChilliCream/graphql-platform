@@ -1,11 +1,11 @@
 ﻿{
   "Data": {
     "schemaVersionById": {
-      "id": "U2NoZW1hVmVyc2lvbgpnODAxZDEyYWFmNGNiNDVjYWEwMDU0ZGYzNmJlYzZlMzI=",
+      "id": "U2NoZW1hVmVyc2lvbgpnZDA0YWYwNjI1NjM3NGZjMzk0MzViZDBiZjQwZTNjOTQ=",
       "sourceText": "SourceTextAbc"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

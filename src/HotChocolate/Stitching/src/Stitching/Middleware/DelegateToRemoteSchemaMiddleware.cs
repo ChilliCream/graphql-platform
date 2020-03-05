@@ -51,7 +51,10 @@ namespace HotChocolate.Stitching
                 UpdateContextData(context, result, delegateDirective);
 
                 context.Result = new SerializedData(ExtractData(result.Data, path.Count()));
-                ReportErrors(delegateDirective.Schema, context, result.Errors);
+                if (result.Errors is { })
+                {
+                    ReportErrors(delegateDirective.Schema, context, result.Errors);
+                }
             }
 
             await _next.Invoke(context).ConfigureAwait(false);
@@ -62,7 +65,7 @@ namespace HotChocolate.Stitching
             IReadOnlyQueryResult result,
             DelegateDirective delegateDirective)
         {
-            if (result.ContextData.Count > 0)
+            if (result.ContextData is { } && result.ContextData.Count > 0)
             {
                 ImmutableDictionary<string, object>.Builder builder =
                     ImmutableDictionary.CreateBuilder<string, object>();
@@ -151,7 +154,7 @@ namespace HotChocolate.Stitching
             IReadOnlyDictionary<string, object> data,
             int levels)
         {
-            if (data.Count == 0)
+            if (data is null || data.Count == 0)
             {
                 return null;
             }

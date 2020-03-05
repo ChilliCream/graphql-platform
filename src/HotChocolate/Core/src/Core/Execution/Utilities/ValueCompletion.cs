@@ -12,8 +12,7 @@ namespace HotChocolate.Execution
     internal static class ValueCompletion
     {
         private static ThreadLocal<CompleteValueContext> _completionContext =
-            new ThreadLocal<CompleteValueContext>(
-                () => new CompleteValueContext());
+            new ThreadLocal<CompleteValueContext>(() => new CompleteValueContext());
 
         public static void CompleteValue(
             Action<ResolverContext> enqueueNext,
@@ -188,9 +187,7 @@ namespace HotChocolate.Execution
             }
             else
             {
-                var objectResult = new OrderedDictionary();
-                context.Value = objectResult;
-                context.EnqueueForProcessing(objectType, objectResult, result);
+                context.Value = context.EnqueueForProcessing(objectType, result);
             }
         }
 

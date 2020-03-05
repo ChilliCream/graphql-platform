@@ -78,13 +78,15 @@ namespace HotChocolate.Stitching
         public class DummyInterceptor
             : IHttpQueryRequestInterceptor
         {
-            public Task OnResponseReceivedAsync(
+            public Task<IReadOnlyQueryResult> OnResponseReceivedAsync(
                 IReadOnlyQueryRequest request,
                 HttpResponseMessage response,
-                IQueryResult result)
+                IReadOnlyQueryResult result)
             {
-                result.ContextData["foo"] = "bar";
-                return Task.CompletedTask;
+                return Task.FromResult(
+                    QueryResultBuilder.FromResult(result)
+                        .SetContextData("foo", "bar")
+                        .Create());
             }
         }
     }

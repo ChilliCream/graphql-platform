@@ -2,14 +2,14 @@
   "Data": {
     "updateSchema": {
       "schema": {
-        "id": "U2NoZW1hCmdmMjY3ODUxMDJmZGI0YWIwYmM5NDkwOTQyYzcyZDExZA==",
+        "id": "U2NoZW1hCmcwZTExOGZhOGYyODA0MWQ4YTg4OTAyNjBlODllOGVkNA==",
         "name": "abc2",
         "description": "def2"
       },
       "clientMutationId": "ghi"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }
