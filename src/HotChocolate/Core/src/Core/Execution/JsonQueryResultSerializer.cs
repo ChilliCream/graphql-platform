@@ -271,6 +271,10 @@ namespace HotChocolate.Execution
                     writer.WriteStringValue(s);
                     break;
 
+                case byte b:
+                    writer.WriteNumberValue(b);
+                    break;
+
                 case short s:
                     writer.WriteNumberValue(s);
                     break;

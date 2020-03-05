@@ -6,6 +6,9 @@ using HotChocolate.Execution;
 using HotChocolate.Stitching.Utilities;
 using Snapshooter.Xunit;
 using HotChocolate.Language;
+using Snapshooter;
+using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.Stitching
 {
@@ -84,7 +87,9 @@ namespace HotChocolate.Stitching
                     (IReadOnlyDictionary<string, object>)serializedResult);
 
             // assert
-            Snapshot.Match(deserializedResult);
+            deserializedResult.MatchSnapshot(m => m.Ignore(c => c.Field<JObject>("Extensions")));
+            deserializedResult.Extensions.OrderBy(t => t.Key)
+                .MatchSnapshot(new SnapshotNameExtension("extensions"));
         }
 
         [Fact]
