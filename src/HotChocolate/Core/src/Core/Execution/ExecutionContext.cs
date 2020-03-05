@@ -119,16 +119,23 @@ namespace HotChocolate.Execution
                         objectType, selectionSet, path));
 
             var visibleFields = new List<FieldSelection>();
+            int vi = 0;
 
             for (int i = 0; i < fields.Count; i++)
             {
-                if (fields[i].IsVisible(Variables))
+                FieldSelection field = fields[i];
+
+                if (field.IsVisible(Variables))
                 {
-                    visibleFields.Add(fields[i]);
+                    visibleFields.Add(
+                        field.ResponseIndex == vi
+                            ? field
+                            : field.WithResponseIndex(vi));
+                    vi++;
                 }
             }
-            return visibleFields;
 
+            return visibleFields;
         }
 
         public IExecutionContext Clone()

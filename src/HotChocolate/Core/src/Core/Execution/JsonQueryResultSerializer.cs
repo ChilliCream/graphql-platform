@@ -165,6 +165,10 @@ namespace HotChocolate.Execution
                 {
                     switch (path[i])
                     {
+                        case NameString n:
+                            writer.WriteStringValue(n.Value);
+                            break;
+
                         case string s:
                             writer.WriteStringValue(s);
                             break;
@@ -305,6 +309,10 @@ namespace HotChocolate.Execution
 
                 case bool b:
                     writer.WriteBooleanValue(b);
+                    break;
+
+                case NameString n:
+                    writer.WriteStringValue(n.Value);
                     break;
 
                 default:
