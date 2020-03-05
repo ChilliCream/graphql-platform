@@ -1,31 +1,46 @@
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Selection
 {
-    public class SelectionTests
+    public abstract class SelectionTestsBase
     {
+        private readonly static Foo[] SAMPLE = 
+            new[] {
+                Foo.Create("aa", 1),
+                Foo.Create("bb", 2) };
+
+        private readonly IResolverProvider _provider;
+
+        protected SelectionTestsBase(IResolverProvider provider)
+        {
+            _provider = provider;
+        }
+
         [Fact]
-        public void Execute_Selection_Fragment()
+        public virtual void Execute_Selection_Fragment()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -56,22 +71,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Scalar()
+        public virtual void Execute_Selection_Scalar()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -102,22 +117,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_MultipleScalar()
+        public virtual void Execute_Selection_MultipleScalar()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -148,22 +163,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Object()
+        public virtual void Execute_Selection_Object()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -198,22 +213,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Array()
+        public virtual void Execute_Selection_Array()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -222,7 +237,7 @@ namespace HotChocolate.Types
 
             // act
             executor.Execute(
-                "{ foos { objectArray { bar } } }");
+               "{ foos { objectArray { bar } } }");
 
             // assert
             Assert.NotNull(resultCtx);
@@ -248,22 +263,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_List()
+        public virtual void Execute_Selection_List()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -298,22 +313,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_List_Interface()
+        public virtual void Execute_Selection_List_Interface()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -348,22 +363,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Set_Interface()
+        public virtual void Execute_Selection_Set_Interface()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -398,22 +413,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Set()
+        public virtual void Execute_Selection_Set()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -448,22 +463,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_SortedSet()
+        public virtual void Execute_Selection_SortedSet()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -498,22 +513,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_ObjectDeep()
+        public virtual void Execute_Selection_ObjectDeep()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -554,22 +569,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_ArrayDeep()
+        public virtual void Execute_Selection_ArrayDeep()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseSelection())
@@ -612,22 +627,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Object_Paging_Nodes()
+        public virtual void Execute_Selection_Object_Paging_Nodes()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as Connection<Foo>;
                         })
                         .UsePaging<ObjectType<Foo>>()
@@ -665,22 +680,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Object_Paging_Edges()
+        public virtual void Execute_Selection_Object_Paging_Edges()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as Connection<Foo>;
                         })
                         .UsePaging<ObjectType<Foo>>()
@@ -714,22 +729,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Object_Paging_Combined()
+        public virtual void Execute_Selection_Object_Paging_Combined()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as Connection<Foo>;
                         })
                         .UsePaging<ObjectType<Foo>>()
@@ -767,22 +782,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_DeepPaging()
+        public virtual void Execute_Selection_DeepPaging()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseFiltering()
@@ -800,21 +815,21 @@ namespace HotChocolate.Types
             Assert.Collection(resultCtx.ToArray()[0].MiddlewareList,
                 x =>
                 {
-                    Assert.Equal("ccaa", x.Bar);
+                    Assert.Equal("aa", x.Bar.Substring(2));
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
                     Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
-                    Assert.Equal("aaaa", x.Bar);
+                    Assert.Equal("aa", x.Bar.Substring(2));
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
                     Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
-                    Assert.Equal("bbaa", x.Bar);
+                    Assert.Equal("aa", x.Bar.Substring(2));
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
                     Assert.Null(x.ObjectArray);
@@ -822,22 +837,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Nested_Filtering()
+        public virtual void Execute_Selection_Nested_Filtering()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseFiltering()
@@ -864,22 +879,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Execute_Selection_Nested_Sorting()
+        public virtual void Execute_Selection_Nested_Sorting()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseFiltering()
@@ -918,24 +933,23 @@ namespace HotChocolate.Types
                 });
         }
 
-
         [Fact]
-        public void Execute_Selection_Nested_FilteringAndSorting()
+        public virtual void Execute_Selection_Nested_FilteringAndSorting()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         })
                         .UseFiltering()
@@ -975,6 +989,9 @@ namespace HotChocolate.Types
 
         public class Foo
         {
+            [Key]
+            public Guid Id { get; set; }
+
             public string Bar { get; set; }
 
             public int Baz { get; set; }
@@ -982,6 +999,7 @@ namespace HotChocolate.Types
             public NestedFoo Nested { get; set; }
 
             public NestedFoo[] ObjectArray { get; set; }
+
             public List<NestedFoo> ObjectList { get; set; }
 
             public IList<NestedFoo> IObjectList { get; set; }
@@ -1004,8 +1022,29 @@ namespace HotChocolate.Types
                     Bar = "recursive" + bar,
                     Baz = 10
                 };
-                recursive.Nested = recursive;
-                recursive.ObjectArray = new[] { recursive };
+                var recursive2 = new NestedFoo()
+                {
+                    Bar = "recursive" + bar,
+                    Baz = 10
+                };
+                for (var level = 0; level < 10; level++)
+                {
+                    recursive = new NestedFoo()
+                    {
+                        Bar = "recursive" + bar,
+                        Baz = 10,
+                        Nested = recursive.Clone(),
+                        ObjectArray = new List<NestedFoo> { recursive2.Clone() }
+                    };
+
+                    recursive2 = new NestedFoo()
+                    {
+                        Bar = "recursive" + bar,
+                        Baz = 10,
+                        Nested = recursive.Clone(),
+                        ObjectArray = new List<NestedFoo> { recursive2.Clone() }
+                    };
+                }
                 return new Foo
                 {
                     Bar = bar,
@@ -1014,8 +1053,8 @@ namespace HotChocolate.Types
                     {
                         Bar = "nested" + bar,
                         Baz = baz * 2,
-                        Nested = recursive,
-                        ObjectArray = new[] { recursive }
+                        Nested = recursive.Clone(),
+                        ObjectArray = new List<NestedFoo> { recursive2.Clone() }
                     },
                     ObjectArray = new NestedFoo[]
                        {
@@ -1023,8 +1062,8 @@ namespace HotChocolate.Types
                         {
                             Bar = "objectArray" + bar,
                             Baz = baz * 3,
-                            Nested = recursive,
-                            ObjectArray = new[] { recursive }
+                            Nested = recursive.Clone(),
+                            ObjectArray = new List<NestedFoo> { recursive2.Clone() }
                         },
                        },
                     ObjectList = new List<NestedFoo>
@@ -1091,13 +1130,22 @@ namespace HotChocolate.Types
 
         public class NestedFoo
         {
+            [Key]
+            public int Id { get; set; }
+
             public string Bar { get; set; }
 
             public int Baz { get; set; }
 
             public NestedFoo Nested { get; set; }
 
-            public NestedFoo[] ObjectArray { get; set; }
+            public List<NestedFoo> ObjectArray { get; set; }
+
+            public NestedFoo Clone()
+            {
+                NestedFoo clone = (NestedFoo)base.MemberwiseClone();
+                return clone;
+            }
         }
     }
 }

@@ -1,28 +1,45 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Selection
 {
-    public class SelectionAttributeTests
+    public abstract class SelectionAttributeTestsBase
     {
+        private readonly static Foo[] SAMPLE =
+            new[] {
+                Foo.Create("aa", 1),
+                Foo.Create("bb", 2) };
+
+        private readonly IResolverProvider _provider;
+
+        protected SelectionAttributeTestsBase(IResolverProvider provider)
+        {
+            _provider = provider;
+        }
+
         [Fact]
         public void Execute_Selection_MultipleScalar()
         {
             // arrange
-            Foo[] foos = new[]
-            {
-                Foo.Create("aa",1),
-                Foo.Create("bb",2),
-            };
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
-                        .Resolver(foos)
+                        .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
-                            await next(ctx);
+                            await next(ctx).ConfigureAwait(false);
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         }))
                 .Create();
@@ -30,7 +47,7 @@ namespace HotChocolate.Types
 
             // act
             executor.Execute(
-                "{ foos { bar baz } }");
+                 "{ foos { bar baz } }");
 
             // assert
             Assert.NotNull(resultCtx);
@@ -59,13 +76,16 @@ namespace HotChocolate.Types
 
         public class Foo
         {
+            [Key]
+            public int Id { get; set; }
+
             public string Bar { get; set; }
 
             public int Baz { get; set; }
 
             public NestedFoo Nested { get; set; }
 
-            public NestedFoo[] NestedCollection { get; set; }
+            public List<NestedFoo> NestedCollection { get; set; }
 
             public static Foo Create(string bar, int baz)
             {
@@ -78,7 +98,7 @@ namespace HotChocolate.Types
                         Bar = "nested" + bar,
                         Baz = baz * 2
                     },
-                    NestedCollection = new NestedFoo[]
+                    NestedCollection = new List<NestedFoo>()
                        {
                         new NestedFoo()
                         {
@@ -92,7 +112,11 @@ namespace HotChocolate.Types
 
         public class NestedFoo
         {
+            [Key]
+            public int Id { get; set; }
+
             public string Bar { get; set; }
+
             public int Baz { get; set; }
         }
     }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -12,7 +12,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Selection.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Types.Selection.Abstractions.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selection</RootNamespace>
   </PropertyGroup>
 
