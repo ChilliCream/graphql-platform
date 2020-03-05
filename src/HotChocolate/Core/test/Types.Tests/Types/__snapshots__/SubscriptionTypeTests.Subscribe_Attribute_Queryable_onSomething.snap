@@ -3,24 +3,24 @@
     "Data": {
       "onSomething": "a"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   },
   {
     "Data": {
       "onSomething": "b"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   },
   {
     "Data": {
       "onSomething": "c"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   }
 ]

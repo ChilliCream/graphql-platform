@@ -2,7 +2,7 @@
   "Data": {
     "z": "hello world z"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

@@ -26,9 +26,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            ResolverContext[] initialBatch =
-                    CreateInitialBatch(executionContext,
-                        executionContext.Result.Data);
+            InitialBatch initialBatch = CreateInitialBatch(executionContext);
 
             BatchOperationHandler batchOperationHandler =
                 CreateBatchOperationHandler(executionContext);
@@ -37,22 +35,26 @@ namespace HotChocolate.Execution
             {
                 await ExecuteResolverBatchSeriallyAsync(
                     executionContext,
-                    initialBatch,
+                    initialBatch.Batch,
                     batchOperationHandler,
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                EnsureRootValueNonNullState(
-                    executionContext.Result,
-                    initialBatch);
+                FieldData data =EnsureRootValueNonNullState(
+                    initialBatch.Data,
+                    initialBatch.Batch);
 
-                return executionContext.Result;
+                if(data is { })
+                {
+                    executionContext.Result.SetData(data);
+                }
+
+                return executionContext.Result.Create();
             }
             finally
             {
                 batchOperationHandler?.Dispose();
-                ResolverContext.Return(initialBatch);
-                ArrayPool<ResolverContext>.Shared.Return(initialBatch);
+                ResolverContext.Return(initialBatch.Batch);
             }
         }
 

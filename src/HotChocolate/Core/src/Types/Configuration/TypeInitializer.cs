@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -76,11 +77,11 @@ namespace HotChocolate.Configuration
 
         public IDictionary<FieldReference, RegisteredResolver> Resolvers => _resolvers;
 
-        public bool TryGetType(NameString typeName, out IType? type)
+        public bool TryGetType(NameString typeName, [NotNullWhen(true)]out IType? type)
         {
             if (_discoveredTypes is { }
                 && _named.TryGetValue(typeName, out ITypeReference? reference)
-                && _discoveredTypes.TryGetType(reference, out RegisteredType registered)
+                && _discoveredTypes.TryGetType(reference, out RegisteredType? registered)
                 && registered.Type is IType t)
             {
                 type = t;
@@ -191,26 +192,15 @@ namespace HotChocolate.Configuration
                     .Where(t => t.IsNamedType)
                     .ToList();
 
-                foreach (RegisteredType extension in extensions)
+                foreach (IGrouping<NameString, RegisteredType> group in
+                    extensions.GroupBy(t => t.Type.Name))
                 {
                     RegisteredType type = types.FirstOrDefault(t =>
-                        t.Type.Name.Equals(extension.Type.Name));
+                        t.Type.Name.Equals(group.Key));
 
-                    if (type != null
-                        && extension.Type is INamedTypeExtensionMerger m
-                        && type.Type is INamedType n)
+                    if (type != null && type.Type is INamedType targetType)
                     {
-                        // merge
-                        CompletionContext context = _completionContext[extension];
-                        context.Status = TypeStatus.Named;
-                        MergeTypeExtension(context, m, n);
-
-                        // update dependencies
-                        context = _completionContext[type];
-                        type = type.AddDependencies(extension.Dependencies);
-                        discoveredTypes.UpdateType(type);
-                        _completionContext[type] = context;
-                        CopyAlternateNames(_completionContext[extension], context);
+                        MergeTypeExtension(discoveredTypes, group, type, targetType);
                     }
                 }
 
@@ -218,23 +208,40 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private static void MergeTypeExtension(
-            ICompletionContext context,
-            INamedTypeExtensionMerger extension,
-            INamedType type)
+        private void MergeTypeExtension(
+            DiscoveredTypes discoveredTypes,
+            IEnumerable<RegisteredType> extensions,
+            RegisteredType type,
+            INamedType targetType)
         {
-            if (extension.Kind != type.Kind)
+            foreach (RegisteredType extension in extensions)
             {
-                throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.TypeInitializer_Merge_KindDoesNotMatch,
-                        type.Name))
-                    .SetTypeSystemObject((ITypeSystemObject)type)
-                    .Build());
-            }
+                if (extension.Type is INamedTypeExtensionMerger m)
+                {
+                    if (m.Kind != targetType.Kind)
+                    {
+                        throw new SchemaException(SchemaErrorBuilder.New()
+                            .SetMessage(string.Format(
+                                CultureInfo.InvariantCulture,
+                                TypeResources.TypeInitializer_Merge_KindDoesNotMatch,
+                                targetType.Name))
+                            .SetTypeSystemObject((ITypeSystemObject)targetType)
+                            .Build());
+                    }
 
-            extension.Merge(context, type);
+                    // merge
+                    CompletionContext context = _completionContext[extension];
+                    context.Status = TypeStatus.Named;
+                    m.Merge(context, targetType);
+
+                    // update dependencies
+                    context = _completionContext[type];
+                    type = type.AddDependencies(extension.Dependencies);
+                    discoveredTypes.UpdateType(type);
+                    _completionContext[type] = context;
+                    CopyAlternateNames(_completionContext[extension], context);
+                }
+            }
         }
 
         private static void CopyAlternateNames(
@@ -505,7 +512,7 @@ namespace HotChocolate.Configuration
                 {
                     string name = type.Type.Name.HasValue
                         ? type.Type.Name.Value
-                        : type.References.ToString();
+                        : type.References[0].ToString()!;
 
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(string.Format(
@@ -560,7 +567,7 @@ namespace HotChocolate.Configuration
         private bool TryNormalizeDependencies(
             RegisteredType registeredType,
             IEnumerable<ITypeReference> dependencies,
-            out IReadOnlyList<ITypeReference>? normalized)
+            [NotNullWhen(true)]out IReadOnlyList<ITypeReference>? normalized)
         {
             var n = new List<ITypeReference>();
 
@@ -607,9 +614,7 @@ namespace HotChocolate.Configuration
                     return true;
 
                 case ISyntaxTypeReference r:
-                    if (_named.TryGetValue(
-                        r.Type.NamedType().Name.Value,
-                        out ITypeReference snr))
+                    if (_named.TryGetValue(r.Type.NamedType().Name.Value, out ITypeReference? snr))
                     {
                         _dependencyLookup[typeReference] = snr;
                         normalized = snr;
@@ -627,8 +632,7 @@ namespace HotChocolate.Configuration
             out ITypeReference? normalized)
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
-                && _typeInspector.TryCreate(typeReference.Type,
-                    out Utilities.TypeInfo typeInfo))
+                && _typeInspector.TryCreate(typeReference.Type, out Utilities.TypeInfo? typeInfo))
             {
                 if (IsTypeSystemObject(typeInfo.ClrType))
                 {
@@ -645,10 +649,8 @@ namespace HotChocolate.Configuration
                             typeInfo.Components[i],
                             typeReference.Context);
 
-                        if ((ClrTypes.TryGetValue(
-                                n, out ITypeReference r)
-                            || ClrTypes.TryGetValue(
-                                n.WithoutContext(), out r)))
+                        if ((ClrTypes.TryGetValue(n, out ITypeReference? r)
+                            || ClrTypes.TryGetValue(n.WithoutContext(), out r)))
                         {
                             normalized = r;
                             return true;

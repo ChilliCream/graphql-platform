@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public class BindableList<T>
+    public sealed class BindableList<T>
         : List<T>
         , IBindableList<T>
     {

@@ -16,7 +16,6 @@
       }
     }
   },
-  "Extensions": {},
   "Errors": [
     {
       "Message": "foo",
@@ -55,5 +54,6 @@
       "Extensions": {}
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

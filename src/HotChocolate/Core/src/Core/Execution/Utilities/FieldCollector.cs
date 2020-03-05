@@ -63,8 +63,9 @@ namespace HotChocolate.Execution
             var fieldSelections = new FieldSelection[fields.Count];
             foreach (FieldInfo field in fields.Values)
             {
+                int index = i++;
                 field.Middleware = _factory(field.Field, field.Selection);
-                fieldSelections[i++] = new FieldSelection(field);
+                fieldSelections[index] = new FieldSelection(field, index);
             }
             return fieldSelections;
         }

@@ -41,7 +41,7 @@ namespace HotChocolate.Integration.InputOutputObjectAreTheSame
                 }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 

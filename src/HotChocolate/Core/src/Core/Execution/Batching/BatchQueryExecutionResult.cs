@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Batching
                 ?? throw new ArgumentNullException(nameof(batch));
         }
 
-        public IReadOnlyCollection<IError> Errors => Array.Empty<IError>();
+        public IReadOnlyList<IError> Errors => Array.Empty<IError>();
 
         public IReadOnlyDictionary<string, object> Extensions => _empty;
 

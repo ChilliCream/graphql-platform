@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
             {
                 if (IsContextIncomplete(context))
                 {
-                    context.Result = QueryResult.CreateError(
+                    context.Result = QueryResultBuilder.CreateError(
                         ErrorBuilder.New()
                             .SetMessage(CoreResources.MaxComplexityMiddleware_Prerequisite)
                             .SetCode(ErrorCodes.Execution.Incomplete)
@@ -69,7 +69,7 @@ namespace HotChocolate.Execution
                             .AddLocation(context.Operation.Definition)
                             .Build();
 
-                        context.Result = QueryResult.CreateError(error);
+                        context.Result = QueryResultBuilder.CreateError(error);
                         return Task.CompletedTask;
                     }
                 }

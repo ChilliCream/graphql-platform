@@ -10,11 +10,7 @@ namespace HotChocolate.Execution
 
         Task SerializeAsync(
             IReadOnlyQueryResult result,
-            Stream stream);
-
-        Task SerializeAsync(
-            IReadOnlyQueryResult result,
             Stream stream,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }
