@@ -284,10 +284,28 @@ namespace MarshmallowPie.Repositories.Mongo
         {
             try
             {
-                await _publishReports.ReplaceOneAsync(
-                    Builders<ClientPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
-                    publishReport,
-                    options: new ReplaceOptions { IsUpsert = true },
+                await _publishReports.UpdateOneAsync(
+                    Builders<ClientPublishReport>.Filter.And(
+                        Builders<ClientPublishReport>.Filter.Eq(
+                            t => t.EnvironmentId,
+                            publishReport.EnvironmentId),
+                        Builders<ClientPublishReport>.Filter.Eq(
+                            t => t.ClientVersionId,
+                            publishReport.ClientVersionId)),
+                    Builders<ClientPublishReport>.Update.Combine(
+                        Builders<ClientPublishReport>.Update.SetOnInsert(
+                            t => t.Id, publishReport.Id),
+                        Builders<ClientPublishReport>.Update.SetOnInsert(
+                            t => t.ClientVersionId, publishReport.ClientVersionId),
+                        Builders<ClientPublishReport>.Update.SetOnInsert(
+                            t => t.EnvironmentId, publishReport.EnvironmentId),
+                        Builders<ClientPublishReport>.Update.Set(
+                            t => t.Issues, publishReport.Issues),
+                        Builders<ClientPublishReport>.Update.Set(
+                            t => t.State, publishReport.State),
+                        Builders<ClientPublishReport>.Update.Set(
+                            t => t.Published, publishReport.Published)),
+                    new UpdateOptions { IsUpsert = true },
                     cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -322,12 +340,13 @@ namespace MarshmallowPie.Repositories.Mongo
             return document;
         }
 
-        public async Task<QueryDocument?> GetQueryDocumentAsync(
+        public Task<QueryDocument?> GetQueryDocumentAsync(
             Guid environmentId,
             Guid schemaId,
             string documentHash,
             CancellationToken cancellationToken = default)
         {
+            /*
             QueryDocument? document = await GetQueryDocumentAsync(
                 schemaId, documentHash, cancellationToken)
                 .ConfigureAwait(false);
@@ -349,7 +368,9 @@ namespace MarshmallowPie.Repositories.Mongo
                 }
             }
 
-            return null;
+            return null;*/
+
+            return GetQueryDocumentAsync(schemaId, documentHash, cancellationToken);
         }
 
         public async Task<IReadOnlyDictionary<Guid, QueryDocument>> GetQueryDocumentsAsync(

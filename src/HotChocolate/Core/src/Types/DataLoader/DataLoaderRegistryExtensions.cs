@@ -25,7 +25,7 @@ namespace HotChocolate.DataLoader
             }
 
             return registry.Register(key, services =>
-                new FetchDataLoader<TKey, TValue>(
+                new FetchBatchDataLoader<TKey, TValue>(
                     factory(services)));
         }
 
@@ -47,7 +47,7 @@ namespace HotChocolate.DataLoader
             }
 
             return registry.Register(key, services =>
-                new FetchDataLoader<TKey, TValue>(fetch));
+                new FetchBatchDataLoader<TKey, TValue>(fetch));
         }
 
         public static bool Register<TKey, TValue>(

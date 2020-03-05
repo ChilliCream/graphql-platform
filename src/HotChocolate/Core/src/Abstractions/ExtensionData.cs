@@ -2,16 +2,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
 
 namespace HotChocolate
 {
     public class ExtensionData
-        : IDictionary<string, object>
-        , IReadOnlyDictionary<string, object>
+        : IDictionary<string, object?>
+        , IReadOnlyDictionary<string, object?>
     {
-        private ImmutableDictionary<string, object> _dict =
-            ImmutableDictionary<string, object>.Empty;
+        private ImmutableDictionary<string, object?> _dict =
+            ImmutableDictionary<string, object?>.Empty;
 
         public ExtensionData()
         {
@@ -22,40 +23,40 @@ namespace HotChocolate
             _dict = extensionData._dict;
         }
 
-        public ExtensionData(IReadOnlyDictionary<string, object> extensionData)
+        public ExtensionData(IReadOnlyDictionary<string, object?> extensionData)
         {
-            ImmutableDictionary<string, object>.Builder builder =
-                ImmutableDictionary.CreateBuilder<string, object>();
+            ImmutableDictionary<string, object?>.Builder builder =
+                ImmutableDictionary.CreateBuilder<string, object?>();
             builder.AddRange(extensionData);
             _dict = builder.ToImmutableDictionary();
         }
 
-        public object this[string key]
+        public object? this[string key]
         {
             get => _dict[key];
             set => _dict = _dict.SetItem(key, value);
         }
 
-        object IReadOnlyDictionary<string, object>.this[string key] => _dict[key];
+        object? IReadOnlyDictionary<string, object?>.this[string key] => _dict[key];
 
         public ICollection<string> Keys => new ExtensionDataKeyCollection(_dict);
 
-        IEnumerable<string> IReadOnlyDictionary<string, object>.Keys => _dict.Keys;
+        IEnumerable<string> IReadOnlyDictionary<string, object?>.Keys => _dict.Keys;
 
-        public ICollection<object> Values => new ExtensionDataValueCollection(_dict);
+        public ICollection<object?> Values => new ExtensionDataValueCollection(_dict);
 
-        IEnumerable<object> IReadOnlyDictionary<string, object>.Values => _dict.Values;
+        IEnumerable<object?> IReadOnlyDictionary<string, object?>.Values => _dict.Values;
 
         public int Count => _dict.Count;
 
         public bool IsReadOnly => false;
 
-        public void Add(string key, object value)
+        public void Add(string key, object? value)
         {
             _dict = _dict.Add(key, value);
         }
 
-        public void Add(KeyValuePair<string, object> item)
+        public void Add(KeyValuePair<string, object?> item)
         {
             _dict = _dict.Add(item.Key, item.Value);
         }
@@ -67,25 +68,20 @@ namespace HotChocolate
             return contains;
         }
 
-        public bool Remove(KeyValuePair<string, object> item)
+        public bool Remove(KeyValuePair<string, object?> item)
         {
             bool contains = _dict.ContainsKey(item.Key);
             _dict = _dict.Remove(item.Key);
             return contains;
         }
 
-#if NETSTANDARD2_0
-        public bool TryGetValue(string key, out object value) =>
+        public bool TryGetValue(string key, out object? value) =>
             _dict.TryGetValue(key, out value);
-#else
-        public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value) =>
-            _dict.TryGetValue(key, out value);
-#endif
 
-        bool IReadOnlyDictionary<string, object>.TryGetValue(string key, out object value) =>
+        bool IReadOnlyDictionary<string, object?>.TryGetValue(string key, out object? value) =>
             TryGetValue(key, out value);
 
-        public bool Contains(KeyValuePair<string, object> item)
+        public bool Contains(KeyValuePair<string, object?> item)
         {
             return _dict.Contains(item);
         }
@@ -95,20 +91,20 @@ namespace HotChocolate
             return _dict.ContainsKey(key);
         }
 
-        bool IReadOnlyDictionary<string, object>.ContainsKey(string key) =>
+        bool IReadOnlyDictionary<string, object?>.ContainsKey(string key) =>
             _dict.ContainsKey(key);
 
-        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
+        public void CopyTo(KeyValuePair<string, object?>[] array, int arrayIndex)
         {
-            ((ICollection<KeyValuePair<string, object>>)_dict).CopyTo(array, arrayIndex);
+            ((ICollection<KeyValuePair<string, object?>>)_dict).CopyTo(array, arrayIndex);
         }
 
         public void Clear()
         {
-            _dict = ImmutableDictionary<string, object>.Empty;
+            _dict = ImmutableDictionary<string, object?>.Empty;
         }
 
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
         {
             return _dict.GetEnumerator();
         }
@@ -121,9 +117,9 @@ namespace HotChocolate
         private sealed class ExtensionDataKeyCollection
             : ExtensionDataCollection<string>
         {
-            private readonly ImmutableDictionary<string, object> _dict;
+            private readonly ImmutableDictionary<string, object?> _dict;
 
-            public ExtensionDataKeyCollection(ImmutableDictionary<string, object> dict)
+            public ExtensionDataKeyCollection(ImmutableDictionary<string, object?> dict)
                 : base(dict)
             {
                 _dict = dict;
@@ -156,20 +152,20 @@ namespace HotChocolate
         }
 
         private sealed class ExtensionDataValueCollection
-           : ExtensionDataCollection<object>
+           : ExtensionDataCollection<object?>
         {
-            private readonly ImmutableDictionary<string, object> _dict;
+            private readonly ImmutableDictionary<string, object?> _dict;
 
-            public ExtensionDataValueCollection(ImmutableDictionary<string, object> dict)
+            public ExtensionDataValueCollection(ImmutableDictionary<string, object?> dict)
                 : base(dict)
             {
                 _dict = dict;
             }
 
-            public override bool Contains(object item) =>
+            public override bool Contains(object? item) =>
                 _dict.ContainsValue(item);
 
-            public override void CopyTo(object[] array, int arrayIndex)
+            public override void CopyTo(object?[] array, int arrayIndex)
             {
                 if (array.Length - arrayIndex < _dict.Count)
                 {
@@ -180,13 +176,13 @@ namespace HotChocolate
 
                 int i = arrayIndex;
 
-                foreach (object value in _dict.Values)
+                foreach (object? value in _dict.Values)
                 {
                     array[i++] = value;
                 }
             }
 
-            public override IEnumerator<object> GetEnumerator()
+            public override IEnumerator<object?> GetEnumerator()
             {
                 return _dict.Keys.GetEnumerator();
             }
@@ -195,9 +191,9 @@ namespace HotChocolate
         private abstract class ExtensionDataCollection<T>
             : ICollection<T>
         {
-            private readonly ImmutableDictionary<string, object> _dict;
+            private readonly ImmutableDictionary<string, object?> _dict;
 
-            public ExtensionDataCollection(ImmutableDictionary<string, object> dict)
+            public ExtensionDataCollection(ImmutableDictionary<string, object?> dict)
             {
                 _dict = dict;
             }

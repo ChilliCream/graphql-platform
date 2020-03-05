@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Extensions;
 
@@ -54,6 +55,46 @@ namespace HotChocolate.Types.Filters
         /// <inheritdoc/>
         public IComparableFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
+
+        /// <inheritdoc/>
+        public new IComparableFilterFieldDescriptor Type<TLeafType>()
+            where TLeafType : class, ILeafType
+        {
+            base.Type<TLeafType>();
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public new IComparableFilterFieldDescriptor Type<TLeafType>(TLeafType leafType)
+            where TLeafType : class, ILeafType
+        {
+            base.Type<TLeafType>(leafType);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public IComparableFilterFieldDescriptor Type(NamedTypeNode typeNode)
+        {
+            base.Type(typeNode);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public new IComparableFilterFieldDescriptor Type(Type type)
+        {
+            Type extractedType = Context.Inspector.ExtractType(type);
+
+            if (Context.Inspector.IsSchemaType(extractedType)
+                && !typeof(ILeafType).IsAssignableFrom(extractedType))
+            {
+                // TODO : resource
+                throw new ArgumentException(
+                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
+            }
+
+            base.Type(type);
+            return this;
+        }
 
         /// <inheritdoc/>
         public IComparableFilterOperationDescriptor AllowEquals()
@@ -179,7 +220,7 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
-                    () => CreateOperation(operationKind));
+                () => CreateOperation(operationKind));
         }
 
         private ComparableFilterOperationDescriptor CreateOperation(
