@@ -58,9 +58,9 @@ namespace HotChocolate.Types.Filters
                 && iot is IFilterInputType fit)
             {
                 var visitor = new QueryableFilterVisitor(
-                 iot,
-                 fit.EntityType,
-                 _converter);
+                    iot,
+                    fit.EntityType,
+                    _converter);
                 filter.Accept(visitor);
 
                 source = source.Where(visitor.CreateFilter<T>());

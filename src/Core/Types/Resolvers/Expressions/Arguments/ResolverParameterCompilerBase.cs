@@ -1,13 +1,14 @@
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal abstract class ResolverMetadataAnnotatorBase<T>
-        : IResolverMetadataAnnotator
+    internal abstract class ResolverParameterCompilerBase<T>
+        : IResolverParameterCompiler
         where T : IResolverContext
     {
-        protected ResolverMetadataAnnotatorBase()
+        protected ResolverParameterCompilerBase()
         {
             ContextType = typeof(T);
             ContextTypeInfo = ContextType.GetTypeInfo();
@@ -21,8 +22,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType);
 
-        public abstract ResolverMetadata Annotate(
-            ResolverMetadata metadata,
+        public abstract Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType);
     }
