@@ -38,8 +38,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             if (BaseTypes.IsSchemaType(type))
             {
-                TypeContext context =
-                    SchemaTypeReference.InferTypeContext(type);
+                TypeContext context = SchemaTypeReference.InferTypeContext(type);
                 var reference = new ClrTypeReference(type, context);
                 return new TypeDependency(reference, kind);
             }

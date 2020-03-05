@@ -22,7 +22,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             IExtendedType extendedType = typeof(Arrays)
-                .GetMethod(propertyName)
+                .GetMethod(propertyName)!
                 .GetExtendedMethodTypeInfo()
                 .ReturnType;
 
