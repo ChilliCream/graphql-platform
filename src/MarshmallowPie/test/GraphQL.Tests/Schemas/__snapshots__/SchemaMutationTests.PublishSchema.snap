@@ -1,11 +1,11 @@
 ﻿{
   "Data": {
     "publishSchema": {
-      "sessionId": "e9d8af00590548eda787030bfc80cbbd",
+      "sessionId": "0255f6f28ea9409f92cf3ea95a437d3f",
       "clientMutationId": "ghi"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

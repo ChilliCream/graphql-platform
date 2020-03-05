@@ -1,12 +1,12 @@
 ﻿{
   "Data": {
     "schemaById": {
-      "id": "U2NoZW1hCmcxMTFkNDZlNWQ2MzQ0MTMwYjhlM2ZkZmI1MzhkMWFmOA==",
+      "id": "U2NoZW1hCmc4MDViNmNhNDE2NmI0M2NjYWIxZjJmMjdkYjg0NTE5Yw==",
       "name": "abc",
       "description": "def"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

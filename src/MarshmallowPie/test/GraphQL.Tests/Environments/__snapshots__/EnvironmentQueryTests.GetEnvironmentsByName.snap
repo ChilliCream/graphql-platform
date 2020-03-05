@@ -3,14 +3,14 @@
     "environments": {
       "nodes": [
         {
-          "id": "RW52aXJvbm1lbnQKZzE1OGI4NTkzZTE1YzQxMDU5NzU3MmI5MjJiMzkxNzBm",
+          "id": "RW52aXJvbm1lbnQKZzNkNjgxZmFiODE2YTQ1MjdiNTg3MTljZjkzMmUzMmJk",
           "name": "abc",
           "description": "def"
         }
       ]
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

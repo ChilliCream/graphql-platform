@@ -1,12 +1,12 @@
 ﻿{
   "Data": {
     "environmentById": {
-      "id": "RW52aXJvbm1lbnQKZzg5NGNiZjYwYzEwOTQzYTlhMDlmN2FmMDgzNTU1N2Vi",
+      "id": "RW52aXJvbm1lbnQKZzkwY2Q0Y2ZjMDY3YjQyMjZiMWUwOWNhMTcwN2ViYWNi",
       "name": "abc",
       "description": "def"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }
