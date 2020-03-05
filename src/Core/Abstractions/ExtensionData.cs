@@ -73,13 +73,8 @@ namespace HotChocolate
             return contains;
         }
 
-#if NETSTANDARD2_0
         public bool TryGetValue(string key, out object value) =>
             _dict.TryGetValue(key, out value);
-#else
-        public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value) =>
-            _dict.TryGetValue(key, out value);
-#endif
 
         bool IReadOnlyDictionary<string, object>.TryGetValue(string key, out object value) =>
             TryGetValue(key, out value);
