@@ -8,13 +8,9 @@ namespace HotChocolate.Execution
     {
         string ContentType { get; }
 
-        Task SerializeAsync(
-            IReadOnlyQueryResult result,
-            Stream stream);
-
-        Task SerializeAsync(
+        ValueTask SerializeAsync(
             IReadOnlyQueryResult result,
             Stream stream,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }
