@@ -1,16 +1,15 @@
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
-using HotChocolate.StarWars;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Server;
+using HotChocolate.StarWars;
 using HotChocolate.Subscriptions;
 using Moq;
-using HotChocolate.Server;
-using System.Collections.Generic;
+using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
@@ -107,6 +106,9 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_Query_With_Inter_DataReceived_And_Completed()
         {
             // arrange
+            var services = new ServiceCollection();
+            services.AddStarWarsRepositories();
+
             var interceptor = new Mock<ISocketQueryRequestInterceptor>();
             interceptor.Setup(t => t.OnCreateAsync(
                 It.IsAny<ISocketConnection>(),
@@ -114,7 +116,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
-            var connection = new SocketConnectionMock();
+            var connection = new SocketConnectionMock
+            {
+                RequestServices = services.BuildServiceProvider()
+            };
 
             IQueryExecutor executor = SchemaBuilder.New()
                 .AddStarWarsTypes()
@@ -134,6 +139,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var result = (IReadOnlyQueryResult)await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(query)
+                    .SetServices(services.BuildServiceProvider())
                     .Create());
 
             // act

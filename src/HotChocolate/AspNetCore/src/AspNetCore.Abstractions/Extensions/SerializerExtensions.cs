@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetCore
             {
                 // TODO : resources
                 return serializer.SerializeAsync(
-                    QueryResult.CreateError(
+                    QueryResultBuilder.CreateError(
                         ErrorBuilder.New()
                             .SetMessage("Result type not supported.")
                             .SetCode(ErrorCodes.Serialization.ResultTypeNotSupported)
