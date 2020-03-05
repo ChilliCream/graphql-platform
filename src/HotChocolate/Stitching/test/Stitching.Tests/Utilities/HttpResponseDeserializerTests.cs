@@ -23,14 +23,17 @@ namespace HotChocolate.Stitching
             var baz = new OrderedDictionary { { "qux", qux } };
             var objectList = new List<object> { baz };
             var scalarList = new List<object> { value };
-            var result = new QueryResult();
-            result.Data["foo"] = objectList;
-            result.Data["bar"] = scalarList;
-            result.Data["baz"] = baz;
+
+            var result = QueryResultBuilder.New();
+            var data = new OrderedDictionary();
+            data["foo"] = objectList;
+            data["bar"] = scalarList;
+            data["baz"] = baz;
+            result.SetData(data);
 
             var stream = new MemoryStream();
             var serializer = new JsonQueryResultSerializer();
-            await serializer.SerializeAsync(result, stream);
+            await serializer.SerializeAsync(result.Create(), stream);
             byte[] buffer = stream.ToArray();
 
             var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);
@@ -54,19 +57,23 @@ namespace HotChocolate.Stitching
             var objectList = new List<object> { baz };
             var scalarList = new List<object> { 123 };
 
-            var result = new QueryResult();
+            var result = QueryResultBuilder.New();
 
-            result.Data["foo"] = objectList;
-            result.Data["bar"] = scalarList;
-            result.Data["baz"] = baz;
+            var data = new OrderedDictionary();
+            data["foo"] = objectList;
+            data["bar"] = scalarList;
+            data["baz"] = baz;
+            result.SetData(data);
 
-            result.Extensions["foo"] = objectList;
-            result.Extensions["bar"] = scalarList;
-            result.Extensions["baz"] = baz;
+            var extensionData = new ExtensionData();
+            extensionData["foo"] = objectList;
+            extensionData["bar"] = scalarList;
+            extensionData["baz"] = baz;
+            result.SetExtensions(extensionData);
 
             var stream = new MemoryStream();
             var serializer = new JsonQueryResultSerializer();
-            await serializer.SerializeAsync(result, stream);
+            await serializer.SerializeAsync(result.Create(), stream);
             byte[] buffer = stream.ToArray();
 
             var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);
@@ -89,31 +96,33 @@ namespace HotChocolate.Stitching
             var objectList = new List<object> { baz };
             var scalarList = new List<object> { 123 };
 
-            var result = new QueryResult();
+            var result = QueryResultBuilder.New();
 
-            result.Data["foo"] = objectList;
-            result.Data["bar"] = scalarList;
-            result.Data["baz"] = baz;
+            var data = new OrderedDictionary();
+            data["foo"] = objectList;
+            data["bar"] = scalarList;
+            data["baz"] = baz;
+            result.SetData(data);
 
-            result.Errors.Add(ErrorBuilder.New()
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("foo")
                 .SetPath(Path.New("root").Append("child"))
                 .AddLocation(new Location(15, 16))
                 .SetExtension("bar", "baz")
                 .Build());
 
-            result.Errors.Add(ErrorBuilder.New()
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("qux")
                 .SetExtension("bar", "baz")
                 .Build());
 
-            result.Errors.Add(ErrorBuilder.New()
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("quux")
                 .Build());
 
             var stream = new MemoryStream();
             var serializer = new JsonQueryResultSerializer();
-            await serializer.SerializeAsync(result, stream);
+            await serializer.SerializeAsync(result.Create(), stream);
             byte[] buffer = stream.ToArray();
 
             var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);
@@ -136,27 +145,28 @@ namespace HotChocolate.Stitching
             var objectList = new List<object> { baz };
             var scalarList = new List<object> { 123 };
 
-            var result = new QueryResult();
+            var result = QueryResultBuilder.New();
 
-            result.Errors.Add(ErrorBuilder.New()
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("foo")
                 .SetPath(Path.New("root").Append("child"))
                 .AddLocation(new Location(15, 16))
                 .SetExtension("bar", "baz")
                 .Build());
 
-            result.Errors.Add(ErrorBuilder.New()
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("qux")
                 .SetExtension("bar", "baz")
                 .Build());
 
-            result.Errors.Add(ErrorBuilder.New()
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("quux")
                 .Build());
 
+
             var stream = new MemoryStream();
             var serializer = new JsonQueryResultSerializer();
-            await serializer.SerializeAsync(result, stream);
+            await serializer.SerializeAsync(result.Create(), stream);
             byte[] buffer = stream.ToArray();
 
             var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);

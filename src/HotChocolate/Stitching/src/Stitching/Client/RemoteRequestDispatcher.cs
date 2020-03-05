@@ -118,22 +118,23 @@ namespace HotChocolate.Stitching.Client
                 {
                     index = i;
 
-                    IQueryResult result = ExtractResult(
+                    QueryResultBuilder result = ExtractResult(
                         requests[i].Aliases,
                         mergedResult,
                         handledErrors);
 
-                    if (handledErrors.Count < mergedResult.Errors.Count
+                    IReadOnlyList<IError> mergedErrors = mergedResult.Errors ?? Array.Empty<IError>();
+
+                    if (handledErrors.Count < mergedErrors.Count
                         && i == requests.Count - 1)
                     {
-                        foreach (IError error in mergedResult.Errors
-                            .Except(handledErrors))
+                        foreach (IError error in mergedErrors.Except(handledErrors))
                         {
-                            result.Errors.Add(error);
+                            result.AddError(error);
                         }
                     }
 
-                    requests[i].Promise.SetResult(result);
+                    requests[i].Promise.SetResult(result.Create());
                 }
             }
             catch (Exception ex)
@@ -182,41 +183,49 @@ namespace HotChocolate.Stitching.Client
             }
         }
 
-        private static IQueryResult ExtractResult(
+        private static QueryResultBuilder ExtractResult(
             IDictionary<string, string> aliases,
             IReadOnlyQueryResult mergedResult,
             ICollection<IError> handledErrors)
         {
-            var result = new QueryResult();
+            var result = QueryResultBuilder.New();
+            var data = new OrderedDictionary();
 
             foreach (KeyValuePair<string, string> alias in aliases)
             {
                 if (mergedResult.Data.TryGetValue(alias.Key, out object o))
                 {
-                    result.Data.Add(alias.Value, o);
+                    data.Add(alias.Value, o);
                 }
             }
 
-            foreach (IError error in mergedResult.Errors)
+            result.SetData(data);
+
+            if (mergedResult.Errors is { })
             {
-                if (TryResolveField(error, aliases, out string responseName))
+                foreach (IError error in mergedResult.Errors)
                 {
-                    var path = new List<object>();
-                    path.Add(responseName);
-                    if (error.Path.Count > 1)
+                    if (TryResolveField(error, aliases, out string responseName))
                     {
-                        path.AddRange(error.Path.Skip(1));
-                    }
+                        var path = new List<object>();
+                        path.Add(responseName);
+                        if (error.Path.Count > 1)
+                        {
+                            path.AddRange(error.Path.Skip(1));
+                        }
 
-                    handledErrors.Add(error);
-                    result.Errors.Add(RewriteError(error, responseName));
+                        handledErrors.Add(error);
+                        result.AddError(RewriteError(error, responseName));
+                    }
                 }
             }
 
-            foreach (KeyValuePair<string, object> item in
-                mergedResult.ContextData)
+            if (mergedResult.ContextData is { })
             {
-                result.ContextData[item.Key] = item.Value;
+                foreach (KeyValuePair<string, object> item in mergedResult.ContextData)
+                {
+                    result.SetContextData(item.Key, item.Value);
+                }
             }
 
             return result;

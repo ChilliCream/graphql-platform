@@ -16,6 +16,7 @@
       }
     }
   },
+  "Errors": null,
   "Extensions": {
     "foo": [
       {
@@ -33,6 +34,5 @@
       }
     }
   },
-  "Errors": [],
-  "ContextData": {}
+  "ContextData": null
 }

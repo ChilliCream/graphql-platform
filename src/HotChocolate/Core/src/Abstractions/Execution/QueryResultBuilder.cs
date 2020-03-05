@@ -8,12 +8,12 @@ namespace HotChocolate.Execution
     public class QueryResultBuilder
         : IQueryResultBuilder
     {
-        private IReadOnlyDictionary<string, object>? _data;
+        private IReadOnlyDictionary<string, object?>? _data;
         private List<IError>? _errors;
         private ExtensionData? _extensionData;
         private ExtensionData? _contextData;
 
-        public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object>? data)
+        public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
         {
             _data = data;
             return this;
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryResultBuilder AddExtension(string key, object data)
+        public IQueryResultBuilder AddExtension(string key, object? data)
         {
             if (_extensionData is null)
             {
@@ -68,7 +68,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryResultBuilder SetExtension(string key, object data)
+        public IQueryResultBuilder SetExtension(string key, object? data)
         {
             if (_extensionData is null)
             {
@@ -79,13 +79,29 @@ namespace HotChocolate.Execution
             return this;
         }
 
+        public IQueryResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions)
+        {
+            ClearExtensions();
+
+            if (extensions is ExtensionData extensionData)
+            {
+                _extensionData = extensionData;
+            }
+            else if (extensions is { })
+            {
+                _extensionData = new ExtensionData(extensions);
+            }
+
+            return this;
+        }
+
         public IQueryResultBuilder ClearExtensions()
         {
             _extensionData = null;
             return this;
         }
 
-        public IQueryResultBuilder AddContextData(string key, object data)
+        public IQueryResultBuilder AddContextData(string key, object? data)
         {
             if (_contextData is null)
             {
@@ -96,7 +112,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryResultBuilder SetContextData(string key, object data)
+        public IQueryResultBuilder SetContextData(string key, object? data)
         {
             if (_contextData is null)
             {
@@ -107,7 +123,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-         public IQueryResultBuilder ClearContextData()
+        public IQueryResultBuilder ClearContextData()
         {
             _contextData = null;
             return this;
@@ -115,7 +131,11 @@ namespace HotChocolate.Execution
 
         public IReadOnlyQueryResult Create()
         {
-            return new ReadOnlyQueryResult(_data, _errors, _extensionData, null);
+            return new ReadOnlyQueryResult(
+                _data,
+                _errors is { } && _errors.Count > 0 ? _errors : null,
+                _extensionData is { } && _extensionData.Count > 0 ? _extensionData : null,
+                _contextData is { } && _contextData.Count > 0 ? _contextData : null);
         }
 
         public static QueryResultBuilder New() => new QueryResultBuilder();
@@ -125,7 +145,7 @@ namespace HotChocolate.Execution
             var builder = new QueryResultBuilder();
             builder._data = result.Data;
 
-            if(result.Errors is { })
+            if (result.Errors is { })
             {
                 builder._errors = new List<IError>(result.Errors);
             }
@@ -134,7 +154,7 @@ namespace HotChocolate.Execution
             {
                 builder._extensionData = new ExtensionData(d);
             }
-            else if (result.Extensions is {})
+            else if (result.Extensions is { })
             {
                 builder._extensionData = new ExtensionData(result.Extensions);
             }

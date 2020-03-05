@@ -9,8 +9,8 @@ namespace HotChocolate.Execution
         : IExecutionResult
         , IDisposable
     {
-        IReadOnlyDictionary<string, object>? Data { get; }
+        IReadOnlyDictionary<string, object?>? Data { get; }
 
-        IReadOnlyDictionary<string, object> ToDictionary();
+        IReadOnlyDictionary<string, object?> ToDictionary();
     }
 }

@@ -2,7 +2,6 @@
   "Data": {
     "customer": null
   },
-  "Extensions": {},
   "Errors": [
     {
       "Message": "Unexpected Execution Error",
@@ -17,7 +16,7 @@
         }
       ],
       "Exception": {
-        "StackTrace": "   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchInternalAsync(HttpQueryRequest request, HttpClient httpClient) in C:\\Dev\\GitHub\\hotchocolate\\src\\Stitching\\Stitching\\Utilities\\HttpQueryClient.cs:line 139\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchAsync(HttpQueryRequest request, HttpClient httpClient, IEnumerable`1 interceptors, CancellationToken cancellationToken) in C:\\Dev\\GitHub\\hotchocolate\\src\\Stitching\\Stitching\\Utilities\\HttpQueryClient.cs:line 46\n   at HotChocolate.Stitching.Delegation.RemoteQueryMiddleware.InvokeAsync(IQueryContext context) in C:\\Dev\\GitHub\\hotchocolate\\src\\Stitching\\Stitching\\Delegation\\RemoteQueryMiddleware.cs:line 39",
+        "StackTrace": "   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchInternalAsync(HttpContent requestContent, HttpClient httpClient) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Utilities/HttpQueryClient.cs:line 151\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchAsync(IReadOnlyQueryRequest request, HttpContent requestContent, HttpClient httpClient, IEnumerable`1 interceptors, CancellationToken cancellationToken) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Utilities/HttpQueryClient.cs:line 69\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchAsync(IReadOnlyQueryRequest request, HttpClient httpClient, IEnumerable`1 interceptors, CancellationToken cancellationToken) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Utilities/HttpQueryClient.cs:line 53\n   at HotChocolate.Stitching.Delegation.RemoteQueryMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/local/hc/src/HotChocolate/Stitching/src/Stitching/Delegation/RemoteQueryMiddleware.cs:line 39",
         "Message": "Response status code does not indicate success: 503 (Service Unavailable).",
         "Data": {},
         "InnerException": null,
@@ -41,5 +40,6 @@
       }
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

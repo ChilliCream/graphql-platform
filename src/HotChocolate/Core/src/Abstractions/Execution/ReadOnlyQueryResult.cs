@@ -9,10 +9,10 @@ namespace HotChocolate.Execution
         : IReadOnlyQueryResult
     {
         public ReadOnlyQueryResult(
-            IReadOnlyDictionary<string, object>? data,
+            IReadOnlyDictionary<string, object?>? data,
             IReadOnlyList<IError>? errors,
-            IReadOnlyDictionary<string, object>? extension,
-            IReadOnlyDictionary<string, object>? contextData)
+            IReadOnlyDictionary<string, object?>? extension,
+            IReadOnlyDictionary<string, object?>? contextData)
         {
             if (data is null && errors is null)
             {
@@ -27,15 +27,15 @@ namespace HotChocolate.Execution
             ContextData = contextData;
         }
 
-        public IReadOnlyDictionary<string, object>? Data { get; }
+        public IReadOnlyDictionary<string, object?>? Data { get; }
 
         public IReadOnlyList<IError>? Errors { get; }
 
-        public IReadOnlyDictionary<string, object>? Extensions { get; }
+        public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        public IReadOnlyDictionary<string, object>? ContextData { get; }
+        public IReadOnlyDictionary<string, object?>? ContextData { get; }
 
-        public IReadOnlyDictionary<string, object> ToDictionary()
+        public IReadOnlyDictionary<string, object?> ToDictionary()
         {
             return QueryResultHelper.ToDictionary(this);
         }

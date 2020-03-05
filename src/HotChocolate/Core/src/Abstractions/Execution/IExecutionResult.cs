@@ -8,8 +8,8 @@ namespace HotChocolate.Execution
     {
         IReadOnlyList<IError>? Errors { get; }
 
-        IReadOnlyDictionary<string, object>? Extensions { get; }
+        IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        IReadOnlyDictionary<string, object>? ContextData { get; }
+        IReadOnlyDictionary<string, object?>? ContextData { get; }
     }
 }
