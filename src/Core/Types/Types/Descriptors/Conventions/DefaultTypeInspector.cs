@@ -35,25 +35,14 @@ namespace HotChocolate.Types.Descriptors
         {
             foreach (MethodInfo method in type.GetMethods(
                 BindingFlags.Instance | BindingFlags.Public)
-                    .Where(m => !IsIgnored(m)
-                        && !m.IsSpecialName
-                        && m.DeclaringType != typeof(object)
-                        && m.ReturnType != typeof(void)
-                        && m.ReturnType != typeof(Task)
-                        && m.ReturnType != typeof(object)
-                        && m.ReturnType != typeof(Task<object>)
-                        && m.GetParameters().All(t =>
-                            t.ParameterType != typeof(object))))
+                    .Where(m => CanBeHandled(m)))
             {
                 yield return method;
             }
 
             foreach (PropertyInfo property in type.GetProperties(
                 BindingFlags.Instance | BindingFlags.Public)
-                .Where(p => !IsIgnored(p)
-                    && p.CanRead
-                    && p.DeclaringType != typeof(object)
-                    && p.PropertyType != typeof(object)))
+                .Where(p => CanBeHandled(p)))
             {
                 yield return property;
             }
@@ -205,6 +194,67 @@ namespace HotChocolate.Types.Descriptors
             return null;
         }
 
+        private static bool CanBeHandled(MemberInfo member)
+        {
+            if (IsIgnored(member))
+            {
+                return false;
+            }
+
+            if (member is PropertyInfo property)
+            {
+                if (!property.CanRead)
+                {
+                    return false;
+                }
+
+                if (property.DeclaringType == typeof(object)
+                    || property.PropertyType == typeof(object))
+                {
+                    return HasConfiguration(property);
+                }
+
+                return true;
+            }
+
+            if (member is MethodInfo method)
+            {
+                if (method.IsSpecialName
+                    || method.ReturnType == typeof(void)
+                    || method.ReturnType == typeof(Task)
+                    || method.ReturnType == typeof(ValueTask)
+                    || method.DeclaringType == typeof(object))
+                {
+                    return false;
+                }
+
+                if ((method.ReturnType == typeof(object)
+                    || method.ReturnType == typeof(Task<object>)
+                    || method.ReturnType == typeof(ValueTask<object>))
+                    && !HasConfiguration(method))
+                {
+                    return false;
+                }
+
+                if (method.GetParameters().Any(t => t.ParameterType == typeof(object)))
+                {
+                    return method.GetParameters()
+                        .Where(t => t.ParameterType == typeof(object))
+                        .All(t => HasConfiguration(t));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool HasConfiguration(ICustomAttributeProvider element)
+        {
+            return element.IsDefined(typeof(GraphQLTypeAttribute), true)
+                || element.GetCustomAttributes(typeof(DescriptorAttribute), true).Length > 0;
+        }
+
         private static bool IsIgnored(MemberInfo member)
         {
             if (IsToString(member) || IsGetHashCode(member) || IsEquals(member))
@@ -225,9 +275,7 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsEquals(MemberInfo member) =>
             member is MethodInfo m
-            && m.Name.Equals(_equals)
-            && m.GetParameters().Length == 1
-            && m.GetParameters()[0].ParameterType == typeof(object);
+            && m.Name.Equals(_equals);
 
         public Type ExtractType(Type type)
         {

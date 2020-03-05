@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Reflection;
-using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Descriptors
