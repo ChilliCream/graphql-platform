@@ -15,10 +15,13 @@ namespace HotChocolate.AspNetCore
         {
             if (result is IReadOnlyQueryResult queryResult)
             {
-                return serializer.SerializeAsync(
-                    queryResult,
-                    outputStream,
-                    cancellationToken);
+                using (queryResult)
+                {
+                    return serializer.SerializeAsync(
+                        queryResult,
+                        outputStream,
+                        cancellationToken);
+                }
             }
             else
             {

@@ -46,10 +46,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 await foreach (IReadOnlyQueryResult result in
                     _responseStream.WithCancellation(_cts.Token))
                 {
-                    await _connection.SendAsync(
-                        new DataResultMessage(Id, result).Serialize(),
-                        _cts.Token)
-                        .ConfigureAwait(false);
+                    using (result)
+                    {
+                        await _connection.SendAsync(
+                            new DataResultMessage(Id, result).Serialize(),
+                            _cts.Token)
+                            .ConfigureAwait(false);
+                    }
                 }
 
 
