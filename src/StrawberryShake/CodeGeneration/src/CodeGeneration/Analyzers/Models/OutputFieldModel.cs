@@ -1,19 +1,25 @@
+using HotChocolate;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class InputFieldModel
+    public class OutputFieldModel
         : IFieldModel
     {
-        public InputFieldModel(
+        public OutputFieldModel(
             string name,
             string? description,
-            IInputField field,
-            IInputType type)
+            IOutputField field,
+            IOutputType type,
+            FieldNode selection,
+            Path path)
         {
             Name = name;
             Description = description;
             Field = field;
+            Selection = selection;
+            Path = path;
             Type = type;
         }
 
@@ -21,12 +27,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public string? Description { get; }
 
-        public IInputField Field { get; }
+        public IOutputField Field { get; }
 
         IField IFieldModel.Field => Field;
 
-        public IInputType Type { get; }
+        public IOutputType Type { get; }
 
         IType IFieldModel.Type => Type;
+
+        public FieldNode Selection { get; }
+
+        public Path Path { get; }
     }
 }

@@ -237,7 +237,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
     internal interface IFoo
     {
-        ICodeDescriptor Generate(
+        void Generate(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
             T namedType,
@@ -251,25 +251,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         ISchema Schema { get; }
 
-        IQueryDescriptor Query { get; }
+        IReadOnlyCollection<ITypeModel> Types { get; }
 
-        string ClientName { get; }
-
-        string Namespace { get; }
-
-        IReadOnlyCollection<ICodeDescriptor> Descriptors { get; }
-
-        IReadOnlyDictionary<FieldNode, string> FieldTypes { get; }
-
-        NameString GetOrCreateName(
-            ISyntaxNode node,
-            NameString name);
+        // IReadOnlyDictionary<FieldNode, string> FieldTypes { get; }
 
         NameString GetOrCreateName(
             ISyntaxNode node,
             NameString name,
-            ISet<string> skipNames);
+            ISet<string>? skipNames = null);
 
+        /*
         bool TryGetDescriptor<T>(string name, out T? descriptor)
             where T : class, ICodeDescriptor;
 
@@ -278,6 +269,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         void Register(ICodeDescriptor descriptor, bool update);
 
         void Register(ICodeDescriptor descriptor);
+        */
+
+        void RegisterType(ITypeModel type);
+
 
         PossibleSelections CollectFields(
             INamedOutputType type,
