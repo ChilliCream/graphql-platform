@@ -5,10 +5,10 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers;
+using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.Generators
 {
@@ -139,29 +139,32 @@ namespace StrawberryShake.Generators
             }).ToList();
         }
 
-        protected void CreateClassModel(
+        protected ComplexOutputTypeModel CreateClassModel(
             IModelGeneratorContext context,
-            IFragmentNode returnType,
-            IInterfaceDescriptor interfaceDescriptor,
+            IFragmentNode fragmentNode,
+            ComplexOutputTypeModel returnType,
             SelectionInfo selection,
-            List<ResultParserTypeDescriptor> resultParserTypes)
+            ICollection<ComplexOutputTypeModel> possibleTypes)
         {
             var fieldNames = new HashSet<string>(
                 selection.Fields.Select(t => GetPropertyName(t.ResponseName)));
 
             string className = context.GetOrCreateName(
-                returnType.Fragment.SelectionSet,
+                fragmentNode.Fragment.SelectionSet,
                 GetClassName(returnType.Name),
                 fieldNames);
 
-            var modelClass = new ClassDescriptor(
+            var modelClass = new ComplexOutputTypeModel(
                 className,
-                context.Namespace,
-                selection.Type,
-                new[] { interfaceDescriptor });
+                fragmentNode.Fragment.TypeCondition.Description,
+                fragmentNode.Fragment.TypeCondition,
+                fragmentNode.Fragment.SelectionSet,
+                new[] { returnType },
+                Array.Empty<OutputFieldModel>());
 
-            context.Register(modelClass);
-            resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
+            context.RegisterType(modelClass);
+
+            possibleTypes.Add(modelClass);
         }
 
         protected void CreateClassTypeModels(
