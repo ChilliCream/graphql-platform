@@ -36,7 +36,7 @@ namespace HotChocolate.Configuration
             DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
 
             result.Types
                 .Select(t => t.Type)
@@ -77,7 +77,7 @@ namespace HotChocolate.Configuration
             DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
 
             result.Types
                 .Select(t => t.Type)
@@ -121,7 +121,7 @@ namespace HotChocolate.Configuration
             DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
 
             result.Types
                 .Select(t => t.Type)
