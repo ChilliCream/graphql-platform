@@ -3,7 +3,7 @@
     "__typename": "Query",
     "a": "A"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

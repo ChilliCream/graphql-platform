@@ -6,7 +6,6 @@
       ]
     }
   },
-  "Extensions": {},
   "Errors": [
     {
       "Message": "ERROR",
@@ -17,5 +16,6 @@
       "Extensions": {}
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

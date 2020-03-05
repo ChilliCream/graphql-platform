@@ -23,7 +23,7 @@ namespace HotChocolate
                 await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate
                 await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -60,7 +60,7 @@ namespace HotChocolate
                     }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -95,7 +95,7 @@ namespace HotChocolate
                     "{ drink { ... on Tea { kind } } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -129,7 +129,7 @@ namespace HotChocolate
                     "{ dog { name } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -145,7 +145,7 @@ namespace HotChocolate
                     "{ dog { desc } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -161,7 +161,7 @@ namespace HotChocolate
                     "{ dog { name2 } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -177,7 +177,7 @@ namespace HotChocolate
                     "{ dog { names } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 

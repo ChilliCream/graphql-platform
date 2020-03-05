@@ -2,7 +2,6 @@
   "Data": {
     "foo": null
   },
-  "Extensions": {},
   "Errors": [
     {
       "Message": "Cannot return null for non-nullable field.",
@@ -24,5 +23,6 @@
       }
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

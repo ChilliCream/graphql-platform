@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
@@ -21,7 +22,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IsOfType IsOfType { get; set; }
 
-        public ICollection<ITypeReference> Interfaces { get; } =
+        public IList<ITypeReference> Interfaces { get; } =
             new List<ITypeReference>();
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
@@ -31,6 +32,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             GetConfigurations()
         {
             var configs = new List<ILazyTypeConfiguration>();
+
             configs.AddRange(Configurations);
 
             foreach (ObjectFieldDefinition field in Fields)

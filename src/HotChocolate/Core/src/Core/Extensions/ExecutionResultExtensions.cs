@@ -7,11 +7,10 @@ namespace HotChocolate
 {
     public static class ExecutionResultExtensions
     {
-        private static readonly JsonSerializerSettings _settings =
-            new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented
-            };
+        private static readonly JsonQueryResultSerializer _serializer =
+            new JsonQueryResultSerializer(false);
+        private static readonly JsonQueryResultSerializer _serializerIndented =
+            new JsonQueryResultSerializer(true);
 
         public static string ToJson(
             this IExecutionResult result) =>
@@ -30,12 +29,9 @@ namespace HotChocolate
             {
                 if (withIndentations)
                 {
-                    return JsonConvert.SerializeObject(
-                        queryResult.ToDictionary(),
-                        _settings);
+                    return _serializerIndented.Serialize(queryResult);
                 }
-                return JsonConvert.SerializeObject(
-                    queryResult.ToDictionary());
+                return _serializer.Serialize(queryResult);
             }
 
             throw new NotSupportedException(

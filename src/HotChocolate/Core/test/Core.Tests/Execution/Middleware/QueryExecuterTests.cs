@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -197,7 +197,7 @@ namespace HotChocolate.Execution
 
             Schema schema = CreateSchema();
             IQueryExecutor executor = schema.MakeExecutable();
-            var request =
+            IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery(@"
                         query foo($baz: String)
@@ -210,7 +210,6 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.NotNull(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -261,7 +260,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -300,7 +299,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -343,7 +342,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 

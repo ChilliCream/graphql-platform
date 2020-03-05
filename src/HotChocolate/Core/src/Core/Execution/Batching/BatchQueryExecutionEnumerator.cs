@@ -106,12 +106,12 @@ namespace HotChocolate.Execution.Batching
             catch (QueryException ex)
             {
                 IsCompleted = true;
-                Current = QueryResult.CreateError(ex.Errors);
+                Current = QueryResultBuilder.CreateError(ex.Errors);
             }
             catch (Exception ex)
             {
                 IsCompleted = true;
-                Current = QueryResult.CreateError(
+                Current = QueryResultBuilder.CreateError(
                     _errorHandler.Handle(
                         _errorHandler.CreateUnexpectedError(ex).Build()));
             }

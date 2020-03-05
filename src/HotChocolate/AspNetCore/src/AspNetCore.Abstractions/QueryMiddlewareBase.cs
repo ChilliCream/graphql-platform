@@ -20,7 +20,7 @@ namespace HotChocolate.AspNetCore
         private readonly Func<HttpContext, bool> _isPathValid;
         private readonly IQueryResultSerializer _serializer;
 
-        private IQueryRequestInterceptor<HttpContext> _interceptor;
+        private IQueryRequestInterceptor<HttpContext>? _interceptor;
         private bool _interceptorInitialized;
 
         protected QueryMiddlewareBase(
@@ -88,7 +88,7 @@ namespace HotChocolate.AspNetCore
                         .Build();
                     ErrorHandler.Handle(error);
 
-                    var errorResult = QueryResult.CreateError(error);
+                    var errorResult = QueryResultBuilder.CreateError(error);
 
                     SetResponseHeaders(context.Response, _serializer.ContentType);
                     await _serializer.SerializeAsync(errorResult, context.Response.Body)
@@ -96,7 +96,7 @@ namespace HotChocolate.AspNetCore
                 }
                 catch (QueryException ex)
                 {
-                    var errorResult = QueryResult.CreateError(
+                    var errorResult = QueryResultBuilder.CreateError(
                         ErrorHandler.Handle(ex.Errors));
                     SetResponseHeaders(context.Response, _serializer.ContentType);
                     await _serializer.SerializeAsync(errorResult, context.Response.Body)

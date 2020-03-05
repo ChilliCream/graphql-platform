@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -22,9 +23,10 @@ namespace HotChocolate.Execution
                 .New()
                 .Use(next => context =>
                 {
-                    var queryResult = new QueryResult();
-                    queryResult.Data["done"] = true;
-
+                    var queryResult =
+                        QueryResultBuilder.New()
+                            .SetData(new Dictionary<string, object> { { "done", true } })
+                            .Create();
                     context.Result = queryResult;
 
                     return next(context);
@@ -97,10 +99,9 @@ namespace HotChocolate.Execution
 
             public Task InvokeAsync(IQueryContext context)
             {
-                var result = new QueryResult();
-                result.Data["done"] = true;
-
-                context.Result = result;
+                context.Result = QueryResultBuilder.New()
+                    .SetData(new Dictionary<string, object> { { "done", true } })
+                    .Create();
 
                 return _next(context);
             }

@@ -2,7 +2,7 @@
   "Data": {
     "fetchItem": "fooBar"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

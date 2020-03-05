@@ -1,6 +1,5 @@
 ﻿{
-  "Data": {},
-  "Extensions": {},
+  "Data": null,
   "Errors": [
     {
       "Message": "Execution timeout has been exceeded.",
@@ -13,5 +12,6 @@
       }
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

@@ -41,7 +41,7 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                context.Result = QueryResult.CreateError(
+                context.Result = QueryResultBuilder.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.Write_PQ_Middleware_Incomplete)
                         .SetCode(ErrorCodes.Execution.Incomplete).Build());
@@ -51,11 +51,13 @@ namespace HotChocolate.Execution
             if (_writeStoredQueries != null
                 && context.Request.Query != null
                 && context.QueryKey != null
-                && context.Result is QueryResult result
+                && context.Result is IReadOnlyQueryResult result
                 && context.Request.Extensions != null
                 && context.Request.Extensions.TryGetValue(_persistedQuery, out var s)
                 && s is IReadOnlyDictionary<string, object> settings)
             {
+                IQueryResultBuilder builder = QueryResultBuilder.FromResult(result);
+
                 // hash is found and matches the query key -> store the query
                 if (DoHashesMatch(settings, context.QueryKey, _hashName, out string userHash))
                 {
@@ -66,18 +68,20 @@ namespace HotChocolate.Execution
                         .ConfigureAwait(false);
 
                     // add persistence receipt to the result
-                    result.Extensions[_persistedQuery] =
+                    builder.SetExtension(
+                        _persistedQuery,
                         new Dictionary<string, object>
                         {
-                                { _hashName, userHash },
-                                { _persisted, true }
-                        };
+                            { _hashName, userHash },
+                            { _persisted, true }
+                        });
 
                     context.ContextData[ContextDataKeys.DocumentSaved] = true;
                 }
                 else
                 {
-                    result.Extensions[_persistedQuery] =
+                    builder.SetExtension(
+                        _persistedQuery,
                         new Dictionary<string, object>
                         {
                             { _hashName, userHash },
@@ -85,8 +89,10 @@ namespace HotChocolate.Execution
                             { _expectedType, _hashName },
                             { _expectedFormat, _hashFormat.ToString() },
                             { _persisted, false }
-                        };
+                        });
                 }
+
+                context.Result = builder.Create();
             }
 
             await _next(context).ConfigureAwait(false);
