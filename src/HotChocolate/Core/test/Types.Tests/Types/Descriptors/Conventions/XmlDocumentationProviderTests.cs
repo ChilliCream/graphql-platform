@@ -286,5 +286,53 @@ namespace HotChocolate.Types.Descriptors
             // assert
             methodDescription.MatchSnapshot();
         }
+
+        [Fact]
+        public void When_method_has_no_exceptions_then_it_is_ignored()
+        {
+            // arrange
+            var documentationProvider = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+
+            // act
+            var methodDescription = documentationProvider.GetDescription(
+                typeof(WithoutExceptionsXmlDoc)
+                    .GetMethod(nameof(WithoutExceptionsXmlDoc.Foo)));
+
+            // assert
+            methodDescription.MatchSnapshot();
+        }
+
+        [Fact]
+        public void When_method_has_returns_then_it_is_converted()
+        {
+            // arrange
+            var documentationProvider = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+
+            // act
+            var methodDescription = documentationProvider.GetDescription(
+                typeof(WithReturnsXmlDoc)
+                    .GetMethod(nameof(WithReturnsXmlDoc.Foo)));
+
+            // assert
+            methodDescription.MatchSnapshot();
+        }
+
+        [Fact]
+        public void When_method_has_no_returns_then_it_is_ignored()
+        {
+            // arrange
+            var documentationProvider = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+
+            // act
+            var methodDescription = documentationProvider.GetDescription(
+                typeof(WithoutReturnsXmlDoc)
+                    .GetMethod(nameof(WithoutReturnsXmlDoc.Foo)));
+
+            // assert
+            methodDescription.MatchSnapshot();
+        }
     }
 }
