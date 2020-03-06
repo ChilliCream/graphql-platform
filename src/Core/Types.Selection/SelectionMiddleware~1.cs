@@ -42,4 +42,3 @@ namespace HotChocolate.Types
         }
     }
 }
-
