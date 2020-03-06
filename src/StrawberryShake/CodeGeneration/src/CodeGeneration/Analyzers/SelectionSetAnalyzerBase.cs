@@ -4,29 +4,39 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using StrawberryShake.CodeGeneration.Analyzers;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Types;
 using StrawberryShake.CodeGeneration.Utilities;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal abstract class SelectionSetModelGenerator<T>
+    internal abstract class SelectionSetAnalyzerBase<T>
         where T : INamedType
     {
+        public abstract void Analyze(
+           IDocumentAnalyzerContext context,
+           OperationDefinitionNode operation,
+           FieldNode fieldSelection,
+           PossibleSelections possibleSelections,
+           IType fieldType,
+           T namedType,
+           Path path);
+
         protected ComplexOutputTypeModel CreateTypeModel(
-            IModelGeneratorContext context,
-            IFragmentNode fragmentNode,
+            IDocumentAnalyzerContext context,
+            IFragmentNode returnTypeFragment,
             Path path)
         {
             var levels = new Stack<ISet<string>>();
             levels.Push(new HashSet<string>());
-            return CreateTypeModel(context, fragmentNode, path, levels);
+            return CreateTypeModel(context, returnTypeFragment, path, levels);
         }
 
         private ComplexOutputTypeModel CreateTypeModel(
-            IModelGeneratorContext context,
+            IDocumentAnalyzerContext context,
             IFragmentNode fragmentNode,
             Path path,
             Stack<ISet<string>> levels)
@@ -70,13 +80,13 @@ namespace StrawberryShake.Generators
                 implements,
                 fieldModels);
 
-            context.RegisterType(typeModel);
+            context.Register(typeModel);
 
             return typeModel;
         }
 
         private IReadOnlyList<ComplexOutputTypeModel> CreateChildTypeModles(
-            IModelGeneratorContext context,
+            IDocumentAnalyzerContext context,
             IFragmentNode fragmentNode,
             Path path,
             Stack<ISet<string>> levels,
@@ -138,6 +148,27 @@ namespace StrawberryShake.Generators
                     path.Append(responseName));
             }).ToList();
         }
+
+        protected FieldParserModel CreateFieldParserModel(
+            IDocumentAnalyzerContext context,
+            OperationDefinitionNode operation,
+            FieldNode fieldSelection,
+            Path path,
+            ComplexOutputTypeModel returnType)
+        {
+            var parserModel = new FieldParserModel(
+                operation,
+                fieldSelection,
+                path,
+                returnType,
+                new[] { returnType });
+
+            context.Register(parserModel);
+
+            return parserModel;
+        }
+
+        /*
 
         protected ComplexOutputTypeModel CreateClassModel(
             IModelGeneratorContext context,
@@ -232,6 +263,7 @@ namespace StrawberryShake.Generators
                 resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
             }
         }
+        */
 
         protected IFragmentNode HoistFragment(
             INamedType type,
@@ -251,6 +283,7 @@ namespace StrawberryShake.Generators
 
             return selected;
         }
+
 
         protected NameString HoistName(
             INamedType type,
@@ -311,8 +344,7 @@ namespace StrawberryShake.Generators
 
             if (type is HotChocolate.Types.IHasDirectives d)
             {
-                IDirective directive =
-                    d.Directives[GeneratorDirectives.Name].FirstOrDefault();
+                IDirective directive = d.Directives[GeneratorDirectives.Name].FirstOrDefault();
                 if (directive is { })
                 {
                     return nameFormatter(directive.ToObject<NameDirective>().Value);
@@ -321,6 +353,7 @@ namespace StrawberryShake.Generators
 
             return nameFormatter(returnType.NamedType().Name);
         }
+
 
         protected static bool TryGetTypeName(
             WithDirectives withDirectives,
@@ -381,7 +414,7 @@ namespace StrawberryShake.Generators
         }
 
         protected IFragmentNode ResolveReturnType(
-            IModelGeneratorContext context,
+            IDocumentAnalyzerContext context,
             INamedType namedType,
             FieldNode fieldSelection,
             SelectionInfo selection)

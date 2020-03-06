@@ -1,4 +1,4 @@
-namespace StrawberryShake.Generators.Types
+namespace StrawberryShake.CodeGeneration.Types
 {
     public class NameDirective
     {
