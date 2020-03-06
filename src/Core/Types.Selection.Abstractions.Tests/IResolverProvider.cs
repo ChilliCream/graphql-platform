@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public interface IResolverProvider
     {

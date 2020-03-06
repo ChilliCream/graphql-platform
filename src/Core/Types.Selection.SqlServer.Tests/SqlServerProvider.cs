@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Squadron;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public class SqlServerProvider : IResolverProvider
     {

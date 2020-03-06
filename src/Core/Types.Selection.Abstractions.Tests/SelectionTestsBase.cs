@@ -8,7 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using Xunit;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public abstract class SelectionTestsBase
     {

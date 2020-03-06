@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Sorting;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public class SortHandler : IListHandler
     {

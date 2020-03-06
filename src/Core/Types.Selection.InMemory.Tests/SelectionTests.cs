@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public class SelectionTests
         : SelectionTestsBase

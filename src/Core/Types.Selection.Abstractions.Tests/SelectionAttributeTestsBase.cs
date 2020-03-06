@@ -7,7 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Xunit;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public abstract class SelectionAttributeTestsBase
     {

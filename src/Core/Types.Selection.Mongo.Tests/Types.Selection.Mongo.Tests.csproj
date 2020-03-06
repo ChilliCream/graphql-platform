@@ -14,10 +14,10 @@
   <ItemGroup>
     <PackageReference Include="Squadron.Mongo" Version="0.3.0" />
   </ItemGroup>
-  
+
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Selection.Mongo.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Selection</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Selections.Mongo.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
