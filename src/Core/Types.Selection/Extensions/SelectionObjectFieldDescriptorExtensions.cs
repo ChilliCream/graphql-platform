@@ -9,8 +9,7 @@ namespace HotChocolate.Types
 {
     public static class SelectionObjectFieldDescriptorExtensions
     {
-        private static readonly Type _middlewareDefinition =
-            typeof(SelectionMiddleware<>);
+        private static readonly Type _middlewareDefinition = typeof(SelectionMiddleware<>);
 
         public static IObjectFieldDescriptor UseSelection(
             this IObjectFieldDescriptor descriptor)
@@ -82,10 +81,8 @@ namespace HotChocolate.Types
             ObjectFieldDefinition definition,
             FieldMiddleware placeholder)
         {
-            Type middlewareType = _middlewareDefinition
-                .MakeGenericType(type);
-            FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(middlewareType);
+            Type middlewareType = _middlewareDefinition.MakeGenericType(type);
+            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

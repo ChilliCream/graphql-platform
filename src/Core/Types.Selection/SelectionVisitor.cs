@@ -7,7 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public class SelectionVisitor
         : SelectionVisitorBase

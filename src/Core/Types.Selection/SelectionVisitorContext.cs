@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public class SelectionVisitorContext
     {
@@ -18,15 +18,12 @@ namespace HotChocolate.Types.Selection
         {
             Conversion = conversion;
             _context = context;
-            _arguments = fieldSelection.CoerceArguments(
-                    context.Variables, conversion);
+            _arguments = fieldSelection.CoerceArguments(context.Variables, conversion);
         }
 
         public ITypeConversion Conversion { get; }
 
-        public bool TryGetValueNode(
-           string key,
-           out IValueNode arg)
+        public bool TryGetValueNode(string key, out IValueNode arg)
         {
             if (_arguments.TryGetValue(key, out ArgumentValue argumentValue) &&
                 argumentValue.Literal != null &&

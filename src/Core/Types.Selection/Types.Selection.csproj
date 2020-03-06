@@ -11,9 +11,9 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Types.Selection</PackageId>
-    <AssemblyName>HotChocolate.Types.Selection</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Selection</RootNamespace>
+    <PackageId>HotChocolate.Types.Selections</PackageId>
+    <AssemblyName>HotChocolate.Types.Selections</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

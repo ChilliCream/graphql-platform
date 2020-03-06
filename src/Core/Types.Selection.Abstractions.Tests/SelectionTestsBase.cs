@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public abstract class SelectionTestsBase
     {
-        private readonly static Foo[] SAMPLE = 
+        private readonly static Foo[] SAMPLE =
             new[] {
                 Foo.Create("aa", 1),
                 Foo.Create("bb", 2) };

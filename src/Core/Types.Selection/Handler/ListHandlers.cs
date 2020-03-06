@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     internal static class ListHandlers
     {

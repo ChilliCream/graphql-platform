@@ -12,8 +12,8 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Selection.InMemory.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Selection</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Selections.InMemory.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

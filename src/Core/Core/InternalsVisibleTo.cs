@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("HotChocolate.Types.Selection")]
+[assembly: InternalsVisibleTo("HotChocolate.Types.Selections")]

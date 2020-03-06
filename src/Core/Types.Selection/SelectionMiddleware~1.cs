@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Selection;
+using HotChocolate.Types.Selections;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
@@ -42,4 +42,3 @@ namespace HotChocolate.Types
         }
     }
 }
-

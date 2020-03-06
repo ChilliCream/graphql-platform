@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Squadron;
 
-namespace HotChocolate.Types.Selection
+namespace HotChocolate.Types.Selections
 {
     public class MongoProvider : IResolverProvider
     {
@@ -17,12 +17,12 @@ namespace HotChocolate.Types.Selection
         }
 
         public (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
-            CreateResolver<TResult>(params TResult[] results) where TResult : class
+            CreateResolver<TResult>(params TResult[] results)
+            where TResult : class
         {
             var services = new ServiceCollection();
             IMongoDatabase database = _resource.CreateDatabase();
-            IMongoCollection<TResult> collection =
-                database.GetCollection<TResult>("col");
+            IMongoCollection<TResult> collection = database.GetCollection<TResult>("col");
             collection.InsertMany(results);
 
             services.AddSingleton<IMongoCollection<TResult>>(collection);
