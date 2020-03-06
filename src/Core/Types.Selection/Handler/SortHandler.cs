@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Selection
 {
     public class SortHandler : IListHandler
     {
-        private const string ARGUMENT_NAME =
+        private const string ArgumentName =
             SortObjectFieldDescriptorExtensions.OrderByArgumentName;
 
         public Expression HandleLeave(
@@ -15,8 +15,8 @@ namespace HotChocolate.Types.Selection
             IFieldSelection selection,
             Expression expression)
         {
-            if (context.TryGetValueNode(ARGUMENT_NAME, out IValueNode sortArgument) &&
-                selection.Field.Arguments[ARGUMENT_NAME].Type is InputObjectType iot &&
+            if (context.TryGetValueNode(ArgumentName, out IValueNode sortArgument) &&
+                selection.Field.Arguments[ArgumentName].Type is InputObjectType iot &&
                 iot is ISortInputType fit)
             {
                 var visitor = new QueryableSortVisitor(iot, fit.EntityType);

@@ -14,11 +14,11 @@ namespace HotChocolate.Types.Selection
             Expression expression)
         {
             if (context.TryGetValueNode("where", out IValueNode filter) &&
-                 selection.Field.Arguments["where"].Type is InputObjectType iot &&
-                 iot is IFilterInputType fit)
+                selection.Field.Arguments["where"].Type is InputObjectType iot &&
+                iot is IFilterInputType fit)
             {
-                var visitor =
-                    new QueryableFilterVisitor(iot, fit.EntityType, context.Conversion);
+                var visitor = new QueryableFilterVisitor(
+                    iot, fit.EntityType, context.Conversion);
 
                 filter.Accept(visitor);
 

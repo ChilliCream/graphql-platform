@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Types.Selection
@@ -34,8 +34,8 @@ namespace HotChocolate.Types.Selection
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(
-                    d => d.Field(t => t.Foos)
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.Foos)
                         .Resolver(resolver)
                         .Use(next => async ctx =>
                         {
