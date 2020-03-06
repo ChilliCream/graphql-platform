@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Descriptors
@@ -9,17 +10,17 @@ namespace HotChocolate.Types.Descriptors
     public class XmlDocumentationProviderTests
     {
         [Fact]
-        public void When_xml_doc_is_missing_then_summary_is_empty()
+        public void When_xml_doc_is_missing_then_description_is_empty()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(typeof(Point));
+            var description = documentationProvider.GetDescription(typeof(Point));
 
             // assert
-            Assert.Null(summary);
+            Assert.Null(description);
         }
 
         [Fact]
@@ -30,25 +31,25 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(WithMultilineXmlDoc)
                     .GetProperty(nameof(WithMultilineXmlDoc.Foo)));
 
             // assert
-            Assert.Matches(new Regex(@"\n[ \t]*\n"), summary);
-            Assert.Contains("    * Users", summary);
-            Assert.Equal(summary.Trim(), summary);
+            Assert.Matches(new Regex(@"\n[ \t]*\n"), description);
+            Assert.Contains("    * Users", description);
+            Assert.Equal(description.Trim(), description);
         }
 
         [Fact]
-        public void When_summary_has_see_tag_then_it_is_converted()
+        public void When_description_has_see_tag_then_it_is_converted()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(WithSeeTagInXmlDoc)
                     .GetProperty(nameof(WithSeeTagInXmlDoc.Foo)));
 
@@ -56,38 +57,38 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(
                 "null for the default Record.\nSee this and\nthis" +
                 " at\nhttps://foo.com/bar/baz.",
-                summary);
+                description);
         }
 
         [Fact]
-        public void When_summary_has_generic_tags_then_it_is_converted()
+        public void When_description_has_generic_tags_then_it_is_converted()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(WithGenericTagsInXmlDoc)
                     .GetProperty(nameof(WithGenericTagsInXmlDoc.Foo)));
 
             // assert
-            Assert.Equal("These are some tags.", summary);
+            Assert.Equal("These are some tags.", description);
         }
 
         [Fact]
-        public void When_type_has_summary_then_it_it_resolved()
+        public void When_type_has_description_then_it_it_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(BaseBaseClass));
 
             // assert
-            Assert.Equal("I am the most base class.", summary);
+            Assert.Equal("I am the most base class.", description);
         }
 
         [Fact]
@@ -98,7 +99,7 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var parameterXml = documentationProvider.GetSummary(
+            var parameterXml = documentationProvider.GetDescription(
                     typeof(ClassWithInheritdoc)
                 .GetMethod(nameof(ClassWithInheritdoc.Bar))
                 .GetParameters()
@@ -116,12 +117,12 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var methodSummary = documentationProvider.GetSummary(
+            var methoddescription = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdoc)
                     .GetMethod(nameof(ClassWithInheritdoc.Bar)));
 
             // assert
-            Assert.Equal("Method doc.", methodSummary);
+            Assert.Equal("Method doc.", methoddescription);
         }
 
         [Fact]
@@ -132,27 +133,27 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdoc)
                     .GetProperty(nameof(ClassWithInheritdoc.Foo)));
 
             // assert
-            Assert.Equal("Summary of foo.", summary);
+            Assert.Equal("Summary of foo.", description);
         }
 
         [Fact]
-        public void When_type_is_an_interface_then_summary_is_resolved()
+        public void When_type_is_an_interface_then_description_is_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(IBaseBaseInterface));
 
             // assert
-            Assert.Equal("I am an interface.", summary);
+            Assert.Equal("I am an interface.", description);
         }
 
         [Fact]
@@ -163,14 +164,14 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdocOnInterface)
                     .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
                     .GetParameters()
                     .Single(p => p.Name == "baz"));
 
             // assert
-            Assert.Equal("Parameter summary.", summary);
+            Assert.Equal("Parameter summary.", description);
         }
 
         [Fact]
@@ -181,12 +182,12 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdocOnInterface)
                 .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo)));
 
             // assert
-            Assert.Equal("Property summary.", summary);
+            Assert.Equal("Property summary.", description);
         }
 
         [Fact]
@@ -197,77 +198,93 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var methodSummary = documentationProvider.GetSummary(
+            var methoddescription = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdocOnInterface)
                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar)));
 
             // assert
-            Assert.Equal("Method summary.", methodSummary);
+            Assert.Equal("Method summary.", methoddescription);
         }
 
         [Fact]
-        public void When_class_implements_interface_and_property_has_summary_then_property_summary_is_used()
+        public void When_class_implements_interface_and_property_has_description_then_property_description_is_used()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(ClassWithInterfaceAndCustomSummaries)
                 .GetProperty(nameof(ClassWithInterfaceAndCustomSummaries.Foo)));
 
             // assert
-            Assert.Equal("I am my own property.", summary);
+            Assert.Equal("I am my own property.", description);
         }
 
         [Fact]
-        public void When_class_implements_interface_and_method_has_summary_then_method_summary_is_used()
+        public void When_class_implements_interface_and_method_has_description_then_method_description_is_used()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(ClassWithInterfaceAndCustomSummaries)
                 .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar)));
 
             // assert
-            Assert.Equal("I am my own method.", summary);
+            Assert.Equal("I am my own method.", description);
         }
 
         [Fact]
-        public void When_class_implements_interface_and_method_has_summary_then_method_parameter_summary_is_used()
+        public void When_class_implements_interface_and_method_has_description_then_method_parameter_description_is_used()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(ClassWithInterfaceAndCustomSummaries)
                 .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
                 .GetParameters()
                 .Single(p => p.Name == "baz"));
 
             // assert
-            Assert.Equal("I am my own parameter.", summary);
+            Assert.Equal("I am my own parameter.", description);
         }
 
         [Fact]
-        public void When_class_has_summary_then_it_is_converted()
+        public void When_class_has_description_then_it_is_converted()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = documentationProvider.GetSummary(
+            var description = documentationProvider.GetDescription(
                 typeof(ClassWithSummary));
 
             // assert
-            Assert.Equal("I am a test class.", summary);
+            Assert.Equal("I am a test class.", description);
+        }
+
+        [Fact]
+        public void When_method_has_exceptions_then_it_is_converted()
+        {
+            // arrange
+            var documentationProvider = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+
+            // act
+            var methodDescription = documentationProvider.GetDescription(
+                typeof(WithExceptionsXmlDoc)
+                    .GetMethod(nameof(WithExceptionsXmlDoc.Foo)));
+
+            // assert
+            methodDescription.MatchSnapshot();
         }
     }
 }

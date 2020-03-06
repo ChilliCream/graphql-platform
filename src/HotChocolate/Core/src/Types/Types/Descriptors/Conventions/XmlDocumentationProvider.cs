@@ -16,6 +16,8 @@ namespace HotChocolate.Types.Descriptors
         : IDocumentationProvider
     {
         private const string _summaryElementName = "summary";
+        private const string _exceptionElementName = "exception";
+        private const string _returnsElementName = "returns";
         private const string _inheritdoc = "inheritdoc";
         private const string _see = "see";
         private const string _langword = "langword";
@@ -31,26 +33,73 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(fileResolver));
             }
+
             _fileResolver = fileResolver;
         }
 
-        public string GetSummary(Type type) =>
-            GetSummary((MemberInfo)type);
+        public string GetDescription(Type type) =>
+            GetDescription((MemberInfo)type);
 
-        public string GetSummary(MemberInfo member)
+        public string GetDescription(MemberInfo member)
         {
             var assemblyName = member.Module.Assembly.GetName();
             var element = GetMemberElement(member);
-            return RemoveLineBreakWhiteSpaces(
-                GetText(element?.Element(_summaryElementName)));
+
+            XElement summary = element?.Element(_summaryElementName);
+
+            XElement returns = element?.Element(_returnsElementName);
+
+            var exceptions = element?.Elements(_exceptionElementName).ToList();
+
+            var description = ComposeMemberDescription(summary, returns, exceptions);
+            var normalizedDescription = RemoveLineBreakWhiteSpaces(description);
+
+            return normalizedDescription;
         }
 
-        public string GetSummary(ParameterInfo parameter)
+        public string GetDescription(ParameterInfo parameter)
         {
             var assemblyName = parameter.Member.Module.Assembly.GetName();
             var element = GetParameterElement(parameter);
             return RemoveLineBreakWhiteSpaces(
                 GetText(element));
+        }
+
+        private string ComposeMemberDescription(XElement summary, XElement returns, List<XElement> exceptions)
+        {
+            var builder = new StringBuilder();
+            if (!string.IsNullOrEmpty(summary?.Value))
+            {
+                builder.Append(GetText(summary));
+            }
+
+            if (!string.IsNullOrEmpty(returns?.Value))
+            {
+                builder.Append(Environment.NewLine);
+                builder.AppendLine($"**Returns:** {GetText(returns)}");
+            }
+
+            if (exceptions != null)
+            {
+                var errorNumber = 1;
+                var exceptionStrings =
+                    (from ex in exceptions
+                    let code = ex.Attribute("code")
+                    where !string.IsNullOrEmpty(ex.Value) && code != null
+                    select $"{errorNumber++}. {code.Value}: {GetText(ex)}").ToList();
+
+                if (exceptionStrings.Count > 0)
+                {
+                    builder.Append(Environment.NewLine);
+                    builder.AppendLine("**Errors:**");
+                    foreach (var exceptionString in exceptionStrings)
+                    {
+                        builder.AppendLine(exceptionString);
+                    }
+                }
+            }
+
+            return builder.ToString();
         }
 
         private static string GetText(XElement element)
@@ -126,6 +175,7 @@ namespace HotChocolate.Types.Descriptors
 
                     return element;
                 }
+
                 return null;
             }
             catch
@@ -166,6 +216,7 @@ namespace HotChocolate.Types.Descriptors
 
                     return result.FirstOrDefault();
                 }
+
                 return null;
             }
             catch
@@ -258,7 +309,7 @@ namespace HotChocolate.Types.Descriptors
             char prefixCode;
 
             var memberName = member is Type memberType
-                && !string.IsNullOrEmpty(memberType.FullName)
+                             && !string.IsNullOrEmpty(memberType.FullName)
                 ? memberType.FullName
                 : member.DeclaringType.FullName + "." + member.Name;
 
@@ -285,6 +336,7 @@ namespace HotChocolate.Types.Descriptors
                     {
                         memberName += "(" + paramTypesList + ")";
                     }
+
                     break;
 
                 case MemberTypes.Event:
@@ -321,6 +373,7 @@ namespace HotChocolate.Types.Descriptors
         {
             private const string _getMemberDocPath =
                 "/doc/members/member[@name='{0}']";
+
             private const string _returnsPath = "{0}/returns";
             private const string _paramsPath = "{0}/param[@name='{1}']";
 
@@ -351,17 +404,16 @@ namespace HotChocolate.Types.Descriptors
                     Path,
                     name);
             }
-
         }
     }
 
     internal class NoopDocumentationProvider
         : IDocumentationProvider
     {
-        public string GetSummary(Type type) => null;
+        public string GetDescription(Type type) => null;
 
-        public string GetSummary(MemberInfo member) => null;
+        public string GetDescription(MemberInfo member) => null;
 
-        public string GetSummary(ParameterInfo parameter) => null;
+        public string GetDescription(ParameterInfo parameter) => null;
     }
 }

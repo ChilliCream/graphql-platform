@@ -4,7 +4,7 @@
 
 "Query Documentation."
 type QueryWithDocumentation {
-  "Foo Documentation-"
+  "Foo Documentation-\n\n**Returns:** \nBar Returns Documentation."
   foo("Bar Documentation." bar: String): String
 }
 
