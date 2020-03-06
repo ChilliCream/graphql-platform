@@ -1676,6 +1676,12 @@ export type SiteFieldsEnum =
   'siteMetadata___title' |
   'siteMetadata___description' |
   'siteMetadata___author' |
+  'siteMetadata___topnav' |
+  'siteMetadata___topnav___name' |
+  'siteMetadata___topnav___link' |
+  'siteMetadata___tools___github' |
+  'siteMetadata___tools___slack' |
+  'siteMetadata___tools___twitter' |
   'port' |
   'host' |
   'polyfill' |
@@ -2268,12 +2274,42 @@ export type SiteSiteMetadata = {
   title?: Maybe<Scalars['String']>,
   description?: Maybe<Scalars['String']>,
   author?: Maybe<Scalars['String']>,
+  topnav?: Maybe<Array<Maybe<SiteSiteMetadataTopnav>>>,
+  tools?: Maybe<SiteSiteMetadataTools>,
 };
 
 export type SiteSiteMetadataFilterInput = {
   title?: Maybe<StringQueryOperatorInput>,
   description?: Maybe<StringQueryOperatorInput>,
   author?: Maybe<StringQueryOperatorInput>,
+  topnav?: Maybe<SiteSiteMetadataTopnavFilterListInput>,
+  tools?: Maybe<SiteSiteMetadataToolsFilterInput>,
+};
+
+export type SiteSiteMetadataTools = {
+  github?: Maybe<Scalars['String']>,
+  slack?: Maybe<Scalars['String']>,
+  twitter?: Maybe<Scalars['String']>,
+};
+
+export type SiteSiteMetadataToolsFilterInput = {
+  github?: Maybe<StringQueryOperatorInput>,
+  slack?: Maybe<StringQueryOperatorInput>,
+  twitter?: Maybe<StringQueryOperatorInput>,
+};
+
+export type SiteSiteMetadataTopnav = {
+  name?: Maybe<Scalars['String']>,
+  link?: Maybe<Scalars['String']>,
+};
+
+export type SiteSiteMetadataTopnavFilterInput = {
+  name?: Maybe<StringQueryOperatorInput>,
+  link?: Maybe<StringQueryOperatorInput>,
+};
+
+export type SiteSiteMetadataTopnavFilterListInput = {
+  elemMatch?: Maybe<SiteSiteMetadataTopnavFilterInput>,
 };
 
 export type SiteSortInput = {
@@ -2303,6 +2339,11 @@ export type Unnamed_2_QueryVariables = {};
 
 
 export type Unnamed_2_Query = { site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'title' | 'description' | 'author'>> }> };
+
+export type GetSiteMetadataQueryVariables = {};
+
+
+export type GetSiteMetadataQuery = { site: Maybe<{ siteMetadata: Maybe<{ topnav: Maybe<Array<Maybe<Pick<SiteSiteMetadataTopnav, 'name' | 'link'>>>>, tools: Maybe<Pick<SiteSiteMetadataTools, 'github' | 'slack' | 'twitter'>> }> }> };
 
 export type GetStartpageHeaderQueryVariables = {};
 

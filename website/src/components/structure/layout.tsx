@@ -8,7 +8,7 @@
 // import { useStaticQuery, graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { GlobalStyle } from "./global-style";
+import { GlobalStyle } from "../misc/global-style";
 import { Header } from "./header";
 
 const Layout: FunctionComponent = ({ children }) => {

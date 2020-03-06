@@ -3,6 +3,37 @@ module.exports = {
     title: `ChilliCream GraphQL`,
     description: `...`,
     author: `@Chilli_Cream`,
+    topnav: [
+      {
+        name: `Platform`,
+        link: `/`,
+      },
+      {
+        name: `Docs`,
+        link: `/`,
+      },
+      {
+        name: `Resources`,
+        link: `/`,
+      },
+      {
+        name: `Contact Us`,
+        link: `/`,
+      },
+      {
+        name: `Blog`,
+        link: `/`,
+      },
+      {
+        name: `Shop`,
+        link: `https://shop.chillicream.com`,
+      },
+    ],
+    tools: {
+      github: `https://github.com/ChilliCream/hotchocolate`,
+      slack: `https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q`,
+      twitter: `https://twitter.com/Chilli_Cream`,
+    },
   },
   plugins: [
     `gatsby-plugin-ts`,

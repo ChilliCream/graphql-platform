@@ -1,44 +1,63 @@
+import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { Link } from "../components/link";
-import { github, shop, slack, twitter } from "./external-links";
+import { GetSiteMetadataQuery } from "../../../graphql-types";
+import { Link } from "../misc/link";
 
-import GithubIconSvg from "../images/github.svg";
-import LogoIconSvg from "../images/chillicream.svg";
-import LogoTextSvg from "../images/chillicream-text.svg";
-import SlackIconSvg from "../images/slack.svg";
-import TwitterIconSvg from "../images/twitter.svg";
+import GithubIconSvg from "../../images/github.svg";
+import LogoIconSvg from "../../images/chillicream.svg";
+import LogoTextSvg from "../../images/chillicream-text.svg";
+import SlackIconSvg from "../../images/slack.svg";
+import TwitterIconSvg from "../../images/twitter.svg";
 
-export const Header: FunctionComponent = () => (
-  <Container id="header">
-    <LogoLink to="/">
-      <LogoIcon />
-      <LogoText />
-    </LogoLink>
-    <Navigation>
-      <NavLink to="/">Platform</NavLink>
-      <NavLink to="/">Docs</NavLink>
-      <NavLink to="/">Resources</NavLink>
-      <NavLink to="/">Contact Us</NavLink>
-      <NavLink to="/">Blog</NavLink>
-      <NavLink to={shop}>Shop</NavLink>
-    </Navigation>
-    <Search>
-      <SearchField placeholder="Search ..." />
-    </Search>
-    <Tools>
-      <ToolLink to={slack}>
-        <SlackIcon />
-      </ToolLink>
-      <ToolLink to={twitter}>
-        <TwitterIcon />
-      </ToolLink>
-      <ToolLink to={github}>
-        <GithubIcon />
-      </ToolLink>
-    </Tools>
-  </Container>
-);
+export const Header: FunctionComponent = () => {
+  const data = useStaticQuery<GetSiteMetadataQuery>(graphql`
+    query getSiteMetadata {
+      site {
+        siteMetadata {
+          topnav {
+            name
+            link
+          }
+          tools {
+            github
+            slack
+            twitter
+          }
+        }
+      }
+    }
+  `);
+  const { topnav, tools } = data.site!.siteMetadata!;
+
+  return (
+    <Container id="header">
+      <LogoLink to="/">
+        <LogoIcon />
+        <LogoText />
+      </LogoLink>
+      <Navigation>
+        {topnav!.map(item => (
+          <NavLink to={item!.link!}>{item!.name}</NavLink>
+        ))}
+      </Navigation>
+      <Search>
+        <SearchField placeholder="Search ..." />
+      </Search>
+      <Tools>
+        <ToolLink to={tools!.slack!}>
+          <SlackIcon />
+        </ToolLink>
+        <ToolLink to={tools!.twitter!}>
+          <TwitterIcon />
+        </ToolLink>
+        <ToolLink to={tools!.github!}>
+          <GithubIcon />
+        </ToolLink>
+      </Tools>
+    </Container>
+  );
+};
 
 const Container = styled.header`
   position: sticky;
@@ -62,9 +81,14 @@ const LogoLink = styled(Link)`
 `;
 
 const LogoText = styled(LogoTextSvg)`
+  display: none;
   padding-left: 15px;
   height: 24px;
   fill: #fff;
+
+  @media only screen and (min-width: 1200px) {
+    display: inline;
+  }
 `;
 
 const Navigation = styled.nav`

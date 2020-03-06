@@ -2,8 +2,8 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetStartpageHeaderQuery } from "../../graphql-types";
-import Layout from "../components/layout";
-import SEO from "../components/seo";
+import Layout from "../components/structure/layout";
+import SEO from "../components/misc/seo";
 
 const IndexPage: FunctionComponent = () => {
   const data = useStaticQuery<GetStartpageHeaderQuery>(graphql`
