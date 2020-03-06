@@ -4,7 +4,8 @@ using Xunit;
 namespace HotChocolate.Types.Selection
 {
     public class SelectionTests
-        : SelectionTestsBase, IClassFixture<MongoResource>
+        : SelectionTestsBase
+        , IClassFixture<MongoResource>
     {
         public SelectionTests(MongoResource provider)
             : base(new MongoProvider(provider))

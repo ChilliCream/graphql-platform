@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Selection
 {

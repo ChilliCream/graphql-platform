@@ -3,7 +3,8 @@ using Xunit;
 namespace HotChocolate.Types.Selection
 {
     public class SelectionTests
-        : SelectionTestsBase, IClassFixture<InMemoryProvider>
+        : SelectionTestsBase
+        , IClassFixture<InMemoryProvider>
     {
         public SelectionTests(InMemoryProvider provider) : base(provider)
         {

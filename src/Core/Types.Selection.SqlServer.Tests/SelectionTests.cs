@@ -4,7 +4,8 @@ using Xunit;
 namespace HotChocolate.Types.Selection
 {
     public class SelectionTests
-        : SelectionTestsBase, IClassFixture<SqlServerResource>
+        : SelectionTestsBase
+        , IClassFixture<SqlServerResource>
     {
         public SelectionTests(SqlServerResource provider)
             : base(new SqlServerProvider(provider))
