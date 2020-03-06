@@ -66,12 +66,15 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     break;
 
                 case IReadOnlyQueryResult queryResult:
-                    await HandleQueryResultAsync(
-                        connection,
-                        message,
-                        queryResult,
-                        cancellationToken)
-                        .ConfigureAwait(false);
+                    using (queryResult)
+                    {
+                        await HandleQueryResultAsync(
+                            connection,
+                            message,
+                            queryResult,
+                            cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                     break;
 
                 default:

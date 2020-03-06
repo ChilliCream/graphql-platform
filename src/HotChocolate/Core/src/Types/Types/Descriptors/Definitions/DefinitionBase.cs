@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Get access to context data that are copied to the type
         /// and can be used for customizations.
         /// </summary>
-        public IDictionary<string, object?> ContextData { get; } =
+        public ExtensionData ContextData { get; } =
             new ExtensionData();
 
         /// <summary>

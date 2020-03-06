@@ -3,14 +3,14 @@
     "schemas": {
       "nodes": [
         {
-          "id": "U2NoZW1hCmdmZDU0ZmQ4ZmQxMGY0OTcyODE3MTRmOWE4YjNiOWIxNw==",
+          "id": "U2NoZW1hCmczNzU4MTNmNDNjNjY0NGViODk2NDVlZTIxMTEwY2JlMg==",
           "name": "abc",
           "description": "def"
         }
       ]
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

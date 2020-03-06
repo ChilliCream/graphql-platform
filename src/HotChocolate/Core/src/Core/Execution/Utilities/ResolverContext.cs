@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
         private object _result;
         private object _cachedResolverResult;
         private bool _hasCachedResolverResult;
-        private IDictionary<string, object> _serializedResult;
+        private FieldData _serializedResult;
         private FieldSelection _fieldSelection;
         private IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
 
@@ -51,6 +51,8 @@ namespace HotChocolate.Execution
         public FieldNode FieldSelection => _fieldSelection.Selection;
 
         public NameString ResponseName => _fieldSelection.ResponseName;
+
+        public int ResponseIndex => _fieldSelection.ResponseIndex;
 
         public IImmutableStack<object> Source { get; private set; }
 

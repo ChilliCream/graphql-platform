@@ -2,14 +2,14 @@
   "Data": {
     "createEnvironment": {
       "environment": {
-        "id": "RW52aXJvbm1lbnQKZ2VkMzczNWRmMDQ5ODQ4OWU4MTdjNzljN2FjYzkzYTQ0",
+        "id": "RW52aXJvbm1lbnQKZzEzMTU0YTJiY2JjYjQ4MWM4YTBhYWVmOWJhNGVlZjE4",
         "name": "abc",
         "description": "def"
       },
       "clientMutationId": "ghi"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

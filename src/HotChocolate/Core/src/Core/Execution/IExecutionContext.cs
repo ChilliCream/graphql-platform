@@ -42,12 +42,12 @@ namespace HotChocolate.Execution
         /// </summary>
         /// <value></value>
         IVariableValueCollection Variables { get; }
-
+        
         /// <summary>
         /// Gets the query result.
         /// </summary>
         /// <value></value>
-        IQueryResult Result { get; }
+        IQueryResultBuilder Result { get; }
 
         /// <summary>
         /// The context data dictionary can be used by middlewares and

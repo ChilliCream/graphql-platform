@@ -2,13 +2,13 @@
   "Data": {
     "schemasById": [
       {
-        "id": "U2NoZW1hCmc0OGRmOWMwZWE5YzA0NWFlOTExNjIwMDExNTExY2QyOA==",
+        "id": "U2NoZW1hCmcyZGViY2U0ZWJkMjM0ZWZkODEzNGJjMWI4YTI1ZTcyYw==",
         "name": "abc",
         "description": "def"
       }
     ]
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

@@ -56,9 +56,11 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 Builder.SetRequestDuration(Activity.Current.Duration);
 
-                if (result is IQueryResult queryResult)
+                if (result is IReadOnlyQueryResult queryResult)
                 {
-                    queryResult.Extensions.Add(_extensionKey, Builder.Build());
+                    context.Result =  QueryResultBuilder.FromResult(queryResult)
+                        .AddExtension(_extensionKey, Builder.Build())
+                        .Create();
                 }
             }
         }

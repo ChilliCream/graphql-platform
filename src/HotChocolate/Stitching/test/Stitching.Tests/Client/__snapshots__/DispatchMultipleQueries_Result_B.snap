@@ -3,7 +3,7 @@
     "a": "b",
     "b": "c"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

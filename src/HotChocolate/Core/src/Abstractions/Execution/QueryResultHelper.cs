@@ -19,17 +19,17 @@ namespace HotChocolate.Execution
         {
             var formatted = new OrderedDictionary();
 
-            if (result.Errors.Count > 0)
+            if (result.Errors is { } && result.Errors.Count > 0)
             {
                 formatted[_errors] = SerializeErrors(result.Errors);
             }
 
-            if (result.Data.Count > 0)
+            if (result.Data is { } && result.Data.Count > 0)
             {
                 formatted[_data] = result.Data;
             }
 
-            if (result.Extensions.Count > 0)
+            if (result.Extensions is { } && result.Extensions.Count > 0)
             {
                 formatted[_extensions] = result.Extensions;
             }
@@ -47,17 +47,17 @@ namespace HotChocolate.Execution
                 var formattedError = new OrderedDictionary();
                 formattedError[_message] = error.Message;
 
-                if (error.Locations != null && error.Locations.Count > 0)
+                if (error.Locations is { } && error.Locations.Count > 0)
                 {
                     formattedError[_locations] = SerializeLocations(error.Locations);
                 }
 
-                if (error.Path != null && error.Path.Count > 0)
+                if (error.Path is { } && error.Path.Count > 0)
                 {
                     formattedError[_path] = error.Path;
                 }
 
-                if (error.Extensions != null && error.Extensions.Count > 0)
+                if (error.Extensions is { } && error.Extensions.Count > 0)
                 {
                     formattedError[_extensions] = error.Extensions;
                 }

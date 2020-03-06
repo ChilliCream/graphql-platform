@@ -16,7 +16,11 @@
       }
     }
   },
+  "Errors": null,
   "Extensions": {
+    "bar": [
+      123
+    ],
     "foo": [
       {
         "qux": {
@@ -24,15 +28,11 @@
         }
       }
     ],
-    "bar": [
-      123
-    ],
     "baz": {
       "qux": {
         "quux": 123
       }
     }
   },
-  "Errors": [],
-  "ContextData": {}
+  "ContextData": null
 }

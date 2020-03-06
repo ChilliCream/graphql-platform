@@ -2,7 +2,7 @@
   "Data": {
     "newState": "1234567"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

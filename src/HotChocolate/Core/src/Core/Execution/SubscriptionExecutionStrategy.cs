@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
                 executionContext,
                 fieldSelection,
                 source,
-                new Dictionary<string, object>());
+                new FieldData(1));
 
             SubscribeResolverDelegate subscribeResolver =
                 fieldSelection.Field.SubscribeResolver
@@ -153,13 +153,11 @@ namespace HotChocolate.Execution
                         requestTimeoutCts.Token,
                         cancellationToken))
                 {
-                    IQueryResult result = await ExecuteQueryAsync(
+                    return await ExecuteQueryAsync(
                         executionContext,
                         batchOperationHandler,
                         cancellationToken)
                         .ConfigureAwait(false);
-
-                    return result.AsReadOnly();
                 }
             }
             finally

@@ -31,7 +31,7 @@ namespace HotChocolate
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Extensions);
+            Assert.Null(result.Extensions);
             Assert.Collection(events,
                 i => Assert.Equal("foo", i),
                 i => Assert.Equal("bar", i));

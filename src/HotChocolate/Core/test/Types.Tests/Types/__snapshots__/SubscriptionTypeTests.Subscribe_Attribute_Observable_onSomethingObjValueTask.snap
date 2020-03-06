@@ -3,24 +3,24 @@
     "Data": {
       "onSomethingObjValueTask": "a"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   },
   {
     "Data": {
       "onSomethingObjValueTask": "b"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   },
   {
     "Data": {
       "onSomethingObjValueTask": "c"
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   }
 ]

@@ -561,12 +561,12 @@ namespace HotChocolate.Execution
             IQueryExecutor executor =
                 services.GetRequiredService<IQueryExecutor>();
 
-            var hashProvider =
+            IDocumentHashProvider hashProvider =
                 services.GetRequiredService<IDocumentHashProvider>();
-            var storage = services.GetRequiredService<InMemoryQueryStorage>();
+            InMemoryQueryStorage storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            var hash = hashProvider.ComputeHash(query.ToSpan());
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(

@@ -27,7 +27,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     "{ hello state }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     "{ hello(to: \"me\") state }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -68,7 +68,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     "{ hello state }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -88,7 +88,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     "{ hello(to: \"me\") state }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -109,7 +109,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     "mutation { newState(state:\"1234567\") }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 

@@ -2,7 +2,7 @@
   "Data": {
     "enumInInputObject": "Baz"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

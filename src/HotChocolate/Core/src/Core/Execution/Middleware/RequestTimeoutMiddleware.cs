@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
                 }
 
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(
+                context.Result = QueryResultBuilder.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.RequestTimeoutMiddleware_Timeout)
                         .SetCode(ErrorCodes.Execution.Timeout)
