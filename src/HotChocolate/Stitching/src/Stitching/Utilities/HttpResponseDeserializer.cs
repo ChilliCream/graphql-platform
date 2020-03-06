@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
-using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.Stitching.Utilities
 {
@@ -12,24 +10,28 @@ namespace HotChocolate.Stitching.Utilities
         private const string _extensions = "extensions";
         private const string _errors = "errors";
 
-        public static QueryResult Deserialize(
+        public static IReadOnlyQueryResult Deserialize(
             IReadOnlyDictionary<string, object> serializedResult)
         {
-            var result = new QueryResult();
+            var result = new QueryResultBuilder();
+            var data = new OrderedDictionary();
+            var extensionData = new ExtensionData();
 
             DeserializeRootField(
-                result.Data,
+                data,
                 serializedResult,
                 _data);
+            result.SetData(data);
 
             DeserializeRootField(
-                result.Extensions,
+                extensionData,
                 serializedResult,
                 _extensions);
+            result.SetExtensions(extensionData);
 
             DeserializeErrors(result, serializedResult);
 
-            return result;
+            return result.Create();
         }
 
         private static void DeserializeRootField(
@@ -48,17 +50,15 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         private static void DeserializeErrors(
-            IQueryResult result,
+            IQueryResultBuilder result,
             IReadOnlyDictionary<string, object> serializedResult)
         {
             if (serializedResult.TryGetValue(_errors, out object o)
                 && o is IReadOnlyList<object> l)
             {
-                foreach (var error in
-                    l.OfType<IReadOnlyDictionary<string, object>>())
+                foreach (var error in l.OfType<IReadOnlyDictionary<string, object>>())
                 {
-                    result.Errors.Add(
-                        ErrorBuilder.FromDictionary(error).Build());
+                    result.AddError(ErrorBuilder.FromDictionary(error).Build());
                 }
             }
         }

@@ -1,12 +1,12 @@
 ﻿{
   "Data": {
     "node": {
-      "id": "U2NoZW1hCmc4NTU2YjFkOGNhY2Y0MTI0ODU4Njg3YzgxNTNiMzUzMQ==",
+      "id": "U2NoZW1hCmcyZDk3Y2I5ZWI3NDE0NWMxODAyZGZhNTA5Yzg3YjE5YQ==",
       "name": "abc",
       "description": "def"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

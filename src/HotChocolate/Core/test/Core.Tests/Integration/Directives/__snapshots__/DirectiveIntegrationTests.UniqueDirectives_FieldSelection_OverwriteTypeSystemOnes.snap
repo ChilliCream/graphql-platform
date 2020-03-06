@@ -3,7 +3,7 @@
     "bar": "foo",
     "baz": "baz"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

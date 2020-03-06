@@ -7,9 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution
@@ -21,33 +19,36 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken);
 
-        protected static async Task<IQueryResult> ExecuteQueryAsync(
+        protected static async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
             IExecutionContext executionContext,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            ResolverContext[] initialBatch =
-                CreateInitialBatch(executionContext,
-                    executionContext.Result.Data);
+            InitialBatch initialBatch = CreateInitialBatch(executionContext);
+
             try
             {
                 await ExecuteResolversAsync(
                     executionContext,
-                    initialBatch,
+                    initialBatch.Batch,
                     batchOperationHandler,
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                EnsureRootValueNonNullState(
-                    executionContext.Result,
-                    initialBatch);
+                FieldData data = EnsureRootValueNonNullState(
+                    initialBatch.Data,
+                    initialBatch.Batch);
 
-                return executionContext.Result;
+                if (data is { })
+                {
+                    executionContext.Result.SetData(initialBatch.Data);
+                }
+
+                return executionContext.Result.Create();
             }
             finally
             {
-                ResolverContext.Return(initialBatch);
-                ArrayPool<ResolverContext>.Shared.Return(initialBatch);
+                ResolverContext.Return(initialBatch.Batch);
             }
         }
 
@@ -105,8 +106,8 @@ namespace HotChocolate.Execution
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static void EnsureRootValueNonNullState(
-            IQueryResult result,
+        protected static FieldData EnsureRootValueNonNullState(
+            FieldData data,
             IEnumerable<ResolverContext> initialBatch)
         {
             foreach (ResolverContext resolverContext in initialBatch)
@@ -117,12 +118,14 @@ namespace HotChocolate.Execution
                 }
 
                 if (resolverContext.Field.Type.IsNonNullType()
-                    && result.Data[resolverContext.ResponseName] == null)
+                    && data.GetFieldValue(resolverContext.ResponseIndex) is null)
                 {
-                    result.Data.Clear();
-                    break;
+                    data.Clear();
+                    return null;
                 }
             }
+
+            return data;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -190,34 +193,30 @@ namespace HotChocolate.Execution
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static ResolverContext[] CreateInitialBatch(
-            IExecutionContext executionContext,
-            IDictionary<string, object> result)
+        protected static InitialBatch CreateInitialBatch(IExecutionContext executionContext)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
                 .Push(executionContext.Operation.RootValue);
 
-            IReadOnlyCollection<FieldSelection> fieldSelections =
+            IReadOnlyList<FieldSelection> fieldSelections =
                 executionContext.CollectFields(
                     executionContext.Operation.RootType,
                     executionContext.Operation.Definition.SelectionSet,
                     null);
 
-            int i = 0;
-            ResolverContext[] batch =
-                ArrayPool<ResolverContext>.Shared.Rent(
-                    fieldSelections.Count);
+            var data = new FieldData(fieldSelections.Count);
+            var batch = new ResolverContext[fieldSelections.Count];
 
-            foreach (FieldSelection fieldSelection in fieldSelections)
+            for (int i = 0; i < fieldSelections.Count; i++)
             {
-                batch[i++] = ResolverContext.Rent(
+                batch[i] = ResolverContext.Rent(
                     executionContext,
-                    fieldSelection,
+                    fieldSelections[i],
                     source,
-                    result);
+                    data);
             }
 
-            return batch;
+            return new InitialBatch(data, batch);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -234,6 +233,19 @@ namespace HotChocolate.Execution
             }
 
             return null;
+        }
+
+        public readonly struct InitialBatch
+        {
+            public InitialBatch(FieldData data, ResolverContext[] batch)
+            {
+                Data = data;
+                Batch = batch;
+            }
+
+            public FieldData Data { get; }
+
+            public ResolverContext[] Batch { get; }
         }
     }
 }

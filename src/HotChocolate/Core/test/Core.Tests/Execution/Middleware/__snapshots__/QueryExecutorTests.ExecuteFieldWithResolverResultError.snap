@@ -3,7 +3,6 @@
     "y": null,
     "yasync": null
   },
-  "Extensions": {},
   "Errors": [
     {
       "Message": "hello world y",
@@ -36,5 +35,6 @@
       "Extensions": {}
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

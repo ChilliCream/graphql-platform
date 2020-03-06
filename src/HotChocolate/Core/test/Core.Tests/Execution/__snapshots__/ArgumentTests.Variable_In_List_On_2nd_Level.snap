@@ -2,7 +2,7 @@
   "Data": {
     "x": "{ someList: [ \"abc\", \"abc\" ] }"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

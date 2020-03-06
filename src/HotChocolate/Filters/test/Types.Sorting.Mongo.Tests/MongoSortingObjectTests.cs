@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -138,7 +138,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -213,7 +213,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
@@ -250,7 +250,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 

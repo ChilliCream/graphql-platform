@@ -53,7 +53,7 @@ namespace HotChocolate.AspNetCore
             {
                 if (!value.HasValue)
                 {
-                    // TODO : resurces
+                    // TODO : resources
                     throw new ArgumentException(
                         "The subscription-path cannot be empty.");
                 }
@@ -67,11 +67,11 @@ namespace HotChocolate.AspNetCore
         [Obsolete(
             "Use serviceCollection.AddSocketConnectionInterceptor()",
             true)]
-        public OnConnectWebSocketAsync OnConnectWebSocket { get; set; }
+        public OnConnectWebSocketAsync? OnConnectWebSocket { get; set; }
 
         [Obsolete(
             "Use serviceCollection.AddQueryRequestInterceptor()",
             true)]
-        public OnCreateRequestAsync OnCreateRequest { get; set; }
+        public OnCreateRequestAsync? OnCreateRequest { get; set; }
     }
 }

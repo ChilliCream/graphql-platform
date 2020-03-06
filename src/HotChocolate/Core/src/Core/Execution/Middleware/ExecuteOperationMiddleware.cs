@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                context.Result = QueryResult.CreateError(
+                context.Result = QueryResultBuilder.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.ExecuteOperationMiddleware_InComplete)
                         .SetCode(ErrorCodes.Execution.Incomplete)
