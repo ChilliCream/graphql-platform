@@ -29,7 +29,6 @@ namespace HotChocolate.Types
             Resolver = definition.Resolver;
             SubscribeResolver = definition.SubscribeResolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
-            Metadata = ResolverMetadata.Default;
         }
 
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
@@ -53,11 +52,6 @@ namespace HotChocolate.Types
         /// Gets all executable directives that are associated with this field.
         /// </summary>
         public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
-
-        /// <summary>
-        /// Gets the metadata of the resolver associated with this field
-        /// </summary>
-        public ResolverMetadata Metadata { get; private set; }
 
         /// <summary>
         /// Gets the associated .net type member of this field.
@@ -122,15 +116,6 @@ namespace HotChocolate.Types
                 // resolver compiler.
                 FieldResolver resolver = context.GetResolver(definition.Name);
                 Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver);
-
-                if (resolver?.Resolver != null && resolver.Resolver == Resolver)
-                {
-                    Metadata = resolver.Metadata;
-                }
-                else
-                {
-                    Metadata = Metadata.AsNonPure();
-                }
             }
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;

@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters
         {
             await _next(context).ConfigureAwait(false);
 
-            var filter = context.Argument<IValueNode>("where");
+            IValueNode filter = context.Argument<IValueNode>("where");
 
             if (filter is null || filter is NullValueNode)
             {

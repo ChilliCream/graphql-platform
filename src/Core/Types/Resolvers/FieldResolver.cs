@@ -9,41 +9,26 @@ namespace HotChocolate.Resolvers
         private FieldReference _fieldReference;
 
         public FieldResolver(
-           NameString typeName,
-           NameString fieldName,
-           FieldResolverDelegate resolver)
-           : this(typeName, fieldName, resolver, ResolverMetadata.Default)
-        {
-        }
-
-        public FieldResolver(
             NameString typeName,
             NameString fieldName,
-            FieldResolverDelegate resolver,
-            ResolverMetadata metadata)
+            FieldResolverDelegate resolver)
             : base(typeName, fieldName)
         {
             Resolver = resolver
                 ?? throw new ArgumentNullException(nameof(resolver));
-            Metadata = metadata
-                ?? throw new ArgumentNullException(nameof(metadata));
         }
 
         public FieldResolver(
             FieldReference fieldReference,
-            FieldResolverDelegate resolver,
-            ResolverMetadata metadata)
+            FieldResolverDelegate resolver)
             : base(fieldReference)
         {
             _fieldReference = fieldReference;
             Resolver = resolver
                 ?? throw new ArgumentNullException(nameof(resolver));
-            Metadata = metadata
-                ?? throw new ArgumentNullException(nameof(metadata));
         }
 
         public FieldResolverDelegate Resolver { get; }
-        public ResolverMetadata Metadata { get; }
 
         public FieldResolver WithTypeName(NameString typeName)
         {
@@ -52,7 +37,7 @@ namespace HotChocolate.Resolvers
                 return this;
             }
 
-            return new FieldResolver(typeName, FieldName, Resolver, Metadata);
+            return new FieldResolver(typeName, FieldName, Resolver);
         }
 
         public FieldResolver WithFieldName(NameString fieldName)
@@ -62,7 +47,7 @@ namespace HotChocolate.Resolvers
                 return this;
             }
 
-            return new FieldResolver(TypeName, fieldName, Resolver, Metadata);
+            return new FieldResolver(TypeName, fieldName, Resolver);
         }
 
         public FieldResolver WithResolver(FieldResolverDelegate resolver)
@@ -72,7 +57,7 @@ namespace HotChocolate.Resolvers
                 return this;
             }
 
-            return new FieldResolver(TypeName, FieldName, resolver, Metadata);
+            return new FieldResolver(TypeName, FieldName, resolver);
         }
 
         public bool Equals(FieldResolver other)
@@ -94,7 +79,6 @@ namespace HotChocolate.Resolvers
         private bool IsEqualTo(FieldResolver other)
         {
             return base.IsEqualTo(other)
-                && other.Metadata.Equals(Metadata)
                 && other.Resolver.Equals(Resolver);
         }
 
