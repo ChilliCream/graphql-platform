@@ -219,6 +219,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             {
                 var fragmentNode = new FragmentNode(new Fragment(
                     fragment.TypeCondition.Name,
+                    fragment.Kind,
                     fragment.TypeCondition,
                     fragment.SelectionSet));
                 fragments.Add(fragmentNode);

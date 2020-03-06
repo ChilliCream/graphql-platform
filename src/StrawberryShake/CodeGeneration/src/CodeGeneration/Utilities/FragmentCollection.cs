@@ -63,6 +63,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 {
                     return new Fragment(
                         fragmentName,
+                        FragmentKind.Named,
                         type,
                         fragmentDefinition.SelectionSet);
                 }
@@ -113,7 +114,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                     inlineFragment.TypeCondition.Name.Value);
             }
 
-            return new Fragment(type.Name, type, inlineFragment.SelectionSet);
+            return new Fragment(type.Name, FragmentKind.Inline, type, inlineFragment.SelectionSet);
         }
 
         private static string CreateInlineFragmentName(

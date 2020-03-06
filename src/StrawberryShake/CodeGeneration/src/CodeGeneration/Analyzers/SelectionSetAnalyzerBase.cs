@@ -41,6 +41,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path path,
             Stack<ISet<string>> levels)
         {
+            NameString name = context.GetOrCreateName(
+                fragmentNode.Fragment.SelectionSet,
+                GetClassName(fragmentNode.Name));
+
             ISet<string> implementedFields = levels.Peek();
             IReadOnlyList<OutputFieldModel> fieldModels = Array.Empty<OutputFieldModel>();
 
@@ -68,10 +72,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     path);
             }
 
-            NameString name = context.GetOrCreateName(
-                fragmentNode.Fragment.SelectionSet,
-                GetClassName(fragmentNode.Name));
-
             var typeModel = new ComplexOutputTypeModel(
                 name,
                 fragmentNode.Fragment.TypeCondition.Description,
@@ -92,6 +92,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Stack<ISet<string>> levels,
             ISet<string> implementedFields)
         {
+            if (fragmentNode.Children.Count == 0)
+            {
+                return Array.Empty<ComplexOutputTypeModel>();
+            }
+
             var implementedByChildren = new HashSet<string>();
             levels.Push(implementedByChildren);
 
@@ -112,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return implements;
         }
 
-        private IReadOnlyList<OutputFieldModel> CreateFields(
+        private static IReadOnlyList<OutputFieldModel> CreateFields(
             IComplexOutputType type,
             IEnumerable<ISelectionNode> selections,
             Func<string, bool> addField,
@@ -140,7 +145,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 string responseName = (t.Selection.Alias ?? t.Selection.Name).Value;
                 return new OutputFieldModel(
-                    GetPropertyName(t.ResponseName),
+                    t.ResponseName,
                     t.Field.Description,
                     t.Field,
                     t.Field.Type,
@@ -161,7 +166,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fieldSelection,
                 path,
                 returnType,
-                new[] { returnType });
+                new[] { returnType });
 
             context.Register(parserModel);
 
@@ -354,7 +359,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return nameFormatter(returnType.NamedType().Name);
         }
 
-
         protected static bool TryGetTypeName(
             WithDirectives withDirectives,
             out string? typeName)
@@ -414,13 +418,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         protected IFragmentNode ResolveReturnType(
-            IDocumentAnalyzerContext context,
             INamedType namedType,
             FieldNode fieldSelection,
             SelectionInfo selection)
         {
             var returnType = new FragmentNode(new Fragment(
                 CreateName(namedType, fieldSelection, GetClassName),
+                FragmentKind.Structure,
                 namedType,
                 selection.SelectionSet));
 

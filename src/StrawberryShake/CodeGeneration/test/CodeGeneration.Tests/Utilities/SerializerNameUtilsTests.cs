@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using HotChocolate;
-using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities

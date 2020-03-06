@@ -7,6 +7,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
     {
         string Name { get; }
 
+        FragmentKind Kind { get; }
+
         INamedType TypeCondition { get; }
 
         SelectionSetNode SelectionSet { get; }
