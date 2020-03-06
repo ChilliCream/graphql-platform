@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
         {
             if (context.Document == null)
             {
-                context.Result = QueryResult.CreateError(
+                context.Result = QueryResultBuilder.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.ValidateQueryMiddleware_NoDocument)
                         .SetCode(ErrorCodes.Execution.Incomplete)
@@ -58,7 +58,7 @@ namespace HotChocolate.Execution
 
                 if (context.ValidationResult.HasErrors)
                 {
-                    context.Result = QueryResult.CreateError(
+                    context.Result = QueryResultBuilder.CreateError(
                         context.ValidationResult.Errors);
                     _diagnostics.ValidationError(context);
                 }

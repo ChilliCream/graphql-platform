@@ -2,7 +2,7 @@
   "Data": {
     "foo": "123"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

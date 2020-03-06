@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
@@ -694,6 +695,29 @@ namespace HotChocolate.Types.Filters
             Assert.True(func(c));
         }
 
+        [Fact]
+        public void Overwrite_Comparable_Filter_Type_With_Attribute()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Overwrite_Comparable_Filter_Type_With_Descriptor()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<Entity>(d =>
+                d.Filter(t => t.BarShort).Type<IntType>()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class Foo
         {
             public short BarShort { get; set; }
@@ -732,6 +756,17 @@ namespace HotChocolate.Types.Filters
             {
                 descriptor.Filter(x => x.BarShort);
             }
+        }
+
+        public class EntityWithTypeAttribute
+        {
+            [GraphQLType(typeof(IntType))]
+            public short? BarShort { get; set; }
+        }
+
+        public class Entity
+        {
+            public short? BarShort { get; set; }
         }
     }
 }

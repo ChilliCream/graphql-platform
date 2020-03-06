@@ -36,6 +36,10 @@ namespace MarshmallowPie.Repositories
 
         IQueryable<ClientVersion> GetClientVersions(Guid? clientId = null);
 
+        Task<ClientVersion?> GetClientVersionByExternalIdAsync(
+            string externalId,
+            CancellationToken cancellationToken = default);
+
         Task<IReadOnlyDictionary<Guid, ClientVersion>> GetClientVersionsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
@@ -49,16 +53,28 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Tag> tags,
             CancellationToken cancellationToken = default);
 
-        Task<Query?> GetQueryAsync(
+        Task<QueryDocument?> GetQueryDocumentAsync(
+            Guid schemaId,
             string documentHash,
             CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyDictionary<Guid, Query>> GetQueriesAsync(
+        Task<QueryDocument?> GetQueryDocumentAsync(
+            Guid environmentId,
+            Guid schemaId,
+            string documentHash,
+            CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyDictionary<Guid, QueryDocument>> GetQueryDocumentsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
-        Task AddQueriesAsync(
-            IEnumerable<Query> queries,
+        Task<IReadOnlyDictionary<string, QueryDocument>> GetQueryDocumentsAsync(
+            Guid schemaId,
+            IReadOnlyList<string> documentHashes,
+            CancellationToken cancellationToken = default);
+
+        Task AddQueryDocumentAsync(
+            IEnumerable<QueryDocument> queries,
             CancellationToken cancellationToken = default);
 
         IQueryable<ClientPublishReport> GetPublishReports(Guid? clientVersionId);
@@ -72,16 +88,12 @@ namespace MarshmallowPie.Repositories
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default);
 
-        Task AddPublishReportAsync(
+        Task SetPublishReportAsync(
             ClientPublishReport publishReport,
             CancellationToken cancellationToken = default);
 
-        Task UpdatePublishReportAsync(
-            ClientPublishReport publishReport,
-            CancellationToken cancellationToken = default);
-
-        Task<IReadOnlyDictionary<Guid, PublishedClient>> GetPublishedClientAsync(
-            IReadOnlyList<Guid> ids,
+        Task<PublishedClient> GetPublishedClientAsync(
+            Guid clientId, Guid environmentId,
             CancellationToken cancellationToken = default);
 
         Task SetPublishedClientAsync(

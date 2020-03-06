@@ -16,7 +16,7 @@ namespace HotChocolate.Stitching
         public static IReadOnlyDictionary<string, IValueNode> GetVariables(
             this IMiddlewareContext context)
         {
-            if (context.ContextData.TryGetValue(_variables, out object obj)
+            if (context.ContextData.TryGetValue(_variables, out object? obj)
                 && obj is IReadOnlyDictionary<string, IValueNode> variables)
             {
                 return variables;

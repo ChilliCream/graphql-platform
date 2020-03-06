@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -36,7 +37,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Gets or the associated middleware components.
         /// </summary>
-        public ICollection<DirectiveMiddleware> MiddlewareComponents { get; } =
+        public IList<DirectiveMiddleware> MiddlewareComponents { get; } =
             new List<DirectiveMiddleware>();
 
         /// <summary>
@@ -48,13 +49,13 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Gets the directive arguments.
         /// </summary>
-        public IBindableList<DirectiveArgumentDefinition> Arguments
-        { get; } = new BindableList<DirectiveArgumentDefinition>();
+        public IBindableList<DirectiveArgumentDefinition> Arguments { get; } =
+            new BindableList<DirectiveArgumentDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration>
-            GetConfigurations()
+        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
         {
             var configs = new List<ILazyTypeConfiguration>();
+
             configs.AddRange(Configurations);
 
             foreach (DirectiveArgumentDefinition field in Arguments)

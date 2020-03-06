@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Threading;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -254,6 +255,32 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
+
+        [Fact]
+        public void DateType_Binds_Only_Explicitly()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType(new DateType())
+                .Create();
+
+            // assert
+            IType dateType = schema.QueryType.Fields["dateField"].Type;
+            IType dateTimeType = schema.QueryType.Fields["dateTimeField"].Type;
+
+            Assert.IsType<DateType>(dateType);
+            Assert.IsType<DateTimeType>(dateTimeType);
+        }
+
+        public class Query
+        {
+            [GraphQLType(typeof(DateType))]
+            public DateTime? DateField => DateTime.UtcNow;
+
+            public DateTime? DateTimeField => DateTime.UtcNow;
         }
     }
 }

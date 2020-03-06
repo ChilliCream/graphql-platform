@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
 
-        internal FieldSelection(FieldInfo fieldInfo)
+        internal FieldSelection(FieldInfo fieldInfo, int responseIndex)
         {
             _args = fieldInfo.Arguments ?? _empty;
             _vars = fieldInfo.VarArguments;
@@ -37,15 +37,27 @@ namespace HotChocolate.Execution
             Field = fieldInfo.Field;
             Selection = MergeField(fieldInfo);
 
-            var nodes = new List<FieldNode>();
-            nodes.Add(fieldInfo.Selection);
-            if (fieldInfo.Nodes != null)
-            {
-                nodes.AddRange(fieldInfo.Nodes);
-            }
-
             Middleware = fieldInfo.Middleware;
+            ResponseIndex = responseIndex;
         }
+
+        private FieldSelection(FieldSelection field, int responseIndex)
+        {
+            _args = field._args;
+            _vars = field._vars;
+            _visibility = field._visibility;
+            _path = field._path;
+            _hasArgumentErrors = field._hasArgumentErrors;
+
+            ResponseName = field.ResponseName;
+            Field = field.Field;
+            Selection = field.Selection;
+
+            Middleware = field.Middleware;
+            ResponseIndex = responseIndex;
+        }
+
+        public int ResponseIndex { get; }
 
         public string ResponseName { get; }
 
@@ -208,5 +220,8 @@ namespace HotChocolate.Execution
 
             return directives;
         }
+
+        public FieldSelection WithResponseIndex(int responseIndex) =>
+            new FieldSelection(this, responseIndex);
     }
 }

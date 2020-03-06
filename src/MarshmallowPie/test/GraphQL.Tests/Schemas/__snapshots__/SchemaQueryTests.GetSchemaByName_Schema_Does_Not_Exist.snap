@@ -1,6 +1,5 @@
 ﻿{
-  "Data": {},
-  "Extensions": {},
+  "Data": null,
   "Errors": [
     {
       "Message": "The specified id is invalid.",
@@ -11,5 +10,6 @@
       "Extensions": {}
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

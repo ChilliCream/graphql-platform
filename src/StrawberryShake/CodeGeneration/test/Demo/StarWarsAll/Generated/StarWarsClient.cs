@@ -26,9 +26,11 @@ namespace StrawberryShake.Client.StarWarsAll
             Optional<Episode?> episode = default,
             CancellationToken cancellationToken = default)
         {
-
             return _executor.ExecuteAsync(
-                new GetHeroOperation { Episode = episode },
+                new GetHeroOperation
+                {
+                    Episode = episode
+                },
                 cancellationToken);
         }
 
@@ -109,7 +111,7 @@ namespace StrawberryShake.Client.StarWarsAll
             return _executor.ExecuteAsync(
                 new CreateReviewOperation
                 {
-                    Episode = episode, 
+                    Episode = episode,
                     Review = review
                 },
                 cancellationToken);

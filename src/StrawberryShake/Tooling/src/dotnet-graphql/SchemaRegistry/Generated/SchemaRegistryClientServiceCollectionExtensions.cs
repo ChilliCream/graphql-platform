@@ -15,7 +15,7 @@ using StrawberryShake.Transport;
 namespace StrawberryShake.Tools.SchemaRegistry
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static class SchemaRegistryClientServiceCollectionExtensions
+    public static partial class SchemaRegistryClientServiceCollectionExtensions
     {
         private const string _clientName = "SchemaRegistryClient";
 
@@ -32,18 +32,40 @@ namespace StrawberryShake.Tools.SchemaRegistry
             serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
                 new HttpOperationExecutorFactory(
                     _clientName,
-                    sp.GetRequiredService<global::System.Net.Http.IHttpClientFactory>().CreateClient,
+                    sp.GetRequiredService<System.Net.Http.IHttpClientFactory>().CreateClient,
                     sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
 
+            serviceCollection.AddSingleton<IOperationStreamExecutorFactory>(sp =>
+                new SocketOperationStreamExecutorFactory(
+                    _clientName,
+                    sp.GetRequiredService<ISocketConnectionPool>().RentAsync,
+                    sp.GetRequiredService<ISubscriptionManager>(),
+                    sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),
+                    sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));
+
             IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
+                .AddValueSerializer(() => new QueryFileFormatValueSerializer())
+                .AddValueSerializer(() => new IssueTypeValueSerializer())
+                .AddValueSerializer(() => new ResolutionTypeValueSerializer())
+                .AddValueSerializer(() => new HashFormatValueSerializer())
                 .AddValueSerializer(() => new TagInputSerializer())
+                .AddValueSerializer(() => new QueryFileInputSerializer())
                 .AddResultParser(serializers => new PublishSchemaResultParser(serializers))
+                .AddResultParser(serializers => new MarkSchemaPublishedResultParser(serializers))
+                .AddResultParser(serializers => new PublishClientResultParser(serializers))
+                .AddResultParser(serializers => new MarkClientPublishedResultParser(serializers))
+                .AddResultParser(serializers => new OnPublishDocumentResultParser(serializers))
                 .AddOperationFormatter(serializers => new JsonOperationFormatter(serializers))
                 .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
 
+            serviceCollection.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
+            serviceCollection.TryAddEnumerable(new ServiceDescriptor(
+                typeof(ISocketConnectionInterceptor),
+                typeof(MessagePipelineHandler),
+                ServiceLifetime.Singleton));
             return builder;
         }
 

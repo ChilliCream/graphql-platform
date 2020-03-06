@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -29,7 +28,9 @@ namespace MarshmallowPie.BackgroundServices
         public async Task ExecutePublishDocumentServer_With_SchemaFile_Handler()
         {
             // arrange
-            var handler = new PublishSchemaDocumentHandler(
+            string sessionId = await SessionCreator.CreateSessionAsync();
+
+            var handler = new PublishNewSchemaDocumentHandler(
                 Storage, SchemaRepository, PublishSchemaEventSender);
 
             using var service = new PublishDocumentService(
@@ -43,37 +44,42 @@ namespace MarshmallowPie.BackgroundServices
             await EnvironmentRepository.AddEnvironmentAsync(environment);
 
             var message = new PublishDocumentMessage(
-                "ghi", environment.Id, schema.Id, Array.Empty<Tag>());
+                sessionId,
+                environment.Id,
+                schema.Id,
+                "externalId",
+                Array.Empty<DocumentInfo>(),
+                Array.Empty<Tag>());
 
-            IFileContainer fileContainer = await Storage.CreateContainerAsync("ghi");
-            using (Stream stream = await fileContainer.CreateFileAsync("schema.graphql"))
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes(@"
+            IFileContainer fileContainer = await Storage.CreateContainerAsync(sessionId);
+            byte[] buffer = Encoding.UTF8.GetBytes(@"
                     type Query {
                         foo: String
                     }
                 ");
-                await stream.WriteAsync(buffer, 0, buffer.Length);
-            }
-
+            await fileContainer.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
             await PublishDocumentMessageSender.SendAsync(message);
 
             // act
             await service.StartAsync(default);
 
-            var list = new List<PublishSchemaEvent>();
+            var list = new List<PublishDocumentEvent>();
             using var cts = new CancellationTokenSource(5000);
-            IAsyncEnumerable<PublishSchemaEvent> eventStream =
-                await PublishSchemaEventReceiver.SubscribeAsync("ghi", cts.Token);
-            await foreach (PublishSchemaEvent eventMessage in
+            IAsyncEnumerable<PublishDocumentEvent> eventStream =
+                await PublishSchemaEventReceiver.SubscribeAsync(sessionId, cts.Token);
+            await foreach (PublishDocumentEvent eventMessage in
                 eventStream.WithCancellation(cts.Token))
             {
                 list.Add(eventMessage);
             }
-            list.MatchSnapshot();
+            list.MatchSnapshot(matchOption =>
+                matchOption.Assert(fieldOption =>
+                    Assert.Equal(sessionId, fieldOption.Field<string>("[0].SessionId"))));
 
             SchemaVersion schemaVersion = SchemaRepository.GetSchemaVersions().Single();
-            Assert.Equal("oECbw4BIP7gX1R+fCGRDCcqbO2FV/Uf0MhhE0EDAWIw=", schemaVersion.Hash);
+            Assert.Equal(
+                "a0409bc380483fb817d51f9f08644309ca9b3b6155fd47f4321844d040c0588c",
+                schemaVersion.Hash.Hash);
         }
     }
 }

@@ -2,7 +2,6 @@
   "Data": {
     "error1": null
   },
-  "Extensions": {},
   "Errors": [
     {
       "Message": "query error 1",
@@ -13,5 +12,6 @@
       "Extensions": {}
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

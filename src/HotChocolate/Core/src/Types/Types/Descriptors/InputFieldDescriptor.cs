@@ -29,6 +29,11 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetInputReturnType(property);
+
+            if (context.Inspector.TryGetDefaultValue(property, out object defaultValue))
+            {
+                Definition.NativeDefaultValue = defaultValue;
+            }
         }
 
         protected override void OnCreateDefinition(InputFieldDefinition definition)

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
 namespace MarshmallowPie
 {
@@ -25,11 +24,6 @@ namespace MarshmallowPie
             IReadOnlyList<Tag> tags,
             DateTime published)
         {
-            if (tags.Count > 1)
-            {
-                tags = new HashSet<Tag>(tags, TagComparer.Default).ToList();
-            }
-
             Id = id;
             SchemaId = schemaId;
             ExternalId = externalId ?? Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);

@@ -1,7 +1,11 @@
 using System;
+using System.Globalization;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
+using MarshmallowPie.Storage;
 using MarshmallowPie.Storage.FileSystem;
 using Snapshooter.Xunit;
 using Squadron;
@@ -338,10 +342,15 @@ namespace MarshmallowPie.GraphQL.Schemas
             var schema = new Schema(Guid.NewGuid(), "abc", "def");
             await SchemaRepository.AddSchemaAsync(schema);
             var schemaVersion = new SchemaVersion(
-                Guid.NewGuid(), schema.Id, "abc", "def",
+                Guid.NewGuid(), schema.Id, "abc", DocumentHash.FromSourceText("def"),
                 Array.Empty<Tag>(), DateTime.UnixEpoch);
             await SchemaRepository.AddSchemaVersionAsync(schemaVersion);
             string id = serializer.Serialize("SchemaVersion", schemaVersion.Id);
+
+            IFileContainer container = await Storage.CreateContainerAsync(
+                schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -352,7 +361,9 @@ namespace MarshmallowPie.GraphQL.Schemas
                                 id
                                 ... on SchemaVersion {
                                     sourceText
-                                    hash
+                                    hash {
+                                        hash
+                                    }
                                 }
                             }
                         }")
@@ -373,10 +384,15 @@ namespace MarshmallowPie.GraphQL.Schemas
             var schema = new Schema(Guid.NewGuid(), "abc", "def");
             await SchemaRepository.AddSchemaAsync(schema);
             var schemaVersion = new SchemaVersion(
-                Guid.NewGuid(), schema.Id, "abc", "def",
+                Guid.NewGuid(), schema.Id, "abc", DocumentHash.FromSourceText("def"),
                 Array.Empty<Tag>(), DateTime.UnixEpoch);
             await SchemaRepository.AddSchemaVersionAsync(schemaVersion);
             string id = serializer.Serialize("SchemaVersion", schemaVersion.Id);
+
+            IFileContainer container = await Storage.CreateContainerAsync(
+                schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -405,10 +421,15 @@ namespace MarshmallowPie.GraphQL.Schemas
             var schema = new Schema(Guid.NewGuid(), "abc", "def");
             await SchemaRepository.AddSchemaAsync(schema);
             var schemaVersion = new SchemaVersion(
-                Guid.NewGuid(), schema.Id, "abc", "def",
+                Guid.NewGuid(), schema.Id, "abc", DocumentHash.FromSourceText("def"),
                 Array.Empty<Tag>(), DateTime.UnixEpoch);
             await SchemaRepository.AddSchemaVersionAsync(schemaVersion);
             string id = serializer.Serialize("Foo", schemaVersion.Id);
+
+            IFileContainer container = await Storage.CreateContainerAsync(
+                schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -435,10 +456,15 @@ namespace MarshmallowPie.GraphQL.Schemas
             var schema = new Schema(Guid.NewGuid(), "abc", "def");
             await SchemaRepository.AddSchemaAsync(schema);
             var schemaVersion = new SchemaVersion(
-                Guid.NewGuid(), schema.Id, "abc", "def",
+                Guid.NewGuid(), schema.Id, "abc", DocumentHash.FromSourceText("def"),
                 Array.Empty<Tag>(), DateTime.UnixEpoch);
             await SchemaRepository.AddSchemaVersionAsync(schemaVersion);
             string id = serializer.Serialize("SchemaVersion", schemaVersion.Id);
+
+            IFileContainer container = await Storage.CreateContainerAsync(
+                schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -467,10 +493,15 @@ namespace MarshmallowPie.GraphQL.Schemas
             var schema = new Schema(Guid.NewGuid(), "abc", "def");
             await SchemaRepository.AddSchemaAsync(schema);
             var schemaVersion = new SchemaVersion(
-                Guid.NewGuid(), schema.Id, "abc", "def",
+                Guid.NewGuid(), schema.Id, "abc", DocumentHash.FromSourceText("def"),
                 Array.Empty<Tag>(), DateTime.UnixEpoch);
             await SchemaRepository.AddSchemaVersionAsync(schemaVersion);
             string id = serializer.Serialize("SchemaVersion", schemaVersion.Id);
+
+            IFileContainer container = await Storage.CreateContainerAsync(
+                schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(
@@ -497,10 +528,15 @@ namespace MarshmallowPie.GraphQL.Schemas
             var schema = new Schema(Guid.NewGuid(), "abc", "def");
             await SchemaRepository.AddSchemaAsync(schema);
             var schemaVersion = new SchemaVersion(
-                Guid.NewGuid(), schema.Id, "abc", "def",
+                Guid.NewGuid(), schema.Id, "abc", DocumentHash.FromSourceText("def"),
                 Array.Empty<Tag>(), DateTime.UnixEpoch);
             await SchemaRepository.AddSchemaVersionAsync(schemaVersion);
             string id = serializer.Serialize("Foo", schemaVersion.Id);
+
+            IFileContainer container = await Storage.CreateContainerAsync(
+                schemaVersion.Id.ToString("N", CultureInfo.InvariantCulture));
+            byte[] buffer = Encoding.UTF8.GetBytes("SourceTextAbc");
+            await container.CreateFileAsync("schema.graphql", buffer, 0, buffer.Length);
 
             // act
             IExecutionResult result = await Executor.ExecuteAsync(

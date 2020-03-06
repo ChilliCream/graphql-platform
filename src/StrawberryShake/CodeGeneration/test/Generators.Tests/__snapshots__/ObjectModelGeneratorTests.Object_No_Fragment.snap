@@ -1,9 +1,9 @@
-﻿﻿public interface IDroid
+﻿﻿public partial interface IDroid
 {
     string? Name { get; }
 }
 
-public class Droid
+public partial class Droid
     : IDroid
 {
     public Droid(

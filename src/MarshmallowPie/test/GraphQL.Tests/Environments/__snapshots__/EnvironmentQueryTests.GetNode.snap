@@ -1,12 +1,12 @@
 ﻿{
   "Data": {
     "node": {
-      "id": "RW52aXJvbm1lbnQKZzQ4MGQ5ZDU4ZjRkMDQzYjhhNDNiNGExYzQxYmVhNTVm",
+      "id": "RW52aXJvbm1lbnQKZzViMTRhYmNjN2MyYTRlODk5MzAwYzFjMTMzNDU5YmE0",
       "name": "abc",
       "description": "def"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

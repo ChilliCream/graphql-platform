@@ -11,8 +11,7 @@ namespace HotChocolate.Types
 {
     public static class SortObjectFieldDescriptorExtensions
     {
-        private static readonly Type _middlewareDefinition =
-            typeof(QueryableSortMiddleware<>);
+        private static readonly Type _middlewareDefinition = typeof(QueryableSortMiddleware<>);
 
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor)
@@ -151,7 +150,7 @@ namespace HotChocolate.Types
                     SchemaErrorBuilder.New()
                         .SetMessage(
                             "The sort type cannot be " +
-                            "infered from `System.Object`.")
+                            "inferred from `System.Object`.")
                         .SetCode(ErrorCodes.Filtering.FilterObjectType)
                         .Build());
             }
@@ -167,11 +166,10 @@ namespace HotChocolate.Types
         {
             ISortingNamingConvention convention =
                 context.DescriptorContext.GetSortingNamingConvention();
-            ISortInputType type =
 
-                context.GetType<ISortInputType>(argumentTypeReference);
-            Type middlewareType = _middlewareDefinition
-                .MakeGenericType(type.EntityType);
+            ISortInputType type = context.GetType<ISortInputType>(argumentTypeReference);
+            Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
+
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(
                     middlewareType,

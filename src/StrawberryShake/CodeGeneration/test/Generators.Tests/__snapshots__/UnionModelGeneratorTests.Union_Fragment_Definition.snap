@@ -1,23 +1,23 @@
-﻿﻿public interface ISearchResult
+﻿﻿public partial interface ISearchResult
 {
 }
 
-public interface ISomeStarship
+public partial interface ISomeStarship
 {
     string? Name { get; }
 }
 
-public interface ISomeHuman
+public partial interface ISomeHuman
 {
     string? HomePlanet { get; }
 }
 
-public interface ISomeDroid
+public partial interface ISomeDroid
 {
     string? PrimaryFunction { get; }
 }
 
-public class SomeStarship
+public partial class SomeStarship
     : ISearchResult
     , ISomeStarship
 {
@@ -30,7 +30,7 @@ public class SomeStarship
     public string? Name { get; }
 }
 
-public class SomeHuman
+public partial class SomeHuman
     : ISearchResult
     , ISomeHuman
 {
@@ -43,7 +43,7 @@ public class SomeHuman
     public string? HomePlanet { get; }
 }
 
-public class SomeDroid
+public partial class SomeDroid
     : ISearchResult
     , ISomeDroid
 {

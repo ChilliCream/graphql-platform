@@ -247,6 +247,8 @@ namespace HotChocolate.Types.Sorting
         {
             public Bar Bar { get; set; }
         }
+
+        #nullable enable
         public class Bar
         {
             public string? Baz { get; set; }

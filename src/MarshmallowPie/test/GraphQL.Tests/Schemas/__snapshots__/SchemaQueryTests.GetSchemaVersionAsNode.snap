@@ -1,12 +1,14 @@
 ﻿{
   "Data": {
     "node": {
-      "id": "U2NoZW1hVmVyc2lvbgpnYzVhZDY3MzIzYWQzNDNjNWIxYjIxMWM2MjQ2YTc3OTM=",
-      "sourceText": "abc",
-      "hash": "def"
+      "id": "U2NoZW1hVmVyc2lvbgpnOTdjZDcxOGZhOWJhNGFlY2FmMjdjOGU1MDZmYzkyZjM=",
+      "sourceText": "SourceTextAbc",
+      "hash": {
+        "hash": "cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34"
+      }
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

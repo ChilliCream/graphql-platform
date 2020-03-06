@@ -1,6 +1,5 @@
 ﻿{
-  "Data": {},
-  "Extensions": {},
+  "Data": null,
   "Errors": [
     {
       "Message": "The operation that shall be executed has a complexity of 25.\nThe maximum allowed query complexity is 20.",
@@ -16,5 +15,6 @@
       "Extensions": {}
     }
   ],
-  "ContextData": {}
+  "Extensions": null,
+  "ContextData": null
 }

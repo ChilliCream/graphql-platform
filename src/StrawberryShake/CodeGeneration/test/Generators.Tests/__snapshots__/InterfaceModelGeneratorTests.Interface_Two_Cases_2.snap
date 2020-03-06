@@ -1,31 +1,31 @@
-﻿﻿public interface IHasName
+﻿﻿public partial interface IHasName
 {
     string? Name { get; }
 }
 
-public interface ISomeDroid
+public partial interface ISomeDroid
 {
     string? PrimaryFunction { get; }
 }
 
-public interface IDroid
+public partial interface IDroid
     : IHasName
     , ISomeDroid
 {
 }
 
-public interface ISomeHuman
+public partial interface ISomeHuman
 {
     string? HomePlanet { get; }
 }
 
-public interface IHuman
+public partial interface IHuman
     : IHasName
     , ISomeHuman
 {
 }
 
-public class Droid
+public partial class Droid
     : IHasName
     , IDroid
 {
@@ -42,7 +42,7 @@ public class Droid
     public string? PrimaryFunction { get; }
 }
 
-public class Human
+public partial class Human
     : IHasName
     , IHuman
 {

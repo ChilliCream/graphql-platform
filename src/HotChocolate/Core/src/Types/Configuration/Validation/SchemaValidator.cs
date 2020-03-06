@@ -11,7 +11,7 @@ namespace HotChocolate.Configuration.Validation
             new ISchemaValidationRule[]
             {
                 new InterfaceHasAtLeastOneImplementationRule(),
-                new InetrfaceFieldsAreImplementedRule()
+                new InterfaceFieldsAreImplementedRule()
             };
 
         public static IReadOnlyCollection<ISchemaError> Validate(

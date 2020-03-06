@@ -21,8 +21,8 @@ namespace MarshmallowPie.Storage.FileSystem
 
         public string Name { get; }
 
-        public async Task<Stream> CreateFileAsync(
-            string fileName,
+        public Task CreateFileAsync(
+            string fileName, byte[] buffer, int offset, int count,
             CancellationToken cancellationToken = default)
         {
             if (!Directory.Exists(_fullDirectoryPath))
@@ -31,21 +31,24 @@ namespace MarshmallowPie.Storage.FileSystem
                     $"The directory `{_fullDirectoryPath}` does not exist.");
             }
 
-            string fullFilePath = Path.Combine(_fullDirectoryPath, fileName);
+            var fullFilePath = Path.Combine(_fullDirectoryPath, fileName);
 
             if (IOFile.Exists(fullFilePath))
             {
                 throw new ArgumentException(
-                    $"File `{fullFilePath}` already exists.",
+                    $"The specified file `{fullFilePath}` already exists.",
                     nameof(fileName));
             }
 
-            return await Task.Factory.StartNew(
-                () => IOFile.Create(fullFilePath),
-                cancellationToken,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default)
-                .ConfigureAwait(false);
+            return CreateFileInternalAsync(fullFilePath, buffer, offset, count, cancellationToken);
+        }
+
+        public async Task CreateFileInternalAsync(
+            string fullFilePath, byte[] buffer, int offset, int count,
+            CancellationToken cancellationToken = default)
+        {
+            await using FileStream stream = IOFile.Create(fullFilePath);
+            await stream.WriteAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
         }
 
         public Task DeleteAsync(CancellationToken cancellationToken = default)
@@ -61,6 +64,19 @@ namespace MarshmallowPie.Storage.FileSystem
 
             throw new DirectoryNotFoundException(
                 $"The directory `{_fullDirectoryPath}` does not exist.");
+        }
+
+        public Task<IFile> GetFileAsync(string fileName, CancellationToken cancellationToken = default)
+        {
+            var fullFilePath = Path.Combine(_fullDirectoryPath, fileName);
+
+            if (!IOFile.Exists(fullFilePath))
+            {
+                throw new DirectoryNotFoundException(
+                    $"The file `{fullFilePath}` does not exist.");
+            }
+
+            return Task.FromResult<IFile>(new File(fullFilePath));
         }
 
         public async Task<IEnumerable<IFile>> GetFilesAsync(

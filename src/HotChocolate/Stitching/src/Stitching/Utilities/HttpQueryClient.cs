@@ -34,7 +34,7 @@ namespace HotChocolate.Stitching.Utilities
                 Indented = false
             };
 
-        public async Task<QueryResult> FetchAsync(
+        public async Task<IReadOnlyQueryResult> FetchAsync(
             IReadOnlyQueryRequest request,
             HttpClient httpClient,
             IEnumerable<IHttpQueryRequestInterceptor>? interceptors = default,
@@ -59,7 +59,7 @@ namespace HotChocolate.Stitching.Utilities
                 .ConfigureAwait(false);
         }
 
-        private async Task<QueryResult> FetchAsync(
+        private async Task<IReadOnlyQueryResult> FetchAsync(
             IReadOnlyQueryRequest request,
             HttpContent requestContent,
             HttpClient httpClient,
@@ -77,10 +77,10 @@ namespace HotChocolate.Stitching.Utilities
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                QueryResult queryResult =
+                IReadOnlyQueryResult queryResult =
                     response is IReadOnlyDictionary<string, object> d
                         ? HttpResponseDeserializer.Deserialize(d)
-                        : QueryResult.CreateError(
+                        : QueryResultBuilder.CreateError(
                             ErrorBuilder.New()
                                 .SetMessage("Could not deserialize query response.")
                                 .Build());
@@ -89,7 +89,7 @@ namespace HotChocolate.Stitching.Utilities
                 {
                     foreach (IHttpQueryRequestInterceptor interceptor in interceptors)
                     {
-                        await interceptor.OnResponseReceivedAsync(
+                        queryResult = await interceptor.OnResponseReceivedAsync(
                             request, message, queryResult)
                             .ConfigureAwait(false);
                     }
@@ -99,7 +99,7 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
-        private static object ParseJson(byte[] buffer, int bytesBuffered)
+        private static object? ParseJson(byte[] buffer, int bytesBuffered)
         {
             var json = new ReadOnlySpan<byte>(buffer, 0, bytesBuffered);
             return Utf8GraphQLRequestParser.ParseJson(json);

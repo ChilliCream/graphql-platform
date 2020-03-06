@@ -2,14 +2,14 @@
   "Data": {
     "updateEnvironment": {
       "environment": {
-        "id": "RW52aXJvbm1lbnQKZzA4MTg5Mzc4YmI5MDQ2YjNhMTkwMGQwZTMxYmMyNmIz",
+        "id": "RW52aXJvbm1lbnQKZzBmNjcyODQwMWE0ZTRkNjY4MmM4MDZiMDJlY2EzYzcw",
         "name": "abc2",
         "description": "def2"
       },
       "clientMutationId": "ghi"
     }
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

@@ -50,7 +50,7 @@ namespace HotChocolate.Stitching.Delegation
                     .Build();
 
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(error);
+                context.Result = QueryResultBuilder.CreateError(error);
             }
 
             await _next.Invoke(context).ConfigureAwait(false);

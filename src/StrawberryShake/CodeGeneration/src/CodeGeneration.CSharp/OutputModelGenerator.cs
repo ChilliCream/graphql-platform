@@ -1,4 +1,7 @@
+using System;
+using System.Text;
 using System.Threading.Tasks;
+using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -9,12 +12,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
             CodeWriter writer,
             OutputModelDescriptor descriptor)
         {
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             ClassBuilder builder =
                 ClassBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName(descriptor.Name);
 
-            foreach(string typeName in descriptor.Implements)
+            ConstructorBuilder constructorBuilder =
+                ConstructorBuilder.New()
+                    .AddCode(CreateConstructorBody(descriptor));
+            builder.AddConstructor(constructorBuilder);
+
+            foreach (var typeName in descriptor.Implements)
             {
                 builder.AddImplements(typeName);
             }
@@ -26,9 +44,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .SetAccessModifier(AccessModifier.Public)
                         .SetName(field.Name)
                         .SetType(field.Type));
+
+                constructorBuilder.AddParameter(
+                    ParameterBuilder.New()
+                        .SetName(field.ParameterName)
+                        .SetType(field.Type));
             }
 
             return builder.BuildAsync(writer);
+        }
+
+        private CodeBlockBuilder CreateConstructorBody(
+            OutputModelDescriptor descriptor)
+        {
+            var body = new StringBuilder();
+
+            foreach (OutputFieldDescriptor field in descriptor.Fields)
+            {
+                body.AppendLine($"{field.Name} = {field.ParameterName};");
+            }
+
+            return CodeBlockBuilder.FromStringBuilder(body);
         }
     }
 }

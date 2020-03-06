@@ -2,23 +2,23 @@
   {
     "Data": {
       "onPublishSchema": {
-        "sessionId": "abc",
+        "sessionId": "4ca7ed13254b4b8f8da39da2a0ec1126",
         "isCompleted": false
       }
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   },
   {
     "Data": {
       "onPublishSchema": {
-        "sessionId": "abc",
+        "sessionId": "4ca7ed13254b4b8f8da39da2a0ec1126",
         "isCompleted": true
       }
     },
-    "Extensions": {},
-    "Errors": [],
-    "ContextData": {}
+    "Errors": null,
+    "Extensions": null,
+    "ContextData": null
   }
 ]

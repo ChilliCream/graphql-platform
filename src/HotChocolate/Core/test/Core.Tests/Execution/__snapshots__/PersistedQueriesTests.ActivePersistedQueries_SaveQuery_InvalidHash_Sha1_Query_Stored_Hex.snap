@@ -2,12 +2,12 @@
   "Data": {
     "foo": "bar"
   },
+  "Errors": null,
   "Extensions": {
     "persistedQuery": {
       "sha1Hash": "8c3ee54bb163de1ce5555ed81af2523eb4abdec9",
       "persisted": true
     }
   },
-  "Errors": [],
-  "ContextData": {}
+  "ContextData": null
 }

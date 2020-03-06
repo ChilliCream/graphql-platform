@@ -3,7 +3,7 @@
     "hello": "World",
     "world": "Hello"
   },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

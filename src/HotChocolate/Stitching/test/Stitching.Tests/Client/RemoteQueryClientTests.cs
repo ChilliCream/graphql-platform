@@ -53,10 +53,12 @@ namespace HotChocolate.Stitching
             string query = null;
             int count = 0;
 
-            var result = new QueryResult();
-            result.Data["__0__a"] = "a";
-            result.Data["__1__a"] = "b";
-            result.Data["__1__b"] = "c";
+            var result = QueryResultBuilder.New();
+            var data = new OrderedDictionary();
+            data["__0__a"] = "a";
+            data["__1__a"] = "b";
+            data["__1__b"] = "c";
+            result.SetData(data);
 
             var executor = new Mock<IQueryExecutor>();
             executor.Setup(t => t.ExecuteAsync(
@@ -67,7 +69,7 @@ namespace HotChocolate.Stitching
                 {
                     count++;
                     query = r.Query.ToString();
-                    return Task.FromResult<IExecutionResult>(result);
+                    return Task.FromResult<IExecutionResult>(result.Create());
                 }));
 
             var request_a = QueryRequestBuilder.Create("query a { a }");
@@ -100,10 +102,12 @@ namespace HotChocolate.Stitching
             string query = null;
             int count = 0;
 
-            var result = new QueryResult();
-            result.Data["__0__a"] = "a";
-            result.Data["__1__a"] = "b";
-            result.Data["__1__b"] = "c";
+            var result = QueryResultBuilder.New();
+            var data = new OrderedDictionary();
+            data["__0__a"] = "a";
+            data["__1__a"] = "b";
+            data["__1__b"] = "c";
+            result.SetData(data);
 
             var executor = new Mock<IQueryExecutor>();
             executor.Setup(t => t.ExecuteAsync(
@@ -114,7 +118,7 @@ namespace HotChocolate.Stitching
                     {
                         count++;
                         query = r.Query.ToString();
-                        return Task.FromResult<IExecutionResult>(result);
+                        return Task.FromResult<IExecutionResult>(result.Create());
                     }));
 
             var request_a = QueryRequestBuilder.New().SetQuery("query a { a }").SetOperation("a").Create();
@@ -147,11 +151,13 @@ namespace HotChocolate.Stitching
             string query = null;
             int count = 0;
 
-            var result = new QueryResult();
-            result.Data["__0__a"] = "a";
-            result.Data["__1__a"] = "b";
-            result.Data["__1__b"] = "c";
-            result.Errors.Add(ErrorBuilder.New()
+            var result = QueryResultBuilder.New();
+            var data = new OrderedDictionary();
+            data["__0__a"] = "a";
+            data["__1__a"] = "b";
+            data["__1__b"] = "c";
+            result.SetData(data);
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("foo")
                 .SetPath(Path.New("__1__b"))
                 .Build());
@@ -165,7 +171,7 @@ namespace HotChocolate.Stitching
                 {
                     count++;
                     query = r.Query.ToString();
-                    return Task.FromResult<IExecutionResult>(result);
+                    return Task.FromResult<IExecutionResult>(result.Create());
                 }));
 
             var request_a = QueryRequestBuilder.Create("query a { a }");
@@ -197,11 +203,13 @@ namespace HotChocolate.Stitching
             string query = null;
             int count = 0;
 
-            var result = new QueryResult();
-            result.Data["__0__a"] = "a";
-            result.Data["__1__a"] = "b";
-            result.Data["__1__b"] = "c";
-            result.Errors.Add(ErrorBuilder.New()
+            var result = QueryResultBuilder.New();
+            var data = new OrderedDictionary();
+            data["__0__a"] = "a";
+            data["__1__a"] = "b";
+            data["__1__b"] = "c";
+            result.SetData(data);
+            result.AddError(ErrorBuilder.New()
                 .SetMessage("foo")
                 .Build());
 
@@ -214,7 +222,7 @@ namespace HotChocolate.Stitching
                 {
                     count++;
                     query = r.Query.ToString();
-                    return Task.FromResult<IExecutionResult>(result);
+                    return Task.FromResult<IExecutionResult>(result.Create());
                 }));
 
             var request_a = QueryRequestBuilder.Create("query a { a }");
@@ -280,10 +288,17 @@ namespace HotChocolate.Stitching
             IReadOnlyQueryRequest mergedRequest = null;
             int count = 0;
 
-            var result = new QueryResult();
-            result.Data["__0__a"] = "a";
-            result.Data["__1__a"] = "b";
-            result.Data["__1__b"] = "c";
+            var result = QueryResultBuilder.New();
+            var data = new OrderedDictionary();
+            data["__0__a"] = "a";
+            data["__1__a"] = "b";
+            data["__1__b"] = "c";
+            result.SetData(data);
+
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo: String }")
+                .AddResolver("Query", "foo", c => "bar")
+                .Create();
 
             var executor = new Mock<IQueryExecutor>();
             executor.Setup(t => t.ExecuteAsync(
@@ -294,8 +309,9 @@ namespace HotChocolate.Stitching
                 {
                     count++;
                     mergedRequest = r;
-                    return Task.FromResult<IExecutionResult>(result);
+                    return Task.FromResult<IExecutionResult>(result.Create());
                 }));
+            executor.Setup(t => t.Schema).Returns(schema);
 
             var request_a = QueryRequestBuilder.New()
                 .SetQuery("query a($a: String) { a(b: $a) }")
@@ -319,7 +335,15 @@ namespace HotChocolate.Stitching
             await task_b;
 
             Assert.Equal(1, count);
-            mergedRequest.MatchSnapshot();
+            new
+            {
+                Query = mergedRequest.Query.ToString(),
+                QueryName = mergedRequest.QueryName,
+                QueryHash = mergedRequest.QueryHash,
+                OperationName = mergedRequest.OperationName,
+                Varables = mergedRequest.VariableValues,
+                Extensions = mergedRequest.Extensions,
+            }.MatchSnapshot();
         }
     }
 }

@@ -38,6 +38,7 @@ namespace HotChocolate
                     descriptorContext,
                     bindingLookup,
                     types);
+
             DiscoveredTypes discoveredTypes = initializer.Initialize(() => lazy.Schema, _options);
 
             SchemaTypesDefinition definition = CreateSchemaDefinition(initializer, discoveredTypes);

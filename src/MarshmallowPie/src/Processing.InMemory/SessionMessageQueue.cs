@@ -14,14 +14,23 @@ namespace MarshmallowPie.Processing.InMemory
     {
         private readonly ConcurrentDictionary<string, Channel<TMessage>> _sessions =
             new ConcurrentDictionary<string, Channel<TMessage>>();
+        private readonly SessionManager _sessionManager;
+
+        public SessionMessageQueue(SessionManager sessionManager)
+        {
+            _sessionManager = sessionManager;
+        }
 
         public ValueTask SendAsync(
             TMessage message,
             CancellationToken cancellationToken = default)
         {
+            _sessionManager.ValidateSession(message.SessionId);
+
             Channel<TMessage> channel = _sessions.GetOrAdd(
                 message.SessionId,
                 s => Channel.CreateUnbounded<TMessage>());
+
             return channel.Writer.WriteAsync(message, cancellationToken);
         }
 
@@ -29,10 +38,12 @@ namespace MarshmallowPie.Processing.InMemory
             string sessionId,
             CancellationToken cancellationToken = default)
         {
-            if (!_sessions.TryGetValue(sessionId, out Channel<TMessage>? channel))
-            {
-                throw new InvalidOperationException($"Session `{sessionId}` not found.");
-            }
+            _sessionManager.ValidateSession(sessionId);
+
+            Channel<TMessage> channel = _sessions.GetOrAdd(
+                sessionId,
+                s => Channel.CreateUnbounded<TMessage>());
+
             return new ValueTask<IAsyncEnumerable<TMessage>>(GetMessagesAsync(sessionId, channel));
         }
 
@@ -50,6 +61,7 @@ namespace MarshmallowPie.Processing.InMemory
                 }
             }
 
+            _sessionManager.RemoveSession(sessionId);
             _sessions.TryRemove(sessionId, out _);
             channel.Writer.Complete();
         }

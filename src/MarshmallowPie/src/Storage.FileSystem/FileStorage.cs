@@ -7,7 +7,7 @@ namespace MarshmallowPie.Storage.FileSystem
 {
     public class FileStorage : IFileStorage
     {
-        private string _fullDirectoryPath;
+        private readonly string _fullDirectoryPath;
 
         public FileStorage(string fullDirectoryPath)
         {
@@ -55,7 +55,7 @@ namespace MarshmallowPie.Storage.FileSystem
             string containerName,
             CancellationToken cancellationToken = default)
         {
-            string fullContainerPath = Path.Combine(_fullDirectoryPath, containerName);
+            var fullContainerPath = Path.Combine(_fullDirectoryPath, containerName);
 
             if (!Directory.Exists(fullContainerPath))
             {
@@ -64,6 +64,30 @@ namespace MarshmallowPie.Storage.FileSystem
             }
 
             return Task.FromResult<IFileContainer>(new FileContainer(fullContainerPath));
+        }
+
+        public Task<IFileContainer> GetOrCreateContainerAsync(
+            string containerName,
+            CancellationToken cancellationToken = default)
+        {
+            string fullContainerPath = Path.Combine(_fullDirectoryPath, containerName);
+
+            if (Directory.Exists(fullContainerPath))
+            {
+                return GetContainerAsync(containerName);
+            }
+            else
+            {
+                return CreateContainerAsync(containerName);
+            }
+        }
+
+        public Task<bool> ContainerExistsAsync(
+            string containerName,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                Directory.Exists(Path.Combine(_fullDirectoryPath, containerName)));
         }
     }
 }
