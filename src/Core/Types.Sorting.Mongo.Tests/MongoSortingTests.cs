@@ -1,12 +1,12 @@
-using MongoDB.Driver;
-using MongoDB.Bson;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using Xunit;
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
+using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using Snapshooter.Xunit;
 using Squadron;
+using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {

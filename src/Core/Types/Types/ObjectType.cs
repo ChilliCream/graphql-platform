@@ -1,7 +1,8 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -229,7 +230,6 @@ namespace HotChocolate.Types
             Type type = result.GetType();
             return Name.Equals(type.Name);
         }
-
         #endregion
     }
 }

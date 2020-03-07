@@ -7,36 +7,69 @@ namespace HotChocolate.Types.Sorting
 {
     internal static class QueryableExtensions
     {
-        internal static IOrderedQueryable<TSource> AddInitialSortOperation<TSource>(
-            this IQueryable<TSource> source,
+        internal static Expression CompileInitialSortOperation(
+            this Expression source,
             SortOperationInvocation operation,
             ParameterExpression parameter)
         {
-            Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation, parameter);
+            Expression lambda
+                = HandleProperty(operation, parameter);
+
+            Type type = typeof(Enumerable);
+            if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type) ||
+                typeof(IQueryable).IsAssignableFrom(source.Type))
+            {
+                type = typeof(Queryable);
+            }
 
             if (operation.Kind == SortOperationKind.Desc)
             {
-                return source.OrderByDescending(lambda);
+                return Expression.Call(
+                    type,
+                    "OrderByDescending",
+                    new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                    source,
+                    lambda);
             }
 
-            return source.OrderBy(lambda);
+            return Expression.Call(
+                type,
+                "OrderBy",
+                new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                source,
+                lambda);
         }
 
-        internal static IOrderedQueryable<TSource> AddSortOperation<TSource>(
-            this IOrderedQueryable<TSource> source,
+        internal static Expression CompileSortOperation(
+            this Expression source,
             SortOperationInvocation operation,
             ParameterExpression parameter)
         {
-            Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation, parameter);
+            Expression lambda
+                = HandleProperty(operation, parameter);
+
+            Type type = typeof(Enumerable);
+            if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type))
+            {
+                type = typeof(Queryable);
+            }
 
             if (operation.Kind == SortOperationKind.Desc)
             {
-                return source.ThenByDescending(lambda);
+                return Expression.Call(
+                    type,
+                    "ThenByDescending",
+                    new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                    source,
+                    lambda);
             }
 
-            return source.ThenBy(lambda);
+            return Expression.Call(
+                type,
+                "ThenBy",
+                new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                source,
+                lambda);
         }
 
         internal static Expression<Func<TSource, object>> HandleProperty<TSource>(
@@ -47,6 +80,15 @@ namespace HotChocolate.Types.Sorting
             MemberExpression property = Expression.Property(parameter, propertyInfo);
             UnaryExpression propAsObject = Expression.Convert(property, typeof(object));
             return Expression.Lambda<Func<TSource, object>>(propAsObject, parameter);
+        }
+
+        internal static Expression HandleProperty(
+            SortOperationInvocation operation, ParameterExpression parameter)
+        {
+            PropertyInfo propertyInfo = operation.Property;
+
+            MemberExpression property = Expression.Property(parameter, propertyInfo);
+            return Expression.Lambda(property, parameter);
         }
     }
 }
