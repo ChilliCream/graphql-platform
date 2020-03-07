@@ -77,7 +77,7 @@ namespace HotChocolate.Types
             var serializedValue = uuidType.Serialize(guid);
 
             // assert
-            Assert.Equal(guid, Assert.IsType<Guid>(serializedValue));
+            Assert.Equal(guid.ToString(), Assert.IsType<string>(serializedValue));
         }
 
         [Fact]
