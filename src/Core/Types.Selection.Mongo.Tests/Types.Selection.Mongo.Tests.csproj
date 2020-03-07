@@ -11,14 +11,14 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-  <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.3.0" />
-  </ItemGroup>
-
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Selections.Mongo.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Types.Selection.Abstractions.Tests\Types.Selection.Abstractions.Tests.csproj" />
