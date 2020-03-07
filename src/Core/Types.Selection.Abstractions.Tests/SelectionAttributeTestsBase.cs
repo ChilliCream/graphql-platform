@@ -11,16 +11,14 @@ namespace HotChocolate.Types.Selections
 {
     public abstract class SelectionAttributeTestsBase
     {
-        private readonly static Foo[] SAMPLE =
-            new[] {
-                Foo.Create("aa", 1),
-                Foo.Create("bb", 2) };
 
         private readonly IResolverProvider _provider;
+        private readonly bool _setId;
 
-        protected SelectionAttributeTestsBase(IResolverProvider provider)
+        protected SelectionAttributeTestsBase(IResolverProvider provider, bool setId = false)
         {
             _provider = provider;
+            _setId = setId;
         }
 
         [Fact]
@@ -29,7 +27,9 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(
+                Foo.Create("aa", 1, _setId),
+                Foo.Create("bb", 2, _setId));
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -77,6 +77,7 @@ namespace HotChocolate.Types.Selections
         public class Foo
         {
             private static int idCounter = 1;
+
             [Key]
             public int Id { get; set; }
 
@@ -88,17 +89,14 @@ namespace HotChocolate.Types.Selections
 
             public List<NestedFoo> NestedCollection { get; set; }
 
-            public static Foo Create(string bar, int baz)
+            public static Foo Create(string bar, int baz, bool setId)
             {
-                idCounter++;
-                return new Foo
+                var value = new Foo
                 {
-                    Id = idCounter * 2,
                     Bar = bar,
                     Baz = baz,
                     Nested = new NestedFoo()
                     {
-                        Id = idCounter * 2,
                         Bar = "nested" + bar,
                         Baz = baz * 2
                     },
@@ -106,12 +104,16 @@ namespace HotChocolate.Types.Selections
                        {
                         new NestedFoo()
                         {
-                            Id = (idCounter * 2)-1,
                             Bar = "nestedcollection" + bar,
                             Baz = baz * 3
                         },
                        }
                 };
+                if (setId)
+                {
+                    value.Id = ++idCounter;
+                }
+                return value;
             }
         }
 
