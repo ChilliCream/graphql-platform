@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
-import Layout from "../components/structure/layout";
 import SEO from "../components/misc/seo";
+import Layout from "../components/structure/layout";
 
 const NotFoundPage: FunctionComponent = () => (
   <Layout>
