@@ -33,12 +33,11 @@ namespace HotChocolate.Types.Sorting
         public IQueryable<TSource> Sort<TSource>(
             IQueryable<TSource> source)
         {
-            if (!Instance.Any())
+            if (Instance.Count == 0)
             {
                 return source;
             }
             return source.Provider.CreateQuery<TSource>(Compile(source.Expression));
-
         }
 
         public Expression Compile(

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
@@ -76,6 +76,7 @@ namespace HotChocolate.Types.Selections
 
         public class Foo
         {
+            private static int idCounter = 1;
             [Key]
             public int Id { get; set; }
 
@@ -89,12 +90,15 @@ namespace HotChocolate.Types.Selections
 
             public static Foo Create(string bar, int baz)
             {
+                idCounter++;
                 return new Foo
                 {
+                    Id = idCounter * 2,
                     Bar = bar,
                     Baz = baz,
                     Nested = new NestedFoo()
                     {
+                        Id = idCounter * 2,
                         Bar = "nested" + bar,
                         Baz = baz * 2
                     },
@@ -102,6 +106,7 @@ namespace HotChocolate.Types.Selections
                        {
                         new NestedFoo()
                         {
+                            Id = (idCounter * 2)-1,
                             Bar = "nestedcollection" + bar,
                             Baz = baz * 3
                         },
