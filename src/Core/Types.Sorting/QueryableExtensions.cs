@@ -7,38 +7,6 @@ namespace HotChocolate.Types.Sorting
 {
     internal static class QueryableExtensions
     {
-        internal static IOrderedQueryable<TSource> AddInitialSortOperation<TSource>(
-            this IQueryable<TSource> source,
-            SortOperationInvocation operation,
-            ParameterExpression parameter)
-        {
-            Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation, parameter);
-
-            if (operation.Kind == SortOperationKind.Desc)
-            {
-                return source.OrderByDescending(lambda);
-            }
-
-            return source.OrderBy(lambda);
-        }
-
-        internal static IOrderedQueryable<TSource> AddSortOperation<TSource>(
-            this IOrderedQueryable<TSource> source,
-            SortOperationInvocation operation,
-            ParameterExpression parameter)
-        {
-            Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation, parameter);
-
-            if (operation.Kind == SortOperationKind.Desc)
-            {
-                return source.ThenByDescending(lambda);
-            }
-
-            return source.ThenBy(lambda);
-        }
-
         internal static Expression CompileInitialSortOperation(
             this Expression source,
             SortOperationInvocation operation,
