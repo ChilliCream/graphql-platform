@@ -1500,8 +1500,8 @@ export type QuerySiteArgs = {
   siteMetadata?: Maybe<SiteSiteMetadataFilterInput>,
   port?: Maybe<IntQueryOperatorInput>,
   host?: Maybe<StringQueryOperatorInput>,
-  polyfill?: Maybe<BooleanQueryOperatorInput>,
   pathPrefix?: Maybe<StringQueryOperatorInput>,
+  polyfill?: Maybe<BooleanQueryOperatorInput>,
   buildTime?: Maybe<DateQueryOperatorInput>
 };
 
@@ -1546,8 +1546,8 @@ export type Site = Node & {
   siteMetadata?: Maybe<SiteSiteMetadata>,
   port?: Maybe<Scalars['Int']>,
   host?: Maybe<Scalars['String']>,
-  polyfill?: Maybe<Scalars['Boolean']>,
   pathPrefix?: Maybe<Scalars['String']>,
+  polyfill?: Maybe<Scalars['Boolean']>,
   buildTime?: Maybe<Scalars['Date']>,
 };
 
@@ -1684,8 +1684,8 @@ export type SiteFieldsEnum =
   'siteMetadata___tools___twitter' |
   'port' |
   'host' |
-  'polyfill' |
   'pathPrefix' |
+  'polyfill' |
   'buildTime';
 
 export type SiteFilterInput = {
@@ -1696,8 +1696,8 @@ export type SiteFilterInput = {
   siteMetadata?: Maybe<SiteSiteMetadataFilterInput>,
   port?: Maybe<IntQueryOperatorInput>,
   host?: Maybe<StringQueryOperatorInput>,
-  polyfill?: Maybe<BooleanQueryOperatorInput>,
   pathPrefix?: Maybe<StringQueryOperatorInput>,
+  polyfill?: Maybe<BooleanQueryOperatorInput>,
   buildTime?: Maybe<DateQueryOperatorInput>,
 };
 
