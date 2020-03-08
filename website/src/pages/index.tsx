@@ -59,6 +59,7 @@ const Intro = styled.section<{ url: string }>`
   align-items: center;
   justify-content: center;
   padding: 25px;
+  background-color: #fff;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
@@ -84,7 +85,7 @@ const Slideshow = styled(Carousel)<{
     > .control-next,
     > .control-prev {
       position: absolute;
-      z-index: 1000;
+      z-index: 10;
       top: 0;
       display: block;
       width: 40px;

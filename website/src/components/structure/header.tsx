@@ -32,42 +32,50 @@ export const Header: FunctionComponent = () => {
 
   return (
     <Container id="header">
-      <LogoLink to="/">
-        <LogoIcon />
-        <LogoText />
-      </LogoLink>
-      <Navigation>
-        {topnav!.map((item, index) => (
-          <NavLink key={`topnav-item-${index}`} to={item!.link!}>
-            {item!.name}
-          </NavLink>
-        ))}
-      </Navigation>
-      <Search>
-        <SearchField placeholder="Search ..." />
-      </Search>
-      <Tools>
-        <ToolLink to={tools!.slack!}>
-          <SlackIcon />
-        </ToolLink>
-        <ToolLink to={tools!.twitter!}>
-          <TwitterIcon />
-        </ToolLink>
-        <ToolLink to={tools!.github!}>
-          <GithubIcon />
-        </ToolLink>
-      </Tools>
+      <ContainerWrapper>
+        <LogoLink to="/">
+          <LogoIcon />
+          <LogoText />
+        </LogoLink>
+        <Navigation>
+          {topnav!.map((item, index) => (
+            <NavLink key={`topnav-item-${index}`} to={item!.link!}>
+              {item!.name}
+            </NavLink>
+          ))}
+        </Navigation>
+        <Search>
+          <SearchField placeholder="Search ..." />
+        </Search>
+        <Tools>
+          <ToolLink to={tools!.slack!}>
+            <SlackIcon />
+          </ToolLink>
+          <ToolLink to={tools!.twitter!}>
+            <TwitterIcon />
+          </ToolLink>
+          <ToolLink to={tools!.github!}>
+            <GithubIcon />
+          </ToolLink>
+        </Tools>
+      </ContainerWrapper>
     </Container>
   );
 };
 
 const Container = styled.header`
-  position: sticky;
-  display: flex;
-  padding: 0 20px;
+  position: fixed;
+  z-index: 20;
+  width: 100vw;
   height: 60px;
   background-color: #f40010;
   box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.25);
+`;
+
+const ContainerWrapper = styled.header`
+  display: flex;
+  padding: 0 20px;
+  height: 60px;
 `;
 
 const LogoIcon = styled(LogoIconSvg)`

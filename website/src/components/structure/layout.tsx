@@ -1,14 +1,7 @@
-/**
- * Layout component that queries for data
- * with Gatsby's useStaticQuery component
- *
- * See: https://www.gatsbyjs.org/docs/use-static-query/
- */
-
-// import { useStaticQuery, graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GlobalStyle } from "../misc/global-style";
+import { Footer } from "./footer";
 import { Header } from "./header";
 
 const Layout: FunctionComponent = ({ children }) => {
@@ -16,18 +9,17 @@ const Layout: FunctionComponent = ({ children }) => {
     <>
       <GlobalStyle />
       <Header />
-      <Content id="content">
-        <main>{children}</main>
-        <footer>© {new Date().getFullYear()} by ChilliCream</footer>
-      </Content>
+      <Content id="content">{children}</Content>
+      <Footer />
     </>
   );
 };
 
 export default Layout;
 
-const Content = styled.div`
-  width: 100vw;
-  height: 100vh;
-  overflow-y: auto;
+const Content = styled.main`
+  display: flex;
+  flex-direction: main;
+  padding-top: 60px;
+  background-color: #fff;
 `;

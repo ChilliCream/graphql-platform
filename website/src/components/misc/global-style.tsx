@@ -2,11 +2,12 @@ import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
   body,
-  html,
-  #root {
+  html {
     width: 100vw;
     height: 100vh;
     font-size: 12px;
+    overflow: auto;
+    background-color: #efefef;
   }
 
   * {
