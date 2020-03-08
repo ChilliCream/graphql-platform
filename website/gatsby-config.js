@@ -35,6 +35,7 @@ module.exports = {
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
+  pathPrefix: "/hotchocolate",
   plugins: [
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
