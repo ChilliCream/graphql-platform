@@ -118,7 +118,7 @@ namespace HotChocolate.Types.Descriptors
             foreach (XElement error in errors)
             {
                 XAttribute? code = error.Attribute(_code);
-                if (code is null
+                if (code is { }
                     && !string.IsNullOrEmpty(error.Value)
                     && !string.IsNullOrEmpty(code.Value))
                 {
