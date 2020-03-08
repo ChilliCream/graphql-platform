@@ -10,7 +10,13 @@ import Layout from "../components/structure/layout";
 const IndexPage: FunctionComponent = () => {
   const data = useStaticQuery<GetStartpageHeaderQuery>(graphql`
     query getStartpageHeader {
-      file(relativePath: { eq: "startpage-header.svg" }) {
+      arrowLeft: file(relativePath: { eq: "arrow-left.svg" }) {
+        publicURL
+      }
+      arrowRight: file(relativePath: { eq: "arrow-right.svg" }) {
+        publicURL
+      }
+      bg: file(relativePath: { eq: "startpage-header.svg" }) {
         publicURL
       }
     }
@@ -19,9 +25,25 @@ const IndexPage: FunctionComponent = () => {
   return (
     <Layout>
       <SEO title="Home" />
-      <Intro url={data.file!.publicURL!}>
+      <Intro url={data.bg!.publicURL!}>
         <Title>The Ulitimate GraphQL Platform</Title>
-        <Slideshow autoPlay showStatus={false} showThumbs={false}>
+        <Slideshow
+          arrowLeftUrl={data.arrowLeft!.publicURL!}
+          arrowRightUrl={data.arrowRight!.publicURL!}
+          autoPlay
+          showStatus={false}
+          showThumbs={false}
+        >
+          <Slide>
+            <BananaCakepop />
+            <SlideContent>
+              <SlideTitle>Banana Cakepop</SlideTitle>
+              <SlideDescription>
+                Our tool to explore schemas, execute operations and get deep
+                performance insights.
+              </SlideDescription>
+            </SlideContent>
+          </Slide>
           <Slide>
             <BananaCakepop />
           </Slide>
@@ -39,41 +61,187 @@ const Intro = styled.section<{ url: string }>`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 0;
+  padding: 25px;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
   background-position-y: 100%;
   background-repeat: no-repeat;
   background-size: cover;
+
+@media only screen and (min-width: 768px) {
+  padding: 60px 0;
+}
 `;
 
-const Slideshow = styled(Carousel)`
+const Slideshow = styled(Carousel)<{
+  arrowLeftUrl: string;
+  arrowRightUrl: string;
+}>`
   flex: 0 0 auto;
   width: 100%;
 
-  > .control-next {
-  }
+  > .carousel {
+    position: relative;
 
-  > .control-prev {
+    > .control-next,
+    > .control-prev {
+      position: absolute;
+      z-index: 1000;
+      top: 0;
+      display: block;
+      width: 40px;
+      height: 100%;
+      opacity: 0.5;
+      background-attachment: scroll;
+      background-position-x: 50%;
+      background-position-y: 50%;
+      background-repeat: no-repeat;
+      background-size: 80%;
+      transition: background-size 0.2s ease-in-out, opacity 0.2s ease-in-out;
+
+      &:hover {
+        opacity: 0.6;
+        background-size: 90%;
+      }
+
+      &.control-next {
+        right: 0;
+        background-image: url("${props => props.arrowRightUrl}");
+      }
+
+      &.control-prev {
+        left: 0;
+        background-image: url("${props => props.arrowLeftUrl}");
+      }
+
+      @media only screen and (min-width: 992px) {
+        &.control-next {
+          right: 40px;
+        }
+
+        &.control-prev {
+          left: 40px;
+        }
+      }
+    }
+
+    .control-dots {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      list-style: none;
+
+      > .dot {
+        flex: 0 0 26px;
+        margin: 0 5px;
+        border-radius: 2px;
+        height: 6px;
+        background-color: #000;
+        opacity: 0.5;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+
+        &.selected {
+          background-color: #f40010;
+          opacity: 1;
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+
+        &:hover {
+          opacity: 0.6;
+        }
+      }
+    }
+
+    .slider {
+      position: relative;
+      display: flex;
+      list-style: none;
+
+      > .slide {
+        position: relative;
+        min-width: 100%;
+      }
+    }
   }
 `;
 
 const Slide = styled.div`
   margin: 0 auto;
-  width: 100%;
+  width: 80%;
 
   @media only screen and (min-width: 992px) {
-    width: 900px;
+    width: 800px;
   }
 
   @media only screen and (min-width: 1200px) {
-    width: 1100px;
+    width: 1000px;
+  }
+`;
+
+const SlideContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+
+  @media only screen and (min-width: 768px) {
+    position: absolute;
+    right: 10%;
+    bottom: 20%;
+    left: 10%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+
+  @media only screen and (min-width: 992px) {
+    right: 20%;
+    left: 20%;
+  }
+
+  @media only screen and (min-width: 1200px) {
+    right: 30%;
+    left: 30%;
+  }
+`;
+
+const SlideTitle = styled.h2`
+  flex: 0 0 auto;
+  margin-bottom: 10px;
+  font-size: 2em;
+  text-align: center;
+
+  @media only screen and (min-width: 768px) {
+    text-align: initial;
+    color: #fff;
+  }
+`;
+
+const SlideDescription = styled.p`
+  flex: 0 0 auto;
+  font-size: 1.5em;
+  line-height: 1.417em;
+  text-align: center;
+
+  @media only screen and (min-width: 768px) {
+    text-align: initial;
+    color: #fff;
   }
 `;
 
 const Title = styled.h1`
   flex: 0 0 auto;
+  margin-bottom: 10px;
   font-size: 3em;
+  text-align: center;
   color: #fff;
+
+  @media only screen and (min-width: 768px) {
+    margin-bottom: 20px;
+  }
 `;

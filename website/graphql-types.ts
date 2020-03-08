@@ -2348,7 +2348,7 @@ export type GetSiteMetadataQuery = { site: Maybe<{ siteMetadata: Maybe<{ topnav:
 export type GetStartpageHeaderQueryVariables = {};
 
 
-export type GetStartpageHeaderQuery = { file: Maybe<Pick<File, 'publicURL'>> };
+export type GetStartpageHeaderQuery = { arrowLeft: Maybe<Pick<File, 'publicURL'>>, arrowRight: Maybe<Pick<File, 'publicURL'>>, bg: Maybe<Pick<File, 'publicURL'>> };
 
 export type GatsbyImageSharpFixedFragment = Pick<ImageSharpFixed, 'base64' | 'width' | 'height' | 'src' | 'srcSet'>;
 

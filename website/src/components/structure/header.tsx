@@ -37,8 +37,10 @@ export const Header: FunctionComponent = () => {
         <LogoText />
       </LogoLink>
       <Navigation>
-        {topnav!.map(item => (
-          <NavLink to={item!.link!}>{item!.name}</NavLink>
+        {topnav!.map((item, index) => (
+          <NavLink key={`topnav-item-${index}`} to={item!.link!}>
+            {item!.name}
+          </NavLink>
         ))}
       </Navigation>
       <Search>
