@@ -287,6 +287,38 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
+        public void When_method_has_exceptions_then_exceptions_with_no_code_will_be_ignored()
+        {
+            // arrange
+            var documentationProvider = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+
+            // act
+            var methodDescription = documentationProvider.GetDescription(
+                typeof(WithExceptionsXmlDoc)
+                    .GetMethod(nameof(WithExceptionsXmlDoc.Bar)));
+
+            // assert
+            methodDescription.MatchSnapshot();
+        }
+
+        [Fact]
+        public void When_method_has_only_exceptions_with_no_code_then_error_section_will_not_be_written()
+        {
+            // arrange
+            var documentationProvider = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+
+            // act
+            var methodDescription = documentationProvider.GetDescription(
+                typeof(WithExceptionsXmlDoc)
+                    .GetMethod(nameof(WithExceptionsXmlDoc.Baz)));
+
+            // assert
+            methodDescription.MatchSnapshot();
+        }
+
+        [Fact]
         public void When_method_has_no_exceptions_then_it_is_ignored()
         {
             // arrange

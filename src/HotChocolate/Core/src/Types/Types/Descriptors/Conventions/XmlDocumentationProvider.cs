@@ -24,6 +24,7 @@ namespace HotChocolate.Types.Descriptors
         private const string _langword = "langword";
         private const string _cref = "cref";
         private const string _href = "href";
+        private const string _code = "code";
 
         private readonly IXmlDocumentationFileResolver _fileResolver;
 
@@ -87,37 +88,43 @@ namespace HotChocolate.Types.Descriptors
             IEnumerable<XElement> errors)
         {
             var description = new StringBuilder();
+            bool needsNewLine = false;
 
             if (!string.IsNullOrEmpty(summary?.Value))
             {
                 AppendText(summary, description);
+                needsNewLine = true;
             }
 
             if (!string.IsNullOrEmpty(returns?.Value))
             {
-                description.Append(Environment.NewLine);
+                AppendNewLineIfNeeded(description, needsNewLine);
                 description.AppendLine($"**Returns:**");
                 AppendText(returns, description);
+                needsNewLine = true;
             }
 
-            AppendErrorDescription(errors, description);
+            AppendErrorDescription(errors, description, needsNewLine);
 
             return description.Length == 0 ? null : description.ToString();
         }
 
         private void AppendErrorDescription(
             IEnumerable<XElement> errors,
-            StringBuilder description)
+            StringBuilder description,
+            bool needsNewLine)
         {
             int errorCount = 0;
             foreach (XElement error in errors)
             {
-                XAttribute code = error.Attribute("code");
-                if (!string.IsNullOrEmpty(error.Value)
+                XAttribute? code = error.Attribute(_code);
+                if (code is null
+                    && !string.IsNullOrEmpty(error.Value)
                     && !string.IsNullOrEmpty(code.Value))
                 {
                     if (errorCount == 0)
                     {
+                        AppendNewLineIfNeeded(description, needsNewLine);
                         description.AppendLine("**Errors:**");
                     }
                     else
@@ -186,6 +193,17 @@ namespace HotChocolate.Types.Descriptors
                         }
                     }
                 }
+            }
+        }
+
+        private void AppendNewLineIfNeeded(
+            StringBuilder description,
+            bool condition)
+        {
+            if (condition)
+            {
+                description.AppendLine();
+                description.AppendLine();
             }
         }
 
