@@ -44,9 +44,6 @@ const IndexPage: FunctionComponent = () => {
               </SlideDescription>
             </SlideContent>
           </Slide>
-          <Slide>
-            <BananaCakepop />
-          </Slide>
         </Slideshow>
       </Intro>
     </Layout>
@@ -69,9 +66,9 @@ const Intro = styled.section<{ url: string }>`
   background-repeat: no-repeat;
   background-size: cover;
 
-@media only screen and (min-width: 768px) {
-  padding: 60px 0;
-}
+  @media only screen and (min-width: 992px) {
+    padding: 60px 0;
+  }
 `;
 
 const Slideshow = styled(Carousel)<{
@@ -190,9 +187,9 @@ const SlideContent = styled.div`
 
   @media only screen and (min-width: 768px) {
     position: absolute;
-    right: 10%;
+    right: 20%;
     bottom: 20%;
-    left: 10%;
+    left: 20%;
     display: flex;
     flex-direction: column;
     border-radius: 5px;
@@ -200,8 +197,8 @@ const SlideContent = styled.div`
   }
 
   @media only screen and (min-width: 992px) {
-    right: 20%;
-    left: 20%;
+    right: 25%;
+    left: 25%;
   }
 
   @media only screen and (min-width: 1200px) {
