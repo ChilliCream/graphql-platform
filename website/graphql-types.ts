@@ -2340,15 +2340,20 @@ export type Unnamed_1_QueryVariables = {};
 
 export type Unnamed_1_Query = { site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'title' | 'description' | 'author'>> }> };
 
-export type GetSiteMetadataQueryVariables = {};
+export type GetFooterDataQueryVariables = {};
 
 
-export type GetSiteMetadataQuery = { site: Maybe<{ siteMetadata: Maybe<{ topnav: Maybe<Array<Maybe<Pick<SiteSiteMetadataTopnav, 'name' | 'link'>>>>, tools: Maybe<Pick<SiteSiteMetadataTools, 'github' | 'slack' | 'twitter'>> }> }> };
+export type GetFooterDataQuery = { site: Maybe<{ siteMetadata: Maybe<{ topnav: Maybe<Array<Maybe<Pick<SiteSiteMetadataTopnav, 'name' | 'link'>>>>, tools: Maybe<Pick<SiteSiteMetadataTools, 'github' | 'slack' | 'twitter'>> }> }>, bg: Maybe<Pick<File, 'publicURL'>> };
 
-export type GetStartpageHeaderQueryVariables = {};
+export type GetHeaderDataQueryVariables = {};
 
 
-export type GetStartpageHeaderQuery = { arrowLeft: Maybe<Pick<File, 'publicURL'>>, arrowRight: Maybe<Pick<File, 'publicURL'>>, bg: Maybe<Pick<File, 'publicURL'>> };
+export type GetHeaderDataQuery = { site: Maybe<{ siteMetadata: Maybe<{ topnav: Maybe<Array<Maybe<Pick<SiteSiteMetadataTopnav, 'name' | 'link'>>>>, tools: Maybe<Pick<SiteSiteMetadataTools, 'github' | 'slack' | 'twitter'>> }> }> };
+
+export type GetStartpageDataQueryVariables = {};
+
+
+export type GetStartpageDataQuery = { arrowLeft: Maybe<Pick<File, 'publicURL'>>, arrowRight: Maybe<Pick<File, 'publicURL'>>, bg: Maybe<Pick<File, 'publicURL'>> };
 
 export type GatsbyImageSharpFixedFragment = Pick<ImageSharpFixed, 'base64' | 'width' | 'height' | 'src' | 'srcSet'>;
 

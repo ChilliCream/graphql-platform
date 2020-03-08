@@ -7,7 +7,6 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     font-size: 12px;
     overflow: auto;
-    background-color: #efefef;
   }
 
   * {

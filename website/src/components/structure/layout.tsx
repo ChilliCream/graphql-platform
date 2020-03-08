@@ -21,5 +21,4 @@ const Content = styled.main`
   display: flex;
   flex-direction: main;
   padding-top: 60px;
-  background-color: #fff;
 `;

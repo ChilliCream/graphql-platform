@@ -1,7 +1,7 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { GetSiteMetadataQuery } from "../../../graphql-types";
+import { GetHeaderDataQuery } from "../../../graphql-types";
 import { Link } from "../misc/link";
 
 import GithubIconSvg from "../../images/github.svg";
@@ -11,8 +11,8 @@ import SlackIconSvg from "../../images/slack.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
 
 export const Header: FunctionComponent = () => {
-  const data = useStaticQuery<GetSiteMetadataQuery>(graphql`
-    query getSiteMetadata {
+  const data = useStaticQuery<GetHeaderDataQuery>(graphql`
+    query getHeaderData {
       site {
         siteMetadata {
           topnav {
@@ -156,7 +156,6 @@ const ToolLink = styled(Link)`
   text-decoration: none;
 
   > svg {
-    fill: #fff;
     transition: fill 0.2s ease-in-out;
   }
 
