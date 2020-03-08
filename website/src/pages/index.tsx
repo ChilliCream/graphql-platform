@@ -26,7 +26,7 @@ const IndexPage: FunctionComponent = () => {
     <Layout>
       <SEO title="Home" />
       <Intro url={data.bg!.publicURL!}>
-        <Title>The Ulitimate GraphQL Platform</Title>
+        <Title>The Ultimate GraphQL Platform</Title>
         <Slideshow
           arrowLeftUrl={data.arrowLeft!.publicURL!}
           arrowRightUrl={data.arrowRight!.publicURL!}
