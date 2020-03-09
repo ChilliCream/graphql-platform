@@ -82,11 +82,10 @@ namespace StrawberryShake.Tools
             await generator.BuildAsync();
             await Task.Run(() => File.WriteAllText(hashFile, CreateHash(documents)));
 
-            if (context.PersistedQueryFile is { })
+            if (context.PersistedQueryFile is { } fileName)
             {
-                FileSystem.EnsureDirectoryExists(
-                    FileSystem.GetDirectoryName(context.PersistedQueryFile));
-                await generator.ExportPersistedQueriesAsync(context.PersistedQueryFile);
+                FileSystem.EnsureDirectoryExists(FileSystem.GetDirectoryName(fileName));
+                await generator.ExportPersistedQueriesAsync(fileName);
             }
 
             return true;
