@@ -1,7 +1,6 @@
-using System.Net.Http;
-using System.Globalization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -10,17 +9,22 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public class XmlDocumentationProvider
         : IDocumentationProvider
     {
         private const string _summaryElementName = "summary";
+        private const string _exceptionElementName = "exception";
+        private const string _returnsElementName = "returns";
         private const string _inheritdoc = "inheritdoc";
         private const string _see = "see";
         private const string _langword = "langword";
         private const string _cref = "cref";
         private const string _href = "href";
+        private const string _code = "code";
 
         private readonly IXmlDocumentationFileResolver _fileResolver;
 
@@ -31,68 +35,152 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(fileResolver));
             }
+
             _fileResolver = fileResolver;
         }
 
-        public string GetSummary(Type type) =>
-            GetSummary((MemberInfo)type);
+        public string? GetDescription(Type type) =>
+            GetDescriptionInternal(type);
 
-        public string GetSummary(MemberInfo member)
-        {
-            var assemblyName = member.Module.Assembly.GetName();
-            var element = GetMemberElement(member);
-            return RemoveLineBreakWhiteSpaces(
-                GetText(element?.Element(_summaryElementName)));
-        }
+        public string? GetDescription(MemberInfo member) =>
+            GetDescriptionInternal(member);
 
-        public string GetSummary(ParameterInfo parameter)
+        public string? GetDescription(ParameterInfo parameter)
         {
-            var assemblyName = parameter.Member.Module.Assembly.GetName();
-            var element = GetParameterElement(parameter);
-            return RemoveLineBreakWhiteSpaces(
-                GetText(element));
-        }
+            XElement? element = GetParameterElement(parameter);
 
-        private static string GetText(XElement element)
-        {
-            if (element == null)
+            if (element is null)
             {
                 return null;
             }
 
-            var value = new StringBuilder();
+            var description = new StringBuilder();
+            AppendText(element, description);
+
+            if (description.Length == 0)
+            {
+                return null;
+            }
+
+            return RemoveLineBreakWhiteSpaces(description.ToString());
+        }
+
+        private string? GetDescriptionInternal(MemberInfo member)
+        {
+            XElement? element = GetMemberElement(member);
+
+            if (element is null)
+            {
+                return null;
+            }
+
+            string? description = ComposeMemberDescription(
+                element.Element(_summaryElementName),
+                element.Element(_returnsElementName),
+                element.Elements(_exceptionElementName));
+
+            return RemoveLineBreakWhiteSpaces(description);
+        }
+
+        private string? ComposeMemberDescription(
+            XElement? summary,
+            XElement? returns,
+            IEnumerable<XElement> errors)
+        {
+            var description = new StringBuilder();
+            bool needsNewLine = false;
+
+            if (!string.IsNullOrEmpty(summary?.Value))
+            {
+                AppendText(summary, description);
+                needsNewLine = true;
+            }
+
+            if (!string.IsNullOrEmpty(returns?.Value))
+            {
+                AppendNewLineIfNeeded(description, needsNewLine);
+                description.AppendLine($"**Returns:**");
+                AppendText(returns, description);
+                needsNewLine = true;
+            }
+
+            AppendErrorDescription(errors, description, needsNewLine);
+
+            return description.Length == 0 ? null : description.ToString();
+        }
+
+        private void AppendErrorDescription(
+            IEnumerable<XElement> errors,
+            StringBuilder description,
+            bool needsNewLine)
+        {
+            int errorCount = 0;
+            foreach (XElement error in errors)
+            {
+                XAttribute? code = error.Attribute(_code);
+                if (code is { }
+                    && !string.IsNullOrEmpty(error.Value)
+                    && !string.IsNullOrEmpty(code.Value))
+                {
+                    if (errorCount == 0)
+                    {
+                        AppendNewLineIfNeeded(description, needsNewLine);
+                        description.AppendLine("**Errors:**");
+                    }
+                    else
+                    {
+                        description.AppendLine();
+                    }
+
+                    description.Append($"{++errorCount}. ");
+                    description.Append($"{code.Value}: ");
+
+                    AppendText(error, description);
+                }
+            }
+        }
+
+        private static void AppendText(
+            XElement? element,
+            StringBuilder description)
+        {
+            if (element is null || string.IsNullOrWhiteSpace(element.Value))
+            {
+                return;
+            }
+
             foreach (var node in element.Nodes())
             {
                 var currentElement = node as XElement;
                 if (currentElement == null)
                 {
-                    value.Append(node);
+                    description.Append(node);
                     continue;
                 }
 
                 if (currentElement.Name != _see)
                 {
-                    value.Append(currentElement.Value);
+                    description.Append(currentElement.Value);
                     continue;
                 }
 
                 var attribute = currentElement.Attribute(_langword);
                 if (attribute != null)
                 {
-                    value.Append(attribute.Value);
+                    description.Append(attribute.Value);
                     continue;
                 }
 
                 if (!string.IsNullOrEmpty(currentElement.Value))
                 {
-                    value.Append(currentElement.Value);
+                    description.Append(currentElement.Value);
                 }
                 else
                 {
                     attribute = currentElement.Attribute(_cref);
                     if (attribute != null)
                     {
-                        value.Append(attribute.Value
+                        description.Append(attribute.Value
                             .Trim('!', ':').Trim()
                             .Split('.').Last());
                     }
@@ -101,16 +189,25 @@ namespace HotChocolate.Types.Descriptors
                         attribute = currentElement.Attribute(_href);
                         if (attribute != null)
                         {
-                            value.Append(attribute.Value);
+                            description.Append(attribute.Value);
                         }
                     }
                 }
             }
-
-            return value.ToString();
         }
 
-        private XElement GetMemberElement(MemberInfo member)
+        private void AppendNewLineIfNeeded(
+            StringBuilder description,
+            bool condition)
+        {
+            if (condition)
+            {
+                description.AppendLine();
+                description.AppendLine();
+            }
+        }
+
+        private XElement? GetMemberElement(MemberInfo member)
         {
             try
             {
@@ -126,6 +223,7 @@ namespace HotChocolate.Types.Descriptors
 
                     return element;
                 }
+
                 return null;
             }
             catch
@@ -134,7 +232,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        private XElement GetParameterElement(ParameterInfo parameter)
+        private XElement? GetParameterElement(ParameterInfo parameter)
         {
             try
             {
@@ -166,6 +264,7 @@ namespace HotChocolate.Types.Descriptors
 
                     return result.FirstOrDefault();
                 }
+
                 return null;
             }
             catch
@@ -189,17 +288,19 @@ namespace HotChocolate.Types.Descriptors
                 if (string.Equals(child.Name.LocalName, _inheritdoc,
                     StringComparison.OrdinalIgnoreCase))
                 {
-                    Type baseType = member.DeclaringType.GetTypeInfo().BaseType;
-                    MemberInfo baseMember =
+                    Type? baseType =
+                        member.DeclaringType?.GetTypeInfo().BaseType;
+                    MemberInfo? baseMember =
                         baseType?.GetTypeInfo().DeclaredMembers
                             .SingleOrDefault(m => m.Name == member.Name);
+
                     if (baseMember != null)
                     {
                         var baseDoc = GetMemberElement(baseMember);
                         if (baseDoc != null)
                         {
-                            var nodes = baseDoc.Nodes()
-                                .OfType<object>().ToArray();
+                            object[] nodes =
+                                baseDoc.Nodes().OfType<object>().ToArray();
                             child.ReplaceWith(nodes);
                         }
                         else
@@ -219,35 +320,40 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member,
             XElement child)
         {
-            foreach (Type baseInterface in member.DeclaringType
-                .GetTypeInfo().ImplementedInterfaces)
+            if (member.DeclaringType is { })
             {
-                MemberInfo baseMember = baseInterface?.GetTypeInfo()
-                    .DeclaredMembers.SingleOrDefault(m =>
-                        m.Name.EqualsOrdinal(member.Name));
-                if (baseMember != null)
+                foreach (Type baseInterface in member.DeclaringType
+                    .GetTypeInfo().ImplementedInterfaces)
                 {
-                    XElement baseDoc = GetMemberElement(baseMember);
-                    if (baseDoc != null)
+                    MemberInfo? baseMember = baseInterface?.GetTypeInfo()
+                        .DeclaredMembers.SingleOrDefault(m =>
+                            m.Name.EqualsOrdinal(member.Name));
+                    if (baseMember != null)
                     {
-                        var nodes = baseDoc.Nodes().OfType<object>().ToArray();
-                        child.ReplaceWith(nodes);
+                        XElement? baseDoc = GetMemberElement(baseMember);
+                        if (baseDoc != null)
+                        {
+                            child.ReplaceWith(
+                                baseDoc.Nodes().OfType<object>().ToArray());
+                        }
                     }
                 }
             }
         }
 
-        private static string RemoveLineBreakWhiteSpaces(string documentation)
+        private static string? RemoveLineBreakWhiteSpaces(string? documentation)
         {
-            if (string.IsNullOrEmpty(documentation))
+            if (string.IsNullOrWhiteSpace(documentation))
             {
                 return null;
             }
 
-            documentation = "\n" + documentation
-                .Replace("\r", string.Empty).Trim('\n');
+            documentation =
+                "\n" + documentation.Replace("\r", string.Empty).Trim('\n');
 
-            var whitespace = Regex.Match(documentation, "(\\n[ \\t]*)").Value;
+            string whitespace =
+                Regex.Match(documentation, "(\\n[ \\t]*)").Value;
+
             documentation = documentation.Replace(whitespace, "\n");
 
             return documentation.Trim('\n').Trim();
@@ -257,10 +363,13 @@ namespace HotChocolate.Types.Descriptors
         {
             char prefixCode;
 
-            var memberName = member is Type memberType
-                && !string.IsNullOrEmpty(memberType.FullName)
+            string memberName =
+                member is Type memberType
+                    && !string.IsNullOrEmpty(memberType.FullName)
                 ? memberType.FullName
-                : member.DeclaringType.FullName + "." + member.Name;
+                : member.DeclaringType is null
+                    ? member.Name
+                    : member.DeclaringType.FullName + "." + member.Name;
 
             switch (member.MemberType)
             {
@@ -285,6 +394,7 @@ namespace HotChocolate.Types.Descriptors
                     {
                         memberName += "(" + paramTypesList + ")";
                     }
+
                     break;
 
                 case MemberTypes.Event:
@@ -351,17 +461,6 @@ namespace HotChocolate.Types.Descriptors
                     Path,
                     name);
             }
-
         }
-    }
-
-    internal class NoopDocumentationProvider
-        : IDocumentationProvider
-    {
-        public string GetSummary(Type type) => null;
-
-        public string GetSummary(MemberInfo member) => null;
-
-        public string GetSummary(ParameterInfo parameter) => null;
     }
 }
