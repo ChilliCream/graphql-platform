@@ -9,6 +9,7 @@ namespace StrawberryShake.Tools
             CommandOption language,
             CommandOption diSupport,
             CommandOption @namespace,
+            CommandOption persistedQueryFile,
             CommandOption search,
             CommandOption force)
         {
@@ -16,6 +17,7 @@ namespace StrawberryShake.Tools
             Language = language;
             DISupport = diSupport;
             Namespace = @namespace;
+            PersistedQueryFile = persistedQueryFile;
             Search = search;
             Force = force;
         }
@@ -24,6 +26,7 @@ namespace StrawberryShake.Tools
         public CommandOption Language { get; }
         public CommandOption DISupport { get; }
         public CommandOption Namespace { get; }
+        public CommandOption PersistedQueryFile { get; }
         public CommandOption Search { get; }
         public CommandOption Force { get; }
     }
