@@ -88,7 +88,7 @@ const Container = styled.footer<{ url: string }>`
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 200px 25px 60px;
+  padding: 200px 20px 60px;
   min-height: 300px;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
@@ -116,6 +116,10 @@ const About = styled.div`
   flex: 5 1 auto;
   flex-direction: column;
   padding: 0 10px;
+
+  @media only screen and (min-width: 1250px) {
+    padding: 200px 0 60px;
+  }
 `;
 
 const Logo = styled.div`

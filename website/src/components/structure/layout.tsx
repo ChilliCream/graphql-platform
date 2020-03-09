@@ -20,5 +20,8 @@ export default Layout;
 const Content = styled.main`
   display: flex;
   flex-direction: main;
-  padding-top: 60px;
+
+  @media only screen and (min-width: 992px) {
+    padding-top: 60px;
+  }
 `;
