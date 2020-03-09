@@ -35,6 +35,9 @@ namespace StrawberryShake.Tools
                 languageVersion,
                 arguments.DISupport.HasValue(),
                 arguments.Namespace.Value()?.Trim() ?? "StrawberryShake",
+                arguments.PersistedQueryFile.Value() is { } path
+                    ? FileSystem.CombinePath(FileSystem.CurrentDirectory, path)
+                    : null,
                 arguments.Search.HasValue(),
                 arguments.Force.HasValue());
         }
@@ -78,6 +81,14 @@ namespace StrawberryShake.Tools
 
             await generator.BuildAsync();
             await Task.Run(() => File.WriteAllText(hashFile, CreateHash(documents)));
+
+            if (context.PersistedQueryFile is { })
+            {
+                FileSystem.EnsureDirectoryExists(
+                    FileSystem.GetDirectoryName(context.PersistedQueryFile));
+                await generator.ExportPersistedQueriesAsync(context.PersistedQueryFile);
+            }
+
             return true;
         }
 

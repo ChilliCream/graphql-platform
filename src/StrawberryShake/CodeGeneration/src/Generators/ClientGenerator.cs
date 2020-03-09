@@ -17,6 +17,8 @@ using StrawberryShake.Generators.Types;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
+using System.Text;
+using System.Text.Json;
 
 namespace StrawberryShake.Generators
 {
@@ -359,6 +361,61 @@ namespace StrawberryShake.Generators
             await _output.WriteAllAsync(typeLookup)
                 .ConfigureAwait(false);
         }
+
+        public async Task ExportPersistedQueriesAsync(string fileName)
+        {
+            if (_output is null)
+            {
+                throw new InvalidOperationException(
+                    "You have to specify a field output handler before you " +
+                    "can generate any client APIs.");
+            }
+
+            if (_schemas.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "You have to specify at least one schema file before you " +
+                    "can generate any client APIs.");
+            }
+
+            if (_queries.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "You have to specify at least one query file before you " +
+                    "can generate any client APIs.");
+            }
+
+            IDocumentHashProvider hashProvider = _hashProvider
+                ?? new MD5DocumentHashProvider();
+            _namespace = _namespace ?? "StrawberryShake.Client";
+
+            // create schema
+            DocumentNode mergedSchema = MergeSchema();
+            mergedSchema = MergeSchemaExtensions(mergedSchema);
+            ISchema schema = CreateSchema(mergedSchema);
+            InitializeScalarTypes(schema);
+
+            // parse queries
+            IReadOnlyList<HCError> errors = ValidateQueryDocuments(schema);
+            if (errors.Count > 0)
+            {
+                throw new GeneratorException(errors);
+            }
+
+            IReadOnlyList<IQueryDescriptor> queries =
+                await ParseQueriesAsync(hashProvider)
+                    .ConfigureAwait(false);
+
+            var persistedQueries = new Dictionary<string, string>();
+
+            foreach (IQueryDescriptor query in queries)
+            {
+                persistedQueries[query.Hash] = Encoding.UTF8.GetString(query.Document);
+            }
+
+            File.WriteAllText(fileName, JsonSerializer.Serialize(persistedQueries));
+        }
+
 
         private DocumentNode MergeSchema()
         {
