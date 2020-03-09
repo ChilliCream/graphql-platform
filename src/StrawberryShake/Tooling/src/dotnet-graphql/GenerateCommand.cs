@@ -31,6 +31,11 @@ namespace StrawberryShake.Tools
                 "The namespace that shall be used for the generated files.",
                 CommandOptionType.SingleValue);
 
+            CommandOption persistedQueriesArg = generate.Option(
+                "-q|--PersistedQueryFile",
+                "The persisted query file.",
+                CommandOptionType.SingleValue);
+
             CommandOption searchArg = generate.Option(
                 "-s|--search",
                 "Search for client directories.",
@@ -49,7 +54,8 @@ namespace StrawberryShake.Tools
             generate.OnExecuteAsync(cancellationToken =>
             {
                 var arguments = new GenerateCommandArguments(
-                    pathArg, languageArg, diSupportArg, namespaceArg, searchArg, forceArg);
+                    pathArg, languageArg, diSupportArg, namespaceArg,
+                    persistedQueriesArg, searchArg, forceArg);
                 var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
