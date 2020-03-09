@@ -65,8 +65,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     returnTypeFragment,
                     returnType,
                     selections.Single(),
-                    resultParserTypes);
-                    */
+                    resultParserTypes);*/
             }
             else
             {
