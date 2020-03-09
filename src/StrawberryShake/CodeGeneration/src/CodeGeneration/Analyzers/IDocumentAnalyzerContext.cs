@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -24,9 +25,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             SelectionSetNode selectionSet,
             Path path);
 
-        void Register(ComplexOutputTypeModel type);
+        void Register(ComplexOutputTypeModel type, bool update = false);
 
         void Register(FieldParserModel parser);
+
+        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T model);
 
         // IReadOnlyDictionary<FieldNode, string> FieldTypes { get; }
         /*

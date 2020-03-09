@@ -10,6 +10,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         public ComplexOutputTypeModel(
             string name,
             string? description,
+            bool isInterface,
             INamedType type,
             SelectionSetNode selectionSet,
             IReadOnlyList<ComplexOutputTypeModel> types,
@@ -17,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         {
             Name = name;
             Description = description;
+            IsInterface = isInterface;
             Type = type;
             SelectionSet = selectionSet;
             Types = types;
@@ -27,6 +29,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public string? Description { get; }
 
+        public bool IsInterface { get; }
+
         public INamedType Type { get; }
 
         public SelectionSetNode SelectionSet { get; }
@@ -34,6 +38,5 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         public IReadOnlyList<ComplexOutputTypeModel> Types { get; }
 
         public IReadOnlyList<OutputFieldModel> Fields { get; }
-
     }
 }

@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     possibleSelections.ReturnType);
 
             ComplexOutputTypeModel returnType =
-                CreateTypeModel(
+                CreateInterfaceModel(
                     context,
                     returnTypeFragment,
                     path);

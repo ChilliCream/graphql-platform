@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     possibleSelections.ReturnType);
 
             ComplexOutputTypeModel returnType =
-                CreateTypeModel(
+                CreateInterfaceModel(
                     context,
                     returnTypeFragment,
                     path);
@@ -80,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                     foreach (IFragmentNode fragment in ShedNonMatchingFragments(selection.Type, modelType))
                     {
-                        interfaces.Add(CreateTypeModel(context, fragment, path));
+                        interfaces.Add(CreateInterfaceModel(context, fragment, path));
                     }
 
                     interfaces.Insert(0, returnType);

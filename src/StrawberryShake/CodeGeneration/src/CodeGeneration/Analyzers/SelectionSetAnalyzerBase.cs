@@ -25,17 +25,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
            T namedType,
            Path path);
 
-        protected ComplexOutputTypeModel CreateTypeModel(
+        protected ComplexOutputTypeModel CreateInterfaceModel(
             IDocumentAnalyzerContext context,
             IFragmentNode returnTypeFragment,
             Path path)
         {
             var levels = new Stack<ISet<string>>();
             levels.Push(new HashSet<string>());
-            return CreateTypeModel(context, returnTypeFragment, path, levels);
+            return CreateInterfaceModel(context, returnTypeFragment, path, levels);
         }
 
-        private ComplexOutputTypeModel CreateTypeModel(
+        private ComplexOutputTypeModel CreateInterfaceModel(
             IDocumentAnalyzerContext context,
             IFragmentNode fragmentNode,
             Path path,
@@ -49,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IReadOnlyList<OutputFieldModel> fieldModels = Array.Empty<OutputFieldModel>();
 
             IReadOnlyList<ComplexOutputTypeModel> implements =
-                CreateChildTypeModles(
+                CreateChildInterfaceModels(
                     context,
                     fragmentNode,
                     path,
@@ -75,6 +75,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var typeModel = new ComplexOutputTypeModel(
                 name,
                 fragmentNode.Fragment.TypeCondition.Description,
+                true,
                 fragmentNode.Fragment.TypeCondition,
                 fragmentNode.Fragment.SelectionSet,
                 implements,
@@ -85,7 +86,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return typeModel;
         }
 
-        private IReadOnlyList<ComplexOutputTypeModel> CreateChildTypeModles(
+        private IReadOnlyList<ComplexOutputTypeModel> CreateChildInterfaceModels(
             IDocumentAnalyzerContext context,
             IFragmentNode fragmentNode,
             Path path,
@@ -104,7 +105,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             foreach (IFragmentNode child in fragmentNode.Children)
             {
-                implements.Add(CreateTypeModel(context, child, path, levels));
+                implements.Add(CreateInterfaceModel(context, child, path, levels));
             }
 
             levels.Pop();
@@ -173,63 +174,59 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return parserModel;
         }
 
-        /*
-
         protected ComplexOutputTypeModel CreateClassModel(
-            IModelGeneratorContext context,
-            IFragmentNode fragmentNode,
+            IDocumentAnalyzerContext context,
+            IFragmentNode returnTypeFragment,
             ComplexOutputTypeModel returnType,
-            SelectionInfo selection,
-            ICollection<ComplexOutputTypeModel> possibleTypes)
+            SelectionInfo selection)
         {
             var fieldNames = new HashSet<string>(
                 selection.Fields.Select(t => GetPropertyName(t.ResponseName)));
 
             string className = context.GetOrCreateName(
-                fragmentNode.Fragment.SelectionSet,
+                returnTypeFragment.Fragment.SelectionSet,
                 GetClassName(returnType.Name),
                 fieldNames);
 
             var modelClass = new ComplexOutputTypeModel(
                 className,
-                fragmentNode.Fragment.TypeCondition.Description,
-                fragmentNode.Fragment.TypeCondition,
-                fragmentNode.Fragment.SelectionSet,
+                returnTypeFragment.Fragment.TypeCondition.Description,
+                false,
+                returnTypeFragment.Fragment.TypeCondition,
+                returnTypeFragment.Fragment.SelectionSet,
                 new[] { returnType },
                 Array.Empty<OutputFieldModel>());
 
-            context.RegisterType(modelClass);
+            context.Register(modelClass);
 
-            possibleTypes.Add(modelClass);
+            return modelClass;
         }
 
-        protected void CreateClassTypeModels(
-            IModelGeneratorContext context,
+        protected void CreateClassModels(
+            IDocumentAnalyzerContext context,
+            IFragmentNode returnTypeFragment,
+            ComplexOutputTypeModel returnType,
             FieldNode fieldSelection,
-            IFragmentNode returnType,
-            ComplexOutputTypeModel interfaceDescriptor,
             IReadOnlyCollection<SelectionInfo> selections,
-            List<ResultParserTypeDescriptor> resultParserTypes,
             Path path)
         {
             foreach (SelectionInfo selection in selections)
             {
                 IFragmentNode modelType = ResolveReturnType(
-                    context,
-                    selection.Type,
-                    fieldSelection,
-                    selection);
+                    selection.Type, fieldSelection, selection);
 
-                var interfaces = new List<IInterfaceDescriptor>();
+                var interfaces = new List<ComplexOutputTypeModel>();
 
-                foreach (IFragmentNode fragment in ShedNonMatchingFragments(selection.Type, modelType))
+                foreach (IFragmentNode fragment in ShedNonMatchingFragments(
+                    selection.Type, modelType))
                 {
                     interfaces.Add(CreateInterfaceModel(context, fragment, path));
                 }
 
-                interfaces.Insert(0, interfaceDescriptor);
+                interfaces.Insert(0, returnType);
 
                 NameString typeName = HoistName(selection.Type, modelType);
+
                 if (typeName.IsEmpty)
                 {
                     typeName = selection.Type.Name;
@@ -245,30 +242,36 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     GetClassName(typeName),
                     fieldNames);
 
-                if (context.TryGetDescriptor(className, out ClassDescriptor? modelClass))
+                if (context.TryGetModel(className, out ComplexOutputTypeModel model))
                 {
                     var interfaceNames = new HashSet<string>(interfaces.Select(t => t.Name));
-                    foreach (IInterfaceDescriptor item in modelClass!.Implements.Reverse())
+                    foreach (ComplexOutputTypeModel type in model.Types.Reverse())
                     {
-                        if (!interfaceNames.Contains(item.Name))
+                        if (interfaceNames.Add(type.Name))
                         {
-                            interfaces.Insert(0, item);
+                            interfaces.Insert(0, type);
                         }
                     }
                     update = true;
                 }
 
-                modelClass = new ClassDescriptor(
+                model = new ComplexOutputTypeModel(
                     className,
-                    context.Namespace,
-                    selection.Type,
-                    interfaces);
+                    modelType.Fragment.TypeCondition.Description,
+                    false,
+                    modelType.Fragment.TypeCondition,
+                    selection.SelectionSet,
+                    interfaces,
+                    CreateFields(
+                        (IComplexOutputType)modelType.Fragment.TypeCondition,
+                        selection.SelectionSet.Selections,
+                        n => true,
+                        path));
 
-                context.Register(modelClass, update);
-                resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
+                context.Register(model, update);
+                // resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
             }
         }
-        */
 
         protected IFragmentNode HoistFragment(
             INamedType type,
