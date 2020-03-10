@@ -51,16 +51,8 @@ namespace StrawberryShake.Tools
             {
                 return 0;
             }
+
             return 1;
-        }
-
-        public async Task<bool> ExecuteAsync(
-            InitCommandContext context,
-            CancellationToken cancellationToken)
-        {
-            using IDisposable command = Output.WriteCommand();
-
-            return await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<bool> ExecuteInternalAsync(
