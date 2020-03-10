@@ -13,14 +13,6 @@ module.exports = {
         link: `/`,
       },
       {
-        name: `Resources`,
-        link: `/`,
-      },
-      {
-        name: `Contact Us`,
-        link: `/`,
-      },
-      {
         name: `Blog`,
         link: `/`,
       },
