@@ -62,6 +62,12 @@ namespace HotChocolate.Types
         [Obsolete("Use Member.")]
         public MemberInfo ClrMember => Member;
 
+        /// <summary>
+        /// Gets the resources that are used by this field.
+        /// </summary>
+        /// <value></value>
+        internal ISet<string> Resources { get; }
+
         protected override void OnCompleteField(
             ICompletionContext context,
             ObjectFieldDefinition definition)

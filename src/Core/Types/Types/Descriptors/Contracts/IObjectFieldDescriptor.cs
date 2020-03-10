@@ -70,5 +70,12 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IObjectFieldDescriptor Resource<T>()
+            where T : Resource;
+
+        IObjectFieldDescriptor Resource(Type resourceType);
+
+        IObjectFieldDescriptor Resource(string name);
     }
 }

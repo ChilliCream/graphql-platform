@@ -1,16 +1,14 @@
-using System.Diagnostics;
-using System.Buffers;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
-using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution
 {
