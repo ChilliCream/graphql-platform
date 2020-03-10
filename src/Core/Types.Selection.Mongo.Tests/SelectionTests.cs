@@ -70,5 +70,15 @@ namespace HotChocolate.Types.Selections
         public override void Execute_Selection_EmptyQueue()
         {
         }
+
+        [Fact(Skip = "Not yet supported!")]
+        public override void Execute_Selection_Paging()
+        {
+        }
+
+        [Fact(Skip = "Not yet supported!")]
+        public override void Execute_Selection_Paging_OnlyMeta()
+        {
+        }
     }
 }

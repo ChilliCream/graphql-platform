@@ -128,12 +128,22 @@ namespace HotChocolate.Types.Selections
             IOutputType outputType,
             SelectionSetNode selectionSet)
         {
-            if (TryUnwrapPaging(
-                outputType,
-                selectionSet,
-                out (IOutputType, SelectionSetNode) result))
+            if (outputType is IConnectionType connectionType)
             {
-                return result;
+                if (TryUnwrapPaging(
+                    outputType,
+                    selectionSet,
+                    out (IOutputType, SelectionSetNode) result))
+                {
+                    return result;
+                }
+                else
+                {
+                    SelectionSetNode emptySelections =
+                        selectionSet.RemoveSelections(selectionSet.Selections.ToArray());
+                    outputType = connectionType.EdgeType.EntityType;
+                    return (outputType, emptySelections);
+                }
             }
             return (outputType, selectionSet);
         }
