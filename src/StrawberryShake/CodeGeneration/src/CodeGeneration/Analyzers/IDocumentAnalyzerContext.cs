@@ -8,10 +8,6 @@ using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal delegate ParserModel ParserModelFactory(
-        IReadOnlyList<INamedType> leafTypes,
-        IReadOnlyList<FieldParserModel> fieldParsers);
-
     internal interface IDocumentAnalyzerContext
     {
         ISchema Schema { get; }
@@ -30,9 +26,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         void Register(ComplexOutputTypeModel type, bool update = false);
 
+        void Register(ComplexInputTypeModel type);
+
+        void Register(EnumTypeModel type);
+
         void Register(FieldParserModel parser);
 
-        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T model);
+        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T model)
+            where T : ITypeModel;
 
         // IReadOnlyDictionary<FieldNode, string> FieldTypes { get; }
         /*

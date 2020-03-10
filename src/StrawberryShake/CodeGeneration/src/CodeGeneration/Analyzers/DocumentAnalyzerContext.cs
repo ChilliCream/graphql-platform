@@ -17,8 +17,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private readonly HashSet<NameString> _usedNames = new HashSet<NameString>();
         private readonly Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>> _types =
             new Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>>();
-        private readonly Dictionary<string, ComplexOutputTypeModel> _typeByName =
-            new Dictionary<string, ComplexOutputTypeModel>();
+        private readonly Dictionary<string, ITypeModel> _typeByName =
+            new Dictionary<string, ITypeModel>();
         private readonly Dictionary<FieldNode, FieldParserModel> _parsers =
             new Dictionary<FieldNode, FieldParserModel>();
         private readonly FieldCollector _fieldCollector;
@@ -111,9 +111,36 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
-        public bool TryGetModel<T>(string name, [NotNullWhen(true)] out T model)
+        public void Register(ComplexInputTypeModel type)
         {
-            if (_typeByName.TryGetValue(name, out ComplexOutputTypeModel? outputModel)
+            if (!_typeByName.ContainsKey(type.Name))
+            {
+                _typeByName.Add(type.Name, type);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"The type `{type.Name}` was already registered.");
+            }
+        }
+
+        public void Register(EnumTypeModel type)
+        {
+            if (!_typeByName.ContainsKey(type.Name))
+            {
+                _typeByName.Add(type.Name, type);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"The type `{type.Name}` was already registered.");
+            }
+        }
+
+        public bool TryGetModel<T>(string name, [NotNullWhen(true)] out T model)
+            where T : ITypeModel
+        {
+            if (_typeByName.TryGetValue(name, out ITypeModel? outputModel)
                 && outputModel is T m)
             {
                 model = m;
@@ -122,12 +149,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             model = default!;
             return false;
-        }
-
-        private class OutputTypeInfo
-        {
-            public ComplexOutputTypeModel? Model { get; set; }
-            public ComplexOutputTypeModel? Interface { get; set; }
         }
     }
 }
