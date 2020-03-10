@@ -21,23 +21,33 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             new Dictionary<string, ITypeModel>();
         private readonly Dictionary<FieldNode, FieldParserModel> _parsers =
             new Dictionary<FieldNode, FieldParserModel>();
-        private readonly FieldCollector _fieldCollector;
+        private FieldCollector? _fieldCollector;
 
-        public DocumentAnalyzerContext(ISchema schema, FieldCollector fieldCollector)
+        public DocumentAnalyzerContext(ISchema schema)
         {
             Schema = schema;
-            _fieldCollector = fieldCollector;
         }
 
         public ISchema Schema { get; }
 
         public IReadOnlyCollection<ITypeModel> Types => _typeByName.Values;
 
+        public void SetFieldCollector(FieldCollector fieldCollector)
+        {
+            _fieldCollector = fieldCollector;
+        }
+
         public PossibleSelections CollectFields(
             INamedOutputType type,
             SelectionSetNode selectionSet,
-            Path path) =>
-            _fieldCollector.CollectFields(type, selectionSet, path);
+            Path path)
+        {
+            if (_fieldCollector is null)
+            {
+                throw new InvalidOperationException("The context has no field collector.");
+            }
+            return _fieldCollector.CollectFields(type, selectionSet, path);
+        }
 
         public NameString GetOrCreateName(
             ISyntaxNode node,
@@ -115,6 +125,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             if (!_typeByName.ContainsKey(type.Name))
             {
+                _usedNames.Add(type.Name);
                 _typeByName.Add(type.Name, type);
             }
             else
@@ -128,6 +139,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             if (!_typeByName.ContainsKey(type.Name))
             {
+                _usedNames.Add(type.Name);
                 _typeByName.Add(type.Name, type);
             }
             else

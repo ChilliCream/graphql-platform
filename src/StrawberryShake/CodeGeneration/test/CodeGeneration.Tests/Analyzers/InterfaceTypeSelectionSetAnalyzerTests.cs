@@ -64,7 +64,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             var fragmentCollection = new FragmentCollection(schema, document);
             var fieldCollector = new FieldCollector(schema, fragmentCollection);
-            var context = new DocumentAnalyzerContext(schema, fieldCollector);
+            var context = new DocumentAnalyzerContext(schema);
+            context.SetFieldCollector(fieldCollector);
 
             InterfaceType fooType = schema.GetType<InterfaceType>("Foo");
             Path rootPath = Path.New("foo");
@@ -151,7 +152,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             var fragmentCollection = new FragmentCollection(schema, document);
             var fieldCollector = new FieldCollector(schema, fragmentCollection);
-            var context = new DocumentAnalyzerContext(schema, fieldCollector);
+            var context = new DocumentAnalyzerContext(schema);
+            context.SetFieldCollector(fieldCollector);
 
             InterfaceType fooType = schema.GetType<InterfaceType>("Foo");
             Path rootPath = Path.New("foo");
@@ -251,7 +253,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             var fragmentCollection = new FragmentCollection(schema, document);
             var fieldCollector = new FieldCollector(schema, fragmentCollection);
-            var context = new DocumentAnalyzerContext(schema, fieldCollector);
+            var context = new DocumentAnalyzerContext(schema);
+            context.SetFieldCollector(fieldCollector);
 
             InterfaceType fooType = schema.GetType<InterfaceType>("Foo");
             Path rootPath = Path.New("foo");
