@@ -107,17 +107,34 @@ namespace StrawberryShake.Tools
                 context.Registry, context.Token, context.Scheme);
             ISchemaRegistryClient client = clientFactory.Create();
 
-            string sourceText = File.ReadAllText(context.SchemaFileName);
+            IOperationResult<IPublishSchema> result;
 
-            IOperationResult<IPublishSchema> result =
-                await client.PublishSchemaAsync(
-                    context.ExternalId,
-                    context.SchemaName,
-                    context.EnvironmentName,
-                    sourceText,
-                    new Optional<IReadOnlyList<TagInput>?>(context.Tags),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+            if (context.SchemaFileName is { })
+            {
+                string sourceText = File.ReadAllText(context.SchemaFileName);
+
+                result =
+                    await client.PublishSchemaAsync(
+                        context.ExternalId,
+                        context.SchemaName,
+                        context.EnvironmentName,
+                        sourceText,
+                        new Optional<IReadOnlyList<TagInput>?>(context.Tags),
+                        cancellationToken)
+                        .ConfigureAwait(false);
+            }
+            else
+            {
+                result =
+                    await client.PublishSchemaAsync(
+                        context.ExternalId,
+                        context.SchemaName,
+                        context.EnvironmentName,
+                        default,
+                        new Optional<IReadOnlyList<TagInput>?>(context.Tags),
+                        cancellationToken)
+                        .ConfigureAwait(false);
+            }
             result.EnsureNoErrors();
 
             IResponseStream<IOnPublishDocument> responseStream =

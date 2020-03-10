@@ -44,7 +44,7 @@ namespace StrawberryShake.Tools
             CancellationToken cancellationToken)
         {
             TCtx context = CreateContext(arguments);
-            return ExecuteAsync(context, cancellationToken);
+            return ExecuteAsync(context);
         }
 
         protected abstract TCtx CreateContext(TArg arguments);
@@ -57,9 +57,7 @@ namespace StrawberryShake.Tools
             IReadOnlyList<DocumentInfo> documents,
             ICollection<HCError> errors);
 
-        private async Task<int> ExecuteAsync(
-            TCtx context,
-            CancellationToken cancellationToken)
+        private async Task<int> ExecuteAsync(TCtx context)
         {
             string path = FileSystem.ResolvePath(context.Path);
 
@@ -69,7 +67,7 @@ namespace StrawberryShake.Tools
 
                 foreach (string clientDirectory in FileSystem.GetClientDirectories(path))
                 {
-                    if (!await Compile(context, clientDirectory))
+                    if (!await Compile(context, clientDirectory).ConfigureAwait(false))
                     {
                         errorCode = 1;
                     }
@@ -79,17 +77,18 @@ namespace StrawberryShake.Tools
             }
             else
             {
-                return (await Compile(context, path)) ? 0 : 1;
+                return (await Compile(context, path).ConfigureAwait(false)) ? 0 : 1;
             }
         }
 
         private async Task<bool> Compile(TCtx context, string path)
         {
-            Configuration? config = await ConfigurationStore.TryLoadAsync(path);
+            Configuration? config =
+                await ConfigurationStore.TryLoadAsync(path).ConfigureAwait(false);
 
             if (config is { })
             {
-                return await Compile(context, path, config);
+                return await Compile(context, path, config).ConfigureAwait(false);
             }
 
             return false;
@@ -110,7 +109,8 @@ namespace StrawberryShake.Tools
                 var errors = new List<HCError>();
                 await LoadGraphQLDocumentsAsync(
                     path, configuration, generator,
-                    documents, errors);
+                    documents, errors)
+                    .ConfigureAwait(false);
 
                 if (errors.Count > 0)
                 {
@@ -120,7 +120,8 @@ namespace StrawberryShake.Tools
 
                 bool success = await Compile(
                     context, path, configuration, generator,
-                    documents, errors);
+                    documents, errors)
+                    .ConfigureAwait(false);
 
                 if (errors.Count > 0)
                 {
@@ -148,7 +149,7 @@ namespace StrawberryShake.Tools
                 configuration.Schemas.Where(t => t.Name != null)
                     .ToDictionary(t => t.Name!);
 
-            await LoadGraphQLFiles(path, documents, errors);
+            await LoadGraphQLFiles(path, documents, errors).ConfigureAwait(false);
 
             foreach (DocumentInfo document in documents)
             {
@@ -187,7 +188,7 @@ namespace StrawberryShake.Tools
             foreach (string file in FileSystem.GetGraphQLFiles(path))
             {
 
-                byte[] buffer = await FileSystem.ReadAllBytesAsync(file);
+                byte[] buffer = await FileSystem.ReadAllBytesAsync(file).ConfigureAwait(false);
 
                 try
                 {
@@ -232,8 +233,7 @@ namespace StrawberryShake.Tools
                 catch (NotSupportedException)
                 {
                     HCError error = HCErrorBuilder.New()
-                        .SetMessage(
-                            "The filed contained schema definitions and query definitions.")
+                        .SetMessage("The filed contained schema definitions and query definitions.")
                         .SetCode("MIXED_DOCUMENTS")
                         .SetExtension("fileName", file)
                         .Build();

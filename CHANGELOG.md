@@ -9,11 +9,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-### Removed
+## [10.4.0]
 
-- _GraphiQL_ middleware [#1411](https://github.com/ChilliCream/hotchocolate/pull/1411)
+### Added
+
+- We now infer default values from parameters and properties. [#1471](https://github.com/ChilliCream/hotchocolate/pull/1471)
+- Added support for un-ignore [#1458](https://github.com/ChilliCream/hotchocolate/pull/1458)
+- Introduced new state attributes [#1478](https://github.com/ChilliCream/hotchocolate/pull/1478)
+- Added new subscription pub/sub system API. [#1480](https://github.com/ChilliCream/hotchocolate/pull/1480)
+- Added support for value task to the type discovery.
+- Added DataLoader Base Classes [#1505](https://github.com/ChilliCream/hotchocolate/pull/1505)
+- Added support for IQueryable Projections [#1446](https://github.com/ChilliCream/hotchocolate/pull/1446)
+
+### Changed
+
+- Changed type member discovery [#1502](https://github.com/ChilliCream/hotchocolate/pull/1502)
+- The context data on types now use less memory.
+- Changed result serialization from Json.NET to System.Text.Json.
+
+### Fixed
+
+- Fixed issue where the backing type was rejected during deserialization.
+- Fixed issue where nullable properties lead to errors in the sorting middleware [#1419](https://github.com/ChilliCream/hotchocolate/pull/1419)
+- Fixed introspection issue where the `__type` field caused an error when the type specified in the argument did not exist.
+- Fixed the generation of not equal expression for `IComparable` types.
+- Fixed issue where the type dependencies of type extension where not correctly merged with the target type.
+- Fixed `UUID` type serialization.
+
+## [10.3.6]
+
+### Fixed
+
+- Fixed handling of variables when delegating data fetching through the stitching context. [#1390](https://github.com/ChilliCream/hotchocolate/pull/1390)
+
+## [10.3.5]
+
+### Fixed
+
+- Fixed issue that caused errors when collecting fields on a directive context
+
+## [10.3.4]
+
+### Fixed
+
+- Fixed default hash provider dependency injection configuration [#1363](https://github.com/ChilliCream/hotchocolate/pull/1363)
+
+
+## [10.3.3]
+
+### Fixed
+
+- Fixed argument non-null validation.
+- Fixed variable coercion.
+
+## [10.3.2]
+
+### Fixed
+
+- Fixed issue where input fields were no longer automatically converted.
+- Fixed issue where the float was rounded when provided as variable.
 
 ## [10.3.1]
+
+### Fixed
 
 - Fixed issue that private setters where not used during input deserialization.
 
@@ -34,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Stop adding the \_\_typename field when it's in selection on schema stitching. [#1248](https://github.com/ChilliCream/hotchocolate/pull/1248)
+- Stop adding the __typename field when it's in selection on schema stitching. [#1248](https://github.com/ChilliCream/hotchocolate/pull/1248)
 - Improved Type Discovery. [#1281](https://github.com/ChilliCream/hotchocolate/pull/1281)
 
 ### Fixed
@@ -66,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - FilterTypes produce schema errors when filters properties are nullable. [#1034](https://github.com/ChilliCream/hotchocolate/pull/1034)
-- MongoDB & Filter on `Boolean` property: the "\_not" filter throws an exception. [#1033](https://github.com/ChilliCream/hotchocolate/pull/1033)
+- MongoDB & Filter on `Boolean` property: the "_not" filter throws an exception. [#1033](https://github.com/ChilliCream/hotchocolate/pull/1033)
 - Input object is not validated when given entirely as a variable [#1074](https://github.com/ChilliCream/hotchocolate/pull/1074)
 - Variables parsing: Issue with nested `DateTime` fields in variables [#1037](https://github.com/ChilliCream/hotchocolate/pull/1037)
 - DateTime Filters not working. [#1036](https://github.com/ChilliCream/hotchocolate/pull/1036)
@@ -263,7 +321,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IErrorFilter is not given the exception unless IncludeExceptionDetails is enabled. [#637](https://github.com/ChilliCream/hotchocolate/issues/638)
 - Parse and validation event tracked wrong duration.
 - Schema-First descriptions are now correctly included into the schema. [#647](https://github.com/ChilliCream/hotchocolate/issues/647)
-- \_\_type argument was named `type` instead of `name`. [spec](https://facebook.github.io/graphql/June2018/#sec-Introspection)
+- __type argument was named `type` instead of `name`. [spec](https://facebook.github.io/graphql/June2018/#sec-Introspection)
 - The server template is now working again. [#657](https://github.com/ChilliCream/hotchocolate/issues/657)
 - Non-nullable types are now validated when query uses variables. [#651](https://github.com/ChilliCream/hotchocolate/issues/651)
 - Variable handling im middleware does not convert the DateTime value anymore. [#664](https://github.com/ChilliCream/hotchocolate/issues/664)

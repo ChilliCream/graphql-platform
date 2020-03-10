@@ -2,7 +2,7 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace StrawberryShake.Tools
 {
-    public class CompileCommand
+    public static class CompileCommand
     {
         public static CommandLineApplication Create()
         {
