@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Selections
             }
         }
 
-        protected override void EnterList(IFieldSelection selection)
+        protected override bool EnterList(IFieldSelection selection)
         {
             if (selection.Field.Member is PropertyInfo)
             {
@@ -131,11 +131,12 @@ namespace HotChocolate.Types.Selections
                         type.ElementType().ToClrType(),
                         "e" + Closures.Count));
 
-                VisitSelections(type, selectionSet);
+                return VisitSelections(type, selectionSet);
             }
+            return false;
         }
 
-        protected override void EnterObject(IFieldSelection selection)
+        protected override bool EnterObject(IFieldSelection selection)
         {
             if (selection.Field.Member is PropertyInfo property)
             {
@@ -148,8 +149,9 @@ namespace HotChocolate.Types.Selections
                         Closures.Peek().Instance.Peek(), property));
 
                 Closures.Push(nextClosure);
-                base.EnterObject(selection);
+                return base.EnterObject(selection);
             }
+            return false;
         }
     }
 }

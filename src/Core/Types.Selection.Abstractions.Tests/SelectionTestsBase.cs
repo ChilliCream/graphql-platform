@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
@@ -157,6 +157,100 @@ namespace HotChocolate.Types.Selections
                 {
                     Assert.Equal("bb", x.Bar);
                     Assert.Equal(2, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_Method()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos { bar shouldNotVisit } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray(),
+                x =>
+                {
+                    Assert.Equal("aa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("bb", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_EmptyQueue()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos { shouldNotVisit } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray(),
+                x =>
+                {
+                    Assert.Equal(null, x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal(null, x.Bar);
+                    Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
                     Assert.Null(x.ObjectArray);
                 });
@@ -1014,6 +1108,9 @@ namespace HotChocolate.Types.Selections
             [UseFiltering]
             [UseSorting]
             public List<NestedFoo> MiddlewareList { get; set; }
+
+            public IEnumerable<string> GetShouldNotVisit()
+                => new string[] { "should not visit" };
 
             public static Foo Create(string bar, int baz)
             {

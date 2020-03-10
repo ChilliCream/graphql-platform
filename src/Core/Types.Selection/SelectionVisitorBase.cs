@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Selections
 
         protected readonly IResolverContext Context;
 
-        protected virtual void VisitSelections(
+        protected virtual bool VisitSelections(
             IOutputType outputType,
             SelectionSetNode selectionSet)
         {
@@ -31,8 +31,10 @@ namespace HotChocolate.Types.Selections
             {
                 foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
                 {
-                    EnterSelection(selection);
-                    LeaveSelection(selection);
+                    if (EnterSelection(selection))
+                    {
+                        LeaveSelection(selection);
+                    }
                 }
             }
             else
@@ -46,6 +48,7 @@ namespace HotChocolate.Types.Selections
                                 outputType.NamedType().Name))
                         .Build());
             }
+            return true;
         }
 
         protected virtual void LeaveSelection(IFieldSelection selection)
@@ -53,24 +56,30 @@ namespace HotChocolate.Types.Selections
             Fields.Pop();
         }
 
-        protected virtual void EnterSelection(IFieldSelection selection)
+        protected virtual bool EnterSelection(IFieldSelection selection)
         {
             Fields.Push(selection.Field);
             if (selection.Field.Type.IsListType() ||
                 selection.Field.Type.ToClrType() == typeof(IConnection))
             {
-                EnterList(selection);
-                LeaveList(selection);
+                if (EnterList(selection))
+                {
+                    LeaveList(selection);
+                }
             }
             else if (selection.Field.Type.IsLeafType())
             {
-                EnterLeaf(selection);
-                LeaveLeaf(selection);
+                if (EnterLeaf(selection))
+                {
+                    LeaveLeaf(selection);
+                }
             }
             else if (selection.Field.Type.IsObjectType())
             {
-                EnterObject(selection);
-                LeaveObject(selection);
+                if (EnterObject(selection))
+                {
+                    LeaveObject(selection);
+                }
             }
             else
             {
@@ -83,30 +92,32 @@ namespace HotChocolate.Types.Selections
                                 selection.Field.Type.NamedType().Name))
                         .Build());
             }
+            return true;
         }
 
-        protected virtual void EnterList(IFieldSelection selection)
+        protected virtual bool EnterList(IFieldSelection selection)
         {
             (IOutputType type, SelectionSetNode selectionSet) =
                 UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
-            VisitSelections(type, selectionSet);
+            return VisitSelections(type, selectionSet);
         }
 
         protected virtual void LeaveList(IFieldSelection selection)
         {
         }
 
-        protected virtual void EnterLeaf(IFieldSelection selection)
+        protected virtual bool EnterLeaf(IFieldSelection selection)
         {
+            return true;
         }
 
         protected virtual void LeaveLeaf(IFieldSelection selection)
         {
         }
 
-        protected virtual void EnterObject(IFieldSelection selection)
+        protected virtual bool EnterObject(IFieldSelection selection)
         {
-            VisitSelections(selection.Field.Type, selection.Selection.SelectionSet);
+            return VisitSelections(selection.Field.Type, selection.Selection.SelectionSet);
         }
 
         protected virtual void LeaveObject(IFieldSelection selection)

@@ -65,5 +65,10 @@ namespace HotChocolate.Types.Selections
         public override void Execute_Selection_SortedSet()
         {
         }
+
+        [Fact(Skip = "Not yet supported!")]
+        public override void Execute_Selection_EmptyQueue()
+        {
+        }
     }
 }
