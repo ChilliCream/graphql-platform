@@ -116,10 +116,6 @@ const About = styled.div`
   flex: 5 1 auto;
   flex-direction: column;
   padding: 0 10px;
-
-  @media only screen and (min-width: 1250px) {
-    padding: 200px 0 60px;
-  }
 `;
 
 const Logo = styled.div`
