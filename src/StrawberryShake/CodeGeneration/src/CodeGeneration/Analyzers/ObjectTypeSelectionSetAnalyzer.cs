@@ -30,12 +30,20 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     returnTypeFragment,
                     path);
 
+            ComplexOutputTypeModel modelType =
+                CreateClassModel(
+                    context,
+                    returnTypeFragment,
+                    returnType,
+                    possibleSelections.ReturnType);
+
             CreateFieldParserModel(
                 context,
                 operation,
                 fieldSelection,
                 path,
-                returnType);
+                returnType,
+                modelType);
         }
     }
 }

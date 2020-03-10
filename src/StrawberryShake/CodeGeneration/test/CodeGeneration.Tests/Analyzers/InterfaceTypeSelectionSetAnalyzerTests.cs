@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     public class InterfaceTypeSelectionSetAnalyzerTests
     {
         [Fact]
-        public void Simple_Interface_Selection()
+        public void Interface_Two_Types_One_Inline_Fragment_Per_Type()
         {
             // arrange
             ISchema schema =
@@ -87,26 +87,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 rootPath);
 
             // assert
-            /*
-            Assert.Collection(context.Types.OfType<ComplexOutputTypeModel>(),
-                type =>
-                {
-                    Assert.Equal("Foo", type.Name);
-                    Assert.Null(type.Description);
-                    Assert.Equal(fooType, type.Type);
-                    Assert.Equal(field.SelectionSet, type.SelectionSet);
-                    Assert.Empty(type.Types);
-                    Assert.Collection(type.Fields,
-                        field =>
-                        {
-                            Assert.Equal("Bar", field.Name);
-                            Assert.Null(field.Description);
-                            Assert.Equal(fooType.Fields["bar"], field.Field);
-                            Assert.Equal(fooType.Fields["bar"].Type, field.Type);
-                            Assert.Equal(rootPath.Append("bar"), field.Path);
-                        });
-                });
-                */
+
         }
 
         [Fact]

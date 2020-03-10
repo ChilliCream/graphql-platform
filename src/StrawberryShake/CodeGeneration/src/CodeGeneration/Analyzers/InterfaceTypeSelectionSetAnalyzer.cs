@@ -36,7 +36,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             CreateClassModels(
                 context,
                 operation,
-                fieldType,
                 fieldSelection,
                 possibleSelections,
                 returnTypeFragment,
@@ -47,7 +46,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private void CreateClassModels(
             IDocumentAnalyzerContext context,
             OperationDefinitionNode operation,
-            IType fieldType,
             FieldNode fieldSelection,
             PossibleSelections possibleSelections,
             IFragmentNode returnTypeFragment,
@@ -59,74 +57,39 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (selections.Count == 1)
             {
-                /*
-                CreateClassModel(
+                ComplexOutputTypeModel modelType = CreateClassModel(
                     context,
                     returnTypeFragment,
                     returnType,
-                    selections.Single(),
-                    resultParserTypes);*/
-            }
-            else
-            {
-                var interfaces = new List<ComplexOutputTypeModel>();
+                    selections.Single());
 
-                foreach (SelectionInfo selection in selections)
-                {
-                    IFragmentNode modelType = ResolveReturnType(
-                        selection.Type,
-                        fieldSelection,
-                        selection);
-
-                    foreach (IFragmentNode fragment in ShedNonMatchingFragments(selection.Type, modelType))
-                    {
-                        interfaces.Add(CreateInterfaceModel(context, fragment, path));
-                    }
-
-                    interfaces.Insert(0, returnType);
-
-                    NameString typeName = HoistName(selection.Type, modelType);
-                    if (typeName.IsEmpty)
-                    {
-                        typeName = selection.Type.Name;
-                    }
-
-                    var fieldNames = new HashSet<string>(
-                        selection.Fields.Select(t => GetPropertyName(t.ResponseName)));
-
-                    string className = context.GetOrCreateName(
-                        modelType.Fragment.SelectionSet,
-                        GetClassName(typeName),
-                        fieldNames);
-
-
-
-
-                    /*
-                    modelClass = new ClassDescriptor(
-                        className,
-                        context.Namespace,
-                        selection.Type,
-                        interfaces);
-                        */
-
-                    // context.Register(modelClass, update);
-                    // resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
-                }
-            }
-
-/*
-            context.Register(
-                new ResultParserMethodDescriptor(
-                    GetPathName(path),
+                CreateFieldParserModel(
+                    context,
                     operation,
-                    fieldType,
                     fieldSelection,
                     path,
                     returnType,
-                    resultParserTypes));
-                    */
-        }
+                    modelType);
+            }
+            else
+            {
+                IReadOnlyList<ComplexOutputTypeModel> modelTypes =
+                    CreateClassModels(
+                        context,
+                        returnTypeFragment,
+                        returnType,
+                        fieldSelection,
+                        selections,
+                        path);
 
+                CreateFieldParserModel(
+                    context,
+                    operation,
+                    fieldSelection,
+                    path,
+                    returnType,
+                    modelTypes);
+            }
+        }
     }
 }

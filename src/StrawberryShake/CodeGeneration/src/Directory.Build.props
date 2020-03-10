@@ -5,7 +5,7 @@
     <TargetFrameworks>netcoreapp3.1; netcoreapp2.1; netstandard2.1; netstandard2.0</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
-    <NoWarn>CA1308</NoWarn>
+    <NoWarn>$(NoWarn); CA1308; CS0436</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -13,8 +15,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private readonly Dictionary<ISyntaxNode, ISet<NameString>> _names =
             new Dictionary<ISyntaxNode, ISet<NameString>>();
         private readonly HashSet<NameString> _usedNames = new HashSet<NameString>();
-        private readonly Dictionary<SelectionSetNode, ComplexOutputTypeModel> _types =
-            new Dictionary<SelectionSetNode, ComplexOutputTypeModel>();
+        private readonly Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>> _types =
+            new Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>>();
+        private readonly Dictionary<string, ComplexOutputTypeModel> _typeByName =
+            new Dictionary<string, ComplexOutputTypeModel>();
         private readonly Dictionary<FieldNode, FieldParserModel> _parsers =
             new Dictionary<FieldNode, FieldParserModel>();
         private readonly FieldCollector _fieldCollector;
@@ -27,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public ISchema Schema { get; }
 
-        public IReadOnlyCollection<ITypeModel> Types => _types.Values;
+        public IReadOnlyCollection<ITypeModel> Types => _typeByName.Values;
 
         public PossibleSelections CollectFields(
             INamedOutputType type,
@@ -73,11 +77,24 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return current;
         }
 
-        public void Register(ComplexOutputTypeModel type)
+        public void Register(ComplexOutputTypeModel type, bool update = false)
         {
-            if (!_types.ContainsKey(type.SelectionSet))
+            if (!_types.TryGetValue(type.SelectionSet,
+                out Dictionary<string, ComplexOutputTypeModel>? typeByName))
             {
-                _types.Add(type.SelectionSet, type);
+                typeByName = new Dictionary<string, ComplexOutputTypeModel>();
+                _types.Add(type.SelectionSet, typeByName);
+            }
+
+            if (update || !typeByName.ContainsKey(type.Name))
+            {
+                typeByName[type.Name] = type;
+                _typeByName[type.Name] = type;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"The type `{type.Name}` was already registered.");
             }
         }
 
@@ -87,6 +104,30 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 _parsers.Add(parser.Selection, parser);
             }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"A parser for the selection {parser.Path} was already registered.");
+            }
+        }
+
+        public bool TryGetModel<T>(string name, [NotNullWhen(true)] out T model)
+        {
+            if (_typeByName.TryGetValue(name, out ComplexOutputTypeModel? outputModel)
+                && outputModel is T m)
+            {
+                model = m;
+                return true;
+            }
+
+            model = default!;
+            return false;
+        }
+
+        private class OutputTypeInfo
+        {
+            public ComplexOutputTypeModel? Model { get; set; }
+            public ComplexOutputTypeModel? Interface { get; set; }
         }
     }
 }

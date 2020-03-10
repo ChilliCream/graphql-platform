@@ -43,7 +43,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             NameString name = context.GetOrCreateName(
                 fragmentNode.Fragment.SelectionSet,
-                GetClassName(fragmentNode.Name));
+                GetInterfaceName(fragmentNode.Name));
+
+            if (context.TryGetModel(name, out ComplexOutputTypeModel? typeModel))
+            {
+                return typeModel;
+            }
 
             ISet<string> implementedFields = levels.Peek();
             IReadOnlyList<OutputFieldModel> fieldModels = Array.Empty<OutputFieldModel>();
@@ -72,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     path);
             }
 
-            var typeModel = new ComplexOutputTypeModel(
+            typeModel = new ComplexOutputTypeModel(
                 name,
                 fragmentNode.Fragment.TypeCondition.Description,
                 true,
@@ -155,19 +160,31 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }).ToList();
         }
 
-        protected FieldParserModel CreateFieldParserModel(
+        protected static FieldParserModel CreateFieldParserModel(
             IDocumentAnalyzerContext context,
             OperationDefinitionNode operation,
             FieldNode fieldSelection,
             Path path,
-            ComplexOutputTypeModel returnType)
+            ComplexOutputTypeModel returnType,
+            ComplexOutputTypeModel modelType) =>
+            CreateFieldParserModel(
+                context, operation, fieldSelection,
+                path, returnType, new[] { modelType });
+
+        protected static FieldParserModel CreateFieldParserModel(
+            IDocumentAnalyzerContext context,
+            OperationDefinitionNode operation,
+            FieldNode fieldSelection,
+            Path path,
+            ComplexOutputTypeModel returnType,
+            IReadOnlyList<ComplexOutputTypeModel> possibleTypes)
         {
             var parserModel = new FieldParserModel(
                 operation,
                 fieldSelection,
                 path,
                 returnType,
-                new[] { returnType });
+                possibleTypes);
 
             context.Register(parserModel);
 
@@ -202,7 +219,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return modelClass;
         }
 
-        protected void CreateClassModels(
+        protected IReadOnlyList<ComplexOutputTypeModel> CreateClassModels(
             IDocumentAnalyzerContext context,
             IFragmentNode returnTypeFragment,
             ComplexOutputTypeModel returnType,
@@ -210,6 +227,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IReadOnlyCollection<SelectionInfo> selections,
             Path path)
         {
+            var possibleModelTypes = new List<ComplexOutputTypeModel>();
+
             foreach (SelectionInfo selection in selections)
             {
                 IFragmentNode modelType = ResolveReturnType(
@@ -269,8 +288,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         path));
 
                 context.Register(model, update);
-                // resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
+
+                possibleModelTypes.Add(model);
             }
+
+            return possibleModelTypes;
         }
 
         protected IFragmentNode HoistFragment(

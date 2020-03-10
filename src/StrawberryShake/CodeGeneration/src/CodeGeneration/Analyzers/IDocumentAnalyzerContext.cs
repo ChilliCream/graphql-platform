@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
@@ -9,6 +8,10 @@ using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
+    internal delegate ParserModel ParserModelFactory(
+        IReadOnlyList<INamedType> leafTypes,
+        IReadOnlyList<FieldParserModel> fieldParsers);
+
     internal interface IDocumentAnalyzerContext
     {
         ISchema Schema { get; }
