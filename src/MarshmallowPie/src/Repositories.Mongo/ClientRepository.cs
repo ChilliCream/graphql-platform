@@ -282,40 +282,34 @@ namespace MarshmallowPie.Repositories.Mongo
             ClientPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
-            try
+            UpdateResult result = await _publishReports.UpdateOneAsync(
+                Builders<ClientPublishReport>.Filter.And(
+                    Builders<ClientPublishReport>.Filter.Eq(
+                        t => t.EnvironmentId,
+                        publishReport.EnvironmentId),
+                    Builders<ClientPublishReport>.Filter.Eq(
+                        t => t.ClientVersionId,
+                        publishReport.ClientVersionId)),
+                Builders<ClientPublishReport>.Update.Combine(
+                    Builders<ClientPublishReport>.Update.SetOnInsert(
+                        t => t.Id, publishReport.Id),
+                    Builders<ClientPublishReport>.Update.SetOnInsert(
+                        t => t.ClientVersionId, publishReport.ClientVersionId),
+                    Builders<ClientPublishReport>.Update.SetOnInsert(
+                        t => t.EnvironmentId, publishReport.EnvironmentId),
+                    Builders<ClientPublishReport>.Update.Set(
+                        t => t.Issues, publishReport.Issues),
+                    Builders<ClientPublishReport>.Update.Set(
+                        t => t.State, publishReport.State),
+                    Builders<ClientPublishReport>.Update.Set(
+                        t => t.Published, publishReport.Published)),
+                new UpdateOptions { IsUpsert = true },
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result.ModifiedCount == 0)
             {
-                await _publishReports.UpdateOneAsync(
-                    Builders<ClientPublishReport>.Filter.And(
-                        Builders<ClientPublishReport>.Filter.Eq(
-                            t => t.EnvironmentId,
-                            publishReport.EnvironmentId),
-                        Builders<ClientPublishReport>.Filter.Eq(
-                            t => t.ClientVersionId,
-                            publishReport.ClientVersionId)),
-                    Builders<ClientPublishReport>.Update.Combine(
-                        Builders<ClientPublishReport>.Update.SetOnInsert(
-                            t => t.Id, publishReport.Id),
-                        Builders<ClientPublishReport>.Update.SetOnInsert(
-                            t => t.ClientVersionId, publishReport.ClientVersionId),
-                        Builders<ClientPublishReport>.Update.SetOnInsert(
-                            t => t.EnvironmentId, publishReport.EnvironmentId),
-                        Builders<ClientPublishReport>.Update.Set(
-                            t => t.Issues, publishReport.Issues),
-                        Builders<ClientPublishReport>.Update.Set(
-                            t => t.State, publishReport.State),
-                        Builders<ClientPublishReport>.Update.Set(
-                            t => t.Published, publishReport.Published)),
-                    new UpdateOptions { IsUpsert = true },
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (MongoWriteException ex)
-            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
-            {
-                // TODO : resources
-                throw new DuplicateKeyException(
-                    "TODO",
-                    ex);
+                throw new RepositoryException("The publish report was not updated.");
             }
         }
 
@@ -456,14 +450,14 @@ namespace MarshmallowPie.Repositories.Mongo
             PublishedClient publishedClient,
             CancellationToken cancellationToken = default)
         {
-            await _publishedClients.UpdateOneAsync(
+            UpdateResult result = await _publishedClients.UpdateOneAsync(
                 Builders<PublishedClient>.Filter.And(
                     Builders<PublishedClient>.Filter.Eq(
                         t => t.EnvironmentId,
                         publishedClient.EnvironmentId),
                     Builders<PublishedClient>.Filter.Eq(
-                        t => t.SchemaId,
-                        publishedClient.SchemaId)),
+                        t => t.ClientId,
+                        publishedClient.ClientId)),
                 Builders<PublishedClient>.Update.Combine(
                     Builders<PublishedClient>.Update.SetOnInsert(
                         t => t.EnvironmentId, publishedClient.EnvironmentId),
@@ -480,6 +474,11 @@ namespace MarshmallowPie.Repositories.Mongo
                 new UpdateOptions { IsUpsert = true },
                 cancellationToken)
                 .ConfigureAwait(false);
+
+            if (result.ModifiedCount == 0)
+            {
+                throw new RepositoryException("The published client was not updated.");
+            }
         }
     }
 }

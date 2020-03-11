@@ -270,6 +270,20 @@ namespace MarshmallowPie.Repositories.Mongo
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
+            UpdateResult result = await _publishReports.UpdateOneAsync(
+                Builders<SchemaPublishReport>.Filter.And(
+                    Builders<SchemaPublishReport>.Filter.Eq(
+                        t => t.EnvironmentId,
+                        publishReport.EnvironmentId),
+                    Builders<SchemaPublishReport>.Filter.Eq(
+                        t => t.SchemaVersionId,
+                        publishReport.EnvironmentId)),
+                Builders<SchemaPublishReport>.Update.Combine(
+                    Builders<SchemaPublishReport>.
+
+
+
+
             try
             {
                 await _publishReports.ReplaceOneAsync(
