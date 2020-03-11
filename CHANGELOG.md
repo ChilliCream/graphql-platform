@@ -9,6 +9,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [10.4.0]
+
+### Added
+
+- We now infer default values from parameters and properties. [#1471](https://github.com/ChilliCream/hotchocolate/pull/1471)
+- Added support for un-ignore [#1458](https://github.com/ChilliCream/hotchocolate/pull/1458)
+- Introduced new state attributes [#1478](https://github.com/ChilliCream/hotchocolate/pull/1478)
+- Added new subscription pub/sub system API. [#1480](https://github.com/ChilliCream/hotchocolate/pull/1480)
+- Added support for value task to the type discovery.
+- Added DataLoader Base Classes [#1505](https://github.com/ChilliCream/hotchocolate/pull/1505)
+- Added support for IQueryable Projections [#1446](https://github.com/ChilliCream/hotchocolate/pull/1446)
+
+### Changed
+
+- Changed type member discovery [#1502](https://github.com/ChilliCream/hotchocolate/pull/1502)
+- The context data on types now use less memory.
+- Changed result serialization from Json.NET to System.Text.Json.
+
+### Fixed
+
+- Fixed issue where the backing type was rejected during deserialization.
+- Fixed issue where nullable properties lead to errors in the sorting middleware [#1419](https://github.com/ChilliCream/hotchocolate/pull/1419)
+- Fixed introspection issue where the `__type` field caused an error when the type specified in the argument did not exist.
+- Fixed the generation of not equal expression for `IComparable` types.
+- Fixed issue where the type dependencies of type extension where not correctly merged with the target type.
+- Fixed `UUID` type serialization.
+
+## [10.3.6]
+
+### Fixed
+
+- Fixed handling of variables when delegating data fetching through the stitching context. [#1390](https://github.com/ChilliCream/hotchocolate/pull/1390)
+
+## [10.3.5]
+
+### Fixed
+
+- Fixed issue that caused errors when collecting fields on a directive context
+
+## [10.3.4]
+
+### Fixed
+
+- Fixed default hash provider dependency injection configuration [#1363](https://github.com/ChilliCream/hotchocolate/pull/1363)
+
+
+## [10.3.3]
+
+### Fixed
+
+- Fixed argument non-null validation.
+- Fixed variable coercion.
+
 ## [10.3.2]
 
 ### Fixed

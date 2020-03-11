@@ -42,7 +42,8 @@ namespace HotChocolate.Subscriptions.Redis
                         .Name("foo")
                         .Field("a")
                         .Resolver("b"))
-                    .AddSubscriptionType(d => d.Name("bar")
+                    .AddSubscriptionType(d => d
+                        .Name("bar")
                         .Field(name)
                         .Resolver("baz")
                         .Subscribe(async ctx =>

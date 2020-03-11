@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.3.0" />
+    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
   </ItemGroup>
 
   <ItemGroup>
