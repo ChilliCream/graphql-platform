@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Relay;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -1625,6 +1626,32 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
+        {
+            SchemaBuilder.New()
+                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddType<SomeTypeExtensionWithInterface>()
+                .Use(next => context => Task.CompletedTask)
+                .EnableRelaySupport()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Interfaces_From_Type_Extensions_Are_Merged()
+        {
+            SchemaBuilder.New()
+                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddDocumentFromString("extend type Some implements Node { id: ID! }")
+                .Use(next => context => Task.CompletedTask)
+                .EnableRelaySupport()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1784,6 +1811,14 @@ namespace HotChocolate.Types
             public string Field2(
                 [DefaultValue(null)]string a,
                 [DefaultValue("abc")]string b) => null;
+        }
+
+        [ExtendObjectType(Name = "Some")]
+        public class SomeTypeExtensionWithInterface
+            : INode
+        {
+            [GraphQLType(typeof(NonNullType<IdType>))]
+            public string Id { get; }
         }
     }
 }

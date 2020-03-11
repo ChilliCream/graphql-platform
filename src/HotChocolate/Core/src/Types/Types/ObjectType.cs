@@ -128,6 +128,10 @@ namespace HotChocolate.Types
             ICompletionContext context,
             ObjectTypeDefinition definition)
         {
+            if (definition.Name == "Some")
+            {
+
+            }
             if (ClrType != typeof(object))
             {
                 TryInferInterfaceUsageFromClrType(context, ClrType);

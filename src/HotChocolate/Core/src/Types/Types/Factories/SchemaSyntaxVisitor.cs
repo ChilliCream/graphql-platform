@@ -12,14 +12,24 @@ namespace HotChocolate.Types.Factories
     {
         private readonly ObjectTypeFactory _objectTypeFactory =
             new ObjectTypeFactory();
+        private readonly ObjectTypeExtensionFactory _objectTypeExtensionFactory =
+            new ObjectTypeExtensionFactory();
         private readonly InterfaceTypeFactory _interfaceTypeFactory =
             new InterfaceTypeFactory();
+        private readonly InterfaceTypeExtensionFactory _interfaceTypeExtensionFactory =
+            new InterfaceTypeExtensionFactory();
         private readonly UnionTypeFactory _unionTypeFactory =
             new UnionTypeFactory();
+        private readonly UnionTypeExtensionFactory _unionTypeExtensionFactory =
+            new UnionTypeExtensionFactory();
         private readonly InputObjectTypeFactory _inputObjectTypeFactory =
             new InputObjectTypeFactory();
+        private readonly InputObjectTypeExtensionFactory _inputObjectTypeExtensionFactory =
+            new InputObjectTypeExtensionFactory();
         private readonly EnumTypeFactory _enumTypeFactory =
             new EnumTypeFactory();
+        private readonly EnumTypeExtensionFactory _enumTypeExtensionFactory =
+            new EnumTypeExtensionFactory();
         private readonly DirectiveTypeFactory _directiveTypeFactory =
             new DirectiveTypeFactory();
 
@@ -55,12 +65,28 @@ namespace HotChocolate.Types.Factories
                 _objectTypeFactory.Create(_bindingLookup, node)));
         }
 
+        protected override void VisitObjectTypeExtension(
+            ObjectTypeExtensionNode node,
+            object context)
+        {
+            _types.Add(SchemaTypeReference.Create(
+                _objectTypeExtensionFactory.Create(_bindingLookup, node)));
+        }
+
         protected override void VisitInterfaceTypeDefinition(
             InterfaceTypeDefinitionNode node,
             object context)
         {
             _types.Add(SchemaTypeReference.Create(
                 _interfaceTypeFactory.Create(_bindingLookup, node)));
+        }
+
+        protected override void VisitInterfaceTypeExtension(
+            InterfaceTypeExtensionNode node,
+            object context)
+        {
+            _types.Add(SchemaTypeReference.Create(
+                _interfaceTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitUnionTypeDefinition(
@@ -71,6 +97,14 @@ namespace HotChocolate.Types.Factories
                 _unionTypeFactory.Create(_bindingLookup, node)));
         }
 
+        protected override void VisitUnionTypeExtension(
+            UnionTypeExtensionNode node,
+            object context)
+        {
+            _types.Add(SchemaTypeReference.Create(
+                _unionTypeExtensionFactory.Create(_bindingLookup, node)));
+        }
+
         protected override void VisitInputObjectTypeDefinition(
             InputObjectTypeDefinitionNode node,
             object context)
@@ -79,12 +113,28 @@ namespace HotChocolate.Types.Factories
                 _inputObjectTypeFactory.Create(_bindingLookup, node)));
         }
 
+        protected override void VisitInputObjectTypeExtension(
+            InputObjectTypeExtensionNode node,
+            object context)
+        {
+            _types.Add(SchemaTypeReference.Create(
+                _inputObjectTypeExtensionFactory.Create(_bindingLookup, node)));
+        }
+
         protected override void VisitEnumTypeDefinition(
             EnumTypeDefinitionNode node,
             object context)
         {
             _types.Add(SchemaTypeReference.Create(
                 _enumTypeFactory.Create(_bindingLookup, node)));
+        }
+
+        protected override void VisitEnumTypeExtension(
+            EnumTypeExtensionNode node,
+            object context)
+        {
+            _types.Add(SchemaTypeReference.Create(
+                _enumTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitDirectiveDefinition(
