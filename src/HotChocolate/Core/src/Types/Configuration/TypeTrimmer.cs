@@ -80,7 +80,7 @@ namespace HotChocolate.Configuration
         {
             VisitDirectives(type);
 
-            foreach (InterfaceType interfaceType in type.Interfaces.Values)
+            foreach (InterfaceType interfaceType in type.Interfaces)
             {
                 VisitInterface(interfaceType, true);
             }
@@ -129,7 +129,7 @@ namespace HotChocolate.Configuration
                 foreach (ObjectType objectType in
                     _discoveredTypes.Types.Select(t => t.Type).OfType<ObjectType>())
                 {
-                    if (objectType.Interfaces.ContainsKey(type.Name))
+                    if (objectType.IsAssignableFrom(type))
                     {
                         Visit(objectType);
                     }
