@@ -29,16 +29,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FieldNode field =
                 operation.SelectionSet.Selections.OfType<FieldNode>().Single();
 
-            var fragmentCollection = new FragmentCollection(schema, document);
-            var fieldCollector = new FieldCollector(schema, fragmentCollection);
             var context = new DocumentAnalyzerContext(schema);
-            context.SetDocument(fieldCollector);
+            context.SetDocument(document);
 
             ObjectType fooType = schema.GetType<ObjectType>("Foo");
             Path rootPath = Path.New("foo");
 
             PossibleSelections possibleSelections =
-                fieldCollector.CollectFields(
+                context.CollectFields(
                     fooType,
                     field.SelectionSet,
                     rootPath);
@@ -93,16 +91,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FieldNode field =
                 operation.SelectionSet.Selections.OfType<FieldNode>().Single();
 
-            var fragmentCollection = new FragmentCollection(schema, document);
-            var fieldCollector = new FieldCollector(schema, fragmentCollection);
             var context = new DocumentAnalyzerContext(schema);
-            context.SetDocument(fieldCollector);
+            context.SetDocument(document);
 
             ObjectType fooType = schema.GetType<ObjectType>("Foo");
             Path rootPath = Path.New("foo");
 
             PossibleSelections possibleSelections =
-                fieldCollector.CollectFields(
+                context.CollectFields(
                     fooType,
                     field.SelectionSet,
                     rootPath);

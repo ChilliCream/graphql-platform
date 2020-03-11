@@ -59,7 +59,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     context,
                     returnTypeFragment,
                     returnType,
-                    selections.Single());
+                    selections.Single(),
+                    path);
 
                 CreateFieldParserModel(
                     context,

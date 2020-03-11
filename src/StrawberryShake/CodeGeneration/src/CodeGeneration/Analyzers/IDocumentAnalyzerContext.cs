@@ -14,6 +14,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         IReadOnlyCollection<ITypeModel> Types { get; }
 
+        IReadOnlyCollection<ParserModel> ResultParsers { get; }
+
+        IReadOnlyCollection<FieldParserModel> FieldParsers { get; }
+
         NameString GetOrCreateName(
             ISyntaxNode node,
             NameString name,
@@ -24,6 +28,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             SelectionSetNode selectionSet,
             Path path);
 
+        IEnumerable<ComplexOutputTypeModel> GetTypes(SelectionSetNode selectionSet);
+
+        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T? model)
+            where T : class, ITypeModel;
+
         void SetDocument(DocumentNode document);
 
         void Register(ComplexOutputTypeModel type, bool update = false);
@@ -32,21 +41,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         void Register(EnumTypeModel type);
 
+        void Register(ParserModel parser);
+
         void Register(FieldParserModel parser);
-
-        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T? model)
-            where T : class, ITypeModel;
-
-        // IReadOnlyDictionary<FieldNode, string> FieldTypes { get; }
-        /*
-        bool TryGetDescriptor<T>(string name, out T? descriptor)
-            where T : class, ICodeDescriptor;
-
-        void Register(FieldNode field, ICodeDescriptor descriptor);
-
-        void Register(ICodeDescriptor descriptor, bool update);
-
-        void Register(ICodeDescriptor descriptor);
-        */
     }
 }

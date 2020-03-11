@@ -8,14 +8,30 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     {
         public ParserModel(
             OperationDefinitionNode operation,
-            ComplexInputTypeModel returnType,
-            IReadOnlyList<INamedType> leafTypes,
-            IReadOnlyList<FieldParserModel> fields)
+            ComplexOutputTypeModel returnType,
+            IReadOnlyList<FieldParserModel> fieldParsers)
         {
             Operation = operation;
             ReturnType = returnType;
+            FieldParsers = fieldParsers;
+
+            var leafTypes = new List<ILeafType>();
+
+            foreach (FieldParserModel parser in fieldParsers)
+            {
+                foreach (ComplexOutputTypeModel model in parser.PossibleTypes)
+                {
+                    foreach (OutputFieldModel field in model.Fields)
+                    {
+                        if (field.Type.NamedType() is ILeafType leafType)
+                        {
+                            leafTypes.Add(leafType);
+                        }
+                    }
+                }
+            }
+
             LeafTypes = leafTypes;
-            Fields = fields;
         }
 
         /// <summary>
@@ -26,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the operation return type.
         /// </summary>
-        public ComplexInputTypeModel ReturnType { get; }
+        public ComplexOutputTypeModel ReturnType { get; }
 
         /// <summary>
         /// Gets the leaf types that are used in this parser.
@@ -36,6 +52,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// <summary>
         /// Gets the field parser models.
         /// </summary>
-        public IReadOnlyList<FieldParserModel> Fields { get; }
+        public IReadOnlyList<FieldParserModel> FieldParsers { get; }
     }
 }

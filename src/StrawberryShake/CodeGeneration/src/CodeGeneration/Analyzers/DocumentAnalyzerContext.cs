@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -19,8 +20,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             new Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>>();
         private readonly Dictionary<string, ITypeModel> _typeByName =
             new Dictionary<string, ITypeModel>();
-        private readonly Dictionary<FieldNode, FieldParserModel> _parsers =
+        private readonly Dictionary<FieldNode, FieldParserModel> _fieldParsers =
             new Dictionary<FieldNode, FieldParserModel>();
+        private readonly Dictionary<OperationDefinitionNode, ParserModel> _resultParsers =
+            new Dictionary<OperationDefinitionNode, ParserModel>();
         private FieldCollector? _fieldCollector;
 
         public DocumentAnalyzerContext(ISchema schema)
@@ -31,6 +34,33 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         public ISchema Schema { get; }
 
         public IReadOnlyCollection<ITypeModel> Types => _typeByName.Values;
+
+        public IReadOnlyCollection<FieldParserModel> FieldParsers => _fieldParsers.Values;
+
+        public IReadOnlyCollection<ParserModel> ResultParsers => _resultParsers.Values;
+
+        public IEnumerable<ComplexOutputTypeModel> GetTypes(SelectionSetNode selectionSet)
+        {
+            if (_types.TryGetValue(selectionSet, out Dictionary<string, ComplexOutputTypeModel>? t))
+            {
+                return t.Values;
+            }
+            return Enumerable.Empty<ComplexOutputTypeModel>();
+        }
+
+        public bool TryGetModel<T>(string name, [NotNullWhen(true)] out T model)
+            where T : class, ITypeModel
+        {
+            if (_typeByName.TryGetValue(name, out ITypeModel? outputModel)
+                && outputModel is T m)
+            {
+                model = m;
+                return true;
+            }
+
+            model = default!;
+            return false;
+        }
 
         public void SetDocument(DocumentNode document)
         {
@@ -109,11 +139,25 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
+        public void Register(ParserModel parser)
+        {
+            if (!_resultParsers.ContainsKey(parser.Operation))
+            {
+                _resultParsers.Add(parser.Operation, parser);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"A parser for the operation {parser.Operation.Name!.Value} " +
+                    "was already registered.");
+            }
+        }
+
         public void Register(FieldParserModel parser)
         {
-            if (!_parsers.ContainsKey(parser.Selection))
+            if (!_fieldParsers.ContainsKey(parser.Selection))
             {
-                _parsers.Add(parser.Selection, parser);
+                _fieldParsers.Add(parser.Selection, parser);
             }
             else
             {
@@ -148,20 +192,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 throw new InvalidOperationException(
                     $"The type `{type.Name}` was already registered.");
             }
-        }
-
-        public bool TryGetModel<T>(string name, [NotNullWhen(true)] out T model)
-            where T : class, ITypeModel
-        {
-            if (_typeByName.TryGetValue(name, out ITypeModel? outputModel)
-                && outputModel is T m)
-            {
-                model = m;
-                return true;
-            }
-
-            model = default!;
-            return false;
         }
     }
 }

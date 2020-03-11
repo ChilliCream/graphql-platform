@@ -195,14 +195,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IDocumentAnalyzerContext context,
             IFragmentNode returnTypeFragment,
             ComplexOutputTypeModel returnType,
-            SelectionInfo selection)
+            SelectionInfo selection,
+            Path path)
         {
             var fieldNames = new HashSet<string>(
                 selection.Fields.Select(t => GetPropertyName(t.ResponseName)));
 
             string className = context.GetOrCreateName(
                 returnTypeFragment.Fragment.SelectionSet,
-                GetClassName(returnType.Name),
+                GetClassName(returnTypeFragment.Name),
                 fieldNames);
 
             var modelClass = new ComplexOutputTypeModel(
@@ -212,7 +213,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 returnTypeFragment.Fragment.TypeCondition,
                 returnTypeFragment.Fragment.SelectionSet,
                 new[] { returnType },
-                Array.Empty<OutputFieldModel>());
+                CreateFields(
+                    (IComplexOutputType)returnTypeFragment.Fragment.TypeCondition,
+                    selection.SelectionSet.Selections,
+                    n => true,
+                    path));
 
             context.Register(modelClass);
 
