@@ -198,6 +198,24 @@ namespace HotChocolate.Types
             }
         }
 
+        public static void MergeInterfaces(
+            ObjectTypeDefinition extension,
+            ObjectTypeDefinition type)
+        {
+            if (extension.Interfaces.Count > 0)
+            {
+                foreach (var interfaceReference in extension.Interfaces)
+                {
+                    type.Interfaces.Add(interfaceReference);
+                }
+            }
+
+            if (extension.FieldBindingType != typeof(object))
+            {
+                type.KnownClrTypes.Add(extension.FieldBindingType);
+            }
+        }
+
         public static void MergeTypes(
             ICollection<ITypeReference> extensionTypes,
             ICollection<ITypeReference> typeTypes)

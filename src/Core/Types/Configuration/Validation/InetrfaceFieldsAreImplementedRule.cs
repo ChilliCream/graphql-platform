@@ -30,7 +30,7 @@ namespace HotChocolate.Configuration.Validation
             if (objectType.Interfaces.Count > 0)
             {
                 foreach (IGrouping<NameString, InterfaceField> fieldGroup in
-                    objectType.Interfaces.Values
+                    objectType.Interfaces
                         .SelectMany(t => t.Fields)
                         .GroupBy(t => t.Name))
                 {
