@@ -156,7 +156,7 @@ namespace HotChocolate.Types
                         .Build());
                 }
 
-                if (_interfaces.All(t => !t.Equals(type.Name)))
+                if (!_interfaces.Contains(type))
                 {
                     _interfaces.Add(type);
                 }
@@ -172,7 +172,7 @@ namespace HotChocolate.Types
                 if (context.TryGetType(
                     new ClrTypeReference(interfaceType, TypeContext.Output),
                     out InterfaceType type)
-                    && _interfaces.All(t => !t.Equals(type.Name)))
+                    && !_interfaces.Contains(type))
                 {
                     _interfaces.Add(type);
                 }
