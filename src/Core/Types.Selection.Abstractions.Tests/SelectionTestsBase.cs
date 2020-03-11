@@ -748,7 +748,7 @@ namespace HotChocolate.Types.Selections
 
             // act
             IExecutionResult result = executor.Execute(
-                 "{ foos(order_by: {bar: DESC}) { nodes { bar } ");
+                 "{ foos(order_by: {bar: DESC}) { nodes { bar } } }");
 
             // assert
             Assert.Empty(result.Errors);
@@ -764,6 +764,49 @@ namespace HotChocolate.Types.Selections
                 x =>
                 {
                     Assert.Equal("aa", x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_Root_Filtering_OfNotSelectedField()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseSelection()
+                        .UseFiltering()
+                        .UseSorting())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                 "{ foos(where: {bar: \"aa\"}) { nodes { id } } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
                     Assert.Null(x.Node.ObjectArray);
@@ -790,9 +833,9 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as Connection<Foo>;
                         })
                         .UsePaging<ObjectType<Foo>>()
+                        .UseSelection()
                         .UseFiltering()
-                        .UseSorting()
-                        .UseSelection())
+                        .UseSorting())
                 .Create();
             IQueryExecutor executor = schema.MakeExecutable();
 
@@ -806,14 +849,14 @@ namespace HotChocolate.Types.Selections
             Assert.Collection(resultCtx.Edges.ToArray(),
                 x =>
                 {
-                    Assert.Equal("bb", x.Node.Bar);
+                    Assert.NotNull(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
                     Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
-                    Assert.Equal("aa", x.Node.Bar);
+                    Assert.NotNull(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
                     Assert.Null(x.Node.ObjectArray);
