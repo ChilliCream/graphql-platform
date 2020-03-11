@@ -19,7 +19,6 @@ namespace HotChocolate.Types
         , IHasSyntaxNode
     {
         private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
-        private readonly List<NameString> _interfaceNames = new List<NameString>();
         private Action<IObjectTypeDescriptor> _configure;
         private IsOfType _isOfType;
 
@@ -49,7 +48,7 @@ namespace HotChocolate.Types
             _isOfType(context, resolverResult);
 
         public bool IsAssignableFrom(NameString interfaceTypeName) =>
-            _interfaceNames.Contains(interfaceTypeName);
+            _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsAssignableFrom(InterfaceType interfaceType) =>
             _interfaces.Contains(interfaceType);
@@ -157,9 +156,8 @@ namespace HotChocolate.Types
                         .Build());
                 }
 
-                if (!_interfaceNames.Contains(type.Name))
+                if (_interfaces.All(t => !t.Equals(type.Name)))
                 {
-                    _interfaceNames.Add(type.Name);
                     _interfaces.Add(type);
                 }
             }
@@ -174,9 +172,8 @@ namespace HotChocolate.Types
                 if (context.TryGetType(
                     new ClrTypeReference(interfaceType, TypeContext.Output),
                     out InterfaceType type)
-                    && !_interfaceNames.Contains(type.Name))
+                    && _interfaces.All(t => !t.Equals(type.Name)))
                 {
-                    _interfaceNames.Add(type.Name);
                     _interfaces.Add(type);
                 }
             }
