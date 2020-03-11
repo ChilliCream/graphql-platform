@@ -1186,7 +1186,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces.Values.First());
+                fooType.Interfaces[0]);
         }
 
         [Fact]

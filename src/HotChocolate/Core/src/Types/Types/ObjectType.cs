@@ -9,8 +9,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Relay;
-using System.Diagnostics.CodeAnalysis;
-using System.Collections;
 
 namespace HotChocolate.Types
 {
@@ -20,8 +18,8 @@ namespace HotChocolate.Types
         , IHasClrType
         , IHasSyntaxNode
     {
-        private IReadOnlyDictionary<NameString, InterfaceType> _interfaces =
-
+        private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
+        private readonly List<NameString> _interfaceNames = new List<NameString>();
         private Action<IObjectTypeDescriptor> _configure;
         private IsOfType _isOfType;
 
@@ -41,8 +39,7 @@ namespace HotChocolate.Types
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
-        public IReadOnlyDictionary<NameString, InterfaceType> Interfaces =>
-            _interfaces;
+        public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
 
@@ -50,6 +47,12 @@ namespace HotChocolate.Types
 
         public bool IsOfType(IResolverContext context, object resolverResult) =>
             _isOfType(context, resolverResult);
+
+        public bool IsAssignableFrom(NameString interfaceTypeName) =>
+            _interfaceNames.Contains(interfaceTypeName);
+
+        public bool IsAssignableFrom(InterfaceType interfaceType) =>
+            _interfaces.Contains(interfaceType);
 
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -154,7 +157,11 @@ namespace HotChocolate.Types
                         .Build());
                 }
 
-                _interfaces[type.Name] = type;
+                if (!_interfaceNames.Contains(type.Name))
+                {
+                    _interfaceNames.Add(type.Name);
+                    _interfaces.Add(type);
+                }
             }
         }
 
@@ -166,9 +173,11 @@ namespace HotChocolate.Types
             {
                 if (context.TryGetType(
                     new ClrTypeReference(interfaceType, TypeContext.Output),
-                    out InterfaceType type))
+                    out InterfaceType type)
+                    && !_interfaceNames.Contains(type.Name))
                 {
-                    _interfaces[type.Name] = type;
+                    _interfaceNames.Add(type.Name);
+                    _interfaces.Add(type);
                 }
             }
         }
@@ -245,75 +254,6 @@ namespace HotChocolate.Types
 
             Type type = result.GetType();
             return Name.Equals(type.Name);
-        }
-
-        private class InterfaceMap
-            : IDictionary<NameString, InterfaceType>
-        {
-            public InterfaceType this[NameString key] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-            public ICollection<NameString> Keys => throw new NotImplementedException();
-
-            public ICollection<InterfaceType> Values => throw new NotImplementedException();
-
-            public int Count => throw new NotImplementedException();
-
-            public bool IsReadOnly => throw new NotImplementedException();
-
-            public void Add(NameString key, InterfaceType value)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Add(KeyValuePair<NameString, InterfaceType> item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Contains(KeyValuePair<NameString, InterfaceType> item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool ContainsKey(NameString key)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void CopyTo(KeyValuePair<NameString, InterfaceType>[] array, int arrayIndex)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IEnumerator<KeyValuePair<NameString, InterfaceType>> GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Remove(NameString key)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Remove(KeyValuePair<NameString, InterfaceType> item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out InterfaceType value)
-            {
-                throw new NotImplementedException();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }
