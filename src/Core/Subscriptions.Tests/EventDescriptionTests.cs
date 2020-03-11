@@ -1,8 +1,10 @@
-﻿using HotChocolate.Language;
+﻿using System;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete]
     public class EventDescriptionTests
     {
         [Fact]

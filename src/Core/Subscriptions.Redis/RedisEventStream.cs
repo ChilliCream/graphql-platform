@@ -1,31 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis
 {
-    public class RedisEventStream
-        : IEventStream
+    public class RedisEventStream<TMessage>
+        : IEventStream<TMessage>
     {
-        private readonly IEventDescription _eventDescription;
         private readonly ChannelMessageQueue _channel;
-        private readonly IPayloadSerializer _serializer;
         private RedisEventStreamEnumerator _enumerator;
         private bool _isCompleted;
 
-        public RedisEventStream(
-            IEventDescription eventDescription,
-            ChannelMessageQueue channel,
-            IPayloadSerializer serializer)
+        public RedisEventStream(ChannelMessageQueue channel)
         {
-            _eventDescription = eventDescription;
             _channel = channel;
-            _serializer = serializer;
         }
 
-        public IAsyncEnumerator<IEventMessage> GetAsyncEnumerator(
+        public IAsyncEnumerator<TMessage> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
             if (_isCompleted || (_enumerator is { IsCompleted: true }))
@@ -37,9 +31,7 @@ namespace HotChocolate.Subscriptions.Redis
             if (_enumerator is null)
             {
                 _enumerator = new RedisEventStreamEnumerator(
-                    _eventDescription,
                     _channel,
-                    _serializer,
                     cancellationToken);
             }
 
@@ -57,27 +49,21 @@ namespace HotChocolate.Subscriptions.Redis
         }
 
         private class RedisEventStreamEnumerator
-            : IAsyncEnumerator<IEventMessage>
+            : IAsyncEnumerator<TMessage>
         {
-            private readonly IEventDescription _eventDescription;
             private readonly ChannelMessageQueue _channel;
-            private readonly IPayloadSerializer _serializer;
             private readonly CancellationToken _cancellationToken;
             private bool _isCompleted;
 
             public RedisEventStreamEnumerator(
-                IEventDescription eventDescription,
                 ChannelMessageQueue channel,
-                IPayloadSerializer serializer,
                 CancellationToken cancellationToken)
             {
-                _eventDescription = eventDescription;
                 _channel = channel;
-                _serializer = serializer;
                 _cancellationToken = cancellationToken;
             }
 
-            public IEventMessage Current { get; private set; }
+            public TMessage Current { get; private set; }
 
             internal bool IsCompleted => _isCompleted;
 
@@ -85,7 +71,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 if (_isCompleted || _channel.Completion.IsCompleted)
                 {
-                    Current = null;
+                    Current = default;
                     return false;
                 }
 
@@ -93,13 +79,20 @@ namespace HotChocolate.Subscriptions.Redis
                 {
                     ChannelMessage message =
                         await _channel.ReadAsync(_cancellationToken).ConfigureAwait(false);
-                    object payload = _serializer.Deserialize(message.Message);
-                    Current = new EventMessage(message.Channel, payload);
+                    string body = message.Message;
+
+                    if (body.Equals(RedisPubSub.Completed, StringComparison.Ordinal))
+                    {
+                        Current = default;
+                        return false;
+                    }
+
+                    Current = JsonSerializer.Deserialize<TMessage>(body);
                     return true;
                 }
                 catch
                 {
-                    Current = null;
+                    Current = default;
                     return false;
                 }
             }
