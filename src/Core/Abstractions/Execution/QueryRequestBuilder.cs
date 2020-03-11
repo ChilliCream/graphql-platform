@@ -9,6 +9,7 @@ namespace HotChocolate.Execution
     public partial class QueryRequestBuilder
         : IQueryRequestBuilder
     {
+        private readonly static ExtensionData _empty = new ExtensionData();
         private IQuery _query;
         private string _queryName;
         private string _queryHash;
@@ -256,11 +257,11 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object> GetVariableValues()
         {
-            if (_variableValues != null)
+            if (_variableValues is { })
             {
                 return _variableValues;
             }
-            return _readOnlyVariableValues ?? EmptyDictionary.Instance;
+            return _readOnlyVariableValues ?? _empty;
         }
 
         private void InitializeVariables()
@@ -277,11 +278,11 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object> GetProperties()
         {
-            if (_properties != null)
+            if (_properties is { })
             {
                 return _properties;
             }
-            return _readOnlyProperties ?? EmptyDictionary.Instance;
+            return _readOnlyProperties ?? _empty;
         }
 
         private void InitializeProperties()
@@ -302,7 +303,7 @@ namespace HotChocolate.Execution
             {
                 return _extensions;
             }
-            return _readOnlyProperties ?? EmptyDictionary.Instance;
+            return _readOnlyProperties ?? _empty;
         }
 
         private void InitializeExtensions()

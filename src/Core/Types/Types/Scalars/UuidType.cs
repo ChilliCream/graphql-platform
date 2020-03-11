@@ -84,7 +84,7 @@ namespace HotChocolate.Types
 
             if (value is Guid guid)
             {
-                return guid;
+                return guid.ToString();
             }
 
             throw new ScalarSerializationException(

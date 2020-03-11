@@ -11,7 +11,7 @@ namespace HotChocolate.Types
 {
     public static class SortObjectFieldDescriptorExtensions
     {
-        internal const string OrderByArgumentName = "order_by";
+        public const string OrderByArgumentName = "order_by";
         private static readonly Type _middlewareDefinition =
             typeof(QueryableSortMiddleware<>);
 

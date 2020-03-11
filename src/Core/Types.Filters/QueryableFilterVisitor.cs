@@ -64,6 +64,11 @@ namespace HotChocolate.Types.Filters
                 _parameter);
         }
 
+        public Expression CreateFilter()
+        {
+            return Expression.Lambda(Level.Peek().Peek(), _parameter);
+        }
+
         protected Stack<Queue<Expression>> Level { get; } =
             new Stack<Queue<Expression>>();
 
