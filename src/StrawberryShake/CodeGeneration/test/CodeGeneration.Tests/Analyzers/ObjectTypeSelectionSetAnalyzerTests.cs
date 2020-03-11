@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var fragmentCollection = new FragmentCollection(schema, document);
             var fieldCollector = new FieldCollector(schema, fragmentCollection);
             var context = new DocumentAnalyzerContext(schema);
-            context.SetFieldCollector(fieldCollector);
+            context.SetDocument(fieldCollector);
 
             ObjectType fooType = schema.GetType<ObjectType>("Foo");
             Path rootPath = Path.New("foo");
@@ -96,7 +96,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var fragmentCollection = new FragmentCollection(schema, document);
             var fieldCollector = new FieldCollector(schema, fragmentCollection);
             var context = new DocumentAnalyzerContext(schema);
-            context.SetFieldCollector(fieldCollector);
+            context.SetDocument(fieldCollector);
 
             ObjectType fooType = schema.GetType<ObjectType>("Foo");
             Path rootPath = Path.New("foo");

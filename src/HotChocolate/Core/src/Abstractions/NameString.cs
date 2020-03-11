@@ -112,6 +112,19 @@ namespace HotChocolate
 
         /// <summary>
         /// Compares this <see cref="NameString"/> value to another value using
+        /// <see cref=" StringComparison.Ordinal"/> comparison type.
+        /// </summary>
+        /// <param name="other">
+        /// The second <see cref="NameString"/> for comparison.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if both <see cref="NameString"/> values are equal.
+        /// </returns>
+        public bool EqualsOrdinal(NameString other) =>
+            Equals(other, StringComparison.Ordinal);
+
+        /// <summary>
+        /// Compares this <see cref="NameString"/> value to another value using
         /// <see cref=" StringComparison.Ordinal"/> comparison.
         /// </summary>
         /// <param name="obj">

@@ -32,8 +32,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         void Register(FieldParserModel parser);
 
-        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T model)
-            where T : ITypeModel;
+        bool TryGetModel<T>(string name, [NotNullWhen(true)]out T? model)
+            where T : class, ITypeModel;
 
         // IReadOnlyDictionary<FieldNode, string> FieldTypes { get; }
         /*

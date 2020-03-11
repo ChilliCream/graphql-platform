@@ -76,7 +76,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 IReadOnlyList<ComplexOutputTypeModel> modelTypes =
                     CreateClassModels(
                         context,
-                        returnTypeFragment,
                         returnType,
                         fieldSelection,
                         selections,

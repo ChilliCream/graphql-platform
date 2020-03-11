@@ -8,13 +8,19 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using StrawberryShake.CodeGeneration.Utilities;
 using FieldSelection = StrawberryShake.CodeGeneration.Utilities.FieldSelection;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public class DocumentAnalyzer
     {
-        private ISchema? _schema;
+        private InterfaceTypeSelectionSetAnalyzer _interfaceTypeSelectionSetAnalyzer =
+            new InterfaceTypeSelectionSetAnalyzer();
+        private ObjectTypeSelectionSetAnalyzer _objectTypeSelectionSetAnalyzer =
+            new ObjectTypeSelectionSetAnalyzer();
+
         private readonly List<DocumentNode> _documents = new List<DocumentNode>();
+        private ISchema? _schema;
 
         public DocumentAnalyzer SetSchema(ISchema schema)
         {
@@ -40,10 +46,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     "You must at least provide one document.");
             }
 
-            var types = new List<ITypeModel>();
+            var context = new DocumentAnalyzerContext(_schema);
 
-            CollectEnumTypes(_schema, _documents, types);
-            CollectInputObjectTypes(_schema, _documents, types);
+            CollectEnumTypes(context, _documents);
+            CollectInputObjectTypes(context, _documents);
 
 
             throw new NotImplementedException();
@@ -82,17 +88,17 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         private void GenerateFieldSelectionSet(
-            FieldCollector fieldCollector,
+            IDocumentAnalyzerContext context,
             OperationDefinitionNode operation,
-            IType fieldType,
             FieldNode fieldSelection,
+            IType fieldType,
             Path path,
             Queue<FieldSelection> backlog)
         {
             var namedType = (INamedOutputType)fieldType.NamedType();
 
             PossibleSelections possibleSelections =
-                fieldCollector.CollectFields(
+                context.CollectFields(
                     namedType,
                     fieldSelection.SelectionSet!,
                     path);
@@ -115,24 +121,24 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
             else if (namedType is InterfaceType interfaceType)
             {
-                _interfaceModelGenerator.Generate(
-                    _context,
+                _interfaceTypeSelectionSetAnalyzer.Analyze(
+                    context,
                     operation,
-                    interfaceType,
-                    fieldType,
                     fieldSelection,
                     possibleSelections,
+                    fieldType,
+                    interfaceType,
                     path);
             }
             else if (namedType is ObjectType objectType)
             {
-                _objectModelGenerator.Generate(
-                    _context,
+                _objectTypeSelectionSetAnalyzer.Analyze(
+                    context,
                     operation,
-                    objectType,
-                    fieldType,
                     fieldSelection,
                     possibleSelections,
+                    fieldType,
+                    objectType,
                     path);
             }
         }
@@ -197,11 +203,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         private void CollectInputObjectTypes(
-            ISchema schema,
-            IReadOnlyList<DocumentNode> documents,
-            ICollection<ITypeModel> types)
+            IDocumentAnalyzerContext context,
+            IReadOnlyList<DocumentNode> documents)
         {
-            var analyzer = new InputObjectTypeUsageAnalyzer(schema);
+            var analyzer = new InputObjectTypeUsageAnalyzer(context.Schema);
 
             foreach (DocumentNode document in documents)
             {
@@ -226,8 +231,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                 rename = inputObjectType.Directives.SingleOrDefault<RenameDirective>();
 
-                types.Add(new ComplexInputTypeModel(
-                    Utilities.NameUtils.GetClassName(rename?.Name ?? inputObjectType.Name),
+                context.Register(new ComplexInputTypeModel(
+                    GetClassName(rename?.Name ?? inputObjectType.Name),
                     inputObjectType.Description,
                     inputObjectType,
                     fields));

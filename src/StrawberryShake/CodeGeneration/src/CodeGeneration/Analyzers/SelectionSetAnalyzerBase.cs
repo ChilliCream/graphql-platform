@@ -221,7 +221,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         protected IReadOnlyList<ComplexOutputTypeModel> CreateClassModels(
             IDocumentAnalyzerContext context,
-            IFragmentNode returnTypeFragment,
             ComplexOutputTypeModel returnType,
             FieldNode fieldSelection,
             IReadOnlyCollection<SelectionInfo> selections,
@@ -261,7 +260,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     GetClassName(typeName),
                     fieldNames);
 
-                if (context.TryGetModel(className, out ComplexOutputTypeModel model))
+                if (context.TryGetModel(className, out ComplexOutputTypeModel? model))
                 {
                     var interfaceNames = new HashSet<string>(interfaces.Select(t => t.Name));
                     foreach (ComplexOutputTypeModel type in model.Types.Reverse())
@@ -295,7 +294,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return possibleModelTypes;
         }
 
-        protected IFragmentNode HoistFragment(
+        protected static IFragmentNode HoistFragment(
             INamedType type,
             IFragmentNode fragmentNode)
         {
@@ -319,7 +318,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             INamedType type,
             IFragmentNode fragmentNode)
         {
-            if (fragmentNode.Fragment.TypeCondition.Name.Equals(type.Name))
+            if (fragmentNode.Fragment.TypeCondition.Name.EqualsOrdinal(type.Name))
             {
                 return fragmentNode.Name;
             }
@@ -409,7 +408,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             var nodes = new List<IFragmentNode>();
 
-            if (fragmentNode.Fragment.TypeCondition.Name.Equals(namedType.Name))
+            if (fragmentNode.Fragment.TypeCondition.Name.EqualsOrdinal(namedType.Name))
             {
                 ShedNonMatchingFragments(namedType, fragmentNode, nodes.Add);
             }
@@ -429,7 +428,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             IFragmentNode fragmentNode,
             Action<IFragmentNode> add)
         {
-            if (fragmentNode.Fragment.TypeCondition.Name.Equals(namedType.Name))
+            if (fragmentNode.Fragment.TypeCondition.Name.EqualsOrdinal(namedType.Name))
             {
                 add(fragmentNode);
             }
@@ -442,7 +441,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
-        protected IFragmentNode ResolveReturnType(
+        protected static IFragmentNode ResolveReturnType(
             INamedType namedType,
             FieldNode fieldSelection,
             SelectionInfo selection)

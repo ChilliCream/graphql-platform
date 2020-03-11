@@ -32,9 +32,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public IReadOnlyCollection<ITypeModel> Types => _typeByName.Values;
 
-        public void SetFieldCollector(FieldCollector fieldCollector)
+        public void SetDocument(DocumentNode document)
         {
-            _fieldCollector = fieldCollector;
+            var fragmentCollection = new FragmentCollection(Schema, document);
+            _fieldCollector = new FieldCollector(Schema, fragmentCollection);
         }
 
         public PossibleSelections CollectFields(
@@ -150,7 +151,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         public bool TryGetModel<T>(string name, [NotNullWhen(true)] out T model)
-            where T : ITypeModel
+            where T : class, ITypeModel
         {
             if (_typeByName.TryGetValue(name, out ITypeModel? outputModel)
                 && outputModel is T m)
