@@ -127,13 +127,23 @@ namespace HotChocolate.Types
         {
             if (ClrType != typeof(object))
             {
-                foreach (Type interfaceType in ClrType.GetInterfaces())
+                definition.KnownClrTypes.Add(ClrType);
+            }
+
+            if (definition.KnownClrTypes.Count > 0)
+            {
+                definition.KnownClrTypes.Remove(typeof(object));
+
+                foreach (Type clrType in definition.KnownClrTypes.Distinct())
                 {
-                    if (context.TryGetType(
-                        new ClrTypeReference(interfaceType, TypeContext.Output),
-                        out InterfaceType type))
+                    foreach (Type interfaceType in clrType.GetInterfaces())
                     {
-                        _interfaces[type.Name] = type;
+                        if (context.TryGetType(
+                            new ClrTypeReference(interfaceType, TypeContext.Output),
+                            out InterfaceType type))
+                        {
+                            _interfaces[type.Name] = type;
+                        }
                     }
                 }
             }
