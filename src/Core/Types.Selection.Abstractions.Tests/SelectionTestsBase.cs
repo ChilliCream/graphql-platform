@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
@@ -157,6 +157,100 @@ namespace HotChocolate.Types.Selections
                 {
                     Assert.Equal("bb", x.Bar);
                     Assert.Equal(2, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_Method()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos { bar shouldNotVisit } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray(),
+                x =>
+                {
+                    Assert.Equal("aa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("bb", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_EmptyQueue()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos { shouldNotVisit } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray(),
+                x =>
+                {
+                    Assert.Null(x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Null(x.Bar);
+                    Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
                     Assert.Null(x.ObjectArray);
                 });
@@ -627,6 +721,260 @@ namespace HotChocolate.Types.Selections
         }
 
         [Fact]
+        public virtual void Execute_Selection_Root_Sorting()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                 "{ foos(order_by: {bar: DESC}) { nodes { bar } } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.Equal("bb", x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("aa", x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_Root_Filtering_OfNotSelectedField()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseSelection()
+                        .UseFiltering()
+                        .UseSorting())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                 "{ foos(where: {bar: \"aa\"}) { nodes { id } } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_Root_Sorting_OfNotSelectedField()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseSelection()
+                        .UseFiltering()
+                        .UseSorting())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                 "{ foos(order_by: {id: DESC}) { nodes { bar } } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.NotNull(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.NotNull(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_Paging()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                 "{ foos { nodes { bar} totalCount pageInfo {startCursor}}}");
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.Equal("aa", x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("bb", x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_Paging_OnlyMeta()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            Connection<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Connection<Foo>;
+                        })
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            var result = executor.Execute("{ foos { totalCount pageInfo {startCursor}}}")
+                    as IReadOnlyQueryResult;
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Empty(result.Errors);
+
+            var foosResult = result.Data["foos"] as IDictionary<string, object>;
+            Assert.NotNull(foosResult);
+            Assert.Equal(2, foosResult["totalCount"]);
+
+            var pageInfoResult = foosResult["pageInfo"] as IDictionary<string, object>;
+            Assert.NotNull(pageInfoResult);
+            Assert.Equal("eyJfX3RvdGFsQ291bnQiOjIsIl9fcG9zaXRpb24iOjB9",
+                pageInfoResult["startCursor"]);
+
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.Edges.ToArray(),
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Null(x.Node.Bar);
+                    Assert.Equal(0, x.Node.Baz);
+                    Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
+                });
+        }
+
+        [Fact]
         public virtual void Execute_Selection_Object_Paging_Nodes()
         {
             // arrange
@@ -1014,6 +1362,9 @@ namespace HotChocolate.Types.Selections
             [UseFiltering]
             [UseSorting]
             public List<NestedFoo> MiddlewareList { get; set; }
+
+            public IEnumerable<string> GetShouldNotVisit()
+                => new string[] { "should not visit" };
 
             public static Foo Create(string bar, int baz)
             {
