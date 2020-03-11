@@ -14,6 +14,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public class DocumentAnalyzer
     {
+        private UnionTypeSelectionSetAnalyzer _unionTypeSelectionSetAnalyzer =
+            new UnionTypeSelectionSetAnalyzer();
         private InterfaceTypeSelectionSetAnalyzer _interfaceTypeSelectionSetAnalyzer =
             new InterfaceTypeSelectionSetAnalyzer();
         private ObjectTypeSelectionSetAnalyzer _objectTypeSelectionSetAnalyzer =
@@ -55,8 +57,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             throw new NotImplementedException();
         }
 
-        private void CollectOutputTypes(FieldCollector fieldCollector, DocumentNode document)
+        private void CollectOutputTypes(IDocumentAnalyzerContext context, DocumentNode document)
         {
+            context.SetDocument(document);
+
             var backlog = new Queue<FieldSelection>();
 
             foreach (OperationDefinitionNode operation in
@@ -78,8 +82,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     if (!current.Field.Type.NamedType().IsLeafType())
                     {
                         GenerateFieldSelectionSet(
-                            operation, current.Field.Type,
-                            current.Selection, path, backlog);
+                            context, operation, current.Selection,
+                            current.Field.Type, path, backlog);
                     }
                 }
 
@@ -110,13 +114,13 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (namedType is UnionType unionType)
             {
-                _unionModelGenerator.Generate(
-                    _context,
+                _unionTypeSelectionSetAnalyzer.Analyze(
+                    context,
                     operation,
-                    unionType,
-                    fieldType,
                     fieldSelection,
                     possibleSelections,
+                    fieldType,
+                    unionType,
                     path);
             }
             else if (namedType is InterfaceType interfaceType)
@@ -158,11 +162,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         private static void CollectEnumTypes(
-            ISchema schema,
-            IReadOnlyList<DocumentNode> documents,
-            ICollection<ITypeModel> types)
+            IDocumentAnalyzerContext context,
+            IReadOnlyList<DocumentNode> documents)
         {
-            var analyzer = new EnumTypeUsageAnalyzer(schema);
+            var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
 
             foreach (DocumentNode document in documents)
             {
@@ -193,7 +196,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 SerializationTypeDirective? serializationType =
                     enumType.Directives.SingleOrDefault<SerializationTypeDirective>();
 
-                types.Add(new EnumTypeModel(
+                context.Register(new EnumTypeModel(
                     Utilities.NameUtils.GetClassName(rename?.Name ?? enumType.Name),
                     enumType.Description,
                     enumType,
@@ -202,7 +205,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
-        private void CollectInputObjectTypes(
+        private static void CollectInputObjectTypes(
             IDocumentAnalyzerContext context,
             IReadOnlyList<DocumentNode> documents)
         {

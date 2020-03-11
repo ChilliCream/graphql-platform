@@ -24,6 +24,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             SelectionSetNode selectionSet,
             Path path);
 
+        void SetDocument(DocumentNode document);
+
         void Register(ComplexOutputTypeModel type, bool update = false);
 
         void Register(ComplexInputTypeModel type);

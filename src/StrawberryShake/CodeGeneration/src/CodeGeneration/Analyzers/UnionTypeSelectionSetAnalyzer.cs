@@ -3,13 +3,14 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
-    internal class InterfaceTypeSelectionSetAnalyzer
-        : SelectionSetAnalyzerBase<InterfaceType>
+    internal class UnionTypeSelectionSetAnalyzer
+        : SelectionSetAnalyzerBase<UnionType>
     {
         public override void Analyze(
             IDocumentAnalyzerContext context,
@@ -17,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FieldNode fieldSelection,
             PossibleSelections possibleSelections,
             IType fieldType,
-            InterfaceType namedType,
+            UnionType namedType,
             Path path)
         {
             IFragmentNode returnTypeFragment =
@@ -37,7 +38,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 operation,
                 fieldSelection,
                 possibleSelections,
-                returnTypeFragment,
                 returnType,
                 path);
         }
@@ -47,46 +47,26 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             OperationDefinitionNode operation,
             FieldNode fieldSelection,
             PossibleSelections possibleSelections,
-            IFragmentNode returnTypeFragment,
             ComplexOutputTypeModel returnType,
             Path path)
         {
             IReadOnlyCollection<SelectionInfo> selections = possibleSelections.Variants;
 
-            if (selections.Count == 1)
-            {
-                ComplexOutputTypeModel modelType = CreateClassModel(
+            IReadOnlyList<ComplexOutputTypeModel> modelTypes =
+                CreateClassModels(
                     context,
-                    returnTypeFragment,
                     returnType,
-                    selections.Single());
-
-                CreateFieldParserModel(
-                    context,
-                    operation,
                     fieldSelection,
-                    path,
-                    returnType,
-                    modelType);
-            }
-            else
-            {
-                IReadOnlyList<ComplexOutputTypeModel> modelTypes =
-                    CreateClassModels(
-                        context,
-                        returnType,
-                        fieldSelection,
-                        selections,
-                        path);
+                    selections,
+                    path);
 
-                CreateFieldParserModel(
-                    context,
-                    operation,
-                    fieldSelection,
-                    path,
-                    returnType,
-                    modelTypes);
-            }
+            CreateFieldParserModel(
+                context,
+                operation,
+                fieldSelection,
+                path,
+                returnType,
+                modelTypes);
         }
     }
 }
