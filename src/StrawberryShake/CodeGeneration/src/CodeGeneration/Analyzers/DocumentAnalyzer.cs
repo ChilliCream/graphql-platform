@@ -29,7 +29,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return this;
         }
 
-        public IDocumentModel Analyze()
+        public IClientModel Analyze()
         {
             if (_schema is null)
             {
