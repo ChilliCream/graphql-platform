@@ -108,7 +108,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntArgumentIsInferedAsNonNullType()
+        public void IntArgumentIsInferredAsNonNullType()
         {
             // arrange
             // act
@@ -153,7 +153,7 @@ namespace HotChocolate.Types
 
         [Obsolete]
         [Fact]
-        public void DeprecationReasion_Obsolete()
+        public void DeprecationReason_Obsolete()
         {
             // arrange
             var resolverContext = new Mock<IMiddlewareContext>();
@@ -1185,8 +1185,7 @@ namespace HotChocolate.Types
                 b => b.AddType(new InterfaceType<IFoo>()));
 
             // assert
-            Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces.Values.First());
+            Assert.IsType<InterfaceType<IFoo>>(fooType.Interfaces[0]);
         }
 
         [Fact]
@@ -1301,7 +1300,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Argument_Type_IsInfered_From_Parameter()
+        public void Argument_Type_IsInferred_From_Parameter()
         {
             // arrange
             // act

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -19,9 +18,8 @@ namespace HotChocolate.Types
         , IHasClrType
         , IHasSyntaxNode
     {
-        private readonly Dictionary<NameString, InterfaceType> _interfaces =
-            new Dictionary<NameString, InterfaceType>();
-        private readonly Action<IObjectTypeDescriptor> _configure;
+        private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
+        private Action<IObjectTypeDescriptor> _configure;
         private IsOfType _isOfType;
 
         protected ObjectType()
@@ -40,17 +38,20 @@ namespace HotChocolate.Types
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
-        public IReadOnlyDictionary<NameString, InterfaceType> Interfaces =>
-            _interfaces;
+        public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
-        public bool IsOfType(IResolverContext context, object resolverResult)
-            => _isOfType(context, resolverResult);
+        public bool IsOfType(IResolverContext context, object resolverResult) =>
+            _isOfType(context, resolverResult);
 
-        #region Initialization
+        public bool IsAssignableFrom(NameString interfaceTypeName) =>
+            _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
+
+        public bool IsAssignableFrom(InterfaceType interfaceType) =>
+            _interfaces.Contains(interfaceType);
 
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -59,6 +60,7 @@ namespace HotChocolate.Types
                 context.DescriptorContext,
                 GetType());
             _configure(descriptor);
+            _configure = null;
             return descriptor.CreateDefinition();
         }
 
@@ -129,14 +131,16 @@ namespace HotChocolate.Types
         {
             if (ClrType != typeof(object))
             {
-                foreach (Type interfaceType in ClrType.GetInterfaces())
+                TryInferInterfaceUsageFromClrType(context, ClrType);
+            }
+
+            if (definition.KnownClrTypes.Count > 0)
+            {
+                definition.KnownClrTypes.Remove(typeof(object));
+
+                foreach (Type clrType in definition.KnownClrTypes.Distinct())
                 {
-                    if (context.TryGetType(
-                        new ClrTypeReference(interfaceType, TypeContext.Output),
-                        out InterfaceType type))
-                    {
-                        _interfaces[type.Name] = type;
-                    }
+                    TryInferInterfaceUsageFromClrType(context, clrType);
                 }
             }
 
@@ -153,7 +157,26 @@ namespace HotChocolate.Types
                         .Build());
                 }
 
-                _interfaces[type.Name] = type;
+                if (!_interfaces.Contains(type))
+                {
+                    _interfaces.Add(type);
+                }
+            }
+        }
+
+        private void TryInferInterfaceUsageFromClrType(
+           ICompletionContext context,
+           Type clrType)
+        {
+            foreach (Type interfaceType in clrType.GetInterfaces())
+            {
+                if (context.TryGetType(
+                    new ClrTypeReference(interfaceType, TypeContext.Output),
+                    out InterfaceType type)
+                    && !_interfaces.Contains(type))
+                {
+                    _interfaces.Add(type);
+                }
             }
         }
 
@@ -230,6 +253,5 @@ namespace HotChocolate.Types
             Type type = result.GetType();
             return Name.Equals(type.Name);
         }
-        #endregion
     }
 }
