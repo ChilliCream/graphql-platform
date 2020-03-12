@@ -329,6 +329,85 @@ namespace HotChocolate.Types
             results.MatchSnapshot(new SnapshotNameExtension(field));
         }
 
+        [Fact]
+        public async Task SubscribeAndResolveAttribute()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<WithSubscribeAndResolve>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onFoo }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SubscribeAttribute()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<WithSubscribe>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onFoo }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        public class WithSubscribeAndResolve
+        {
+            [SubscribeAndResolve]
+            public IEnumerable<string> OnFoo()
+            {
+                yield return "a";
+                yield return "b";
+                yield return "c";
+            }
+        }
+
+        public class WithSubscribe
+        {
+            [Subscribe(nameof(OnFoo))]
+            public IEnumerable<string> SubscribeOnFoo()
+            {
+                yield return "a";
+                yield return "b";
+                yield return "c";
+            }
+
+            public string OnFoo([EventMessage]string s)
+            {
+                return s;
+            }
+        }
+
         public class TestObservable
             : IObservable<string>
             , IDisposable
@@ -374,7 +453,7 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstAsyncEnumerable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public async IAsyncEnumerable<string?> OnSomething()
             {
                 await Task.Delay(50);
@@ -383,20 +462,20 @@ namespace HotChocolate.Types
                 yield return "c";
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IAsyncEnumerable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IAsyncEnumerable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IAsyncEnumerable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IAsyncEnumerable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public async IAsyncEnumerable<object?> OnSomethingObj()
             {
                 await Task.Delay(50);
@@ -406,14 +485,14 @@ namespace HotChocolate.Types
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IAsyncEnumerable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IAsyncEnumerable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IAsyncEnumerable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IAsyncEnumerable<object?>>(OnSomethingObj());
@@ -422,7 +501,7 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstEnumerable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public IEnumerable<string?> OnSomething()
             {
                 yield return "a";
@@ -430,20 +509,20 @@ namespace HotChocolate.Types
                 yield return "c";
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IEnumerable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IEnumerable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IEnumerable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IEnumerable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IEnumerable<object?> OnSomethingObj()
             {
                 yield return "a";
@@ -452,14 +531,14 @@ namespace HotChocolate.Types
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IEnumerable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IEnumerable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IEnumerable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IEnumerable<object?>>(OnSomethingObj());
@@ -475,34 +554,34 @@ namespace HotChocolate.Types
                 "c"
             };
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public IQueryable<string?> OnSomething() => _strings.AsQueryable();
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IQueryable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IQueryable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IQueryable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IQueryable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IQueryable<object?> OnSomethingObj() => _strings.Cast<object>().AsQueryable();
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IQueryable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IQueryable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IQueryable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IQueryable<object?>>(OnSomethingObj());
@@ -511,34 +590,34 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstObservable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public IObservable<string?> OnSomething() => new StringObservable();
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IObservable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IObservable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IObservable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IObservable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IObservable<object?> OnSomethingObj() => new StringObservable();
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IObservable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IObservable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IObservable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IObservable<object?>>(OnSomethingObj());
