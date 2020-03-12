@@ -77,6 +77,16 @@ namespace HotChocolate.Execution
             return this;
         }
 
+        public IQueryRequestBuilder TrySetServices(
+            IServiceProvider services)
+        {
+            if (_services is null)
+            {
+                _services = services;
+            }
+            return this;
+        }
+
         public IQueryRequestBuilder SetVariableValues(
             Dictionary<string, object> variableValues) =>
             SetVariableValues((IDictionary<string, object>)variableValues);
