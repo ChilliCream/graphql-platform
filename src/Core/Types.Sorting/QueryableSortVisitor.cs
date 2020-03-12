@@ -33,30 +33,34 @@ namespace HotChocolate.Types.Sorting
         public IQueryable<TSource> Sort<TSource>(
             IQueryable<TSource> source)
         {
-            if (!Instance.Any())
+            if (Instance.Count == 0)
+            {
+                return source;
+            }
+            return source.Provider.CreateQuery<TSource>(Compile(source.Expression));
+        }
+
+        public Expression Compile(
+            Expression source)
+        {
+            if (Instance.Count == 0)
             {
                 return source;
             }
 
-            IOrderedQueryable<TSource> sortedSource;
-            if (!OrderingMethodFinder.OrderMethodExists(source.Expression))
+            if (!OrderingMethodFinder.OrderMethodExists(source))
             {
-                sortedSource = source.AddInitialSortOperation(
+                source = source.CompileInitialSortOperation(
                     Instance.Dequeue(), _parameter);
             }
-            else
-            {
-                sortedSource = (IOrderedQueryable<TSource>)source;
-            }
 
-            while (Instance.Any())
+            while (Instance.Count != 0)
             {
-                sortedSource
-                    = sortedSource.AddSortOperation(
+                source = source.CompileSortOperation(
                         Instance.Dequeue(), _parameter);
             }
 
-            return sortedSource;
+            return source;
         }
 
         #region Object Value

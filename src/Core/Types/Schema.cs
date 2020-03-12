@@ -127,7 +127,7 @@ namespace HotChocolate
 
             if (_types.TryGetPossibleTypes(
                 abstractType.Name,
-                out ImmutableList<ObjectType> types))
+                out IReadOnlyList<ObjectType> types))
             {
                 return types;
             }

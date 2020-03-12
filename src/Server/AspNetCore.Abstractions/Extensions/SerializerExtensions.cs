@@ -17,7 +17,7 @@ namespace HotChocolate.AspNetCore
 {
     public static class SerializerExtensions
     {
-        public static Task SerializeAsync(
+        public static ValueTask SerializeAsync(
             this IQueryResultSerializer serializer,
             IExecutionResult result,
             Stream outputStream,

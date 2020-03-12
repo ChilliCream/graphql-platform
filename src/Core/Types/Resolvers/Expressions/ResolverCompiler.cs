@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -29,12 +28,8 @@ namespace HotChocolate.Resolvers.Expressions
         protected ResolverCompiler(
             IEnumerable<IResolverParameterCompiler> compilers)
         {
-            if (compilers == null)
-            {
+            _compilers = compilers?.ToArray() ??
                 throw new ArgumentNullException(nameof(compilers));
-            }
-
-            _compilers = compilers.ToArray();
             _context = Expression.Parameter(typeof(IResolverContext));
         }
 

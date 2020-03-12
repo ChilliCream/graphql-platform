@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Sorting
     public class QueryableExtensionsTests
     {
         [Fact]
-        public void AddInitialSortOperation_AscOnIQueryable_ShouldAddOrderBy()
+        public void CompileInitialSortOperation_AscOnIQueryable_ShouldAddOrderBy()
         {
             // arrange
             IQueryable<Foo> source = new Foo[0].AsQueryable();
@@ -17,17 +17,19 @@ namespace HotChocolate.Types.Sorting
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
-            IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
+            Expression sortExpression = source.Expression.CompileInitialSortOperation(
                 operation,
                 parameter
             );
+            IQueryable<Foo> sorted =
+                source.Provider.CreateQuery<Foo>(sortExpression);
 
             // assert
             Assert.Equal(source.OrderBy(s => s.Bar), sorted);
         }
 
         [Fact]
-        public void AddInitialSortOperation_DescOnIQueryable_ShouldAddOrderBy()
+        public void CompileInitialSortOperation_DescOnIQueryable_ShouldAddOrderBy()
         {
             // arrange
             IQueryable<Foo> source = new Foo[0].AsQueryable();
@@ -37,17 +39,19 @@ namespace HotChocolate.Types.Sorting
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
-            IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
+            Expression sortExpression = source.Expression.CompileInitialSortOperation(
                 operation,
                 parameter
             );
+            IQueryable<Foo> sorted =
+                source.Provider.CreateQuery<Foo>(sortExpression);
 
             // assert
             Assert.Equal(source.OrderByDescending(s => s.Bar), sorted);
         }
 
         [Fact]
-        public void AddSortOperation_AscOnIOrderedQueryable_ShouldAddThenBy()
+        public void CompileSortOperation_AscOnIOrderedQueryable_ShouldAddThenBy()
         {
             // arrange
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
@@ -57,17 +61,20 @@ namespace HotChocolate.Types.Sorting
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
-            IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
+            Expression sortExpression = source.Expression.CompileSortOperation(
                 operation,
                 parameter
             );
+
+            IQueryable<Foo> sorted =
+                source.Provider.CreateQuery<Foo>(sortExpression);
 
             // assert
             Assert.Equal(source.ThenBy(s => s.Bar), sorted);
         }
 
         [Fact]
-        public void AddSortOperation_DescOnIOrderedQueryable_ShouldAddThenByDescending()
+        public void CompileSortOperation_DescOnIOrderedQueryable_ShouldAddThenByDescending()
         {
             // arrange
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
@@ -77,10 +84,12 @@ namespace HotChocolate.Types.Sorting
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
-            IOrderedQueryable<Foo> sorted = source.AddInitialSortOperation(
+            Expression sortExpression = source.Expression.CompileSortOperation(
                 operation,
                 parameter
             );
+            IQueryable<Foo> sorted =
+                source.Provider.CreateQuery<Foo>(sortExpression);
 
             // assert
             Assert.Equal(source.ThenByDescending(s => s.Bar), sorted);

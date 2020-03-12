@@ -22,14 +22,6 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <PackageReference Include="Newtonsoft.Json" Version="6.0.4" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\Language\Language.csproj" />
