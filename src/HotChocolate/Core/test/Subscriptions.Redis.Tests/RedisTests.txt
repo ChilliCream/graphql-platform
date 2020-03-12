@@ -35,7 +35,8 @@ namespace HotChocolate.Subscriptions.Redis
                     Guid.NewGuid().ToString());
 
                 // act
-                IEventStream consumer = await _registry.SubscribeAsync(eventDescription);
+                IEventStream consumer = await _registry
+                    .SubscribeAsync(eventDescription);
                 var outgoing = new EventMessage(eventDescription, "bar");
                 await _sender.SendAsync(outgoing);
 

@@ -1,8 +1,10 @@
-﻿using HotChocolate.Language;
+﻿using System;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete]
     public class EventDescriptionTests
     {
         [Fact]
@@ -44,23 +46,6 @@ namespace HotChocolate.Subscriptions
 
             var b = new EventDescription("event",
                 new ArgumentNode("foo", new StringValueNode("bar")));
-
-            // act
-            bool result = a.Equals(b);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void EventDescription_Equals_True_2()
-        {
-            // arrange
-            var a = new EventDescription("event",
-                new ArgumentNode("foo", new IntValueNode(123)));
-
-            var b = new EventDescription("event",
-                new ArgumentNode("foo", new IntValueNode(123L)));
 
             // act
             bool result = a.Equals(b);

@@ -9,6 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Subscriptions
 {
+    [Obsolete]
     public class SubscriptionTests
     {
         [Fact]
