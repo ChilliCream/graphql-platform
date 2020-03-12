@@ -11,7 +11,7 @@ using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 namespace HotChocolate.Types
 {
-    public sealed class SubscribeAttribute
+    public sealed class SubscribeAndResolveAttribute
         : ObjectFieldDescriptorAttribute
     {
         public override void OnConfigure(

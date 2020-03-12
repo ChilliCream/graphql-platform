@@ -160,7 +160,7 @@ namespace HotChocolate.Subscriptions
 
         public class SubscriptionRoot
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public async Task<IAsyncEnumerable<string>> OnFooAsync(
                 [Service]IEventTopicObserver eventTopicObserver,
                 CancellationToken cancellationToken)
@@ -169,7 +169,7 @@ namespace HotChocolate.Subscriptions
                     "foo", cancellationToken);
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public async Task<IAsyncEnumerable<string>> OnBarAsync(
                 string topic,
                 [Service]IEventTopicObserver eventTopicObserver,
