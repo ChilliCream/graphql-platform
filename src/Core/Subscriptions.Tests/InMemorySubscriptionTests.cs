@@ -150,7 +150,7 @@ namespace HotChocolate.Subscriptions
         {
             public async Task<string> FooAsync(
                 string a,
-                [Service]IEventDispatcher eventDispatcher,
+                [Service]ITopicEventSender eventDispatcher,
                 CancellationToken cancellationToken)
             {
                 await eventDispatcher.SendAsync("foo", a);
@@ -162,7 +162,7 @@ namespace HotChocolate.Subscriptions
         {
             [SubscribeAndResolve]
             public async Task<IAsyncEnumerable<string>> OnFooAsync(
-                [Service]IEventTopicObserver eventTopicObserver,
+                [Service]ITopicEventReceiver eventTopicObserver,
                 CancellationToken cancellationToken)
             {
                 return await eventTopicObserver.SubscribeAsync<string, string>(
@@ -172,7 +172,7 @@ namespace HotChocolate.Subscriptions
             [SubscribeAndResolve]
             public async Task<IAsyncEnumerable<string>> OnBarAsync(
                 string topic,
-                [Service]IEventTopicObserver eventTopicObserver,
+                [Service]ITopicEventReceiver eventTopicObserver,
                 CancellationToken cancellationToken)
             {
                 return await eventTopicObserver.SubscribeAsync<string, string>(
