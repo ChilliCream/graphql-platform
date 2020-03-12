@@ -4,7 +4,8 @@ using System;
 
 namespace HotChocolate.Types
 {
-    public class SubscribeAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property)]
+    public sealed class SubscribeAttribute : Attribute
     {
         public SubscribeAttribute(string resolverName)
         {
