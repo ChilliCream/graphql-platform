@@ -36,6 +36,6 @@ namespace HotChocolate.Types
 
         IDirectiveArgumentDescriptor DefaultValue(object value);
 
-        IDirectiveArgumentDescriptor Ignore();
+        IDirectiveArgumentDescriptor Ignore(bool ignore = true);
     }
 }

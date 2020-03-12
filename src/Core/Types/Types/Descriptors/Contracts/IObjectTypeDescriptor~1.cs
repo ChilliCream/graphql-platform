@@ -174,6 +174,4 @@ namespace HotChocolate.Types
             NameString name,
             params ArgumentNode[] arguments);
     }
-
-
 }
