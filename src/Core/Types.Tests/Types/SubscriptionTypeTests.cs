@@ -329,6 +329,85 @@ namespace HotChocolate.Types
             results.MatchSnapshot(new SnapshotNameExtension(field));
         }
 
+        [Fact]
+        public async Task SubscribeAndResolveAttribute()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<WithSubscribeAndResolve>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onFoo }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SubscribeAttribute()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddSubscriptionType<WithSubscribe>()
+                .ModifyOptions(t => t.StrictValidation = false)
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onFoo }", cts.Token);
+
+            var results = new List<IReadOnlyQueryResult>();
+            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            {
+                results.Add(result);
+            }
+
+            results.MatchSnapshot();
+        }
+
+        public class WithSubscribeAndResolve
+        {
+            [SubscribeAndResolve]
+            public IEnumerable<string> OnFoo()
+            {
+                yield return "a";
+                yield return "b";
+                yield return "c";
+            }
+        }
+
+        public class WithSubscribe
+        {
+            [Subscribe(nameof(OnFoo))]
+            public IEnumerable<string> SubscribeOnFoo()
+            {
+                yield return "a";
+                yield return "b";
+                yield return "c";
+            }
+
+            public string OnFoo([EventMessage]string s)
+            {
+                return s;
+            }
+        }
+
         public class TestObservable
             : IObservable<string>
             , IDisposable
