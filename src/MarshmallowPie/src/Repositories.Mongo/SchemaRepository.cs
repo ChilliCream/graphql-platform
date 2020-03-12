@@ -270,23 +270,34 @@ namespace MarshmallowPie.Repositories.Mongo
             SchemaPublishReport publishReport,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                await _publishReports.ReplaceOneAsync(
-                    Builders<SchemaPublishReport>.Filter.Eq(t => t.Id, publishReport.Id),
-                    publishReport,
-                    options: new ReplaceOptions { IsUpsert = true },
+            UpdateResult result = await _publishReports.UpdateOneAsync(
+                Builders<SchemaPublishReport>.Filter.And(
+                    Builders<SchemaPublishReport>.Filter.Eq(
+                        t => t.EnvironmentId,
+                        publishReport.EnvironmentId),
+                    Builders<SchemaPublishReport>.Filter.Eq(
+                        t => t.SchemaVersionId,
+                        publishReport.SchemaVersionId)),
+                Builders<SchemaPublishReport>.Update.Combine(
+                    Builders<SchemaPublishReport>.Update.SetOnInsert(
+                        t => t.Id, publishReport.Id),
+                    Builders<SchemaPublishReport>.Update.SetOnInsert(
+                        t => t.EnvironmentId, publishReport.EnvironmentId),
+                    Builders<SchemaPublishReport>.Update.SetOnInsert(
+                        t => t.SchemaVersionId, publishReport.SchemaVersionId),
+                    Builders<SchemaPublishReport>.Update.Set(
+                        t => t.Issues, publishReport.Issues),
+                    Builders<SchemaPublishReport>.Update.Set(
+                        t => t.Published, publishReport.Published),
+                    Builders<SchemaPublishReport>.Update.Set(
+                        t => t.State, publishReport.State)),
+                    options: new UpdateOptions { IsUpsert = true },
                     cancellationToken)
                     .ConfigureAwait(false);
-            }
-            catch (MongoWriteException ex)
-            when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+
+            if (!result.IsUpserted(publishReport.Id))
             {
-                // TODO : resources
-                throw new DuplicateKeyException(
-                    "A schema publish report was already created for the specified " +
-                    "schema version and environment.",
-                    ex);
+                throw new RepositoryException("The schema publish report was not updated.");
             }
         }
 
@@ -311,29 +322,34 @@ namespace MarshmallowPie.Repositories.Mongo
         }
 
         public async Task SetPublishedSchemaAsync(
-            PublishedSchema publishedClient,
+            PublishedSchema publishedSchema,
             CancellationToken cancellationToken = default)
         {
-            await _publishedSchemas.UpdateOneAsync(
+            UpdateResult result = await _publishedSchemas.UpdateOneAsync(
                 Builders<PublishedSchema>.Filter.And(
                     Builders<PublishedSchema>.Filter.Eq(
                         t => t.EnvironmentId,
-                        publishedClient.EnvironmentId),
+                        publishedSchema.EnvironmentId),
                     Builders<PublishedSchema>.Filter.Eq(
                         t => t.SchemaId,
-                        publishedClient.SchemaId)),
+                        publishedSchema.SchemaId)),
                 Builders<PublishedSchema>.Update.Combine(
                     Builders<PublishedSchema>.Update.SetOnInsert(
-                        t => t.EnvironmentId, publishedClient.EnvironmentId),
+                        t => t.EnvironmentId, publishedSchema.EnvironmentId),
                     Builders<PublishedSchema>.Update.SetOnInsert(
-                        t => t.SchemaId, publishedClient.SchemaId),
+                        t => t.SchemaId, publishedSchema.SchemaId),
                         Builders<PublishedSchema>.Update.Set(
-                        t => t.Id, publishedClient.Id),
+                        t => t.Id, publishedSchema.Id),
                     Builders<PublishedSchema>.Update.Set(
-                        t => t.SchemaVersionId, publishedClient.SchemaVersionId)),
+                        t => t.SchemaVersionId, publishedSchema.SchemaVersionId)),
                 new UpdateOptions { IsUpsert = true },
                 cancellationToken)
                 .ConfigureAwait(false);
+
+            if (!result.IsUpserted(publishedSchema.Id))
+            {
+                throw new RepositoryException("The published schema was not updated.");
+            }
         }
     }
 }

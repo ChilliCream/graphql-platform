@@ -8,6 +8,13 @@ namespace MarshmallowPie
 {
     public static class MongoServiceCollectionExtensions
     {
+        private static readonly MongoCollectionSettings _settings =
+            new MongoCollectionSettings
+            {
+                ReadConcern = ReadConcern.Majority,
+                WriteConcern = WriteConcern.WMajority.With(journal: true)
+            };
+
         public static IServiceCollection AddMongoRepositories(
             this IServiceCollection services,
             Func<IServiceProvider, IMongoDatabase> getMongoDatabase)
@@ -33,7 +40,7 @@ namespace MarshmallowPie
             Func<IServiceProvider, IMongoDatabase> getMongoDatabase)
         {
             return services.AddSingleton<IMongoCollection<T>>(sp =>
-                getMongoDatabase(sp).GetCollection<T>(typeof(T).Name));
+                getMongoDatabase(sp).GetCollection<T>(typeof(T).Name, _settings));
         }
     }
 }
