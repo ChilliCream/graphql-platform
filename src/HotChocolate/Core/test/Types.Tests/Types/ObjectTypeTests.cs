@@ -1661,7 +1661,7 @@ namespace HotChocolate.Types
                 .Use(next => context => Task.CompletedTask)
                 .Create();
 
-            schema.MatchSnapshot();
+            schema.ToString().MatchSnapshot();
         }
 
         public class GenericFoo<T>
