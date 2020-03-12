@@ -32,13 +32,14 @@ namespace HotChocolate.Types
 
                     if (rewritten is null)
                     {
-                        throw new SchemaException(SchemaErrorBuilder.New()
-                            .SetMessage(
-                                "The specified type `{0}` is not a valid subscription type.",
-                                clrTypeRef.Type.ToString())
-                            .SetExtension("ClrMember", member)
-                            .SetExtension("ClrType", member.DeclaringType)
-                            .Build());
+                        throw new SchemaException(
+                            SchemaErrorBuilder.New()
+                                .SetMessage(
+                                    "The specified type `{0}` is not a valid subscription type.",
+                                    clrTypeRef.Type.ToString())
+                                .SetExtension("ClrMember", member)
+                                .SetExtension("ClrType", member.DeclaringType)
+                                .Build());
                     }
 
                     typeReference = new ClrTypeReference(rewritten, TypeContext.Output);

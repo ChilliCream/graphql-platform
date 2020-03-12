@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
@@ -44,7 +46,28 @@ namespace HotChocolate.Types.Descriptors
                     handledMembers);
             }
 
+            BindSubscribeResolver(fields);
+
             base.OnCompleteFields(fields, handledMembers);
+        }
+
+        private void BindSubscribeResolver(IDictionary<NameString, ObjectFieldDefinition> fields)
+        {
+            foreach (var item in fields.ToList())
+            {
+                if (item.Value.Member is { }
+                    && item.Value.Member.IsDefined(typeof(SubscribeAttribute), true))
+                {
+                    SubscribeAttribute subscribe =
+                        item.Value.Member.GetCustomAttribute<SubscribeAttribute>(true);
+                    fields.Remove(item.Key);
+
+                    var field = fields.FirstOrDefault(t =>
+                        t.Value.Member.Name == subscribe.ResolverName);
+                    field.Value.SubscribeResolver = ResolverCompiler.Subscribe.Compile(
+                        item.Value.SourceType, item.Value.ResolverType, item.Value.Member);
+                }
+            }
         }
 
         public new IObjectTypeDescriptor<T> Name(NameString value)
