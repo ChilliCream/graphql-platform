@@ -307,9 +307,9 @@ namespace MarshmallowPie.Repositories.Mongo
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            if (result.ModifiedCount == 0)
+            if (!result.IsUpserted(publishReport.Id))
             {
-                throw new RepositoryException("The publish report was not updated.");
+                throw new RepositoryException("The client publish report was not updated.");
             }
         }
 
@@ -475,7 +475,7 @@ namespace MarshmallowPie.Repositories.Mongo
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            if (result.ModifiedCount == 0)
+            if (!result.IsUpserted(publishedClient.Id))
             {
                 throw new RepositoryException("The published client was not updated.");
             }
