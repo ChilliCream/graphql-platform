@@ -236,7 +236,9 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor Field(NameString name)
         {
             ObjectFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+                Fields.FirstOrDefault(t =>
+                    t.Definition.Name.Equals(name)
+                    && !t.Definition.Ignore);
             if (fieldDescriptor is { })
             {
                 return fieldDescriptor;
