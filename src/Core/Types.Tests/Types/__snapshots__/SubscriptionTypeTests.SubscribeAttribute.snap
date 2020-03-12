@@ -1,0 +1,26 @@
+﻿[
+  {
+    "Data": {
+      "onFoo": "a"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "onFoo": "b"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "onFoo": "c"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  }
+]

@@ -1513,6 +1513,18 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Combine_Subscribe_And_Resolve_Into_One_Field()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c.Name("Query"))
+                .AddSubscriptionType<SubscriptionWithSubscribe>()
+                .Use(next => context => Task.CompletedTask)
+                .Create();
+
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1665,6 +1677,20 @@ namespace HotChocolate.Types
             public string Field2(
                 [DefaultValue(null)]string a,
                 [DefaultValue("abc")]string b) => null;
+        }
+
+        public class SubscriptionWithSubscribe
+        {
+            [Subscribe(nameof(OnFoo))]
+            public IAsyncEnumerable<string> SubscribeToFoo()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string OnFoo()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

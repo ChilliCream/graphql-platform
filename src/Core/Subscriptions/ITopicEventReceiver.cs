@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 namespace HotChocolate.Subscriptions
 {
     /// <summary>
-    /// The <see cref="IEventTopicObserver" /> creates subscription to
-    /// a specific event topic and returns an <see cref="IEventStream{TMessage}" />
+    /// The <see cref="ITopicEventReceiver" /> creates subscriptions to
+    /// specific event topics and returns an <see cref="IEventStream{TMessage}" />
     /// which represents a stream of event message for the specified topic.
     /// </summary>
-    public interface IEventTopicObserver
+    public interface ITopicEventReceiver
     {
         /// <summary>
         /// Subscribes to the specified event <paramref name="topic" />.

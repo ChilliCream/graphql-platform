@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 namespace HotChocolate.Subscriptions
 {
     /// <summary>
-    /// The event dispatcher sends event messages to the pub/sub-system.
+    /// The topic event sender sends event messages to the pub/sub-system.
     /// Typically a mutation would use the event dispatcher to raise events
     /// after some changes were committed to the backend system.
     /// </summary>
-    public interface IEventDispatcher
+    public interface ITopicEventSender
     {
         /// <summary>
         /// Sends an event message to the pub/sub-system.

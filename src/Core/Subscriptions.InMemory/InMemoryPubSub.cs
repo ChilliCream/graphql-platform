@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace HotChocolate.Subscriptions.InMemory
 {
     public class InMemoryPubSub
-        : IEventTopicObserver
-        , IEventDispatcher
+        : ITopicEventReceiver
+        , ITopicEventSender
     {
         private readonly ConcurrentDictionary<object, IEventTopic> _topics =
             new ConcurrentDictionary<object, IEventTopic>();
