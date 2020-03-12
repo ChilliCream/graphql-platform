@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Introspection
         {
             if (type is ObjectType ot)
             {
-                return ot.Interfaces.Values;
+                return ot.Interfaces;
             }
             return null;
         }

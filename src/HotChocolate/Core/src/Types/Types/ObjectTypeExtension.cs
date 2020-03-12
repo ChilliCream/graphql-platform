@@ -57,6 +57,10 @@ namespace HotChocolate.Types
                     Definition.Directives,
                     objectType.Definition.Directives);
 
+                TypeExtensionHelper.MergeInterfaces(
+                    Definition,
+                    objectType.Definition);
+
                 TypeExtensionHelper.MergeObjectFields(
                     context,
                     objectType.Definition.ClrType,

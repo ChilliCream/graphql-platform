@@ -159,8 +159,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    var entry = directives
-                        .FirstOrDefault(t => t.type == directiveType);
+                    var entry = directives.FirstOrDefault(t => t.type == directiveType);
                     if (entry == default)
                     {
                         directives.Add((directiveType, directive));
@@ -180,11 +179,28 @@ namespace HotChocolate.Types
         {
             if (extension.ContextData.Count > 0)
             {
-                foreach (KeyValuePair<string, object> entry in
-                    extension.ContextData)
+                foreach (KeyValuePair<string, object> entry in extension.ContextData)
                 {
                     type.ContextData[entry.Key] = entry.Value;
                 }
+            }
+        }
+
+        public static void MergeInterfaces(
+            ObjectTypeDefinition extension,
+            ObjectTypeDefinition type)
+        {
+            if (extension.Interfaces.Count > 0)
+            {
+                foreach (var interfaceReference in extension.Interfaces)
+                {
+                    type.Interfaces.Add(interfaceReference);
+                }
+            }
+
+            if (extension.FieldBindingType != typeof(object))
+            {
+                type.KnownClrTypes.Add(extension.FieldBindingType);
             }
         }
 

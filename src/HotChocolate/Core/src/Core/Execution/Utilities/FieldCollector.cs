@@ -234,7 +234,7 @@ namespace HotChocolate.Execution
             }
             else if (typeCondition is InterfaceType it)
             {
-                return current.Interfaces.ContainsKey(it.Name);
+                return current.IsAssignableFrom(it);
             }
             else if (typeCondition is UnionType ut)
             {
