@@ -56,9 +56,12 @@ namespace HotChocolate.Execution
                 source,
                 new FieldData(1));
 
-            SubscribeResolverDelegate subscribeResolver =
-                fieldSelection.Field.SubscribeResolver
-                ?? DefaultSubscribeResolverAsync;
+            SubscribeResolverDelegate subscribeResolver = fieldSelection.Field.SubscribeResolver;
+
+            if (subscribeResolver is null)
+            {
+                throw new QueryException("The subscribe resolver is not configured.");
+            }
 
             try
             {
@@ -81,59 +84,6 @@ namespace HotChocolate.Execution
             finally
             {
                 ResolverContext.Return(subscribeContext);
-            }
-        }
-
-        private static async ValueTask<IAsyncEnumerable<object>> DefaultSubscribeResolverAsync(
-            IResolverContext resolverContext)
-        {
-            EventDescription eventDescription = CreateEvent(resolverContext);
-            IServiceProvider services = resolverContext.Service<IServiceProvider>();
-            IEventRegistry eventRegistry = services.GetService<IEventRegistry>();
-
-            if (eventRegistry == null)
-            {
-                throw new QueryException(
-                    ErrorBuilder.New()
-                        .SetMessage(CoreResources.SubscriptionExecutionStrategy_NoEventRegistry)
-                        .Build());
-            }
-
-            return await eventRegistry.SubscribeAsync(eventDescription);
-        }
-
-        private static EventDescription CreateEvent(
-            IResolverContext executionContext)
-        {
-            IReadOnlyList<IFieldSelection> selections =
-                executionContext.CollectFields(
-                    executionContext.RootType,
-                    executionContext.Operation.SelectionSet);
-
-            if (selections.Count == 1)
-            {
-                IFieldSelection selection = selections[0];
-                var arguments = new List<ArgumentNode>();
-                IVariableValueCollection variables = executionContext.Variables;
-
-                foreach (ArgumentNode argument in selection.Selection.Arguments)
-                {
-                    if (argument.Value is VariableNode v)
-                    {
-                        IValueNode value = variables.GetVariable<IValueNode>(v.Name.Value);
-                        arguments.Add(argument.WithValue(value));
-                    }
-                    else
-                    {
-                        arguments.Add(argument);
-                    }
-                }
-
-                return new EventDescription(selection.Field.Name, arguments);
-            }
-            else
-            {
-                throw new QueryException(CoreResources.Subscriptions_SingleRootField);
             }
         }
 

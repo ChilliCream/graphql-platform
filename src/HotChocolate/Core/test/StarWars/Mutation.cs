@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Subscriptions;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
@@ -27,7 +26,7 @@ namespace HotChocolate.StarWars
         public async Task<Review> CreateReview(
             Episode episode,
             Review review,
-            [Service]IEventSender eventSender)
+            [Service]IEventDispatcher eventDispatcher)
         {
             _repository.AddReview(episode, review);
             await eventSender.SendAsync(new OnReviewMessage(episode, review));
