@@ -80,6 +80,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 InputFieldDescriptor fieldDescriptor =
                     Fields.FirstOrDefault(t => t.Definition.Property == p);
+
                 if (fieldDescriptor is { })
                 {
                     return fieldDescriptor;
