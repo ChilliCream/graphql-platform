@@ -90,6 +90,7 @@ const Container = styled.footer<{ url: string }>`
   justify-content: flex-end;
   padding: 200px 20px 60px;
   min-height: 300px;
+  background-color: #fff;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;

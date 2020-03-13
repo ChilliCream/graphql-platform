@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { GetStartpageDataQuery } from "../../graphql-types";
 import BananaCakepop from "../components/images/banana-cakepop";
 import SEO from "../components/misc/seo";
-import Layout from "../components/structure/layout";
+import { Layout } from "../components/structure/layout";
 
 const IndexPage: FunctionComponent = () => {
   const data = useStaticQuery<GetStartpageDataQuery>(graphql`
@@ -54,11 +54,12 @@ export default IndexPage;
 
 const Intro = styled.section<{ url: string }>`
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 25px;
+  width: 100%;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;

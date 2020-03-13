@@ -7,6 +7,7 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     font-size: 12px;
     overflow: auto;
+    background-color: #ccc;
   }
 
   * {
@@ -36,5 +37,32 @@ export const GlobalStyle = createGlobalStyle`
 
   strong {
     font-weight: bold;
+  }
+
+  /**
+  * If you already use line highlighting
+  */
+
+  /* Adjust the position of the line numbers */
+  .gatsby-highlight pre[class*="language-"].line-numbers {
+    padding-left: 2.8em;
+  }
+
+  /**
+  * If you only want to use line numbering
+  */
+
+  .gatsby-highlight {
+    background-color: #fdf6e3;
+    border-radius: 0.3em;
+    margin: 0.5em 0;
+    padding: 1em;
+    overflow: auto;
+  }
+
+  .gatsby-highlight pre[class*="language-"].line-numbers {
+    padding: 0;
+    padding-left: 2.8em;
+    overflow: initial;
   }
 `;

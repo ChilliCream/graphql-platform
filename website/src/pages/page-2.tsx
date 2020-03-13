@@ -1,7 +1,7 @@
 import { Link } from "gatsby";
 import React, { FunctionComponent } from "react";
 import SEO from "../components/misc/seo";
-import Layout from "../components/structure/layout";
+import { Layout } from "../components/structure/layout";
 
 const SecondPage: FunctionComponent = () => (
   <Layout>
