@@ -3,6 +3,8 @@
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Class
+        | AttributeTargets.Struct
+        | AttributeTargets.Interface
         | AttributeTargets.Property
         | AttributeTargets.Method
         | AttributeTargets.Parameter
