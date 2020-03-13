@@ -416,7 +416,6 @@ namespace StrawberryShake.Generators
             File.WriteAllText(fileName, JsonSerializer.Serialize(persistedQueries));
         }
 
-
         private DocumentNode MergeSchema()
         {
             if (_schemas.Count == 1)
