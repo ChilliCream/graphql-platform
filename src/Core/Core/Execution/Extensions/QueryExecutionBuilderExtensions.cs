@@ -58,8 +58,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder
-                .UsePersistedQueryPipeline(new QueryExecutionOptions());
+            return builder.UsePersistedQueryPipeline(new QueryExecutionOptions());
         }
 
         public static IQueryExecutionBuilder UsePersistedQueryPipeline(
@@ -95,8 +94,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder
-                .UseActivePersistedQueryPipeline(new QueryExecutionOptions());
+            return builder.UseActivePersistedQueryPipeline(new QueryExecutionOptions());
         }
 
         public static IQueryExecutionBuilder UseActivePersistedQueryPipeline(
@@ -168,6 +166,7 @@ namespace HotChocolate.Execution
             builder
                 .RemoveService<DiagnosticListener>()
                 .RemoveService<DiagnosticSource>();
+
             builder.Services
                 .AddSingleton(listener)
                 .AddSingleton<DiagnosticSource>(listener)
@@ -584,7 +583,8 @@ namespace HotChocolate.Execution
                 .RemoveService<IInstrumentationOptionsAccessor>()
                 .RemoveService<IQueryCacheSizeOptionsAccessor>()
                 .RemoveService<IRequestTimeoutOptionsAccessor>()
-                .RemoveService<IValidateQueryOptionsAccessor>();
+                .RemoveService<IValidateQueryOptionsAccessor>()
+                .RemoveService<IExecutionStrategyOptionsAccessor>();
             builder.Services.AddOptions(options);
 
             return builder;
@@ -610,7 +610,8 @@ namespace HotChocolate.Execution
                 .AddSingleton<IInstrumentationOptionsAccessor>(options)
                 .AddSingleton<IQueryCacheSizeOptionsAccessor>(options)
                 .AddSingleton<IRequestTimeoutOptionsAccessor>(options)
-                .AddSingleton<IValidateQueryOptionsAccessor>(options);
+                .AddSingleton<IValidateQueryOptionsAccessor>(options)
+                .AddSingleton<IExecutionStrategyOptionsAccessor>(options);
         }
 
         public static IQueryExecutionBuilder AddParser(

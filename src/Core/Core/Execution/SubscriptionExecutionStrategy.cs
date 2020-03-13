@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Properties;
-using HotChocolate.Subscriptions;
 using HotChocolate.Language;
-using System.Collections.Immutable;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
+using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Execution
 {
