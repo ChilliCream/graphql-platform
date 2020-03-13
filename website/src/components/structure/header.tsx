@@ -39,9 +39,6 @@ export const Header: FunctionComponent = () => {
           <LogoText />
         </LogoLink>
         <Navigation>
-          <HamburgerButton>
-            <HamburgerIcon />
-          </HamburgerButton>
           {topnav!.map((item, index) => (
             <NavLink key={`topnav-item-${index}`} to={item!.link!}>
               {item!.name}
