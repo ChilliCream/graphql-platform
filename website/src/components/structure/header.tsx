@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import { Link } from "../misc/link";
 
-import BarsSvg from "../../images/bars.svg";
 import GithubIconSvg from "../../images/github.svg";
 import LogoIconSvg from "../../images/chillicream.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
@@ -227,25 +226,6 @@ const SlackIcon = styled(SlackIconSvg)`
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
-  height: 22px;
-  fill: #fff;
-`;
-
-const HamburgerButton = styled.button`
-  > svg {
-    transition: fill 0.2s ease-in-out;
-  }
-
-  :hover > svg {
-    fill: #b7020a;
-  }
-
-  @media only screen and (min-width: 600px) {
-    display: none;
-  }
-`;
-
-const HamburgerIcon = styled(BarsSvg)`
   height: 22px;
   fill: #fff;
 `;
