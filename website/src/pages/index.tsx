@@ -233,7 +233,7 @@ const SlideDescription = styled.p`
 
 const Title = styled.h1`
   flex: 0 0 auto;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   font-size: 3em;
   text-align: center;
   color: #fff;
