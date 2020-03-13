@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishClientOperation
@@ -27,9 +27,9 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         public Optional<QueryFileFormat> Format { get; set; }
 
-        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.QueryFileInput>> Files { get; set; }
+        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.QueryFileInput>> Files { get; set; }
 
-        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.TagInput>?> Tags { get; set; }
+        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.TagInput>?> Tags { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {

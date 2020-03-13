@@ -313,7 +313,7 @@ namespace StrawberryShake.Generators
             }
 
             IDocumentHashProvider hashProvider = _hashProvider
-                ?? new MD5DocumentHashProvider();
+                ?? new MD5DocumentHashProvider(HashFormat.Hex);
             _namespace = _namespace ?? "StrawberryShake.Client";
 
             // create schema
@@ -386,7 +386,7 @@ namespace StrawberryShake.Generators
             }
 
             IDocumentHashProvider hashProvider = _hashProvider
-                ?? new MD5DocumentHashProvider();
+                ?? new MD5DocumentHashProvider(HashFormat.Hex);
             _namespace = _namespace ?? "StrawberryShake.Client";
 
             // create schema
@@ -415,7 +415,6 @@ namespace StrawberryShake.Generators
 
             File.WriteAllText(fileName, JsonSerializer.Serialize(persistedQueries));
         }
-
 
         private DocumentNode MergeSchema()
         {
