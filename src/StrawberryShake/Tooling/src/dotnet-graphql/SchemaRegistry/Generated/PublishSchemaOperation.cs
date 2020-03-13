@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishSchemaOperation
@@ -23,9 +23,9 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         public Optional<string> EnvironmentName { get; set; }
 
-        public Optional<string> SourceText { get; set; }
+        public Optional<string?> SourceText { get; set; }
 
-        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.TagInput>?> Tags { get; set; }
+        public Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.TagInput>?> Tags { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {

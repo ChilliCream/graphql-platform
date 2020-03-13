@@ -10,7 +10,11 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/src/dotnet-graphql/bin/Debug/netcoreapp3.1/dotnet-graphql.dll",
       "args": [
-
+        "generate",
+        "-p ${workspaceFolder}/src/dotnet-graphql/SchemaRegistry",
+        "-d",
+        "-l 8.0",
+        "-q file.json"
       ],
       "cwd": "${workspaceFolder}/src/dotnet-graphql",
       "console": "internalConsole",

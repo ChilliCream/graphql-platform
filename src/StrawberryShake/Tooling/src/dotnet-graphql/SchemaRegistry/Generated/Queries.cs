@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Queries
@@ -21,30 +21,38 @@ namespace StrawberryShake.Tools.SchemaRegistry
         };
         private readonly byte[] _hash = new byte[]
         {
-            98,
-            65,
-            98,
-            76,
-            113,
-            77,
-            122,
-            72,
-            108,
+            52,
+            101,
+            99,
             49,
-            47,
+            54,
+            57,
+            102,
+            50,
+            57,
+            102,
+            97,
+            56,
+            97,
+            98,
+            54,
             55,
-            117,
-            109,
-            43,
-            106,
-            113,
-            120,
-            111,
-            119,
-            111,
-            65,
-            61,
-            61
+            101,
+            99,
+            56,
+            100,
+            49,
+            53,
+            49,
+            102,
+            50,
+            100,
+            54,
+            55,
+            102,
+            57,
+            52,
+            53
         };
         private readonly byte[] _content = new byte[]
         {
@@ -161,7 +169,6 @@ namespace StrawberryShake.Tools.SchemaRegistry
             105,
             110,
             103,
-            33,
             44,
             32,
             36,
@@ -1686,7 +1693,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
         public static Queries Default { get; } = new Queries();
 
         public override string ToString() => 
-            @"mutation publishSchema($externalId: String!, $schemaName: String!, $environmentName: String!, $sourceText: String!, $tags: [TagInput!]) {
+            @"mutation publishSchema($externalId: String!, $schemaName: String!, $environmentName: String!, $sourceText: String, $tags: [TagInput!]) {
               publishSchema(input: { externalId: $externalId, schemaName: $schemaName, environmentName: $environmentName, sourceText: $sourceText, tags: $tags }) {
                 sessionId
               }

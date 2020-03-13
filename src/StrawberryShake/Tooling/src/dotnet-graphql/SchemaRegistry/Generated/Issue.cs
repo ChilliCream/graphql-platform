@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Issue
@@ -14,7 +14,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             string code, 
             string message, 
             string file, 
-            global::StrawberryShake.Tools.SchemaRegistry.ILocation location, 
+            global::StrawberryShake.ILocation location, 
             ResolutionType resolution)
         {
             Type = type;
@@ -33,7 +33,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         public string File { get; }
 
-        public global::StrawberryShake.Tools.SchemaRegistry.ILocation Location { get; }
+        public global::StrawberryShake.ILocation Location { get; }
 
         public ResolutionType Resolution { get; }
     }

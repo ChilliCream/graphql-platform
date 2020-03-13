@@ -8,7 +8,7 @@ using StrawberryShake.Http;
 using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnPublishDocumentResultParser
@@ -42,7 +42,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IPublishDocumentEvent ParseOnPublishDocumentOnPublishDocument(
+        private global::StrawberryShake.IPublishDocumentEvent ParseOnPublishDocumentOnPublishDocument(
             JsonElement parent,
             string field)
         {
@@ -55,7 +55,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             );
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IIssue? ParseOnPublishDocumentOnPublishDocumentIssue(
+        private global::StrawberryShake.IIssue? ParseOnPublishDocumentOnPublishDocumentIssue(
             JsonElement parent,
             string field)
         {
@@ -80,7 +80,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             );
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.ILocation ParseOnPublishDocumentOnPublishDocumentIssueLocation(
+        private global::StrawberryShake.ILocation ParseOnPublishDocumentOnPublishDocumentIssueLocation(
             JsonElement parent,
             string field)
         {

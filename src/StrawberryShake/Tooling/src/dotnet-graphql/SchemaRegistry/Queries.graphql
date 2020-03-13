@@ -2,7 +2,7 @@ mutation publishSchema(
   $externalId: String!
   $schemaName: String!
   $environmentName: String!
-  $sourceText: String!
+  $sourceText: String
   $tags: [TagInput!]
 ) {
   publishSchema(
