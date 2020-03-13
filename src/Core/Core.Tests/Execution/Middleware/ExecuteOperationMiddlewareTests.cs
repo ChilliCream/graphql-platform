@@ -86,7 +86,7 @@ namespace HotChocolate.Execution
             };
 
             var options = new QueryExecutionOptions();
-            var strategyResolver = new ExecutionStrategyResolver(options);
+            var strategyResolver = new ExecutionStrategyResolver(options, options);
 
             var diagnostics = new QueryExecutionDiagnostics(
                 new DiagnosticListener("Foo"),

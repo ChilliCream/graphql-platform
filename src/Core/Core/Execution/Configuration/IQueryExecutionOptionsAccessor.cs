@@ -12,5 +12,6 @@
         , IQueryCacheSizeOptionsAccessor
         , IRequestTimeoutOptionsAccessor
         , IValidateQueryOptionsAccessor
+        , IExecutionStrategyOptionsAccessor
     { }
 }

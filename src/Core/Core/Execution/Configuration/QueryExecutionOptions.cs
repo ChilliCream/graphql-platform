@@ -107,5 +107,10 @@ namespace HotChocolate.Execution.Configuration
         public TracingPreference TracingPreference { get; set; }
 
         public bool? UseComplexityMultipliers { get; set; }
+
+        /// <summary>
+        /// Defines that the query graph shall be traversed and execution serially.
+        /// </summary>
+        public bool? ForceSerialExecution { get; set; }
     }
 }
