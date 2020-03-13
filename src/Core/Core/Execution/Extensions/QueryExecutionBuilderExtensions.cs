@@ -583,7 +583,8 @@ namespace HotChocolate.Execution
                 .RemoveService<IInstrumentationOptionsAccessor>()
                 .RemoveService<IQueryCacheSizeOptionsAccessor>()
                 .RemoveService<IRequestTimeoutOptionsAccessor>()
-                .RemoveService<IValidateQueryOptionsAccessor>();
+                .RemoveService<IValidateQueryOptionsAccessor>()
+                .RemoveService<IExecutionStrategyOptionsAccessor>();
             builder.Services.AddOptions(options);
 
             return builder;
@@ -609,7 +610,8 @@ namespace HotChocolate.Execution
                 .AddSingleton<IInstrumentationOptionsAccessor>(options)
                 .AddSingleton<IQueryCacheSizeOptionsAccessor>(options)
                 .AddSingleton<IRequestTimeoutOptionsAccessor>(options)
-                .AddSingleton<IValidateQueryOptionsAccessor>(options);
+                .AddSingleton<IValidateQueryOptionsAccessor>(options)
+                .AddSingleton<IExecutionStrategyOptionsAccessor>(options);
         }
 
         public static IQueryExecutionBuilder AddParser(
