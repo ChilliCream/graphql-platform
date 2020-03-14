@@ -238,7 +238,6 @@ namespace HotChocolate.Types.Selections
             Snapshot.Match(schema.ToString(), "execute_single_overrides_schema");
         }
 
-
         [Fact]
         public virtual void Execute_Selection_Nested_Single()
         {
