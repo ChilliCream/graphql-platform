@@ -7,7 +7,7 @@ authorURL: https://github.com/michaelstaib
 authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Strawberry Shake](/img/blog/strawberry-shake-banner.svg)
+![Strawberry Shake](../images/blog/strawberry-shake-banner.png)
 
 We are busy, busy, busy working on version 11 of _Hot Chocolate_ and _Strawberry Shake_.
 

@@ -3,6 +3,7 @@ module.exports = {
     title: `ChilliCream GraphQL`,
     description: `...`,
     author: `@Chilli_Cream`,
+    baseUrl: `https://chillicream.com`,
     topnav: [
       {
         name: `Platform`,
@@ -73,7 +74,7 @@ module.exports = {
           {
             resolve: `gatsby-remark-images`,
             options: {
-              maxWidth: 600,
+              maxWidth: 1100,
             },
           },
         ],

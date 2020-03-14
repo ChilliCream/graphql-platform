@@ -4,20 +4,24 @@ import styled from "styled-components";
 
 interface BlogArticleProperties {
   author: string;
+  baseUrl: string;
   date: string;
   htmlContent: string;
+  path: string;
   title: string;
 }
 
 export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   author,
+  baseUrl,
   date,
   htmlContent,
+  path,
   title,
 }) => {
   const disqusConfig = {
-    // url: location.href,
-    // identifier: location.pathname,
+    url: baseUrl + path,
+    identifier: path,
     title: title,
   };
 
