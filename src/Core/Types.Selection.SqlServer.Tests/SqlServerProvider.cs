@@ -2,10 +2,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Squadron;
 
 namespace HotChocolate.Types.Selections
 {
@@ -17,38 +17,21 @@ namespace HotChocolate.Types.Selections
         private static readonly ConcurrentDictionary<object, object> _cache =
             new ConcurrentDictionary<object, object>();
 
-        private readonly SqlServerResource _resource;
-
-        public SqlServerProvider(SqlServerResource resource)
-        {
-            _resource = resource;
-        }
-
         public (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
             CreateResolver<TResult>(params TResult[] results)
                 where TResult : class
         {
-            if (_cache.GetOrAdd(results, (obj) => BuildResolver(results))
-                    is ValueTuple<IServiceCollection,
-                        Func<IResolverContext, IEnumerable<TResult>>> result)
-            {
-                return result;
-            }
-            throw new InvalidOperationException("Cache is in invalid state!");
+            return BuildResolver(results);
         }
 
         private (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
             BuildResolver<TResult>(params TResult[] results)
                 where TResult : class
         {
-            var dbContext = new DatabaseContext<TResult>(
-             _resource.CreateDatabaseAsync(
-                     $"CREATE DATABASE useSelection",
-                     $"useSelection")
-                 .GetAwaiter()
-                 .GetResult());
+            var dbContext = new DatabaseContext<TResult>();
+            dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
-            dbContext.Data.AddRange(results);
+            dbContext.AddRange(results);
             dbContext.SaveChanges();
 
             var services = new ServiceCollection();
@@ -60,19 +43,22 @@ namespace HotChocolate.Types.Selections
         private class DatabaseContext<TResult> : DbContext
             where TResult : class
         {
-            private readonly string _connectionString;
+            private static int counter = 0;
+            private SqliteConnection _connection;
 
-            public DatabaseContext(string connectionString)
+            public DatabaseContext()
             {
-                _connectionString = connectionString;
             }
 
             public DbSet<TResult> Data { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
+                _connection = new SqliteConnection("datasource=:memory:");
+                _connection.Open();
+
                 optionsBuilder
-                    .UseSqlServer(_connectionString)
+                    .UseSqlite(_connection)
                     .EnableSensitiveDataLogging()
                     .UseLoggerFactory(ConsoleLogger);
             }
