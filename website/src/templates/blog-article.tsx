@@ -10,7 +10,7 @@ interface BlogArticleTemplateProperties {
 }
 
 const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
-  data: { markdownRemark },
+  data: { markdownRemark, site },
 }) => {
   const { frontmatter, html } = markdownRemark!;
 
@@ -18,10 +18,12 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
     <Layout>
       <SEO title="Home" />
       <BlogArticle
-        title={frontmatter!.title!}
-        date={frontmatter!.date!}
         author={frontmatter!.author!}
+        baseUrl={site!.siteMetadata!.baseUrl!}
+        date={frontmatter!.date!}
         htmlContent={html!}
+        path={frontmatter!.path!}
+        title={frontmatter!.title!}
       />
     </Layout>
   );
@@ -38,6 +40,11 @@ export const pageQuery = graphql`
         date(formatString: "MMMM DD, YYYY")
         path
         title
+      }
+    }
+    site {
+      siteMetadata {
+        baseUrl
       }
     }
   }

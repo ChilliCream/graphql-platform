@@ -4,20 +4,24 @@ import styled from "styled-components";
 
 interface BlogArticleProperties {
   author: string;
+  baseUrl: string;
   date: string;
   htmlContent: string;
+  path: string;
   title: string;
 }
 
 export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   author,
+  baseUrl,
   date,
   htmlContent,
+  path,
   title,
 }) => {
   const disqusConfig = {
-    // url: location.href,
-    // identifier: location.pathname,
+    url: baseUrl + path,
+    identifier: path,
     title: title,
   };
 
@@ -48,13 +52,13 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.div`
-  margin: 10px 20px 0;
+  margin: 0 20px 20px;
   font-size: 0.875em;
   color: #bbb;
 `;
 
 const Content = styled.div`
-  margin: 20px 20px 40px;
+  margin: 0 20px 40px;
 
   > p {
     margin-bottom: 1em;

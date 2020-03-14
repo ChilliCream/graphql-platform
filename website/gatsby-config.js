@@ -3,14 +3,15 @@ module.exports = {
     title: `ChilliCream GraphQL`,
     description: `...`,
     author: `@Chilli_Cream`,
+    baseUrl: `https://chillicream.com`,
     topnav: [
       {
         name: `Platform`,
-        link: `/`,
+        link: `/platform`,
       },
       {
         name: `Docs`,
-        link: `/`,
+        link: `/docs`,
       },
       {
         name: `Blog`,
@@ -64,6 +65,7 @@ module.exports = {
       resolve: `gatsby-transformer-remark`,
       options: {
         plugins: [
+          `gatsby-remark-mermaid`,
           {
             resolve: `gatsby-remark-prismjs`,
             options: {
@@ -73,7 +75,7 @@ module.exports = {
           {
             resolve: `gatsby-remark-images`,
             options: {
-              maxWidth: 600,
+              maxWidth: 1100,
             },
           },
         ],
