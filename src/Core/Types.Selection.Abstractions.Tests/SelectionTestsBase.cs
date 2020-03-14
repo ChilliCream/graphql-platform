@@ -541,7 +541,8 @@ namespace HotChocolate.Types.Selections
 
             // assert
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            Assert.Collection(
+                resultCtx.AsEnumerable().OrderBy(x => x.ISet.First().Bar).ToArray(),
                 x =>
                 {
                     Assert.Null(x.Bar);
@@ -591,7 +592,8 @@ namespace HotChocolate.Types.Selections
 
             // assert
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            Assert.Collection(
+                resultCtx.AsEnumerable().OrderBy(x => x.HashSet.First().Bar).ToArray(),
                 x =>
                 {
                     Assert.Null(x.Bar);
@@ -641,7 +643,8 @@ namespace HotChocolate.Types.Selections
 
             // assert
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            Assert.Collection(
+                resultCtx.AsEnumerable().OrderBy(x => x.SortedSet.First().Bar).ToArray(),
                 x =>
                 {
                     Assert.Null(x.Bar);

@@ -14,8 +14,8 @@ namespace HotChocolate.Types.Selections
             IFieldSelection selection,
             Expression expression)
         {
-            if (context.FieldSelection.Field.Directives.Contains(
-                    SingleOrDefaultDirective.DIRECTIVE_NAME) &&
+            if (context.FieldSelection.Field.ContextData
+                    .ContainsKey("__SingleOrDefaultMiddleware") &&
                 context.FieldSelection.Field.Member is PropertyInfo propertyInfo)
             {
                 Type elementType = GetInnerListType(propertyInfo.PropertyType);

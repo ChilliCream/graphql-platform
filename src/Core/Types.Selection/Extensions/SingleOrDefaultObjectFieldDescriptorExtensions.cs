@@ -23,11 +23,12 @@ namespace HotChocolate.Types.Selections
             }
 
             descriptor
-                .Directive<SingleOrDefaultDirective>()
                 .Use(Placeholder)
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
+                    definition.ContextData["__SingleOrDefaultMiddleware"] = true;
+
                     if (!TypeInspector.Default.TryCreate(
                         definition.ResultType, out TypeInfo typeInfo))
                     {
