@@ -42,10 +42,11 @@ export const Footer: FunctionComponent = () => {
             <LogoText />
           </Logo>
           <Description>
-            We at ChilliCream build the next great GraphQL platform.
-            <br /> Most of our code is open-source and stays forever
-            open-source.
-            <br /> You can be part of it by helping us today.
+            We at ChilliCream build the ultimate GraphQL platform.
+            <br />
+            Most of our code is open-source and remains forever open-source.
+            <br />
+            You can be part of it by helping us starting today.
           </Description>
           <Connect>
             <ConnectLink to={tools!.github!}>
@@ -87,7 +88,7 @@ const Container = styled.footer<{ url: string }>`
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 200px 25px 60px;
+  padding: 200px 20px 60px;
   min-height: 300px;
   background-image: url("${props => props.url}");
   background-attachment: scroll;

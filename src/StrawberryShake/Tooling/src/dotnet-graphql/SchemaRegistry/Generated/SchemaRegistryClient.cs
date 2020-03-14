@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SchemaRegistryClient
@@ -22,12 +22,12 @@ namespace StrawberryShake.Tools.SchemaRegistry
             _streamExecutor = executorPool.CreateStreamExecutor(_clientName);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IPublishSchema>> PublishSchemaAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IPublishSchema>> PublishSchemaAsync(
             global::StrawberryShake.Optional<string> externalId = default,
             global::StrawberryShake.Optional<string> schemaName = default,
             global::StrawberryShake.Optional<string> environmentName = default,
-            global::StrawberryShake.Optional<string> sourceText = default,
-            global::StrawberryShake.Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.TagInput>?> tags = default,
+            global::StrawberryShake.Optional<string?> sourceText = default,
+            global::StrawberryShake.Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.TagInput>?> tags = default,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             if (externalId.HasValue && externalId.Value is null)
@@ -45,11 +45,6 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 throw new ArgumentNullException(nameof(environmentName));
             }
 
-            if (sourceText.HasValue && sourceText.Value is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
             return _executor.ExecuteAsync(
                 new PublishSchemaOperation
                 {
@@ -62,7 +57,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IPublishSchema>> PublishSchemaAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IPublishSchema>> PublishSchemaAsync(
             PublishSchemaOperation operation,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -74,7 +69,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             return _executor.ExecuteAsync(operation, cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IMarkSchemaPublished>> MarkSchemaPublishedAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IMarkSchemaPublished>> MarkSchemaPublishedAsync(
             global::StrawberryShake.Optional<string> externalId = default,
             global::StrawberryShake.Optional<string> schemaName = default,
             global::StrawberryShake.Optional<string> environmentName = default,
@@ -105,7 +100,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IMarkSchemaPublished>> MarkSchemaPublishedAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IMarkSchemaPublished>> MarkSchemaPublishedAsync(
             MarkSchemaPublishedOperation operation,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -117,14 +112,14 @@ namespace StrawberryShake.Tools.SchemaRegistry
             return _executor.ExecuteAsync(operation, cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IPublishClient>> PublishClientAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IPublishClient>> PublishClientAsync(
             global::StrawberryShake.Optional<string> externalId = default,
             global::StrawberryShake.Optional<string> schemaName = default,
             global::StrawberryShake.Optional<string> environmentName = default,
             global::StrawberryShake.Optional<string> clientName = default,
             global::StrawberryShake.Optional<QueryFileFormat> format = default,
-            global::StrawberryShake.Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.QueryFileInput>> files = default,
-            global::StrawberryShake.Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Tools.SchemaRegistry.TagInput>?> tags = default,
+            global::StrawberryShake.Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.QueryFileInput>> files = default,
+            global::StrawberryShake.Optional<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.TagInput>?> tags = default,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
             if (externalId.HasValue && externalId.Value is null)
@@ -166,7 +161,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IPublishClient>> PublishClientAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IPublishClient>> PublishClientAsync(
             PublishClientOperation operation,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -178,7 +173,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             return _executor.ExecuteAsync(operation, cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IMarkClientPublished>> MarkClientPublishedAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IMarkClientPublished>> MarkClientPublishedAsync(
             global::StrawberryShake.Optional<string> externalId = default,
             global::StrawberryShake.Optional<string> schemaName = default,
             global::StrawberryShake.Optional<string> environmentName = default,
@@ -209,7 +204,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.Tools.SchemaRegistry.IMarkClientPublished>> MarkClientPublishedAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<global::StrawberryShake.IMarkClientPublished>> MarkClientPublishedAsync(
             MarkClientPublishedOperation operation,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -221,7 +216,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             return _executor.ExecuteAsync(operation, cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IResponseStream<global::StrawberryShake.Tools.SchemaRegistry.IOnPublishDocument>> OnPublishDocumentAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IResponseStream<global::StrawberryShake.IOnPublishDocument>> OnPublishDocumentAsync(
             global::StrawberryShake.Optional<string> sessionId = default,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -235,7 +230,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
                 cancellationToken);
         }
 
-        public global::System.Threading.Tasks.Task<global::StrawberryShake.IResponseStream<global::StrawberryShake.Tools.SchemaRegistry.IOnPublishDocument>> OnPublishDocumentAsync(
+        public global::System.Threading.Tasks.Task<global::StrawberryShake.IResponseStream<global::StrawberryShake.IOnPublishDocument>> OnPublishDocumentAsync(
             OnPublishDocumentOperation operation,
             global::System.Threading.CancellationToken cancellationToken = default)
         {

@@ -72,6 +72,7 @@ namespace HotChocolate.Types.Filters
         }
 
         #region Object Value
+        
         public override VisitorAction Enter(
             ObjectValueNode node,
             ISyntaxNode parent,

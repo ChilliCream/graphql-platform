@@ -8,7 +8,7 @@ using StrawberryShake.Http;
 using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MarkSchemaPublishedResultParser
@@ -34,7 +34,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IMarkSchemaPublishedPayload ParseMarkSchemaPublishedMarkSchemaPublished(
+        private global::StrawberryShake.IMarkSchemaPublishedPayload ParseMarkSchemaPublishedMarkSchemaPublished(
             JsonElement parent,
             string field)
         {
@@ -46,7 +46,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             );
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IEnvironmentName ParseMarkSchemaPublishedMarkSchemaPublishedEnvironment(
+        private global::StrawberryShake.IEnvironmentName ParseMarkSchemaPublishedMarkSchemaPublishedEnvironment(
             JsonElement parent,
             string field)
         {

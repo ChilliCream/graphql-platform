@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IIssue
@@ -16,7 +16,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         string File { get; }
 
-        global::StrawberryShake.Tools.SchemaRegistry.ILocation Location { get; }
+        global::StrawberryShake.ILocation Location { get; }
 
         ResolutionType Resolution { get; }
     }
