@@ -6,11 +6,11 @@ module.exports = {
     topnav: [
       {
         name: `Platform`,
-        link: `/`,
+        link: `/platform`,
       },
       {
         name: `Docs`,
-        link: `/`,
+        link: `/docs`,
       },
       {
         name: `Blog`,

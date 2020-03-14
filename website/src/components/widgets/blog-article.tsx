@@ -48,13 +48,13 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.div`
-  margin: 10px 20px 0;
+  margin: 0 20px 20px;
   font-size: 0.875em;
   color: #bbb;
 `;
 
 const Content = styled.div`
-  margin: 20px 20px 40px;
+  margin: 0 20px 40px;
 
   > p {
     margin-bottom: 1em;
