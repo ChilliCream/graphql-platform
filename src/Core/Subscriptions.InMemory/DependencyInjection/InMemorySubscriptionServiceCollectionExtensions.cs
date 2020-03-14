@@ -16,9 +16,9 @@ namespace HotChocolate
             }
 
             services.AddSingleton<InMemoryPubSub>();
-            services.AddSingleton<IEventDispatcher>(sp =>
+            services.AddSingleton<ITopicEventSender>(sp =>
                 sp.GetRequiredService<InMemoryPubSub>());
-            services.AddSingleton<IEventTopicObserver>(sp =>
+            services.AddSingleton<ITopicEventReceiver>(sp =>
                 sp.GetRequiredService<InMemoryPubSub>());
             return services;
         }

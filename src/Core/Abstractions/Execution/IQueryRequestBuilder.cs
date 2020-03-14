@@ -81,6 +81,9 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetServices(
             IServiceProvider services);
 
+        IQueryRequestBuilder TrySetServices(
+            IServiceProvider services);
+
         IReadOnlyQueryRequest Create();
     }
 }

@@ -7,7 +7,8 @@ namespace HotChocolate.Types
     {
         public static IInterfaceTypeDescriptor<T> Ignore<T>(
             this IInterfaceTypeDescriptor<T> descriptor,
-            Expression<Func<T, object>> propertyOrMethod)
+            Expression<Func<T, object>> propertyOrMethod,
+            bool ignore = true)
         {
             if (descriptor == null)
             {
@@ -19,7 +20,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            descriptor.Field(propertyOrMethod).Ignore();
+            descriptor.Field(propertyOrMethod).Ignore(ignore);
             return descriptor;
         }
     }

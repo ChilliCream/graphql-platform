@@ -218,8 +218,7 @@ namespace HotChocolate.AspNetCore
         {
             if (!_interceptorInitialized)
             {
-                _interceptor = services
-                    .GetService<IQueryRequestInterceptor<HttpContext>>();
+                _interceptor = services.GetService<IQueryRequestInterceptor<HttpContext>>();
                 _interceptorInitialized = true;
             }
 
@@ -232,7 +231,7 @@ namespace HotChocolate.AspNetCore
                     .ConfigureAwait(false);
             }
 
-            builder.SetServices(services);
+            builder.TrySetServices(services);
             builder.TryAddProperty(nameof(HttpContext), context);
             builder.TryAddProperty(nameof(ClaimsPrincipal), context.GetUser());
 

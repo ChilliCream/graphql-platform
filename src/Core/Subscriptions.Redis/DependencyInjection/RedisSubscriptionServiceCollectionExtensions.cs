@@ -41,9 +41,9 @@ namespace HotChocolate.Subscriptions
         {
             services
                 .AddSingleton<RedisPubSub>()
-                .AddSingleton<IEventDispatcher>(sp =>
+                .AddSingleton<ITopicEventSender>(sp =>
                     sp.GetRequiredService<RedisPubSub>())
-                .AddSingleton<IEventTopicObserver>(sp =>
+                .AddSingleton<ITopicEventReceiver>(sp =>
                     sp.GetRequiredService<RedisPubSub>());
             return services;
         }

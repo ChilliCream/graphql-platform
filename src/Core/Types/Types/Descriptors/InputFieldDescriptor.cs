@@ -95,9 +95,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IInputFieldDescriptor Ignore()
+        public IInputFieldDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 

@@ -15,7 +15,7 @@ namespace HotChocolate.Subscriptions.Redis
         : IClassFixture<RedisResource>
     {
         private readonly ConnectionMultiplexer _connection;
-        private readonly IEventDispatcher _sender;
+        private readonly ITopicEventSender _sender;
 
         public RedisIntegrationTests(RedisResource redisResource)
         {
@@ -47,7 +47,7 @@ namespace HotChocolate.Subscriptions.Redis
                         .Field(name)
                         .Resolver("baz")
                         .Subscribe(async ctx =>
-                            await ctx.Service<IEventTopicObserver>()
+                            await ctx.Service<ITopicEventReceiver>()
                                 .SubscribeAsync<string, string>("foo", ctx.RequestAborted)))
                     .Create()
                     .MakeExecutable();

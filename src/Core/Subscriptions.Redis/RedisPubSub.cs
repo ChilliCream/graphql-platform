@@ -6,8 +6,8 @@ using StackExchange.Redis;
 namespace HotChocolate.Subscriptions.Redis
 {
     public class RedisPubSub
-        : IEventTopicObserver
-        , IEventDispatcher
+        : ITopicEventReceiver
+        , ITopicEventSender
     {
         private readonly IConnectionMultiplexer _connection;
         public const string Completed = "{completed}";

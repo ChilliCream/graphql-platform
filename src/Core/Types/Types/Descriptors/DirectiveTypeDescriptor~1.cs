@@ -43,8 +43,6 @@ namespace HotChocolate.Types.Descriptors
             base.OnCompleteArguments(arguments, handledProperties);
         }
 
-
-
         #region IDirectiveDescriptor<T>
 
         public new IDirectiveTypeDescriptor<T> SyntaxNode(

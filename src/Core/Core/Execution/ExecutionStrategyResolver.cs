@@ -9,31 +9,38 @@ namespace HotChocolate.Execution
     internal class ExecutionStrategyResolver
         : IExecutionStrategyResolver
     {
-        private readonly Dictionary<OperationType, IExecutionStrategy> _strats;
+        private readonly Dictionary<OperationType, IExecutionStrategy> _strategies;
 
         public ExecutionStrategyResolver(
-            IRequestTimeoutOptionsAccessor options)
+            IRequestTimeoutOptionsAccessor requestTimeoutOptions,
+            IExecutionStrategyOptionsAccessor strategyOptions)
         {
-            _strats = new Dictionary<OperationType, IExecutionStrategy>()
+            bool serialExecution = strategyOptions.ForceSerialExecution ?? false;
+
+            _strategies = new Dictionary<OperationType, IExecutionStrategy>()
             {
                 {
                     OperationType.Query,
-                    new QueryExecutionStrategy()
+                    serialExecution
+                        ? (IExecutionStrategy)new SerialExecutionStrategy()
+                        : new QueryExecutionStrategy()
                 },
                 {
                     OperationType.Mutation,
-                    new MutationExecutionStrategy()
+                    serialExecution
+                        ? (IExecutionStrategy)new SerialExecutionStrategy()
+                        : new MutationExecutionStrategy()
                 },
                 {
                     OperationType.Subscription,
-                    new SubscriptionExecutionStrategy(options)
+                    new SubscriptionExecutionStrategy(requestTimeoutOptions)
                 }
             };
         }
 
         public IExecutionStrategy Resolve(OperationType operationType)
         {
-            if (_strats.TryGetValue(operationType,
+            if (_strategies.TryGetValue(operationType,
                 out IExecutionStrategy strategy))
             {
                 return strategy;
