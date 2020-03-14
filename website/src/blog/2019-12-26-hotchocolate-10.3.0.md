@@ -11,8 +11,6 @@ authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 Today we are releasing _Hot Chocolate_ version 10.3.0. Although the version number sounds like a small change, it is quite a nice update with lots of new features making _Hot Chocolate_ the most versatile and feature rich GraphQL server on the .NET platform.
 
-<!--truncate-->
-
 We are now working for a long time on version 11. Work on that has begun long before version 10.0.0 was finished. As we progressed with version 11, we felt that we could push some nice productivity features down to the version 10 branch and make users of _Hot Chocolate_ much happier.
 
 This decision culminated in version 10.3.0 and it really feels like a major update with an array of new possibilities that will make you smile.
