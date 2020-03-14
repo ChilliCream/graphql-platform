@@ -5,7 +5,7 @@ export const GlobalStyle = createGlobalStyle`
   html {
     width: 100vw;
     height: 100vh;
-    font-size: 12px;
+    font-size: 16px;
     overflow: auto;
     background-color: #ccc;
   }
@@ -18,6 +18,7 @@ export const GlobalStyle = createGlobalStyle`
     font-family: system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
       sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-size: 1em;
+    line-height: 1.188em;
     font-weight: normal;
   }
 
@@ -52,17 +53,29 @@ export const GlobalStyle = createGlobalStyle`
   * If you only want to use line numbering
   */
 
-  .gatsby-highlight {
-    background-color: #fdf6e3;
-    border-radius: 0.3em;
-    margin: 0.5em 0;
-    padding: 1em;
-    overflow: auto;
+  code[class*="language-"] {
+    font-size: 0.875em;
   }
 
-  .gatsby-highlight pre[class*="language-"].line-numbers {
-    padding: 0;
-    padding-left: 2.8em;
-    overflow: initial;
+  .gatsby-highlight {
+    margin: 15px 0;
+    overflow: auto;
+    font-size: 0.875 !important;
+
+    * {
+      font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+      line-height: 1.188em !important;
+    }
+
+    > pre[class*="language-"].line-numbers {
+      border-radius: 5px;
+      padding: 10px 10px 10px 50px;
+      overflow: initial;
+
+      > .line-numbers-rows {
+        border-right: 1px solid #444;
+        padding: 10px 5px 10px 15px;
+      }
+    }
   }
 `;

@@ -146,7 +146,7 @@ const NavLink = styled(Link)`
   border-radius: 4px;
   padding: 10px 15px;
   font-family: "Roboto", sans-serif;
-  font-size: 1.25em;
+  font-size: 0.938em;
   color: #fff;
   text-decoration: none;
   text-transform: uppercase;
@@ -186,7 +186,8 @@ const SearchField = styled.input`
   border-radius: 4px;
   padding: 10px 15px;
   font-family: "Roboto", sans-serif;
-  font-size: 1.25em;
+  font-size: 0.938em;
+  line-height: 1em;
   background-color: #fff;
 `;
 

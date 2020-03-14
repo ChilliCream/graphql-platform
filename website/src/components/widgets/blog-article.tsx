@@ -24,10 +24,11 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   return (
     <Container>
       <Title>{title}</Title>
-      <PublishDate>{date}</PublishDate>
-      <Author>{author}</Author>
+      <Subtitle>
+        Written by <em>{author}</em>, published on <em>{date}</em>
+      </Subtitle>
       <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
-      <Disqus config={disqusConfig} />
+      <DisqusWrapper config={disqusConfig} />
     </Container>
   );
 };
@@ -36,16 +37,36 @@ const Container = styled.article`
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
+  padding-top: 20px;
   width: 100%;
   max-width: 1100px;
 `;
 
 const Title = styled.h1`
+  margin: 0 20px;
   font-size: 2em;
 `;
 
-const PublishDate = styled.div``;
+const Subtitle = styled.div`
+  margin: 10px 20px 0;
+  font-size: 0.875em;
+  color: #bbb;
+`;
 
-const Author = styled.div``;
+const Content = styled.div`
+  margin: 20px 20px 40px;
 
-const Content = styled.div``;
+  > p {
+    margin-bottom: 1em;
+    line-height: 1.5em;
+  }
+
+  > h2 {
+    font-size: 1.667em;
+    line-height: 2em;
+  }
+`;
+
+const DisqusWrapper = styled(Disqus)`
+  margin: 0 20px;
+`;

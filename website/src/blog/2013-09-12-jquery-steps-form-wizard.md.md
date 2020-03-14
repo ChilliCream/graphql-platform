@@ -1,7 +1,7 @@
 ---
-path: "/blog/test"
-date: "2020-01-01"
-title: "My first blog post"
+path: "/blog/2013/09/12/jquery-steps-form-wizard"
+date: "2013-09-12"
+title: "How to create a Form Wizard using jQuery Steps"
 author: "Rafael Staib"
 authorURL: https://github.com/rstaib
 authorImageURL: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
@@ -44,7 +44,7 @@ First of all, we will download **jQuery Steps** from [here](http://www.jquery-st
 </html>
 ```
 
-What else? We have to replace this <div id="wizard"></div> part by our own form markup and override the bodyTag property on initialization.
+What else? We have to replace this `<div id="wizard"></div>` part by our own form markup and override the bodyTag property on initialization.
 
 ```html
 <form id="form-3" action="#">
