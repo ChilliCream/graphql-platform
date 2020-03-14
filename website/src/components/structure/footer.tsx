@@ -90,6 +90,7 @@ const Container = styled.footer<{ url: string }>`
   justify-content: flex-end;
   padding: 200px 20px 60px;
   min-height: 300px;
+  background-color: #fff;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
@@ -138,7 +139,7 @@ const LogoText = styled(LogoTextSvg)`
 `;
 
 const Description = styled.p`
-  font-size: 1.25em;
+  font-size: 0.938em;
   line-height: 1.5em;
   margin-bottom: 10px;
 `;
@@ -152,7 +153,7 @@ const Connect = styled.div`
 const ConnectLink = styled(Link)`
   flex: 0 0 auto;
   margin: 5px 0;
-  font-size: 1.25em;
+  font-size: 0.938em;
   text-decoration: none;
   color: #666;
   transition: color 0.2s ease-in-out;
@@ -208,7 +209,7 @@ const NavLink = styled(Link)`
   flex: 0 0 auto;
   margin: 4px 0;
   font-family: "Roboto", sans-serif;
-  font-size: 1.25em;
+  font-size: 0.938em;
   color: #666;
   text-decoration: none;
   transition: color 0.2s ease-in-out;
@@ -231,7 +232,7 @@ const Location = styled.div`
 
 const Title = styled.h3`
   margin: 15px 0 15px;
-  font-size: 1.5em;
+  font-size: 1.125em;
   font-weight: bold;
 `;
 

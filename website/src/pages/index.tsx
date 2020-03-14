@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { GetStartpageDataQuery } from "../../graphql-types";
 import BananaCakepop from "../components/images/banana-cakepop";
 import SEO from "../components/misc/seo";
-import Layout from "../components/structure/layout";
+import { Layout } from "../components/structure/layout";
 
 const IndexPage: FunctionComponent = () => {
   const data = useStaticQuery<GetStartpageDataQuery>(graphql`
@@ -54,11 +54,12 @@ export default IndexPage;
 
 const Intro = styled.section<{ url: string }>`
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 25px;
+  width: 100%;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
@@ -210,7 +211,7 @@ const SlideContent = styled.div`
 const SlideTitle = styled.h2`
   flex: 0 0 auto;
   margin-bottom: 10px;
-  font-size: 2em;
+  font-size: 1.875em;
   text-align: center;
 
   @media only screen and (min-width: 768px) {
@@ -221,8 +222,8 @@ const SlideTitle = styled.h2`
 
 const SlideDescription = styled.p`
   flex: 0 0 auto;
-  font-size: 1.5em;
-  line-height: 1.417em;
+  font-size: 1.25em;
+  line-height: 1.188em;
   text-align: center;
 
   @media only screen and (min-width: 768px) {
@@ -234,7 +235,7 @@ const SlideDescription = styled.p`
 const Title = styled.h1`
   flex: 0 0 auto;
   margin-bottom: 20px;
-  font-size: 3em;
+  font-size: 2.5em;
   text-align: center;
   color: #fff;
 
