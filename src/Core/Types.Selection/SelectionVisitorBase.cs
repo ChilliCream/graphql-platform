@@ -6,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 namespace HotChocolate.Types.Selections
 {
@@ -61,7 +62,9 @@ namespace HotChocolate.Types.Selections
         {
             Fields.Push(selection.Field);
             if (selection.Field.Type.IsListType() ||
-                selection.Field.Type.ToClrType() == typeof(IConnection))
+                selection.Field.Type.ToClrType() == typeof(IConnection) ||
+                (selection.Field.Member is PropertyInfo propertyInfo &&
+                    IsListType(propertyInfo.PropertyType)))
             {
                 if (EnterList(selection))
                 {

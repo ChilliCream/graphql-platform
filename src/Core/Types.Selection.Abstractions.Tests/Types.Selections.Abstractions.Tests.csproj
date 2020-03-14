@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreTestFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'TestSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Types.Selections.Abstractions.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Types.Selection\Types.Selections.csproj" />
+    <ProjectReference Include="..\Types.Sorting\Types.Sorting.csproj" />
+    <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
+    <ProjectReference Include="..\Types\Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Snapshooter.Xunit" Version="0.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="__snapshots__\__mismatch__\" />
+  </ItemGroup>
+</Project>

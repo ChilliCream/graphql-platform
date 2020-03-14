@@ -126,10 +126,11 @@ namespace HotChocolate.Types.Selections
                 (IOutputType type, SelectionSetNode selectionSet) =
                     UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
 
-                Closures.Push(
-                    new SelectionClosure(
-                        type.ElementType().ToClrType(),
-                        "e" + Closures.Count));
+                Type clrType = type.IsListType() ?
+                    type.ElementType().ToClrType() :
+                    type.ToClrType();
+
+                Closures.Push(new SelectionClosure(clrType, "e" + Closures.Count));
 
                 return VisitSelections(type, selectionSet);
             }

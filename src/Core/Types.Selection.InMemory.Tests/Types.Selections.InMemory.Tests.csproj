@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -12,16 +12,12 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Selections.Mongo.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Types.Selections.InMemory.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\Types.Selection.Abstractions.Tests.csproj" />
+    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\Types.Selections.Abstractions.Tests.csproj" />
   </ItemGroup>
 
 </Project>

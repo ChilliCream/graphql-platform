@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
-        { 
+        {
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -189,14 +189,14 @@ namespace HotChocolate.Types.Filters
             if (reference is ISchemaTypeReference schemaRef)
             {
                 return schemaRef.Type is NonNullType nnt
-                    ? schemaRef.WithType(nnt)
+                    ? schemaRef.WithType(nnt.Type)
                     : schemaRef;
             }
 
             if (reference is ISyntaxTypeReference syntaxRef)
             {
                 return syntaxRef.Type is NonNullTypeNode nnt
-                    ? syntaxRef.WithType(nnt)
+                    ? syntaxRef.WithType(nnt.Type)
                     : syntaxRef;
             }
 

@@ -12,15 +12,20 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Selections.Abstractions.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Types.Selections.SqlServer.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Types.Selection\Types.Selection.csproj" />
-    <ProjectReference Include="..\Types.Sorting\Types.Sorting.csproj" />
-    <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
-    <ProjectReference Include="..\Types\Types.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.2" />
+    <PackageReference Include="Squadron.SqlServer" Version="0.5.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\Types.Selections.Abstractions.Tests.csproj" />
+  </ItemGroup>
+
 </Project>

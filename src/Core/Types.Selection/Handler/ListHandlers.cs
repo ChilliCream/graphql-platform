@@ -8,7 +8,8 @@ namespace HotChocolate.Types.Selections
             new IListHandler[]
             {
                 new FilterHandler(),
-                new SortHandler()
+                new SortHandler(),
+                new SingleOrDefaultHandler()
             };
     }
 }
