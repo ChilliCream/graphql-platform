@@ -230,7 +230,7 @@ namespace HotChocolate.Types.Selections
             return selections;
         }
 
-        private bool HasNonProjectableField(IReadOnlyList<IFieldSelection> selections)
+        private static bool HasNonProjectableField(IReadOnlyList<IFieldSelection> selections)
         {
             for (int i = 0; i < selections.Count; i++)
             {
@@ -242,7 +242,7 @@ namespace HotChocolate.Types.Selections
             return false;
         }
 
-        private FieldNode CreateFieldNode(string fieldName) =>
+        private static FieldNode CreateFieldNode(string fieldName) =>
             new FieldNode(null, new NameNode(fieldName), null,
                 Array.Empty<DirectiveNode>(), Array.Empty<ArgumentNode>(), null);
     }
