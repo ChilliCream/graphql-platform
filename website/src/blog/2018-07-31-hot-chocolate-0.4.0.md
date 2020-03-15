@@ -3,8 +3,8 @@ path: "/blog/2018/07/31/hot-chocolate-0.4.0"
 date: "2018-07-31"
 title: "GraphQL - Hot Chocolate 0.4.0"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 With this version we introduce support for _DataLoaders_ and custom context objects.

@@ -3,8 +3,8 @@ path: "/blog/2019/02/04/hot-chocolate-0.7.0"
 date: "2019-02-04"
 title: "GraphQL - Hot Chocolate 0.7.0"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 Today we have released Hot Chocolate version 0.7.0 which brings a lot of new features, improvements and bug fixes. With this post I walk you through the major changes.

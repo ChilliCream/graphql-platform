@@ -1,9 +1,12 @@
 import { Disqus } from "gatsby-plugin-disqus";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
+import { Link } from "../misc/link";
 
 interface BlogArticleProperties {
   author: string;
+  authorImageUrl: string;
+  authorUrl: string;
   baseUrl: string;
   date: string;
   htmlContent: string;
@@ -13,6 +16,8 @@ interface BlogArticleProperties {
 
 export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   author,
+  authorImageUrl,
+  authorUrl,
   baseUrl,
   date,
   htmlContent,
@@ -29,7 +34,12 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
     <Container>
       <Title>{title}</Title>
       <Subtitle>
-        Written by <em>{author}</em>, published on <em>{date}</em>
+        <Author>
+          <Link to={authorUrl}>
+            <AuthorImage src={authorImageUrl} /> {author}
+          </Link>
+        </Author>
+        <Date>{date}</Date>
       </Subtitle>
       <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
       <DisqusWrapper config={disqusConfig} />
@@ -52,23 +62,36 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   margin: 0 20px 20px;
   font-size: 0.875em;
-  color: #bbb;
+  color: #666;
+`;
+
+const Author = styled.div`
+  flex: 1 1 auto;
+
+  > a {
+    color: #666;
+  }
+`;
+
+const AuthorImage = styled.img`
+  margin-right: 0.5em;
+  border-radius: 20px;
+  width: 40px;
+  vertical-align: middle;
+`;
+
+const Date = styled.div`
+  flex: 1 1 auto;
+  text-align: right;
 `;
 
 const Content = styled.div`
   margin: 0 20px 40px;
-
-  > p {
-    margin-bottom: 1em;
-    line-height: 1.5em;
-  }
-
-  > h2 {
-    font-size: 1.667em;
-    line-height: 2em;
-  }
 `;
 
 const DisqusWrapper = styled(Disqus)`

@@ -3,8 +3,8 @@ path: "/blog/2018/11/07/docusaurus-docs-redirect"
 date: "2018-11-07"
 title: "Docusaurus - How to redirect requests to /docs to a default url instead of getting a 404 error"
 author: "Rafael Staib"
-authorURL: https://github.com/rstaib
-authorImageURL: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+authorUrl: https://github.com/rstaib
+authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
 I recently run into an HTTP 404 error when calling /docs on my _Docusaurus_ websites. This isn't

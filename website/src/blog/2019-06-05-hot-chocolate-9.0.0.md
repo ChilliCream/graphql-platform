@@ -3,8 +3,8 @@ path: "/blog/2019/06/05/hot-chocolate-9.0.0"
 date: "2019-06-05"
 title: "GraphQL - Hot Chocolate 9.0.0"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 Today we have released version 9 of _Hot Chocolate_. This release was mainly focused on the schema APIs and performance. Furthermore, we started work on the wider _ChilliCream GraphQL Platform_ and today you will get some insides where we are heading with this.
