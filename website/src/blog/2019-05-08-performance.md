@@ -3,8 +3,8 @@ path: "/blog/2019/05/08/performance"
 date: "2019-05-08"
 title: "GraphQL - Hot Chocolate 9.0.0 - Performance Improvements"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 Today we release preview 27 of version 9 and we are heading toward RC status which we are planning to hit next week.

@@ -11,8 +11,10 @@ export const GlobalStyle = createGlobalStyle`
     width: 100vw;
     height: 100vh;
     font-size: 16px;
+    line-height: 19px;
     overflow: auto;
     background-color: #ccc;
+    color: #333;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -23,8 +25,7 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     overflow: hidden;
     /*user-select: none;*/
-    font-family: system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
-      sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-family: sans-serif;
     font-size: 1em;
     line-height: 1.188em;
     font-weight: normal;
@@ -32,6 +33,11 @@ export const GlobalStyle = createGlobalStyle`
 
   *:focus {
     outline: none;
+  }
+
+  a {
+    color: #f40010;
+    text-decoration: none;
   }
 
   button {
@@ -42,10 +48,128 @@ export const GlobalStyle = createGlobalStyle`
 
   h1, h2, h3, h4, h5, h6 {
     font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    text-rendering: optimizeLegibility;
+  }
+
+  p {
+    margin-bottom: 1.188em;
+    line-height: 1.5em;
+  }
+
+  h1 {
+    font-size: 2em;
+    line-height: 2em;
+  }
+
+  h2 {
+    font-size: 1.667em;
+    line-height: 2em;
+  }
+
+  h3 {
+    font-size: 1.667em;
+    line-height: 2em;
+  }
+
+  h4 {
+    font-size: 1.5em;
+    line-height: 2em;
+  }
+
+  h5 {
+    font-size: 1.375em;
+    line-height: 2em;
+  }
+
+  h6 {
+    font-size: 1.25em;
+    line-height: 2em;
+  }
+
+  hr {
+    margin-bottom: 1.188em;
+    border: none;
+    height: 1px;
+    background: #aaa;
+  }
+
+  em {
+    font-style: italic;
   }
 
   strong {
     font-weight: bold;
+  }
+
+  ul {
+    margin: 0 0 1.188em 1.188em;
+    list-style-position: inside;
+    list-style-image: none;
+    list-style-type: disc;
+  }
+
+  ol {
+    margin: 0 0 1.188em 1.188em;
+    list-style-position: inside;
+    list-style-image: none;
+    list-style-type: decimal;
+  }
+
+  li {
+    margin-bottom: calc(1.188em / 2);
+  }
+
+  li > ol {
+    margin-top: calc(1.188em / 2);
+    margin-bottom: calc(1.188em / 2);
+    margin-left: 1.188em;
+  }
+
+  li > ul {
+    margin-top: calc(1.188em / 2);
+    margin-bottom: calc(1.188em / 2);
+    margin-left: 1.188em;
+  }
+
+  li *:last-child {
+    margin-bottom: 0;
+  }
+
+  li > p {
+    margin-bottom: calc(1.188em / 2);
+  }
+
+  table {
+    margin-bottom: 2em;
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  thead {
+    text-align: left;
+  }
+
+  td,
+  th {
+    border-bottom: 1px solid #aaa;
+    padding: 0.625em 1em;
+    font-feature-settings: "tnum";
+    text-align: left;
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  th:first-child,
+  td:first-child {
+    padding-left: 0;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 0;
   }
 
   /**

@@ -3,8 +3,8 @@ path: "/blog/2018/05/03/react-rasta-1.0.0"
 date: "2018-05-03"
 title: "React Rasta 1.0.0"
 author: "Rafael Staib"
-authorURL: https://github.com/rstaib
-authorImageURL: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+authorUrl: https://github.com/rstaib
+authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
 Today we proudly released the first version of _React Rasta_.

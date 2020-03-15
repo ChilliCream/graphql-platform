@@ -3,8 +3,8 @@ path: "/blog/2019/03/04/hot-chocolate-0.8.0"
 date: "2019-03-04"
 title: "GraphQL - Hot Chocolate 0.8.0"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 Today we are releasing Hot Chocolate version 8 (0.8.0) which mainly focused on schema stitching and brings our stitching layer to a whole new level.

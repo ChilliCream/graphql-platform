@@ -19,6 +19,8 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
       <SEO title="Home" />
       <BlogArticle
         author={frontmatter!.author!}
+        authorImageUrl={frontmatter!.authorImageUrl!}
+        authorUrl={frontmatter!.authorUrl!}
         baseUrl={site!.siteMetadata!.baseUrl!}
         date={frontmatter!.date!}
         htmlContent={html!}
@@ -37,6 +39,8 @@ export const pageQuery = graphql`
       html
       frontmatter {
         author
+        authorImageUrl
+        authorUrl
         date(formatString: "MMMM DD, YYYY")
         path
         title

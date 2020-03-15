@@ -3,8 +3,8 @@ path: "/blog/2019/04/11/integration-tests"
 date: "2019-04-11"
 title: "GraphQL - How to write integration tests against Hot Chocolate"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 Today I was asked in our slack channel how one could write an integration test against _Hot Chocolate_ without setting up an ASP.Net Core _TestServer_.

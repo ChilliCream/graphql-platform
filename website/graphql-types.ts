@@ -692,8 +692,8 @@ export type FileFieldsEnum =
   'childMarkdownRemark___frontmatter___path' |
   'childMarkdownRemark___frontmatter___date' |
   'childMarkdownRemark___frontmatter___author' |
-  'childMarkdownRemark___frontmatter___authorURL' |
-  'childMarkdownRemark___frontmatter___authorImageURL' |
+  'childMarkdownRemark___frontmatter___authorUrl' |
+  'childMarkdownRemark___frontmatter___authorImageUrl' |
   'childMarkdownRemark___excerpt' |
   'childMarkdownRemark___rawMarkdownBody' |
   'childMarkdownRemark___fileAbsolutePath' |
@@ -1456,8 +1456,8 @@ export type MarkdownRemarkFieldsEnum =
   'frontmatter___path' |
   'frontmatter___date' |
   'frontmatter___author' |
-  'frontmatter___authorURL' |
-  'frontmatter___authorImageURL' |
+  'frontmatter___authorUrl' |
+  'frontmatter___authorImageUrl' |
   'excerpt' |
   'rawMarkdownBody' |
   'fileAbsolutePath' |
@@ -1581,8 +1581,8 @@ export type MarkdownRemarkFrontmatter = {
   path?: Maybe<Scalars['String']>;
   date?: Maybe<Scalars['Date']>;
   author?: Maybe<Scalars['String']>;
-  authorURL?: Maybe<Scalars['String']>;
-  authorImageURL?: Maybe<Scalars['String']>;
+  authorUrl?: Maybe<Scalars['String']>;
+  authorImageUrl?: Maybe<Scalars['String']>;
 };
 
 
@@ -1598,8 +1598,8 @@ export type MarkdownRemarkFrontmatterFilterInput = {
   path?: Maybe<StringQueryOperatorInput>;
   date?: Maybe<DateQueryOperatorInput>;
   author?: Maybe<StringQueryOperatorInput>;
-  authorURL?: Maybe<StringQueryOperatorInput>;
-  authorImageURL?: Maybe<StringQueryOperatorInput>;
+  authorUrl?: Maybe<StringQueryOperatorInput>;
+  authorImageUrl?: Maybe<StringQueryOperatorInput>;
 };
 
 export type MarkdownRemarkGroupConnection = {
@@ -2444,6 +2444,7 @@ export type SitePageFieldsEnum =
   'pluginCreator___pluginOptions___plugins___name' |
   'pluginCreator___pluginOptions___plugins___version' |
   'pluginCreator___pluginOptions___plugins___browserAPIs' |
+  'pluginCreator___pluginOptions___plugins___ssrAPIs' |
   'pluginCreator___pluginOptions___plugins___pluginFilepath' |
   'pluginCreator___pluginOptions___name' |
   'pluginCreator___pluginOptions___path' |
@@ -2656,6 +2657,7 @@ export type SitePluginFieldsEnum =
   'pluginOptions___plugins___pluginOptions___showLineNumbers' |
   'pluginOptions___plugins___pluginOptions___maxWidth' |
   'pluginOptions___plugins___browserAPIs' |
+  'pluginOptions___plugins___ssrAPIs' |
   'pluginOptions___plugins___pluginFilepath' |
   'pluginOptions___name' |
   'pluginOptions___path' |
@@ -2853,6 +2855,7 @@ export type SitePluginPluginOptionsPlugins = {
   version?: Maybe<Scalars['String']>;
   pluginOptions?: Maybe<SitePluginPluginOptionsPluginsPluginOptions>;
   browserAPIs?: Maybe<Array<Maybe<Scalars['String']>>>;
+  ssrAPIs?: Maybe<Array<Maybe<Scalars['String']>>>;
   pluginFilepath?: Maybe<Scalars['String']>;
 };
 
@@ -2863,6 +2866,7 @@ export type SitePluginPluginOptionsPluginsFilterInput = {
   version?: Maybe<StringQueryOperatorInput>;
   pluginOptions?: Maybe<SitePluginPluginOptionsPluginsPluginOptionsFilterInput>;
   browserAPIs?: Maybe<StringQueryOperatorInput>;
+  ssrAPIs?: Maybe<StringQueryOperatorInput>;
   pluginFilepath?: Maybe<StringQueryOperatorInput>;
 };
 
@@ -2987,7 +2991,7 @@ export type GetBlogArticleQueryVariables = {
 
 export type GetBlogArticleQuery = { markdownRemark: Maybe<(
     Pick<MarkdownRemark, 'html'>
-    & { frontmatter: Maybe<Pick<MarkdownRemarkFrontmatter, 'author' | 'date' | 'path' | 'title'>> }
+    & { frontmatter: Maybe<Pick<MarkdownRemarkFrontmatter, 'author' | 'authorImageUrl' | 'authorUrl' | 'date' | 'path' | 'title'>> }
   )>, site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'baseUrl'>> }> };
 
 export type GatsbyImageSharpFixedFragment = Pick<ImageSharpFixed, 'base64' | 'width' | 'height' | 'src' | 'srcSet'>;

@@ -3,8 +3,8 @@ path: "/blog/2019/12/26/hot-chocolate-10.3.0"
 date: "2019-12-26"
 title: "GraphQL - Hot Chocolate 10.3.0"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 ![Hot Chocolate](../images/blog/hotchocolate-banner.png)
