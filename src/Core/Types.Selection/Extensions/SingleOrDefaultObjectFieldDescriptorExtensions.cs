@@ -15,7 +15,8 @@ namespace HotChocolate.Types.Selections
         private static FieldDelegate Placeholder(FieldDelegate _) => __ => Task.CompletedTask;
 
         public static IObjectFieldDescriptor UseSingleOrDefault(
-            this IObjectFieldDescriptor descriptor)
+            this IObjectFieldDescriptor descriptor,
+            bool allowMultipleResults = false)
         {
             if (descriptor is null)
             {
@@ -27,7 +28,8 @@ namespace HotChocolate.Types.Selections
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
-                    definition.ContextData["__SingleOrDefaultMiddleware"] = true;
+                    definition.ContextData[nameof(SingleOrDefaultOptions)] =
+                        new SingleOrDefaultOptions(allowMultipleResults);
 
                     if (!TypeInspector.Default.TryCreate(
                         definition.ResultType, out TypeInfo typeInfo))

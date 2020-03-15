@@ -55,11 +55,204 @@ namespace HotChocolate.Types.Selections
             Assert.Null(resultCtx.NestedCollection);
         }
 
+        [Fact]
+        public virtual void Execute_Selection_ShouldThrowOnMultiple()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(
+                Foo.Create("aa", 1, _setId),
+                Foo.Create("bb", 2, _setId));
+
+            InvalidOperationException resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            try
+                            {
+                                await next(ctx).ConfigureAwait(false);
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                resultCtx = ex;
+                            }
+                        })
+                        .UseSingleOrDefault()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            executor.Execute("{ foos { bar baz} }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+        }
+
+        [Fact]
+        public virtual void Execute_SelectionMultiple_ShouldThrowOnMultiple()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(
+                Foo.Create("aa", 1, _setId),
+                Foo.Create("bb", 2, _setId));
+
+            Foo resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.FoosMultiple)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Foo;
+                        }))
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            executor.Execute(
+                 "{ foosMultiple { bar baz } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Equal("aa", resultCtx.Bar);
+            Assert.Equal(1, resultCtx.Baz);
+            Assert.Null(resultCtx.Nested);
+            Assert.Null(resultCtx.NestedCollection);
+        }
+
+        [Fact]
+        public virtual void ExecuteAsync_Selection_MultipleScalarShouldReturnOne()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IAsyncEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateAsyncResolver(
+                Foo.Create("aa", 1, _setId));
+
+            Foo resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.FoosAsync)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Foo;
+                        }))
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            executor.Execute(
+                 "{ foosAsync { bar baz } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Equal("aa", resultCtx.Bar);
+            Assert.Equal(1, resultCtx.Baz);
+        }
+
+        [Fact]
+        public virtual void ExecuteAsync_Selection_ShouldThrowOnMultiple()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IAsyncEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateAsyncResolver(
+                Foo.Create("aa", 1, _setId),
+                Foo.Create("bb", 2, _setId));
+
+            InvalidOperationException resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.FoosAsync)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            try
+                            {
+                                await next(ctx).ConfigureAwait(false);
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                resultCtx = ex;
+                            }
+                        })
+                        .UseSingleOrDefault()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            executor.Execute("{ foosAsync { bar baz} }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+        }
+
+        [Fact]
+        public virtual void ExecuteAsync_SelectionMultiple_ShouldThrowOnMultiple()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IAsyncEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateAsyncResolver(
+                Foo.Create("aa", 1, _setId),
+                Foo.Create("bb", 2, _setId));
+
+            Foo resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(d =>
+                    d.Field(t => t.FoosMultipleAsync)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as Foo;
+                        }))
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            executor.Execute(
+                 "{ foosMultipleAsync { bar baz } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Equal("aa", resultCtx.Bar);
+            Assert.Equal(1, resultCtx.Baz);
+        }
+
         public class Query
         {
             [UseSingleOrDefault]
             [UseSelection]
             public IQueryable<Foo> Foos { get; }
+
+            [UseSingleOrDefault(AllowMultipleResults = true)]
+            [UseSelection]
+            public IQueryable<Foo> FoosMultiple { get; }
+
+            [UseSingleOrDefault]
+            [GraphQLType(typeof(ObjectType<Foo>))]
+            public IAsyncEnumerator<Foo> FoosAsync { get; }
+
+            [UseSingleOrDefault(AllowMultipleResults = true)]
+            [GraphQLType(typeof(ObjectType<Foo>))]
+            public IAsyncEnumerator<Foo> FoosMultipleAsync { get; }
         }
 
         public class Foo

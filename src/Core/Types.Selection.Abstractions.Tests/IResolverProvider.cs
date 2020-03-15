@@ -10,5 +10,9 @@ namespace HotChocolate.Types.Selections
         public (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
             CreateResolver<TResult>(params TResult[] results)
             where TResult : class;
+
+        public (IServiceCollection, Func<IResolverContext, IAsyncEnumerable<TResult>>)
+            CreateAsyncResolver<TResult>(params TResult[] results)
+            where TResult : class;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Selections;
 
 namespace HotChocolate.Types
 {
@@ -17,22 +18,45 @@ namespace HotChocolate.Types
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            await _next(context).ConfigureAwait(false);
+            if (context.Field.ContextData[nameof(SingleOrDefaultOptions)] is
+                    SingleOrDefaultOptions options)
+            {
+                await _next(context).ConfigureAwait(false);
 
-            IQueryable<T> source = null;
-
-            if (context.Result is IQueryable<T> q)
-            {
-                source = q;
-            }
-            else if (context.Result is IEnumerable<T> e)
-            {
-                source = e.AsQueryable();
-            }
-            if (source != null)
-            {
-                context.Result = await Task.Run(
-                    () => source.SingleOrDefault(), context.RequestAborted);
+                switch (context.Result)
+                {
+                    case IAsyncEnumerable<T> ae:
+                        bool found = false;
+                        await foreach (T result in ae.ConfigureAwait(false))
+                        {
+                            if (found)
+                            {
+                                throw new InvalidOperationException(
+                                    "Sequence contains more than one element");
+                            }
+                            found = true;
+                            context.Result = result;
+                            if (options.AllowMultipleResults)
+                            {
+                                break;
+                            }
+                        }
+                        break;
+                    case IEnumerable<T> e:
+                        if (options.AllowMultipleResults)
+                        {
+                            context.Result = await Task.Run(
+                                    () => e.FirstOrDefault(), context.RequestAborted)
+                                .ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            context.Result = await Task.Run(
+                                    () => e.SingleOrDefault(), context.RequestAborted)
+                                .ConfigureAwait(false);
+                        }
+                        break;
+                }
             }
         }
     }

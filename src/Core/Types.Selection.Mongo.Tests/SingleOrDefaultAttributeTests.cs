@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Selections
         , IClassFixture<MongoResource>
     {
         public SingleOrDefaultAttributeTests(MongoResource provider)
-            : base(new MongoProvider(provider))
+            : base(new MongoProvider(provider), true)
         {
         }
     }

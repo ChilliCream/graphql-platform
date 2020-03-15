@@ -9,22 +9,30 @@ namespace HotChocolate.Types.Selections
 {
     public class SingleOrDefaultHandler : IListHandler
     {
+        private const int TakeAmountForSingleOrDefault = 2;
+
         public Expression HandleLeave(
             SelectionVisitorContext context,
             IFieldSelection selection,
             Expression expression)
         {
-            if (context.FieldSelection.Field.ContextData
-                    .ContainsKey("__SingleOrDefaultMiddleware") &&
-                context.FieldSelection.Field.Member is PropertyInfo propertyInfo)
+            ObjectField field = context.FieldSelection.Field;
+            if (field.ContextData.ContainsKey(nameof(SingleOrDefaultOptions)) &&
+                field.Member is PropertyInfo propertyInfo)
             {
+                var allowMultipleResults = field.ContextData[nameof(SingleOrDefaultOptions)]
+                        is SingleOrDefaultOptions options && options.AllowMultipleResults;
+
+                var takeAmount = allowMultipleResults ? 1 : TakeAmountForSingleOrDefault;
+
                 Type elementType = GetInnerListType(propertyInfo.PropertyType);
+
                 return Expression.Call(
                     typeof(Enumerable),
                     "Take",
                     new[] { elementType },
                     expression,
-                    Expression.Constant(2));
+                    Expression.Constant(takeAmount));
             }
 
             return expression;
