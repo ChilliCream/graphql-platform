@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Selections
     public sealed class UseSingleOrDefaultAttribute
         : ObjectFieldDescriptorAttribute
     {
-        public bool AllowMultipleResults { get; set; } = false;
+        public bool AllowMultipleResults { get; set; }
 
         public override void OnConfigure(
             IDescriptorContext context,

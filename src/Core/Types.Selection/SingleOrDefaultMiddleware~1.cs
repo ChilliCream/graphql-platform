@@ -23,41 +23,45 @@ namespace HotChocolate.Types
             {
                 await _next(context).ConfigureAwait(false);
 
-                switch (context.Result)
+                context.Result = context.Result switch
                 {
-                    case IAsyncEnumerable<T> ae:
-                        bool found = false;
-                        await foreach (T result in ae.ConfigureAwait(false))
-                        {
-                            if (found)
-                            {
-                                throw new InvalidOperationException(
-                                    "Sequence contains more than one element");
-                            }
-                            found = true;
-                            context.Result = result;
-                            if (options.AllowMultipleResults)
-                            {
-                                break;
-                            }
-                        }
-                        break;
-                    case IEnumerable<T> e:
-                        if (options.AllowMultipleResults)
-                        {
-                            context.Result = await Task.Run(
-                                    () => e.FirstOrDefault(), context.RequestAborted)
-                                .ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            context.Result = await Task.Run(
-                                    () => e.SingleOrDefault(), context.RequestAborted)
-                                .ConfigureAwait(false);
-                        }
-                        break;
+                    IAsyncEnumerable<T> ae => HandleAsyncEnumerable(options, ae),
+                    IEnumerable<T> ae => HandleEnumerable(context, options, ae),
+                    _ => context.Result
+                };
+            }
+        }
+
+        private async Task<T> HandleEnumerable(
+            IMiddlewareContext context,
+            SingleOrDefaultOptions options,
+            IEnumerable<T> e)
+        {
+            return await Task.Run(
+                    () => options.AllowMultipleResults ? e.FirstOrDefault() : e.SingleOrDefault(),
+                    context.RequestAborted)
+                .ConfigureAwait(false);
+        }
+
+        private async Task<T> HandleAsyncEnumerable(
+            SingleOrDefaultOptions options,
+            IAsyncEnumerable<T> ae)
+        {
+            T returnValue = default;
+            await foreach (T result in ae.ConfigureAwait(false))
+            {
+                if (!Equals(returnValue, default(T)))
+                {
+                    throw new InvalidOperationException(
+                        "Sequence contains more than one element");
+                }
+                returnValue = result;
+                if (options.AllowMultipleResults)
+                {
+                    break;
                 }
             }
+            return returnValue;
         }
     }
 }
