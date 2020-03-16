@@ -47,7 +47,6 @@ namespace HotChocolate.Types.Selections
                         try
                         {
                             return e.SingleOrDefault();
-
                         }
                         catch (InvalidOperationException)
                         {
@@ -55,7 +54,6 @@ namespace HotChocolate.Types.Selections
                         }
                     }, context.RequestAborted)
                     .ConfigureAwait(false);
-
             }
         }
     }
