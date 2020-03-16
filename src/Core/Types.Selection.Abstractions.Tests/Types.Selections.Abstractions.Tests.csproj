@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -12,12 +12,23 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Selections.InMemory.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Types.Selections.Abstractions.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\Types.Selection.Abstractions.Tests.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Types.Selection\Types.Selections.csproj" />
+    <ProjectReference Include="..\Types.Sorting\Types.Sorting.csproj" />
+    <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
+    <ProjectReference Include="..\Types\Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Snapshooter.Xunit" Version="0.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="__snapshots__\__mismatch__\" />
+  </ItemGroup>
 </Project>

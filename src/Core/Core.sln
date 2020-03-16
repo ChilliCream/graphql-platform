@@ -67,15 +67,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Tests", "Type
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Sorting.Mongo.Tests", "Types.Sorting.Mongo.Tests\Types.Sorting.Mongo.Tests.csproj", "{E8843255-77EB-471F-B682-528BB4B5D1D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selection", "Types.Selection\Types.Selection.csproj", "{0FD6B6D1-00AB-42CF-800F-4039A976A75A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selections", "Types.Selection\Types.Selections.csproj", "{0FD6B6D1-00AB-42CF-800F-4039A976A75A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selection.Abstractions.Tests", "Types.Selection.Abstractions.Tests\Types.Selection.Abstractions.Tests.csproj", "{726D5295-3F4E-4A1A-8F3B-0EA8EC456B48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selections.Abstractions.Tests", "Types.Selection.Abstractions.Tests\Types.Selections.Abstractions.Tests.csproj", "{726D5295-3F4E-4A1A-8F3B-0EA8EC456B48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selection.InMemory.Tests", "Types.Selection.InMemory.Tests\Types.Selection.InMemory.Tests.csproj", "{3DB2E3F5-0DBE-4B91-A335-D82F8794324B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selections.InMemory.Tests", "Types.Selection.InMemory.Tests\Types.Selections.InMemory.Tests.csproj", "{3DB2E3F5-0DBE-4B91-A335-D82F8794324B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selection.Mongo.Tests", "Types.Selection.Mongo.Tests\Types.Selection.Mongo.Tests.csproj", "{21AA751A-4C29-414C-B476-EE9204A48DDD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selections.Mongo.Tests", "Types.Selection.Mongo.Tests\Types.Selections.Mongo.Tests.csproj", "{21AA751A-4C29-414C-B476-EE9204A48DDD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selection.SqlServer.Tests", "Types.Selection.SqlServer.Tests\Types.Selection.SqlServer.Tests.csproj", "{07674D84-4A5C-4608-BECE-03630D38275F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Selections.SqlServer.Tests", "Types.Selection.SqlServer.Tests\Types.Selections.SqlServer.Tests.csproj", "{07674D84-4A5C-4608-BECE-03630D38275F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

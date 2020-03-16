@@ -163,7 +163,7 @@ namespace HotChocolate.Types.Selections
         }
 
         [Fact]
-        public virtual void Execute_Selection_Method()
+        public virtual void Execute_Selection_ComputedField()
         {
             // arrange
             IServiceCollection services;
@@ -186,31 +186,33 @@ namespace HotChocolate.Types.Selections
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = executor.Execute(
-                "{ foos { bar shouldNotVisit } }");
+            var result = executor.Execute(
+                "{ foos { bar computedField } }") as IReadOnlyQueryResult;
 
             // assert
             Assert.Empty(result.Errors);
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            var foos = result.Data["foos"] as IList<object>;
+
+            Assert.Collection(foos.ToArray(),
                 x =>
                 {
-                    Assert.Equal("aa", x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Null(x.ObjectArray);
+                    var casted = x as IDictionary<string, object>;
+                    Assert.NotNull(casted);
+                    Assert.Equal("aa", casted["bar"]);
+                    Assert.Equal("aa1", casted["computedField"]);
                 },
                 x =>
                 {
-                    Assert.Equal("bb", x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Null(x.ObjectArray);
+                    var casted = x as IDictionary<string, object>;
+                    Assert.NotNull(casted);
+                    Assert.Equal("bb", casted["bar"]);
+                    Assert.Equal("bb2", casted["computedField"]);
                 });
         }
 
         [Fact]
-        public virtual void Execute_Selection_EmptyQueue()
+        public virtual void Execute_Selection_ComputedFieldParent()
         {
             // arrange
             IServiceCollection services;
@@ -233,26 +235,80 @@ namespace HotChocolate.Types.Selections
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = executor.Execute(
-                "{ foos { shouldNotVisit } }");
+            var result = executor.Execute(
+                "{ foos { bar computedFieldParent } }") as IReadOnlyQueryResult;
 
             // assert
             Assert.Empty(result.Errors);
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            var foos = result.Data["foos"] as IList<object>;
+
+            Assert.Collection(foos.ToArray(),
                 x =>
                 {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Null(x.ObjectArray);
+                    var casted = x as IDictionary<string, object>;
+                    Assert.NotNull(casted);
+                    Assert.Equal("aa", casted["bar"]);
+                    Assert.Equal("aa1", casted["computedFieldParent"]);
                 },
                 x =>
                 {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Null(x.ObjectArray);
+                    var casted = x as IDictionary<string, object>;
+                    Assert.NotNull(casted);
+                    Assert.Equal("bb", casted["bar"]);
+                    Assert.Equal("bb2", casted["computedFieldParent"]);
+                });
+        }
+
+        [Fact]
+        public virtual void Execute_Selection_ComputedFieldLambda()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddObjectType<Foo>(
+                        x => x.Field("computedLambdaField")
+                            .Resolver(ctx => ctx.Parent<Foo>().Bar + ctx.Parent<Foo>().Baz))
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            var result = executor.Execute(
+                "{ foos { bar computedLambdaField } }") as IReadOnlyQueryResult;
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.NotNull(resultCtx);
+            var foos = result.Data["foos"] as IList<object>;
+
+            Assert.Collection(foos.ToArray(),
+                x =>
+                {
+                    var casted = x as IDictionary<string, object>;
+                    Assert.NotNull(casted);
+                    Assert.Equal("aa", casted["bar"]);
+                    Assert.Equal("aa1", casted["computedLambdaField"]);
+                },
+                x =>
+                {
+                    var casted = x as IDictionary<string, object>;
+                    Assert.NotNull(casted);
+                    Assert.Equal("bb", casted["bar"]);
+                    Assert.Equal("bb2", casted["computedLambdaField"]);
                 });
         }
 
@@ -485,7 +541,8 @@ namespace HotChocolate.Types.Selections
 
             // assert
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            Assert.Collection(
+                resultCtx.AsEnumerable().OrderBy(x => x.ISet.First().Bar).ToArray(),
                 x =>
                 {
                     Assert.Null(x.Bar);
@@ -535,7 +592,8 @@ namespace HotChocolate.Types.Selections
 
             // assert
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            Assert.Collection(
+                resultCtx.AsEnumerable().OrderBy(x => x.HashSet.First().Bar).ToArray(),
                 x =>
                 {
                     Assert.Null(x.Bar);
@@ -585,7 +643,8 @@ namespace HotChocolate.Types.Selections
 
             // assert
             Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
+            Assert.Collection(
+                resultCtx.AsEnumerable().OrderBy(x => x.SortedSet.First().Bar).ToArray(),
                 x =>
                 {
                     Assert.Null(x.Bar);
@@ -1363,8 +1422,9 @@ namespace HotChocolate.Types.Selections
             [UseSorting]
             public List<NestedFoo> MiddlewareList { get; set; }
 
-            public IEnumerable<string> GetShouldNotVisit()
-                => new string[] { "should not visit" };
+            public string GetComputedField() => Bar + Baz;
+
+            public string GetComputedFieldParent([Parent]Foo foo) => foo.Bar + foo.Baz;
 
             public static Foo Create(string bar, int baz)
             {

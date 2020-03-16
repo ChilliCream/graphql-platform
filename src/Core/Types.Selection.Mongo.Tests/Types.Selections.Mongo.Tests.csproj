@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\Types.Selection.Abstractions.Tests.csproj" />
+    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\Types.Selections.Abstractions.Tests.csproj" />
   </ItemGroup>
 
 </Project>

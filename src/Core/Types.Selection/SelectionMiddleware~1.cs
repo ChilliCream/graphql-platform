@@ -6,7 +6,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Selections;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Selections
 {
     public class SelectionMiddleware<T>
     {

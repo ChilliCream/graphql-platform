@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 namespace HotChocolate.Types.Selections
 {
@@ -29,7 +31,7 @@ namespace HotChocolate.Types.Selections
             (outputType, selectionSet) = UnwrapPaging(outputType, selectionSet);
             if (outputType.NamedType() is ObjectType type)
             {
-                foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
+                foreach (IFieldSelection selection in CollectExtendedFields(type, selectionSet))
                 {
                     if (EnterSelection(selection))
                     {
@@ -60,7 +62,9 @@ namespace HotChocolate.Types.Selections
         {
             Fields.Push(selection.Field);
             if (selection.Field.Type.IsListType() ||
-                selection.Field.Type.ToClrType() == typeof(IConnection))
+                selection.Field.Type.ToClrType() == typeof(IConnection) ||
+                (selection.Field.Member is PropertyInfo propertyInfo &&
+                    IsListType(propertyInfo.PropertyType)))
             {
                 if (EnterList(selection))
                 {
@@ -204,5 +208,42 @@ namespace HotChocolate.Types.Selections
             }
             return (selection.Field.Type, selectionSet);
         }
+
+        protected IReadOnlyList<IFieldSelection> CollectExtendedFields(
+            ObjectType type,
+            SelectionSetNode selectionSet)
+        {
+            IReadOnlyList<IFieldSelection> selections = Context.CollectFields(type, selectionSet);
+            if (HasNonProjectableField(selections))
+            {
+                var fieldSelections = new List<ISelectionNode>();
+                foreach (ObjectField field in type.Fields)
+                {
+                    if (field.Member is PropertyInfo && field.Type.IsLeafType())
+                    {
+                        fieldSelections.Add(CreateFieldNode(field.Name.Value));
+                    }
+                }
+                selectionSet = selectionSet.AddSelections(fieldSelections.ToArray());
+                selections = Context.CollectFields(type, selectionSet);
+            }
+            return selections;
+        }
+
+        private static bool HasNonProjectableField(IReadOnlyList<IFieldSelection> selections)
+        {
+            for (int i = 0; i < selections.Count; i++)
+            {
+                if (!(selections[i].Field.Member is PropertyInfo))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static FieldNode CreateFieldNode(string fieldName) =>
+            new FieldNode(null, new NameNode(fieldName), null,
+                Array.Empty<DirectiveNode>(), Array.Empty<ArgumentNode>(), null);
     }
 }

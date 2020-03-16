@@ -17,11 +17,14 @@ namespace HotChocolate.Types.Selections
             FieldSelection fieldSelection)
         {
             Conversion = conversion;
+            FieldSelection = fieldSelection;
             _context = context;
             _arguments = fieldSelection.CoerceArguments(context.Variables, conversion);
         }
 
         public ITypeConversion Conversion { get; }
+
+        public FieldSelection FieldSelection { get; }
 
         public bool TryGetValueNode(string key, out IValueNode arg)
         {

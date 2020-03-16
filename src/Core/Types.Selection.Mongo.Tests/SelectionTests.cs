@@ -67,7 +67,17 @@ namespace HotChocolate.Types.Selections
         }
 
         [Fact(Skip = "Not yet supported!")]
-        public override void Execute_Selection_EmptyQueue()
+        public override void Execute_Selection_ComputedField()
+        {
+        }
+
+        [Fact(Skip = "Not yet supported!")]
+        public override void Execute_Selection_ComputedFieldLambda()
+        {
+        }
+
+        [Fact(Skip = "Not yet supported!")]
+        public override void Execute_Selection_ComputedFieldParent()
         {
         }
 

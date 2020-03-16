@@ -1,14 +1,13 @@
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
     public class SelectionAttributeTests
         : SelectionAttributeTestsBase
-        , IClassFixture<SqlServerResource>
+        , IClassFixture<SqlServerProvider>
     {
-        public SelectionAttributeTests(SqlServerResource provider)
-            : base(new SqlServerProvider(provider))
+        public SelectionAttributeTests(SqlServerProvider provider)
+            : base(provider)
         {
         }
     }
