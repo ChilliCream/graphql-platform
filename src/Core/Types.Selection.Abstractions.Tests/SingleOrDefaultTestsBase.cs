@@ -31,33 +31,21 @@ namespace HotChocolate.Types.Selections
             (services, resolver) = _provider.CreateResolver(
                 new[] { Foo.Create("aa", 1), Foo.Create("aa", 2) });
 
-            InvalidOperationException resultCtx = null;
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
                         .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            try
-                            {
-                                await next(ctx).ConfigureAwait(false);
-                            }
-                            catch (InvalidOperationException ex)
-                            {
-                                resultCtx = ex;
-                            }
-                        })
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            executor.Execute("{ foos { bar baz} }");
+            IExecutionResult result = executor.Execute("{ foos { bar baz} }");
 
             // assert
-            Assert.NotNull(resultCtx);
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]

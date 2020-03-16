@@ -17,5 +17,11 @@ namespace HotChocolate.Types.Selections
         {
 
         }
+
+        [Fact]
+        public override void Execute_Single_OverrideNonNullType()
+        {
+            base.Execute_Single_OverrideNonNullType();
+        }
     }
 }

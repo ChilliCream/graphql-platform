@@ -5,6 +5,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
@@ -65,33 +66,21 @@ namespace HotChocolate.Types.Selections
                 Foo.Create("aa", 1, _setId),
                 Foo.Create("bb", 2, _setId));
 
-            InvalidOperationException resultCtx = null;
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.Foos)
                         .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            try
-                            {
-                                await next(ctx).ConfigureAwait(false);
-                            }
-                            catch (InvalidOperationException ex)
-                            {
-                                resultCtx = ex;
-                            }
-                        })
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            executor.Execute("{ foos { bar baz} }");
+            IExecutionResult result = executor.Execute("{ foos { bar baz} }");
 
             // assert
-            Assert.NotNull(resultCtx);
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -104,30 +93,20 @@ namespace HotChocolate.Types.Selections
                 Foo.Create("aa", 1, _setId),
                 Foo.Create("bb", 2, _setId));
 
-            Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(d =>
                     d.Field(t => t.FoosMultiple)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as Foo;
-                        }))
+                        .Resolver(resolver))
                 .Create();
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            executor.Execute(
+            IExecutionResult result = executor.Execute(
                  "{ foosMultiple { bar baz } }");
 
             // assert
-            Assert.NotNull(resultCtx);
-            Assert.Equal("aa", resultCtx.Bar);
-            Assert.Equal(1, resultCtx.Baz);
-            Assert.Null(resultCtx.Nested);
-            Assert.Null(resultCtx.NestedCollection);
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -173,33 +152,21 @@ namespace HotChocolate.Types.Selections
                 Foo.Create("aa", 1, _setId),
                 Foo.Create("bb", 2, _setId));
 
-            InvalidOperationException resultCtx = null;
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
                 .AddQueryType<Query>(
                     d => d.Field(t => t.FoosAsync)
                         .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            try
-                            {
-                                await next(ctx).ConfigureAwait(false);
-                            }
-                            catch (InvalidOperationException ex)
-                            {
-                                resultCtx = ex;
-                            }
-                        })
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            executor.Execute("{ foosAsync { bar baz} }");
+            IExecutionResult result = executor.Execute("{ foosAsync { bar baz} }");
 
             // assert
-            Assert.NotNull(resultCtx);
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -227,13 +194,11 @@ namespace HotChocolate.Types.Selections
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            executor.Execute(
-                 "{ foosMultipleAsync { bar baz } }");
+            IExecutionResult result = executor.Execute(
+                "{ foosMultipleAsync { bar baz } }");
 
             // assert
-            Assert.NotNull(resultCtx);
-            Assert.Equal("aa", resultCtx.Bar);
-            Assert.Equal(1, resultCtx.Baz);
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query
