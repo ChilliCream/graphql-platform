@@ -242,7 +242,7 @@ namespace HotChocolate.Types.Selections
             [UseSelection]
             public IQueryable<Foo> Foos { get; }
 
-            [UseSingleOrDefault(AllowMultipleResults = true)]
+            [UseFirstOrDefault]
             [UseSelection]
             public IQueryable<Foo> FoosMultiple { get; }
 
@@ -250,7 +250,7 @@ namespace HotChocolate.Types.Selections
             [GraphQLType(typeof(ObjectType<Foo>))]
             public IAsyncEnumerator<Foo> FoosAsync { get; }
 
-            [UseSingleOrDefault(AllowMultipleResults = true)]
+            [UseFirstOrDefault]
             [GraphQLType(typeof(ObjectType<Foo>))]
             public IAsyncEnumerator<Foo> FoosMultipleAsync { get; }
         }

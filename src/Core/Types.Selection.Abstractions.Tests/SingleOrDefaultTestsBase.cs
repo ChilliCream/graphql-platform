@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Selections
 {
     public abstract class SingleOrDefaultTestsBase
     {
-        private readonly static Foo[] SAMPLE =
+        private readonly static Foo[] Sample =
             new[] { Foo.Create("aa", 1) };
 
         private readonly IResolverProvider _provider;
@@ -66,7 +66,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(Sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -100,7 +100,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(Sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -136,7 +136,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(Sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(Sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -208,7 +208,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(Sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -244,7 +244,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(Sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()

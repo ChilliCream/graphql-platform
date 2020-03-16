@@ -6,11 +6,11 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Selections
 {
-    public class SingleOrDefaultMiddleware<T>
+    public sealed class FirstOrDefaultMiddleware<T>
     {
         private readonly FieldDelegate _next;
 
-        public SingleOrDefaultMiddleware(FieldDelegate next)
+        public FirstOrDefaultMiddleware(FieldDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
@@ -32,24 +32,12 @@ namespace HotChocolate.Types.Selections
                 {
                     context.Result = default(T);
                 }
-
-                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                {
-                    context.Result = ErrorHelper.CreateMoreThanOneError(context);
-                }
             }
             else if (context.Result is IEnumerable<T> e)
             {
-                try
-                {
-                    context.Result = await Task.Run(
-                        () => e.SingleOrDefault(), context.RequestAborted)
-                        .ConfigureAwait(false);
-                }
-                catch (InvalidOperationException)
-                {
-                    context.Result = ErrorHelper.CreateMoreThanOneError(context);
-                }
+                context.Result = await Task.Run(
+                    () => e.FirstOrDefault(), context.RequestAborted)
+                    .ConfigureAwait(false);
             }
         }
     }

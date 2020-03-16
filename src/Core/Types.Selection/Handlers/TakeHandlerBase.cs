@@ -5,11 +5,18 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
-namespace HotChocolate.Types.Selections
+namespace HotChocolate.Types.Selections.Handlers
 {
-    public class SingleOrDefaultHandler : IListHandler
+    public class TakeHandlerBase : IListHandler
     {
-        private const int TakeAmountForSingleOrDefault = 2;
+        private readonly string _contextDataKey;
+        private readonly int _take;
+
+        public TakeHandlerBase(string contextDataKey, int take)
+        {
+            _contextDataKey = contextDataKey;
+            _take = take;
+        }
 
         public Expression HandleLeave(
             SelectionVisitorContext context,
@@ -17,14 +24,9 @@ namespace HotChocolate.Types.Selections
             Expression expression)
         {
             ObjectField field = context.FieldSelection.Field;
-            if (field.ContextData.ContainsKey(nameof(SingleOrDefaultOptions)) &&
+            if (field.ContextData.ContainsKey(nameof(_contextDataKey)) &&
                 field.Member is PropertyInfo propertyInfo)
             {
-                var allowMultipleResults = field.ContextData[nameof(SingleOrDefaultOptions)]
-                        is SingleOrDefaultOptions options && options.AllowMultipleResults;
-
-                var takeAmount = allowMultipleResults ? 1 : TakeAmountForSingleOrDefault;
-
                 Type elementType = GetInnerListType(propertyInfo.PropertyType);
 
                 return Expression.Call(
@@ -32,7 +34,7 @@ namespace HotChocolate.Types.Selections
                     "Take",
                     new[] { elementType },
                     expression,
-                    Expression.Constant(takeAmount));
+                    Expression.Constant(_take));
             }
 
             return expression;

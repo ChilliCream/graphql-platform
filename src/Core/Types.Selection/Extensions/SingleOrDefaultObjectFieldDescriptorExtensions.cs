@@ -3,45 +3,57 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Selections;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
-namespace HotChocolate.Types.Selections
+namespace HotChocolate.Types
 {
     public static class SingleOrDefaultObjectFieldDescriptorExtensions
     {
-        private static readonly Type _middlewareDefinition = typeof(SingleOrDefaultMiddleware<>);
+        private static readonly Type _firstMiddleware = typeof(FirstOrDefaultMiddleware<>);
+        private static readonly Type _singleMiddleware = typeof(SingleOrDefaultMiddleware<>);
 
-        private static FieldDelegate Placeholder(FieldDelegate _) => __ => Task.CompletedTask;
+        private static FieldDelegate Placeholder(FieldDelegate _) => null;
+
+        public static IObjectFieldDescriptor UseFirstOrDefault(
+            this IObjectFieldDescriptor descriptor) =>
+            ApplyMiddleware(descriptor, SelectionOptions.FirstOrDefault, _firstMiddleware);
 
         public static IObjectFieldDescriptor UseSingleOrDefault(
+            this IObjectFieldDescriptor descriptor) =>
+            ApplyMiddleware(descriptor, SelectionOptions.SingleOrDefault, _singleMiddleware);
+
+        private static IObjectFieldDescriptor ApplyMiddleware(
             this IObjectFieldDescriptor descriptor,
-            bool allowMultipleResults = false)
+            string optionName,
+            Type middlewareDefinition)
         {
             if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
+            FieldMiddleware placeholder = next => context => Task.CompletedTask;
+
             descriptor
-                .Use(Placeholder)
+                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
-                    definition.ContextData[nameof(SingleOrDefaultOptions)] =
-                        new SingleOrDefaultOptions(allowMultipleResults);
+                    definition.ContextData[optionName] = null;
 
                     if (!TypeInspector.Default.TryCreate(
                         definition.ResultType, out TypeInfo typeInfo))
                     {
+                        Type resultType = definition.ResolverType ?? typeof(object);
                         // TODO : resources
                         throw new ArgumentException(
-                            "Cannot handle the specified type.",
+                            $"Cannot handle the specified type `{resultType.FullName}`.",
                             nameof(descriptor));
                     }
 
                     Type selectionType = typeInfo.ClrType;
-
                     definition.ResultType = selectionType;
                     definition.Type = RewriteToNonNullableType(definition.Type);
 
@@ -54,7 +66,8 @@ namespace HotChocolate.Types.Selections
                                 CompileMiddleware(
                                     selectionType,
                                     definition,
-                                    Placeholder);
+                                    Placeholder,
+                                    middlewareDefinition);
                             })
                             .On(ApplyConfigurationOn.Completion)
                             .Build();
@@ -68,9 +81,10 @@ namespace HotChocolate.Types.Selections
         private static void CompileMiddleware(
             Type type,
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder)
+            FieldMiddleware placeholder,
+            Type middlewareDefinition)
         {
-            Type middlewareType = _middlewareDefinition.MakeGenericType(type);
+            Type middlewareType = middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;

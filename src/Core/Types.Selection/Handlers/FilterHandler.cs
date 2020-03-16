@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters;
 
-namespace HotChocolate.Types.Selections
+namespace HotChocolate.Types.Selections.Handlers
 {
     public class FilterHandler : IListHandler
     {

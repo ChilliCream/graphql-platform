@@ -1,19 +1,17 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Selections
+namespace HotChocolate.Types
 {
     public sealed class UseSingleOrDefaultAttribute
         : ObjectFieldDescriptorAttribute
     {
-        public bool AllowMultipleResults { get; set; }
-
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            descriptor.UseSingleOrDefault(AllowMultipleResults);
+            descriptor.UseSingleOrDefault();
         }
     }
 }

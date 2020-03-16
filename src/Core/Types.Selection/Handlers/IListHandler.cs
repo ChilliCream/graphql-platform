@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types.Selections
+namespace HotChocolate.Types.Selections.Handlers
 {
     public interface IListHandler
     {

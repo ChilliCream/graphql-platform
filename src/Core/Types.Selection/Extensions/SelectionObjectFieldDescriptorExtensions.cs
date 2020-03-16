@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Selections;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types

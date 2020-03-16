@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Selections.Handlers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Selections
@@ -15,9 +16,7 @@ namespace HotChocolate.Types.Selections
         private readonly ITypeConversion _converter;
         private readonly IReadOnlyList<IListHandler> _listHandler = ListHandlers.All;
 
-        public SelectionVisitor(
-            IResolverContext context,
-            ITypeConversion converter)
+        public SelectionVisitor(IResolverContext context, ITypeConversion converter)
             : base(context)
         {
             _converter = converter;
@@ -89,8 +88,7 @@ namespace HotChocolate.Types.Selections
 
                 if (selection is FieldSelection fieldSelection)
                 {
-                    var context =
-                        new SelectionVisitorContext(Context, _converter, fieldSelection);
+                    var context = new SelectionVisitorContext(Context, _converter, fieldSelection);
 
                     for (var i = 0; i < _listHandler.Count; i++)
                     {
@@ -98,8 +96,7 @@ namespace HotChocolate.Types.Selections
                     }
                 }
 
-                Expression select =
-                    closure.CreateSelection(body, propertyInfo.PropertyType);
+                Expression select = closure.CreateSelection(body, propertyInfo.PropertyType);
 
                 Closures.Peek().Projections[selection.Field.Name] =
                     Expression.Bind(selection.Field.Member, select);
