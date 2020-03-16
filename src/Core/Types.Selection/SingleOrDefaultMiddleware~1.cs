@@ -40,16 +40,22 @@ namespace HotChocolate.Types.Selections
             }
             else if (context.Result is IEnumerable<T> e)
             {
-                try
-                {
-                    context.Result = await Task.Run(
-                        () => e.SingleOrDefault(), context.RequestAborted)
-                        .ConfigureAwait(false);
-                }
-                catch (InvalidOperationException)
-                {
-                    context.Result = ErrorHelper.CreateMoreThanOneError(context);
-                }
+
+                context.Result = await Task.Run<object>(
+                    () =>
+                    {
+                        try
+                        {
+                            return e.SingleOrDefault();
+
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            return ErrorHelper.CreateMoreThanOneError(context);
+                        }
+                    }, context.RequestAborted)
+                    .ConfigureAwait(false);
+
             }
         }
     }

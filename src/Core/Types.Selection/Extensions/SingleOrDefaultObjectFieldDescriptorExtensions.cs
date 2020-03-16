@@ -14,8 +14,6 @@ namespace HotChocolate.Types
         private static readonly Type _firstMiddleware = typeof(FirstOrDefaultMiddleware<>);
         private static readonly Type _singleMiddleware = typeof(SingleOrDefaultMiddleware<>);
 
-        private static FieldDelegate Placeholder(FieldDelegate _) => null;
-
         public static IObjectFieldDescriptor UseFirstOrDefault(
             this IObjectFieldDescriptor descriptor) =>
             ApplyMiddleware(descriptor, SelectionOptions.FirstOrDefault, _firstMiddleware);
@@ -66,7 +64,7 @@ namespace HotChocolate.Types
                                 CompileMiddleware(
                                     selectionType,
                                     definition,
-                                    Placeholder,
+                                    placeholder,
                                     middlewareDefinition);
                             })
                             .On(ApplyConfigurationOn.Completion)
