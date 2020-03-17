@@ -1,0 +1,357 @@
+﻿{
+  "documents": [
+    {
+      "original": "query getFoo {\n  foo {\n    id\n    name\n    ... on Bar {\n      bar\n    }\n    ... on Baz {\n      baz\n    }\n  }\n}",
+      "optimized": "query getFoo {\n  foo {\n    __typename\n    id\n    name\n    ... on Bar {\n      __typename\n      bar\n    }\n    ... on Baz {\n      __typename\n      baz\n    }\n  }\n}",
+      "hashAlgorithm": "md5Hash",
+      "hash": "866785faecb86c8e22fcced86c5292ca",
+      "operations": [
+        {
+          "name": "IGetFoo",
+          "type": "Query",
+          "arguments": [],
+          "parser": {
+            "returnType": {
+              "type": "interface",
+              "name": "IGetFoo",
+              "description": null,
+              "typeName": "Query",
+              "implements": [],
+              "fields": [
+                {
+                  "name": "foo",
+                  "description": null,
+                  "fieldName": "foo",
+                  "type": "Foo",
+                  "path": "/getFoo/foo"
+                }
+              ]
+            },
+            "fieldParsers": [
+              {
+                "name": "getFoo",
+                "path": "/getFoo",
+                "returnType": {
+                  "type": "interface",
+                  "name": "IGetFoo",
+                  "description": null,
+                  "typeName": "Query",
+                  "implements": [],
+                  "fields": [
+                    {
+                      "name": "foo",
+                      "description": null,
+                      "fieldName": "foo",
+                      "type": "Foo",
+                      "path": "/getFoo/foo"
+                    }
+                  ]
+                },
+                "possibleTypes": [
+                  {
+                    "type": "class",
+                    "name": "GetFoo",
+                    "description": null,
+                    "typeName": "Query",
+                    "implements": [
+                      "IGetFoo"
+                    ],
+                    "fields": [
+                      {
+                        "name": "foo",
+                        "description": null,
+                        "fieldName": "foo",
+                        "type": "Foo",
+                        "path": "/getFoo/foo"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "foo",
+                "path": "/getFoo/foo",
+                "returnType": {
+                  "type": "interface",
+                  "name": "IFoo",
+                  "description": null,
+                  "typeName": "Foo",
+                  "implements": [],
+                  "fields": [
+                    {
+                      "name": "id",
+                      "description": null,
+                      "fieldName": "id",
+                      "type": "String",
+                      "path": "/getFoo/foo/id"
+                    },
+                    {
+                      "name": "name",
+                      "description": null,
+                      "fieldName": "name",
+                      "type": "String",
+                      "path": "/getFoo/foo/name"
+                    }
+                  ]
+                },
+                "possibleTypes": [
+                  {
+                    "type": "class",
+                    "name": "Bar1",
+                    "description": null,
+                    "typeName": "Bar",
+                    "implements": [
+                      "IFoo",
+                      "IBar"
+                    ],
+                    "fields": [
+                      {
+                        "name": "id",
+                        "description": null,
+                        "fieldName": "id",
+                        "type": "String",
+                        "path": "/getFoo/foo/id"
+                      },
+                      {
+                        "name": "name",
+                        "description": null,
+                        "fieldName": "name",
+                        "type": "String",
+                        "path": "/getFoo/foo/name"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "class",
+                    "name": "Baz1",
+                    "description": null,
+                    "typeName": "Baz",
+                    "implements": [
+                      "IFoo",
+                      "IBaz"
+                    ],
+                    "fields": [
+                      {
+                        "name": "id",
+                        "description": null,
+                        "fieldName": "id",
+                        "type": "String",
+                        "path": "/getFoo/foo/id"
+                      },
+                      {
+                        "name": "name",
+                        "description": null,
+                        "fieldName": "name",
+                        "type": "String",
+                        "path": "/getFoo/foo/name"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "leafTypes": [
+              "String",
+              "String",
+              "String",
+              "String"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "type": "interface",
+      "name": "IGetFoo",
+      "description": null,
+      "typeName": "Query",
+      "implements": [],
+      "fields": [
+        {
+          "name": "foo",
+          "description": null,
+          "fieldName": "foo",
+          "type": "Foo",
+          "path": "/getFoo/foo"
+        }
+      ]
+    },
+    {
+      "type": "class",
+      "name": "GetFoo",
+      "description": null,
+      "typeName": "Query",
+      "implements": [
+        "IGetFoo"
+      ],
+      "fields": [
+        {
+          "name": "foo",
+          "description": null,
+          "fieldName": "foo",
+          "type": "Foo",
+          "path": "/getFoo/foo"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "IFoo",
+      "description": null,
+      "typeName": "Foo",
+      "implements": [],
+      "fields": [
+        {
+          "name": "id",
+          "description": null,
+          "fieldName": "id",
+          "type": "String",
+          "path": "/getFoo/foo/id"
+        },
+        {
+          "name": "name",
+          "description": null,
+          "fieldName": "name",
+          "type": "String",
+          "path": "/getFoo/foo/name"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "IBar1",
+      "description": null,
+      "typeName": "Bar",
+      "implements": [],
+      "fields": [
+        {
+          "name": "bar",
+          "description": null,
+          "fieldName": "bar",
+          "type": "String",
+          "path": "/getFoo/foo/bar"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "IBar",
+      "description": null,
+      "typeName": "Bar",
+      "implements": [
+        "IBar1"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "description": null,
+          "fieldName": "id",
+          "type": "String",
+          "path": "/getFoo/foo/id"
+        },
+        {
+          "name": "name",
+          "description": null,
+          "fieldName": "name",
+          "type": "String",
+          "path": "/getFoo/foo/name"
+        }
+      ]
+    },
+    {
+      "type": "class",
+      "name": "Bar1",
+      "description": null,
+      "typeName": "Bar",
+      "implements": [
+        "IFoo",
+        "IBar"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "description": null,
+          "fieldName": "id",
+          "type": "String",
+          "path": "/getFoo/foo/id"
+        },
+        {
+          "name": "name",
+          "description": null,
+          "fieldName": "name",
+          "type": "String",
+          "path": "/getFoo/foo/name"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "IBaz1",
+      "description": null,
+      "typeName": "Baz",
+      "implements": [],
+      "fields": [
+        {
+          "name": "baz",
+          "description": null,
+          "fieldName": "baz",
+          "type": "String",
+          "path": "/getFoo/foo/baz"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "IBaz",
+      "description": null,
+      "typeName": "Baz",
+      "implements": [
+        "IBaz1"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "description": null,
+          "fieldName": "id",
+          "type": "String",
+          "path": "/getFoo/foo/id"
+        },
+        {
+          "name": "name",
+          "description": null,
+          "fieldName": "name",
+          "type": "String",
+          "path": "/getFoo/foo/name"
+        }
+      ]
+    },
+    {
+      "type": "class",
+      "name": "Baz1",
+      "description": null,
+      "typeName": "Baz",
+      "implements": [
+        "IFoo",
+        "IBaz"
+      ],
+      "fields": [
+        {
+          "name": "id",
+          "description": null,
+          "fieldName": "id",
+          "type": "String",
+          "path": "/getFoo/foo/id"
+        },
+        {
+          "name": "name",
+          "description": null,
+          "fieldName": "name",
+          "type": "String",
+          "path": "/getFoo/foo/name"
+        }
+      ]
+    }
+  ]
+}

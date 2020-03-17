@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         IReadOnlyCollection<ITypeModel> Types { get; }
 
-        IReadOnlyCollection<ParserModel> ResultParsers { get; }
+        IReadOnlyCollection<OperationModel> Operations { get; }
 
         IReadOnlyCollection<FieldParserModel> FieldParsers { get; }
 
@@ -41,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         void Register(EnumTypeModel type);
 
-        void Register(ParserModel parser);
+        void Register(OperationModel operation);
 
         void Register(FieldParserModel parser);
     }

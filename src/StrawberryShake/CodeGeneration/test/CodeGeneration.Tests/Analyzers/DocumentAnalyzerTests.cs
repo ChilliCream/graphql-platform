@@ -1,9 +1,7 @@
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using StrawberryShake.CodeGeneration.Utilities;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
@@ -57,8 +55,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var analyzer = new DocumentAnalyzer();
             analyzer.SetSchema(schema);
             analyzer.AddDocument(document);
+            analyzer.SetHashProvider(new MD5DocumentHashProvider(HashFormat.Hex));
 
-            analyzer.Analyze();
+            analyzer.Analyze().ToJson().MatchSnapshot();
         }
     }
 }

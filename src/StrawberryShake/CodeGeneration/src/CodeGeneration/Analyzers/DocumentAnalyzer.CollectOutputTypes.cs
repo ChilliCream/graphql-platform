@@ -8,7 +8,7 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Types;
 using StrawberryShake.CodeGeneration.Utilities;
 using FieldSelection = StrawberryShake.CodeGeneration.Utilities.FieldSelection;
-
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public partial class DocumentAnalyzer
@@ -57,7 +57,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     }
                 }
 
-                RegisterParserModel(context, operation);
+                RegisterOperationModel(context, document, operation);
             }
         }
 
@@ -154,20 +154,52 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
-        private static void RegisterParserModel(
+        private static void RegisterOperationModel(
             IDocumentAnalyzerContext context,
-            OperationDefinitionNode operation)
+            DocumentNode document,
+            OperationDefinitionNode operationDefinition)
         {
             ComplexOutputTypeModel returnType =
                 context.Types.OfType<ComplexOutputTypeModel>()
-                    .First(t => t.SelectionSet == operation.SelectionSet && t.IsInterface);
+                    .First(t => t.SelectionSet == operationDefinition.SelectionSet && t.IsInterface);
 
             var parser = new ParserModel(
-                operation,
+                operationDefinition,
                 returnType,
-                context.FieldParsers.Where(t => t.Operation == operation).ToList());
+                context.FieldParsers.Where(t => t.Operation == operationDefinition).ToList());
 
-            context.Register(parser);
+            var operation = new OperationModel(
+                returnType.Name,
+                context.Schema.GetOperationType(operationDefinition.Operation),
+                document,
+                operationDefinition,
+                parser,
+                CreateOperationArguments(context, operationDefinition));
+
+            context.Register(operation);
+        }
+
+        private static IReadOnlyList<ArgumentModel> CreateOperationArguments(
+            IDocumentAnalyzerContext context,
+            OperationDefinitionNode operationDefinition)
+        {
+            var arguments = new List<ArgumentModel>();
+
+            foreach (VariableDefinitionNode variableDefinition in
+                operationDefinition.VariableDefinitions)
+            {
+
+                INamedInputType namedInputType = context.Schema.GetType<INamedInputType>(
+                    variableDefinition.Type.NamedType().Name.Value);
+
+                arguments.Add(new ArgumentModel(
+                    variableDefinition.Variable.Name.Value,
+                    (IInputType)variableDefinition.Type.ToType(namedInputType),
+                    variableDefinition,
+                    variableDefinition.DefaultValue));
+            }
+
+            return arguments;
         }
 
         private static void EnqueueFields(

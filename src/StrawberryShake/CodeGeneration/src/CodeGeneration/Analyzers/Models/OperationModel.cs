@@ -9,14 +9,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         public OperationModel(
             string name,
             ObjectType type,
+            DocumentNode document,
             OperationDefinitionNode operation,
-            ComplexOutputTypeModel resultType,
+            ParserModel parser,
             IReadOnlyList<ArgumentModel> arguments)
         {
             Name = name;
             Type = type;
+            Document = document;
             Operation = operation;
-            ResultType = resultType;
+            Parser = parser;
             Arguments = arguments;
         }
 
@@ -24,9 +26,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
         public ObjectType Type { get; }
 
+        public DocumentNode Document { get; }
+
         public OperationDefinitionNode Operation { get; }
 
-        public ComplexOutputTypeModel ResultType { get; }
+        public ParserModel Parser { get; }
 
         public IReadOnlyList<ArgumentModel> Arguments { get; }
     }

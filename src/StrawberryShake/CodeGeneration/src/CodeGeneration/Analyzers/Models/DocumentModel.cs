@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
@@ -5,29 +6,31 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
     public sealed class DocumentModel
     {
+        private readonly byte[] _serializedDocument;
+
         public DocumentModel(
             IReadOnlyList<OperationModel> operations,
-            IReadOnlyList<ParserModel> parsers,
-            DocumentNode original,
-            DocumentNode optimized,
+            DocumentNode originalDocument,
+            DocumentNode optimizedDocument,
+            byte[] serializedDocument,
             string hashAlgorithm,
             string hash)
         {
             Operations = operations;
-            Parsers = parsers;
-            Original = original;
-            Optimized = optimized;
+            OriginalDocument = originalDocument;
+            OptimizedDocument = optimizedDocument;
+            _serializedDocument = serializedDocument;
             HashAlgorithm = hashAlgorithm;
             Hash = hash;
         }
 
         public IReadOnlyList<OperationModel> Operations { get; }
 
-        public IReadOnlyList<ParserModel> Parsers { get; }
+        public DocumentNode OriginalDocument { get; }
 
-        public DocumentNode Original { get; }
+        public DocumentNode OptimizedDocument { get; }
 
-        public DocumentNode Optimized { get; }
+        public ReadOnlySpan<byte> SerializedDocument => _serializedDocument;
 
         public string HashAlgorithm { get; }
 

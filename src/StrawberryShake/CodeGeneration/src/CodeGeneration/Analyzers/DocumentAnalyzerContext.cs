@@ -22,8 +22,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             new Dictionary<string, ITypeModel>();
         private readonly Dictionary<FieldNode, FieldParserModel> _fieldParsers =
             new Dictionary<FieldNode, FieldParserModel>();
-        private readonly Dictionary<OperationDefinitionNode, ParserModel> _resultParsers =
-            new Dictionary<OperationDefinitionNode, ParserModel>();
+        private readonly List<OperationModel> _operations =
+            new List<OperationModel>();
         private FieldCollector? _fieldCollector;
 
         public DocumentAnalyzerContext(ISchema schema)
@@ -35,9 +35,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public IReadOnlyCollection<ITypeModel> Types => _typeByName.Values;
 
-        public IReadOnlyCollection<FieldParserModel> FieldParsers => _fieldParsers.Values;
+        public IReadOnlyCollection<OperationModel> Operations => _operations;
 
-        public IReadOnlyCollection<ParserModel> ResultParsers => _resultParsers.Values;
+        public IReadOnlyCollection<FieldParserModel> FieldParsers => _fieldParsers.Values;
 
         public IEnumerable<ComplexOutputTypeModel> GetTypes(SelectionSetNode selectionSet)
         {
@@ -139,18 +139,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
-        public void Register(ParserModel parser)
+        public void Register(OperationModel operation)
         {
-            if (!_resultParsers.ContainsKey(parser.Operation))
-            {
-                _resultParsers.Add(parser.Operation, parser);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"A parser for the operation {parser.Operation.Name!.Value} " +
-                    "was already registered.");
-            }
+            _operations.Add(operation);
         }
 
         public void Register(FieldParserModel parser)
