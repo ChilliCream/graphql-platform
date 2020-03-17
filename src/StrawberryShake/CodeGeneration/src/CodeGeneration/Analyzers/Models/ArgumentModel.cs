@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class ArgumentModel
+    public sealed class ArgumentModel
     {
         public ArgumentModel(
             string name,

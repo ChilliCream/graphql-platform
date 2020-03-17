@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class EnumTypeModel
+    public sealed class EnumTypeModel
         : ITypeModel
     {
         public EnumTypeModel(

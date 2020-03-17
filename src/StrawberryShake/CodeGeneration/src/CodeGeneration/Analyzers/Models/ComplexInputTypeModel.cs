@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class ComplexInputTypeModel
+    public sealed class ComplexInputTypeModel
         : ITypeModel
     {
         public ComplexInputTypeModel(

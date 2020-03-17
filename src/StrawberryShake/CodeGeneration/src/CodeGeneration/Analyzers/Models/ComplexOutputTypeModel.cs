@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class ComplexOutputTypeModel
+    public sealed class ComplexOutputTypeModel
         : ITypeModel
     {
         public ComplexOutputTypeModel(

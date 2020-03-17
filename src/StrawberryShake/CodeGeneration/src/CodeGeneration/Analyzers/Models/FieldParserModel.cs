@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class FieldParserModel
+    public sealed class FieldParserModel
     {
         public FieldParserModel(
             OperationDefinitionNode operation,

@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
-    public class EnumValueModel
+    public sealed class EnumValueModel
     {
         public EnumValueModel(
             string name,
