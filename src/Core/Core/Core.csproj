@@ -20,6 +20,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\Types.csproj" />
+    <ProjectReference Include="..\Types.Selection\Types.Selections.csproj" />
+    <ProjectReference Include="..\Types.Sorting\Types.Sorting.csproj" />
+    <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
   </ItemGroup>
 
   <ItemGroup>
