@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
+using StrawberryShake.CodeGeneration.Analyzers.Types;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
@@ -58,6 +60,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             analyzer.SetHashProvider(new MD5DocumentHashProvider(HashFormat.Hex));
 
             analyzer.Analyze().ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bar()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo: ABC } scalar ABC")
+                .AddDocumentFromString("extend scalar ABC @serializationType(name: \"foo\")")
+                .AddDirectiveType<SerializationTypeDirectiveType>()
+                .AddType(new StringType("ABC"))
+                .Use(next => contet => Task.CompletedTask)
+                .Create();
+
+            Assert.True(schema.GetType<ScalarType>("ABC").Directives.Any<SerializationTypeDirective>());
+
         }
     }
 }

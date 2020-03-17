@@ -1,0 +1,9 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: ABC
+}
+
+scalar ABC

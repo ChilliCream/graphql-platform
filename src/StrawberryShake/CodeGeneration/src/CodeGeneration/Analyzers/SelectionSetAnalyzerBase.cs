@@ -10,6 +10,7 @@ using StrawberryShake.CodeGeneration.Types;
 using StrawberryShake.CodeGeneration.Utilities;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+using StrawberryShake.CodeGeneration.Analyzers.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -378,10 +379,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (type is HotChocolate.Types.IHasDirectives d)
             {
-                IDirective directive = d.Directives[GeneratorDirectives.Name].FirstOrDefault();
+                IDirective directive = d.Directives[GeneratorDirectives.Rename].FirstOrDefault();
                 if (directive is { })
                 {
-                    return nameFormatter(directive.ToObject<NameDirective>().Value);
+                    return nameFormatter(directive.ToObject<RenameDirective>().Name);
                 }
             }
 
