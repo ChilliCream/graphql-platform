@@ -3,18 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishClient1
         : IPublishClient
     {
         public PublishClient1(
-            global::StrawberryShake.Tools.SchemaRegistry.IPublishClientPayload publishClient)
+            global::StrawberryShake.IPublishClientPayload publishClient)
         {
             PublishClient = publishClient;
         }
 
-        public global::StrawberryShake.Tools.SchemaRegistry.IPublishClientPayload PublishClient { get; }
+        public global::StrawberryShake.IPublishClientPayload PublishClient { get; }
     }
 }

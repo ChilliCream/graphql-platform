@@ -9,9 +9,6 @@ using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore
 {
-    /// <summary>
-    /// A base <c>GraphQL</c> query middleware.
-    /// </summary>
     public abstract class QueryMiddlewareBase
     {
         private const int _badRequest = 400;
@@ -57,11 +54,6 @@ namespace HotChocolate.AspNetCore
 
         protected IErrorHandler ErrorHandler { get; }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
             if (_isPathValid(context) && CanHandleRequest(context))
@@ -119,16 +111,12 @@ namespace HotChocolate.AspNetCore
         /// </returns>
         protected abstract bool CanHandleRequest(HttpContext context);
 
-        private async Task HandleRequestAsync(
-                  HttpContext context)
+        private async Task HandleRequestAsync(HttpContext context)
         {
-            await ExecuteRequestAsync(context, context.RequestServices)
-                .ConfigureAwait(false);
+            await ExecuteRequestAsync(context, context.RequestServices).ConfigureAwait(false);
         }
 
-        protected abstract Task ExecuteRequestAsync(
-            HttpContext context,
-            IServiceProvider services);
+        protected abstract Task ExecuteRequestAsync(HttpContext context, IServiceProvider services);
 
         protected async Task<IReadOnlyQueryRequest> BuildRequestAsync(
             HttpContext context,
@@ -137,8 +125,7 @@ namespace HotChocolate.AspNetCore
         {
             if (!_interceptorInitialized)
             {
-                _interceptor = services
-                    .GetService<IQueryRequestInterceptor<HttpContext>>();
+                _interceptor = services.GetService<IQueryRequestInterceptor<HttpContext>>();
                 _interceptorInitialized = true;
             }
 
@@ -151,7 +138,7 @@ namespace HotChocolate.AspNetCore
                     .ConfigureAwait(false);
             }
 
-            builder.SetServices(services);
+            builder.TrySetServices(services);
             builder.TryAddProperty(nameof(HttpContext), context);
             builder.TryAddProperty(nameof(ClaimsPrincipal), context.GetUser());
 
@@ -163,9 +150,7 @@ namespace HotChocolate.AspNetCore
             return builder.Create();
         }
 
-        protected static void SetResponseHeaders(
-            HttpResponse response,
-            string contentType)
+        protected static void SetResponseHeaders(HttpResponse response, string contentType)
         {
             response.ContentType = contentType ?? ContentType.Json;
             response.StatusCode = _ok;

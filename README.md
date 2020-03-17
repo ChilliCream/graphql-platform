@@ -51,9 +51,13 @@ Now add the query engine package to your project with the following command.
 dotnet add package HotChocolate
 ```
 
-The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and binding resolvers to it. Our README walkthrough shows you the code-first approach.
+The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and binding resolvers to it. Our README walk through shows you the code-first approach.
 
 The following example shows the code-first approach.
+
+> Make sure to add the following usings to your code in order to get access to the extension methods used in the examples:
+> using HotChocolate;
+> using HotChocolate.Execution;
 
 ```csharp
 public class Program
@@ -146,9 +150,9 @@ Open the Startup.cs and add the following code.
 protected override void ConfigureServices(IServiceCollection services)
 {
     services.AddGraphQL(sp => SchemaBuilder.New()
-      .AddQueryType<Query>()
-      .AddServices(sp)
-      .Create());
+        .AddQueryType<Query>()
+        .AddServices(sp)
+        .Create());
 }
 ```
 

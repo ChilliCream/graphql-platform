@@ -3,26 +3,19 @@ module.exports = {
     title: `ChilliCream GraphQL`,
     description: `...`,
     author: `@Chilli_Cream`,
+    baseUrl: `https://chillicream.com`,
     topnav: [
       {
         name: `Platform`,
-        link: `/`,
+        link: `/platform`,
       },
       {
         name: `Docs`,
-        link: `/`,
-      },
-      {
-        name: `Resources`,
-        link: `/`,
-      },
-      {
-        name: `Contact Us`,
-        link: `/`,
+        link: `/docs`,
       },
       {
         name: `Blog`,
-        link: `/`,
+        link: `/blog`,
       },
       {
         name: `Shop`,
@@ -35,7 +28,7 @@ module.exports = {
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
-  pathPrefix: "/hotchocolate",
+  pathPrefix: "/hotchocolate", // todo: must be removed before we go online
   plugins: [
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
@@ -48,11 +41,45 @@ module.exports = {
       },
     },
     {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `blog`,
+        path: `${__dirname}/src/blog`,
+      },
+    },
+    {
       resolve: `gatsby-plugin-react-svg`,
       options: {
         rule: {
           include: /images\/.*\.svg/,
         },
+      },
+    },
+    {
+      resolve: `gatsby-plugin-disqus`,
+      options: {
+        shortname: `chillicream`,
+      },
+    },
+    {
+      resolve: `gatsby-transformer-remark`,
+      options: {
+        plugins: [
+          `gatsby-remark-autolink-headers`,
+          `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-prismjs`,
+            options: {
+              showLineNumbers: true,
+            },
+          },
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              maxWidth: 1100,
+            },
+          },
+        ],
       },
     },
     `gatsby-transformer-sharp`,

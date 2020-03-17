@@ -4,7 +4,7 @@ import { GlobalStyle } from "../misc/global-style";
 import { Footer } from "./footer";
 import { Header } from "./header";
 
-const Layout: FunctionComponent = ({ children }) => {
+export const Layout: FunctionComponent = ({ children }) => {
   return (
     <>
       <GlobalStyle />
@@ -15,10 +15,13 @@ const Layout: FunctionComponent = ({ children }) => {
   );
 };
 
-export default Layout;
-
 const Content = styled.main`
   display: flex;
-  flex-direction: main;
-  padding-top: 60px;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff;
+
+  @media only screen and (min-width: 992px) {
+    padding-top: 60px;
+  }
 `;
