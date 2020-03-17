@@ -154,9 +154,7 @@ namespace HotChocolate.Types
                 nameof(targetType));
         }
 
-        internal T DeserializeArgument<T>(
-            Argument argument,
-            IValueNode valueNode)
+        internal T DeserializeArgument<T>(Argument argument, IValueNode valueNode)
         {
             return (T)DeserializeArgument(argument, valueNode, typeof(T));
         }

@@ -34,8 +34,7 @@ namespace HotChocolate.Language
 
         public OperationType Operation { get; }
 
-        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
-        { get; }
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
