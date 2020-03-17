@@ -6077,14 +6077,6 @@ gatsby-react-router-scroll@^2.1.23:
     scroll-behavior "^0.9.10"
     warning "^3.0.0"
 
-gatsby-remark-code-buttons@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/gatsby-remark-code-buttons/-/gatsby-remark-code-buttons-2.0.4.tgz#1fc02fd8beacab6a4c07e7b335095f0a7ff6bf55"
-  integrity sha512-VPwYnXEAC3rNffhc43E6KfFfV/xYrIzdlsNvcFarAukIvArB2AlXHC3BFfbYTjw93fio8UIfLZjQJweNwDQSoQ==
-  dependencies:
-    query-string "^6.5.0"
-    unist-util-visit "^1.4.0"
-
 gatsby-remark-images@^3.1.49:
   version "3.1.49"
   resolved "https://registry.yarnpkg.com/gatsby-remark-images/-/gatsby-remark-images-3.1.49.tgz#78748520f3bf3bdec418f166dc52208af3e3f7b4"
@@ -10868,7 +10860,7 @@ query-string@^5.0.1:
     object-assign "^4.1.0"
     strict-uri-encode "^1.0.0"
 
-query-string@^6.5.0, query-string@^6.9.0:
+query-string@^6.9.0:
   version "6.11.1"
   resolved "https://registry.yarnpkg.com/query-string/-/query-string-6.11.1.tgz#ab021f275d463ce1b61e88f0ce6988b3e8fe7c2c"
   integrity sha512-1ZvJOUl8ifkkBxu2ByVM/8GijMIPx+cef7u3yroO3Ogm4DOdZcF5dcrWTIlSHe3Pg/mtlt6/eFjObDfJureZZA==
@@ -13404,7 +13396,7 @@ unist-util-visit-parents@^3.0.0:
     "@types/unist" "^2.0.0"
     unist-util-is "^4.0.0"
 
-unist-util-visit@^1.0.0, unist-util-visit@^1.1.0, unist-util-visit@^1.4.0, unist-util-visit@^1.4.1:
+unist-util-visit@^1.0.0, unist-util-visit@^1.1.0, unist-util-visit@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-1.4.1.tgz#4724aaa8486e6ee6e26d7ff3c8685960d560b1e3"
   integrity sha512-AvGNk7Bb//EmJZyhtRUnNMEpId/AZ5Ph/KUpTI09WHQuDZHKovQ1oEv3mfmKpWKtoMzyMC4GLBm1Zy5k12fjIw==

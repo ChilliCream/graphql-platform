@@ -1,7 +1,7 @@
 ---
 path: "/blog/2019/12/26/hot-chocolate-10.3.0"
 date: "2020-03-18"
-title: "Get started with EF Core in a Hot Chocolate GraphQL Server"
+title: "Get started with Hot Chocolate and Entity Framework"
 author: Michael Staib
 authorURL: https://github.com/michaelstaib
 authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
@@ -9,25 +9,126 @@ authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 ![Hot Chocolate](/img/blog/hotchocolate-banner.svg)
 
-This article shows how to use _Entity Framework Core_ in an _Hot Chocolate_ GraphQL server.
+In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
 
-With the release of version 10.4 of _Hot Chocolate_ we started to support _Entity Framework_ out of the box. _Entity Framework_ for a long time is one of the most requested features and we are happy to finally help the community along with this.
+_Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DBContext` and once in a while commit the changes aggregated in the context to the database by invoking `SaveChanges` on the context. With _Entity Framework_ we can write database queries with _Linq_ and do not have deal with _SQL_ directly which many developers prefer.
 
 <!--truncate-->
 
 ## Introduction
 
-In this article we will mainly discuss _Entity Framework Core_ also we also support _Entity Framework 6_. _Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ you work against your `DBContext` and once in a while commit the changes to the database by invoking `SaveChanges` on the context.
+This tutorial uses the Contoso University sample application used by Microsoft to demonstrate the usage of _Entity Framework_ with ASP.NET Core. The sample application is a simple GraphQL server for the university website. With it, you can query and update student, course, and instructor information.
 
-While this makes _Entity Framework_ nice to use it also introduces some issues with it for GraphQL. With GraphQL the default execution strategy is to parallelize the execution of fields. This means that we potentially access the same scoped `DBContext` with two different threads.
+Before we get started let us setup our server project.
 
-Since now two threads modify the local state of the `DBContext` we are getting into error states.
+```bash
+mkdir ContosoUniversity
+dotnet new web
+```
 
-## Serial Execution
+Next wee need to add _Entity Framework_ to our project.
 
-With version 10.4 we are now allowing to opt into a fully serial execution strategy. While this potentially slows down the processing of the query we can guarantee with this that the `DBContext` is only accessed by a single thread. With version 11 we will improve on this and allow to use pooling for the `DBContext` so that a resolver can rent a pool and return it.
+```bash
+dotnet add package Microsoft.EntityFrameworkCore
+```
 
-In order to force serial execution for the entire query graph you now can set a the new `ForceSerialExecution` option for the query execution.
+Last but not least we are adding the SQLLite _Entity Framework_ provided in order to have a lightweight database.
+
+```bash
+dotnet add package Microsoft.EntityFrameworkCore.Sqlite
+```
+
+For our data we have three models representing the student, the enrollments and the courses. 
+
+The student has some basic data about the person like the first name or the last name and the date when the student first enrolled into the university.
+
+The enrollment entity represents the enrollment of a student to a specific course. The enrollment not only represents the relationship but also holds the Grade that a student achieved in that course. 
+
+Last but not leas we have the course to which many students can be enroll to.
+
+Lets copy our models into the project.
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+namespace ContosoUniversity
+{
+    public class Student
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int ID { get; set; }
+        public string LastName { get; set; }
+        public string FirstMidName { get; set; }
+        public DateTime EnrollmentDate { get; set; }
+
+        public virtual ICollection<Enrollment> Enrollments { get; set; }
+    }
+
+    public enum Grade
+    {
+        A, B, C, D, F
+    }
+
+    public class Enrollment
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int EnrollmentID { get; set; }
+        public int CourseID { get; set; }
+        public int StudentID { get; set; }
+        public Grade? Grade { get; set; }
+
+        public virtual Course Course { get; set; }
+        public virtual Student Student { get; set; }
+    }
+
+    public class Course
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int CourseID { get; set; }
+        public string Title { get; set; }
+        public int Credits { get; set; }
+
+        public virtual ICollection<Enrollment> Enrollments { get; set; }
+    }
+}
+```
+
+For our model we do need a `DBContext` 
+
+```csharp
+
+
+namespace ContosoUniversity
+{
+    public class SchoolContext : DbContext
+    {
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Enrollment> Enrollments { get; set; }
+        public DbSet<Course> Courses { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            
+        }
+    }
+}
+```
+
+## d
+
+While this makes _Entity Framework_ nice to use it also introduces some issues with it for GraphQL. With GraphQL the default execution strategy is to parallelize the execution of field resolvers. This means that we potentially access the same scoped `DBContext` with two different threads.
+
+If two or more threads start messing around with the state aggregated on our `DBContext` we start to get into trouble very quickly. The `DBContext` in this case will throw an exception that it is not allowed to access the context with multiple threads.
+
+In _Hot Chocolate_ we can force the execution engine to execute all resolvers serially in order to prevent errors like that with _Entity Framework_.
+
+> Version 11 of Hot Chocolate uses `DBContext` pooling to use multiple `DBContext` instances in one request.
+
+In order to do that we can set a the `ForceSerialExecution` option for the query execution options to `true`.
 
 ```csharp
 services
@@ -37,8 +138,6 @@ services
             .Create(),
         new QueryExecutionOptions { ForceSerialExecution = true });
 ```
-
-As I said with the upcoming version 11 we will integrate with the `DBContext` pooling feature and allow for renting multiple context for one query execution.
 
 ## Projections
 
@@ -55,13 +154,13 @@ public IQueryable<Person> GetPeople(
     dbContext.People;
 ```
 
-Whenever I know write a GraphQL query like: 
+Whenever I know write a GraphQL query like:
 
 ```graphql
 {
-    people {
-        name
-    }
+  people {
+    name
+  }
 }
 ```
 
@@ -86,9 +185,9 @@ Whenever I know write a GraphQL query like:
 
 ```graphql
 {
-    people(where: { name: "foo" }) {
-        name
-    }
+  people(where: { name: "foo" }) {
+    name
+  }
 }
 ```
 
@@ -102,15 +201,14 @@ The selection middleware is not only effecting level on which we annotated it bu
 
 ```graphql
 {
-    people(where: { name: "foo" }) {
-        name
-        addresses {
-            street
-        }
+  people(where: { name: "foo" }) {
+    name
+    addresses {
+      street
     }
+  }
 }
 ```
-
 
 There were two main issues that made using _Entity Framework_ with _Hot Chocolate_ difficult. The first issue is that the `DBContext` is not thread-safe. _Entity Framework_ implements the unit-of-work pattern and basically to work against a context that holts in memory instances of your entities. You can change those entities in memory and when you have done all you needed to do you invoke `SaveChangesAsync` and all is good.
 
