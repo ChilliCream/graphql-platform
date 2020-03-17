@@ -51,14 +51,16 @@ Lets copy our models into the project.
 ```csharp
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContosoUniversity
 {
     public class Student
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int ID { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
         public string LastName { get; set; }
         public string FirstMidName { get; set; }
         public DateTime EnrollmentDate { get; set; }
@@ -74,10 +76,10 @@ namespace ContosoUniversity
     public class Enrollment
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int EnrollmentID { get; set; }
-        public int CourseID { get; set; }
-        public int StudentID { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int EnrollmentId { get; set; }
+        public int CourseId { get; set; }
+        public int StudentId { get; set; }
         public Grade? Grade { get; set; }
 
         public virtual Course Course { get; set; }
@@ -87,8 +89,8 @@ namespace ContosoUniversity
     public class Course
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int CourseID { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int CourseId { get; set; }
         public string Title { get; set; }
         public int Credits { get; set; }
 
@@ -97,10 +99,10 @@ namespace ContosoUniversity
 }
 ```
 
-For our model we do need a `DBContext` 
+For our model we do need a `DBContext` against which we can interact with the database. 
 
 ```csharp
-
+using Microsoft.EntityFrameworkCore;
 
 namespace ContosoUniversity
 {
@@ -110,111 +112,219 @@ namespace ContosoUniversity
         public DbSet<Enrollment> Enrollments { get; set; }
         public DbSet<Course> Courses { get; set; }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            
+            options.UseSqlite("Data Source=uni.db");
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Student>()
+                .HasMany(t => t.Enrollments)
+                .WithOne(t => t.Student)
+                .HasForeignKey(t => t.StudentId);
+
+            modelBuilder.Entity<Enrollment>()
+                .HasIndex(t => new { t.StudentId, t.CourseId })
+                .IsUnique();
+
+            modelBuilder.Entity<Course>()
+                .HasMany(t => t.Enrollments)
+                .WithOne(t => t.Course)
+                .HasForeignKey(t => t.CourseId);
         }
     }
 }
 ```
 
-## d
+Copy the context as well to the project.
 
-While this makes _Entity Framework_ nice to use it also introduces some issues with it for GraphQL. With GraphQL the default execution strategy is to parallelize the execution of field resolvers. This means that we potentially access the same scoped `DBContext` with two different threads.
-
-If two or more threads start messing around with the state aggregated on our `DBContext` we start to get into trouble very quickly. The `DBContext` in this case will throw an exception that it is not allowed to access the context with multiple threads.
-
-In _Hot Chocolate_ we can force the execution engine to execute all resolvers serially in order to prevent errors like that with _Entity Framework_.
-
-> Version 11 of Hot Chocolate uses `DBContext` pooling to use multiple `DBContext` instances in one request.
-
-In order to do that we can set a the `ForceSerialExecution` option for the query execution options to `true`.
+Next, we need to register our `SchoolContext` with the dependency injection. For that lets open our `Startup.cs` and replace the `ConfigureServices` method with the following code.
 
 ```csharp
-services
-    .AddGraphQL(sp =>
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddDbContext<SchoolContext>();
+}
+```
+
+There is one last thing to finish our preparations with the database and to get into GraphQL. We somehow need to create our database. Since we are in this post only exploring how we can query data with entity framework and GraphQL we will also need to seed some data.
+
+Add the following method to the `Startup.cs`:
+
+```csharp
+private static void InitializeDatabase(IApplicationBuilder app)
+{
+    using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+    {
+        var context = serviceScope.ServiceProvider.GetRequiredService<SchoolContext>();
+        if (context.Database.EnsureCreated())
+        {
+            var course = new Course { Credits = 10, Title = "Object Oriented Programming 1" };
+
+            context.Enrollments.Add(new Enrollment
+            {
+                Course = course,
+                Student = new Student { FirstMidName = "Rafael", LastName = "Foo", EnrollmentDate = DateTime.UtcNow }
+            });
+            context.Enrollments.Add(new Enrollment
+            {
+                Course = course,
+                Student = new Student { FirstMidName = "Pascal", LastName = "Bar", EnrollmentDate = DateTime.UtcNow }
+            });
+            context.Enrollments.Add(new Enrollment
+            {
+                Course = course,
+                Student = new Student { FirstMidName = "Michael", LastName = "Baz", EnrollmentDate = DateTime.UtcNow }
+            });
+            context.SaveChangesAsync();
+        }
+    }
+}
+```
+
+And call this method in the first line of `Configure`. You updated `Configure` method should look like the following:
+
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    InitializeDatabase(app);
+
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    app.UseRouting();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGet("/", async context =>
+        {
+            await context.Response.WriteAsync("Hello World!");
+        });
+    });
+}
+```
+
+## GraphQL Schema
+
+Everything in GraphQL resolves around a schema. The schema defines the types that are available and the data that our GraphQL server exposes. In GraphQL we interact with the data through root types. In this post we will only query data which means that we only need the query type.
+
+The query type exposes fields which are called root fields. The root fields define how I can query my data. For our university GraphQL server we want to be able to query the students and then drill deeper into what courses a student is enrolled to.
+
+Lets start with that.
+
+With _Hot Chocolate_ and pure code-first the query root type is represented by a simple class. Public methods or public properties on that type are inferred as fields of my GraphQL type.
+
+The following class:
+
+```csharp
+public class Query 
+{
+    /// <summary>
+    /// Gets all students.
+    /// </summary>
+    public IQueryable<Student> GetStudents() => throw new NotImplementedException();
+}
+```
+
+Is translated to the following GraphQL type:
+
+```graphql
+type Query {
+  """
+  Gets all students
+  """
+  students: [Student]
+}
+```
+
+> _Hot Chocolate_ will apply GraphQL conventions to your types which will remove the verb `Get` from your method or the postfix `async`.
+
+In GraphQL we call the method `GetStudents` a resolver since it resolves for us some data. Resolvers are executed independent from one another and each resolver has dependencies on different resources. Everything that a resolver needs can be injected as a method parameter. Our resolver for instance needs our `ShoolContext`. By using argument injection the execution engine can better optimize how to execute a query.
+
+OK, with this knowledge lets implement our `Query` class.
+
+```csharp
+public class Query
+{
+    /// <summary>
+    /// Gets all students.
+    /// </summary>
+    public IQueryable<Student> GetStudents([Service]SchoolContext schoolContext) =>
+        schoolContext.Students;
+}
+```
+
+Our query class up there would already work. But only for one level. It basically would resolve the students but could not drill deeper. The enrollments would always be empty. In _Hot Chocolate_ we have a concept of field middleware that can alter the execution pipeline of our field resolver.
+
+It is important that middleware order is important since multiple middleware form a field execution pipeline.
+
+In our case we want _Entity Framework_ projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware.
+
+```csharp
+using System.Linq;
+using HotChocolate;
+using HotChocolate.Types;
+
+namespace ContosoUniversity
+{
+    public class Query
+    {
+        /// <summary>
+        /// Gets all students.
+        /// </summary>
+        [UseSelection]
+        public IQueryable<Student> GetStudents([Service]SchoolContext schoolContext) =>
+            schoolContext.Students;
+    }
+}
+```
+
+Lets paste this file into our project.
+
+I pointed out that in GraphQL everything resolves around a schema. In order to get our GraphQL server up and running we need to create and host a GraphQL schema. In _Hot Chocolate_ we define a schema with the `SchemaBuilder`.
+
+Open the `Startup.cs` again and then let us add a simple schema with our `Query` type.
+
+For that replace the `ConfigureServices` method with the following code.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddDbContext<SchoolContext>();
+
+    services.AddGraphQL(
         SchemaBuilder.New()
-            ...
+            .AddQueryType<Query>()
             .Create(),
         new QueryExecutionOptions { ForceSerialExecution = true });
+}
 ```
 
-## Projections
-
-With the serial execution feature you basically can just use entity framework to pull in data without worrying to run into thread exceptions.
-
-But when we started talked about integrating _Entity Framework_ we immediately started talking about rewriting the whole query graph into one native query on top of _Entity Framework_. With 10.4 we are introducing the first step on this road with our new projections.
-
-The new _Hot Chocolate_ projections allows us to annotate on the root field that we want to use the selections middleware and _Hot Chocolate_ will then take the query graph from the annotation and rewrite it into a native query.
+The above code registers a GraphQL schema with the dependency injection container.
 
 ```csharp
-[UseSelection]
-public IQueryable<Person> GetPeople(
-    [Service]ChatDbContext dbContext) =>
-    dbContext.People;
+SchemaBuilder.New()
+    .AddQueryType<Query>()
+    .Create()
 ```
 
-Whenever I know write a GraphQL query like:
-
-```graphql
-{
-  people {
-    name
-  }
-}
-```
-
-It translates into:
-
-```SQL
-SELECT [Name] FROM [People]
-```
-
-But we did not stop here. We already have those nice middleware that you can use for filtering and like always you can combine these. So, lets take our initial example and improve upon this:
+The schema builder registers our `Query` class as GraphQL `Query` type.
 
 ```csharp
-[UseSelection]
-[UseFiltering]
-[UseSorting]
-public IQueryable<Person> GetPeople(
-    [Service]ChatDbContext dbContext) =>
-    dbContext.People;
+new QueryExecutionOptions { ForceSerialExecution = true }
 ```
 
-Whenever I know write a GraphQL query like:
+Also we are defining that the execution engine shall force the execution engine to execute serially since `DBContext` is not thread-safe.
 
-```graphql
-{
-  people(where: { name: "foo" }) {
-    name
-  }
-}
-```
+> The upcoming version 11 of Hot Chocolate uses `DBContext` pooling to use multiple `DBContext` instances in one request. This allows version 11 to parallelize data fetching.
 
-It translates into:
 
-```SQL
-SELECT [Name] FROM [People] WHERE [Name] = 'foo'
-```
 
-The selection middleware is not only effecting level on which we annotated it but will take the whole sub-graph into account. This means that if our `Person` for instance has a collection of addresses then we can just dig in.
 
-```graphql
-{
-  people(where: { name: "foo" }) {
-    name
-    addresses {
-      street
-    }
-  }
-}
-```
 
-There were two main issues that made using _Entity Framework_ with _Hot Chocolate_ difficult. The first issue is that the `DBContext` is not thread-safe. _Entity Framework_ implements the unit-of-work pattern and basically to work against a context that holts in memory instances of your entities. You can change those entities in memory and when you have done all you needed to do you invoke `SaveChangesAsync` and all is good.
-
-With ASP.NET Core the `DBContext` is added to the dependency injection as scoped reference by default or in newer version you now can pool them. You basically get one instance per request, you do what you need to do with the context and the
-
-With GraphQL the default execution algorithm for queries executes fields potentially in parallel.
 
 BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
 
