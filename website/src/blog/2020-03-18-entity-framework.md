@@ -48,7 +48,7 @@ The student entity has some basic data about the student like the first name, th
 
 The enrollment entity represents the enrollment of a student to a specific course. The enrollment entity not only represents the relationship between the student and the course but also holds the Grade that a student achieved in that course.
 
-Last but not least we have the course to which many students can enroll to. The course has a title and a property defining the credit that a student can achieve in that course.
+Last but not least we have the course to which many students are enrolled to. The course has a title and a property defining the credit that a student can achieve in that course.
 
 Let’s copy our models into our project.
 
