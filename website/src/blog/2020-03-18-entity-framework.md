@@ -368,7 +368,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 `app.UseGraphQL();` registers the GraphQL middleware with the server. Since we did not specify any path the middleware will run on the root of our server. Like with field middleware the order of ASP.NET Core middleware is important.
 
-## Testing a GraphQL Server
+## Testing a GraphQL Server
 
 In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application you can get our very own Banana Cakepop which can be downloaded [here](https://hotchocolate.io/docs/banana-cakepop).
 
@@ -415,10 +415,47 @@ Lets test our GraphQL server.
 dotnet run --urls http://localhost:5000
 ```
 
-Now open either _Banana Cakepop_ or Playground (http://localhost:5000/playground).
+### Testing with Banana Cakepop
 
+If you have chosen _Banana Cakepop_ to test an explore the GraphQL Schema open it now.
 
-Our Schema should look like the following now.
+_Banana Cakepop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
+
+**BCP IMAGE WITH ADDRESS**
+
+Once our GraphQL IDE has fetched the schema we can start exploring it. On the left-hand side click on the `Book` button. The left-hand side now shows us the root types and the root fields
+
+**BCP IMAGE WITH ROOT TYPES**
+
+In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our student. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses.
+
+**BCP IMAGE EXPANDED SCHEMA**
+
+Now close the schema tab again so we can write some queries.
+
+### Testing with Playground
+
+If you have opted for _Playground_ open your browser and navigate to `http://localhost:5000/playground`.
+
+On the right-hand side click on the `Docs` button. A pane will slide out showing us the root types and root fields of our schema.
+
+**PLAYGROUND IMAGE WITH ROOT TYPES**
+
+In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our student. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses.
+
+**BCP IMAGE EXPANDED SCHEMA**
+
+Now click onto `Docs` again to slide the schema tab in again so we can write some queries.
+
+### Recap
+
+While we just added one field that exposes the `Student` entity to _Hot Chocolate_, _Hot Chocolate_ explored what data is reachable from that entity. In conjunction with the `UseSelection` middleware we can now query all that data and drill into our graph.
+
+We have explored tooling with which we can explore the schema before issuing the first request.
+
+If we would print our schema it would now look like the following.
+
+> The schema SDL can be downloaded from http://localhost:5000/schema.
 
 ```graphql
 schema {
@@ -471,9 +508,11 @@ scalar Int
 scalar String
 ```
 
-While we just added one field that exposes the `Student` entity to _Hot Chocolate_, _Hot Chocolate_ explored what data is reachable from that entity. In conjunction with the `UseSelection` middleware we can now query all that data and drill into it.
+### Writing Queries
 
-Let us start with a simple query.
+In both GraphQL IDEs we can type in the GraphQL queries in the left-hand pane. If we click on the play button the result will be displayed in the right-hand side pane.
+
+Let us start with a simple query in which we ask for the name of all students that we have in our database.
 
 ```graphql
 query {
@@ -490,20 +529,26 @@ The above query resolves correctly the data from our database and we get the fol
   "data": {
     "students": [
       {
+        "firstMidName": "Rafael"
+      },
+      {
         "firstMidName": "Pascal"
+      },
+      {
+        "firstMidName": "Michael"
       }
     ]
   }
 }
 ```
 
-What is interesting is that the GraphQL engine rewrite the incoming GraphQL request to an expression tree that only fetched the data from the database that was needed. So, the SQL query for our GraphQL query looked like the following.
+What is interesting is that the GraphQL engine rewrite the incoming GraphQL request to an expression tree that is applied onto the queryable our root field returns. The expression will only query for data from the database that was need to fulfill our request. The SQL query for our GraphQL query would look like the following.
 
 ```sql
 SELECT "s"."FirstMidName" FROM "Students" AS "s"
 ```
 
-So let us drill into the data a little more.
+Let us drill into the data a little more and fetch additionally to the `firstMidName` also the title of the course the students are enlisted to.
 
 ```graphql
 query {
@@ -525,7 +570,27 @@ The above query returns:
   "data": {
     "students": [
       {
+        "firstMidName": "Rafael",
+        "enrollments": [
+          {
+            "course": {
+              "title": "Object Oriented Programming 1"
+            }
+          }
+        ]
+      },
+      {
         "firstMidName": "Pascal",
+        "enrollments": [
+          {
+            "course": {
+              "title": "Object Oriented Programming 1"
+            }
+          }
+        ]
+      },
+      {
+        "firstMidName": "Michael",
         "enrollments": [
           {
             "course": {
