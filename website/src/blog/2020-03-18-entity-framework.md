@@ -321,7 +321,228 @@ Also we are defining that the execution engine shall force the execution engine 
 
 > The upcoming version 11 of Hot Chocolate uses `DBContext` pooling to use multiple `DBContext` instances in one request. This allows version 11 to parallelize data fetching.
 
+In order to enable our ASP.NET Core server to process GraphQL requests we need to register the _Hot Chocolate_ GraphQL middleware.
 
+Replace the `Configure` method of your `Startup.cs` with the following code.
+
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    InitializeDatabase(app);
+
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    app.UseRouting();
+
+    app.UseGraphQL();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGet("/", async context =>
+        {
+            await context.Response.WriteAsync("Hello World!");
+        });
+    });
+}
+```
+
+`app.UseGraphQL();` registers the GraphQL middleware with the server. Since we did not specify any path the middleware will run on the root of our server. Like with field middleware the order of ASP.NET Core middleware is important.
+
+## Testing a GraphQL Server
+
+In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application you can get our very own Banana Cakepop which can be downloaded [here]().
+
+But you can also use Playground and host a simple GraphQL IDE as a middleware with your server. If you want to use playground add the following package:
+
+```bash
+dotnet add package HotChocolate.AspNetCore.Playground
+```
+
+After that we need to register the playground middleware. For that add `app.UsePlayground();` after `app.UseGraphQL()`. By default playground is hosted on `/playground` meaning in our case `http://localhost:5000/playground`.
+
+The `Configure` method should now look like the following:
+
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    InitializeDatabase(app);
+
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    app.UseRouting();
+
+    app.UseGraphQL();
+    app.UsePlayground();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGet("/", async context =>
+        {
+            await context.Response.WriteAsync("Hello World!");
+        });
+    });
+}
+```
+
+Lets test our GraphQL server.
+
+```bash
+dotnet run --urls http://localhost:5000
+```
+
+Now open either Banana Cakepop or Playground (http://localhost:5000/playground).
+
+Our Schema should look like the following now.
+
+```graphql
+schema {
+  query: Query
+}
+
+type Query {
+  students: [Student]
+}
+
+type Student {
+  enrollmentDate: DateTime!
+  enrollments: [Enrollment]
+  firstMidName: String
+  id: Int!
+  lastName: String
+}
+
+type Course {
+  courseId: Int!
+  credits: Int!
+  enrollments: [Enrollment]
+  title: String
+}
+
+type Enrollment {
+  course: Course
+  courseId: Int!
+  enrollmentId: Int!
+  grade: Grade
+  student: Student
+  studentId: Int!
+}
+
+enum Grade {
+  A
+  B
+  C
+  D
+  F
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
+```
+
+While we just added one field that exposes the `Student` entity to _Hot Chocolate_, _Hot Chocolate_ explored what data is reachable from that entity. In conjunction with the `UseSelection` middleware we can now query all that data and drill into it.
+
+Let us start with a simple query.
+
+```graphql
+query {
+  students {
+    firstMidName
+  }
+}
+```
+
+The above query resolves correctly the data from our database and we get the following result:
+
+```json
+{
+  "data": {
+    "students": [
+      {
+        "firstMidName": "Pascal"
+      }
+    ]
+  }
+}
+```
+
+What is interesting is that the GraphQL engine rewrite the incoming GraphQL request to an expression tree that only fetched the data from the database that was needed. So, the SQL query for our GraphQL query looked like the following.
+
+```sql
+SELECT "s"."FirstMidName" FROM "Students" AS "s"
+```
+
+So let us drill into the data a little more.
+
+```graphql
+query {
+  students {
+    firstMidName
+    enrollments {
+      course {
+        title
+      }
+    }
+  }
+}
+```
+
+The above query returns:
+
+```json
+{
+  "data": {
+    "students": [
+      {
+        "firstMidName": "Pascal",
+        "enrollments": [
+          {
+            "course": {
+              "title": "Object Oriented Programming 1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+In order to fetch the data the GraphQL query is rewritten to the following SQL:
+
+```sql
+SELECT "s"."FirstMidName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."CourseId"
+    FROM "Students" AS "s"
+    LEFT JOIN (
+        SELECT "c"."Title", "e"."EnrollmentId", "c"."CourseId", "e"."StudentId"
+        FROM "Enrollments" AS "e"
+        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+    ) AS "t" ON "s"."Id" = "t"."StudentId"
+    ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
+```
+
+## Filtering
+
+Without a quite any code we already have a working GraphQL server that returns all the students and we can drill into the data. We really just added entity framework and exposed a single root field.
+
+Let us go further with this. We actually can do more here and _Hot Chocolate_ provides you with a filter and sorting middleware to really give you the power to query your data with complex expressions.
+
+First let us add the following packages.
+
+```bash
+
+```
 
 
 
