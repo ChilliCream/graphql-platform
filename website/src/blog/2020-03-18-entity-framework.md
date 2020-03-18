@@ -634,7 +634,7 @@ dotnet add package HotChocolate.Types.Filters
 dotnet add package HotChocolate.Types.Sorting
 ```
 
-With these new packages in place let us rewrite our query type in order to enable proper filters.
+With these new packages in place let us rewrite our query type in order to enable proper filtering support.
 
 ```csharp
 using System.Linq;
@@ -654,9 +654,9 @@ namespace ContosoUniversity
 }
 ```
 
-The above query type has now two new attributes `UseFiltering` and `UseSorting`. Let me again state that order is important.
+The above query type has now two new attributes `UseFiltering` and `UseSorting`. Let me again state that order of middleware is important.
 
-With that upgraded `Query` type let us run restart our server.
+With that upgraded `Query` type let us restart our server.
 
 ```bash
 dotnet run --urls http://localhost:5000
