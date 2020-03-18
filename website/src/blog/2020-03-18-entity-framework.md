@@ -13,7 +13,7 @@ In this post I will walk you through how to build a GraphQL Server using _Hot Ch
 
 _Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DbContext` and once in a while commit the changes aggregated on that context to the database by invoking `SaveChanges` on the context.
 
-With _Entity Framework_ we can write database queries with _Linq_ and do not have deal with _SQL_ directly. This means that we can compile our database queries and can detect query errors before we run the our code.
+With _Entity Framework_ we can write database queries with _LINQ_ and do not have deal with _SQL_ directly. This means that we can compile our database queries and can detect query errors before we run the our code.
 
 <!--truncate-->
 
@@ -46,9 +46,9 @@ The student has some basic data about the person like the first name or the last
 
 The enrollment entity represents the enrollment of a student to a specific course. The enrollment entity not only represents the relationship between the student and the course but also holds the Grade that a student achieved in that course.
 
-Last but not leas we have the course to which many students can be enroll to. The course has a title and column defining the credit a student can achieve in that course.
+Last but not least we have the course to which many students can be enroll to. The course has a title and column defining the credit a student can achieve in that course.
 
-Lets copy our models into our project.
+Let’s copy our models into our project.
 
 ```csharp
 using System;
@@ -139,7 +139,7 @@ namespace ContosoUniversity
 }
 ```
 
-The `SchoolContext` exposes access to our entities through `DbSet`. We can query a `DbSet<T>` with linq or add new entities to it. Moreover, our `ShoolContext` has some configuration that defines the relations between our entities.
+The `SchoolContext` exposes access to our entities through `DbSet`. We can query a `DbSet<T>` with _LINQ_ or add new entities to it. Moreover, our `ShoolContext` has some configuration that defines the relations between our entities.
 
 Copy the context as well to our project.
 
@@ -215,7 +215,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-We are basically done with our preparations. So far we have defined our models, created a our `ShoolContext` through which we can query the database and registered it with the dependency injection container. Also we added some initialization logic so that our database is created with some initial data. With that settled let us move on and talk about GraphQL.
+We are basically done with our preparations. So far, we have defined our models, created a our `ShoolContext` through which we can query the database and registered it with the dependency injection container. Also, we added some initialization logic so that our database is created with some initial data. With that settled let us move on and talk about GraphQL.
 
 ## GraphQL Schema
 
@@ -225,7 +225,7 @@ In GraphQL we interact with the data through root types. In this post we will on
 
 The query root type exposes fields which are called root fields. The root fields define how we can query for data. For our university GraphQL server we want to be able to query the students and then drill deeper into what courses a student is enrolled to or what grade he/she has in a specific course.
 
-Lets start with that. Before we actually can put some GraphQL types in there we again need to add some packages. We need to add the `HotChocolate.AspNetCore` package to get the initial GraphQL functionality. Also we need the `HotChocolate.Types.Selections` package to be able to use _Entity Framework_ projections.
+Let’s start with that. Before we actually can put some GraphQL types in there we again need to add some packages. We need to add the `HotChocolate.AspNetCore` package to get the initial GraphQL functionality. Also we need the `HotChocolate.Types.Selections` package to be able to use _Entity Framework_ projections.
 
 ```bash
 dotnet add package HotChocolate.AspNetCore
@@ -278,7 +278,7 @@ Our query class up there would already work. But only for one level. It basicall
 
 The middleware order is important since multiple middleware form a field execution pipeline.
 
-In our case we want _Entity Framework_ projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware. Middleware in _pure code-first_ are represented by simple attributes. Since middleware order is important the order of these middleware attributes are important. Middleware attributes always start with `Use`. So, for our selections middleware we add `[UseSelection]`.
+In our case we want _Entity Framework_ projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware. Middleware in _pure code-first_ are represented by simple attributes. Since middleware order is important the order of these middleware attributes is important. Middleware attributes always start with `Use`. So, for our selections middleware we add `[UseSelection]`.
 
 ```csharp
 using System.Linq;
@@ -299,7 +299,7 @@ namespace ContosoUniversity
 }
 ```
 
-Lets paste this file into our project.
+Let’s paste this file into our project.
 
 I pointed out that in GraphQL everything resolves around a schema. In order to get our GraphQL server up and running we need to create and host a GraphQL schema in our server. In _Hot Chocolate_ we define a schema with the `SchemaBuilder`.
 
@@ -334,7 +334,7 @@ The schema builder registers our `Query` class as GraphQL `Query` root type.
 new QueryExecutionOptions { ForceSerialExecution = true }
 ```
 
-Also we are defining that the execution shall be forced execute serially since `DbContext` is not thread-safe.
+Also, we are defining that the execution shall be forced execute serially since `DbContext` is not thread-safe.
 
 > The upcoming version 11 of \_Hot Chocolate \_uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
 
@@ -370,7 +370,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ## Testing a GraphQL Server
 
-In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application you can get our very own Banana Cakepop which can be downloaded [here](https://hotchocolate.io/docs/banana-cakepop).
+In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cakepop which can be downloaded [here](https://hotchocolate.io/docs/banana-cakepop).
 
 ![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop.png)
 
@@ -380,7 +380,7 @@ But you can also use _Playground_ and host a simple GraphQL IDE as a middleware 
 dotnet add package HotChocolate.AspNetCore.Playground
 ```
 
-After that we need to register the playground middleware. For that add `app.UsePlayground();` after `app.UseGraphQL()`. By default playground is hosted on `/playground` meaning in our case `http://localhost:5000/playground`.
+After that we need to register the playground middleware. For that add `app.UsePlayground();` after `app.UseGraphQL()`. By default, playground is hosted on `/playground` meaning in our case `http://localhost:5000/playground`.
 
 The `Configure` method should now look like the following:
 
@@ -409,7 +409,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-Lets test our GraphQL server.
+Let’s test our GraphQL server.
 
 ```bash
 dotnet run --urls http://localhost:5000
@@ -522,7 +522,7 @@ query {
 }
 ```
 
-The above query resolves correctly the data from our database and we get the following result:
+The above query resolves correctly the data from our database, and we get the following result:
 
 ```json
 {
@@ -542,7 +542,7 @@ The above query resolves correctly the data from our database and we get the fol
 }
 ```
 
-What is interesting is that the GraphQL engine rewrite the incoming GraphQL request to an expression tree that is applied onto the queryable our root field returns. The expression will only query for data from the database that was need to fulfill our request. The SQL query for our GraphQL query would look like the following.
+What is interesting is that the GraphQL engine rewrite the incoming GraphQL request to an expression tree that is applied onto the queryable our root field returns. The expression will only query for data from the database that was needed to fulfill our request. The SQL query for our GraphQL query would look like the following.
 
 ```sql
 SELECT "s"."FirstMidName" FROM "Students" AS "s"
@@ -604,7 +604,7 @@ The above query returns:
 }
 ```
 
-In order to fetch the data the GraphQL query is rewritten to the following SQL:
+In order to fetch the data, the GraphQL query is rewritten to the following SQL:
 
 ```sql
 SELECT "s"."FirstMidName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."CourseId"
@@ -619,7 +619,7 @@ SELECT "s"."FirstMidName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."Cours
 
 The `UseSelection` middleware allows us by just simply attributing a field resolver that returns an `IQueryable<T>` to drill into that data set.
 
-Without a lot of code we already have a working GraphQL server that returns all the students. We are already able to drill into our data and the `UseSelection` middleware rewrites GraphQL selections into `IQueryable<T>` projections that ensures that we only select the data that we need from the database.
+Without a lot of code, we already have a working GraphQL server that returns all the students. We are already able to drill into our data and the `UseSelection` middleware rewrites GraphQL selections into `IQueryable<T>` projections that ensures that we only select the data that we need from the database.
 
 Think about it, we really just added entity framework and exposed a single root field that basically just returns the `DbSet<Student>`.
 
@@ -627,7 +627,7 @@ Think about it, we really just added entity framework and exposed a single root 
 
 Let us go further with this. We actually can do more here and _Hot Chocolate_ provides you with a filter and sorting middleware to really give you the power to query your data with complex expressions.
 
-First we need to add two more packages that will add the sorting and filtering middleware.
+First, we need to add two more packages that will add the sorting and filtering middleware.
 
 ```bash
 dotnet add package HotChocolate.Types.Filters
@@ -656,7 +656,26 @@ namespace ContosoUniversity
 
 The above query type has now two new attributes `UseFiltering` and `UseSorting`. Let me again state that order of middleware is important.
 
-**MIDDLEWARE PIPLINE CALL DIAGRAM**
+```mermaid
+sequenceDiagram
+    autonumber
+        UsePaging->>UseSelection: next(context)
+        activate UseSelection
+        UseSelection->>UseFiltering: next(context)
+        activate UseFiltering
+        UseFiltering->>UseSorting: next(context)
+        activate UseSorting
+        UseSorting->>Resolver: next(context)
+        activate Resolver
+        Resolver-->>UseSorting: apply sorting
+        deactivate Resolver
+        UseSorting-->>UseFiltering: apply filters
+        deactivate UseSorting
+        UseFiltering-->>UseSelection: apply projections
+        deactivate UseFiltering
+        UseSelection-->>UsePaging: apply paging
+        deactivate UseSelection
+```
 
 With that upgraded `Query` type let us restart our server.
 
@@ -731,7 +750,7 @@ SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."Title", "t"."Enrollmen
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
 
-But we can go further and even allow more. Lets say we want to allow the consumer to search for specific grades in our students enrolment list.
+But we can go further and even allow more. Let’s say we want to allow the consumer to search for specific grades in our student’s enrolment list.
 
 In order to allow filtering on the enrollments we can add the same `UseFiltering` attribute in our entity on the `Enrollments` collection and this property becomes filterable.
 
@@ -796,11 +815,11 @@ _Hot Chocolate_ supports complex expressions with a variety of query operators t
 
 ## Paging
 
-But we still might get to much data back. What if we select all the students from a real university database. This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
+But we still might get too much data back. What if we select all the students from a real university database? This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
 
-> Since we cannot do a skip while with entity framework we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor base pagination.
+> Since we cannot do a skip while with _Entity Framework_, we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor base pagination.
 
-Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important so we need to put the paging attribute on the top since the most top data middleware is actually applied last.
+Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important, so we need to put the paging attribute on the top since the most top data middleware is actually applied last.
 
 ```csharp
 using System.Linq;
@@ -822,7 +841,7 @@ namespace ContosoUniversity
 }
 ```
 
-Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure now changes. Also the paging middleware adds arguments to our field that we need to navigate between pages.
+Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure now changes. Also, the paging middleware adds arguments to our field that we need to navigate between pages.
 
 Our `students` field now returns a StudentConnection which allows us to either fetch the actual `Student` nodes of the page or to ask for the pagination metadata.
 
@@ -994,7 +1013,7 @@ namespace ContosoUniversity
 }
 ```
 
-With this we can now drill into the data from both sides. In order to get a nicer API we might also want to allow dedicated fetches maybe for a `Student` by the student ID.
+With this we can now drill into the data from both sides. In order to get a nicer API, we might also want to allow dedicated fetches maybe for a `Student` by the student ID.
 
 We could do something like the following and it would work.
 
@@ -1030,7 +1049,7 @@ But even if you want to support native SQL without `IQueryable<T>` it is super s
 
 By just implementing such a query rewriter you are creating a native database provider for _Hot Chocolate_ that integrates fully with the query engine.
 
-We also support the full features shown here with multiple other approaches like code-first with schema types or sdl first.
+We also support the full features shown here with multiple other approaches like code-first with schema types or SDL first.
 
 With version 11 we are introducing a new more powerful query engine that will provide full query execution plan support. Version 11 will have even better filters and push what we showed here today to the limit.
 
@@ -1038,7 +1057,7 @@ With version 11 we are introducing a new more powerful query engine that will pr
 
 The example used in this post can be found [here]().
 
-We also have a more complex real-time GraphQL server example in multiple flavours and different database integrations [here]().
+We also have a more complex real-time GraphQL server example in multiple flavors and different database integrations [here]().
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
