@@ -372,7 +372,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application you can get our very own Banana Cakepop which can be downloaded [here](https://hotchocolate.io/docs/banana-cakepop).
 
-**BANANA CAKEPOP IMAGE GOES HERE**
+![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop.png)
 
 But you can also use _Playground_ and host a simple GraphQL IDE as a middleware with your server. If you want to use playground add the following package:
 
@@ -421,15 +421,15 @@ If you have chosen _Banana Cakepop_ to test an explore the GraphQL Schema open i
 
 _Banana Cakepop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
 
-**BCP IMAGE WITH ADDRESS**
+![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-address.png)
 
-Once our GraphQL IDE has fetched the schema we can start exploring it. On the left-hand side click on the `Book` button. The left-hand side now shows us the root types and the root fields
+Once our GraphQL IDE has fetched the schema we can start exploring it. On the left-hand side click on the `Book` button. The left-hand side now shows us the root types and the root fields.
 
-**BCP IMAGE WITH ROOT TYPES**
+![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-root-types.png)
 
 In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our student. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses.
 
-**BCP IMAGE EXPANDED SCHEMA**
+![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-expanded-schema.png)
 
 Now close the schema tab again so we can write some queries.
 
@@ -439,11 +439,11 @@ If you have opted for _Playground_ open your browser and navigate to `http://loc
 
 On the right-hand side click on the `Docs` button. A pane will slide out showing us the root types and root fields of our schema.
 
-**PLAYGROUND IMAGE WITH ROOT TYPES**
+![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-root-types.png)
 
 In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our student. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses.
 
-**BCP IMAGE EXPANDED SCHEMA**
+![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-expanded-schema.png)
 
 Now click onto `Docs` again to slide the schema tab in again so we can write some queries.
 
@@ -666,7 +666,7 @@ dotnet run --urls http://localhost:5000
 
 Now let us inspect our schema again. When we look at the `students` field we can see that there are new arguments called `where` and `orderBy`.
 
-**SCREENSHOT BCP**
+![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-arguments.png)
 
 For our first query let us fetch the students with the `lastName` `Bar` or `Baz`.
 
@@ -1034,9 +1034,11 @@ We also support the full features shown here with multiple other approaches like
 
 With version 11 we are introducing a new more powerful query engine that will provide full query execution plan support. Version 11 will have even better filters and push what we showed here today to the limit.
 
+**ADD URLS!!!**
+
 The example used in this post can be found [here]().
 
-We also have a more complex real-time GraphQL server example in multiple flavours and different database integrations [here].
+We also have a more complex real-time GraphQL server example in multiple flavours and different database integrations [here]().
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
