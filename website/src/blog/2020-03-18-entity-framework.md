@@ -792,7 +792,7 @@ SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title"
 
 With filtering and sorting we infer without almost no code complex filters from our code. This allows us to query our data with complex expressions while drilling into the data graph.
 
-_Hot Chocolate_ supports complex expressions with a variety of query operators that can be enabled by just adding a simple attribute on your field resolver. We can also configure the filter capabilities which we  want to allow.
+_Hot Chocolate_ supports complex expressions with a variety of query operators that can be enabled by just adding a simple attribute on your field resolver. We can also configure the filter capabilities which we want to allow.
 
 ## Paging
 
@@ -836,7 +836,7 @@ query {
 }
 ```
 
-Which would again translate to a simple SQL. 
+Which would again translate to a simple SQL.
 
 ```sql
 SELECT 1 FROM "Students" AS "s"
@@ -900,7 +900,7 @@ With the `endCursor` of a page be can get the next page after that curser by fee
 
 ```graphql
 query {
-  students(first: 1 after: "eyJfX3RvdGFsQ291bnQiOjMsIl9fcG9zaXRpb24iOjB9") {
+  students(first: 1, after: "eyJfX3RvdGFsQ291bnQiOjMsIl9fcG9zaXRpb24iOjB9") {
     nodes {
       lastName
     }
@@ -1003,9 +1003,40 @@ public Task<Student> GetStudentByIdAsync([Service]SchoolContext context, int stu
     context.Students.FirstOrDefaultAsync(t => t.Id == studentId);
 ```
 
-If we did something like this with _Entity Framework_ we actually would no need to write more resolvers to add the edges of the entity like the `Enrollments` since we are not actually rewriting 
+If we did something like this with _Entity Framework_ we actually would need to write more resolvers to fetch the edges of the entity like the `Enrollments` since with this resolver there is no middleware that does the hard work for us. With the resolver above we are fully in control of the data fetching.
 
+Also doing it like that will lead into other problems since now we are causing multiple fetches to the database and we would no need to think about things like `DataLoader` to guarantee consistency between fetches.
 
+But we actually have a simple solution for this since we could use our selection middleware still and just tell the middleware pipeline that we actually just want a single result for that resolver.
+
+Let us rewrite the above resolver and look at it again.
+
+```csharp
+[UseFirstOrDefault]
+[UseSelection]
+public IQueryable<Student> GetStudentById([Service]SchoolContext context, int studentId) =>
+    context.Students.Where(t => t.Id == studentId);
+```
+
+This now looks like the initial resolvers that we write to fetch all students. We predefined the where clause and we added a new middleware called `UseFirstOrDefault`. The `UseFirstOrDefault` middleware will rewrite the result type for the GraphQL schema from `[Student]` to `Student` and ensure the we will only fetch a single entity from the database.
+
+`UseFirstOrDefault` or default from a semantics perspective aligns to `FirstOrDefaultAsync`. _Hot Chocolate_ also provides you with a `UseSingleOrDefault` middleware that will produce a GraphQL field error whenever there is more than one result.
+
+## Conclusion and Outlook
+
+_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind. The middleware that we showed you here like `UseSelection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
+
+But even if you want to support native SQL without `IQueryable<T>` it is super simple to inherit from our query rewriter base classes and and add this translation.
+
+By just implementing such a query rewriter you are creating a native database provider for _Hot Chocolate_ that integrates fully with the query engine.
+
+We also support the full features shown here with multiple other approaches like code-first with schema types or sdl first.
+
+With version 11 we are introducing a new more powerful query engine that will provide full query execution plan support. Version 11 will have even better filters and push what we showed here today to the limit.
+
+The example used in this post can be found [here]().
+
+We also have a more complex real-time GraphQL server example in multiple flavours and different database integrations [here].
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
