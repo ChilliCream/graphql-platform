@@ -694,6 +694,8 @@ export type FileFieldsEnum =
   'childMarkdownRemark___frontmatter___author' |
   'childMarkdownRemark___frontmatter___authorUrl' |
   'childMarkdownRemark___frontmatter___authorImageUrl' |
+  'childMarkdownRemark___frontmatter___authorURL' |
+  'childMarkdownRemark___frontmatter___authorImageURL' |
   'childMarkdownRemark___excerpt' |
   'childMarkdownRemark___rawMarkdownBody' |
   'childMarkdownRemark___fileAbsolutePath' |
@@ -1458,6 +1460,8 @@ export type MarkdownRemarkFieldsEnum =
   'frontmatter___author' |
   'frontmatter___authorUrl' |
   'frontmatter___authorImageUrl' |
+  'frontmatter___authorURL' |
+  'frontmatter___authorImageURL' |
   'excerpt' |
   'rawMarkdownBody' |
   'fileAbsolutePath' |
@@ -1583,6 +1587,8 @@ export type MarkdownRemarkFrontmatter = {
   author?: Maybe<Scalars['String']>;
   authorUrl?: Maybe<Scalars['String']>;
   authorImageUrl?: Maybe<Scalars['String']>;
+  authorURL?: Maybe<Scalars['String']>;
+  authorImageURL?: Maybe<Scalars['String']>;
 };
 
 
@@ -1600,6 +1606,8 @@ export type MarkdownRemarkFrontmatterFilterInput = {
   author?: Maybe<StringQueryOperatorInput>;
   authorUrl?: Maybe<StringQueryOperatorInput>;
   authorImageUrl?: Maybe<StringQueryOperatorInput>;
+  authorURL?: Maybe<StringQueryOperatorInput>;
+  authorImageURL?: Maybe<StringQueryOperatorInput>;
 };
 
 export type MarkdownRemarkGroupConnection = {
