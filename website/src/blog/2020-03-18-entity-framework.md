@@ -227,7 +227,7 @@ In GraphQL we interact with the data through root types. In this post we will on
 
 The query root type exposes fields which are called root fields. The root fields define how we can query for data. For our university GraphQL server we want to be able to query the students and then drill deeper into what courses a student is enrolled to or what grade he/she has in a specific course.
 
-Let’s start with that. Before we actually can put some GraphQL types in there we again need to add some packages. We need to add the `HotChocolate.AspNetCore` package to get the initial GraphQL functionality. Also we need the `HotChocolate.Types.Selections` package to be able to use _Entity Framework_ projections.
+Before we actually can put some GraphQL types in our project we again need to add some packages. This time we need to add the `HotChocolate.AspNetCore` package to enable the core GraphQL server functionality. Also we need the `HotChocolate.Types.Selections` package to be able to use _Entity Framework_ projections.
 
 ```bash
 dotnet add package HotChocolate.AspNetCore
@@ -259,7 +259,7 @@ type Query {
 }
 ```
 
-> _Hot Chocolate_ will apply GraphQL conventions to the types which will remove the verb `Get` for instance from the method or if it is an async method the postfix `async` will be removed. These conventions can be configured.
+> _Hot Chocolate_ will apply GraphQL conventions to inferred types which will remove the verb `Get` for instance from the method or if it is an async method the postfix `async` will be removed. These conventions can be configured.
 
 In GraphQL we call the method `GetStudents` a resolver since it resolves for us some data. Resolvers are executed independent from one another and each resolver has dependencies on different resources. Everything that a resolver needs can be injected as a method parameter. Our `GetStudents` resolver for instance needs the `ShoolContext` to fetch some data. By using argument injection the execution engine can better optimize how to execute a query.
 
@@ -276,11 +276,11 @@ public class Query
 }
 ```
 
-Our query class up there would already work. But only for one level. It basically would resolve all students but could not drill deeper. The enrollments would always be empty. In _Hot Chocolate_ we have a concept of field middleware that can alter the execution pipeline of our field resolver.
+Our query class up there would already work. But only for the first level. It basically would resolve all students but we could not drill deeper. The enrollments would always be empty. In _Hot Chocolate_ we have a concept of field middleware that can alter the execution pipeline of our field resolver.
 
 The middleware order is important since multiple middleware form a field execution pipeline.
 
-In our case we want _Entity Framework_ projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware. Middleware in _pure code-first_ are represented by simple attributes. Since middleware order is important the order of these middleware attributes is important. Middleware attributes always start with `Use`. So, for our selections middleware we add `[UseSelection]`.
+In our case we want _Entity Framework_ projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware. Middleware in _pure code-first_ are represented by simple attributes. Since middleware order is important the order of these middleware attributes is important too. Middleware attributes always start with the verb `Use`. So, for our selections middleware we add `[UseSelection]`.
 
 ```csharp
 using System.Linq;
