@@ -219,13 +219,20 @@ We are basically done with our preparations. So far we have defined our models, 
 
 ## GraphQL Schema
 
-Everything in GraphQL resolves around a schema. The schema defines the types that are available and the data that our GraphQL server exposes. In GraphQL we interact with the data through root types. In this post we will only query data which means that we only need the query type.
+Everything in GraphQL resolves around a schema. The schema defines the types that are available and the data that our GraphQL server exposes and how this data is accessible.
 
-The query type exposes fields which are called root fields. The root fields define how I can query my data. For our university GraphQL server we want to be able to query the students and then drill deeper into what courses a student is enrolled to.
+In GraphQL we interact with the data through root types. In this post we will only query data which means that we only need to define the query root type.
 
-Lets start with that.
+The query root type exposes fields which are called root fields. The root fields define how we can query for data. For our university GraphQL server we want to be able to query the students and then drill deeper into what courses a student is enrolled to or what grade he/she has in a specific course.
 
-With _Hot Chocolate_ and pure code-first the query root type is represented by a simple class. Public methods or public properties on that type are inferred as fields of my GraphQL type.
+Lets start with that. Before we actually can put some GraphQL types in there we again need to add some packages. We need to add the `HotChocolate.AspNetCore` package to get the initial GraphQL functionality. Also we need the `HotChocolate.Types.Selections` package to be able to use _Entity Framework_ projections.
+
+```bash
+dotnet add package HotChocolate.AspNetCore
+dotnet add package HotChocolate.Types.Selections
+```
+
+With _Hot Chocolate_ and the _pure code-first_ approach the query root type is represented by a simple class. Public methods or public properties on that type are inferred as fields of our GraphQL type.
 
 The following class:
 
@@ -250,9 +257,9 @@ type Query {
 }
 ```
 
-> _Hot Chocolate_ will apply GraphQL conventions to the types which will remove the verb `Get` from the method or if it is an async method the postfix `async`. These conventions can be configured.
+> _Hot Chocolate_ will apply GraphQL conventions to the types which will remove the verb `Get` for instance from the method or if it is an async method the postfix `async` will be removed. These conventions can be configured.
 
-In GraphQL we call the method `GetStudents` a resolver since it resolves for us some data. Resolvers are executed independent from one another and each resolver has dependencies on different resources. Everything that a resolver needs can be injected as a method parameter. Our resolver for instance needs our `ShoolContext`. By using argument injection the execution engine can better optimize how to execute a query.
+In GraphQL we call the method `GetStudents` a resolver since it resolves for us some data. Resolvers are executed independent from one another and each resolver has dependencies on different resources. Everything that a resolver needs can be injected as a method parameter. Our `GetStudents` resolver for instance needs the `ShoolContext` to fetch some data. By using argument injection the execution engine can better optimize how to execute a query.
 
 OK, with this knowledge lets implement our `Query` class.
 
@@ -267,11 +274,11 @@ public class Query
 }
 ```
 
-Our query class up there would already work. But only for one level. It basically would resolve the students but could not drill deeper. The enrollments would always be empty. In _Hot Chocolate_ we have a concept of field middleware that can alter the execution pipeline of our field resolver.
+Our query class up there would already work. But only for one level. It basically would resolve all students but could not drill deeper. The enrollments would always be empty. In _Hot Chocolate_ we have a concept of field middleware that can alter the execution pipeline of our field resolver.
 
-It is important that middleware order is important since multiple middleware form a field execution pipeline.
+The middleware order is important since multiple middleware form a field execution pipeline.
 
-In our case we want _Entity Framework_ projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware.
+In our case we want _Entity Framework_ projections to work so that we can drill into data in our GraphQL query. For this we can add the selection middleware. Middleware in _pure code-first_ are represented by simple attributes. Since middleware order is important the order of these middleware attributes are important. Middleware attributes always start with `Use`. So, for our selections middleware we add `[UseSelection]`.
 
 ```csharp
 using System.Linq;
@@ -294,7 +301,7 @@ namespace ContosoUniversity
 
 Lets paste this file into our project.
 
-I pointed out that in GraphQL everything resolves around a schema. In order to get our GraphQL server up and running we need to create and host a GraphQL schema. In _Hot Chocolate_ we define a schema with the `SchemaBuilder`.
+I pointed out that in GraphQL everything resolves around a schema. In order to get our GraphQL server up and running we need to create and host a GraphQL schema in our server. In _Hot Chocolate_ we define a schema with the `SchemaBuilder`.
 
 Open the `Startup.cs` again and then let us add a simple schema with our `Query` type.
 
@@ -321,19 +328,19 @@ SchemaBuilder.New()
     .Create()
 ```
 
-The schema builder registers our `Query` class as GraphQL `Query` type.
+The schema builder registers our `Query` class as GraphQL `Query` root type.
 
 ```csharp
 new QueryExecutionOptions { ForceSerialExecution = true }
 ```
 
-Also we are defining that the execution engine shall force the execution engine to execute serially since `DbContext` is not thread-safe.
+Also we are defining that the execution shall be forced execute serially since `DbContext` is not thread-safe.
 
-> The upcoming version 11 of Hot Chocolate uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
+> The upcoming version 11 of _Hot Chocolate _uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
 
 In order to enable our ASP.NET Core server to process GraphQL requests we need to register the _Hot Chocolate_ GraphQL middleware.
 
-We now need to replace the `Configure` method of our `Startup.cs` with the following code.
+For that we need to replace the `Configure` method of our `Startup.cs` with the following code.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -363,9 +370,11 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ## Testing a GraphQL Server
 
-In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application you can get our very own Banana Cakepop which can be downloaded [here]().
+In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application you can get our very own Banana Cakepop which can be downloaded [here](https://hotchocolate.io/docs/banana-cakepop).
 
-But you can also use Playground and host a simple GraphQL IDE as a middleware with your server. If you want to use playground add the following package:
+**BANANA CAKEPOP IMAGE GOES HERE**
+
+But you can also use _Playground_ and host a simple GraphQL IDE as a middleware with your server. If you want to use playground add the following package:
 
 ```bash
 dotnet add package HotChocolate.AspNetCore.Playground
@@ -406,7 +415,8 @@ Lets test our GraphQL server.
 dotnet run --urls http://localhost:5000
 ```
 
-Now open either Banana Cakepop or Playground (http://localhost:5000/playground).
+Now open either _Banana Cakepop_ or Playground (http://localhost:5000/playground).
+
 
 Our Schema should look like the following now.
 
