@@ -825,7 +825,7 @@ _Hot Chocolate_ supports complex expressions with a variety of query operators t
 
 But we still might get too much data back. What if we select all the students from a real university database? This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination spec.
 
-> Since we cannot do a skip while with _Entity Framework_, we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor based pagination.
+> Since we cannot do a skip while with _Entity Framework_, we actually use an indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor based pagination.
 
 Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important, so we need to put the paging attribute on the top since the most top field middleware is actually applied last like shown in the diagram.
 
