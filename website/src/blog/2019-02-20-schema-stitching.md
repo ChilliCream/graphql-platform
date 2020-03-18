@@ -3,8 +3,8 @@ path: "/blog/2019/02/20/schema-stitching"
 date: "2019-02-20"
 title: "GraphQL - Schema Stitching with Version 8"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 With version 8 of Hot Chocolate we have mainly focused on schema stitching. One of the most requested features in this area was auto-stitching. Auto-stitching will enable us to automatically pull in schemas from other GraphQL servers and merge those into one schema.

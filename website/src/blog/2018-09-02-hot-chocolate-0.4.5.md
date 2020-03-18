@@ -3,8 +3,8 @@ path: "/blog/2018/09/02/hot-chocolate-0.4.5"
 date: "2018-09-02"
 title: "GraphQL - Hot Chocolate 0.4.5"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 With version 0.4.5 we closed a lot of spec gaps and refined the schema configuration API.

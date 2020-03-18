@@ -3,8 +3,8 @@ path: "/blog/2019/02/04/instrumentation-and-apollo-tracing"
 date: "2019-02-04"
 title: "GraphQL .NET Instrumentation API and Apollo Tracing"
 author: Rafael Staib
-authorURL: https://github.com/rstaib
-authorImageURL: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+authorUrl: https://github.com/rstaib
+authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
 Today we have released Hot Chocolate `0.7.0`, containing one cool new feature,

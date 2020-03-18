@@ -3,11 +3,11 @@ path: "/blog/2019/09/27/strawberry-shake"
 date: "2019-09-27"
 title: "Building a .NET GraphQL Client API"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Strawberry Shake](/img/blog/strawberry-shake-banner.svg)
+![Strawberry Shake](../images/blog/strawberry-shake-banner.png)
 
 **This post has been updated, please head over to the newer post [here](https://chillicream.com/blog/2019/11/25/strawberry-shake_2).**
 

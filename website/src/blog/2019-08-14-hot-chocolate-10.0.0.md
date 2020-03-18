@@ -3,11 +3,11 @@ path: "/blog/2019/08/14/hot-chocolate-10.0.0"
 date: "2019-08-14"
 title: "GraphQL - Hot Chocolate 10.0.0"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Hot Chocolate](/img/blog/hotchocolate-banner.svg)
+![Hot Chocolate](../images/blog/hotchocolate-banner.png)
 
 Today we have released version 10 of _Hot Chocolate_. We originally started building version 9.1 which grew bigger and at one point became version 10. We have focused a lot on our server implementation. But let me walk you through our latest release.
 
@@ -293,9 +293,7 @@ With GraphQL most requests are provided as `JSON` that contains the request as a
 
 With the new _UTF-8 request parser_ we can finally just read the binary request stream and parse the JSON and the GraphQL request in one go. But there is more, we have given our new UTF-8 request parser access to our document cache, meaning while we parse the JSON request and hit the part were the GraphQL request is, we can look up if this query is already cached. This dramatically reduces memory usage and performance since we will not consume the query property anyway.
 
-<center>
-  <img src="../../../../img/request_parser_mem.png" width="50%">
-</center>
+![Request Parser Memory](../images/blog/request_parser_mem.png)
 
 The new request parser does only allocate 1/3 of the memory that GraphQL-DotNet uses with it\`s combination of JSON.Net and it\`s string based GraphQL parser.
 

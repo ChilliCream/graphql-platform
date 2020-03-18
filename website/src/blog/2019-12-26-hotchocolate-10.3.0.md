@@ -3,15 +3,13 @@ path: "/blog/2019/12/26/hot-chocolate-10.3.0"
 date: "2019-12-26"
 title: "GraphQL - Hot Chocolate 10.3.0"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Hot Chocolate](/img/blog/hotchocolate-banner.svg)
+![Hot Chocolate](../images/blog/hotchocolate-banner.png)
 
 Today we are releasing _Hot Chocolate_ version 10.3.0. Although the version number sounds like a small change, it is quite a nice update with lots of new features making _Hot Chocolate_ the most versatile and feature rich GraphQL server on the .NET platform.
-
-<!--truncate-->
 
 We are now working for a long time on version 11. Work on that has begun long before version 10.0.0 was finished. As we progressed with version 11, we felt that we could push some nice productivity features down to the version 10 branch and make users of _Hot Chocolate_ much happier.
 

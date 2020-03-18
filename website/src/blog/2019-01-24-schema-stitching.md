@@ -3,8 +3,8 @@ path: "/blog/2019/01/24/schema-stitching"
 date: "2019-01-24"
 title: "GraphQL - Schema Stitching"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 What is schema stitching actually? Schema stitching is the capability to merge multiple GraphQL schemas into one schema on which queries can be queried.

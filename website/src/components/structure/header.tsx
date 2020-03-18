@@ -39,7 +39,12 @@ export const Header: FunctionComponent = () => {
         </LogoLink>
         <Navigation>
           {topnav!.map((item, index) => (
-            <NavLink key={`topnav-item-${index}`} to={item!.link!}>
+            <NavLink
+              key={`topnav-item-${index}`}
+              to={item!.link!}
+              activeClassName="active"
+              partiallyActive
+            >
               {item!.name}
             </NavLink>
           ))}
@@ -152,7 +157,8 @@ const NavLink = styled(Link)`
   text-transform: uppercase;
   transition: background-color 0.2s ease-in-out;
 
-  :hover {
+  &.active,
+  &:hover {
     background-color: #b7020a;
   }
 `;

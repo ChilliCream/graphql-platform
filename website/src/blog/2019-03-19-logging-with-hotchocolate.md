@@ -3,8 +3,8 @@ path: "/blog/2019/03/19/logging-with-hotchocolate"
 date: "2019-03-19"
 title: "GraphQL - Tracing with Hot Chocolate"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 One common question that comes up on our slack channel is if _Hot Chocolate_ supports some kind of logging infrastructure. My personal opinion here is that logging/tracing is often very project specific and an API should not force one specific logging solution onto its users.

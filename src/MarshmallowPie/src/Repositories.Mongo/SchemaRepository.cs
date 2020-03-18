@@ -338,7 +338,7 @@ namespace MarshmallowPie.Repositories.Mongo
                         t => t.EnvironmentId, publishedSchema.EnvironmentId),
                     Builders<PublishedSchema>.Update.SetOnInsert(
                         t => t.SchemaId, publishedSchema.SchemaId),
-                        Builders<PublishedSchema>.Update.Set(
+                    Builders<PublishedSchema>.Update.SetOnInsert(
                         t => t.Id, publishedSchema.Id),
                     Builders<PublishedSchema>.Update.Set(
                         t => t.SchemaVersionId, publishedSchema.SchemaVersionId)),
