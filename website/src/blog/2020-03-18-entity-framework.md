@@ -2,9 +2,10 @@
 path: "/blog/2020/03/18/entity-framework"
 date: "2020-03-18"
 title: "Get started with Hot Chocolate and Entity Framework"
+tags: ["graphql", "dotnet", "entityframework", "aspnetcore"]
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
 ![Hot Chocolate](../images/blog/hotchocolate-banner.png)
@@ -544,7 +545,7 @@ The above query resolves correctly the data from our database, and we get the fo
 }
 ```
 
-What is interesting is that the GraphQL engine rewrites the incoming GraphQL request to an expression tree that is applied onto the `IQueryable<Student>` our root field resolver returns. The expression will only query for data from the database that was needed to fulfill our request. 
+What is interesting is that the GraphQL engine rewrites the incoming GraphQL request to an expression tree that is applied onto the `IQueryable<Student>` our root field resolver returns. The expression will only query for data from the database that was needed to fulfill our request.
 
 The SQL query in this case will look like the following:
 
@@ -1051,7 +1052,7 @@ This now looks like the initial resolvers that we wrote to fetch all students. W
 
 ## Conclusion and Outlook
 
-_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind. 
+_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind.
 
 The middleware that we showed you here like `UseSelection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
 

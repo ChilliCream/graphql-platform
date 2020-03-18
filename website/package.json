@@ -38,6 +38,7 @@
     "gatsby-remark-images": "^3.1.49",
     "gatsby-remark-mermaid": "^1.2.0",
     "gatsby-remark-prismjs": "^3.3.34",
+    "gatsby-remark-reading-time": "^1.1.0",
     "gatsby-source-filesystem": "^2.1.46",
     "gatsby-transformer-remark": "^2.6.58",
     "gatsby-transformer-sharp": "^2.3.13",

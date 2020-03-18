@@ -139,7 +139,7 @@ const LogoText = styled(LogoTextSvg)`
 `;
 
 const Description = styled.p`
-  font-size: 0.938em;
+  font-size: 0.833em;
   line-height: 1.5em;
   margin-bottom: 10px;
 `;
@@ -153,7 +153,7 @@ const Connect = styled.div`
 const ConnectLink = styled(Link)`
   flex: 0 0 auto;
   margin: 5px 0;
-  font-size: 0.938em;
+  font-size: 0.833em;
   text-decoration: none;
   color: #666;
   transition: color 0.2s ease-in-out;
@@ -209,7 +209,7 @@ const NavLink = styled(Link)`
   flex: 0 0 auto;
   margin: 4px 0;
   font-family: "Roboto", sans-serif;
-  font-size: 0.938em;
+  font-size: 0.833em;
   color: #666;
   text-decoration: none;
   transition: color 0.2s ease-in-out;
@@ -232,7 +232,7 @@ const Location = styled.div`
 
 const Title = styled.h3`
   margin: 15px 0 15px;
-  font-size: 1.125em;
+  font-size: 1em;
   font-weight: bold;
 `;
 

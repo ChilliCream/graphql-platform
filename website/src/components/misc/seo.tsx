@@ -16,7 +16,7 @@ interface SEOProperties {
   title: string;
 }
 
-const SEO: FunctionComponent<SEOProperties> = ({
+export const SEO: FunctionComponent<SEOProperties> = ({
   description,
   lang,
   meta,
@@ -89,5 +89,3 @@ SEO.defaultProps = {
   meta: [],
   description: ``,
 };
-
-export default SEO;

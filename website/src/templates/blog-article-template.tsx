@@ -1,7 +1,7 @@
 import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { GetBlogArticleQuery } from "../../graphql-types";
-import SEO from "../components/misc/seo";
+import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 import { BlogArticle } from "../components/widgets/blog-article";
 
@@ -12,7 +12,7 @@ interface BlogArticleTemplateProperties {
 const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
   data: { markdownRemark, site },
 }) => {
-  const { frontmatter, html } = markdownRemark!;
+  const { fields, frontmatter, html } = markdownRemark!;
 
   return (
     <Layout>
@@ -25,6 +25,7 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
         date={frontmatter!.date!}
         htmlContent={html!}
         path={frontmatter!.path!}
+        readingTime={fields!.readingTime!.text!}
         title={frontmatter!.title!}
       />
     </Layout>
@@ -44,6 +45,11 @@ export const pageQuery = graphql`
         date(formatString: "MMMM DD, YYYY")
         path
         title
+      }
+      fields {
+        readingTime {
+          text
+        }
       }
     }
     site {

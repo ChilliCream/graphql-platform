@@ -10,11 +10,11 @@ export const GlobalStyle = createGlobalStyle`
   body {
     width: 100vw;
     height: 100vh;
-    font-size: 16px;
-    line-height: 19px;
+    font-size: 18px;
+    line-height: 30px;
     overflow: auto;
     background-color: #ccc;
-    color: #333;
+    color: #667;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -27,7 +27,7 @@ export const GlobalStyle = createGlobalStyle`
     /*user-select: none;*/
     font-family: sans-serif;
     font-size: 1em;
-    line-height: 1.188em;
+    line-height: 1em;
     font-weight: normal;
   }
 
@@ -50,16 +50,23 @@ export const GlobalStyle = createGlobalStyle`
     font-family: "Roboto", sans-serif;
     font-weight: bold;
     text-rendering: optimizeLegibility;
+    color: #334;
   }
 
   p {
     margin-bottom: 1.188em;
-    line-height: 1.5em;
+    line-height: 1.667em;
+
+    code[class*="language-"] {
+      padding: 2px 5px;
+      font-size: 0.833em;
+    }
   }
 
   h1 {
+    margin-bottom: 0.5em;
     font-size: 2em;
-    line-height: 2em;
+    line-height: 1.250em;
   }
 
   h2 {
@@ -172,36 +179,19 @@ export const GlobalStyle = createGlobalStyle`
     padding-right: 0;
   }
 
-  /**
-  * If you already use line highlighting
-  */
-
-  /* Adjust the position of the line numbers */
-  .gatsby-highlight pre[class*="language-"].line-numbers {
-    padding-left: 2.8em;
-  }
-
-  /**
-  * If you only want to use line numbering
-  */
-
-  code[class*="language-"] {
-    font-size: 0.875em;
-  }
-
   .gatsby-highlight {
-    margin: 15px 0;
+    margin: 1.188em 0;
     overflow: auto;
-    font-size: 0.875 !important;
+    font-size: 0.833em !important;
 
     * {
       font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-      line-height: 1.188em !important;
+      line-height: 1.5em !important;
     }
 
     > pre[class*="language-"].line-numbers {
       border-radius: 5px;
-      padding: 10px 10px 10px 50px;
+      padding: 10px 10px 10px 60px;
       overflow: initial;
 
       > .line-numbers-rows {
@@ -209,5 +199,9 @@ export const GlobalStyle = createGlobalStyle`
         padding: 10px 5px 10px 15px;
       }
     }
+  }
+
+  .mermaid {
+    margin-bottom: 1.188em;
   }
 `;

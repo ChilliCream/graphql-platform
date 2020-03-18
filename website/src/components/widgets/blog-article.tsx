@@ -11,6 +11,7 @@ interface BlogArticleProperties {
   date: string;
   htmlContent: string;
   path: string;
+  readingTime: string;
   title: string;
 }
 
@@ -22,6 +23,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   date,
   htmlContent,
   path,
+  readingTime,
   title,
 }) => {
   const disqusConfig = {
@@ -33,14 +35,13 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   return (
     <Container>
       <Title>{title}</Title>
-      <Subtitle>
-        <Author>
-          <Link to={authorUrl}>
-            <AuthorImage src={authorImageUrl} /> {author}
-          </Link>
-        </Author>
-        <Date>{date}</Date>
-      </Subtitle>
+      <Metadata>
+        <AuthorLink to={authorUrl}>
+          <AuthorImage src={authorImageUrl} />
+          {author}
+        </AuthorLink>{" "}
+        ・ {date} ・ {readingTime}
+      </Metadata>
       <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
       <DisqusWrapper config={disqusConfig} />
     </Container>
@@ -57,37 +58,32 @@ const Container = styled.article`
 `;
 
 const Title = styled.h1`
-  margin: 0 20px;
+  margin-right: 20px;
+  margin-left: 20px;
   font-size: 2em;
 `;
 
-const Subtitle = styled.div`
+const Metadata = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   margin: 0 20px 20px;
-  font-size: 0.875em;
+  font-size: 0.778em;
+`;
+
+const AuthorLink = styled(Link)`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
   color: #666;
 `;
 
-const Author = styled.div`
-  flex: 1 1 auto;
-
-  > a {
-    color: #666;
-  }
-`;
-
 const AuthorImage = styled.img`
+  flex: 0 0 auto;
   margin-right: 0.5em;
-  border-radius: 20px;
-  width: 40px;
-  vertical-align: middle;
-`;
-
-const Date = styled.div`
-  flex: 1 1 auto;
-  text-align: right;
+  border-radius: 15px;
+  width: 30px;
 `;
 
 const Content = styled.div`
