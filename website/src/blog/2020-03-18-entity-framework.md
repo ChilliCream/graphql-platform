@@ -38,11 +38,11 @@ Last but not least we are adding the SQLLite _Entity Framework_ provided in orde
 dotnet add package Microsoft.EntityFrameworkCore.Sqlite
 ```
 
-For our data we have three models representing the student, the enrollments and the courses. 
+For our data we have three models representing the student, the enrollments and the courses.
 
 The student has some basic data about the person like the first name or the last name and the date when the student first enrolled into the university.
 
-The enrollment entity represents the enrollment of a student to a specific course. The enrollment not only represents the relationship but also holds the Grade that a student achieved in that course. 
+The enrollment entity represents the enrollment of a student to a specific course. The enrollment not only represents the relationship but also holds the Grade that a student achieved in that course.
 
 Last but not leas we have the course to which many students can be enroll to.
 
@@ -99,7 +99,7 @@ namespace ContosoUniversity
 }
 ```
 
-For our model we do need a `DBContext` against which we can interact with the database. 
+For our model we do need a `DBContext` against which we can interact with the database.
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -220,7 +220,7 @@ With _Hot Chocolate_ and pure code-first the query root type is represented by a
 The following class:
 
 ```csharp
-public class Query 
+public class Query
 {
     /// <summary>
     /// Gets all students.
@@ -725,7 +725,7 @@ namespace ContosoUniversity
 }
 ```
 
-Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure of the data changes. 
+Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure of the data changes.
 
 BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
 
