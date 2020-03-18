@@ -11,7 +11,7 @@ authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
 
-_Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DBContext` and once in a while commit the changes aggregated on that context to the database by invoking `SaveChanges` on the context. 
+_Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DbContext` and once in a while commit the changes aggregated on that context to the database by invoking `SaveChanges` on the context.
 
 With _Entity Framework_ we can write database queries with _Linq_ and do not have deal with _SQL_ directly. This means that we can compile our database queries and can detect query errors before we run the our code.
 
@@ -101,7 +101,7 @@ namespace ContosoUniversity
 }
 ```
 
-For our model we do need a `DBContext` against which we can interact with the database.
+For our model we do need a `DbContext` against which we can interact with our database.
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -139,9 +139,11 @@ namespace ContosoUniversity
 }
 ```
 
-Copy the context as well to the project.
+The `SchoolContext` exposes access to our entities through `DbSet`. We can query a `DbSet<T>` with linq or add new entities to it. Moreover, our `ShoolContext` has some configuration that defines the relations between our entities.
 
-Next, we need to register our `SchoolContext` with the dependency injection. For that lets open our `Startup.cs` and replace the `ConfigureServices` method with the following code.
+Copy the context as well to our project.
+
+Next, we need to register our `SchoolContext` with the dependency injection so that our GraphQL server can request instances of it. For that lets open our `Startup.cs` and replace the `ConfigureServices` method with the following code.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -150,7 +152,9 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-There is one last thing to finish our preparations with the database and to get into GraphQL. We somehow need to create our database. Since we are in this post only exploring how we can query data with entity framework and GraphQL we will also need to seed some data.
+There is one last thing to finish up our preparations with the database and to get into GraphQL.
+
+We somehow need to create our database. Since we are in this post only exploring how we can query data with entity framework and GraphQL we will also need to seed some data.
 
 Add the following method to the `Startup.cs`:
 
@@ -185,7 +189,9 @@ private static void InitializeDatabase(IApplicationBuilder app)
 }
 ```
 
-And call this method in the first line of `Configure`. You updated `Configure` method should look like the following:
+`InitializeDatabase` ensures that our database is created and seeds some initial data so that we can do some queries.
+
+Next call `InitializeDatabase` in the first line of the `Configure` method in the `Startup.cs`. The updated `Configure` method should look like the following:
 
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -208,6 +214,8 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     });
 }
 ```
+
+We are basically done with our preparations. So far we have defined our models, created a our `ShoolContext` through which we can query the database and registered it with the dependency injection container. Also we added some initialization logic so that our database is created with some initial data. With that settled let us move on and talk about GraphQL.
 
 ## GraphQL Schema
 
@@ -242,7 +250,7 @@ type Query {
 }
 ```
 
-> _Hot Chocolate_ will apply GraphQL conventions to your types which will remove the verb `Get` from your method or the postfix `async`.
+> _Hot Chocolate_ will apply GraphQL conventions to the types which will remove the verb `Get` from the method or if it is an async method the postfix `async`. These conventions can be configured.
 
 In GraphQL we call the method `GetStudents` a resolver since it resolves for us some data. Resolvers are executed independent from one another and each resolver has dependencies on different resources. Everything that a resolver needs can be injected as a method parameter. Our resolver for instance needs our `ShoolContext`. By using argument injection the execution engine can better optimize how to execute a query.
 
@@ -319,13 +327,13 @@ The schema builder registers our `Query` class as GraphQL `Query` type.
 new QueryExecutionOptions { ForceSerialExecution = true }
 ```
 
-Also we are defining that the execution engine shall force the execution engine to execute serially since `DBContext` is not thread-safe.
+Also we are defining that the execution engine shall force the execution engine to execute serially since `DbContext` is not thread-safe.
 
-> The upcoming version 11 of Hot Chocolate uses `DBContext` pooling to use multiple `DBContext` instances in one request. This allows version 11 to parallelize data fetching.
+> The upcoming version 11 of Hot Chocolate uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
 
 In order to enable our ASP.NET Core server to process GraphQL requests we need to register the _Hot Chocolate_ GraphQL middleware.
 
-Replace the `Configure` method of your `Startup.cs` with the following code.
+We now need to replace the `Configure` method of our `Startup.cs` with the following code.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
