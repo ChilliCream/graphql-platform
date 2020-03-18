@@ -621,7 +621,7 @@ SELECT "s"."FirstMidName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."Cours
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
 
-The `UseSelection` middleware allows us by just simply attributing a field resolver that returns an `IQueryable<T>` to drill into that data set.
+The `UseSelection` middleware allows us by just attributing it to a field resolver that returns an `IQueryable<T>` to drill into that data set.
 
 Without a lot of code, we already have a working GraphQL server that returns all the students. We are already able to drill into our data and the `UseSelection` middleware rewrites GraphQL selections into `IQueryable<T>` projections that ensures that we only select the data that we need from the database.
 
