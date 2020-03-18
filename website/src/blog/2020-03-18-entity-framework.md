@@ -447,7 +447,7 @@ In our current schema we can see that we have a single root field called `studen
 
 ![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-expanded-schema.png)
 
-Now click onto `Docs` again to slide the schema tab in again so we can write some queries.
+Now click onto `Docs` again so that the schema tab slides back in again. We are now ready to write our first query.
 
 ### Recap
 
