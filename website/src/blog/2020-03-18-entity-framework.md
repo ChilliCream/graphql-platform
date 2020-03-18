@@ -336,9 +336,9 @@ The schema builder registers our `Query` class as GraphQL `Query` root type.
 new QueryExecutionOptions { ForceSerialExecution = true }
 ```
 
-Also, we are defining that the execution shall be forced execute serially since `DbContext` is not thread-safe.
+Also, we are defining that the execution shall be forced to execute serially since `DbContext` is not thread-safe.
 
-> The upcoming version 11 of \_Hot Chocolate \_uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
+> The upcoming version 11 of _Hot Chocolate_ uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
 
 In order to enable our ASP.NET Core server to process GraphQL requests we need to register the _Hot Chocolate_ GraphQL middleware.
 
