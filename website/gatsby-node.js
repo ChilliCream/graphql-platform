@@ -1,7 +1,7 @@
 const path = require(`path`);
 
 exports.createPages = async ({ actions, graphql, reporter }) => {
-  const { createPage } = actions;
+  const { createPage, createRedirect } = actions;
   const blogArticleTemplate = path.resolve(`src/templates/blog-article.tsx`);
   const result = await graphql(`
     {
@@ -32,5 +32,12 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
       component: blogArticleTemplate,
       context: {}, // additional data can be passed via context
     });
+  });
+
+  createRedirect({
+    fromPath: "/blog/2019/03/18/entity-framework",
+    toPath: "/blog/2020/03/18/entity-framework",
+    redirectInBrowser: true,
+    isPermanent: true,
   });
 };
