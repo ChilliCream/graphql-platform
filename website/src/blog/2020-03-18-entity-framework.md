@@ -658,7 +658,9 @@ namespace ContosoUniversity
 }
 ```
 
-The above query type has now two new attributes `UseFiltering` and `UseSorting`. Let me again state that order of middleware is important.
+The above query type has now two new attributes `UseFiltering` and `UseSorting`. Let me again state that the order of middleware is important.
+
+In order to understand how a field pipeline with middleware works have a look at the following sequence diagram which depicts our data pipeline applied to the above resolver.
 
 ```mermaid
 sequenceDiagram
@@ -680,6 +682,8 @@ sequenceDiagram
         UseSelection-->>UsePaging: apply paging
         deactivate UseSelection
 ```
+
+Each field middleware initially yields control to the next field middleware until the resolver is invoked. The resolver returns its result and the field middleware will now on the way back apply their functionality to the result. In our case the field middleware are applying expressions to the queryable to build up the database query.
 
 With that upgraded `Query` type let us restart our server.
 
@@ -754,7 +758,7 @@ SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."Title", "t"."Enrollmen
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
 
-But we can go further and even allow more. Let’s say we want to allow the consumer to search for specific grades in our student’s enrolment list.
+But we can go further and even allow more. Let’s say we want to allow the consumer of our API to search for specific grades in our student’s enrolment list.
 
 In order to allow filtering on the enrollments we can add the same `UseFiltering` attribute in our entity on the `Enrollments` collection and this property becomes filterable.
 
@@ -773,7 +777,7 @@ public class Student
 }
 ```
 
-We don\`t need to apply `UseSelections` again. `UseSelections` really only has to be applied where the data is fetched. In this case we do only want to support filtering but no sorting on enrollments. I could again add both but decided to only use filtering here.
+We don\`t need to apply `UseSelections` again. `UseSelections` really only has to be applied where the data is initially fetched. In this case we do only want to support filtering but no sorting on enrollments. I could again add both but decided to only use filtering here.
 
 Let us restart our server and modify our query further.
 
