@@ -11,13 +11,15 @@ authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 
 In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
 
-_Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DBContext` and once in a while commit the changes aggregated in the context to the database by invoking `SaveChanges` on the context. With _Entity Framework_ we can write database queries with _Linq_ and do not have deal with _SQL_ directly which many developers prefer.
+_Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DBContext` and once in a while commit the changes aggregated on that context to the database by invoking `SaveChanges` on the context. 
+
+With _Entity Framework_ we can write database queries with _Linq_ and do not have deal with _SQL_ directly. This means that we can compile our database queries and can detect query errors before we run the our code.
 
 <!--truncate-->
 
 ## Introduction
 
-This tutorial uses the Contoso University sample application used by Microsoft to demonstrate the usage of _Entity Framework_ with ASP.NET Core. The sample application is a simple GraphQL server for the university website. With it, you can query and update student, course, and instructor information.
+This blog post uses the Contoso University sample application used by Microsoft to demonstrate the usage of _Entity Framework_ with ASP.NET Core. The sample application is a simple GraphQL server for the university website. With it, you can query and update student, course, and instructor information.
 
 Before we get started let us setup our server project.
 
@@ -42,11 +44,11 @@ For our data we have three models representing the student, the enrollments and 
 
 The student has some basic data about the person like the first name or the last name and the date when the student first enrolled into the university.
 
-The enrollment entity represents the enrollment of a student to a specific course. The enrollment not only represents the relationship but also holds the Grade that a student achieved in that course.
+The enrollment entity represents the enrollment of a student to a specific course. The enrollment entity not only represents the relationship between the student and the course but also holds the Grade that a student achieved in that course.
 
-Last but not leas we have the course to which many students can be enroll to.
+Last but not leas we have the course to which many students can be enroll to. The course has a title and column defining the credit a student can achieve in that course.
 
-Lets copy our models into the project.
+Lets copy our models into our project.
 
 ```csharp
 using System;
