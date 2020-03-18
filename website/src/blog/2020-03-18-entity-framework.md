@@ -7,7 +7,7 @@ authorURL: https://github.com/michaelstaib
 authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Hot Chocolate](/img/blog/hotchocolate-banner.svg)
+![Hot Chocolate](../images/blog/hotchocolate-banner.png)
 
 In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
 
