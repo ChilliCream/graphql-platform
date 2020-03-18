@@ -1,5 +1,5 @@
 ---
-path: "/blog/2019/12/26/hot-chocolate-10.3.0"
+path: "/blog/2019/03/18/entity-framework"
 date: "2020-03-18"
 title: "Get started with Hot Chocolate and Entity Framework"
 author: Michael Staib
