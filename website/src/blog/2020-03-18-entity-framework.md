@@ -541,11 +541,191 @@ Let us go further with this. We actually can do more here and _Hot Chocolate_ pr
 First let us add the following packages.
 
 ```bash
-
+dotnet add package HotChocolate.Types.Filters
+dotnet add package HotChocolate.Types.Sorting
 ```
 
+With these new packages in place let us rewrite our query type in order to enable proper filters.
 
+```csharp
+using System.Linq;
+using HotChocolate;
+using HotChocolate.Types;
 
+namespace ContosoUniversity
+{
+    public class Query
+    {
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Student> GetStudents([Service]SchoolContext context) =>
+            context.Students;
+    }
+}
+```
+
+The above query type has now two new attributes `UseFiltering` and `UseSorting`. Let me again state that order is important.
+
+With that upgraded `Query` type let us run restart our server.
+
+```bash
+dotnet run --urls http://localhost:5000
+```
+
+Now let us inspect our schema again. When we look at the `students` field we can see that there are new arguments `where` and `orderBy`.
+
+We now can define a query like the following.
+
+```graphql
+query {
+  students(where: { OR: [{ lastName: "Bar" }, { lastName: "Baz" }] }) {
+    firstMidName
+    lastName
+    enrollments {
+      course {
+        title
+      }
+    }
+  }
+}
+```
+
+Which will return the following result:
+
+```json
+{
+  "data": {
+    "students": [
+      {
+        "firstMidName": "Pascal",
+        "lastName": "Bar",
+        "enrollments": [
+          {
+            "course": {
+              "title": "Object Oriented Programming 1"
+            }
+          }
+        ]
+      },
+      {
+        "firstMidName": "Michael",
+        "lastName": "Baz",
+        "enrollments": [
+          {
+            "course": {
+              "title": "Object Oriented Programming 1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Again, we are rewriting the whole GraphQL query into one expression tree that translates into the following SQL.
+
+```sql
+SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."CourseId"
+    FROM "Students" AS "s"
+    LEFT JOIN (
+        SELECT "c"."Title", "e"."EnrollmentId", "c"."CourseId", "e"."StudentId"
+        FROM "Enrollments" AS "e"
+        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+    ) AS "t" ON "s"."Id" = "t"."StudentId"
+    WHERE ("s"."LastName" = 'Bar') OR ("s"."LastName" = 'Baz')
+    ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
+```
+
+But we can go further and even allow more. Lets say we want to allow the consumer to search for specific grades in our students enrolment list then we could upgrade the students entity like the following.
+
+```csharp
+public class Student
+{
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+    public string LastName { get; set; }
+    public string FirstMidName { get; set; }
+    public DateTime EnrollmentDate { get; set; }
+
+    [UseFiltering]
+    public virtual ICollection<Enrollment> Enrollments { get; set; }
+}
+```
+
+Id not need to apply `UseSelections` again. `UseSelections` really only has to be applied where the data is fetched. In this case I do only want to support filtering but no sorting on enrollments. I could again add both but decided to only use filtering here.
+
+Let us restart our server and modify the query further.
+
+```bash
+dotnet run --urls http://localhost:5000
+```
+
+For the next query we will get all students with the last name `Bar` that are enrolled in course 1.
+
+```graphql
+query {
+  students(where: { lastName: "Bar" }) {
+    firstMidName
+    lastName
+    enrollments(where: { courseId: 1 }) {
+      courseId
+      course {
+        title
+      }
+    }
+  }
+}
+```
+
+The following query translates again to a single SQL.
+
+```sql
+SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title", "t"."EnrollmentId", "t"."CourseId0"
+    FROM "Students" AS "s"
+    LEFT JOIN (
+        SELECT "e"."CourseId", "c"."Title", "e"."EnrollmentId", "c"."CourseId" AS "CourseId0", "e"."StudentId"
+        FROM "Enrollments" AS "e"
+        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+        WHERE "e"."CourseId" = 1
+    ) AS "t" ON "s"."Id" = "t"."StudentId"
+    WHERE "s"."LastName" = 'Bar'
+    ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId0"
+```
+
+## Paging
+
+With filtering and sorting we infer without almost no code complex filters from your code and allow you to query your data with complex expressions while drilling into the data graph. But we still might get to many data. What if we select all the students from a real university database.
+
+This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
+
+> Since we cannot do a skip while with entity framework we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor base pagination.
+
+Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important so we need to put the paging attribute on the top.
+
+```csharp
+using System.Linq;
+using HotChocolate;
+using HotChocolate.Types;
+using HotChocolate.Types.Relay;
+
+namespace ContosoUniversity
+{
+    public class Query
+    {
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Student> GetStudents([Service]SchoolContext context) =>
+            context.Students;
+    }
+}
+```
+
+Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure of the data changes. 
 
 BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
 
