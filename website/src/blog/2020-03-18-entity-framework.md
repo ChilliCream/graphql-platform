@@ -817,17 +817,17 @@ SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title"
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId0"
 ```
 
-With filtering and sorting we infer without almost no code complex filters from our code. This allows us to query our data with complex expressions while drilling into the data graph.
+With filtering and sorting we infer complex filters from our models without almost any code. This allows us to query our data with complex expressions while drilling into the data graph.
 
-_Hot Chocolate_ supports complex expressions with a variety of query operators that can be enabled by just adding a simple attribute on your field resolver. We can also configure the filter capabilities which we want to allow.
+_Hot Chocolate_ supports complex expressions with a variety of query operators that can be enabled by just adding a simple attribute on your field resolver. We can also configure the filter capabilities which we want to allow. This means you can for instance disallow `OR` combinations of filter clauses.
 
 ## Paging
 
-But we still might get too much data back. What if we select all the students from a real university database? This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
+But we still might get too much data back. What if we select all the students from a real university database? This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination spec.
 
-> Since we cannot do a skip while with _Entity Framework_, we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor base pagination.
+> Since we cannot do a skip while with _Entity Framework_, we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor based pagination.
 
-Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important, so we need to put the paging attribute on the top since the most top data middleware is actually applied last.
+Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important, so we need to put the paging attribute on the top since the most top field middleware is actually applied last like shown in the diagram.
 
 ```csharp
 using System.Linq;
@@ -851,9 +851,9 @@ namespace ContosoUniversity
 
 Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure now changes. Also, the paging middleware adds arguments to our field that we need to navigate between pages.
 
-Our `students` field now returns a StudentConnection which allows us to either fetch the actual `Student` nodes of the page or to ask for the pagination metadata.
+Our `students` field now returns a `StudentConnection` which allows us to either fetch the actual `Student` nodes of the current page or to ask for the pagination metadata.
 
-We could in fact just fetch the total count for our data set.
+We could in fact just fetch the `totalCount` of our data set.
 
 ```graphql
 query {
@@ -869,7 +869,7 @@ Which would again translate to a simple SQL.
 SELECT 1 FROM "Students" AS "s"
 ```
 
-Next let us just fetch the first student.
+Next let us just fetch the `lastName` of the first student.
 
 ```graphql
 query {
@@ -923,7 +923,7 @@ query {
 }
 ```
 
-With the `endCursor` of a page be can get the next page after that curser by feeding the curser into the `after` argument.
+With the `endCursor` of a page we can get the next page that comes after the `endCursor` by feeding the `endCursor` into the `after` argument.
 
 ```graphql
 query {
@@ -966,7 +966,7 @@ SELECT "s"."LastName"
     LIMIT @__p_0 OFFSET @__p_0
 ```
 
-Again, without a lot of effort we were able to create a powerful GraphQL server with advanced filter and paging capabilities by just writing basically one line of code with lots of attributes on top of that.
+Again, without a lot of effort we were able to create a powerful GraphQL server with advanced filter and pagination capabilities by just writing basically one line of code with lots of attributes on top of that.
 
 ```csharp
 using System.Linq;
@@ -1021,7 +1021,7 @@ namespace ContosoUniversity
 }
 ```
 
-With this we can now drill into the data from both sides. In order to get a nicer API, we might also want to allow dedicated fetches maybe for a `Student` by the student ID.
+With the above code we can now drill into the data from both sides. In order to get an even nicer API, we might also want to allow dedicated fetches maybe for a `Student` by the student ID.
 
 We could do something like the following and it would work.
 
@@ -1030,9 +1030,9 @@ public Task<Student> GetStudentByIdAsync([Service]SchoolContext context, int stu
     context.Students.FirstOrDefaultAsync(t => t.Id == studentId);
 ```
 
-If we did something like this with _Entity Framework_ we actually would need to write more resolvers to fetch the edges of the entity like the `Enrollments` since with this resolver there is no middleware that does the hard work for us. With the resolver above we are fully in control of the data fetching.
+If we did something like that with _Entity Framework_ we actually would need to write a couple more resolvers to fetch the edges of the entity like the `Enrollments` since with this resolver there is no middleware that does the hard work for us. With the resolver above we are fully in control of the data fetching.
 
-Also doing it like that will lead into other problems since now we are causing multiple fetches to the database and we would no need to think about things like `DataLoader` to guarantee consistency between fetches.
+Also doing it like that will lead into other problems since now we are causing multiple fetches to the database and we would no need to think about things like `DataLoader` to guarantee consistency between fetches in a single request.
 
 But we actually have a simple solution for this since we could use our selection middleware still and just tell the middleware pipeline that we actually just want a single result for that resolver.
 
@@ -1045,13 +1045,15 @@ public IQueryable<Student> GetStudentById([Service]SchoolContext context, int st
     context.Students.Where(t => t.Id == studentId);
 ```
 
-This now looks like the initial resolvers that we write to fetch all students. We predefined the where clause and we added a new middleware called `UseFirstOrDefault`. The `UseFirstOrDefault` middleware will rewrite the result type for the GraphQL schema from `[Student]` to `Student` and ensure the we will only fetch a single entity from the database.
+This now looks like the initial resolvers that we wrote to fetch all students. We predefined the where clause and we added a new middleware called `UseFirstOrDefault`. The `UseFirstOrDefault` middleware will rewrite the result type for the GraphQL schema from `[Student]` to `Student` and ensure the we will only fetch a single entity from the database.
 
-`UseFirstOrDefault` or default from a semantics perspective aligns to `FirstOrDefaultAsync`. _Hot Chocolate_ also provides you with a `UseSingleOrDefault` middleware that will produce a GraphQL field error whenever there is more than one result.
+`UseFirstOrDefault` from a semantics perspective aligns to `FirstOrDefaultAsync` provided by the _Entity Framework_. _Hot Chocolate_ also provides you with a `UseSingleOrDefault` middleware that will produce a GraphQL field error whenever there is more than one result.
 
 ## Conclusion and Outlook
 
-_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind. The middleware that we showed you here like `UseSelection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
+_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind. 
+
+The middleware that we showed you here like `UseSelection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
 
 But even if you want to support native SQL without `IQueryable<T>` it is super simple to inherit from our query rewriter base classes and and add this translation.
 
