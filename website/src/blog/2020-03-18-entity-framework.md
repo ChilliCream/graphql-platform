@@ -617,13 +617,17 @@ SELECT "s"."FirstMidName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."Cours
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
 
-## Filtering
+The `UseSelection` middleware allows us by just simply attributing a field resolver that returns an `IQueryable<T>` to drill into that data set.
 
-Without a quite any code we already have a working GraphQL server that returns all the students and we can drill into the data. We really just added entity framework and exposed a single root field.
+Without a lot of code we already have a working GraphQL server that returns all the students. We are already able to drill into our data and the `UseSelection` middleware rewrites GraphQL selections into `IQueryable<T>` projections that ensures that we only select the data that we need from the database.
+
+Think about it, we really just added entity framework and exposed a single root field that basically just returns the `DbSet<Student>`.
+
+## Filtering
 
 Let us go further with this. We actually can do more here and _Hot Chocolate_ provides you with a filter and sorting middleware to really give you the power to query your data with complex expressions.
 
-First let us add the following packages.
+First we need to add two more packages that will add the sorting and filtering middleware.
 
 ```bash
 dotnet add package HotChocolate.Types.Filters
@@ -748,7 +752,7 @@ Let us restart our server and modify the query further.
 dotnet run --urls http://localhost:5000
 ```
 
-For the next query we will get all students with the last name `Bar` that are enrolled in course 1.
+For the next query we will get all students with the last name `Bar` that are enrolled in the course with the `courseId` `1`.
 
 ```graphql
 query {
@@ -780,11 +784,11 @@ SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title"
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId0"
 ```
 
+With filtering and sorting we infer without almost no code complex filters from your code and allow you to query your data with complex expressions while drilling into the data graph.
+
 ## Paging
 
-With filtering and sorting we infer without almost no code complex filters from your code and allow you to query your data with complex expressions while drilling into the data graph. But we still might get to many data. What if we select all the students from a real university database.
-
-This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
+But we still might get to many data. What if we select all the students from a real university database. This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
 
 > Since we cannot do a skip while with entity framework we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor base pagination.
 
