@@ -336,7 +336,7 @@ new QueryExecutionOptions { ForceSerialExecution = true }
 
 Also we are defining that the execution shall be forced execute serially since `DbContext` is not thread-safe.
 
-> The upcoming version 11 of _Hot Chocolate _uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
+> The upcoming version 11 of \_Hot Chocolate \_uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
 
 In order to enable our ASP.NET Core server to process GraphQL requests we need to register the _Hot Chocolate_ GraphQL middleware.
 
@@ -656,15 +656,19 @@ namespace ContosoUniversity
 
 The above query type has now two new attributes `UseFiltering` and `UseSorting`. Let me again state that order of middleware is important.
 
+**MIDDLEWARE PIPLINE CALL DIAGRAM**
+
 With that upgraded `Query` type let us restart our server.
 
 ```bash
 dotnet run --urls http://localhost:5000
 ```
 
-Now let us inspect our schema again. When we look at the `students` field we can see that there are new arguments `where` and `orderBy`.
+Now let us inspect our schema again. When we look at the `students` field we can see that there are new arguments called `where` and `orderBy`.
 
-We now can define a query like the following.
+**SCREENSHOT BCP**
+
+For our first query let us fetch the students with the `lastName` `Bar` or `Baz`.
 
 ```graphql
 query {
@@ -727,7 +731,9 @@ SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."Title", "t"."Enrollmen
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
 
-But we can go further and even allow more. Lets say we want to allow the consumer to search for specific grades in our students enrolment list then we could upgrade the students entity like the following.
+But we can go further and even allow more. Lets say we want to allow the consumer to search for specific grades in our students enrolment list.
+
+In order to allow filtering on the enrollments we can add the same `UseFiltering` attribute in our entity on the `Enrollments` collection and this property becomes filterable.
 
 ```csharp
 public class Student
@@ -744,9 +750,9 @@ public class Student
 }
 ```
 
-Id not need to apply `UseSelections` again. `UseSelections` really only has to be applied where the data is fetched. In this case I do only want to support filtering but no sorting on enrollments. I could again add both but decided to only use filtering here.
+We don\`t need to apply `UseSelections` again. `UseSelections` really only has to be applied where the data is fetched. In this case we do only want to support filtering but no sorting on enrollments. I could again add both but decided to only use filtering here.
 
-Let us restart our server and modify the query further.
+Let us restart our server and modify our query further.
 
 ```bash
 dotnet run --urls http://localhost:5000
@@ -769,7 +775,7 @@ query {
 }
 ```
 
-The following query translates again to a single SQL.
+The following query translates again to a single SQL statement.
 
 ```sql
 SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title", "t"."EnrollmentId", "t"."CourseId0"
@@ -784,15 +790,17 @@ SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title"
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId0"
 ```
 
-With filtering and sorting we infer without almost no code complex filters from your code and allow you to query your data with complex expressions while drilling into the data graph.
+With filtering and sorting we infer without almost no code complex filters from our code. This allows us to query our data with complex expressions while drilling into the data graph.
+
+_Hot Chocolate_ supports complex expressions with a variety of query operators that can be enabled by just adding a simple attribute on your field resolver. We can also configure the filter capabilities which we  want to allow.
 
 ## Paging
 
-But we still might get to many data. What if we select all the students from a real university database. This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
+But we still might get to much data back. What if we select all the students from a real university database. This is where our paging middleware comes in. The paging middleware implements the relay cursor pagination pattern.
 
 > Since we cannot do a skip while with entity framework we actually use a indexed based pagination underneath. For convenience we are wrapping this as really cursor pagination. With mongoDB and other database provider we are supporting real cursor base pagination.
 
-Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important so we need to put the paging attribute on the top.
+Like with filtering, sorting and selection we just annotate the paging middleware and it just works. Again, middleware order is important so we need to put the paging attribute on the top since the most top data middleware is actually applied last.
 
 ```csharp
 using System.Linq;
@@ -814,9 +822,190 @@ namespace ContosoUniversity
 }
 ```
 
-Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure of the data changes.
+Since paging adds metadata for pagination like a `totalCount` or a `pageInfo` the actual result structure now changes. Also the paging middleware adds arguments to our field that we need to navigate between pages.
 
-BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
+Our `students` field now returns a StudentConnection which allows us to either fetch the actual `Student` nodes of the page or to ask for the pagination metadata.
+
+We could in fact just fetch the total count for our data set.
+
+```graphql
+query {
+  students(first: 1) {
+    totalCount
+  }
+}
+```
+
+Which would again translate to a simple SQL. 
+
+```sql
+SELECT 1 FROM "Students" AS "s"
+```
+
+Next let us just fetch the first student.
+
+```graphql
+query {
+  students(first: 1) {
+    nodes {
+      lastName
+    }
+  }
+}
+```
+
+Which translates to a simple limit query for _SQLLite_.
+
+```sql
+SELECT "s"."LastName"
+    FROM "Students" AS "s"
+    LIMIT @__p_0
+```
+
+In order to navigate forward through pages we also need to get data from our `pageInfo` like if there is a next page and the last cursor of the current page.
+
+```graphql
+query {
+  students(first: 1) {
+    nodes {
+      lastName
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+```
+
+```json
+{
+  "data": {
+    "students": {
+      "nodes": [
+        {
+          "lastName": "Foo"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "endCursor": "eyJfX3RvdGFsQ291bnQiOjMsIl9fcG9zaXRpb24iOjB9"
+      }
+    }
+  }
+}
+```
+
+With the `endCursor` of a page be can get the next page after that curser by feeding the curser into the `after` argument.
+
+```graphql
+query {
+  students(first: 1 after: "eyJfX3RvdGFsQ291bnQiOjMsIl9fcG9zaXRpb24iOjB9") {
+    nodes {
+      lastName
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+```
+
+```json
+{
+  "data": {
+    "students": {
+      "nodes": [
+        {
+          "lastName": "Bar"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "endCursor": "eyJfX3RvdGFsQ291bnQiOjMsIl9fcG9zaXRpb24iOjF9"
+      }
+    }
+  }
+}
+```
+
+This will then be translated into simple offset navigation when using _Entity Framework_.
+
+```sql
+SELECT "s"."LastName"
+    FROM "Students" AS "s"
+    ORDER BY (SELECT 1)
+    LIMIT @__p_0 OFFSET @__p_0
+```
+
+Again, without a lot of effort we were able to create a powerful GraphQL server with advanced filter and paging capabilities by just writing basically one line of code with lots of attributes on top of that.
+
+```csharp
+using System.Linq;
+using HotChocolate;
+using HotChocolate.Types;
+using HotChocolate.Types.Relay;
+
+namespace ContosoUniversity
+{
+    public class Query
+    {
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Student> GetStudents([Service]SchoolContext context) =>
+            context.Students;
+    }
+}
+```
+
+Each request in GraphQL translates into native SQL. Whenever possible we translate it into a single SQL request reducing the need to fetch multiple times from the database.
+
+## Single Selects
+
+We still can improve our query and allow to explore the data from different angles.
+
+```csharp
+using System.Linq;
+using HotChocolate;
+using HotChocolate.Types;
+using HotChocolate.Types.Relay;
+
+namespace ContosoUniversity
+{
+    public class Query
+    {
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Student> GetStudents([Service]SchoolContext context) =>
+            context.Students;
+
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Course> GetCourses([Service]SchoolContext context) =>
+            context.Courses;
+    }
+}
+```
+
+With this we can now drill into the data from both sides. In order to get a nicer API we might also want to allow dedicated fetches maybe for a `Student` by the student ID.
+
+We could do something like the following and it would work.
+
+```csharp
+public Task<Student> GetStudentByIdAsync([Service]SchoolContext context, int studentId) =>
+    context.Students.FirstOrDefaultAsync(t => t.Id == studentId);
+```
+
+If we did something like this with _Entity Framework_ we actually would no need to write more resolvers to add the edges of the entity like the `Enrollments` since we are not actually rewriting 
+
+
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
