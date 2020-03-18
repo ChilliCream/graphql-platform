@@ -19,9 +19,9 @@ With _Entity Framework_ we can write database queries with _LINQ_ and do not hav
 
 ## Introduction
 
-This blog post is based on the Contoso University example application used by Microsoft to demonstrate the usage of _Entity Framework_ with ASP.NET Core. 
+This blog post is based on the Contoso University example application used by Microsoft to demonstrate the usage of _Entity Framework_ with ASP.NET Core.
 
-In this blog post we will take that example and build with it a simple GraphQL server for the university website. With it, you can query students, courses, and instructor information.
+In this blog post we will take that example and build with it a simple GraphQL server for the university website. With it, we can query students, courses, and instructor information.
 
 Before we get started let us setup our server project.
 
@@ -336,9 +336,9 @@ The schema builder registers our `Query` class as GraphQL `Query` root type.
 new QueryExecutionOptions { ForceSerialExecution = true }
 ```
 
-Also, we are defining that the execution shall be forced to execute serially since `DbContext` is not thread-safe.
+Also, we are defining that the execution engine shall be forced to execute serially since `DbContext` is not thread-safe.
 
-> The upcoming version 11 of _Hot Chocolate_ uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching.
+> The upcoming version 11 of _Hot Chocolate_ uses `DbContext` pooling to use multiple `DbContext` instances in one request. This allows version 11 to parallelize data fetching better with _Entity Framework_.
 
 In order to enable our ASP.NET Core server to process GraphQL requests we need to register the _Hot Chocolate_ GraphQL middleware.
 
@@ -376,7 +376,7 @@ In order to now query our GraphQL server we need a GraphQL IDE to formulate quer
 
 ![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop.png)
 
-But you can also use _Playground_ and host a simple GraphQL IDE as a middleware with your server. If you want to use playground add the following package:
+But you can also opt for _Playground_ and host a simple GraphQL IDE as a middleware with the server. If you want to use playground add the following package to the project:
 
 ```bash
 dotnet add package HotChocolate.AspNetCore.Playground
@@ -419,7 +419,7 @@ dotnet run --urls http://localhost:5000
 
 ### Testing with Banana Cakepop
 
-If you have chosen _Banana Cakepop_ to test an explore the GraphQL Schema open it now.
+If you have chosen _Banana Cakepop_ to test and explore the GraphQL Schema open it now.
 
 _Banana Cakepop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
 
@@ -429,11 +429,11 @@ Once our GraphQL IDE has fetched the schema we can start exploring it. On the le
 
 ![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-root-types.png)
 
-In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our student. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses.
+In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our `Student` type. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses and so on.
 
 ![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-expanded-schema.png)
 
-Now close the schema tab again so we can write some queries.
+Now close the schema tab again so that we can write some queries.
 
 ### Testing with Playground
 
@@ -443,7 +443,7 @@ On the right-hand side click on the `Docs` button. A pane will slide out showing
 
 ![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-root-types.png)
 
-In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our student. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses.
+In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our `Student` type. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses and so on.
 
 ![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-expanded-schema.png)
 
