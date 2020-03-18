@@ -512,9 +512,9 @@ scalar String
 
 ### Writing Queries
 
-In both GraphQL IDEs we can type in the GraphQL queries in the left-hand pane. If we click on the play button the result will be displayed in the right-hand side pane.
+In both GraphQL IDEs we can type in the GraphQL queries on the left-hand pane. If we click on the play button the result will be displayed on the right-hand side pane.
 
-Let us start with a simple query in which we ask for the name of all students that we have in our database.
+Let us start with a simple query in which we ask for the first name of all students that we have in our database.
 
 ```graphql
 query {
@@ -544,7 +544,9 @@ The above query resolves correctly the data from our database, and we get the fo
 }
 ```
 
-What is interesting is that the GraphQL engine rewrite the incoming GraphQL request to an expression tree that is applied onto the queryable our root field returns. The expression will only query for data from the database that was needed to fulfill our request. The SQL query for our GraphQL query would look like the following.
+What is interesting is that the GraphQL engine rewrites the incoming GraphQL request to an expression tree that is applied onto the `IQueryable<Student>` our root field resolver returns. The expression will only query for data from the database that was needed to fulfill our request. 
+
+The SQL query in this case will look like the following:
 
 ```sql
 SELECT "s"."FirstMidName" FROM "Students" AS "s"
