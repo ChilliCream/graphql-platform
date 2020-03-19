@@ -27,6 +27,7 @@ namespace HotChocolate.Language.Visitors
                 ListValueNode n => Enter(n, context),
                 ObjectValueNode n => Enter(n, context),
                 ObjectFieldNode n => Enter(n, context),
+                IValueNode n => Enter(n, context),
                 SchemaDefinitionNode n => Enter(n, context),
                 OperationTypeDefinitionNode n => Enter(n, context),
                 ScalarTypeDefinitionNode n => Enter(n, context),
@@ -132,6 +133,11 @@ namespace HotChocolate.Language.Visitors
 
         protected virtual ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
+            ISyntaxVisitorContext context) =>
+            DefaultAction;
+
+        protected virtual ISyntaxVisitorAction Enter(
+            IValueNode node,
             ISyntaxVisitorContext context) =>
             DefaultAction;
 

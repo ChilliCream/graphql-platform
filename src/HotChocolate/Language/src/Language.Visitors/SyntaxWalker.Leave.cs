@@ -27,6 +27,7 @@ namespace HotChocolate.Language.Visitors
                 ListValueNode n => Leave(n, context),
                 ObjectValueNode n => Leave(n, context),
                 ObjectFieldNode n => Leave(n, context),
+                IValueNode n => Leave(n, context),
                 SchemaDefinitionNode n => Leave(n, context),
                 OperationTypeDefinitionNode n => Leave(n, context),
                 ScalarTypeDefinitionNode n => Leave(n, context),
@@ -132,6 +133,11 @@ namespace HotChocolate.Language.Visitors
 
         protected virtual ISyntaxVisitorAction Leave(
             ObjectFieldNode node,
+            ISyntaxVisitorContext context) =>
+            DefaultAction;
+
+        protected virtual ISyntaxVisitorAction Leave(
+            IValueNode node,
             ISyntaxVisitorContext context) =>
             DefaultAction;
 
