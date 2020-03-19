@@ -7,7 +7,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Strawberry Shake](../images/blog/strawberry-shake-banner.png)
+![Strawberry Shake](shared/strawberry-shake-banner.png)
 
 **This post has been updated, please head over to the newer post [here](https://chillicream.com/blog/2019/11/25/strawberry-shake_2).**
 

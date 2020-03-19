@@ -8,7 +8,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Hot Chocolate](../images/blog/hotchocolate-banner.png)
+![Hot Chocolate](../shared/hotchocolate-banner.png)
 
 In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
 
@@ -375,7 +375,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cakepop which can be downloaded [here](https://hotchocolate.io/docs/banana-cakepop).
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop.png)
+![Hot Chocolate](banana-cakepop.png)
 
 But you can also opt for _Playground_ and host a simple GraphQL IDE as a middleware with the server. If you want to use playground add the following package to the project:
 
@@ -424,15 +424,15 @@ If you have chosen _Banana Cakepop_ to test and explore the GraphQL Schema open 
 
 _Banana Cakepop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-address.png)
+![Hot Chocolate](banana-cakepop-address.png)
 
 Once our GraphQL IDE has fetched the schema we can start exploring it. On the left-hand side click on the `Book` button. The left-hand side now shows us the root types and the root fields.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-root-types.png)
+![Hot Chocolate](banana-cakepop-root-types.png)
 
 In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our `Student` type. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses and so on.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-expanded-schema.png)
+![Hot Chocolate](banana-cakepop-expanded-schema.png)
 
 Now close the schema tab again so that we can write some queries.
 
@@ -442,11 +442,11 @@ If you have opted for _Playground_ open your browser and navigate to `http://loc
 
 On the right-hand side click on the `Docs` button. A pane will slide out showing us the root types and root fields of our schema.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-root-types.png)
+![Hot Chocolate](playground-root-types.png)
 
 In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our `Student` type. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses and so on.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-expanded-schema.png)
+![Hot Chocolate](playground-expanded-schema.png)
 
 Now click onto `Docs` again so that the schema tab slides back in again. We are now ready to write our first query.
 
@@ -694,7 +694,7 @@ dotnet run --urls http://localhost:5000
 
 Now let us inspect our schema again. When we look at the `students` field we can see that there are new arguments called `where` and `orderBy`.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-arguments.png)
+![Hot Chocolate](banana-cakepop-arguments.png)
 
 For our first query let us fetch the students with the `lastName` `Bar` or `Baz`.
 

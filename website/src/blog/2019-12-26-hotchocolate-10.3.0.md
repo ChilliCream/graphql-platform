@@ -7,7 +7,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Hot Chocolate](../images/blog/hotchocolate-banner.png)
+![Hot Chocolate](shared/hotchocolate-banner.png)
 
 Today we are releasing _Hot Chocolate_ version 10.3.0. Although the version number sounds like a small change, it is quite a nice update with lots of new features making _Hot Chocolate_ the most versatile and feature rich GraphQL server on the .NET platform.
 

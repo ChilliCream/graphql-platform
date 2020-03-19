@@ -7,7 +7,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-![Hot Chocolate](../images/blog/hotchocolate-banner.png)
+![Hot Chocolate](shared/hotchocolate-banner.png)
 
 When you think about how we build our GraphQL schemas with _Hot Chocolate_ we always need to fall back to either the schema types or the GraphQL SDL in order to get the typings right.
 

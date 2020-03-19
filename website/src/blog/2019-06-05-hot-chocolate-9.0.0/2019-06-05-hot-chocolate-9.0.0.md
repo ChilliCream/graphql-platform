@@ -103,13 +103,13 @@ Starting with this version we have begun to invest into making _Hot Chocolate_ o
 
 With version 9 we are introducing the first step on this road with our new UTF-8 GraphQL parser. This new parser is not anymore, a port of the original graphql-js parser but a reimplementation that uses the raw bytes instead of strings, meaning we are using all those nice new `Span<T>` APIs. This makes it use less memory and perform faster. The new UTF-8 GraphQL parser is the fastest and most standard compliant parser on the .Net platform.
 
-![Lexer Memory](../images/blog/lexer_mem.png)
+![Lexer Memory](lexer_mem.png)
 
-![Lexer Performance](../images/blog/lexer_perf.png)
+![Lexer Performance](lexer_perf.png)
 
-![Parser Memory](../images/blog/parser_mem.png)
+![Parser Memory](parser_mem.png)
 
-![Parser Performance](../images/blog/parser_perf.png)
+![Parser Performance](parser_perf.png)
 
 **What do these charts mean?**
 
@@ -139,9 +139,9 @@ Apart from that we have started making our execution engine more efficient. We a
 
 With our release today _Hot Chocolate_ is depending on the use case at least to times faster in executing queries and uses half of the memory compared to GraphQL-DotNet. If you are using schema-first then the performance gains are more dramatic and you could look at up to 13 times faster execution performance compared to GraphQL-DotNet.
 
-![Execution Memory](../images/blog/exec_mem.png)
+![Execution Memory](exec_mem.png)
 
-![Execution Performance](../images/blog/exec_perf.png)
+![Execution Performance](exec_perf.png)
 
 **What will the new UTF-8 request parser help?**
 
@@ -163,7 +163,7 @@ When we released _Hot Chocolate_ version 8 we announced a new _Hot Chocolate Dev
 
 Today we are anouncing _Banana Cake Pop_, a new tool that will help you explore and query GraphQL schemas.
 
-![Banana Cake Pop](../images/blog/banana.png)
+![Banana Cake Pop](banana.png)
 
 _Banana Cake Pop_ is **NOT** built on top of GraphiQL like all the other tools but built from the ground up with **Monaco** at its heart.
 
