@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HotChocolate.Language
@@ -92,6 +94,8 @@ namespace HotChocolate.Language
         /// otherwise, <c>false</c>.
         /// </value>
         public bool Block { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="StringValueNode"/>

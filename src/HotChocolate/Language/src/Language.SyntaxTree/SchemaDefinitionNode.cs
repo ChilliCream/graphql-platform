@@ -20,6 +20,24 @@ namespace HotChocolate.Language
 
         public StringValueNode? Description { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (OperationTypeDefinitionNode operationType in OperationTypes)
+            {
+                yield return operationType;
+            }
+        }
+
         public SchemaDefinitionNode WithLocation(Location? location)
         {
             return new SchemaDefinitionNode(

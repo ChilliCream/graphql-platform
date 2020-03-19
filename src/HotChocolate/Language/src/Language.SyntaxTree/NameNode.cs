@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -29,6 +31,8 @@ namespace HotChocolate.Language
         public Location? Location { get; }
 
         public string Value { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="NameNode"/>

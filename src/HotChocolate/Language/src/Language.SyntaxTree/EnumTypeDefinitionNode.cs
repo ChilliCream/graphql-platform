@@ -21,6 +21,26 @@ namespace HotChocolate.Language
 
         public StringValueNode? Description { get; }
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (EnumValueDefinitionNode value in Values)
+            {
+                yield return value;
+            }
+        }
+
         public EnumTypeDefinitionNode WithLocation(Location? location)
         {
             return new EnumTypeDefinitionNode(

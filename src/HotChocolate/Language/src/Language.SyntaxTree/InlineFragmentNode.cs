@@ -30,6 +30,16 @@ namespace HotChocolate.Language
 
         public SelectionSetNode SelectionSet { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            yield return SelectionSet;
+        }
+
         public InlineFragmentNode WithLocation(Location? location)
         {
             return new InlineFragmentNode(

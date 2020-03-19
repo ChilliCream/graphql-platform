@@ -38,10 +38,11 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<ObjectFieldNode> Fields { get; }
 
-        IReadOnlyList<ObjectFieldNode>
-            IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
+        IReadOnlyList<ObjectFieldNode> IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
 
         object IValueNode.Value => Fields;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Fields;
 
         /// <summary>
         /// Determines whether the specified <see cref="ObjectValueNode"/>

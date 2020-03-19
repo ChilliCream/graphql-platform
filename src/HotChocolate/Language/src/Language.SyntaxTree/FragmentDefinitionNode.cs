@@ -27,12 +27,24 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
 
-        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
-        { get; }
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 
         public NamedTypeNode TypeCondition { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+            yield return TypeCondition;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            yield return SelectionSet;
+        }
 
         public FragmentDefinitionNode WithLocation(Location? location)
         {

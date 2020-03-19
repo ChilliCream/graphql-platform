@@ -15,6 +15,16 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.FragmentSpread;
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+        }
+
         public FragmentSpreadNode WithLocation(Location? location)
         {
             return new FragmentSpreadNode(location, Name, Directives);

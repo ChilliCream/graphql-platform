@@ -1,6 +1,8 @@
 using System.Buffers.Text;
 using System;
 using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -108,6 +110,8 @@ namespace HotChocolate.Language
         }
 
         object? IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="IntValueNode"/>

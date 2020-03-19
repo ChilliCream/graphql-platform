@@ -41,6 +41,26 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<NameNode> Locations { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
+            yield return Name;
+
+            foreach (InputValueDefinitionNode argument in Arguments)
+            {
+                yield return argument;
+            }
+
+            foreach (NameNode location in Locations)
+            {
+                yield return location;
+            }
+        }
+
         public DirectiveDefinitionNode WithLocation(Location? location)
         {
             return new DirectiveDefinitionNode
