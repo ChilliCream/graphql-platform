@@ -8,7 +8,7 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Types;
 using StrawberryShake.CodeGeneration.Utilities;
 using FieldSelection = StrawberryShake.CodeGeneration.Utilities.FieldSelection;
-using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public partial class DocumentAnalyzer
@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         private static void CollectOutputTypes(
             IDocumentAnalyzerContext context,
-            IReadOnlyList<DocumentNode> documents)
+            IEnumerable<DocumentNode> documents)
         {
             foreach (DocumentNode document in documents)
             {

@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         private readonly byte[] _serializedDocument;
 
         public DocumentModel(
+            string name,
             IReadOnlyList<OperationModel> operations,
             DocumentNode originalDocument,
             DocumentNode optimizedDocument,
@@ -16,6 +17,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             string hashAlgorithm,
             string hash)
         {
+            Name = name;
             Operations = operations;
             OriginalDocument = originalDocument;
             OptimizedDocument = optimizedDocument;
@@ -23,6 +25,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             HashAlgorithm = hashAlgorithm;
             Hash = hash;
         }
+
+        public string Name { get; }
 
         public IReadOnlyList<OperationModel> Operations { get; }
 

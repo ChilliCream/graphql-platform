@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     public class EnumBuilder
         : ITypeBuilder
     {
-        private readonly List<(string, int?)> _elements = new List<(string, int?)>();
+        private readonly List<(string, long?)> _elements = new List<(string, long?)>();
         private string? _name;
 
         public static EnumBuilder New() => new EnumBuilder();
@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public EnumBuilder AddElement(string name, int? value = null)
+        public EnumBuilder AddElement(string name, long? value = null)
         {
             _elements.Add((name, value));
             return this;

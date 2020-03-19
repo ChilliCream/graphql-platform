@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
-    internal static class SerializerNameUtils
+    public static class SerializerNameUtils
     {
         public static string CreateDeserializerName(IType type) =>
             CreateName(type, "Deserialize");

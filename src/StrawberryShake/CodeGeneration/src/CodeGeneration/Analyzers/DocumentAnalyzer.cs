@@ -5,17 +5,15 @@ using System.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Analyzers.Types;
-using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Utilities;
-using FieldSelection = StrawberryShake.CodeGeneration.Utilities.FieldSelection;
-using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
     public partial class DocumentAnalyzer
     {
-        private readonly List<DocumentNode> _documents = new List<DocumentNode>();
+        private readonly Dictionary<string, DocumentNode> _documents =
+            new Dictionary<string, DocumentNode>();
+        private readonly HashSet<string> _reservedName = new HashSet<string>();
         private ISchema? _schema;
         private IDocumentHashProvider? _hashProvider;
 
@@ -25,15 +23,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return this;
         }
 
-        public DocumentAnalyzer AddDocument(DocumentNode document)
+        public DocumentAnalyzer AddDocument(string name, DocumentNode document)
         {
-            _documents.Add(document);
+            _documents.Add(name, document);
             return this;
         }
 
         public DocumentAnalyzer SetHashProvider(IDocumentHashProvider hashProvider)
         {
             _hashProvider = hashProvider;
+            return this;
+        }
+
+        public DocumentAnalyzer AddReservedName(string name)
+        {
+            _reservedName.Add(name);
             return this;
         }
 
@@ -57,20 +61,23 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     "You must specify a hash provider.");
             }
 
-            var context = new DocumentAnalyzerContext(_schema);
+            var context = new DocumentAnalyzerContext(_schema, _reservedName);
 
-            CollectEnumTypes(context, _documents);
-            CollectInputObjectTypes(context, _documents);
-            CollectOutputTypes(context, _documents);
+            CollectEnumTypes(context, _documents.Values);
+            CollectInputObjectTypes(context, _documents.Values);
+            CollectOutputTypes(context, _documents.Values);
 
             return new ClientModel(
-                _documents.Select(d => CreateDocumentModel(context, d, _hashProvider)).ToArray(),
+                _documents.Select(d =>
+                    CreateDocumentModel(context, d.Key, d.Value, _hashProvider))
+                    .ToArray(),
                 context.Types.ToArray());
         }
 
 
         private static DocumentModel CreateDocumentModel(
             IDocumentAnalyzerContext context,
+            string name,
             DocumentNode original,
             IDocumentHashProvider hashProvider)
         {
@@ -81,6 +88,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             string hash = hashProvider.ComputeHash(buffer);
 
             return new DocumentModel(
+                name,
                 context.Operations.Where(t => t.Document == original).ToArray(),
                 original,
                 optimized,

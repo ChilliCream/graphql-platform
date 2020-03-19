@@ -56,8 +56,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 builder
                     .AddField(FieldBuilder.New()
                         .SetName(serializer.FieldName)
-                        .SetType($"{Types.ValueSerializer}?", NullableRefTypes)
-                        .SetType(Types.ValueSerializer, !NullableRefTypes));
+                        .SetType($"{Types.IValueSerializer}?", NullableRefTypes)
+                        .SetType(Types.IValueSerializer, !NullableRefTypes));
             }
         }
 
@@ -103,7 +103,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetAccessModifier(AccessModifier.Public)
                     .SetName("Initialize")
                     .AddParameter(ParameterBuilder.New()
-                        .SetType(Types.ValueSerializerCollection)
+                        .SetType(Types.IValueSerializerCollection)
                         .SetName("serializerResolver"))
                 .AddCode(CreateInitializeBody(serializerDescriptors, CodeWriter.Indent)));
         }

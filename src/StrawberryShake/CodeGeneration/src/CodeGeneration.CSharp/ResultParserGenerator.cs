@@ -75,7 +75,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 classBuilder.AddField(
                     FieldBuilder.New()
-                        .SetType(Types.ValueSerializer)
+                        .SetType(Types.IValueSerializer)
                         .SetName(serializer.FieldName));
             }
 
@@ -83,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ConstructorBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .AddParameter(ParameterBuilder.New()
-                        .SetType(Types.ValueSerializerCollection)
+                        .SetType(Types.IValueSerializerCollection)
                         .SetName("serializerResolver"))
                     .AddCode(CreateConstructorBody(serializers, indent)));
         }

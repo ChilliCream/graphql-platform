@@ -56,7 +56,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             var analyzer = new DocumentAnalyzer();
             analyzer.SetSchema(schema);
-            analyzer.AddDocument(document);
+            analyzer.AddDocument("abc", document);
             analyzer.SetHashProvider(new MD5DocumentHashProvider(HashFormat.Hex));
 
             analyzer.Analyze().ToJson().MatchSnapshot();

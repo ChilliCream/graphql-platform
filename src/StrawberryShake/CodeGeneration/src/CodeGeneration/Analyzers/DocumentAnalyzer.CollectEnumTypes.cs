@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         private static void CollectEnumTypes(
             IDocumentAnalyzerContext context,
-            IReadOnlyList<DocumentNode> documents)
+            IEnumerable<DocumentNode> documents)
         {
             var analyzer = new EnumTypeUsageAnalyzer(context.Schema);
 

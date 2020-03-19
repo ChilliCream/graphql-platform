@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetAccessModifier(AccessModifier.Public)
                 .SetSealed()
                 .SetName(descriptor.Name)
-                .AddImplements(Types.ValueSerializer)
+                .AddImplements(Types.IValueSerializer)
                 .AddProperty(PropertyBuilder.New()
                     .SetAccessModifier(AccessModifier.Public)
                     .SetType("string")

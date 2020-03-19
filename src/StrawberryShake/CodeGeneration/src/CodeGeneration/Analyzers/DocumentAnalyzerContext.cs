@@ -15,7 +15,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
     {
         private readonly Dictionary<ISyntaxNode, ISet<NameString>> _names =
             new Dictionary<ISyntaxNode, ISet<NameString>>();
-        private readonly HashSet<NameString> _usedNames = new HashSet<NameString>();
         private readonly Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>> _types =
             new Dictionary<SelectionSetNode, Dictionary<string, ComplexOutputTypeModel>>();
         private readonly Dictionary<string, ITypeModel> _typeByName =
@@ -24,10 +23,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             new Dictionary<FieldNode, FieldParserModel>();
         private readonly List<OperationModel> _operations =
             new List<OperationModel>();
+        private readonly HashSet<NameString> _usedNames;
         private FieldCollector? _fieldCollector;
 
-        public DocumentAnalyzerContext(ISchema schema)
+        public DocumentAnalyzerContext(ISchema schema, IEnumerable<string> reservedNames)
         {
+            _usedNames = new HashSet<NameString>(reservedNames.Select(s => new NameString(s)));
             Schema = schema;
         }
 

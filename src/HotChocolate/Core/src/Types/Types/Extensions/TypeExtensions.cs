@@ -7,6 +7,8 @@ namespace HotChocolate.Types
 {
     public static class TypeExtensions
     {
+        public static bool IsNullableType(this IType type) => !IsNonNullType(type);
+
         public static bool IsNonNullType(this IType type)
         {
             if (type == null)

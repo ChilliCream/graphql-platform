@@ -3,7 +3,7 @@ namespace StrawberryShake.CodeGeneration
     public class EnumElementDescriptor
         : ICodeDescriptor
     {
-        public EnumElementDescriptor(string name, string serializedName, int? value = null)
+        public EnumElementDescriptor(string name, string serializedName, long? value = null)
         {
             Name = name;
             SerializedName = serializedName;
@@ -14,6 +14,6 @@ namespace StrawberryShake.CodeGeneration
 
         public string SerializedName { get; }
 
-        public int? Value { get; }
+        public long? Value { get; }
     }
 }

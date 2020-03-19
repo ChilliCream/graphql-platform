@@ -5,11 +5,16 @@ using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
-    internal static class NameUtils
+    public static class NameUtils
     {
         public static string GetInterfaceName(string typeName)
         {
             return 'I' + GetPropertyName(typeName);
+        }
+
+        public static string GetClassName(params string[] s)
+        {
+            return GetClassName(string.Join(string.Empty, s));
         }
 
         public static string GetClassName(string typeName)
@@ -73,33 +78,47 @@ namespace StrawberryShake.CodeGeneration.Utilities
 #endif
         }
 
-#if NETCOREAPP3_1 || NETCOREAPP2_1
+        public static string GetFieldName(params string[] s)
+        {
+            return GetFieldName(string.Join(string.Empty, s));
+        }
+
         public static string GetFieldName(string fieldName)
+        {
+            return "_" + GetParameterName(fieldName);
+        }
+
+#if NETCOREAPP3_1 || NETCOREAPP2_1
+        public static string GetParameterName(string parameterName)
 #else
-        public unsafe static string GetFieldName(string fieldName)
+        public unsafe static string GetParameterName(string parameterName)
 #endif
         {
             var buffered = 0;
-            Span<char> amended = stackalloc char[fieldName.Length];
+            var first = true;
+            Span<char> amended = stackalloc char[parameterName.Length];
 
-            for (var i = 0; i < fieldName.Length; i++)
+            for (var i = 0; i < parameterName.Length; i++)
             {
-                if (i == 0 && char.IsLetter(fieldName[i]))
+                if (i == 0 && char.IsLetter(parameterName[i]))
                 {
-                    amended[buffered++] = char.ToLower(fieldName[i], CultureInfo.InvariantCulture);
+                    amended[buffered++] = char.ToLower(parameterName[i], CultureInfo.InvariantCulture);
+                    first = false;
                 }
-                else if (fieldName[i] == '_')
+                else if (parameterName[i] == '_')
                 {
-                    if (i + 1 < fieldName.Length
-                        && char.IsLetter(fieldName[i + 1]))
+                    if (i + 1 < parameterName.Length
+                        && char.IsLetter(parameterName[i + 1]))
                     {
-                        amended[buffered++] =
-                            char.ToUpper(fieldName[++i], CultureInfo.InvariantCulture);
+                        amended[buffered++] = first
+                            ? char.ToLower(parameterName[++i], CultureInfo.InvariantCulture)
+                            : char.ToUpper(parameterName[++i], CultureInfo.InvariantCulture);
+                        first = false;
                     }
                 }
                 else
                 {
-                    amended[buffered++] = fieldName[i];
+                    amended[buffered++] = parameterName[i];
                 }
             }
 
