@@ -1,5 +1,7 @@
 using System;
 using System.Buffers.Text;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace HotChocolate.Language
@@ -87,6 +89,8 @@ namespace HotChocolate.Language
         }
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="FloatValueNode"/>

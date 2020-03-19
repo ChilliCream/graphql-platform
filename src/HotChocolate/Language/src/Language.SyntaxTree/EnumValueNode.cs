@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace HotChocolate.Language
@@ -79,6 +80,8 @@ namespace HotChocolate.Language
         }
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="EnumValueNode"/>

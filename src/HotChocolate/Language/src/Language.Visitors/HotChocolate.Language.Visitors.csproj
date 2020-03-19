@@ -11,4 +11,12 @@
     <Description>This package contains the UTF8 based parsers of Hot Chocolate.</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+   <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.2" />
+  </ItemGroup>
+
 </Project>
