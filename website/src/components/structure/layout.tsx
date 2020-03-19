@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { GlobalStyle } from "../misc/global-style";
 import { Footer } from "./footer";
 import { Header } from "./header";
+import { CookieConsent } from "../misc/cookie-consent";
 
 export const Layout: FunctionComponent = ({ children }) => {
   return (
@@ -11,6 +12,7 @@ export const Layout: FunctionComponent = ({ children }) => {
       <Header />
       <Content id="content">{children}</Content>
       <Footer />
+      <CookieConsent />
     </>
   );
 };

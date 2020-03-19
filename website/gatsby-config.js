@@ -106,14 +106,10 @@ module.exports = {
       },
     },
     {
-      resolve: `gatsby-plugin-gdpr-cookies`,
+      resolve: `gatsby-plugin-google-analytics`,
       options: {
-        googleAnalytics: {
-          trackingId: "UA-72800164-1",
-          cookieName: "chillicream-gdpr-google-analytics",
-          anonymize: true,
-        },
-        environments: ["production", "development"],
+        trackingId: "UA-72800164-1",
+        anonymize: true,
       },
     },
     // this (optional) plugin enables Progressive Web App + Offline functionality

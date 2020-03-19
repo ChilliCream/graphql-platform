@@ -2531,10 +2531,8 @@ export type SitePageFieldsEnum =
   'pluginCreator___pluginOptions___theme_color' |
   'pluginCreator___pluginOptions___display' |
   'pluginCreator___pluginOptions___icon' |
-  'pluginCreator___pluginOptions___googleAnalytics___trackingId' |
-  'pluginCreator___pluginOptions___googleAnalytics___cookieName' |
-  'pluginCreator___pluginOptions___googleAnalytics___anonymize' |
-  'pluginCreator___pluginOptions___environments' |
+  'pluginCreator___pluginOptions___trackingId' |
+  'pluginCreator___pluginOptions___anonymize' |
   'pluginCreator___pluginOptions___pathCheck' |
   'pluginCreator___nodeAPIs' |
   'pluginCreator___browserAPIs' |
@@ -2768,10 +2766,8 @@ export type SitePluginFieldsEnum =
   'pluginOptions___theme_color' |
   'pluginOptions___display' |
   'pluginOptions___icon' |
-  'pluginOptions___googleAnalytics___trackingId' |
-  'pluginOptions___googleAnalytics___cookieName' |
-  'pluginOptions___googleAnalytics___anonymize' |
-  'pluginOptions___environments' |
+  'pluginOptions___trackingId' |
+  'pluginOptions___anonymize' |
   'pluginOptions___pathCheck' |
   'nodeAPIs' |
   'browserAPIs' |
@@ -2912,8 +2908,8 @@ export type SitePluginPluginOptions = {
   theme_color?: Maybe<Scalars['String']>;
   display?: Maybe<Scalars['String']>;
   icon?: Maybe<Scalars['String']>;
-  googleAnalytics?: Maybe<SitePluginPluginOptionsGoogleAnalytics>;
-  environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+  trackingId?: Maybe<Scalars['String']>;
+  anonymize?: Maybe<Scalars['Boolean']>;
   pathCheck?: Maybe<Scalars['Boolean']>;
 };
 
@@ -2942,25 +2938,13 @@ export type SitePluginPluginOptionsFilterInput = {
   theme_color?: Maybe<StringQueryOperatorInput>;
   display?: Maybe<StringQueryOperatorInput>;
   icon?: Maybe<StringQueryOperatorInput>;
-  googleAnalytics?: Maybe<SitePluginPluginOptionsGoogleAnalyticsFilterInput>;
-  environments?: Maybe<StringQueryOperatorInput>;
+  trackingId?: Maybe<StringQueryOperatorInput>;
+  anonymize?: Maybe<BooleanQueryOperatorInput>;
   pathCheck?: Maybe<BooleanQueryOperatorInput>;
 };
 
 export type SitePluginPluginOptionsGoogle = {
   families?: Maybe<Array<Maybe<Scalars['String']>>>;
-};
-
-export type SitePluginPluginOptionsGoogleAnalytics = {
-  trackingId?: Maybe<Scalars['String']>;
-  cookieName?: Maybe<Scalars['String']>;
-  anonymize?: Maybe<Scalars['Boolean']>;
-};
-
-export type SitePluginPluginOptionsGoogleAnalyticsFilterInput = {
-  trackingId?: Maybe<StringQueryOperatorInput>;
-  cookieName?: Maybe<StringQueryOperatorInput>;
-  anonymize?: Maybe<BooleanQueryOperatorInput>;
 };
 
 export type SitePluginPluginOptionsGoogleFilterInput = {
