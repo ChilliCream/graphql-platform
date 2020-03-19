@@ -26,6 +26,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         private readonly HashSet<NameString> _usedNames;
         private FieldCollector? _fieldCollector;
 
+        public DocumentAnalyzerContext(ISchema schema)
+            : this(schema, Enumerable.Empty<string>())
+        {
+        }
+
         public DocumentAnalyzerContext(ISchema schema, IEnumerable<string> reservedNames)
         {
             _usedNames = new HashSet<NameString>(reservedNames.Select(s => new NameString(s)));

@@ -7,10 +7,12 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     public class ParserModel
     {
         public ParserModel(
+            string name,
             OperationDefinitionNode operation,
             ComplexOutputTypeModel returnType,
             IReadOnlyList<FieldParserModel> fieldParsers)
         {
+            Name = name;
             Operation = operation;
             ReturnType = returnType;
             FieldParsers = fieldParsers;
@@ -33,6 +35,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
 
             LeafTypes = leafTypes;
         }
+
+        public string Name { get; }
 
         /// <summary>
         /// Gets the operation that this parser handles.

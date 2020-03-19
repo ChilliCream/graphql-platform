@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
@@ -19,8 +20,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         string GetFullTypeName(ComplexOutputTypeModel type);
 
-        string CreateFullTypeName(string name);
+        string GetFullTypeName(IOutputType type, SelectionSetNode selectionSet);
 
-        string CreateTypeName(string name);
+        string GetFullTypeName(string typeName);
+
+        string CreateTypeName(string typeName);
     }
 }

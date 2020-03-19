@@ -108,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             writer.WriteStartObject();
 
             writer.WriteString("name", argument.Name);
-            writer.WriteString("type", TypeVisualizer.Visualize(argument.Type));
+            writer.WriteString("type", argument.Type.Print());
             if (argument.DefaultValue is { })
             {
                 writer.WriteString("default", QuerySyntaxSerializer.Serialize(argument.DefaultValue));
@@ -240,7 +240,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 writer.WriteString("name", field.Name);
                 writer.WriteString("description", field.Description);
                 writer.WriteString("fieldName", field.Field.Name);
-                writer.WriteString("type", TypeVisualizer.Visualize(field.Type));
+                writer.WriteString("type", field.Type.Print());
                 writer.WriteString("path", field.Path.ToString());
 
                 writer.WriteEndObject();
@@ -273,7 +273,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 writer.WriteString("name", field.Name);
                 writer.WriteString("description", field.Description);
                 writer.WriteString("fieldName", field.Field.Name);
-                writer.WriteString("type", TypeVisualizer.Visualize(field.Type));
+                writer.WriteString("type", field.Type.Print());
 
                 writer.WriteEndObject();
             }
