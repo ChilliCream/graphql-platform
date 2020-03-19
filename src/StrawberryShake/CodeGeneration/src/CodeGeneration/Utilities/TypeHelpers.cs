@@ -15,7 +15,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             {
                 if (current is ObjectType cot)
                 {
-                    return cot.Interfaces.ContainsKey(it.Name);
+                    return cot.IsAssignableFrom(it);
                 }
 
                 if (current is InterfaceType cit)
