@@ -1,7 +1,6 @@
 namespace HotChocolate.Language.Visitors
 {
-    public class SkipSyntaxVisitorAction : ISyntaxVisitorAction
+    public class SkipSyntaxVisitorAction : ISkipSyntaxVisitorAction
     {
-
     }
 }

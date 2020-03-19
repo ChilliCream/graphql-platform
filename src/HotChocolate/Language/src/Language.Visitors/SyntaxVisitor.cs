@@ -1,7 +1,12 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language.Visitors
 {
+    public delegate ISyntaxVisitorAction VisitSyntaxNode(
+        ISyntaxNode node,
+        ISyntaxVisitorContext context);
+
     public class SyntaxVisitor
         : ISyntaxVisitor
     {
@@ -67,13 +72,13 @@ namespace HotChocolate.Language.Visitors
                     localContext = OnBeforeEnter(current, parent, ancestors, localContext);
                     result = Enter(current, localContext);
 
-                    if (result is ContinueSyntaxVisitorAction)
+                    if (result is IContinueSyntaxVisitorAction)
                     {
                         List<ISyntaxNode> nextLevel = _listPool.Get();
                         nextLevel.AddRange(GetNodes(current, localContext));
                         levels.Push(nextLevel);
                     }
-                    else if (result is SkipSyntaxVisitorAction)
+                    else if (result is ISkipSyntaxVisitorAction)
                     {
                         levels.Push(_empty);
                     }
@@ -83,7 +88,7 @@ namespace HotChocolate.Language.Visitors
                     index++;
                 }
 
-                if (result is BreakSyntaxVisitorAction)
+                if (result is IBreakSyntaxVisitorAction)
                 {
                     break;
                 }
@@ -123,11 +128,34 @@ namespace HotChocolate.Language.Visitors
             ISyntaxVisitorContext context) =>
             context;
 
-        protected ISyntaxVisitorContext OnAfterLeave(
+        protected virtual ISyntaxVisitorContext OnAfterLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
             IReadOnlyList<ISyntaxNode> ancestors,
             ISyntaxVisitorContext context) =>
             context;
+
+        public static ISyntaxVisitor Create(
+            Func<ISyntaxNode, ISyntaxVisitorAction>? enter = null,
+            Func<ISyntaxNode, ISyntaxVisitorAction>? leave = null,
+            ISyntaxVisitorAction? defaultAction = null)
+        {
+            return new DelegateSyntaxVisitor(
+                enter is { }
+                    ? new VisitSyntaxNode((n, c) => enter(n))
+                    : null,
+                leave is { }
+                    ? new VisitSyntaxNode((n, c) => leave(n))
+                    : null,
+                default);
+        }
+
+        public static ISyntaxVisitor Create(
+            VisitSyntaxNode? enter = null,
+            VisitSyntaxNode? leave = null,
+            ISyntaxVisitorAction? defaultAction = null)
+        {
+            return new DelegateSyntaxVisitor(enter, leave, default);
+        }
     }
 }
