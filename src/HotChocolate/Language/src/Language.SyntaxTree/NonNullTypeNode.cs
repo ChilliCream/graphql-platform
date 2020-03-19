@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -22,6 +23,11 @@ namespace HotChocolate.Language
         public Location? Location { get; }
 
         public INullableTypeNode Type { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Type;
+        }
 
         public bool Equals(NonNullTypeNode? other)
         {

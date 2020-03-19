@@ -17,6 +17,21 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.UnionTypeExtension;
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (NamedTypeNode type in Types)
+            {
+                yield return type;
+            }
+        }
+
         public UnionTypeExtensionNode WithLocation(Location? location)
         {
             return new UnionTypeExtensionNode(

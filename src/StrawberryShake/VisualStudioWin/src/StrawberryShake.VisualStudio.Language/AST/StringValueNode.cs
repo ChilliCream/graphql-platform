@@ -43,8 +43,6 @@ namespace StrawberryShake.VisualStudio.Language
 
         object IValueNode.Value => Value;
 
-        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
-
         /// <summary>
         /// Gets a value indicating whether this <see cref="StringValueNode"/>
         /// was parsed from a block string.
@@ -54,6 +52,8 @@ namespace StrawberryShake.VisualStudio.Language
         /// otherwise, <c>false</c>.
         /// </value>
         public bool Block { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="StringValueNode"/>

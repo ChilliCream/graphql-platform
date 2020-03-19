@@ -50,10 +50,11 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<IValueNode> Items { get; }
 
-        IReadOnlyList<IValueNode> IValueNode<IReadOnlyList<IValueNode>>.Value =>
-            Items;
+        IReadOnlyList<IValueNode> IValueNode<IReadOnlyList<IValueNode>>.Value => Items;
 
         object IValueNode.Value => Items;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Items;
 
         /// <summary>
         /// Determines whether the specified <see cref="ListValueNode"/>

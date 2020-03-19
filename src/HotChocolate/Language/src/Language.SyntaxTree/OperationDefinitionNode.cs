@@ -34,12 +34,31 @@ namespace HotChocolate.Language
 
         public OperationType Operation { get; }
 
-        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
-        { get; }
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Name is { })
+            {
+                yield return Name;
+            }
+
+            foreach (VariableDefinitionNode variable in VariableDefinitions)
+            {
+                yield return variable;
+            }
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            yield return SelectionSet;
+        }
 
         public OperationDefinitionNode WithLocation(Location? location)
         {

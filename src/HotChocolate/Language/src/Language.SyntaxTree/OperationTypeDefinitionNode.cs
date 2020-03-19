@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -22,6 +23,11 @@ namespace HotChocolate.Language
         public OperationType Operation { get; }
 
         public NamedTypeNode Type { get; }
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Type;
+        }
 
         public OperationTypeDefinitionNode WithLocation(Location? location)
         {

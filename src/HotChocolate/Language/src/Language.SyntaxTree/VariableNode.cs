@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -36,6 +37,11 @@ namespace HotChocolate.Language
         public string Value => Name.Value;
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+        }
 
         /// <summary>
         /// Determines whether the specified <see cref="VariableNode"/>
