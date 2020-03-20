@@ -1,9 +1,8 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Subscriptions;
 using HotChocolate.Subscriptions.InMemory;
 
-namespace HotChocolate
+namespace HotChocolate.Subscriptions
 {
     public static class InMemoryPubSubServiceCollectionExtensions
     {
