@@ -28,6 +28,7 @@ namespace HotChocolate.AspNetCore
             _path = _defaultPath = defaultPath;
         }
 
+        public Uri GraphQLEndpoint { get; set; }
 
         /// <summary>
         /// The path of the GraphiQL middleware.

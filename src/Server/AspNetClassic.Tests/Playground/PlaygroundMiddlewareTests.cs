@@ -5,6 +5,7 @@ using Xunit;
 using Microsoft.Owin.Testing;
 using HotChocolate.AspNetClassic.Playground;
 using Microsoft.Owin;
+using System;
 
 namespace HotChocolate.AspNetClassic
 {
@@ -65,6 +66,45 @@ namespace HotChocolate.AspNetClassic
             // act
             settings_js.MatchSnapshot();
         }
+
+
+        [Fact]
+        public async Task SetGraphQLEndpoint()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+            options.Path = new PathString("/foo-bar");
+            options.GraphQLEndpoint = new Uri("https://hotchocolate.io/graphql");
+
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo-bar/settings.js";
+
+            // act
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SetGraphQLEndpointWithSubscriptions()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+            options.EnableSubscription = true;
+            options.Path = new PathString("/bar");
+            options.GraphQLEndpoint = new Uri("https://microsoft.com/graphql");
+
+            TestServer server = CreateServer(options);
+            string settingsUri = "/bar/settings.js";
+
+            // act
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
+        }
+
 
         [Fact]
         public async Task SetPath_Then_SetQueryPath()

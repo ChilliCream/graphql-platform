@@ -1,0 +1,7 @@
+﻿
+                window.Settings = {
+                    url: "https://hotchocolate.io/graphql",
+                    subscriptionUrl: "wss://hotchocolate.io/graphql",
+                    enableSubscriptions: false
+                }
+            

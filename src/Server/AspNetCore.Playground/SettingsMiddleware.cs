@@ -64,10 +64,11 @@ namespace HotChocolate.AspNetCore.Playground
         public async Task InvokeAsync(HttpContext context)
 #endif
         {
-            string queryUrl = BuildUrl(context.Request, false, _queryPath);
+            string queryUrl = BuildUrl(_options.GraphQLEndpoint, context.Request, false, _queryPath);
+
             string subscriptionUrl = _options.EnableSubscription
-                ? $"\"{BuildUrl(context.Request, true, _subscriptionPath)}\""
-                : "null";
+               ? $"\"{BuildUrl(_options.GraphQLEndpoint, context.Request, true, _subscriptionPath)}\""
+               : "null";
 
             context.Response.ContentType = "application/javascript";
 
@@ -106,6 +107,23 @@ namespace HotChocolate.AspNetCore.Playground
                 scheme, request.Host, uiPath + path)
                 .TrimEnd('/');
 #endif
+        }
+
+        private static string BuildUrl(Uri uri, HttpRequest request, bool websocket, string path)
+        {
+            if (uri == null)
+                return BuildUrl(request, websocket, path);
+
+            if (!websocket)
+                return uri.AbsoluteUri;
+
+
+            var builder = new UriBuilder(uri)
+            {
+                Scheme = uri.Scheme == Uri.UriSchemeHttps ? "wss" : "ws"
+            };
+
+            return builder.Uri.AbsoluteUri;
         }
 
         private static Uri UriFromPath(PathString path)

@@ -60,8 +60,9 @@ namespace HotChocolate.AspNetCore.Voyager
         public async Task InvokeAsync(HttpContext context)
 #endif
         {
-            string queryUrl = BuildUrl(context.Request, _queryPath);
-           
+            string queryUrl = _options.GraphQLEndpoint?.AbsoluteUri
+                 ?? BuildUrl(context.Request, _queryPath);
+
             context.Response.ContentType = "application/javascript";
 
             await context.Response.WriteAsync($@"

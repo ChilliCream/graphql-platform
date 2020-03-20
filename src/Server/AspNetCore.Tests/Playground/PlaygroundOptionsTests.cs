@@ -17,6 +17,7 @@ namespace HotChocolate.AspNetCore
             Assert.Equal("/playground", options.Path);
             Assert.Equal("/", options.QueryPath);
             Assert.Equal("/", options.SubscriptionPath);
+            Assert.Null(options.GraphQLEndpoint);
         }
 
         [Fact]
@@ -32,6 +33,19 @@ namespace HotChocolate.AspNetCore
             Assert.Equal("/foo", options.Path);
             Assert.Equal("/", options.QueryPath);
             Assert.Equal("/", options.SubscriptionPath);
+        }
+
+        [Fact]
+        public void SetGraphQLEndpoint()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            options.GraphQLEndpoint = new Uri("https://localhost:5000/graphql");
+
+            // act
+            Assert.Equal("https://localhost:5000/graphql", options.GraphQLEndpoint.AbsoluteUri);
         }
 
         [Fact]
@@ -165,6 +179,21 @@ namespace HotChocolate.AspNetCore
 
             // act
             Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void GraphQLEndpoint_Set_To_Null_Or_Invalid_Exceptions()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            Action invalidUriAction = () => options.GraphQLEndpoint = new Uri("not a uri");
+            Action nullUriAction = () => options.GraphQLEndpoint = new Uri(null);
+
+            // act
+            Assert.Throws<UriFormatException>(invalidUriAction);
+            Assert.Throws<ArgumentNullException>(nullUriAction);
         }
     }
 }
