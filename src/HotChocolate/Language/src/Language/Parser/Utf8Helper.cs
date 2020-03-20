@@ -19,7 +19,8 @@ namespace HotChocolate.Language
             int writePosition = 0;
             int eofPosition = escapedString.Length - 1;
 
-            if (escapedString.Length > 0) {
+            if (escapedString.Length > 0)
+            {
                 do
                 {
                     byte code = escapedString[++readPosition];
@@ -28,21 +29,15 @@ namespace HotChocolate.Language
                     {
                         code = escapedString[++readPosition];
 
-                        if (isBlockString
-                             && code == GraphQLConstants.Quote)
+                        if (isBlockString && code == GraphQLConstants.Quote)
                         {
-                            if (escapedString[readPosition + 1] ==
-                                GraphQLConstants.Quote
-                                && escapedString[readPosition + 2] ==
-                                GraphQLConstants.Quote)
+                            if (escapedString[readPosition + 1] == GraphQLConstants.Quote
+                                && escapedString[readPosition + 2] == GraphQLConstants.Quote)
                             {
                                 readPosition += 2;
-                                unescapedString[writePosition++] =
-                                    GraphQLConstants.Quote;
-                                unescapedString[writePosition++] =
-                                    GraphQLConstants.Quote;
-                                unescapedString[writePosition++] =
-                                    GraphQLConstants.Quote;
+                                unescapedString[writePosition++] = GraphQLConstants.Quote;
+                                unescapedString[writePosition++] = GraphQLConstants.Quote;
+                                unescapedString[writePosition++] = GraphQLConstants.Quote;
                             }
                             else
                             {
@@ -61,7 +56,6 @@ namespace HotChocolate.Language
                                     escapedString[++readPosition],
                                     ref writePosition,
                                     ref unescapedString);
-
                             }
                             else
                             {

@@ -1,9 +1,7 @@
-using System.Globalization;
 using System;
-using System.Collections.Generic;
 using System.Buffers;
+using System.Collections.Generic;
 using HotChocolate.Language.Properties;
-using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -22,11 +20,9 @@ namespace HotChocolate.Language
             IDocumentCache cache,
             IDocumentHashProvider hashProvider)
         {
-            _options = options
-                ?? throw new ArgumentNullException(nameof(options));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _cache = cache;
             _hashProvider = hashProvider;
-
             _reader = new Utf8GraphQLReader(requestData);
             _useCache = cache != null;
         }
@@ -35,9 +31,7 @@ namespace HotChocolate.Language
             ReadOnlySpan<byte> requestData,
             ParserOptions options)
         {
-            _options = options
-                ?? throw new ArgumentNullException(nameof(options));
-
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _reader = new Utf8GraphQLReader(requestData);
             _cache = null;
             _hashProvider = null;
@@ -47,7 +41,6 @@ namespace HotChocolate.Language
         public Utf8GraphQLRequestParser(ReadOnlySpan<byte> requestData)
         {
             _options = ParserOptions.Default;
-
             _reader = new Utf8GraphQLReader(requestData);
             _cache = null;
             _hashProvider = null;
@@ -69,10 +62,8 @@ namespace HotChocolate.Language
                 return ParseBatchRequest();
             }
 
-            // TODO : resources
-            throw new SyntaxException(
-                _reader,
-                "Expected `{` or `[` as first syntax token.");
+            ThrowHelper.InvalidRequestStructure(_reader);
+            return default!;
         }
 
         public GraphQLSocketMessage ParseMessage()
@@ -134,8 +125,7 @@ namespace HotChocolate.Language
                 ParseRequestProperty(ref request);
             }
 
-            if (!request.HasQuery
-                && request.QueryName == null)
+            if (!request.HasQuery && request.QueryId == null)
             {
                 if (_useCache
                     && request.Extensions != null
@@ -144,15 +134,12 @@ namespace HotChocolate.Language
                     && persistedQuery.TryGetValue(_hashProvider!.Name, out obj)
                     && obj is string hash)
                 {
-                    request.QueryName = hash;
+                    request.QueryId = hash;
                 }
                 else
                 {
-                    // TODO : resources
-                    throw new SyntaxException(
-                        _reader,
-                        "Either the query `property` or the `namedQuery` " +
-                        "property have to have a value.");
+                    ThrowHelper.NoIdAndNoQuery(_reader);
+                    return default!;
                 }
             }
 
@@ -161,10 +148,16 @@ namespace HotChocolate.Language
                 ParseQuery(ref request);
             }
 
+            if (request.Document is null && request.QueryId is null)
+            {
+                ThrowHelper.NoIdAndNoQuery(_reader);
+                return default!;
+            }
+
             return new GraphQLRequest
             (
                 request.Document,
-                request.QueryName,
+                request.QueryId,
                 request.QueryHash,
                 request.OperationName,
                 request.Variables,
@@ -190,9 +183,9 @@ namespace HotChocolate.Language
                 case _n:
                     if (fieldName.SequenceEqual(_queryName))
                     {
-                        if (request.QueryName is null)
+                        if (request.QueryId is null)
                         {
-                            request.QueryName = ParseStringOrNull();
+                            request.QueryId = ParseStringOrNull();
                         }
                         else
                         {
@@ -205,9 +198,9 @@ namespace HotChocolate.Language
                 case _i:
                     if (fieldName.SequenceEqual(_id))
                     {
-                        if (request.QueryName is null)
+                        if (request.QueryId is null)
                         {
-                            request.QueryName = ParseStringOrNull();
+                            request.QueryId = ParseStringOrNull();
                         }
                         else
                         {
@@ -224,10 +217,8 @@ namespace HotChocolate.Language
 
                         if (request.HasQuery && _reader.Kind != TokenKind.String)
                         {
-                            // TODO : resources
-                            throw new SyntaxException(
-                                _reader,
-                                "The query field must be a string or null.");
+                            ThrowHelper.QueryMustBeStringOrNull(_reader);
+                            return;
                         }
 
                         request.Query = _reader.Value;
@@ -294,21 +285,15 @@ namespace HotChocolate.Language
                     break;
 
                 default:
-                    // TODO : resources
-                    throw new SyntaxException(
-                        _reader,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            "Unexpected request property name `{0}` found.",
-                            Utf8GraphQLReader.GetString(fieldName, false)));
+                    ThrowHelper.UnexpectedProperty(_reader, fieldName);
+                    return;
             }
         }
 
         private void ParseQuery(ref Request request)
         {
             int length = checked(request.Query.Length);
-            bool useStackalloc =
-                length <= GraphQLConstants.StackallocThreshold;
+            bool useStackalloc = length <= GraphQLConstants.StackallocThreshold;
 
             byte[]? unescapedArray = null;
 
@@ -321,26 +306,24 @@ namespace HotChocolate.Language
             try
             {
                 Utf8Helper.Unescape(request.Query, ref unescapedSpan, false);
+                string? queryId = request.QueryId;
 
                 if (_useCache)
                 {
-                    if (request.QueryName is null)
+                    if (queryId is null)
                     {
-                        request.QueryName =
-                            request.QueryHash =
-                            _hashProvider!.ComputeHash(unescapedSpan);
+                        queryId = request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
                     }
 
-                    if (!_cache!.TryGetDocument(
-                        request.QueryName,
-                        out document))
+                    if (!_cache!.TryGetDocument(queryId, out document))
                     {
-                        document = Utf8GraphQLParser.Parse(unescapedSpan, _options);
+                        document = unescapedSpan.Length == 0
+                            ? null
+                            : Utf8GraphQLParser.Parse(unescapedSpan, _options);
 
                         if (request.QueryHash is null)
                         {
-                            request.QueryHash =
-                                _hashProvider!.ComputeHash(unescapedSpan);
+                            request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
                         }
                     }
                 }
@@ -349,7 +332,14 @@ namespace HotChocolate.Language
                     document = Utf8GraphQLParser.Parse(unescapedSpan, _options);
                 }
 
-                request.Document = document;
+                if (document is { })
+                {
+                    request.Document = document;
+                    if (queryId is { } && request.QueryId is null)
+                    {
+                        request.QueryId = queryId;
+                    }
+                }
             }
             finally
             {
@@ -474,4 +464,6 @@ namespace HotChocolate.Language
             }
         }
     }
+
+
 }
