@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace StrawberryShake.CodeGeneration.Analyzers.Models
 {
@@ -11,12 +12,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             FieldNode selection,
             Path path,
             ComplexOutputTypeModel returnType,
+            IType fieldType,
             IReadOnlyList<ComplexOutputTypeModel> possibleTypes)
         {
             Operation = operation;
             Selection = selection;
             Path = path;
             ReturnType = returnType;
+            FieldType = fieldType;
             PossibleTypes = possibleTypes;
         }
 
@@ -39,6 +42,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         /// Gets the return type of the field.
         /// </summary>
         public ComplexOutputTypeModel ReturnType { get; }
+
+        /// <summary>
+        /// Gets the field type.
+        /// </summary>
+        public IType FieldType { get; }
 
         /// <summary>
         /// Gets the possible types that this field can return.

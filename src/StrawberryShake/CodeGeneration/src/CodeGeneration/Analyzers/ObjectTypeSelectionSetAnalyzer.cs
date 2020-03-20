@@ -44,6 +44,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fieldSelection,
                 path,
                 returnType,
+                fieldType,
                 modelType);
         }
     }

@@ -39,6 +39,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 possibleSelections,
                 returnTypeFragment,
                 returnType,
+                fieldType,
                 path);
         }
 
@@ -49,6 +50,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             PossibleSelections possibleSelections,
             IFragmentNode returnTypeFragment,
             ComplexOutputTypeModel returnType,
+            IType fieldType,
             Path path)
         {
             IReadOnlyCollection<SelectionInfo> selections = possibleSelections.Variants;
@@ -68,6 +70,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fieldSelection,
                     path,
                     returnType,
+                    fieldType,
                     modelType);
             }
             else
@@ -86,6 +89,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fieldSelection,
                     path,
                     returnType,
+                    fieldType,
                     modelTypes);
             }
         }

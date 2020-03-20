@@ -167,10 +167,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FieldNode fieldSelection,
             Path path,
             ComplexOutputTypeModel returnType,
+            IType fieldType,
             ComplexOutputTypeModel modelType) =>
             CreateFieldParserModel(
                 context, operation, fieldSelection,
-                path, returnType, new[] { modelType });
+                path, returnType, fieldType, new[] { modelType });
 
         protected static FieldParserModel CreateFieldParserModel(
             IDocumentAnalyzerContext context,
@@ -178,6 +179,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FieldNode fieldSelection,
             Path path,
             ComplexOutputTypeModel returnType,
+            IType fieldType,
             IReadOnlyList<ComplexOutputTypeModel> possibleTypes)
         {
             var parserModel = new FieldParserModel(
@@ -185,6 +187,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fieldSelection,
                 path,
                 returnType,
+                fieldType,
                 possibleTypes);
 
             context.Register(parserModel);

@@ -324,6 +324,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (FieldParserModel fieldParser in model.FieldParsers)
             {
+                var list = new List<ResultTypeDescriptor>();
+
+                foreach (ComplexOutputTypeModel possibleType in fieldParser.PossibleTypes)
+                {
+                    list.Add(new ResultTypeDescriptor(
+                        possibleType.Name,
+                        fieldParser.ReturnType.
+
+                    ))
+                }
 
 
                 parserMethods.Add(new ResultParserMethodDescriptor(
@@ -358,7 +368,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 Path current = path;
                 temp.Clear();
 
-                while(current is { })
+                while (current is { })
                 {
                     temp.Insert(0, path.Name);
                 }
