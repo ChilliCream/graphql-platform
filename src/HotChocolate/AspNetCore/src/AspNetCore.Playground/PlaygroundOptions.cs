@@ -18,6 +18,11 @@ namespace HotChocolate.AspNetCore.Playground
         }
 
         /// <summary>
+        /// The endpoint of the GraphQL service.
+        /// </summary>
+        public Uri? GraphQLEndpoint { get; set; }
+
+        /// <summary>
         /// The path of the Playground middleware.
         /// </summary>
         public PathString Path
