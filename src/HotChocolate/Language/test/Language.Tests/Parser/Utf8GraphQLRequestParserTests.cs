@@ -464,26 +464,6 @@ namespace HotChocolate.Language
         }
 
         [Fact]
-        public void Parse_Invalid_Query()
-        {
-            // arrange
-            byte[] source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
-                    .NormalizeLineBreaks());
-
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source,
-                parserOptions,
-                new DocumentCache(),
-                new Sha256DocumentHashProvider());
-
-            // act
-            requestParser.Parse();
-            
-            // assert
-        }
-
-        [Fact]
         public void Parse_Apollo_AQP_SignatureQuery_Variables_Without_Values()
         {
             // arrange
@@ -562,6 +542,28 @@ namespace HotChocolate.Language
 
             // assert
             obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Parse_Invalid_Query()
+        {
+            // assert
+            Assert.Throws<ArgumentException>(
+                () =>
+                {
+                    // arrange
+                    byte[] source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
+                        .NormalizeLineBreaks());
+                    var parserOptions = new ParserOptions();
+                    var requestParser = new Utf8GraphQLRequestParser(
+                        source,
+                        parserOptions,
+                        new DocumentCache(),
+                        new Sha256DocumentHashProvider());
+
+                    // act
+                    requestParser.Parse();
+                });
         }
 
         private class GraphQLRequestDto
