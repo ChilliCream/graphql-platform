@@ -23,7 +23,6 @@ namespace HotChocolate.Language
                 reader,
                 "The query field must be a string or null.");
 
-
         // TODO : resources
         public static void UnexpectedProperty(
             Utf8GraphQLReader reader,
