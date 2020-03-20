@@ -19,66 +19,62 @@ namespace HotChocolate.Language
             int writePosition = 0;
             int eofPosition = escapedString.Length - 1;
 
-            do
+            if (escapedString.Length > 0)
             {
-                byte code = escapedString[++readPosition];
-
-                if (code == GraphQLConstants.Backslash)
+                do
                 {
-                    code = escapedString[++readPosition];
+                    byte code = escapedString[++readPosition];
 
-                    if (isBlockString
-                         && code == GraphQLConstants.Quote)
+                    if (code == GraphQLConstants.Backslash)
                     {
-                        if (escapedString[readPosition + 1] ==
-                            GraphQLConstants.Quote
-                            && escapedString[readPosition + 2] ==
-                            GraphQLConstants.Quote)
+                        code = escapedString[++readPosition];
+
+                        if (isBlockString && code == GraphQLConstants.Quote)
                         {
-                            readPosition += 2;
-                            unescapedString[writePosition++] =
-                                GraphQLConstants.Quote;
-                            unescapedString[writePosition++] =
-                                GraphQLConstants.Quote;
-                            unescapedString[writePosition++] =
-                                GraphQLConstants.Quote;
+                            if (escapedString[readPosition + 1] == GraphQLConstants.Quote
+                                && escapedString[readPosition + 2] == GraphQLConstants.Quote)
+                            {
+                                readPosition += 2;
+                                unescapedString[writePosition++] = GraphQLConstants.Quote;
+                                unescapedString[writePosition++] = GraphQLConstants.Quote;
+                                unescapedString[writePosition++] = GraphQLConstants.Quote;
+                            }
+                            else
+                            {
+                                throw new Utf8EncodingException(
+                                    LangResources.Utf8Helper_InvalidQuoteEscapeCount);
+                            }
+                        }
+                        else if (GraphQLConstants.IsValidEscapeCharacter(code))
+                        {
+                            if (code == GraphQLConstants.U)
+                            {
+                                UnescapeUtf8Hex(
+                                    escapedString[++readPosition],
+                                    escapedString[++readPosition],
+                                    escapedString[++readPosition],
+                                    escapedString[++readPosition],
+                                    ref writePosition,
+                                    ref unescapedString);
+                            }
+                            else
+                            {
+                                unescapedString[writePosition++] =
+                                    GraphQLConstants.EscapeCharacter(code);
+                            }
                         }
                         else
                         {
                             throw new Utf8EncodingException(
-                                LangResources.Utf8Helper_InvalidQuoteEscapeCount);
-                        }
-                    }
-                    else if (GraphQLConstants.IsValidEscapeCharacter(code))
-                    {
-                        if (code == GraphQLConstants.U)
-                        {
-                            UnescapeUtf8Hex(
-                                escapedString[++readPosition],
-                                escapedString[++readPosition],
-                                escapedString[++readPosition],
-                                escapedString[++readPosition],
-                                ref writePosition,
-                                ref unescapedString);
-
-                        }
-                        else
-                        {
-                            unescapedString[writePosition++] =
-                                GraphQLConstants.EscapeCharacter(code);
+                                LangResources.Utf8Helper_InvalidEscapeChar);
                         }
                     }
                     else
                     {
-                        throw new Utf8EncodingException(
-                            LangResources.Utf8Helper_InvalidEscapeChar);
+                        unescapedString[writePosition++] = code;
                     }
-                }
-                else
-                {
-                    unescapedString[writePosition++] = code;
-                }
-            } while (readPosition < eofPosition);
+                } while (readPosition < eofPosition);
+            }
 
             int length = unescapedString.Length - writePosition;
             if (length > 0)
