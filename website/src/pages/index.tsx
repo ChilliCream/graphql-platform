@@ -79,6 +79,12 @@ const Slideshow = styled(Carousel)<{
   flex: 0 0 auto;
   width: 100%;
 
+  ul,
+  li {
+    margin: 0;
+    padding: 0;
+  }
+
   > .carousel {
     position: relative;
 
@@ -170,7 +176,7 @@ const Slideshow = styled(Carousel)<{
 
 const Slide = styled.div`
   margin: 0 auto;
-  width: 80%;
+  width: 100%;
 
   @media only screen and (min-width: 992px) {
     width: 800px;
@@ -184,7 +190,6 @@ const Slide = styled.div`
 const SlideContent = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 20px;
 
   @media only screen and (min-width: 768px) {
     position: absolute;
@@ -194,6 +199,7 @@ const SlideContent = styled.div`
     display: flex;
     flex-direction: column;
     border-radius: 5px;
+    padding: 20px;
     background-color: rgba(0, 0, 0, 0.6);
   }
 
@@ -210,24 +216,25 @@ const SlideContent = styled.div`
 
 const SlideTitle = styled.h2`
   flex: 0 0 auto;
-  margin-bottom: 10px;
-  font-size: 1.667em;
+  font-size: 1em;
   text-align: center;
 
   @media only screen and (min-width: 768px) {
+    margin-bottom: 10px;
+    font-size: 1.667em;
     text-align: initial;
     color: #fff;
   }
 `;
 
 const SlideDescription = styled.p`
+  display: none;
   flex: 0 0 auto;
   font-size: 1.111em;
-  text-align: center;
+  color: #fff;
 
   @media only screen and (min-width: 768px) {
-    text-align: initial;
-    color: #fff;
+    display: initial;
   }
 `;
 

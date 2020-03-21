@@ -74,10 +74,12 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
             </AuthorLink>{" "}
             ・ {date} ・ {readingTime}
           </Metadata>
-          {tags && tags.length > 0 && (
+          {existingTags.length > 0 && (
             <Tags>
-              {tags.map(tag => (
-                <Tag>{tag}</Tag>
+              {existingTags.map(tag => (
+                <Tag>
+                  <TagLink to={`/blog/tag/${tag}`}>{tag}</TagLink>
+                </Tag>
               ))}
             </Tags>
           )}
@@ -126,7 +128,7 @@ const LinkedinIcon = styled(LinkedinIconSvg)`
   fill: #0073b0;
 `;
 
-const BlogContent = styled.article`
+const BlogContent = styled.div`
   display: flex;
   flex-direction: column;
 `;
@@ -196,10 +198,16 @@ const Tag = styled.li`
   display: inline-block;
   margin: 0 5px 0 0;
   border-radius: 4px;
-  padding: 5px 15px;
+  padding: 0;
   background-color: #f40010;
   font-size: 0.722em;
   letter-spacing: 0.05em;
+  color: #fff;
+`;
+
+const TagLink = styled(Link)`
+  display: block;
+  padding: 5px 15px;
   color: #fff;
 `;
 

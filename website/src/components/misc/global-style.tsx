@@ -140,10 +140,6 @@ export const GlobalStyle = createGlobalStyle`
     margin-left: 1.188em;
   }
 
-  li *:last-child {
-    margin-bottom: 0;
-  }
-
   li > p {
     margin-bottom: calc(1.188em / 2);
   }
