@@ -2,7 +2,8 @@
 path: "/blog/2019/09/27/strawberry-shake"
 date: "2019-09-27"
 title: "Building a .NET GraphQL Client API"
-featuredIamge: "shared/strawberry-shake-banner.png"
+featuredImage: "shared/strawberry-shake-banner.png"
+tags: ["strawberry-shake", "graphql", "dotnet", "aspnetcore"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4

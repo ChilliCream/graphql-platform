@@ -2,6 +2,7 @@
 path: "/blog/2018/07/30/green-donut-0.2.0"
 date: "2018-07-30"
 title: "Green Donut 0.2.0"
+tags: ["greendonut", "dataloader", "dotnet", "aspnetcore"]
 author: "Rafael Staib"
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4

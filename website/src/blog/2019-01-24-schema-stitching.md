@@ -2,6 +2,7 @@
 path: "/blog/2019/01/24/schema-stitching"
 date: "2019-01-24"
 title: "GraphQL - Schema Stitching"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore", "schema-stitching"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4

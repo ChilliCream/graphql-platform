@@ -43,7 +43,11 @@ export default BlogArticleTemplate;
 export const pageQuery = graphql`
   query getBlogArticle($path: String!) {
     markdownRemark(frontmatter: { path: { eq: $path } }) {
-      html
+      fields {
+        readingTime {
+          text
+        }
+      }
       frontmatter {
         author
         authorImageUrl
@@ -60,11 +64,7 @@ export const pageQuery = graphql`
         tags
         title
       }
-      fields {
-        readingTime {
-          text
-        }
-      }
+      html
     }
     site {
       siteMetadata {

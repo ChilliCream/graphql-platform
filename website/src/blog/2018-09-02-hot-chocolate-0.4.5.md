@@ -2,6 +2,7 @@
 path: "/blog/2018/09/02/hot-chocolate-0.4.5"
 date: "2018-09-02"
 title: "GraphQL - Hot Chocolate 0.4.5"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4

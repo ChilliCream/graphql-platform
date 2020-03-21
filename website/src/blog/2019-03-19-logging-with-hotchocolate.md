@@ -2,6 +2,7 @@
 path: "/blog/2019/03/19/logging-with-hotchocolate"
 date: "2019-03-19"
 title: "GraphQL - Tracing with Hot Chocolate"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore", "tracing"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
