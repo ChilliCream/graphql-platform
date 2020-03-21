@@ -26,6 +26,7 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
         htmlContent={html!}
         path={frontmatter!.path!}
         readingTime={fields!.readingTime!.text!}
+        tags={frontmatter!.tags}
         title={frontmatter!.title!}
       />
     </Layout>
@@ -44,6 +45,7 @@ export const pageQuery = graphql`
         authorUrl
         date(formatString: "MMMM DD, YYYY")
         path
+        tags
         title
       }
       fields {

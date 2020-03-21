@@ -1,6 +1,7 @@
 import { Disqus } from "gatsby-plugin-disqus";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
+import { Maybe } from "../../../graphql-types";
 import { Link } from "../misc/link";
 
 interface BlogArticleProperties {
@@ -12,6 +13,7 @@ interface BlogArticleProperties {
   htmlContent: string;
   path: string;
   readingTime: string;
+  tags?: Maybe<string>[] | null;
   title: string;
 }
 
@@ -24,6 +26,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   htmlContent,
   path,
   readingTime,
+  tags,
   title,
 }) => {
   const disqusConfig = {
@@ -42,6 +45,13 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
         </AuthorLink>{" "}
         ・ {date} ・ {readingTime}
       </Metadata>
+      {tags && tags.length > 0 && (
+        <Tags>
+          {tags.map(tag => (
+            <Tag>{tag}</Tag>
+          ))}
+        </Tags>
+      )}
       <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
       <DisqusWrapper config={disqusConfig} />
     </Container>
@@ -54,7 +64,7 @@ const Container = styled.article`
   flex-direction: column;
   padding-top: 20px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 800px;
 `;
 
 const Title = styled.h1`
@@ -84,6 +94,23 @@ const AuthorImage = styled.img`
   margin-right: 0.5em;
   border-radius: 15px;
   width: 30px;
+`;
+
+const Tags = styled.ul`
+  margin: 0;
+  padding: 0 20px 20px;
+  list-style-type: none;
+`;
+
+const Tag = styled.li`
+  display: inline-block;
+  margin: 0 5px 0 0;
+  border-radius: 4px;
+  padding: 5px 15px;
+  background-color: #f40010;
+  font-size: 0.722em;
+  letter-spacing: 0.05em;
+  color: #fff;
 `;
 
 const Content = styled.div`

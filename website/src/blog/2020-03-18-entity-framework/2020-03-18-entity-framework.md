@@ -3,6 +3,7 @@ path: "/blog/2020/03/18/entity-framework"
 date: "2020-03-18"
 title: "Get started with Hot Chocolate and Entity Framework"
 tags: ["graphql", "dotnet", "entityframework", "aspnetcore"]
+bannerUrl: "../shared/hotchocolate-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
@@ -15,8 +16,6 @@ In this post I will walk you through how to build a GraphQL Server using _Hot Ch
 _Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DbContext` and once in a while commit changes aggregated on that context to the database by invoking `SaveChanges`.
 
 With _Entity Framework_ we can write database queries with _LINQ_ and do not have to deal with _SQL_ directly. This means that we can compile our database queries and can detect query errors before we run our code.
-
-<!--truncate-->
 
 ## Introduction
 
