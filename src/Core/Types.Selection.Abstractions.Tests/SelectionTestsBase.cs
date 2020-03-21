@@ -212,7 +212,6 @@ namespace HotChocolate.Types.Selections
                 });
         }
 
-
         [Fact]
         public virtual void Execute_Selection_ComputedField()
         {
