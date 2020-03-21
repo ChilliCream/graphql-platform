@@ -3,6 +3,7 @@ path: "/blog/2019/11/29/schema-design"
 date: "2019-11-29"
 title: "Lets supercharge your GraphQL schema :)"
 featuredImage: "shared/hotchocolate-banner.png"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4

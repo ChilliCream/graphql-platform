@@ -45,7 +45,7 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
               <Tags>
                 {existingTags.map(tag => (
                   <Tag>
-                    <TagLink to={`/blog/tag/${tag}`}>{tag}</TagLink>
+                    <TagLink to={`/blog/tags/${tag}`}>{tag}</TagLink>
                   </Tag>
                 ))}
               </Tags>

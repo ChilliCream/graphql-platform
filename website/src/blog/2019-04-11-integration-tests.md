@@ -2,6 +2,7 @@
 path: "/blog/2019/04/11/integration-tests"
 date: "2019-04-11"
 title: "GraphQL - How to write integration tests against Hot Chocolate"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore", "testing"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4

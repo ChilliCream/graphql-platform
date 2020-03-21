@@ -3,7 +3,7 @@ path: "/blog/2020/03/18/entity-framework"
 date: "2020-03-18"
 title: "Get started with Hot Chocolate and Entity Framework"
 tags: ["hotchocolate", "graphql", "dotnet", "entityframework", "aspnetcore"]
-featuredImage: "../shared/hotchocolate-banner.png"
+featuredImage: "banner-entityframework.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4

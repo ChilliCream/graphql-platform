@@ -19,6 +19,9 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
             }
           }
         }
+        tags: group(field: frontmatter___tags) {
+          fieldValue
+        }
       }
     }
   `);
@@ -40,7 +43,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 
   // Create List Pages
   const posts = result.data.allMarkdownRemark.edges;
-  const postsPerPage = 6;
+  const postsPerPage = 20;
   const numPages = Math.ceil(posts.length / postsPerPage);
 
   Array.from({ length: numPages }).forEach((_, i) => {
@@ -52,6 +55,20 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
         skip: i * postsPerPage,
         numPages,
         currentPage: i + 1,
+      },
+    });
+  });
+
+  // Create Tag Pages
+  const { tags } = result.data.allMarkdownRemark;
+  const tagTemplate = path.resolve(`src/templates/blog-tag-template.tsx`);
+
+  tags.forEach(tag => {
+    createPage({
+      path: `/blog/tags/${tag.fieldValue}`,
+      component: tagTemplate,
+      context: {
+        tag: tag.fieldValue,
       },
     });
   });
