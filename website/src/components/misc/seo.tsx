@@ -68,7 +68,7 @@ export const SEO: FunctionComponent<SEOProperties> = ({
         },
         {
           name: `twitter:creator`,
-          content: site.siteMetadata.author,
+          content: `@${site.siteMetadata.author}`,
         },
         {
           name: `twitter:title`,

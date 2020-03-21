@@ -1,8 +1,8 @@
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL`,
-    description: `...`,
-    author: `@Chilli_Cream`,
+    description: `We're building the ultimate GraphQL platform`,
+    author: `Chilli_Cream`,
     baseUrl: `https://chillicream.com`,
     topnav: [
       {
@@ -77,7 +77,7 @@ module.exports = {
           {
             resolve: `gatsby-remark-images`,
             options: {
-              maxWidth: 1100,
+              maxWidth: 800,
             },
           },
         ],

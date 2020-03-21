@@ -2,14 +2,12 @@
 path: "/blog/2020/03/18/entity-framework"
 date: "2020-03-18"
 title: "Get started with Hot Chocolate and Entity Framework"
-tags: ["graphql", "dotnet", "entityframework", "aspnetcore"]
-bannerUrl: "../shared/hotchocolate-banner.png"
+tags: ["hotchocolate", "graphql", "dotnet", "entityframework", "aspnetcore"]
+featuredImage: "../shared/hotchocolate-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
-
-![Hot Chocolate](../shared/hotchocolate-banner.png)
 
 In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
 
@@ -611,12 +609,20 @@ The above query returns:
 In order to fetch the data, the GraphQL query is rewritten to the following SQL:
 
 ```sql
-SELECT "s"."FirstMidName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."CourseId"
+SELECT "s"."FirstMidName",
+       "s"."Id",
+       "t"."Title",
+       "t"."EnrollmentId",
+       "t"."CourseId"
     FROM "Students" AS "s"
     LEFT JOIN (
-        SELECT "c"."Title", "e"."EnrollmentId", "c"."CourseId", "e"."StudentId"
+        SELECT "c"."Title",
+               "e"."EnrollmentId",
+               "c"."CourseId",
+               "e"."StudentId"
         FROM "Enrollments" AS "e"
-        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+        INNER JOIN "Courses" AS "c"
+              ON "e"."CourseId" = "c"."CourseId"
     ) AS "t" ON "s"."Id" = "t"."StudentId"
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
@@ -747,12 +753,21 @@ Which will return the following result:
 Again, we are rewriting the whole GraphQL query into one expression tree that translates into the following SQL.
 
 ```sql
-SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."CourseId"
+SELECT "s"."FirstMidName",
+       "s"."LastName",
+       "s"."Id",
+       "t"."Title",
+       "t"."EnrollmentId",
+       "t"."CourseId"
     FROM "Students" AS "s"
     LEFT JOIN (
-        SELECT "c"."Title", "e"."EnrollmentId", "c"."CourseId", "e"."StudentId"
+        SELECT "c"."Title",
+               "e"."EnrollmentId",
+               "c"."CourseId",
+               "e"."StudentId"
         FROM "Enrollments" AS "e"
-        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+        INNER JOIN "Courses" AS "c"
+              ON "e"."CourseId" = "c"."CourseId"
     ) AS "t" ON "s"."Id" = "t"."StudentId"
     WHERE ("s"."LastName" = 'Bar') OR ("s"."LastName" = 'Baz')
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
@@ -805,12 +820,23 @@ query {
 The following query translates again to a single SQL statement.
 
 ```sql
-SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title", "t"."EnrollmentId", "t"."CourseId0"
+SELECT "s"."FirstMidName",
+       "s"."LastName",
+       "s"."Id",
+       "t"."CourseId",
+       "t"."Title",
+       "t"."EnrollmentId",
+       "t"."CourseId0"
     FROM "Students" AS "s"
     LEFT JOIN (
-        SELECT "e"."CourseId", "c"."Title", "e"."EnrollmentId", "c"."CourseId" AS "CourseId0", "e"."StudentId"
+        SELECT "e"."CourseId",
+               "c"."Title",
+               "e"."EnrollmentId".
+               "c"."CourseId" AS "CourseId0",
+               "e"."StudentId"
         FROM "Enrollments" AS "e"
-        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+        INNER JOIN "Courses" AS "c"
+              ON "e"."CourseId" = "c"."CourseId"
         WHERE "e"."CourseId" = 1
     ) AS "t" ON "s"."Id" = "t"."StudentId"
     WHERE "s"."LastName" = 'Bar'
@@ -1069,9 +1095,11 @@ We also have a more complex real-time GraphQL server example in multiple flavors
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+## Additional Resources
 
+- [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q)
+- [Hot Chocolate Documentation](https://hotchocolate.io)
+- [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate)
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

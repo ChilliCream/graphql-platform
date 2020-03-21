@@ -15,6 +15,7 @@ export const GlobalStyle = createGlobalStyle`
     overflow: auto;
     background-color: #ccc;
     color: #667;
+    scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -187,17 +188,6 @@ export const GlobalStyle = createGlobalStyle`
     * {
       font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
       line-height: 1.5em !important;
-    }
-
-    > pre[class*="language-"].line-numbers {
-      border-radius: 5px;
-      padding: 10px 10px 10px 60px;
-      overflow: initial;
-
-      > .line-numbers-rows {
-        border-right: 1px solid #444;
-        padding: 10px 5px 10px 15px;
-      }
     }
   }
 

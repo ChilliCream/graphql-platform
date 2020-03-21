@@ -2,12 +2,11 @@
 path: "/blog/2019/08/14/hot-chocolate-10.0.0"
 date: "2019-08-14"
 title: "GraphQL - Hot Chocolate 10.0.0"
+featuredImage: "../shared/hotchocolate-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
-
-![Hot Chocolate](../shared/hotchocolate-banner.png)
 
 Today we have released version 10 of _Hot Chocolate_. We originally started building version 9.1 which grew bigger and at one point became version 10. We have focused a lot on our server implementation. But let me walk you through our latest release.
 
@@ -364,9 +363,11 @@ Furthermore, we will rework our `Utf8GraphQLReader` to use `ReadOnlySequence<byt
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) and join our community.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+## Additional Resources
 
+- [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q)
+- [Hot Chocolate Documentation](https://hotchocolate.io)
+- [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate)
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

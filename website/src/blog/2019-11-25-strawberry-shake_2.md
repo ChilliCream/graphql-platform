@@ -2,12 +2,11 @@
 path: "/blog/2019/11/25/strawberry-shake_2"
 date: "2019-11-25"
 title: "Building a real-time .NET GraphQL Client API"
+featuredIamge: "shared/strawberry-shake-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
-
-![Strawberry Shake](shared/strawberry-shake-banner.png)
 
 We are busy, busy, busy working on version 11 of _Hot Chocolate_ and _Strawberry Shake_.
 
@@ -615,9 +614,11 @@ I hope you enjoy what we are building. We are tying to bring GraphQL on .NET to 
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+## Additional Resources
 
+- [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q)
+- [Hot Chocolate Documentation](https://hotchocolate.io)
+- [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate)
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
