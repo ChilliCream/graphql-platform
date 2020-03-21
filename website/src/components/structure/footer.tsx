@@ -139,7 +139,7 @@ const LogoText = styled(LogoTextSvg)`
 `;
 
 const Description = styled.p`
-  font-size: 0.938em;
+  font-size: 0.833em;
   line-height: 1.5em;
   margin-bottom: 10px;
 `;
@@ -153,7 +153,7 @@ const Connect = styled.div`
 const ConnectLink = styled(Link)`
   flex: 0 0 auto;
   margin: 5px 0;
-  font-size: 0.938em;
+  font-size: 0.833em;
   text-decoration: none;
   color: #666;
   transition: color 0.2s ease-in-out;
@@ -209,7 +209,8 @@ const NavLink = styled(Link)`
   flex: 0 0 auto;
   margin: 4px 0;
   font-family: "Roboto", sans-serif;
-  font-size: 0.938em;
+  font-size: 0.833em;
+  line-height: 1.5em;
   color: #666;
   text-decoration: none;
   transition: color 0.2s ease-in-out;
@@ -224,6 +225,7 @@ const Location = styled.div`
   flex: 3 1 auto;
   flex-direction: column;
   padding: 0 10px;
+  line-height: 1.5em;
 
   @media only screen and (min-width: 768px) {
     display: flex;
@@ -231,9 +233,10 @@ const Location = styled.div`
 `;
 
 const Title = styled.h3`
-  margin: 15px 0 15px;
-  font-size: 1.125em;
+  margin: 15px 0 0;
+  font-size: 1em;
   font-weight: bold;
+  color: #666;
 `;
 
 const Copyright = styled.div`

@@ -2,7 +2,7 @@ import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetAllBlogArticlesQuery } from "../../graphql-types";
-import SEO from "../components/misc/seo";
+import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 import { BlogArticleLink } from "../components/widgets/blog-article-link";
 

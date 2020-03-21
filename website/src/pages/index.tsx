@@ -4,7 +4,7 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetStartpageDataQuery } from "../../graphql-types";
 import BananaCakepop from "../components/images/banana-cakepop";
-import SEO from "../components/misc/seo";
+import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
 const IndexPage: FunctionComponent = () => {
@@ -211,7 +211,7 @@ const SlideContent = styled.div`
 const SlideTitle = styled.h2`
   flex: 0 0 auto;
   margin-bottom: 10px;
-  font-size: 1.875em;
+  font-size: 1.667em;
   text-align: center;
 
   @media only screen and (min-width: 768px) {
@@ -222,8 +222,7 @@ const SlideTitle = styled.h2`
 
 const SlideDescription = styled.p`
   flex: 0 0 auto;
-  font-size: 1.25em;
-  line-height: 1.188em;
+  font-size: 1.111em;
   text-align: center;
 
   @media only screen and (min-width: 768px) {
@@ -235,7 +234,7 @@ const SlideDescription = styled.p`
 const Title = styled.h1`
   flex: 0 0 auto;
   margin-bottom: 20px;
-  font-size: 2.5em;
+  font-size: 2.222em;
   text-align: center;
   color: #fff;
 
