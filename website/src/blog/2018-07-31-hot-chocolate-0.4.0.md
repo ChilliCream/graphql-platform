@@ -251,9 +251,5 @@ From a design standpoint you should avoid accessing this directly and think abou
 
 I will write some more on dependency injection sometime later this week.
 
-| [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ------------------------------------------------------ | ---------------------------------------------------------------------- |
-
-
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

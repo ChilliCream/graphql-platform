@@ -113,9 +113,5 @@ diagnostic events.
 We hope you enjoyed reading and be welcome to let us know what you think about
 it in the comments section. Thank you!
 
-| [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ------------------------------------------------------ | ---------------------------------------------------------------------- |
-
-
 [performance tracing specification]: https://github.com/apollographql/apollo-tracing
 [specification]: https://facebook.github.io/graphql
