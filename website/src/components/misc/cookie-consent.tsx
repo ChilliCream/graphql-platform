@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useState, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import styled from "styled-components";
 import { Link } from "./link";
@@ -10,8 +10,11 @@ export const CookieConsent: FunctionComponent = () => {
 
   const clickDismiss = () => {
     setCookie(cookieName, "true", { path: "/" });
-    setShowDialog(false);
   };
+
+  useEffect(() => {
+    setShowDialog(cookies[cookieName] !== "true");
+  }, [cookies]);
 
   return (
     <Dialog
@@ -42,7 +45,7 @@ export const CookieConsent: FunctionComponent = () => {
 };
 
 const Dialog = styled.div<{ show: boolean }>(props => ({
-  position: "absolute",
+  position: "fixed",
   bottom: 0,
   zIndex: 20,
   display: props.show ? "initial" : "none",
