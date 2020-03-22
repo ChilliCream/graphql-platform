@@ -47,7 +47,8 @@ namespace HotChocolate.Language.Visitors
                 UnionTypeExtensionNode n => Enter(n, context),
                 EnumTypeExtensionNode n => Enter(n, context),
                 InputObjectTypeExtensionNode n => Enter(n, context),
-                _ => throw new NotSupportedException()
+                NameNode n => Enter(n, context),
+                _ => throw new NotSupportedException(node.GetType().FullName)
             };
         }
 
@@ -235,5 +236,11 @@ namespace HotChocolate.Language.Visitors
            InputObjectTypeExtensionNode node,
            ISyntaxVisitorContext context) =>
            DefaultAction;
+           
+        protected virtual ISyntaxVisitorAction Enter(
+            NameNode node,
+            ISyntaxVisitorContext context) =>
+            DefaultAction;
+
     }
 }
