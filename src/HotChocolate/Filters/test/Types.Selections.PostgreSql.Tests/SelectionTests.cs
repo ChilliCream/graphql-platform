@@ -6,23 +6,24 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
+using Squadron;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
     public class SelectionTests :
-        IClassFixture<SqlServerProvider>
+        IClassFixture<PostgreSqlResource>
     {
         private readonly static Foo[] SAMPLE =
             new[] {
                 Foo.Create("aa", 1),
                 Foo.Create("bb", 2) };
 
-        private readonly SqlServerProvider _provider;
+        private readonly PostgreSqlServerProvider _provider;
 
-        public SelectionTests(SqlServerProvider provider)
+        public SelectionTests(PostgreSqlResource resource)
         {
-            _provider = provider;
+            _provider = new PostgreSqlServerProvider(resource);
         }
 
         [Fact]
@@ -60,12 +61,14 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aa", x.Bar);
                     Assert.Equal(1, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("bb", x.Bar);
                     Assert.Equal(2, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 });
         }
 
@@ -104,12 +107,14 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aa", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("bb", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 });
         }
 
@@ -148,12 +153,65 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aa", x.Bar);
                     Assert.Equal(1, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("bb", x.Bar);
                     Assert.Equal(2, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+
+        [Fact]
+        public virtual void Execute_Selection_ScalarList()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                 "{ foos { stringList } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray(),
+                x =>
+                {
+                    Assert.Null(x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                    Assert.NotNull(x.StringList);
+                    Assert.Equal(2, x.StringList.Count);
+                },
+                x =>
+                {
+                    Assert.Null(x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                    Assert.NotNull(x.StringList);
+                    Assert.Equal(2, x.StringList.Count);
                 });
         }
 
@@ -344,6 +402,7 @@ namespace HotChocolate.Types.Selections
                     Assert.NotNull(x.Nested);
                     Assert.Equal("nestedaa", x.Nested.Bar);
                     Assert.Equal(0, x.Nested.Baz);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
@@ -352,6 +411,7 @@ namespace HotChocolate.Types.Selections
                     Assert.NotNull(x.Nested);
                     Assert.Equal("nestedbb", x.Nested.Bar);
                     Assert.Equal(0, x.Nested.Baz);
+                    Assert.Null(x.ObjectArray);
                 });
         }
 
@@ -644,6 +704,7 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal(0, x.Baz);
                     Assert.NotNull(x.Nested);
                     Assert.Equal(0, x.Nested.Baz);
+                    Assert.Null(x.ObjectArray);
                     Assert.Null(x.Nested.ObjectArray);
                     Assert.Null(x.Nested.Nested.Bar);
                     Assert.Null(x.Nested.Nested.Nested.Bar);
@@ -655,6 +716,7 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal(0, x.Baz);
                     Assert.NotNull(x.Nested);
                     Assert.Equal(0, x.Nested.Baz);
+                    Assert.Null(x.ObjectArray);
                     Assert.Null(x.Nested.ObjectArray);
                     Assert.Null(x.Nested.Nested.Bar);
                     Assert.Null(x.Nested.Nested.Nested.Bar);
@@ -701,12 +763,14 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("bb", x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("aa", x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -749,6 +813,7 @@ namespace HotChocolate.Types.Selections
                     Assert.Null(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -791,12 +856,14 @@ namespace HotChocolate.Types.Selections
                     Assert.NotNull(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
                     Assert.NotNull(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -839,12 +906,14 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aa", x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("bb", x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -898,12 +967,14 @@ namespace HotChocolate.Types.Selections
                     Assert.Null(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Null(x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -947,6 +1018,7 @@ namespace HotChocolate.Types.Selections
                     Assert.NotNull(x.Node.Nested);
                     Assert.Equal("nestedaa", x.Node.Nested.Bar);
                     Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
@@ -955,6 +1027,7 @@ namespace HotChocolate.Types.Selections
                     Assert.NotNull(x.Node.Nested);
                     Assert.Equal("nestedbb", x.Node.Nested.Bar);
                     Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -996,12 +1069,14 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aa", x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("bb", x.Node.Bar);
                     Assert.Equal(0, x.Node.Baz);
                     Assert.Null(x.Node.Nested);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -1045,6 +1120,7 @@ namespace HotChocolate.Types.Selections
                     Assert.NotNull(x.Node.Nested);
                     Assert.Equal("nestedaa", x.Node.Nested.Bar);
                     Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
                 },
                 x =>
                 {
@@ -1053,6 +1129,7 @@ namespace HotChocolate.Types.Selections
                     Assert.NotNull(x.Node.Nested);
                     Assert.Equal("nestedbb", x.Node.Nested.Bar);
                     Assert.Equal(0, x.Node.Nested.Baz);
+                    Assert.Null(x.Node.ObjectArray);
                 });
         }
 
@@ -1093,18 +1170,21 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aa", x.Bar.Substring(2));
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("aa", x.Bar.Substring(2));
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("aa", x.Bar.Substring(2));
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 });
         }
 
@@ -1146,6 +1226,7 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("ccaa", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 });
         }
 
@@ -1186,18 +1267,21 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aaaa", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("ccaa", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("bbaa", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 });
         }
 
@@ -1239,12 +1323,14 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("aaaa", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 },
                 x =>
                 {
                     Assert.Equal("bbaa", x.Bar);
                     Assert.Equal(0, x.Baz);
                     Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
                 });
         }
 
@@ -1256,13 +1342,16 @@ namespace HotChocolate.Types.Selections
         public class Foo
         {
             [Key]
-            public Guid Id { get; set; }
+            public int Id { get; set; }
 
             public string Bar { get; set; }
 
             public int Baz { get; set; }
+            public List<string> StringList { get; set; }
 
             public NestedFoo Nested { get; set; }
+
+            public NestedFoo[] ObjectArray { get; set; }
 
             public List<NestedFoo> ObjectList { get; set; }
 
@@ -1317,6 +1406,8 @@ namespace HotChocolate.Types.Selections
                 {
                     Bar = bar,
                     Baz = baz,
+                    StringList =
+                        new List<string> { "stringListMember0" + bar, "stringListMember1" + bar },
                     Nested = new NestedFoo()
                     {
                         Bar = "nested" + bar,
@@ -1324,6 +1415,16 @@ namespace HotChocolate.Types.Selections
                         Nested = recursive.Clone(),
                         ObjectArray = new List<NestedFoo> { recursive2.Clone() }
                     },
+                    ObjectArray = new NestedFoo[]
+                       {
+                        new NestedFoo()
+                        {
+                            Bar = "objectArray" + bar,
+                            Baz = baz * 3,
+                            Nested = recursive.Clone(),
+                            ObjectArray = new List<NestedFoo> { recursive2.Clone() }
+                        },
+                       },
                     ObjectList = new List<NestedFoo>
                        {
                         new NestedFoo()

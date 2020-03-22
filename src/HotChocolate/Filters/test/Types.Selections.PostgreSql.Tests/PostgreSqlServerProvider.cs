@@ -2,14 +2,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Squadron;
 
 namespace HotChocolate.Types.Selections
 {
-    public class SqlServerProvider
+    public class PostgreSqlServerProvider
     {
         private static readonly ILoggerFactory ConsoleLogger =
              LoggerFactory.Create(x => x.AddConsole());
@@ -17,19 +17,31 @@ namespace HotChocolate.Types.Selections
         private static readonly ConcurrentDictionary<object, object> _cache =
             new ConcurrentDictionary<object, object>();
 
+        private readonly PostgreSqlResource _resource;
+
+        public PostgreSqlServerProvider(PostgreSqlResource resource)
+        {
+            _resource = resource;
+        }
+
         public (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
             CreateResolver<TResult>(params TResult[] results)
                 where TResult : class
         {
-            return BuildResolver(results);
+            if (_cache.GetOrAdd(results, (obj) => BuildResolver(results))
+                    is ValueTuple<IServiceCollection,
+                        Func<IResolverContext, IEnumerable<TResult>>> result)
+            {
+                return result;
+            }
+            throw new InvalidOperationException("Cache is in invalid state!");
         }
 
         private (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
             BuildResolver<TResult>(params TResult[] results)
                 where TResult : class
         {
-            var dbContext = new DatabaseContext<TResult>();
-            dbContext.Database.EnsureDeleted();
+            var dbContext = new DatabaseContext<TResult>(_resource);
             dbContext.Database.EnsureCreated();
             dbContext.AddRange(results);
             dbContext.SaveChanges();
@@ -43,24 +55,31 @@ namespace HotChocolate.Types.Selections
         private class DatabaseContext<TResult> : DbContext
             where TResult : class
         {
-            private static int counter = 0;
-            private SqliteConnection _connection;
+            private static int increment = 0;
+            private readonly PostgreSqlResource _resource;
 
-            public DatabaseContext()
+            public DatabaseContext(PostgreSqlResource resource)
             {
+                _resource = resource;
             }
 
             public DbSet<TResult> Data { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                _connection = new SqliteConnection("datasource=:memory:");
-                _connection.Open();
+                _resource.CreateDatabaseAsync(typeof(TResult).Name + ++increment)
+                    .GetAwaiter().GetResult();
 
                 optionsBuilder
-                    .UseSqlite(_connection)
+                    .UseNpgsql(_resource.GetConnection(typeof(TResult).Name + increment))
                     .EnableSensitiveDataLogging()
                     .UseLoggerFactory(ConsoleLogger);
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.Entity<SelectionTests.Foo>()
+                    .Ignore(x => x.ObjectArray);
             }
         }
 
