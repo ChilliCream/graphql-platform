@@ -25,6 +25,7 @@ namespace HotChocolate.Types.Sorting
 
         protected Queue<SortOperationInvocation> SortOperations { get; } =
             new Queue<SortOperationInvocation>();
+
         protected SortQueryableClosure Closure { get; }
 
         protected virtual SortOperationInvocation CreateSortOperation(SortOperationKind kind)
@@ -36,30 +37,35 @@ namespace HotChocolate.Types.Sorting
         public IQueryable<TSource> Sort<TSource>(
             IQueryable<TSource> source)
         {
-            if (!SortOperations.Any())
+            if (SortOperations.Count == 0)
             {
                 return source;
             }
 
-            IOrderedQueryable<TSource> sortedSource;
-            if (!OrderingMethodFinder.OrderMethodExists(source.Expression))
+            return source.Provider.CreateQuery<TSource>(Compile(source.Expression));
+        }
+
+        public Expression Compile(
+            Expression source)
+        {
+            if (SortOperations.Count == 0)
             {
-                sortedSource = source.AddInitialSortOperation(
+                return source;
+            }
+
+            if (!OrderingMethodFinder.OrderMethodExists(source))
+            {
+                source = source.CompileInitialSortOperation(
                     SortOperations.Dequeue());
             }
-            else
+
+            while (SortOperations.Count != 0)
             {
-                sortedSource = (IOrderedQueryable<TSource>)source;
+                source = source.CompileSortOperation(
+                    SortOperations.Dequeue());
             }
 
-            while (SortOperations.Any())
-            {
-                sortedSource
-                    = sortedSource.AddSortOperation(
-                        SortOperations.Dequeue());
-            }
-
-            return sortedSource;
+            return source;
         }
 
         #region Object Value

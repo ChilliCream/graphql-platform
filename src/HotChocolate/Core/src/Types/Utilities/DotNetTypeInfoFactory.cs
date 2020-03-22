@@ -41,7 +41,7 @@ namespace HotChocolate.Utilities
 
         public static Type UnwrapNonNull(Type type)
         {
-            if(IsNonNullType(type))
+            if (IsNonNullType(type))
             {
                 return GetInnerType(type);
             }

@@ -71,8 +71,13 @@ namespace HotChocolate.Types.Filters
             return Closures.Peek().CreateLambda<Func<TSource, bool>>();
         }
 
+        public Expression CreateFilter()
+        {
+            return Closures.Peek().CreateLambda();
+        }
+
         #region Object Value
-        
+
         public override VisitorAction Enter(
             ObjectValueNode node,
             ISyntaxNode parent,

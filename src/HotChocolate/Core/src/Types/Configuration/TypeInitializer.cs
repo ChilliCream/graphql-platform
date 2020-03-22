@@ -228,6 +228,12 @@ namespace HotChocolate.Configuration
                             .SetTypeSystemObject((ITypeSystemObject)targetType)
                             .Build());
                     }
+                    InitializationContext initContext = extension.InitializationContext;
+                    foreach (FieldReference reference in initContext.Resolvers.Keys)
+                    {
+                        _resolvers[reference]
+                            = initContext.Resolvers[reference].WithSourceType(type.ClrType);
+                    }
 
                     // merge
                     CompletionContext context = _completionContext[extension];
