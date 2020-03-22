@@ -2,8 +2,8 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetFooterDataQuery } from "../../../graphql-types";
+import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
-import { IconContainer } from "../misc/ui-elements";
 
 import GithubIconSvg from "../../images/github.svg";
 import LogoIconSvg from "../../images/chillicream.svg";

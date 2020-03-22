@@ -33,9 +33,9 @@ export default BlogArticlesTemplate;
 export const pageQuery = graphql`
   query getBlogArticles($skip: Int!, $limit: Int!) {
     allMarkdownRemark(
-      sort: { fields: [frontmatter___date], order: DESC }
       limit: $limit
       skip: $skip
+      sort: { fields: [frontmatter___date], order: DESC }
     ) {
       edges {
         node {

@@ -2,6 +2,7 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
+import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
 import GithubIconSvg from "../../images/github.svg";
@@ -9,7 +10,6 @@ import LogoIconSvg from "../../images/chillicream.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
-import { IconContainer } from "../misc/ui-elements";
 
 export const Header: FunctionComponent = () => {
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
