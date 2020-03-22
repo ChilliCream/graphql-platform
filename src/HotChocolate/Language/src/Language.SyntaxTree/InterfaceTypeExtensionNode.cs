@@ -17,6 +17,21 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.InterfaceTypeExtension;
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (FieldDefinitionNode field in Fields)
+            {
+                yield return field;
+            }
+        }
+
         public InterfaceTypeExtensionNode WithLocation(Location? location)
         {
             return new InterfaceTypeExtensionNode(

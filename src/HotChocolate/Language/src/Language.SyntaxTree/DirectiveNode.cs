@@ -45,6 +45,16 @@ namespace HotChocolate.Language
 
         public NameNode Name { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (ArgumentNode argument in Arguments)
+            {
+                yield return argument;
+            }
+        }
+
         public IReadOnlyList<ArgumentNode> Arguments { get; }
 
         public DirectiveNode WithLocation(Location? location)

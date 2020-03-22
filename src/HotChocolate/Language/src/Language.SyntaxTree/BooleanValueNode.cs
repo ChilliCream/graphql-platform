@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -27,6 +29,8 @@ namespace HotChocolate.Language
         public bool Value { get; }
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="BooleanValueNode"/>

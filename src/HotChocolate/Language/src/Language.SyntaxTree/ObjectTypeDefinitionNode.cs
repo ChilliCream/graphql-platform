@@ -22,6 +22,31 @@ namespace HotChocolate.Language
 
         public StringValueNode? Description { get; }
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            if (Description is { })
+            {
+                yield return Description;
+            }
+
+            yield return Name;
+
+            foreach (NamedTypeNode interfaceName in Interfaces)
+            {
+                yield return interfaceName;
+            }
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            foreach (FieldDefinitionNode field in Fields)
+            {
+                yield return field;
+            }
+        }
+
         public ObjectTypeDefinitionNode WithLocation(Location? location)
         {
             return new ObjectTypeDefinitionNode(

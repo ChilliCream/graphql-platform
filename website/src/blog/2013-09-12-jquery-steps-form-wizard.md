@@ -2,6 +2,7 @@
 path: "/blog/2013/09/12/jquery-steps-form-wizard"
 date: "2013-09-12"
 title: "How to create a Form Wizard using jQuery Steps"
+tags: ["jquery-steps", "jquery", "wizard", "forms"]
 author: "Rafael Staib"
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4

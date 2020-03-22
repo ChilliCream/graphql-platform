@@ -26,6 +26,8 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes() => Definitions;
+
         public DocumentNode WithLocation(Location? location)
         {
             return new DocumentNode(location, Definitions);

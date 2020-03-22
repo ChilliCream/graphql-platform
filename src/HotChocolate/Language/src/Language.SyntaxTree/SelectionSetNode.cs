@@ -26,6 +26,8 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<ISelectionNode> Selections { get; }
 
+        public IEnumerable<ISyntaxNode> GetNodes() => Selections;
+
         public SelectionSetNode WithLocation(Location? location)
         {
             return new SelectionSetNode(

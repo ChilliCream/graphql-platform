@@ -16,6 +16,16 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.ScalarTypeExtension;
 
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+        }
+
         public ScalarTypeExtensionNode WithLocation(Location? location)
         {
             return new ScalarTypeExtensionNode(
