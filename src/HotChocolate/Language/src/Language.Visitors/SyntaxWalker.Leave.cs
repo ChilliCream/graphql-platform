@@ -8,47 +8,92 @@ namespace HotChocolate.Language.Visitors
             ISyntaxNode node,
             ISyntaxVisitorContext context)
         {
-            return node switch
+            switch (node.Kind)
             {
-                DocumentNode n => Leave(n, context),
-                OperationDefinitionNode n => Leave(n, context),
-                VariableDefinitionNode n => Leave(n, context),
-                VariableNode n => Leave(n, context),
-                SelectionSetNode n => Leave(n, context),
-                FieldNode n => Leave(n, context),
-                ArgumentNode n => Leave(n, context),
-                FragmentSpreadNode n => Leave(n, context),
-                InlineFragmentNode n => Leave(n, context),
-                FragmentDefinitionNode n => Leave(n, context),
-                DirectiveNode n => Leave(n, context),
-                NamedTypeNode n => Leave(n, context),
-                ListTypeNode n => Leave(n, context),
-                NonNullTypeNode n => Leave(n, context),
-                ListValueNode n => Leave(n, context),
-                ObjectValueNode n => Leave(n, context),
-                ObjectFieldNode n => Leave(n, context),
-                IValueNode n => Leave(n, context),
-                SchemaDefinitionNode n => Leave(n, context),
-                OperationTypeDefinitionNode n => Leave(n, context),
-                ScalarTypeDefinitionNode n => Leave(n, context),
-                ObjectTypeDefinitionNode n => Leave(n, context),
-                FieldDefinitionNode n => Leave(n, context),
-                InputValueDefinitionNode n => Leave(n, context),
-                InterfaceTypeDefinitionNode n => Leave(n, context),
-                UnionTypeDefinitionNode n => Leave(n, context),
-                EnumTypeDefinitionNode n => Leave(n, context),
-                EnumValueDefinitionNode n => Leave(n, context),
-                InputObjectTypeDefinitionNode n => Leave(n, context),
-                DirectiveDefinitionNode n => Leave(n, context),
-                SchemaExtensionNode n => Leave(n, context),
-                ScalarTypeExtensionNode n => Leave(n, context),
-                ObjectTypeExtensionNode n => Leave(n, context),
-                InterfaceTypeExtensionNode n => Leave(n, context),
-                UnionTypeExtensionNode n => Leave(n, context),
-                EnumTypeExtensionNode n => Leave(n, context),
-                InputObjectTypeExtensionNode n => Leave(n, context),
-                _ => throw new NotSupportedException()
-            };
+                case NodeKind.Name:
+                    return Leave((NameNode)node, context);
+                case NodeKind.Document:
+                    return Leave((DocumentNode)node, context);
+                case NodeKind.OperationDefinition:
+                    return Leave((OperationDefinitionNode)node, context);
+                case NodeKind.VariableDefinition:
+                    return Leave((VariableDefinitionNode)node, context);
+                case NodeKind.Variable:
+                    return Leave((VariableNode)node, context);
+                case NodeKind.SelectionSet:
+                    return Leave((SelectionSetNode)node, context);
+                case NodeKind.Field:
+                    return Leave((FieldNode)node, context);
+                case NodeKind.Argument:
+                    return Leave((ArgumentNode)node, context);
+                case NodeKind.FragmentSpread:
+                    return Leave((FragmentSpreadNode)node, context);
+                case NodeKind.InlineFragment:
+                    return Leave((InlineFragmentNode)node, context);
+                case NodeKind.FragmentDefinition:
+                    return Leave((FragmentDefinitionNode)node, context);
+                case NodeKind.Directive:
+                    return Leave((DirectiveNode)node, context);
+                case NodeKind.NamedType:
+                    return Leave((NamedTypeNode)node, context);
+                case NodeKind.ListType:
+                    return Leave((ListTypeNode)node, context);
+                case NodeKind.NonNullType:
+                    return Leave((NonNullTypeNode)node, context);
+                case NodeKind.ListValue:
+                    return Leave((ListValueNode)node, context);
+                case NodeKind.ObjectValue:
+                    return Leave((ObjectValueNode)node, context);
+                case NodeKind.ObjectField:
+                    return Leave((ObjectFieldNode)node, context);
+                case NodeKind.BooleanValue:
+                case NodeKind.EnumValue:
+                case NodeKind.FloatValue:
+                case NodeKind.IntValue:
+                case NodeKind.NullValue:
+                case NodeKind.StringValue:
+                    return Leave((IValueNode)node, context);
+                case NodeKind.SchemaDefinition:
+                    return Leave((SchemaDefinitionNode)node, context);
+                case NodeKind.OperationTypeDefinition:
+                    return Leave((OperationTypeDefinitionNode)node, context);
+                case NodeKind.ScalarTypeDefinition:
+                    return Leave((ScalarTypeDefinitionNode)node, context);
+                case NodeKind.ObjectTypeDefinition:
+                    return Leave((ObjectTypeDefinitionNode)node, context);
+                case NodeKind.FieldDefinition:
+                    return Leave((FieldDefinitionNode)node, context);
+                case NodeKind.InputValueDefinition:
+                    return Leave((InputValueDefinitionNode)node, context);
+                case NodeKind.InterfaceTypeDefinition:
+                    return Leave((InterfaceTypeDefinitionNode)node, context);
+                case NodeKind.UnionTypeDefinition:
+                    return Leave((UnionTypeDefinitionNode)node, context);
+                case NodeKind.EnumTypeDefinition:
+                    return Leave((EnumTypeDefinitionNode)node, context);
+                case NodeKind.EnumValueDefinition:
+                    return Leave((EnumValueDefinitionNode)node, context);
+                case NodeKind.InputObjectTypeDefinition:
+                    return Leave((InputObjectTypeDefinitionNode)node, context);
+                case NodeKind.DirectiveDefinition:
+                    return Leave((DirectiveDefinitionNode)node, context);
+                case NodeKind.SchemaExtension:
+                    return Leave((SchemaExtensionNode)node, context);
+                case NodeKind.ScalarTypeExtension:
+                    return Leave((ScalarTypeExtensionNode)node, context);
+                case NodeKind.ObjectTypeExtension:
+                    return Leave((ObjectTypeExtensionNode)node, context);
+                case NodeKind.InterfaceTypeExtension:
+                    return Leave((InterfaceTypeExtensionNode)node, context);
+                case NodeKind.UnionTypeExtension:
+                    return Leave((UnionTypeExtensionNode)node, context);
+                case NodeKind.EnumTypeExtension:
+                    return Leave((EnumTypeExtensionNode)node, context);
+                case NodeKind.InputObjectTypeExtension:
+                    return Leave((InputObjectTypeExtensionNode)node, context);
+                default:
+                    throw new NotSupportedException(node.GetType().FullName);
+            }
         }
 
         protected virtual ISyntaxVisitorAction Leave(
@@ -235,5 +280,10 @@ namespace HotChocolate.Language.Visitors
            InputObjectTypeExtensionNode node,
            ISyntaxVisitorContext context) =>
            DefaultAction;
+
+        protected virtual ISyntaxVisitorAction Leave(
+            NameNode node,
+            ISyntaxVisitorContext context) =>
+            DefaultAction;
     }
 }
