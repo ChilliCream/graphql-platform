@@ -1,16 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-  
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Selections.Mongo.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <!--For Visual Studio for Mac Test Explorer we need this reference here-->
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
@@ -26,9 +26,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="__snapshots__\__mismatch__\" />
-  </ItemGroup>
-  
 </Project>
