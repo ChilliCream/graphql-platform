@@ -67,11 +67,7 @@ namespace HotChocolate.Language
             // act
             DocumentNode document = parser.Parse();
 
-            // assert
-            var interfaceDefinition = (document.Definitions[0] as InterfaceTypeDefinitionNode);
-            Assert.NotNull(interfaceDefinition);
-            Assert.Single(interfaceDefinition.Interfaces);
-            Assert.Equal("e", interfaceDefinition.Interfaces[0].Name.Value);
+            // assert 
             SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
