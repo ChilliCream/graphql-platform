@@ -241,6 +241,5 @@ namespace HotChocolate.Language.Visitors
             NameNode node,
             ISyntaxVisitorContext context) =>
             DefaultAction;
-
     }
 }
