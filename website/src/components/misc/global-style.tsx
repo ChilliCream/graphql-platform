@@ -12,7 +12,6 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     font-size: 18px;
     line-height: 30px;
-    overflow: auto;
     background-color: #ccc;
     color: #667;
     scroll-behavior: smooth;
@@ -24,7 +23,6 @@ export const GlobalStyle = createGlobalStyle`
   * {
     margin: 0;
     padding: 0;
-    overflow: hidden;
     /*user-select: none;*/
     font-family: sans-serif;
     font-size: 1em;
@@ -34,6 +32,10 @@ export const GlobalStyle = createGlobalStyle`
 
   *:focus {
     outline: none;
+  }
+
+  div, span {
+    overflow: hidden;
   }
 
   a {

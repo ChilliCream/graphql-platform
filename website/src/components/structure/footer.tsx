@@ -2,6 +2,7 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetFooterDataQuery } from "../../../graphql-types";
+import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
 import GithubIconSvg from "../../images/github.svg";
@@ -50,13 +51,22 @@ export const Footer: FunctionComponent = () => {
           </Description>
           <Connect>
             <ConnectLink to={tools!.github!}>
-              <GithubIcon /> to work with us on the platform
+              <IconContainer>
+                <GithubIcon />
+              </IconContainer>{" "}
+              to work with us on the platform
             </ConnectLink>
             <ConnectLink to={tools!.slack!}>
-              <SlackIcon /> to get in touch with us
+              <IconContainer>
+                <SlackIcon />
+              </IconContainer>{" "}
+              to get in touch with us
             </ConnectLink>
             <ConnectLink to={tools!.twitter!}>
-              <TwitterIcon /> to stay up-to-date
+              <IconContainer>
+                <TwitterIcon />
+              </IconContainer>{" "}
+              to stay up-to-date
             </ConnectLink>
           </Connect>
         </About>
@@ -158,16 +168,19 @@ const ConnectLink = styled(Link)`
   color: #666;
   transition: color 0.2s ease-in-out;
 
-  > svg {
+  > ${IconContainer} {
     margin-right: 10px;
     vertical-align: middle;
-    transition: fill 0.2s ease-in-out;
+
+    > svg {
+      transition: fill 0.2s ease-in-out;
+    }
   }
 
   :hover {
     color: #000;
 
-    > svg {
+    > ${IconContainer} > svg {
       fill: #000;
     }
   }
