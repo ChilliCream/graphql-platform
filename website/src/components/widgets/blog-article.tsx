@@ -4,7 +4,9 @@ import React, { FunctionComponent } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
 import { Maybe } from "../../../graphql-types";
-import { Link } from "../misc/link";
+import { ArticleTitle } from "../misc/blog-article-elements";
+import { BlogArticleMetadata } from "../misc/blog-article-metadata";
+import { BlogArticleTags } from "../misc/blog-article-tags";
 
 import LinkedinIconSvg from "../../images/linkedin-square.svg";
 import TwitterIconSvg from "../../images/twitter-square.svg";
@@ -38,15 +40,15 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   title,
   twitterAuthor,
 }) => {
-  const existingTags: string[] = tags
-    ? (tags.filter(tag => tag && tag.length > 0) as string[])
-    : [];
   const articelUrl = baseUrl + path;
   const disqusConfig = {
     url: articelUrl,
     identifier: path,
     title: title,
   };
+  const existingTags: string[] = tags
+    ? (tags.filter(tag => tag && tag.length > 0) as string[])
+    : [];
 
   return (
     <Container>
@@ -66,23 +68,15 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
       <BlogContent>
         <Article>
           {featuredImage && <Img fluid={featuredImage} />}
-          <Title>{title}</Title>
-          <Metadata>
-            <AuthorLink to={authorUrl}>
-              <AuthorImage src={authorImageUrl} />
-              {author}
-            </AuthorLink>{" "}
-            ・ {date} ・ {readingTime}
-          </Metadata>
-          {existingTags.length > 0 && (
-            <Tags>
-              {existingTags.map(tag => (
-                <Tag>
-                  <TagLink to={`/blog/tags/${tag}`}>{tag}</TagLink>
-                </Tag>
-              ))}
-            </Tags>
-          )}
+          <ArticleTitle>{title}</ArticleTitle>
+          <BlogArticleMetadata
+            author={author}
+            authorImageUrl={authorImageUrl}
+            authorUrl={authorUrl}
+            date={date}
+            readingTime={readingTime}
+          />
+          <BlogArticleTags tags={existingTags} />
           <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
         </Article>
         <DisqusWrapper config={disqusConfig} />
@@ -144,71 +138,6 @@ const Article = styled.article`
     border: 1px solid #ccc;
     border-top: 0 none;
   }
-`;
-
-const Title = styled.h1`
-  margin-top: 20px;
-  margin-right: 20px;
-  margin-left: 20px;
-  font-size: 2em;
-
-  @media only screen and (min-width: 800px) {
-    margin-right: 50px;
-    margin-left: 50px;
-  }
-`;
-
-const Metadata = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin: 0 20px 20px;
-  font-size: 0.778em;
-
-  @media only screen and (min-width: 800px) {
-    margin: 0 50px 20px;
-  }
-`;
-
-const AuthorLink = styled(Link)`
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: row;
-  align-items: center;
-  color: #666;
-`;
-
-const AuthorImage = styled.img`
-  flex: 0 0 auto;
-  margin-right: 0.5em;
-  border-radius: 15px;
-  width: 30px;
-`;
-
-const Tags = styled.ul`
-  margin: 0 20px 20px;
-  list-style-type: none;
-
-  @media only screen and (min-width: 800px) {
-    margin: 0 50px 20px;
-  }
-`;
-
-const Tag = styled.li`
-  display: inline-block;
-  margin: 0 5px 0 0;
-  border-radius: 4px;
-  padding: 0;
-  background-color: #f40010;
-  font-size: 0.722em;
-  letter-spacing: 0.05em;
-  color: #fff;
-`;
-
-const TagLink = styled(Link)`
-  display: block;
-  padding: 5px 15px;
-  color: #fff;
 `;
 
 const Content = styled.div`
