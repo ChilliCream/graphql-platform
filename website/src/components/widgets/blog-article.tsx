@@ -146,6 +146,16 @@ const Content = styled.div`
     padding-left: 20px;
   }
 
+  > h1 > a.anchor.before,
+  > h2 > a.anchor.before,
+  > h3 > a.anchor.before,
+  > h4 > a.anchor.before,
+  > h5 > a.anchor.before,
+  > h6 > a.anchor.before {
+    padding-right: 4px;
+    transform: translateX(0px);
+  }
+
   > table {
     margin-right: 20px;
     margin-left: 20px;
@@ -159,8 +169,7 @@ const Content = styled.div`
     padding-left: 0;
 
     > pre {
-      padding-right: 20px;
-      padding-left: 20px;
+      padding: 30px 20px;
     }
   }
 
@@ -168,6 +177,15 @@ const Content = styled.div`
     > * {
       padding-right: 50px;
       padding-left: 50px;
+    }
+
+    > h1 > a.anchor.before,
+    > h2 > a.anchor.before,
+    > h3 > a.anchor.before,
+    > h4 > a.anchor.before,
+    > h5 > a.anchor.before,
+    > h6 > a.anchor.before {
+      transform: translateX(30px);
     }
 
     > table {
