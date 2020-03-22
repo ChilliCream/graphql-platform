@@ -26,7 +26,7 @@ namespace HotChocolate.Resolvers
             // assert
             var queryResult = result as ReadOnlyQueryResult;
             Assert.NotNull(queryResult);
-            Assert.Empty(queryResult.Errors);
+            Assert.Null(queryResult.Errors);
             Assert.Equal("hello", queryResult.Data["desc"]);
         }
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Resolvers
             // assert
             var queryResult = result as ReadOnlyQueryResult;
             Assert.NotNull(queryResult);
-            Assert.Empty(queryResult.Errors);
+            Assert.Null(queryResult.Errors);
             Assert.Equal("hello", queryResult.Data["desc"]);
         }
 
@@ -73,7 +73,7 @@ namespace HotChocolate.Resolvers
             // assert
             var queryResult = result as ReadOnlyQueryResult;
             Assert.NotNull(queryResult);
-            Assert.Empty(queryResult.Errors);
+            Assert.Null(queryResult.Errors);
             Assert.Equal("hellocustom", queryResult.Data["description"]);
         }
 
