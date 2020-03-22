@@ -77,7 +77,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
           {existingTags.length > 0 && (
             <Tags>
               {existingTags.map(tag => (
-                <Tag>
+                <Tag key={tag}>
                   <TagLink to={`/blog/tags/${tag}`}>{tag}</TagLink>
                 </Tag>
               ))}

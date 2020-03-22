@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export const IconContainer = styled.span<{ size?: number }>`
+export const IconContainer = styled.span<{ size?: 16 | 24 | 32 }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -8,4 +8,5 @@ export const IconContainer = styled.span<{ size?: number }>`
   height: ${props => props.size || 24}px;
   font-size: 24px;
   line-height: 24px;
+  vertical-align: middle;
 `;

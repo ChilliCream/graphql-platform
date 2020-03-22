@@ -22,7 +22,7 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
             ) as string[])
           : [];
         return (
-          <Article key={node.id}>
+          <Article key={`article-${node.id}`}>
             <Link to={node.frontmatter!.path!}>
               {node?.frontmatter?.featuredImage?.childImageSharp?.fluid && (
                 <Img
@@ -44,7 +44,7 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
             {existingTags.length > 0 && (
               <Tags>
                 {existingTags.map(tag => (
-                  <Tag>
+                  <Tag key={tag}>
                     <TagLink to={`/blog/tags/${tag}`}>{tag}</TagLink>
                   </Tag>
                 ))}
