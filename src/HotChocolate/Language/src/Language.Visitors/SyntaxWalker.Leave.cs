@@ -10,6 +10,8 @@ namespace HotChocolate.Language.Visitors
         {
             switch (node.Kind)
             {
+                case NodeKind.Name:
+                    return Leave((NameNode)node, context);
                 case NodeKind.Document:
                     return Leave((DocumentNode)node, context);
                 case NodeKind.OperationDefinition:
@@ -89,8 +91,6 @@ namespace HotChocolate.Language.Visitors
                     return Leave((EnumTypeExtensionNode)node, context);
                 case NodeKind.InputObjectTypeExtension:
                     return Leave((InputObjectTypeExtensionNode)node, context);
-                case NodeKind.Name:
-                    return Leave((NameNode)node, context);
                 default:
                     throw new NotSupportedException(node.GetType().FullName);
             }
