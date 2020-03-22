@@ -9,6 +9,7 @@ import LogoIconSvg from "../../images/chillicream.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import { IconContainer } from "../misc/ui-elements";
 
 export const Header: FunctionComponent = () => {
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
@@ -55,13 +56,19 @@ export const Header: FunctionComponent = () => {
           </Search>
           <Tools>
             <ToolLink to={tools!.slack!}>
-              <SlackIcon />
+              <IconContainer>
+                <SlackIcon />
+              </IconContainer>
             </ToolLink>
             <ToolLink to={tools!.twitter!}>
-              <TwitterIcon />
+              <IconContainer>
+                <TwitterIcon />
+              </IconContainer>
             </ToolLink>
             <ToolLink to={tools!.github!}>
-              <GithubIcon />
+              <IconContainer>
+                <GithubIcon />
+              </IconContainer>
             </ToolLink>
           </Tools>
         </Group>
@@ -213,11 +220,11 @@ const ToolLink = styled(Link)`
   margin-left: 15px;
   text-decoration: none;
 
-  > svg {
+  > ${IconContainer} > svg {
     transition: fill 0.2s ease-in-out;
   }
 
-  :hover > svg {
+  :hover > ${IconContainer} > svg {
     fill: #b7020a;
   }
 `;
