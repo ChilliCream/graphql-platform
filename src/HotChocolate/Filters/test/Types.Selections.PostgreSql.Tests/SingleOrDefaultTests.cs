@@ -271,6 +271,46 @@ namespace HotChocolate.Types.Selections
             }
         }
 
+        [Fact]
+        public virtual void Execute_Selection_Nested_Single()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(Sample);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseFiltering()
+                        .UseSorting()
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos   { middlewareList(where: {bar_starts_with:\"aaa\"}, " +
+                "order_by:{baz: ASC, bar: ASC}) {  bar } } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray()[0].MiddlewareList,
+                x =>
+                {
+                    Assert.Equal("aaaa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                });
+        }
+
         public class NestedFoo
         {
             [Key]
