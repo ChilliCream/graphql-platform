@@ -236,11 +236,10 @@ namespace HotChocolate.Language.Visitors
            InputObjectTypeExtensionNode node,
            ISyntaxVisitorContext context) =>
            DefaultAction;
-           
+
         protected virtual ISyntaxVisitorAction Enter(
             NameNode node,
             ISyntaxVisitorContext context) =>
             DefaultAction;
-
     }
 }
