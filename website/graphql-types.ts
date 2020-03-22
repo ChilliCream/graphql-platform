@@ -3185,6 +3185,11 @@ export type GetBananaCakepopImageQueryVariables = {};
 
 export type GetBananaCakepopImageQuery = { placeholderImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> };
 
+export type GetEfMeetsGraphQlImageQueryVariables = {};
+
+
+export type GetEfMeetsGraphQlImageQuery = { placeholderImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> };
+
 export type Unnamed_1_QueryVariables = {};
 
 

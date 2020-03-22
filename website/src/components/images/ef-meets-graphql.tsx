@@ -2,11 +2,11 @@ import { graphql, useStaticQuery } from "gatsby";
 import Img from "gatsby-image";
 import React, { FunctionComponent } from "react";
 
-export const BananaCakepop: FunctionComponent = () => {
+export const EFMeetsGraphQL: FunctionComponent = () => {
   const data = useStaticQuery(graphql`
-    query getBananaCakepopImage {
+    query getEFMeetsGraphQLImage {
       placeholderImage: file(
-        relativePath: { eq: "banana-cakepop.png" }
+        relativePath: { eq: "ef-meets-graphql.png" }
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
