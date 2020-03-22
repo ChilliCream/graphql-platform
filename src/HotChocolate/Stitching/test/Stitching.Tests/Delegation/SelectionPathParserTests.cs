@@ -10,37 +10,6 @@ namespace HotChocolate.Stitching.Delegation
     public class SelectionPathParserTests
     {
         [Fact]
-        public void Parse_PathWithoutArgs_TEst()
-        {
-            // arrange
-            var serializedPath = "scopedServer(shortcut:$scopedContextData:customerShortcut, services:['file', 'file / print']).servers";
-
-
-            // act
-            IImmutableStack<SelectionPathComponent> path =
-                        SelectionPathParser.Parse(serializedPath);
-
-            // assert
-            Assert.Collection(path.Reverse(),
-                t =>
-                {
-                    Assert.Equal("foo", t.Name.Value);
-                    Assert.Empty(t.Arguments);
-                },
-                t =>
-                {
-                    Assert.Equal("bar", t.Name.Value);
-                    Assert.Empty(t.Arguments);
-                },
-                t =>
-                {
-                    Assert.Equal("baz", t.Name.Value);
-                    Assert.Empty(t.Arguments);
-                });
-        }
-
-
-        [Fact]
         public void Parse_PathWithoutArgs_ThreeComponentsFound()
         {
             // arrange
