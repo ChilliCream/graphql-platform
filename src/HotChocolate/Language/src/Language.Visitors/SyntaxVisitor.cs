@@ -58,8 +58,11 @@ namespace HotChocolate.Language.Visitors
                     {
                         break;
                     }
-
-                    _listPool.Return(levels.Pop());
+                    List<ISyntaxNode> lastLevel = levels.Pop();
+                    if (lastLevel != _empty)
+                    {
+                        _listPool.Return(lastLevel);
+                    }
                     current = ancestors.Pop();
                     ancestors.TryPeek(out parent);
                     result = Leave(current, localContext);
