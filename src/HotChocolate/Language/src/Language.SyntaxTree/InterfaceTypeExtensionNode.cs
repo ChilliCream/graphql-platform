@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -10,8 +10,9 @@ namespace HotChocolate.Language
             Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<NamedTypeNode> interfaces,
             IReadOnlyList<FieldDefinitionNode> fields)
-            : base(location, name, directives, fields)
+            : base(location, name, directives, interfaces, fields)
         {
         }
 
@@ -35,27 +36,34 @@ namespace HotChocolate.Language
         public InterfaceTypeExtensionNode WithLocation(Location? location)
         {
             return new InterfaceTypeExtensionNode(
-                location, Name, Directives, Fields);
+                location, Name, Directives, Interfaces, Fields);
         }
 
         public InterfaceTypeExtensionNode WithName(NameNode name)
         {
             return new InterfaceTypeExtensionNode(
-                Location, name, Directives, Fields);
+                Location, name, Directives, Interfaces, Fields);
         }
 
         public InterfaceTypeExtensionNode WithDirectives(
             IReadOnlyList<DirectiveNode> directives)
         {
             return new InterfaceTypeExtensionNode(
-                Location, Name, directives, Fields);
+                Location, Name, directives, Interfaces, Fields);
         }
 
         public InterfaceTypeExtensionNode WithFields(
             IReadOnlyList<FieldDefinitionNode> fields)
         {
             return new InterfaceTypeExtensionNode(
-                Location, Name, Directives, fields);
+                Location, Name, Directives, Interfaces, fields);
+        }
+
+        public InterfaceTypeExtensionNode WithInterfaces(
+            IReadOnlyList<NamedTypeNode> interfaces)
+        {
+            return new InterfaceTypeExtensionNode(
+                Location, Name, Directives, interfaces, Fields);
         }
     }
 }

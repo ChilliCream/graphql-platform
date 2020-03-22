@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -58,7 +58,7 @@ namespace HotChocolate.Language
         public void ParserSimpleInterfaceType()
         {
             // arrange
-            string sourceText = "interface a @foo(a: \"123\") " +
+            string sourceText = "interface a implements e @foo(a: \"123\") " +
                 "{ b: String @foo(a: \"123\") " +
                 "c(d: F = ENUMVALUE @foo(a: \"123\")): Int }";
             var parser = new Utf8GraphQLParser(
@@ -68,6 +68,10 @@ namespace HotChocolate.Language
             DocumentNode document = parser.Parse();
 
             // assert
+            var interfaceDefinition = (document.Definitions[0] as InterfaceTypeDefinitionNode);
+            Assert.NotNull(interfaceDefinition);
+            Assert.Single(interfaceDefinition.Interfaces);
+            Assert.Equal("e", interfaceDefinition.Interfaces[0].Name.Value);
             SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
