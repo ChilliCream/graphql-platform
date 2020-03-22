@@ -49,9 +49,16 @@ export const GlobalStyle = createGlobalStyle`
     border: 0 none;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-bottom: 0.5em;
     font-family: "Roboto", sans-serif;
     font-weight: bold;
+    line-height: 1.250em;
     text-rendering: optimizeLegibility;
     color: #334;
   }
@@ -67,34 +74,27 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   h1 {
-    margin-bottom: 0.5em;
     font-size: 2em;
-    line-height: 1.250em;
   }
 
   h2 {
     font-size: 1.667em;
-    line-height: 2em;
   }
 
   h3 {
     font-size: 1.667em;
-    line-height: 2em;
   }
 
   h4 {
     font-size: 1.5em;
-    line-height: 2em;
   }
 
   h5 {
     font-size: 1.375em;
-    line-height: 2em;
   }
 
   h6 {
     font-size: 1.25em;
-    line-height: 2em;
   }
 
   hr {
