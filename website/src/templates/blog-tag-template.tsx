@@ -31,8 +31,9 @@ export default BlogTagTemplate;
 export const pageQuery = graphql`
   query getBlogArticlesByTag($tag: String) {
     allMarkdownRemark(
-      limit: 100
       filter: { frontmatter: { tags: { in: [$tag] } } }
+      limit: 100
+      sort: { fields: [frontmatter___date], order: DESC }
     ) {
       totalCount
       edges {

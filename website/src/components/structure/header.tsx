@@ -2,6 +2,7 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
+import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
 import GithubIconSvg from "../../images/github.svg";
@@ -55,13 +56,19 @@ export const Header: FunctionComponent = () => {
           </Search>
           <Tools>
             <ToolLink to={tools!.slack!}>
-              <SlackIcon />
+              <IconContainer>
+                <SlackIcon />
+              </IconContainer>
             </ToolLink>
             <ToolLink to={tools!.twitter!}>
-              <TwitterIcon />
+              <IconContainer>
+                <TwitterIcon />
+              </IconContainer>
             </ToolLink>
             <ToolLink to={tools!.github!}>
-              <GithubIcon />
+              <IconContainer>
+                <GithubIcon />
+              </IconContainer>
             </ToolLink>
           </Tools>
         </Group>
@@ -213,11 +220,11 @@ const ToolLink = styled(Link)`
   margin-left: 15px;
   text-decoration: none;
 
-  > svg {
+  > ${IconContainer} > svg {
     transition: fill 0.2s ease-in-out;
   }
 
-  :hover > svg {
+  :hover > ${IconContainer} > svg {
     fill: #b7020a;
   }
 `;
