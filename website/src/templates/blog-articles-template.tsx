@@ -35,6 +35,7 @@ export const pageQuery = graphql`
     allMarkdownRemark(
       limit: $limit
       skip: $skip
+      filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
       sort: { fields: [frontmatter___date], order: DESC }
     ) {
       edges {

@@ -8,12 +8,13 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   );
   const result = await graphql(`
     {
-      allMarkdownRemark(
-        sort: { order: DESC, fields: [frontmatter___date] }
+      blog: allMarkdownRemark(
         limit: 1000
+        filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
+        sort: { order: DESC, fields: [frontmatter___date] }
       ) {
-        edges {
-          node {
+        posts: edges {
+          post: node {
             frontmatter {
               path
             }
@@ -21,6 +22,18 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
         }
         tags: group(field: frontmatter___tags) {
           fieldValue
+        }
+      }
+      docs: allMarkdownRemark(
+        limit: 1000
+        filter: { frontmatter: { path: { glob: "/docs/**/*" } } }
+      ) {
+        pages: edges {
+          page: node {
+            frontmatter {
+              path
+            }
+          }
         }
       }
     }
@@ -32,46 +45,8 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     return;
   }
 
-  // Create Single Pages
-  result.data.allMarkdownRemark.edges.forEach(({ node }) => {
-    createPage({
-      path: node.frontmatter.path,
-      component: blogArticleTemplate,
-      context: {}, // additional data can be passed via context
-    });
-  });
-
-  // Create List Pages
-  const posts = result.data.allMarkdownRemark.edges;
-  const postsPerPage = 20;
-  const numPages = Math.ceil(posts.length / postsPerPage);
-
-  Array.from({ length: numPages }).forEach((_, i) => {
-    createPage({
-      path: i === 0 ? `/blog` : `/blog/${i + 1}`,
-      component: path.resolve("./src/templates/blog-articles-template.tsx"),
-      context: {
-        limit: postsPerPage,
-        skip: i * postsPerPage,
-        numPages,
-        currentPage: i + 1,
-      },
-    });
-  });
-
-  // Create Tag Pages
-  const { tags } = result.data.allMarkdownRemark;
-  const tagTemplate = path.resolve(`src/templates/blog-tag-template.tsx`);
-
-  tags.forEach(tag => {
-    createPage({
-      path: `/blog/tags/${tag.fieldValue}`,
-      component: tagTemplate,
-      context: {
-        tag: tag.fieldValue,
-      },
-    });
-  });
+  createBlogArticles(createPage, result.data.blog);
+  createDocPages(createPage, result.data.docs);
 
   createRedirect({
     fromPath: "/blog/2019/03/18/entity-framework",
@@ -94,3 +69,63 @@ exports.onCreateNode = ({ node, actions, getNode }) => {
     });
   }
 };
+
+function createBlogArticles(createPage, data) {
+  const blogArticleTemplate = path.resolve(
+    `src/templates/blog-article-template.tsx`
+  );
+  const { posts, tags } = data;
+
+  // Create Single Pages
+  posts.forEach(({ post }) => {
+    createPage({
+      path: post.frontmatter.path,
+      component: blogArticleTemplate,
+      context: {},
+    });
+  });
+
+  // Create List Pages
+  const postsPerPage = 20;
+  const numPages = Math.ceil(posts.length / postsPerPage);
+
+  Array.from({ length: numPages }).forEach((_, i) => {
+    createPage({
+      path: i === 0 ? `/blog` : `/blog/${i + 1}`,
+      component: path.resolve("./src/templates/blog-articles-template.tsx"),
+      context: {
+        limit: postsPerPage,
+        skip: i * postsPerPage,
+        numPages,
+        currentPage: i + 1,
+      },
+    });
+  });
+
+  // Create Tag Pages
+  const tagTemplate = path.resolve(`src/templates/blog-tag-template.tsx`);
+
+  tags.forEach(tag => {
+    createPage({
+      path: `/blog/tags/${tag.fieldValue}`,
+      component: tagTemplate,
+      context: {
+        tag: tag.fieldValue,
+      },
+    });
+  });
+}
+
+function createDocPages(createPage, data) {
+  const pageTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
+  const { pages } = data;
+
+  // Create Single Pages
+  pages.forEach(({ page }) => {
+    createPage({
+      path: page.frontmatter.path,
+      component: pageTemplate,
+      context: {},
+    });
+  });
+}

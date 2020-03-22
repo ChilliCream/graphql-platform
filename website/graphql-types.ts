@@ -3253,6 +3253,16 @@ export type GetBlogArticlesByTagQuery = { allMarkdownRemark: (
       ) }> }
   ) };
 
+export type GetDocPageQueryVariables = {
+  path: Scalars['String'];
+};
+
+
+export type GetDocPageQuery = { markdownRemark: Maybe<(
+    Pick<MarkdownRemark, 'html'>
+    & { fields: Maybe<{ readingTime: Maybe<Pick<MarkdownRemarkFieldsReadingTime, 'text'>> }>, frontmatter: Maybe<Pick<MarkdownRemarkFrontmatter, 'path' | 'title'>> }
+  )>, site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'author' | 'baseUrl'>> }> };
+
 export type GatsbyImageSharpFixedFragment = Pick<ImageSharpFixed, 'base64' | 'width' | 'height' | 'src' | 'srcSet'>;
 
 export type GatsbyImageSharpFixed_TracedSvgFragment = Pick<ImageSharpFixed, 'tracedSVG' | 'width' | 'height' | 'src' | 'srcSet'>;
