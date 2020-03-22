@@ -3,7 +3,8 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
 {
-    public sealed class UseSelectionAttribute : ObjectFieldDescriptorAttribute
+    public sealed class UseSelectionAttribute 
+        : ObjectFieldDescriptorAttribute
     {
         public override void OnConfigure(
             IDescriptorContext context,

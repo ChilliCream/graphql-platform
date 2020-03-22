@@ -20,7 +20,6 @@ namespace HotChocolate.Types.Sorting
 
         private Stack<Expression> Instance { get; }
         private Stack<PropertyInfo> Property { get; }
-        private PropertyInfo FirstProperty { get; set; }
 
         public SortOperationInvocation CreateSortOperation(SortOperationKind kind)
         {
@@ -51,10 +50,6 @@ namespace HotChocolate.Types.Sorting
 
         public void EnqueueProperty(PropertyInfo property)
         {
-            if (FirstProperty == null)
-            {
-                FirstProperty = property;
-            }
             Property.Push(property);
             Instance.Push(Expression.Property(Instance.Peek(), property));
         }

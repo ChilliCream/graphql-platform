@@ -119,6 +119,5 @@ namespace HotChocolate.Resolvers
             public string GetDescription([Parent]Foo foo) => foo.Description + "custom";
             public string GetPure() => "foo";
         }
-
     }
 }
