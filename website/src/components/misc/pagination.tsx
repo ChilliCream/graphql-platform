@@ -25,7 +25,10 @@ export const Pagination: FunctionComponent<PaginationProperties> = ({
   return (
     <Container>
       {items.map(item => (
-        <Page className={item.page === currentPage ? "active" : undefined}>
+        <Page
+          key={`page-${item.page}`}
+          className={item.page === currentPage ? "active" : undefined}
+        >
           <PageLink to={item.link}>{item.page}</PageLink>
         </Page>
       ))}

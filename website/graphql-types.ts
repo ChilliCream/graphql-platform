@@ -691,6 +691,7 @@ export type FileFieldsEnum =
   'childMarkdownRemark___frontmatter___title' |
   'childMarkdownRemark___frontmatter___path' |
   'childMarkdownRemark___frontmatter___date' |
+  'childMarkdownRemark___frontmatter___tags' |
   'childMarkdownRemark___frontmatter___author' |
   'childMarkdownRemark___frontmatter___authorUrl' |
   'childMarkdownRemark___frontmatter___authorImageUrl' |
@@ -730,7 +731,6 @@ export type FileFieldsEnum =
   'childMarkdownRemark___frontmatter___featuredImage___publicURL' |
   'childMarkdownRemark___frontmatter___featuredImage___id' |
   'childMarkdownRemark___frontmatter___featuredImage___children' |
-  'childMarkdownRemark___frontmatter___tags' |
   'childMarkdownRemark___excerpt' |
   'childMarkdownRemark___rawMarkdownBody' |
   'childMarkdownRemark___fileAbsolutePath' |
@@ -1503,6 +1503,7 @@ export type MarkdownRemarkFieldsEnum =
   'frontmatter___title' |
   'frontmatter___path' |
   'frontmatter___date' |
+  'frontmatter___tags' |
   'frontmatter___author' |
   'frontmatter___authorUrl' |
   'frontmatter___authorImageUrl' |
@@ -1567,7 +1568,6 @@ export type MarkdownRemarkFieldsEnum =
   'frontmatter___featuredImage___childMarkdownRemark___timeToRead' |
   'frontmatter___featuredImage___childMarkdownRemark___tableOfContents' |
   'frontmatter___featuredImage___childMarkdownRemark___children' |
-  'frontmatter___tags' |
   'excerpt' |
   'rawMarkdownBody' |
   'fileAbsolutePath' |
@@ -1715,11 +1715,11 @@ export type MarkdownRemarkFrontmatter = {
   title?: Maybe<Scalars['String']>;
   path?: Maybe<Scalars['String']>;
   date?: Maybe<Scalars['Date']>;
+  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
   author?: Maybe<Scalars['String']>;
   authorUrl?: Maybe<Scalars['String']>;
   authorImageUrl?: Maybe<Scalars['String']>;
   featuredImage?: Maybe<File>;
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
 
 
@@ -1734,11 +1734,11 @@ export type MarkdownRemarkFrontmatterFilterInput = {
   title?: Maybe<StringQueryOperatorInput>;
   path?: Maybe<StringQueryOperatorInput>;
   date?: Maybe<DateQueryOperatorInput>;
+  tags?: Maybe<StringQueryOperatorInput>;
   author?: Maybe<StringQueryOperatorInput>;
   authorUrl?: Maybe<StringQueryOperatorInput>;
   authorImageUrl?: Maybe<StringQueryOperatorInput>;
   featuredImage?: Maybe<FileFilterInput>;
-  tags?: Maybe<StringQueryOperatorInput>;
 };
 
 export type MarkdownRemarkGroupConnection = {
