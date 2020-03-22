@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -55,7 +56,7 @@ namespace HotChocolate.Types.Selections
                 return ToArray(selection);
             }
 
-            if (TryGetSetType(sourceType, out Type setType))
+            if (TryGetSetType(sourceType, out Type? setType))
             {
                 return ToSet(selection, setType);
             }
@@ -88,14 +89,14 @@ namespace HotChocolate.Types.Selections
             Type typedGeneric =
                 setType.MakeGenericType(source.Type.GetGenericArguments()[0]);
 
-            ConstructorInfo ctor =
+            ConstructorInfo? ctor =
                 typedGeneric.GetConstructor(new[] { source.Type });
 
             return Expression.New(ctor, source);
         }
 
         private bool TryGetSetType(
-            Type type, out Type setType)
+            Type type, [NotNullWhen(true)] out Type? setType)
         {
             if (type.IsGenericType)
             {
@@ -112,7 +113,7 @@ namespace HotChocolate.Types.Selections
                     return true;
                 }
             }
-            setType = null;
+            setType = default;
             return false;
         }
     }

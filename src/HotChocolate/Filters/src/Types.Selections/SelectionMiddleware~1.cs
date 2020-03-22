@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Selections
         {
             await _next(context).ConfigureAwait(false);
 
-            IQueryable<T> source = null;
+            IQueryable<T>? source = null;
 
             if (context.Result is IQueryable<T> q)
             {
@@ -37,9 +37,12 @@ namespace HotChocolate.Types.Selections
                 source = e.AsQueryable();
             }
 
-            var visitor = new SelectionVisitor(context, _converter, _context);
-            visitor.Accept(context.Field);
-            context.Result = source.Select(visitor.Project<T>());
+            if (source is { })
+            {
+                var visitor = new SelectionVisitor(context, _converter, _context);
+                visitor.Accept(context.Field);
+                context.Result = source.Select(visitor.Project<T>());
+            }
         }
     }
 }

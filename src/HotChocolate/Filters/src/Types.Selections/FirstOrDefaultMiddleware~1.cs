@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Selections
                 }
                 else
                 {
-                    context.Result = default(T);
+                    context.Result = default(T)!;
                 }
             }
             else if (context.Result is IEnumerable<T> e)

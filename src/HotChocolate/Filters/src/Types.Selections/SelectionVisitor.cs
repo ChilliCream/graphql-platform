@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Selections
         public void Accept(ObjectField field)
         {
             IOutputType type = field.Type;
-            SelectionSetNode selectionSet = Context.FieldSelection.SelectionSet;
+            SelectionSetNode? selectionSet = Context.FieldSelection.SelectionSet;
             (type, selectionSet) = UnwrapPaging(type, selectionSet);
             IType elementType = type.IsListType() ? type.ElementType() : type;
             Closures.Push(new SelectionClosure(elementType.ToClrType(), "e"));
@@ -129,7 +129,7 @@ namespace HotChocolate.Types.Selections
         {
             if (selection.Field.Member is PropertyInfo)
             {
-                (IOutputType type, SelectionSetNode selectionSet) =
+                (IOutputType type, SelectionSetNode? selectionSet) =
                     UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
 
                 Type clrType = type.IsListType() ?

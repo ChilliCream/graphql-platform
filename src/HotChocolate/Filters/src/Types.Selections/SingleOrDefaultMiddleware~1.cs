@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Selections
                 }
                 else
                 {
-                    context.Result = default(T);
+                    context.Result = default(T)!;
                 }
 
                 if (await enumerator.MoveNextAsync().ConfigureAwait(false))
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Selections
             else if (context.Result is IEnumerable<T> e)
             {
 
-                context.Result = await Task.Run<object>(
+                context.Result = await Task.Run<object?>(
                     () =>
                     {
                         try

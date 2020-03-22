@@ -26,10 +26,11 @@ namespace HotChocolate.Types.Selections
 
         protected virtual bool VisitSelections(
             IOutputType outputType,
-            SelectionSetNode selectionSet)
+            SelectionSetNode? selectionSet)
         {
             (outputType, selectionSet) = UnwrapPaging(outputType, selectionSet);
-            if (outputType.NamedType() is ObjectType type)
+            if (outputType.NamedType() is ObjectType type &&
+                selectionSet is { })
             {
                 foreach (IFieldSelection selection in CollectExtendedFields(type, selectionSet))
                 {
@@ -39,15 +40,24 @@ namespace HotChocolate.Types.Selections
                     }
                 }
             }
+            else if (selectionSet == null)
+            {
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "UseSelection is in a invalid state. " +
+                                "Selection set for type {0} was empty !",
+                            outputType.NamedType().Name)
+                        .Build());
+            }
             else
             {
                 throw new QueryException(
                     ErrorBuilder.New()
                         .SetMessage(
-                            string.Format(
-                                "UseSelection is in a invalid state. Type {0} " +
-                                "is illegal!",
-                                outputType.NamedType().Name))
+                            "UseSelection is in a invalid state. Type {0} " +
+                            "is illegal!",
+                            outputType.NamedType().Name)
                         .Build());
             }
             return true;
@@ -103,7 +113,7 @@ namespace HotChocolate.Types.Selections
 
         protected virtual bool EnterList(IFieldSelection selection)
         {
-            (IOutputType type, SelectionSetNode selectionSet) =
+            (IOutputType type, SelectionSetNode? selectionSet) =
                 UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
             return VisitSelections(type, selectionSet);
         }
@@ -130,11 +140,12 @@ namespace HotChocolate.Types.Selections
         {
         }
 
-        protected (IOutputType, SelectionSetNode) UnwrapPaging(
+        protected (IOutputType, SelectionSetNode?) UnwrapPaging(
             IOutputType outputType,
-            SelectionSetNode selectionSet)
+            SelectionSetNode? selectionSet)
         {
-            if (outputType is IConnectionType connectionType)
+            if (outputType is IConnectionType connectionType &&
+                selectionSet is { })
             {
                 if (TryUnwrapPaging(
                     outputType,
@@ -159,25 +170,35 @@ namespace HotChocolate.Types.Selections
             SelectionSetNode selectionSet,
             out (IOutputType, SelectionSetNode) result)
         {
-            result = (null, null);
+            (IOutputType?, SelectionSetNode?) nullableResult = (null, null);
 
             if (outputType.ToClrType() == typeof(IConnection) &&
                outputType.NamedType() is ObjectType type)
             {
                 foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
                 {
-                    IFieldSelection currentSelection = GetPagingFieldOrDefault(selection);
+                    IFieldSelection? currentSelection = GetPagingFieldOrDefault(selection);
 
                     if (currentSelection != null)
                     {
-                        result = MergeSelection(result.Item2, currentSelection);
+                        nullableResult = MergeSelection(nullableResult.Item2, currentSelection);
                     }
                 }
             }
-            return result.Item2 != null;
+            if (nullableResult.Item1 != null && nullableResult.Item2 != null)
+            {
+                result = (nullableResult.Item1, nullableResult.Item2);
+                return true;
+            }
+            else
+            {
+
+                result = (outputType, selectionSet);
+                return false;
+            }
         }
 
-        private IFieldSelection GetPagingFieldOrDefault(IFieldSelection selection)
+        private IFieldSelection? GetPagingFieldOrDefault(IFieldSelection selection)
         {
             if (selection.Field.Name == "nodes")
             {
@@ -190,18 +211,18 @@ namespace HotChocolate.Types.Selections
                     .CollectFields(edgeType, selection.Selection.SelectionSet)
                     .FirstOrDefault(x => x.Field.Name == "node");
             }
-            return null;
+            return default;
         }
 
-        private (IOutputType, SelectionSetNode) MergeSelection(
-            SelectionSetNode selectionSet,
+        private (IOutputType, SelectionSetNode?) MergeSelection(
+            SelectionSetNode? selectionSet,
             IFieldSelection selection)
         {
             if (selectionSet == null)
             {
                 selectionSet = selection.Selection.SelectionSet;
             }
-            else
+            else if (selection.Selection.SelectionSet?.Selections is { })
             {
                 selectionSet = selectionSet.WithSelections(
                     selectionSet.Selections.Concat(

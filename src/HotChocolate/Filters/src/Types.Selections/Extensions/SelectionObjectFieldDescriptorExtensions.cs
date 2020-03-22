@@ -13,7 +13,8 @@ namespace HotChocolate.Types
 {
     public static class SelectionObjectFieldDescriptorExtensions
     {
-        private static readonly Type _middlewareDefinition = typeof(SelectionMiddleware<>);
+        private static readonly Type _middlewareDefinition
+            = typeof(SelectionMiddleware<>);
 
         public static IObjectFieldDescriptor UseSelection(
             this IObjectFieldDescriptor descriptor)
@@ -37,7 +38,7 @@ namespace HotChocolate.Types
 
         private static IObjectFieldDescriptor UseSelection(
             IObjectFieldDescriptor descriptor,
-            Type objectType)
+            Type? objectType)
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
@@ -47,9 +48,9 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
-                    Type selectionType = objectType;
+                    Type? selectionType = objectType;
 
-                    if (objectType == null)
+                    if (selectionType == null)
                     {
                         if (!TypeInspector.Default.TryCreate(
                             definition.ResultType, out TypeInfo typeInfo))
