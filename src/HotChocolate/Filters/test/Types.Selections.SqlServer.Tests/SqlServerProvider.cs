@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HotChocolate.Types.Selections
 {
-    public class SqlServerProvider : IResolverProvider
+    public class SqlServerProvider
     {
         private static readonly ILoggerFactory ConsoleLogger =
              LoggerFactory.Create(x => x.AddConsole());
@@ -65,17 +65,17 @@ namespace HotChocolate.Types.Selections
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
-                modelBuilder.Entity<SelectionTestsBase.Foo>()
+                modelBuilder.Entity<SelectionTests.Foo>()
                     .Ignore(x => x.ObjectArray);
             }
         }
 
-        public class SelectionAttributeTestsBaseFooNested
+        public class SelectionAttributeTestsFooNested
         {
             public Guid FooId { get; set; }
-            public SelectionAttributeTestsBase.Foo Foo { get; set; }
+            public SelectionAttributeTests.Foo Foo { get; set; }
             public Guid NestedFooId { get; set; }
-            public SelectionAttributeTestsBase.NestedFoo NestedFoo { get; set; }
+            public SelectionAttributeTests.NestedFoo NestedFoo { get; set; }
         }
     }
 }

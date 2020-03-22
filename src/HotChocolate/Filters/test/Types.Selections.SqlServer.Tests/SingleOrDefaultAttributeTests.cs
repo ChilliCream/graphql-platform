@@ -10,15 +10,14 @@ using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
-    public abstract class SingleOrDefaultAttributeTestsBase
+    public class SingleOrDefaultAttributeTests :
+        IClassFixture<SqlServerProvider>
     {
-        private readonly IResolverProvider _provider;
-        private readonly bool _setId;
+        private readonly SqlServerProvider _provider;
 
-        protected SingleOrDefaultAttributeTestsBase(IResolverProvider provider, bool setId = false)
+        public SingleOrDefaultAttributeTests(SqlServerProvider provider)
         {
             _provider = provider;
-            _setId = setId;
         }
 
         [Fact]
@@ -28,7 +27,7 @@ namespace HotChocolate.Types.Selections
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
             (services, resolver) = _provider.CreateResolver(
-                Foo.Create("aa", 1, _setId));
+                Foo.Create("aa", 1, false));
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -63,8 +62,8 @@ namespace HotChocolate.Types.Selections
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
             (services, resolver) = _provider.CreateResolver(
-                Foo.Create("aa", 1, _setId),
-                Foo.Create("bb", 2, _setId));
+                Foo.Create("aa", 1, false),
+                Foo.Create("bb", 2, false));
 
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
@@ -90,8 +89,8 @@ namespace HotChocolate.Types.Selections
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
             (services, resolver) = _provider.CreateResolver(
-                Foo.Create("aa", 1, _setId),
-                Foo.Create("bb", 2, _setId));
+                Foo.Create("aa", 1, false),
+                Foo.Create("bb", 2, false));
 
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
@@ -104,98 +103,6 @@ namespace HotChocolate.Types.Selections
             // act
             IExecutionResult result = executor.Execute(
                  "{ foosMultiple { bar baz } }");
-
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public virtual void ExecuteAsync_Selection_MultipleScalarShouldReturnOne()
-        {
-            // arrange
-            IServiceCollection services;
-            Func<IResolverContext, IAsyncEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateAsyncResolver(
-                Foo.Create("aa", 1, _setId));
-
-            Foo resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(d =>
-                    d.Field(t => t.FoosAsync)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as Foo;
-                        }))
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            executor.Execute(
-                 "{ foosAsync { bar baz } }");
-
-            // assert
-            Assert.NotNull(resultCtx);
-            Assert.Equal("aa", resultCtx.Bar);
-            Assert.Equal(1, resultCtx.Baz);
-        }
-
-        [Fact]
-        public virtual void ExecuteAsync_Selection_ShouldThrowOnMultiple()
-        {
-            // arrange
-            IServiceCollection services;
-            Func<IResolverContext, IAsyncEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateAsyncResolver(
-                Foo.Create("aa", 1, _setId),
-                Foo.Create("bb", 2, _setId));
-
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(
-                    d => d.Field(t => t.FoosAsync)
-                        .Resolver(resolver)
-                        .UseSingleOrDefault()
-                        .UseSelection())
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute("{ foosAsync { bar baz} }");
-
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public virtual void ExecuteAsync_SelectionMultiple_ShouldThrowOnMultiple()
-        {
-            // arrange
-            IServiceCollection services;
-            Func<IResolverContext, IAsyncEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateAsyncResolver(
-                Foo.Create("aa", 1, _setId),
-                Foo.Create("bb", 2, _setId));
-
-            Foo resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(d =>
-                    d.Field(t => t.FoosMultipleAsync)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as Foo;
-                        }))
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(
-                "{ foosMultipleAsync { bar baz } }");
 
             // assert
             result.ToJson().MatchSnapshot();

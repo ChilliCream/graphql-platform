@@ -10,16 +10,17 @@ using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
-    public abstract class SelectionTestsBase
+    public class SelectionTests :
+        IClassFixture<SqlServerProvider>
     {
         private readonly static Foo[] SAMPLE =
             new[] {
                 Foo.Create("aa", 1),
                 Foo.Create("bb", 2) };
 
-        private readonly IResolverProvider _provider;
+        private readonly SqlServerProvider _provider;
 
-        protected SelectionTestsBase(IResolverProvider provider)
+        public SelectionTests(SqlServerProvider provider)
         {
             _provider = provider;
         }
@@ -159,56 +160,6 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal(2, x.Baz);
                     Assert.Null(x.Nested);
                     Assert.Null(x.ObjectArray);
-                });
-        }
-
-        [Fact]
-        public virtual void Execute_Selection_ScalarList()
-        {
-            // arrange
-            IServiceCollection services;
-            Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
-
-            IQueryable<Foo> resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(
-                    d => d.Field(t => t.Foos)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as IQueryable<Foo>;
-                        })
-                        .UseSelection())
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            var result = executor.Execute(
-                 "{ foos { stringList } }");
-
-            // assert
-            Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
-                x =>
-                {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Null(x.ObjectArray);
-                    Assert.NotNull(x.StringList);
-                    Assert.Equal(2, x.StringList.Count);
-                },
-                x =>
-                {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Null(x.ObjectArray);
-                    Assert.NotNull(x.StringList);
-                    Assert.Equal(2, x.StringList.Count);
                 });
         }
 
@@ -409,56 +360,6 @@ namespace HotChocolate.Types.Selections
                     Assert.Equal("nestedbb", x.Nested.Bar);
                     Assert.Equal(0, x.Nested.Baz);
                     Assert.Null(x.ObjectArray);
-                });
-        }
-
-        [Fact]
-        public virtual void Execute_Selection_Array()
-        {
-            // arrange
-            IServiceCollection services;
-            Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
-
-            IQueryable<Foo> resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(
-                    d => d.Field(t => t.Foos)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as IQueryable<Foo>;
-                        })
-                        .UseSelection())
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            executor.Execute(
-               "{ foos { objectArray { bar } } }");
-
-            // assert
-            Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
-                x =>
-                {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Single(x.ObjectArray);
-                    Assert.Equal("objectArrayaa", x.ObjectArray[0].Bar);
-                    Assert.Equal(0, x.ObjectArray[0].Baz);
-                },
-                x =>
-                {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Single(x.ObjectArray);
-                    Assert.Equal("objectArraybb", x.ObjectArray[0].Bar);
-                    Assert.Equal(0, x.ObjectArray[0].Baz);
                 });
         }
 
@@ -768,64 +669,6 @@ namespace HotChocolate.Types.Selections
                     Assert.Null(x.Nested.Nested.Bar);
                     Assert.Null(x.Nested.Nested.Nested.Bar);
                     Assert.Equal("recursivebb", x.Nested.Nested.Nested.Nested.Bar);
-                });
-        }
-
-        [Fact]
-        public virtual void Execute_Selection_ArrayDeep()
-        {
-            // arrange
-            IServiceCollection services;
-            Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
-
-            IQueryable<Foo> resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(
-                    d => d.Field(t => t.Foos)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as IQueryable<Foo>;
-                        })
-                        .UseSelection())
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            executor.Execute(
-                "{ foos { objectArray { objectArray { objectArray { bar }  }  } } }");
-
-            // assert
-            Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray(),
-                x =>
-                {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Single(x.ObjectArray);
-                    Assert.Null(x.ObjectArray[0].Bar);
-                    Assert.Null(x.ObjectArray[0].ObjectArray[0].Bar);
-                    Assert.Equal(
-                        "recursiveaa",
-                        x.ObjectArray[0].ObjectArray[0].ObjectArray[0].Bar);
-                    Assert.Equal(0, x.ObjectArray[0].Baz);
-                },
-                x =>
-                {
-                    Assert.Null(x.Bar);
-                    Assert.Equal(0, x.Baz);
-                    Assert.Null(x.Nested);
-                    Assert.Single(x.ObjectArray);
-                    Assert.Null(x.ObjectArray[0].Bar);
-                    Assert.Null(x.ObjectArray[0].ObjectArray[0].Bar);
-                    Assert.Equal(
-                        "recursivebb",
-                        x.ObjectArray[0].ObjectArray[0].ObjectArray[0].Bar);
-                    Assert.Equal(0, x.ObjectArray[0].Baz);
                 });
         }
 
@@ -1453,8 +1296,6 @@ namespace HotChocolate.Types.Selections
 
             public int Baz { get; set; }
 
-            public List<string> StringList { get; set; }
-
             public NestedFoo Nested { get; set; }
 
             public NestedFoo[] ObjectArray { get; set; }
@@ -1512,8 +1353,6 @@ namespace HotChocolate.Types.Selections
                 {
                     Bar = bar,
                     Baz = baz,
-                    StringList =
-                        new List<string> { "stringListMember0" + bar, "stringListMember1" + bar },
                     Nested = new NestedFoo()
                     {
                         Bar = "nested" + bar,

@@ -220,7 +220,7 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            var combine = Operations.Peek() is OrField
+            Func<Expression, Expression, Expression> combine = Operations.Peek() is OrField
                 ? new Func<Expression, Expression, Expression>(
                     (a, b) => Expression.OrElse(a, b))
                 : new Func<Expression, Expression, Expression>(

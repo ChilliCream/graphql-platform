@@ -4,15 +4,18 @@
     <AssemblyName>HotChocolate.Types.Selections.Mongo.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Types.Selections.Abstractions.Tests\HotChocolate.Types.Selections.Abstractions.Tests.csproj" />
-  </ItemGroup>
   
   <ItemGroup>
     <!--For Visual Studio for Mac Test Explorer we need this reference here-->
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
+    <ProjectReference Include="..\..\src\Types.Selections\HotChocolate.Types.Selections.csproj" />
+    <ProjectReference Include="..\..\src\Types.Sorting\HotChocolate.Types.Sorting.csproj" />
   </ItemGroup>
 
   <ItemGroup>

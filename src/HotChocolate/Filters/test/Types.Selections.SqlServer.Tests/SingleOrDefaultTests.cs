@@ -2,22 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
-    public abstract class SingleOrDefaultTestsBase
+    public class SingleOrDefaultTests :
+        IClassFixture<SqlServerProvider>
     {
         private readonly static Foo[] Sample =
             new[] { Foo.Create("aa", 1) };
 
-        private readonly IResolverProvider _provider;
+        private readonly SqlServerProvider _provider;
 
-        protected SingleOrDefaultTestsBase(IResolverProvider provider)
+        public SingleOrDefaultTests(SqlServerProvider provider)
         {
             _provider = provider;
         }
@@ -224,46 +225,6 @@ namespace HotChocolate.Types.Selections
             Assert.Equal(0, resultCtx.Baz);
             Snapshot.Match(executionResult, "execute_single_overrides_results");
             Snapshot.Match(schema.ToString(), "execute_single_overrides_schema");
-        }
-
-        [Fact]
-        public virtual void Execute_Selection_Nested_Single()
-        {
-            // arrange
-            IServiceCollection services;
-            Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(Sample);
-
-            IQueryable<Foo> resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(
-                    d => d.Field(t => t.Foos)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as IQueryable<Foo>;
-                        })
-                        .UseFiltering()
-                        .UseSorting()
-                        .UseSelection())
-                .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(
-                "{ foos   { middlewareList(where: {bar_starts_with:\"aaa\"}, " +
-                "order_by:{baz: ASC, bar: ASC}) {  bar } } }");
-
-            // assert
-            Assert.NotNull(resultCtx);
-            Assert.Collection(resultCtx.ToArray()[0].MiddlewareList,
-                x =>
-                {
-                    Assert.Equal("aaaa", x.Bar);
-                    Assert.Equal(0, x.Baz);
-                });
         }
 
         public class Query

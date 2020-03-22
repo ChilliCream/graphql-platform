@@ -1,4 +1,4 @@
-schema {
+﻿schema {
   query: Query
 }
 
@@ -17,7 +17,7 @@ type NestedFoo {
 }
 
 type Query {
-  foos: Foo
+  foos: Foo!
 }
 
 input NestedFooFilter {

@@ -7,7 +7,7 @@ using Squadron;
 
 namespace HotChocolate.Types.Selections
 {
-    public class MongoProvider : IResolverProvider
+    public class MongoProvider
     {
         private readonly MongoResource _resource;
 

@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Language;
 using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
@@ -14,7 +13,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
@@ -37,7 +36,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
@@ -60,7 +59,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
@@ -78,7 +77,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {

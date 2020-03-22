@@ -9,15 +9,14 @@ using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
-    public abstract class SelectionAttributeTestsBase
+    public class SelectionAttributeTests :
+        IClassFixture<SqlServerProvider>
     {
-        private readonly IResolverProvider _provider;
-        private readonly bool _setId;
+        private readonly SqlServerProvider _provider;
 
-        protected SelectionAttributeTestsBase(IResolverProvider provider, bool setId = false)
+        public SelectionAttributeTests(SqlServerProvider provider)
         {
             _provider = provider;
-            _setId = setId;
         }
 
         [Fact]
@@ -27,8 +26,8 @@ namespace HotChocolate.Types.Selections
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
             (services, resolver) = _provider.CreateResolver(
-                Foo.Create("aa", 1, _setId),
-                Foo.Create("bb", 2, _setId));
+                Foo.Create("aa", 1, false),
+                Foo.Create("bb", 2, false));
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
