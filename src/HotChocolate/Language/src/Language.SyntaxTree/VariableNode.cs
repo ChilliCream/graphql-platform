@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -156,10 +157,9 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="VariableNode"/>.
         /// </returns>
-        public override string? ToString()
-        {
-            return Value;
-        }
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public ReadOnlySpan<byte> AsSpan()
         {

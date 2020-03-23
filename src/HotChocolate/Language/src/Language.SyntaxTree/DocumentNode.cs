@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -27,6 +28,10 @@ namespace HotChocolate.Language
         public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
         public IEnumerable<ISyntaxNode> GetNodes() => Definitions;
+
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public DocumentNode WithLocation(Location? location)
         {

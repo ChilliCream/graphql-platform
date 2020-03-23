@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -37,6 +38,10 @@ namespace HotChocolate.Language
                 yield return operationType;
             }
         }
+
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public SchemaDefinitionNode WithLocation(Location? location)
         {

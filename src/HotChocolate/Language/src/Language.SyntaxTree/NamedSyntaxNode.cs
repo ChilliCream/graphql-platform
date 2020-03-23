@@ -27,5 +27,7 @@ namespace HotChocolate.Language
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
         public abstract IEnumerable<ISyntaxNode> GetNodes();
+
+        public abstract string ToString(bool indented);
     }
 }

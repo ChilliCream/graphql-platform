@@ -137,8 +137,8 @@ namespace HotChocolate.Language
             string bstring = b.ToString();
 
             // assert
-            Assert.Equal("False", astring);
-            Assert.Equal("True", bstring);
+            Assert.Equal("false", astring);
+            Assert.Equal("true", bstring);
         }
 
         [Fact]

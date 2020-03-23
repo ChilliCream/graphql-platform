@@ -47,7 +47,7 @@ namespace HotChocolate.Types
 
         protected override BooleanValueNode ParseValue(bool value)
         {
-            return value ? BooleanValueNode.TrueLiteral : BooleanValueNode.FalseLiteral;
+            return value ? BooleanValueNode.True : BooleanValueNode.False;
         }
     }
 }

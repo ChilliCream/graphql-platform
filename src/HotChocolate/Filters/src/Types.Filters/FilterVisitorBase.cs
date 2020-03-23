@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters
 {
     public class FilterVisitorBase
-        : SyntaxNodeVisitor
+        : SyntaxWalker
     {
         protected FilterVisitorBase(InputObjectType initialType)
         {
@@ -22,11 +23,9 @@ namespace HotChocolate.Types.Filters
         protected Stack<IInputField> Operations { get; } =
             new Stack<IInputField>();
 
-        public override VisitorAction Enter(
+        protected override ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            ISyntaxVisitorContext context)
         {
             if (Types.Peek().NamedType() is InputObjectType inputType)
             {
@@ -35,7 +34,7 @@ namespace HotChocolate.Types.Filters
                 {
                     Operations.Push(field);
                     Types.Push(field.Type);
-                    return VisitorAction.Continue;
+                    return Continue;
                 }
 
                 // TODO : resources - invalid field
@@ -48,15 +47,13 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        public override VisitorAction Leave(
+        protected override ISyntaxVisitorAction Leave(
             ObjectFieldNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            ISyntaxVisitorContext context)
         {
             Operations.Pop();
             Types.Pop();
-            return VisitorAction.Continue;
+            return Continue;
         }
     }
 }
