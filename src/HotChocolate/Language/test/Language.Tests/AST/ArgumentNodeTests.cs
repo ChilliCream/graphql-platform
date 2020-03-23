@@ -1,4 +1,5 @@
 ﻿using System;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -109,6 +110,20 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal("foo", ((StringValueNode)argument.Value).Value);
+        }
+
+        [Fact]
+        public void Argument_ToString()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var value = new StringValueNode("bar");
+
+            // act
+            var argument = new ArgumentNode(null, name, value);
+
+            // assert
+            argument.ToString().MatchSnapshot();
         }
     }
 }

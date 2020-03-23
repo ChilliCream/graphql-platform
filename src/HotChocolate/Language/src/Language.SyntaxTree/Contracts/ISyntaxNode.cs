@@ -9,5 +9,7 @@ namespace HotChocolate.Language
         Location? Location { get; }
 
         IEnumerable<ISyntaxNode> GetNodes();
+
+        string ToString(bool indented);
     }
 }

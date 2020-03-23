@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -136,6 +137,10 @@ namespace HotChocolate.Language
                 return _hash.Value;
             }
         }
+
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public ObjectFieldNode WithLocation(Location? location)
         {
