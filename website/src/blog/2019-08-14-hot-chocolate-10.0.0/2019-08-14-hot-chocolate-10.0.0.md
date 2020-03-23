@@ -2,12 +2,12 @@
 path: "/blog/2019/08/14/hot-chocolate-10.0.0"
 date: "2019-08-14"
 title: "GraphQL - Hot Chocolate 10.0.0"
+featuredImage: "../shared/hotchocolate-banner.png"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
-
-![Hot Chocolate](../images/blog/hotchocolate-banner.png)
 
 Today we have released version 10 of _Hot Chocolate_. We originally started building version 9.1 which grew bigger and at one point became version 10. We have focused a lot on our server implementation. But let me walk you through our latest release.
 
@@ -293,7 +293,7 @@ With GraphQL most requests are provided as `JSON` that contains the request as a
 
 With the new _UTF-8 request parser_ we can finally just read the binary request stream and parse the JSON and the GraphQL request in one go. But there is more, we have given our new UTF-8 request parser access to our document cache, meaning while we parse the JSON request and hit the part were the GraphQL request is, we can look up if this query is already cached. This dramatically reduces memory usage and performance since we will not consume the query property anyway.
 
-![Request Parser Memory](../images/blog/request_parser_mem.png)
+![Request Parser Memory](request_parser_mem.png)
 
 The new request parser does only allocate 1/3 of the memory that GraphQL-DotNet uses with it\`s combination of JSON.Net and it\`s string based GraphQL parser.
 
@@ -364,9 +364,11 @@ Furthermore, we will rework our `Utf8GraphQLReader` to use `ReadOnlySequence<byt
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) and join our community.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+## Additional Resources
 
+- [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q)
+- [Hot Chocolate Documentation](https://hotchocolate.io)
+- [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate)
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

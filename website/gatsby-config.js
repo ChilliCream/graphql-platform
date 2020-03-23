@@ -1,8 +1,8 @@
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL`,
-    description: `...`,
-    author: `@Chilli_Cream`,
+    description: `We're building the ultimate GraphQL platform`,
+    author: `Chilli_Cream`,
     baseUrl: `https://chillicream.com`,
     topnav: [
       {
@@ -66,17 +66,18 @@ module.exports = {
       options: {
         plugins: [
           `gatsby-remark-autolink-headers`,
+          `gatsby-remark-reading-time`,
           `gatsby-remark-mermaid`,
           {
             resolve: `gatsby-remark-prismjs`,
             options: {
-              showLineNumbers: true,
+              showLineNumbers: false,
             },
           },
           {
             resolve: `gatsby-remark-images`,
             options: {
-              maxWidth: 1100,
+              maxWidth: 800,
             },
           },
         ],
@@ -105,14 +106,10 @@ module.exports = {
       },
     },
     {
-      resolve: `gatsby-plugin-gdpr-cookies`,
+      resolve: `gatsby-plugin-google-analytics`,
       options: {
-        googleAnalytics: {
-          trackingId: "UA-72800164-1",
-          cookieName: "chillicream-gdpr-google-analytics",
-          anonymize: true,
-        },
-        environments: ["production", "development"],
+        trackingId: "UA-72800164-1",
+        anonymize: true,
       },
     },
     // this (optional) plugin enables Progressive Web App + Offline functionality

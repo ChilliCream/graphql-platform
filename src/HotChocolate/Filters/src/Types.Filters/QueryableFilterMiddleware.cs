@@ -65,13 +65,13 @@ namespace HotChocolate.Types.Filters
                 if (source is EnumerableQuery)
                 {
                     var visitor = new QueryableFilterVisitor(iot, fit.EntityType, _converter, true);
-                    filter.Accept(visitor);
+                    visitor.Visit(filter, null);
                     source = source.Where(visitor.CreateFilter<T>());
                 }
                 else
                 {
                     var visitor = new QueryableFilterVisitor(iot, fit.EntityType, _converter, false);
-                    filter.Accept(visitor);
+                    visitor.Visit(filter, null);
                     source = source.Where(visitor.CreateFilter<T>());
                 }
 

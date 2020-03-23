@@ -22,8 +22,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 case FilterOperationKind.NotGreaterThanOrEquals:
                     expression = FilterExpressionBuilder.Not(
                         FilterExpressionBuilder.GreaterThanOrEqual(
-                            property, parseValue())
-                     );
+                            property, parseValue()));
                     return true;
 
                 default:

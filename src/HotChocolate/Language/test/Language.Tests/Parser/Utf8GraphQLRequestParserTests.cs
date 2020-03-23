@@ -544,6 +544,94 @@ namespace HotChocolate.Language
             obj.MatchSnapshot();
         }
 
+        [Fact]
+        public void Parse_Invalid_Query()
+        {
+            // assert
+            Assert.Throws<SyntaxException>(
+                () =>
+                {
+                    // arrange
+                    byte[] source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
+                        .NormalizeLineBreaks());
+                    var parserOptions = new ParserOptions();
+                    var requestParser = new Utf8GraphQLRequestParser(
+                        source,
+                        parserOptions,
+                        new DocumentCache(),
+                        new Sha256DocumentHashProvider());
+
+                    // act
+                    requestParser.Parse();
+                });
+        }
+
+        [Fact]
+        public void Parse_Empty_Json()
+        {
+            // assert
+            Assert.Throws<SyntaxException>(
+                () =>
+                {
+                    // arrange
+                    byte[] source = Encoding.UTF8.GetBytes("{ }"
+                        .NormalizeLineBreaks());
+                    var parserOptions = new ParserOptions();
+                    var requestParser = new Utf8GraphQLRequestParser(
+                        source,
+                        parserOptions,
+                        new DocumentCache(),
+                        new Sha256DocumentHashProvider());
+
+                    // act
+                    requestParser.Parse();
+                });
+        }
+
+        [Fact]
+        public void Parse_Empty_String()
+        {
+            // assert
+            Assert.Throws<ArgumentException>(
+                () =>
+                {
+                    // arrange
+                    byte[] source = Encoding.UTF8.GetBytes(""
+                        .NormalizeLineBreaks());
+                    var parserOptions = new ParserOptions();
+                    var requestParser = new Utf8GraphQLRequestParser(
+                        source,
+                        parserOptions,
+                        new DocumentCache(),
+                        new Sha256DocumentHashProvider());
+
+                    // act
+                    requestParser.Parse();
+                });
+        }
+
+        [Fact]
+        public void Parse_Space_String()
+        {
+            // assert
+            Assert.Throws<SyntaxException>(
+                () =>
+                {
+                    // arrange
+                    byte[] source = Encoding.UTF8.GetBytes(" "
+                        .NormalizeLineBreaks());
+                    var parserOptions = new ParserOptions();
+                    var requestParser = new Utf8GraphQLRequestParser(
+                        source,
+                        parserOptions,
+                        new DocumentCache(),
+                        new Sha256DocumentHashProvider());
+
+                    // act
+                    requestParser.Parse();
+                });
+        }
+
         private class GraphQLRequestDto
         {
             [JsonProperty("operationName")]

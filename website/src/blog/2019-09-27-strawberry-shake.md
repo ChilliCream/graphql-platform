@@ -2,12 +2,12 @@
 path: "/blog/2019/09/27/strawberry-shake"
 date: "2019-09-27"
 title: "Building a .NET GraphQL Client API"
+featuredImage: "shared/strawberry-shake-banner.png"
+tags: ["strawberry-shake", "graphql", "dotnet", "aspnetcore"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
-
-![Strawberry Shake](../images/blog/strawberry-shake-banner.png)
 
 **This post has been updated, please head over to the newer post [here](https://chillicream.com/blog/2019/11/25/strawberry-shake_2).**
 
@@ -16,8 +16,6 @@ We for a while now have two big GraphQL server projects on the .NET platform. So
 If you are looking at consuming a GraphQL server in your _Blazor_ or _Xamarin_ application, then things are not so promising. You can either go with a bare bone client from the _GraphQL .NET_ project or you can decide to go it alone and build on `HttpClient`.
 
 After the version 10 release of our _Hot Chocolate_ GraphQL server we have started to build a new GraphQL client API that is more in line with how people in JavaScript consume GraphQL endpoints.
-
-<!--truncate-->
 
 ## Introduction
 
@@ -344,9 +342,11 @@ Please check it out and give us feedback so we can adjust and refine the experie
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+## Additional Resources
 
+- [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q)
+- [Hot Chocolate Documentation](https://hotchocolate.io)
+- [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate)
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

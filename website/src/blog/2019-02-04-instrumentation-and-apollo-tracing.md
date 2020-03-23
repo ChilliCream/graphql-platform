@@ -2,6 +2,7 @@
 path: "/blog/2019/02/04/instrumentation-and-apollo-tracing"
 date: "2019-02-04"
 title: "GraphQL .NET Instrumentation API and Apollo Tracing"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore", "tracing"]
 author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4

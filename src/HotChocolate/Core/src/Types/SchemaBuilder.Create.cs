@@ -9,6 +9,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Utilities;
+using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate
 {
@@ -93,8 +94,8 @@ namespace HotChocolate
 
             foreach (LoadSchemaDocument fetchSchema in _documents)
             {
-                // TODO: retrieve root type names
                 DocumentNode schemaDocument = fetchSchema(services);
+                schemaDocument = schemaDocument.RemoveBuiltInTypes();
 
                 var visitor = new SchemaSyntaxVisitor(bindingLookup);
                 visitor.Visit(schemaDocument, null);

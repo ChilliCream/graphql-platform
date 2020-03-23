@@ -5,7 +5,7 @@ using static HotChocolate.Utilities.Introspection.WellKnownDirectives;
 
 namespace HotChocolate.Utilities.Introspection
 {
-    internal static class BuiltInTypes
+    public static class BuiltInTypes
     {
         private static readonly HashSet<string> _typeNames =
             new HashSet<string>

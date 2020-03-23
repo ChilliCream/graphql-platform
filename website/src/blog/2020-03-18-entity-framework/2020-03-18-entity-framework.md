@@ -2,20 +2,18 @@
 path: "/blog/2020/03/18/entity-framework"
 date: "2020-03-18"
 title: "Get started with Hot Chocolate and Entity Framework"
+tags: ["hotchocolate", "graphql", "dotnet", "entityframework", "aspnetcore"]
+featuredImage: "banner-entityframework.png"
 author: Michael Staib
-authorURL: https://github.com/michaelstaib
-authorImageURL: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
-
-![Hot Chocolate](../images/blog/hotchocolate-banner.png)
 
 In this post I will walk you through how to build a GraphQL Server using _Hot Chocolate_ and _Entity Framework_.
 
 _Entity Framework_ is an OR-mapper from Microsoft that implements the unit-of-work pattern. This basically means that with _Entity Framework_ we work against a `DbContext` and once in a while commit changes aggregated on that context to the database by invoking `SaveChanges`.
 
 With _Entity Framework_ we can write database queries with _LINQ_ and do not have to deal with _SQL_ directly. This means that we can compile our database queries and can detect query errors before we run our code.
-
-<!--truncate-->
 
 ## Introduction
 
@@ -374,7 +372,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cakepop which can be downloaded [here](https://hotchocolate.io/docs/banana-cakepop).
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop.png)
+![Hot Chocolate](banana-cakepop.png)
 
 But you can also opt for _Playground_ and host a simple GraphQL IDE as a middleware with the server. If you want to use playground add the following package to the project:
 
@@ -423,15 +421,15 @@ If you have chosen _Banana Cakepop_ to test and explore the GraphQL Schema open 
 
 _Banana Cakepop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-address.png)
+![Hot Chocolate](banana-cakepop-address.png)
 
 Once our GraphQL IDE has fetched the schema we can start exploring it. On the left-hand side click on the `Book` button. The left-hand side now shows us the root types and the root fields.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-root-types.png)
+![Hot Chocolate](banana-cakepop-root-types.png)
 
 In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our `Student` type. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses and so on.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-expanded-schema.png)
+![Hot Chocolate](banana-cakepop-expanded-schema.png)
 
 Now close the schema tab again so that we can write some queries.
 
@@ -441,11 +439,11 @@ If you have opted for _Playground_ open your browser and navigate to `http://loc
 
 On the right-hand side click on the `Docs` button. A pane will slide out showing us the root types and root fields of our schema.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-root-types.png)
+![Hot Chocolate](playground-root-types.png)
 
 In our current schema we can see that we have a single root field called `students`. If we click on that the schema explorer opens and we can drill into our type. We can see what fields we can request from our `Student` type. We also can see that we can drill in further and fetch the enrollments and from the enrollments the courses and so on.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/playground-expanded-schema.png)
+![Hot Chocolate](playground-expanded-schema.png)
 
 Now click onto `Docs` again so that the schema tab slides back in again. We are now ready to write our first query.
 
@@ -544,7 +542,7 @@ The above query resolves correctly the data from our database, and we get the fo
 }
 ```
 
-What is interesting is that the GraphQL engine rewrites the incoming GraphQL request to an expression tree that is applied onto the `IQueryable<Student>` our root field resolver returns. The expression will only query for data from the database that was needed to fulfill our request. 
+What is interesting is that the GraphQL engine rewrites the incoming GraphQL request to an expression tree that is applied onto the `IQueryable<Student>` our root field resolver returns. The expression will only query for data from the database that was needed to fulfill our request.
 
 The SQL query in this case will look like the following:
 
@@ -611,12 +609,20 @@ The above query returns:
 In order to fetch the data, the GraphQL query is rewritten to the following SQL:
 
 ```sql
-SELECT "s"."FirstMidName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."CourseId"
+SELECT "s"."FirstMidName",
+       "s"."Id",
+       "t"."Title",
+       "t"."EnrollmentId",
+       "t"."CourseId"
     FROM "Students" AS "s"
     LEFT JOIN (
-        SELECT "c"."Title", "e"."EnrollmentId", "c"."CourseId", "e"."StudentId"
+        SELECT "c"."Title",
+               "e"."EnrollmentId",
+               "c"."CourseId",
+               "e"."StudentId"
         FROM "Enrollments" AS "e"
-        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+        INNER JOIN "Courses" AS "c"
+              ON "e"."CourseId" = "c"."CourseId"
     ) AS "t" ON "s"."Id" = "t"."StudentId"
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
 ```
@@ -693,7 +699,7 @@ dotnet run --urls http://localhost:5000
 
 Now let us inspect our schema again. When we look at the `students` field we can see that there are new arguments called `where` and `orderBy`.
 
-![Hot Chocolate](../images/blog/2020-03-18-entity-framework/banana-cakepop-arguments.png)
+![Hot Chocolate](banana-cakepop-arguments.png)
 
 For our first query let us fetch the students with the `lastName` `Bar` or `Baz`.
 
@@ -747,12 +753,21 @@ Which will return the following result:
 Again, we are rewriting the whole GraphQL query into one expression tree that translates into the following SQL.
 
 ```sql
-SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."Title", "t"."EnrollmentId", "t"."CourseId"
+SELECT "s"."FirstMidName",
+       "s"."LastName",
+       "s"."Id",
+       "t"."Title",
+       "t"."EnrollmentId",
+       "t"."CourseId"
     FROM "Students" AS "s"
     LEFT JOIN (
-        SELECT "c"."Title", "e"."EnrollmentId", "c"."CourseId", "e"."StudentId"
+        SELECT "c"."Title",
+               "e"."EnrollmentId",
+               "c"."CourseId",
+               "e"."StudentId"
         FROM "Enrollments" AS "e"
-        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+        INNER JOIN "Courses" AS "c"
+              ON "e"."CourseId" = "c"."CourseId"
     ) AS "t" ON "s"."Id" = "t"."StudentId"
     WHERE ("s"."LastName" = 'Bar') OR ("s"."LastName" = 'Baz')
     ORDER BY "s"."Id", "t"."EnrollmentId", "t"."CourseId"
@@ -805,12 +820,23 @@ query {
 The following query translates again to a single SQL statement.
 
 ```sql
-SELECT "s"."FirstMidName", "s"."LastName", "s"."Id", "t"."CourseId", "t"."Title", "t"."EnrollmentId", "t"."CourseId0"
+SELECT "s"."FirstMidName",
+       "s"."LastName",
+       "s"."Id",
+       "t"."CourseId",
+       "t"."Title",
+       "t"."EnrollmentId",
+       "t"."CourseId0"
     FROM "Students" AS "s"
     LEFT JOIN (
-        SELECT "e"."CourseId", "c"."Title", "e"."EnrollmentId", "c"."CourseId" AS "CourseId0", "e"."StudentId"
+        SELECT "e"."CourseId",
+               "c"."Title",
+               "e"."EnrollmentId".
+               "c"."CourseId" AS "CourseId0",
+               "e"."StudentId"
         FROM "Enrollments" AS "e"
-        INNER JOIN "Courses" AS "c" ON "e"."CourseId" = "c"."CourseId"
+        INNER JOIN "Courses" AS "c"
+              ON "e"."CourseId" = "c"."CourseId"
         WHERE "e"."CourseId" = 1
     ) AS "t" ON "s"."Id" = "t"."StudentId"
     WHERE "s"."LastName" = 'Bar'
@@ -1051,7 +1077,7 @@ This now looks like the initial resolvers that we wrote to fetch all students. W
 
 ## Conclusion and Outlook
 
-_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind. 
+_Hot Chocolate_ has a powerful execution model that allows to natively integrate with data sources of any kind.
 
 The middleware that we showed you here like `UseSelection` or `UseFiltering` etc. do not only work with _Entity Framework_ but also support other providers that support `IQueryable<T>` to express database queries.
 
@@ -1069,9 +1095,11 @@ We also have a more complex real-time GraphQL server example in multiple flavors
 
 If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+## Additional Resources
 
+- [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q)
+- [Hot Chocolate Documentation](https://hotchocolate.io)
+- [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate)
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
