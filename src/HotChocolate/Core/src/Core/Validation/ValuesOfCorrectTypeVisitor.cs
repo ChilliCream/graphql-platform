@@ -137,7 +137,7 @@ namespace HotChocolate.Validation
                     "The specified argument value " +
                     "does not match the argument type.\n" +
                     $"Argument: `{argument.Name.Value}`\n" +
-                    $"Value: `{argument.Value}`",
+                    $"Value: `{argument.Value.Value}`",
                     argument));
             }
         }
