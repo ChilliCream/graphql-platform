@@ -2,7 +2,6 @@ namespace HotChocolate.Language.Utilities
 {
     internal static class Keywords
     {
-        // type system
         public const string Schema = "schema";
         public const string Scalar = "scalar";
         public const string Type = "type";

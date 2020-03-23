@@ -46,7 +46,7 @@ namespace HotChocolate.Language.Utilities
         {
             if (condition && _indent > 0)
             {
-                _stringBuilder.Append(new string(' ', 2 * _indent));
+                _stringBuilder.Append(' ', 2 * _indent);
             }
         }
 

@@ -35,7 +35,10 @@ namespace HotChocolate.Language.Utilities
                 writer.WriteSpace();
             }
 
-            VisitSelectionSet(node.SelectionSet, writer);
+            if (node.SelectionSet is { })
+            {
+                VisitSelectionSet(node.SelectionSet, writer);
+            }
         }
 
         private void VisitVariableDefinition(VariableDefinitionNode node, ISyntaxWriter writer)
@@ -90,38 +93,35 @@ namespace HotChocolate.Language.Utilities
 
         private void VisitSelectionSet(SelectionSetNode node, ISyntaxWriter writer)
         {
-            if (node is { } && node.Selections.Count > 0)
+            writer.Write('{');
+
+            string separator;
+            if (_indented)
             {
-                writer.Write('{');
-
-                string separator;
-                if (_indented)
-                {
-                    writer.WriteLine();
-                    writer.Indent();
-                    separator = Environment.NewLine;
-                }
-                else
-                {
-                    writer.WriteSpace();
-                    separator = " ";
-                }
-
-                writer.WriteMany(node.Selections, VisitSelection, separator);
-
-                if (_indented)
-                {
-                    writer.WriteLine();
-                    writer.Unindent();
-                }
-                else
-                {
-                    writer.WriteSpace();
-                }
-
-                writer.WriteIndent();
-                writer.Write('}');
+                writer.WriteLine();
+                writer.Indent();
+                separator = Environment.NewLine;
             }
+            else
+            {
+                writer.WriteSpace();
+                separator = " ";
+            }
+
+            writer.WriteMany(node.Selections, VisitSelection, separator);
+
+            if (_indented)
+            {
+                writer.WriteLine();
+                writer.Unindent();
+            }
+            else
+            {
+                writer.WriteSpace();
+            }
+
+            writer.WriteIndent();
+            writer.Write('}');
         }
 
         private void VisitSelection(ISelectionNode node, ISyntaxWriter context)
@@ -169,7 +169,7 @@ namespace HotChocolate.Language.Utilities
                     w => w.WriteSpace());
             }
 
-            if (node.SelectionSet is { } selectionSet && selectionSet.Selections.Count > 0)
+            if (node.SelectionSet is { } selectionSet)
             {
                 writer.WriteSpace();
                 VisitSelectionSet(selectionSet, writer);
