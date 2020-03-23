@@ -4,6 +4,7 @@ namespace HotChocolate.Language.Utilities
     {
         private static readonly SyntaxSerializer _serializer =
             new SyntaxSerializer(new SyntaxSerializerOptions { Indented = true });
+
         public static string Print(this ISyntaxNode node)
         {
             StringSyntaxWriter writer = StringSyntaxWriter.Rent();
