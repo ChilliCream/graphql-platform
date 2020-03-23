@@ -127,7 +127,8 @@ namespace HotChocolate.Language.Utilities
                     VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
                     break;
                 default:
-                    throw new NotSupportedException(node.GetType().FullName);
+                    ThrowHelper.NodeKindIsNotSupported(node.Kind);
+                    break;
             }
         }
 
@@ -210,7 +211,8 @@ namespace HotChocolate.Language.Utilities
                     VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    ThrowHelper.NodeKindIsNotSupported(node.Kind);
+                    break;
             }
         }
     }

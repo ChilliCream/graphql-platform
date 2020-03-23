@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Language.Utilities
 {
@@ -134,18 +133,18 @@ namespace HotChocolate.Language.Utilities
             {
                 writer.Write('"');
                 WriteEscapeCharacters(writer, node.Value);
-                writer.Write('"'); 
+                writer.Write('"');
             }
         }
 
 
         private static void WriteEscapeCharacters(ISyntaxWriter writer, string input)
-        { 
+        {
             for (int i = 0; i < input.Length; i++)
             {
                 char c = input[i];
                 WriteEscapeCharacter(writer, in c);
-            } 
+            }
         }
 
         private static void WriteEscapeCharacter(
@@ -183,10 +182,10 @@ namespace HotChocolate.Language.Utilities
             }
         }
 
-        private static void WriteEscapeCharacterHelper( ISyntaxWriter writer, in char c)
+        private static void WriteEscapeCharacterHelper(ISyntaxWriter writer, in char c)
         {
-            stringBuilder.Write('\\');
-            stringBuilder.Write(c);
+            writer.Write('\\');
+            writer.Write(c);
         }
 
         public static void WriteBooleanValue(this ISyntaxWriter writer, BooleanValueNode node)
