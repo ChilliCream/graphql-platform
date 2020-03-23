@@ -41,7 +41,9 @@ namespace HotChocolate.Language
             yield return SelectionSet;
         }
 
-        public override string ToString() => SyntaxPrinter.Print(this);
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public InlineFragmentNode WithLocation(Location? location)
         {

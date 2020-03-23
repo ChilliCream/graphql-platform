@@ -227,7 +227,9 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="IntValueNode"/>.
         /// </returns>
-        public override string ToString() => SyntaxPrinter.Print(this);
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public byte ToByte()
         {

@@ -4,14 +4,23 @@ namespace HotChocolate.Language.Utilities
     {
         private static readonly SyntaxSerializer _serializer =
             new SyntaxSerializer(new SyntaxSerializerOptions { Indented = true });
+        private static readonly SyntaxSerializer _serializerNoIndent =
+            new SyntaxSerializer(new SyntaxSerializerOptions { Indented = false });
 
-        public static string Print(this ISyntaxNode node)
+        public static string Print(this ISyntaxNode node, bool indented)
         {
             StringSyntaxWriter writer = StringSyntaxWriter.Rent();
 
             try
             {
-                _serializer.Serialize(node, writer);
+                if (indented)
+                {
+                    _serializer.Serialize(node, writer);
+                }
+                else
+                {
+                    _serializerNoIndent.Serialize(node, writer);
+                }
                 return writer.ToString();
             }
             finally

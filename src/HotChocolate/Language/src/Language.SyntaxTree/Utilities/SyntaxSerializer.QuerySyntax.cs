@@ -8,37 +8,42 @@ namespace HotChocolate.Language.Utilities
             OperationDefinitionNode node,
             ISyntaxWriter writer)
         {
-            if (node.Name is { })
+            bool writeOperation = node.Name is { }
+                || node.Operation != OperationType.Query
+                || node.VariableDefinitions.Count > 0
+                || node.Directives.Count > 0;
+
+            if (writeOperation)
             {
                 writer.Write(node.Operation.ToString().ToLowerInvariant());
+            }
+
+            if (node.Name is { })
+            {
                 writer.WriteSpace();
-
                 writer.WriteName(node.Name);
-                if (node.VariableDefinitions.Count > 0)
-                {
-                    writer.Write('(');
+            }
 
-                    writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition);
+            if (node.VariableDefinitions.Count > 0)
+            {
+                writer.Write('(');
+                writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition);
+                writer.Write(')');
+            }
 
-                    writer.Write(')');
-                }
-
+            if (node.Directives.Count > 0)
+            {
+                writer.WriteSpace();
                 writer.WriteMany(node.Directives,
                     (n, w) => w.WriteDirective(n),
                     w => w.WriteSpace());
-
-                writer.WriteSpace();
-            }
-            else if (node.Operation != OperationType.Query)
-            {
-                writer.Write(node.Operation.ToString().ToLowerInvariant());
-                writer.WriteSpace();
             }
 
-            if (node.SelectionSet is { })
+            if (writeOperation)
             {
-                VisitSelectionSet(node.SelectionSet, writer);
+                writer.WriteSpace();
             }
+            VisitSelectionSet(node.SelectionSet, writer);
         }
 
         private void VisitVariableDefinition(VariableDefinitionNode node, ISyntaxWriter writer)

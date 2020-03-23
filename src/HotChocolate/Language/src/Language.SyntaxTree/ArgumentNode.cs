@@ -43,7 +43,9 @@ namespace HotChocolate.Language
             yield return Value;
         }
 
-        public override string ToString() => SyntaxPrinter.Print(this);
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public ArgumentNode WithLocation(Location? location)
         {

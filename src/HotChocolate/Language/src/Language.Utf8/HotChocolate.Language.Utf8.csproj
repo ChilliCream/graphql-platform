@@ -12,4 +12,8 @@
     <Description>This package contains the UTF8 based parsers of Hot Chocolate.</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
 </Project>

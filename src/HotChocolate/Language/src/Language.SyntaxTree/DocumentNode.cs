@@ -29,7 +29,9 @@ namespace HotChocolate.Language
 
         public IEnumerable<ISyntaxNode> GetNodes() => Definitions;
 
-        public override string ToString() => SyntaxPrinter.Print(this);
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public DocumentNode WithLocation(Location? location)
         {

@@ -116,7 +116,9 @@ namespace HotChocolate.Language
         /// </returns>
         public override int GetHashCode() => 104729;
 
-        public override string ToString() => SyntaxPrinter.Print(this);
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public static NullValueNode Default { get; } = new NullValueNode();
 

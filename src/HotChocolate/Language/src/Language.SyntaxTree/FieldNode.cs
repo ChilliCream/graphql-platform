@@ -56,7 +56,9 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string ToString() => SyntaxPrinter.Print(this);
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public FieldNode WithLocation(Location? location)
         {
