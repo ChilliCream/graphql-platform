@@ -8,7 +8,7 @@ namespace HotChocolate.Language.Utilities
             OperationDefinitionNode node,
             ISyntaxWriter writer)
         {
-            if (node.Name != null)
+            if (node.Name is { })
             {
                 writer.Write(node.Operation.ToString().ToLowerInvariant());
                 writer.WriteSpace();
@@ -81,7 +81,7 @@ namespace HotChocolate.Language.Utilities
             writer.WriteMany(node.Directives,
                 (n, w) => w.WriteDirective(n));
 
-            if (node.SelectionSet != null)
+            if (node.SelectionSet is { })
             {
                 writer.WriteSpace();
                 VisitSelectionSet(node.SelectionSet, writer);
@@ -90,12 +90,12 @@ namespace HotChocolate.Language.Utilities
 
         private void VisitSelectionSet(SelectionSetNode node, ISyntaxWriter writer)
         {
-            if (node != null && node.Selections.Count > 0)
+            if (node is { } && node.Selections.Count > 0)
             {
                 writer.Write('{');
 
                 string separator;
-                if (_indent)
+                if (_indented)
                 {
                     writer.WriteLine();
                     writer.Indent();
@@ -109,7 +109,7 @@ namespace HotChocolate.Language.Utilities
 
                 writer.WriteMany(node.Selections, VisitSelection, separator);
 
-                if (_indent)
+                if (_indented)
                 {
                     writer.WriteLine();
                     writer.Unindent();
@@ -146,7 +146,7 @@ namespace HotChocolate.Language.Utilities
         {
             writer.WriteIndent();
 
-            if (node.Alias != null)
+            if (node.Alias is { })
             {
                 writer.WriteName(node.Alias);
                 writer.Write(": ");
@@ -197,7 +197,7 @@ namespace HotChocolate.Language.Utilities
 
             writer.Write("...");
 
-            if (node.TypeCondition != null)
+            if (node.TypeCondition is { })
             {
                 writer.WriteSpace();
                 writer.Write(Keywords.On);

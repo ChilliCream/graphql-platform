@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -40,6 +41,8 @@ namespace HotChocolate.Language
                 yield return type;
             }
         }
+
+        public override string ToString() => SyntaxPrinter.Print(this);
 
         public UnionTypeDefinitionNode WithLocation(Location? location)
         {

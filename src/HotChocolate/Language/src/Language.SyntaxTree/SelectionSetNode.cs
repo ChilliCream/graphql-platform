@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -27,6 +28,8 @@ namespace HotChocolate.Language
         public IReadOnlyList<ISelectionNode> Selections { get; }
 
         public IEnumerable<ISyntaxNode> GetNodes() => Selections;
+
+        public override string ToString() => SyntaxPrinter.Print(this);
 
         public SelectionSetNode WithLocation(Location? location)
         {

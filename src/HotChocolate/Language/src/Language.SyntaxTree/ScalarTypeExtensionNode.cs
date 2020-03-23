@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -25,6 +26,8 @@ namespace HotChocolate.Language
                 yield return directive;
             }
         }
+
+        public override string ToString() => SyntaxPrinter.Print(this);
 
         public ScalarTypeExtensionNode WithLocation(Location? location)
         {

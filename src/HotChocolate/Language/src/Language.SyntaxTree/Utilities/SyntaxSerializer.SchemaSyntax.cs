@@ -98,6 +98,18 @@ namespace HotChocolate.Language.Utilities
             writer.WriteSpace();
             writer.WriteName(node.Name);
 
+            /*
+            if (node.Interfaces.Count > 0)
+            {
+                writer.WriteSpace();
+                writer.Write(Keywords.Implements);
+                writer.WriteSpace();
+                writer.WriteMany(node.Interfaces,
+                    (n, w) => writer.WriteNamedType(n),
+                    " & ");
+            }
+            */
+
             WriteDirectives(node.Directives, writer);
 
             WriteLeftBrace(writer);
@@ -250,7 +262,7 @@ namespace HotChocolate.Language.Utilities
             OperationTypeDefinitionNode node,
             ISyntaxWriter writer)
         {
-            writer.WriteIndent(_indent);
+            writer.WriteIndent(_indented);
 
             writer.Write(node.Operation.ToString().ToLowerInvariant());
             writer.Write(": ");
@@ -261,7 +273,7 @@ namespace HotChocolate.Language.Utilities
             FieldDefinitionNode node,
             ISyntaxWriter writer)
         {
-            writer.WriteIndent(_indent);
+            writer.WriteIndent(_indented);
 
             WriteDescription(node.Description, writer);
 
@@ -289,7 +301,7 @@ namespace HotChocolate.Language.Utilities
             InputValueDefinitionNode node,
             ISyntaxWriter writer)
         {
-            writer.WriteIndent(_indent);
+            writer.WriteIndent(_indented);
 
             WriteDescription(node.Description, writer);
 
@@ -371,7 +383,7 @@ namespace HotChocolate.Language.Utilities
             EnumValueDefinitionNode node,
             ISyntaxWriter writer)
         {
-            writer.WriteIndent(_indent);
+            writer.WriteIndent(_indented);
 
             WriteDescription(node.Description, writer);
 
@@ -387,9 +399,9 @@ namespace HotChocolate.Language.Utilities
             if (description is { })
             {
                 writer.WriteStringValue(description);
-                writer.WriteLine(_indent);
-                writer.WriteSpace(!_indent);
-                writer.WriteIndent(_indent);
+                writer.WriteLine(_indented);
+                writer.WriteSpace(!_indented);
+                writer.WriteIndent(_indented);
             }
         }
 
@@ -421,8 +433,8 @@ namespace HotChocolate.Language.Utilities
 
         private void WriteLineOrSpace(ISyntaxWriter writer)
         {
-            writer.WriteLine(_indent);
-            writer.WriteSpace(!_indent);
+            writer.WriteLine(_indented);
+            writer.WriteSpace(!_indented);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -28,6 +29,8 @@ namespace HotChocolate.Language
         {
             yield return Type;
         }
+
+        public override string ToString() => SyntaxPrinter.Print(this);
 
         public OperationTypeDefinitionNode WithLocation(Location? location)
         {

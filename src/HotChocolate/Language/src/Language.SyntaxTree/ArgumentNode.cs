@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -41,6 +42,8 @@ namespace HotChocolate.Language
             yield return Name;
             yield return Value;
         }
+
+        public override string ToString() => SyntaxPrinter.Print(this);
 
         public ArgumentNode WithLocation(Location? location)
         {

@@ -14,14 +14,7 @@ namespace HotChocolate.Language.Utilities
         public const string Directive = "directive";
         public const string Implements = "implements";
         public const string Repeatable = "repeatable";
-
-        // query
-        public const string Query = "query";
-        public const string Mutation = "mutation";
-        public const string Subscription = "subscription";
         public const string Fragment = "fragment";
-
-        // general
         public const string On = "on";
         public const string True = "true";
         public const string False = "false";

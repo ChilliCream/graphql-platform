@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -56,6 +57,8 @@ namespace HotChocolate.Language
         }
 
         public IReadOnlyList<ArgumentNode> Arguments { get; }
+
+        public override string ToString() => SyntaxPrinter.Print(this);
 
         public DirectiveNode WithLocation(Location? location)
         {
