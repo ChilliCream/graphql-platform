@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -145,14 +146,9 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="BooleanValueNode"/>.
         /// </returns>
-        public override string? ToString()
-        {
-#if NETSTANDARD1_4
-            return Value.ToString();
-#else
-            return Value.ToString(CultureInfo.InvariantCulture);
-#endif
-        }
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public BooleanValueNode WithLocation(Location? location) =>
             new BooleanValueNode(location, Value);
@@ -160,8 +156,8 @@ namespace HotChocolate.Language
         public BooleanValueNode WithValue(bool value) =>
             new BooleanValueNode(Location, value);
 
-        public static BooleanValueNode TrueLiteral { get; } = new BooleanValueNode(true);
+        public static BooleanValueNode True { get; } = new BooleanValueNode(true);
 
-        public static BooleanValueNode FalseLiteral { get; } = new BooleanValueNode(false);
+        public static BooleanValueNode False { get; } = new BooleanValueNode(false);
     }
 }

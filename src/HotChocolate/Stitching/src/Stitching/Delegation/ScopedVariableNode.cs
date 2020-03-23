@@ -165,6 +165,11 @@ namespace HotChocolate.Stitching.Delegation
             return Value;
         }
 
+        public string ToString(bool indented)
+        {
+            throw new NotSupportedException();
+        }
+
         public VariableNode ToVariableNode()
         {
             return new VariableNode(new NameNode(ToVariableName()));

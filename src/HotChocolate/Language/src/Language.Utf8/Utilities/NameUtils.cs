@@ -2,7 +2,7 @@
 namespace HotChocolate.Language
 {
     /// <summary>
-    /// Helper methods to handle GrahQL names.
+    /// Helper methods to handle GraphQL names.
     /// </summary>
     public static class NameUtils
     {

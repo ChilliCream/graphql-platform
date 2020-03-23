@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -10,7 +10,6 @@ namespace HotChocolate.Language
         , IEquatable<ObjectValueNode>
     {
         private int? _hash;
-        private string? _stringValue;
 
         public ObjectValueNode(
             params ObjectFieldNode[] fields)
@@ -180,18 +179,9 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string? ToString()
-        {
-            /*
-            if (_stringValue is null)
-            {
-                _stringValue = QuerySyntaxSerializer.Serialize(this, true);
-            }
-            return _stringValue;
-                */
-                // TODO : Fix this
-            throw new NotImplementedException();
-        }
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public ObjectValueNode WithLocation(Location? location)
         {

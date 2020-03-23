@@ -3,6 +3,7 @@ using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -226,10 +227,9 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="FloatValueNode"/>.
         /// </returns>
-        public override string? ToString()
-        {
-            return Value;
-        }
+                public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public float ToSingle()
         {

@@ -95,6 +95,10 @@ namespace HotChocolate.Language.Visitors
                     throw new NotSupportedException(node.GetType().FullName);
             }
         }
+        protected virtual ISyntaxVisitorAction Leave(
+            NameNode node,
+            ISyntaxVisitorContext context) =>
+            DefaultAction;
 
         protected virtual ISyntaxVisitorAction Leave(
             DocumentNode node,
@@ -280,10 +284,5 @@ namespace HotChocolate.Language.Visitors
            InputObjectTypeExtensionNode node,
            ISyntaxVisitorContext context) =>
            DefaultAction;
-
-        protected virtual ISyntaxVisitorAction Leave(
-            NameNode node,
-            ISyntaxVisitorContext context) =>
-            DefaultAction;
     }
 }

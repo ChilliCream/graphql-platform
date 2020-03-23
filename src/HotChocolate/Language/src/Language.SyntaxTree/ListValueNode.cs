@@ -1,6 +1,6 @@
-using System.IO;
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -9,7 +9,6 @@ namespace HotChocolate.Language
         , IEquatable<ListValueNode>
     {
         private int? _hash;
-        private string? _stringValue;
 
         public ListValueNode(IValueNode item)
             : this(null, item)
@@ -183,18 +182,9 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string? ToString()
-        {
-            // TODO : FIX this;
-            throw new NotImplementedException();
-            /*
-            if (_stringValue is null)
-            {
-                _stringValue = QuerySyntaxSerializer.Serialize(this, true);
-            }
-            return _stringValue;
-                */
-        }
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public ListValueNode WithLocation(Location? location)
         {

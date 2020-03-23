@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -140,7 +140,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -167,7 +167,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -194,7 +194,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -221,7 +221,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -248,7 +248,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -275,7 +275,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -302,7 +302,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
