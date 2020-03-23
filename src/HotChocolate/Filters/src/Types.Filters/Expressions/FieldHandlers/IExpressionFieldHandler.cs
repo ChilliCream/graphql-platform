@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
@@ -7,20 +7,12 @@ namespace HotChocolate.Types.Filters.Expressions
     {
         bool Enter(FilterOperationField field,
             ObjectFieldNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures,
-            bool inMemory,
-            out VisitorAction action);
+            IQueryableFilterVisitorContext context,
+            out ISyntaxVisitorAction action);
 
         void Leave(FilterOperationField field,
             ObjectFieldNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<QueryableClosure> closures,
-            bool inMemory);
+            IQueryableFilterVisitorContext context);
     }
 }
 

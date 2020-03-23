@@ -21,8 +21,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 case FilterOperationKind.NotEndsWith:
                     expression = FilterExpressionBuilder.Not(
                         FilterExpressionBuilder.EndsWith(
-                            property, parsedValue)
-                    );
+                            property, parsedValue));
                     return true;
 
                 default:
