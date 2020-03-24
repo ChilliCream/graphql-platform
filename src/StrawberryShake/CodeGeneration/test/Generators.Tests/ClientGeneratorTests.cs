@@ -97,7 +97,6 @@ namespace StrawberryShake.Generators
             outputHandler.Content.MatchSnapshot();
         }
 
-
         [Fact]
         public async Task Two_Nullable_Scalar_Arguments()
         {
@@ -480,6 +479,42 @@ namespace StrawberryShake.Generators
                 query getFoo($input1: FooInput! $input2: FooInput!) {
                     a: foo(input: $input1)
                     b: foo(input: $input2)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+        
+        [Fact]
+        public async Task Known_ByteArray_Scalar_Types()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Foo
+                }
+
+                type Foo {
+                    bar: ByteArray
+                }
+                ";
+
+            string query =
+               @"
+                query getBars {
+                    foo {
+                        bar
+                    }
                 }
                 ";
 
