@@ -1,13 +1,14 @@
 import { graphql } from "gatsby";
 import { Disqus } from "gatsby-plugin-disqus";
 import React, { FunctionComponent } from "react";
-import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
 import { ArticleTitle } from "../misc/blog-article-elements";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 
-import LinkedinIconSvg from "../../images/linkedin-square.svg";
-import TwitterIconSvg from "../../images/twitter-square.svg";
+import GitHubIconSvg from "../../images/github.svg";
+import SlackIconSvg from "../../images/slack.svg";
 
 interface DocPageProperties {
   data: DocPageFragment;
@@ -28,25 +29,42 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
 
   return (
     <Container>
-      <ShareButtons>
-        <TwitterShareButton
-          url={articelUrl}
-          title={title}
-          via={site!.siteMetadata!.author!}
-        >
-          <TwitterIcon />
-        </TwitterShareButton>
-        <LinkedinShareButton url={articelUrl} title={title}>
-          <LinkedinIcon />
-        </LinkedinShareButton>
-      </ShareButtons>
-      <BlogContent>
+      <Navigation>
+        <FixedContainer>
+          <NavigationList>
+            <NavigationItem>Test</NavigationItem>
+          </NavigationList>
+        </FixedContainer>
+      </Navigation>
+      <Content>
         <Article>
           <ArticleTitle>{title}</ArticleTitle>
           <Content dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
         <DisqusWrapper config={disqusConfig} />
-      </BlogContent>
+      </Content>
+      <Aside>
+        <FixedContainer>
+          <CommunityItems>
+            <CommunityItem>
+              <Link to="/test">
+                <IconContainer>
+                  <GitHubIconSvg />
+                </IconContainer>
+                Edit on GitHub
+              </Link>
+            </CommunityItem>
+            <CommunityItem>
+              <Link to="/test">
+                <IconContainer>
+                  <SlackIconSvg />
+                </IconContainer>
+                Discuss on Slack
+              </Link>
+            </CommunityItem>
+          </CommunityItems>
+        </FixedContainer>
+      </Aside>
     </Container>
   );
 };
@@ -71,60 +89,41 @@ export const DocPageGraphQLFragment = graphql`
 
 const Container = styled.div`
   display: flex;
-  flex: 0 0 auto;
   flex-direction: row;
   width: 100%;
-  max-width: 800px;
+  max-width: 1400px;
 `;
 
-const ShareButtons = styled.aside`
-  position: fixed;
-  left: calc(50% - 480px);
-  display: none;
+const Navigation = styled.nav`
+  display: flex;
+  flex: 0 0 250px;
   flex-direction: column;
-  padding: 150px 0 250px;
-  width: 60px;
-
-  > button {
-    flex: 0 0 50px;
-
-    > svg {
-      width: 30px;
-    }
-  }
 
   @media only screen and (min-width: 992px) {
     display: flex;
   }
 `;
 
-const TwitterIcon = styled(TwitterIconSvg)`
-  fill: #1da0f2;
+const FixedContainer = styled.div`
+  position: fixed;
 `;
 
-const LinkedinIcon = styled(LinkedinIconSvg)`
-  fill: #0073b0;
+const NavigationList = styled.ul`
+  margin: 0;
+  padding: 0;
 `;
 
-const BlogContent = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Article = styled.article`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-
-  @media only screen and (min-width: 800px) {
-    border: 1px solid #ccc;
-    border-top: 0 none;
-  }
+const NavigationItem = styled.li`
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
 `;
 
 const Content = styled.div`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
   > * {
     padding-right: 20px;
     padding-left: 20px;
@@ -189,10 +188,44 @@ const Content = styled.div`
   }
 `;
 
+const Article = styled.article`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+
+  @media only screen and (min-width: 800px) {
+    border: 1px solid #ccc;
+    border-top: 0 none;
+  }
+`;
+
 const DisqusWrapper = styled(Disqus)`
   margin: 0 20px;
 
   @media only screen and (min-width: 800px) {
     margin: 0 50px;
   }
+`;
+
+const Aside = styled.aside`
+  display: flex;
+  flex: 0 0 250px;
+  flex-direction: column;
+
+  @media only screen and (min-width: 992px) {
+    display: flex;
+  }
+`;
+
+const CommunityItems = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+`;
+
+const CommunityItem = styled.li`
+  margin: 0;
+  padding: 0;
 `;
