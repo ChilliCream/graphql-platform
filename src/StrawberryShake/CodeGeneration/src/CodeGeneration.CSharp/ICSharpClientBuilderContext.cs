@@ -20,10 +20,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         string GetFullTypeName(ComplexOutputTypeModel type);
 
-        string GetFullTypeName(IOutputType type, SelectionSetNode selectionSet);
+        string GetFullTypeName(IOutputType type, SelectionSetNode? selectionSet);
 
         string GetFullTypeName(string typeName);
 
+        string GetSerializationTypeName(IType type);
+
         string CreateTypeName(string typeName);
+
+        bool IsReferenceType(IOutputType type, SelectionSetNode? selectionSet);
     }
 }

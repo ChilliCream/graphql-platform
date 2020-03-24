@@ -23,6 +23,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             NameString name,
             ISet<string>? skipNames = null);
 
+        NameString GetOrCreateName(NameString name);
+
         PossibleSelections CollectFields(
             INamedOutputType type,
             SelectionSetNode selectionSet,

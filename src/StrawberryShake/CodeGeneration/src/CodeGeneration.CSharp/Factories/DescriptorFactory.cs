@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -315,67 +314,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .ToArray());
         }
 
-        public static ResultParserDescriptor CreateResultParserDescriptor(
-            ICSharpClientBuilderContext context,
-            ParserModel model)
-        {
-            var temp = new StringBuilder();
-            var parserMethods = new List<ResultParserMethodDescriptor>();
 
-            foreach (FieldParserModel fieldParser in model.FieldParsers)
-            {
-                var list = new List<ResultTypeDescriptor>();
-
-                foreach (ComplexOutputTypeModel possibleType in fieldParser.PossibleTypes)
-                {
-                    list.Add(new ResultTypeDescriptor(
-                        possibleType.Name,
-                        fieldParser.ReturnType.
-
-                    ))
-                }
-
-
-                parserMethods.Add(new ResultParserMethodDescriptor(
-                    CreateMethodName(fieldParser.Path),
-                    context.GetFullTypeName(fieldParser.ReturnType),
-
-                ))
-            }
-
-            new ResultParserDescriptor(
-                model.Name,
-                context.Namespace,
-                context.GetFullTypeName(model.ReturnType),
-                new[] {
-                    new ResultParserMethodDescriptor(
-                        "ParseFooBar",
-                        "IBar",
-                        new [] {
-                            new ResultTypeDescriptor("Abc", true, true, true),
-                            new ResultTypeDescriptor("Def", true, false, true)
-                        },
-                        false,
-                        new [] {
-                            new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
-                        }
-                    ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
-                Array.Empty<ValueSerializerDescriptor>());
-
-            string CreateMethodName(Path path)
-            {
-                Path current = path;
-                temp.Clear();
-
-                while (current is { })
-                {
-                    temp.Insert(0, path.Name);
-                }
-
-                temp.Insert(0, "Parse");
-                return temp.ToString();
-            }
-        }
     }
 }

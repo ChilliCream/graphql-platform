@@ -8,6 +8,7 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Types;
 using StrawberryShake.CodeGeneration.Utilities;
 using FieldSelection = StrawberryShake.CodeGeneration.Utilities.FieldSelection;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -164,6 +165,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .First(t => t.SelectionSet == operationDefinition.SelectionSet && t.IsInterface);
 
             var parser = new ParserModel(
+                context.GetOrCreateName(
+                    GetClassName(operationDefinition.Name!.Value, "ResultParser")),
                 operationDefinition,
                 returnType,
                 context.FieldParsers.Where(t => t.Operation == operationDefinition).ToList());

@@ -9,14 +9,12 @@ namespace StrawberryShake.CodeGeneration
             string name,
             string resultType,
             IReadOnlyList<ResultTypeDescriptor> resultTypeComponents,
-            bool isRoot,
-            IReadOnlyList<ResultFieldDescriptor> fields)
+            bool isRoot)
         {
             Name = name;
             ResultType = resultType;
             ResultTypeComponents = resultTypeComponents;
             IsRoot = isRoot;
-            Fields = fields;
         }
 
         public string Name { get; }
@@ -26,7 +24,13 @@ namespace StrawberryShake.CodeGeneration
         public IReadOnlyList<ResultTypeDescriptor> ResultTypeComponents { get; }
 
         public bool IsRoot { get; }
+    }
 
-        public IReadOnlyList<ResultFieldDescriptor> Fields { get; }
+    public class ResultParserPossibleTypeDescriptor
+        : ICodeDescriptor
+    {
+        public string Name => throw new System.NotImplementedException();
+
+        public IReadOnlyList<ResultTypeDescriptor> ResultTypeComponents { get; }
     }
 }

@@ -124,6 +124,26 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             return current;
         }
 
+        public NameString GetOrCreateName(NameString name)
+        {
+            var current = name;
+
+            if (_usedNames.Contains(current))
+            {
+                for (int i = 1; i < int.MaxValue; i++)
+                {
+                    current = name + i;
+                    if (_usedNames.Add(current))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            _usedNames.Add(current);
+            return current;
+        }
+
         public void Register(ComplexOutputTypeModel type, bool update = false)
         {
             if (!_types.TryGetValue(type.SelectionSet,
