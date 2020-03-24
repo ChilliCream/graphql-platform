@@ -196,6 +196,7 @@ namespace HotChocolate.Stitching.Introspection
                 new NameNode(type.Name),
                 CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
                 CreateFields(type.Fields)
             );
         }
