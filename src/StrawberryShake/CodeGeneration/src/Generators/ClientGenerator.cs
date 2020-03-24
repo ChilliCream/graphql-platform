@@ -41,6 +41,7 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo(ScalarNames.Date, typeof(DateTime), typeof(string)),
                 new LeafTypeInfo(ScalarNames.DateTime, typeof(DateTimeOffset), typeof(string)),
                 new LeafTypeInfo(ScalarNames.Byte, typeof(byte) , typeof(byte)),
+                //new LeafTypeInfo(ScalarNames.ByteArray, typeof(byte[]) , typeof(string)),
                 new LeafTypeInfo(ScalarNames.Short, typeof(short)),
                 new LeafTypeInfo(ScalarNames.Long, typeof(long)),
                 new LeafTypeInfo(ScalarNames.Decimal, typeof(decimal), typeof(decimal)),
