@@ -184,6 +184,7 @@ namespace HotChocolate.Utilities.Introspection
                 new NameNode(type.Name),
                 CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
+                Array.Empty<NamedTypeNode>(),
                 CreateFields(type.Fields)
             );
         }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language.Properties;
 
@@ -327,6 +327,8 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
+            List<NamedTypeNode> interfaces =
+                ParseImplementsInterfaces();
             List<DirectiveNode> directives =
                 ParseDirectives(true);
             List<FieldDefinitionNode> fields =
@@ -340,6 +342,7 @@ namespace HotChocolate.Language
                 name,
                 TakeDescription(),
                 directives,
+                interfaces,
                 fields
             );
         }
