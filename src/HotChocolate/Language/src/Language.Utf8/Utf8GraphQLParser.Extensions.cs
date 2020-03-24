@@ -1,7 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
-using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -169,6 +167,7 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
+            List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
             List<DirectiveNode> directives = ParseDirectives(true);
             List<FieldDefinitionNode> fields = ParseFieldsDefinition();
             Location? location = CreateLocation(in start);
@@ -184,6 +183,7 @@ namespace HotChocolate.Language
                 location,
                 name,
                 directives,
+                interfaces,
                 fields
             );
         }

@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -12,12 +11,8 @@ namespace HotChocolate.Language
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<NamedTypeNode> interfaces,
             IReadOnlyList<FieldDefinitionNode> fields)
-            : base(location, name, directives, fields)
+            : base(location, name, directives, interfaces, fields)
         {
-            Interfaces = interfaces
-                ?? throw new ArgumentNullException(nameof(interfaces));
         }
-
-        public IReadOnlyList<NamedTypeNode> Interfaces { get; }
     }
 }

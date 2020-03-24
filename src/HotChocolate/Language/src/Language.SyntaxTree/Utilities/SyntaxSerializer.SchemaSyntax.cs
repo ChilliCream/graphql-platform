@@ -98,7 +98,6 @@ namespace HotChocolate.Language.Utilities
             writer.WriteSpace();
             writer.WriteName(node.Name);
 
-            /*
             if (node.Interfaces.Count > 0)
             {
                 writer.WriteSpace();
@@ -108,7 +107,6 @@ namespace HotChocolate.Language.Utilities
                     (n, w) => writer.WriteNamedType(n),
                     " & ");
             }
-            */
 
             WriteDirectives(node.Directives, writer);
 
