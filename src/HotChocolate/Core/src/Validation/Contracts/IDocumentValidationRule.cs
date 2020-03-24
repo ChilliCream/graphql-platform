@@ -6,6 +6,6 @@ namespace HotChocolate.Validation
     {
         DocumentValidationResult Validate(
             ISchema schema,
-            DocumentNode queryDocument);
+            DocumentNode document);
     }
 }

@@ -1,150 +1,74 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 
 namespace HotChocolate.Validation.Rules
 {
-    internal sealed class AllVariablesUsedVisitorOld
-        : QueryVisitorErrorBase
+    /// <summary>
+    /// All variables defined by an operation must be used in that operation
+    /// or a fragment transitively included by that operation.
+    ///
+    /// Unused variables cause a validation error.
+    ///
+    /// http://facebook.github.io/graphql/June2018/#sec-All-Variables-Used
+    ///
+    /// AND
+    ///
+    /// Variables are scoped on a per‐operation basis. That means that
+    /// any variable used within the context of an operation must be defined
+    /// at the top level of that operation
+    ///
+    /// https://facebook.github.io/graphql/June2018/#sec-All-Variable-Uses-Defined
+    /// </summary>
+    internal sealed class AllVariablesUsedVisitor : DocumentValidationVisitor
     {
-        private readonly HashSet<string> _usedVariables = new HashSet<string>();
-
-        public AllVariablesUsedVisitor(ISchema schema)
-            : base(schema)
+        protected override ISyntaxVisitorAction Enter(
+            VariableDefinitionNode node,
+            IDocumentValidationContext context)
         {
+            context.UnusedVariables.Add(node.Variable.Name.Value);
+            context.DeclaredVariables.Add(node.Variable.Name.Value);
+            return Continue;
         }
 
-        protected override void VisitDocument(
-            DocumentNode document,
-            ImmutableStack<ISyntaxNode> path)
+        protected override ISyntaxVisitorAction Enter(
+            VariableNode node,
+            IDocumentValidationContext context)
         {
-            var declaredVariables = new HashSet<string>();
-
-            foreach (OperationDefinitionNode operation in document.Definitions
-                .OfType<OperationDefinitionNode>())
-            {
-                foreach (var variableName in operation.VariableDefinitions
-                    .Select(t => t.Variable.Name.Value))
-                {
-                    declaredVariables.Add(variableName);
-                }
-
-                VisitOperationDefinition(operation,
-                    path.Push(document));
-
-                var unusedVariables = new HashSet<string>(
-                    declaredVariables);
-
-                unusedVariables.ExceptWith(_usedVariables);
-                if (unusedVariables.Count > 0)
-                {
-                    Errors.Add(new ValidationError(
-                        "The following variables were not used: " +
-                        $"{string.Join(", ", unusedVariables)}.",
-                        operation));
-                }
-
-                _usedVariables.ExceptWith(declaredVariables);
-                if (_usedVariables.Count > 0)
-                {
-                    Errors.Add(new ValidationError(
-                        "The following variables were not declared: " +
-                        $"{string.Join(", ", _usedVariables)}.",
-                        operation));
-                }
-
-                declaredVariables.Clear();
-                _usedVariables.Clear();
-            }
+            context.UsedVariables.Remove(node.Name.Value);
+            return Continue;
         }
 
-        protected override void VisitField(
-            FieldNode field,
-            IType type,
-            ImmutableStack<ISyntaxNode> path)
+        protected override ISyntaxVisitorAction Leave(
+            OperationDefinitionNode node,
+            IDocumentValidationContext context)
         {
-            VisitArguments(field.Arguments);
-            base.VisitField(field, type, path);
+            context.UnusedVariables.ExceptWith(context.UsedVariables);
+            context.UsedVariables.ExceptWith(context.DeclaredVariables);
+
+            if (context.UnusedVariables.Count > 0)
+            {
+                // TODO : Resources
+                context.Errors.Add(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "The following variables were not used: " +
+                            $"{string.Join(", ", context.UnusedVariables)}.")
+                        .AddLocation(node)
+                        .Build());
+            }
+
+            if (context.UsedVariables.Count > 0)
+            {
+                context.Errors.Add(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "The following variables were not declared: " +
+                            $"{string.Join(", ", context.UsedVariables)}.")
+                        .AddLocation(node)
+                        .Build());
+            }
+
+            return Continue;
         }
-
-        protected override void VisitDirective(
-            DirectiveNode directive,
-            ImmutableStack<ISyntaxNode> path)
-        {
-            VisitArguments(directive.Arguments);
-            base.VisitDirective(directive, path);
-        }
-
-        private void VisitArguments(IEnumerable<ArgumentNode> arguments)
-        {
-            foreach (ArgumentNode argumentNode in arguments)
-            {
-                VisitValue(argumentNode.Value);
-            }
-        }
-
-        private void VisitValue(IValueNode value)
-        {
-            if (value is VariableNode v)
-            {
-                _usedVariables.Add(v.Value);
-            }
-
-            if (value is ObjectValueNode o)
-            {
-                foreach (ObjectFieldNode field in o.Fields)
-                {
-                    VisitValue(field.Value);
-                }
-            }
-
-            if (value is ListValueNode l)
-            {
-                foreach (IValueNode item in l.Items)
-                {
-                    VisitValue(item);
-                }
-            }
-        }
-
-        public class AllVariablesUsedVisitor : SyntaxWalker
-        {
-            protected override ISyntaxVisitorAction Enter(
-                VariableDefinitionNode node,
-                ISyntaxVisitorContext context)
-            {
-                ((IDocumentValidationContext)context).Track.Add(node.Variable.Name.Value);
-                return Continue;
-            }
-
-            protected override ISyntaxVisitorAction Enter(
-                VariableNode node,
-                ISyntaxVisitorContext context)
-            {
-                ((IDocumentValidationContext)context).Track.Remove(node.Name.Value);
-                return Continue;
-            }
-
-            protected override ISyntaxVisitorAction Leave(
-                OperationDefinitionNode node,
-                ISyntaxVisitorContext context)
-            {
-                if (((IDocumentValidationContext)context).Track.Count > 0)
-                {
-
-                }
-                return Continue;
-            }
-        }
-    }
-
-    public interface IDocumentValidationContext
-    {
-        ISet<string> Track { get; }
-
-
     }
 }
