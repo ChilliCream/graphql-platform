@@ -45,6 +45,7 @@ namespace StrawberryShake.Generators.CSharp
             {
                 new LeafTypeInfo("String", typeof(string), typeof(string)),
                 new LeafTypeInfo("Byte", typeof(byte), typeof(byte)),
+                new LeafTypeInfo("ByteArray", typeof(byte[]), typeof(string)),
                 new LeafTypeInfo("Short", typeof(short), typeof(short)),
                 new LeafTypeInfo("Int", typeof(int), typeof(int)),
                 new LeafTypeInfo("Long", typeof(long), typeof(long)),
