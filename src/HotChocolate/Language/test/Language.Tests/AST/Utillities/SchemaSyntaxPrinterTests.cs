@@ -157,6 +157,19 @@ namespace HotChocolate.Language.Utilities
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void Serialize_ObjectTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend type Foo { bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
 
         [Fact]
         public void Serialize_InterfaceTypeDefNoIndent_InOutShouldBeTheSame()
@@ -310,6 +323,19 @@ namespace HotChocolate.Language.Utilities
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void Serialize_InterfaceTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend interface Foo { bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
 
         [Fact]
         public void Serialize_UnionTypeDefNoIndent_InOutShouldBeTheSame()
@@ -396,6 +422,20 @@ namespace HotChocolate.Language.Utilities
         }
 
         [Fact]
+        public void Serialize_UnionTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend union A = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
         public void Serialize_EnumTypeDefNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -477,6 +517,20 @@ namespace HotChocolate.Language.Utilities
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_EnumTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend enum A { B C }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
         }
 
         [Fact]
@@ -566,6 +620,20 @@ namespace HotChocolate.Language.Utilities
         }
 
         [Fact]
+        public void Serialize_InputObjectTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend input A { b: String }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
         public void Serialize_ScalarTypeDefNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -622,6 +690,20 @@ namespace HotChocolate.Language.Utilities
         }
 
         [Fact]
+        public void Serialize_ScalarTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend scalar A @a @b(c: 1)";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
         public void Serialize_SchemaDefWithOpNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -675,6 +757,20 @@ namespace HotChocolate.Language.Utilities
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_SchemaTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend schema { query: A }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
         }
     }
 }
