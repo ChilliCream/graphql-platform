@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Sorting
             {
                 return Expression.Call(
                     type,
-                    "OrderByDescending",
+                    nameof(Queryable.OrderByDescending),
                     new[] { operation.Parameter.Type, operation.ReturnType },
                     source,
                     lambda);
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Sorting
 
             return Expression.Call(
                 type,
-                "OrderBy",
+                nameof(Queryable.OrderBy),
                 new[] { operation.Parameter.Type, operation.ReturnType },
                 source,
                 lambda);
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Sorting
             {
                 return Expression.Call(
                     type,
-                    "ThenByDescending",
+                    nameof(Queryable.ThenByDescending),
                     new[] { operation.Parameter.Type, operation.ReturnType },
                     source,
                     lambda);
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Sorting
 
             return Expression.Call(
                 type,
-                "ThenBy",
+                nameof(Queryable.ThenBy),
                 new[] { operation.Parameter.Type, operation.ReturnType },
                 source,
                 lambda);
@@ -72,7 +72,7 @@ namespace HotChocolate.Types.Sorting
              SortOperationInvocation operation)
         {
             return Expression.Lambda(
-                 operation.ExpressionBody,
+                operation.ExpressionBody,
                 operation.Parameter
            );
         }
