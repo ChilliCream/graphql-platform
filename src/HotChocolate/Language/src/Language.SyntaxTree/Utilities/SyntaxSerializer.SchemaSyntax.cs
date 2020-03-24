@@ -12,6 +12,8 @@ namespace HotChocolate.Language.Utilities
 
         private void VisitSchemaExtension(SchemaExtensionNode node, ISyntaxWriter writer)
         {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
             VisitSchemaDefinitionBase(node, writer);
         }
 
@@ -40,6 +42,8 @@ namespace HotChocolate.Language.Utilities
 
         private void VisitObjectTypeExtension(ObjectTypeExtensionNode node, ISyntaxWriter writer)
         {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
             VisitObjectTypeDefinitionBase(node, writer);
         }
 
@@ -87,6 +91,8 @@ namespace HotChocolate.Language.Utilities
             InterfaceTypeExtensionNode node,
             ISyntaxWriter writer)
         {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
             VisitInterfaceTypeDefinitionBase(node, writer);
         }
 
@@ -134,6 +140,8 @@ namespace HotChocolate.Language.Utilities
             UnionTypeExtensionNode node,
             ISyntaxWriter writer)
         {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
             VisitUnionTypeDefinitionBase(node, writer);
         }
 
@@ -168,6 +176,8 @@ namespace HotChocolate.Language.Utilities
             EnumTypeExtensionNode node,
             ISyntaxWriter writer)
         {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
             VisitEnumTypeDefinitionBase(node, writer);
         }
 
@@ -205,6 +215,8 @@ namespace HotChocolate.Language.Utilities
             InputObjectTypeExtensionNode node,
             ISyntaxWriter writer)
         {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
             VisitInputObjectTypeDefinitionBase(node, writer);
         }
 
@@ -242,6 +254,8 @@ namespace HotChocolate.Language.Utilities
             ScalarTypeExtensionNode node,
             ISyntaxWriter writer)
         {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
             VisitScalarTypeDefinitionBase(node, writer);
         }
 
