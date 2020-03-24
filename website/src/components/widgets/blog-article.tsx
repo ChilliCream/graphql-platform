@@ -1,9 +1,10 @@
+import { graphql } from "gatsby";
 import Img, { FluidObject } from "gatsby-image";
 import { Disqus } from "gatsby-plugin-disqus";
 import React, { FunctionComponent } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
-import { Maybe } from "../../../graphql-types";
+import { BlogArticleFragment } from "../../../graphql-types";
 import { ArticleTitle } from "../misc/blog-article-elements";
 import { BlogArticleMetadata } from "../misc/blog-article-metadata";
 import { BlogArticleTags } from "../misc/blog-article-tags";
@@ -12,43 +13,26 @@ import LinkedinIconSvg from "../../images/linkedin-square.svg";
 import TwitterIconSvg from "../../images/twitter-square.svg";
 
 interface BlogArticleProperties {
-  author: string;
-  authorImageUrl: string;
-  authorUrl: string;
-  baseUrl: string;
-  date: string;
-  featuredImage?: FluidObject | FluidObject[];
-  htmlContent: string;
-  path: string;
-  readingTime: string;
-  tags?: Maybe<string>[] | null;
-  title: string;
-  twitterAuthor: string;
+  data: BlogArticleFragment;
 }
 
 export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
-  author,
-  authorImageUrl,
-  authorUrl,
-  baseUrl,
-  date,
-  featuredImage,
-  htmlContent,
-  path,
-  readingTime,
-  tags,
-  title,
-  twitterAuthor,
+  data: { markdownRemark, site },
 }) => {
-  const articelUrl = baseUrl + path;
+  const { frontmatter, html } = markdownRemark!;
+  const path = frontmatter!.path!;
+  const articelUrl = site!.siteMetadata!.baseUrl! + path;
+  const title = frontmatter!.title!;
   const disqusConfig = {
     url: articelUrl,
     identifier: path,
-    title: title,
+    title,
   };
-  const existingTags: string[] = tags
-    ? (tags.filter(tag => tag && tag.length > 0) as string[])
+  const existingTags: string[] = frontmatter!.tags!
+    ? (frontmatter!.tags!.filter(tag => tag && tag.length > 0) as string[])
     : [];
+  const featuredImage = frontmatter!.featuredImage?.childImageSharp
+    ?.fluid as FluidObject;
 
   return (
     <Container>
@@ -56,7 +40,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
         <TwitterShareButton
           url={articelUrl}
           title={title}
-          via={twitterAuthor}
+          via={site!.siteMetadata!.author!}
           hashtags={existingTags}
         >
           <TwitterIcon />
@@ -69,21 +53,42 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
         <Article>
           {featuredImage && <Img fluid={featuredImage} />}
           <ArticleTitle>{title}</ArticleTitle>
-          <BlogArticleMetadata
-            author={author}
-            authorImageUrl={authorImageUrl}
-            authorUrl={authorUrl}
-            date={date}
-            readingTime={readingTime}
-          />
+          <BlogArticleMetadata data={markdownRemark!} />
           <BlogArticleTags tags={existingTags} />
-          <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
+          <Content dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
         <DisqusWrapper config={disqusConfig} />
       </BlogContent>
     </Container>
   );
 };
+
+export const BlogArticleGraphQLFragment = graphql`
+  fragment BlogArticle on Query {
+    markdownRemark(frontmatter: { path: { eq: $path } }) {
+      frontmatter {
+        featuredImage {
+          childImageSharp {
+            fluid(maxWidth: 800) {
+              ...GatsbyImageSharpFluid
+            }
+          }
+        }
+        path
+        title
+        ...BlogArticleTags
+      }
+      html
+      ...BlogArticleMetadata
+    }
+    site {
+      siteMetadata {
+        author
+        baseUrl
+      }
+    }
+  }
+`;
 
 const Container = styled.div`
   display: flex;

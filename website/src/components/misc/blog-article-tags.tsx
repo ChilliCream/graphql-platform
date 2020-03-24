@@ -1,3 +1,4 @@
+import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { Link } from "./link";
@@ -23,6 +24,12 @@ export const BlogArticleTags: FunctionComponent<BlogArticleTagsProperties> = ({
     </>
   );
 };
+
+export const BlogArticleTagsGraphQLFragment = graphql`
+  fragment BlogArticleTags on MarkdownRemarkFrontmatter {
+    tags
+  }
+`;
 
 const Tags = styled.ul`
   margin: 0 20px 20px;

@@ -1,5 +1,5 @@
 ---
-path: "/docs/test"
+path: "/docs/sub"
 title: "test"
 ---
 

@@ -26,7 +26,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
       }
       docs: allMarkdownRemark(
         limit: 1000
-        filter: { frontmatter: { path: { glob: "/docs/**/*" } } }
+        filter: { frontmatter: { path: { regex: "//docs(/.*)?/" } } }
       ) {
         pages: edges {
           page: node {
@@ -34,6 +34,9 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
               path
             }
           }
+        }
+        navigation: group(field: frontmatter___navigation) {
+          fieldValue
         }
       }
     }

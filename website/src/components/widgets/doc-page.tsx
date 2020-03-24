@@ -1,39 +1,39 @@
+import { graphql } from "gatsby";
 import { Disqus } from "gatsby-plugin-disqus";
 import React, { FunctionComponent } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
+import { DocPageFragment } from "../../../graphql-types";
 import { ArticleTitle } from "../misc/blog-article-elements";
 
 import LinkedinIconSvg from "../../images/linkedin-square.svg";
 import TwitterIconSvg from "../../images/twitter-square.svg";
 
 interface DocPageProperties {
-  baseUrl: string;
-  htmlContent: string;
-  path: string;
-  readingTime: string;
-  title: string;
-  twitterAuthor: string;
+  data: DocPageFragment;
 }
 
 export const DocPage: FunctionComponent<DocPageProperties> = ({
-  baseUrl,
-  htmlContent,
-  path,
-  title,
-  twitterAuthor,
+  data: { markdownRemark, site },
 }) => {
-  const articelUrl = baseUrl + path;
+  const { frontmatter, html } = markdownRemark!;
+  const path = frontmatter!.path!;
+  const articelUrl = site!.siteMetadata!.baseUrl! + path;
+  const title = frontmatter!.title!;
   const disqusConfig = {
     url: articelUrl,
     identifier: path,
-    title: title,
+    title,
   };
 
   return (
     <Container>
       <ShareButtons>
-        <TwitterShareButton url={articelUrl} title={title} via={twitterAuthor}>
+        <TwitterShareButton
+          url={articelUrl}
+          title={title}
+          via={site!.siteMetadata!.author!}
+        >
           <TwitterIcon />
         </TwitterShareButton>
         <LinkedinShareButton url={articelUrl} title={title}>
@@ -43,13 +43,31 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       <BlogContent>
         <Article>
           <ArticleTitle>{title}</ArticleTitle>
-          <Content dangerouslySetInnerHTML={{ __html: htmlContent }} />
+          <Content dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
         <DisqusWrapper config={disqusConfig} />
       </BlogContent>
     </Container>
   );
 };
+
+export const DocPageGraphQLFragment = graphql`
+  fragment DocPage on Query {
+    markdownRemark(frontmatter: { path: { eq: $path } }) {
+      frontmatter {
+        path
+        title
+      }
+      html
+    }
+    site {
+      siteMetadata {
+        author
+        baseUrl
+      }
+    }
+  }
+`;
 
 const Container = styled.div`
   display: flex;

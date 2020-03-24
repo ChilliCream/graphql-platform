@@ -731,6 +731,7 @@ export type FileFieldsEnum =
   'childMarkdownRemark___frontmatter___featuredImage___publicURL' |
   'childMarkdownRemark___frontmatter___featuredImage___id' |
   'childMarkdownRemark___frontmatter___featuredImage___children' |
+  'childMarkdownRemark___frontmatter___navigation' |
   'childMarkdownRemark___excerpt' |
   'childMarkdownRemark___rawMarkdownBody' |
   'childMarkdownRemark___fileAbsolutePath' |
@@ -1568,6 +1569,7 @@ export type MarkdownRemarkFieldsEnum =
   'frontmatter___featuredImage___childMarkdownRemark___timeToRead' |
   'frontmatter___featuredImage___childMarkdownRemark___tableOfContents' |
   'frontmatter___featuredImage___childMarkdownRemark___children' |
+  'frontmatter___navigation' |
   'excerpt' |
   'rawMarkdownBody' |
   'fileAbsolutePath' |
@@ -1720,6 +1722,7 @@ export type MarkdownRemarkFrontmatter = {
   authorUrl?: Maybe<Scalars['String']>;
   authorImageUrl?: Maybe<Scalars['String']>;
   featuredImage?: Maybe<File>;
+  navigation?: Maybe<Scalars['String']>;
 };
 
 
@@ -1739,6 +1742,7 @@ export type MarkdownRemarkFrontmatterFilterInput = {
   authorUrl?: Maybe<StringQueryOperatorInput>;
   authorImageUrl?: Maybe<StringQueryOperatorInput>;
   featuredImage?: Maybe<FileFilterInput>;
+  navigation?: Maybe<StringQueryOperatorInput>;
 };
 
 export type MarkdownRemarkGroupConnection = {
@@ -3190,6 +3194,10 @@ export type GetEfMeetsGraphQlImageQueryVariables = {};
 
 export type GetEfMeetsGraphQlImageQuery = { placeholderImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> };
 
+export type BlogArticleMetadataFragment = { fields: Maybe<{ readingTime: Maybe<Pick<MarkdownRemarkFieldsReadingTime, 'text'>> }>, frontmatter: Maybe<Pick<MarkdownRemarkFrontmatter, 'author' | 'authorImageUrl' | 'authorUrl' | 'date'>> };
+
+export type BlogArticleTagsFragment = Pick<MarkdownRemarkFrontmatter, 'tags'>;
+
 export type Unnamed_1_QueryVariables = {};
 
 
@@ -3205,6 +3213,31 @@ export type GetHeaderDataQueryVariables = {};
 
 export type GetHeaderDataQuery = { site: Maybe<{ siteMetadata: Maybe<{ topnav: Maybe<Array<Maybe<Pick<SiteSiteMetadataTopnav, 'name' | 'link'>>>>, tools: Maybe<Pick<SiteSiteMetadataTools, 'github' | 'slack' | 'twitter'>> }> }> };
 
+export type BlogArticleFragment = { markdownRemark: Maybe<(
+    Pick<MarkdownRemark, 'html'>
+    & { frontmatter: Maybe<(
+      Pick<MarkdownRemarkFrontmatter, 'path' | 'title'>
+      & { featuredImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> }
+      & BlogArticleTagsFragment
+    )> }
+    & BlogArticleMetadataFragment
+  )>, site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'author' | 'baseUrl'>> }> };
+
+export type BlogArticlesFragment = { edges: Array<{ node: (
+      Pick<MarkdownRemark, 'id'>
+      & { frontmatter: Maybe<(
+        Pick<MarkdownRemarkFrontmatter, 'path' | 'title'>
+        & { featuredImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> }
+        & BlogArticleTagsFragment
+      )> }
+      & BlogArticleMetadataFragment
+    ) }> };
+
+export type DocPageFragment = { markdownRemark: Maybe<(
+    Pick<MarkdownRemark, 'html'>
+    & { frontmatter: Maybe<Pick<MarkdownRemarkFrontmatter, 'path' | 'title'>> }
+  )>, site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'author' | 'baseUrl'>> }> };
+
 export type GetStartpageDataQueryVariables = {};
 
 
@@ -3215,13 +3248,7 @@ export type GetBlogArticleQueryVariables = {
 };
 
 
-export type GetBlogArticleQuery = { markdownRemark: Maybe<(
-    Pick<MarkdownRemark, 'html'>
-    & { fields: Maybe<{ readingTime: Maybe<Pick<MarkdownRemarkFieldsReadingTime, 'text'>> }>, frontmatter: Maybe<(
-      Pick<MarkdownRemarkFrontmatter, 'author' | 'authorImageUrl' | 'authorUrl' | 'date' | 'path' | 'tags' | 'title'>
-      & { featuredImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> }
-    )> }
-  )>, site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'author' | 'baseUrl'>> }> };
+export type GetBlogArticleQuery = BlogArticleFragment;
 
 export type GetBlogArticlesQueryVariables = {
   skip: Scalars['Int'];
@@ -3229,39 +3256,21 @@ export type GetBlogArticlesQueryVariables = {
 };
 
 
-export type GetBlogArticlesQuery = { allMarkdownRemark: { edges: Array<{ node: (
-        Pick<MarkdownRemark, 'id' | 'excerpt'>
-        & { fields: Maybe<{ readingTime: Maybe<Pick<MarkdownRemarkFieldsReadingTime, 'text'>> }>, frontmatter: Maybe<(
-          Pick<MarkdownRemarkFrontmatter, 'author' | 'authorImageUrl' | 'authorUrl' | 'date' | 'path' | 'tags' | 'title'>
-          & { featuredImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> }
-        )> }
-      ) }> } };
+export type GetBlogArticlesQuery = { allMarkdownRemark: BlogArticlesFragment };
 
 export type GetBlogArticlesByTagQueryVariables = {
   tag?: Maybe<Scalars['String']>;
 };
 
 
-export type GetBlogArticlesByTagQuery = { allMarkdownRemark: (
-    Pick<MarkdownRemarkConnection, 'totalCount'>
-    & { edges: Array<{ node: (
-        Pick<MarkdownRemark, 'id' | 'excerpt'>
-        & { fields: Maybe<{ readingTime: Maybe<Pick<MarkdownRemarkFieldsReadingTime, 'text'>> }>, frontmatter: Maybe<(
-          Pick<MarkdownRemarkFrontmatter, 'author' | 'authorImageUrl' | 'authorUrl' | 'date' | 'path' | 'tags' | 'title'>
-          & { featuredImage: Maybe<{ childImageSharp: Maybe<{ fluid: Maybe<GatsbyImageSharpFluidFragment> }> }> }
-        )> }
-      ) }> }
-  ) };
+export type GetBlogArticlesByTagQuery = { allMarkdownRemark: BlogArticlesFragment };
 
 export type GetDocPageQueryVariables = {
   path: Scalars['String'];
 };
 
 
-export type GetDocPageQuery = { markdownRemark: Maybe<(
-    Pick<MarkdownRemark, 'html'>
-    & { fields: Maybe<{ readingTime: Maybe<Pick<MarkdownRemarkFieldsReadingTime, 'text'>> }>, frontmatter: Maybe<Pick<MarkdownRemarkFrontmatter, 'path' | 'title'>> }
-  )>, site: Maybe<{ siteMetadata: Maybe<Pick<SiteSiteMetadata, 'author' | 'baseUrl'>> }> };
+export type GetDocPageQuery = DocPageFragment;
 
 export type GatsbyImageSharpFixedFragment = Pick<ImageSharpFixed, 'base64' | 'width' | 'height' | 'src' | 'srcSet'>;
 
