@@ -1,6 +1,5 @@
-using System.Collections.Generic; 
 using System.Collections.Generic;
-using HotChocolate.Language.Utilities; 
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -32,6 +31,11 @@ namespace HotChocolate.Language
             }
 
             yield return Name;
+
+            foreach (NamedTypeNode interfaceName in Interfaces)
+            {
+                yield return interfaceName;
+            }
 
             foreach (DirectiveNode directive in Directives)
             {
