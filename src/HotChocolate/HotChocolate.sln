@@ -155,6 +155,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Voy
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Server", "AspNetCore\src\Server\HotChocolate.Server.csproj", "{2C459591-6C38-43AB-A5D1-EF0A219C6488}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "..\GreenDonut\src\Core\GreenDonut.csproj", "{7FB675AE-6805-4A99-AC74-2E43836A2D0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -789,6 +791,18 @@ Global
 		{2C459591-6C38-43AB-A5D1-EF0A219C6488}.Release|x64.Build.0 = Release|Any CPU
 		{2C459591-6C38-43AB-A5D1-EF0A219C6488}.Release|x86.ActiveCfg = Release|Any CPU
 		{2C459591-6C38-43AB-A5D1-EF0A219C6488}.Release|x86.Build.0 = Release|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Debug|x64.Build.0 = Debug|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Debug|x86.Build.0 = Debug|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Release|x64.ActiveCfg = Release|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Release|x64.Build.0 = Release|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Release|x86.ActiveCfg = Release|Any CPU
+		{7FB675AE-6805-4A99-AC74-2E43836A2D0C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

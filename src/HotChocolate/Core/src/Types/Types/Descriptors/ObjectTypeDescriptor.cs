@@ -250,8 +250,26 @@ namespace HotChocolate.Types.Descriptors
             Expression<Func<TResolver, object>> propertyOrMethod) =>
             Field<TResolver, object>(propertyOrMethod);
 
+        public IObjectFieldDescriptor Field<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod, NameString name) =>
+            Field<TResolver, object>(propertyOrMethod, name);
+
         public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
             Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
+        {
+            return FieldImpl(propertyOrMethod,
+                member => Fields.FirstOrDefault(t => t.Definition.Member == member));
+        }
+
+        public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
+            Expression<Func<TResolver, TPropertyType>> propertyOrMethod, NameString name)
+        {
+            return FieldImpl(propertyOrMethod,
+                member => Fields.FirstOrDefault(t => t.Definition.Name.Equals(name)));
+        }
+
+        private IObjectFieldDescriptor FieldImpl<TResolver, TPropertyType>(
+            Expression<Func<TResolver, TPropertyType>> propertyOrMethod, Func<MemberInfo, ObjectFieldDescriptor> fieldDescriptorResolver)
         {
             if (propertyOrMethod == null)
             {
@@ -262,7 +280,7 @@ namespace HotChocolate.Types.Descriptors
             if (member is PropertyInfo || member is MethodInfo)
             {
                 ObjectFieldDescriptor fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == member);
+                    fieldDescriptorResolver(member);
                 if (fieldDescriptor is { })
                 {
                     return fieldDescriptor;

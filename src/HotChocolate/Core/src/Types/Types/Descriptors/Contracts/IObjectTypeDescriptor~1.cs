@@ -147,6 +147,19 @@ namespace HotChocolate.Types
         /// <summary>
         /// Specifies an object type field.
         /// </summary>
+        /// <param name="propertyOrMethod">
+        /// An expression selecting a property or method of
+        /// <typeparamref name="T"/>.
+        /// </param>
+        /// <param name="name">
+        /// The name that the field shall have.
+        /// </param>
+        IObjectFieldDescriptor Field<TValue>(
+            Expression<Func<T, TValue>> propertyOrMethod, NameString name);
+
+        /// <summary>
+        /// Specifies an object type field.
+        /// </summary>
         /// <param name="name">
         /// The name that the field shall have.
         /// </param>
@@ -162,6 +175,20 @@ namespace HotChocolate.Types
         /// </param>
         IObjectFieldDescriptor Field<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod);
+
+        /// <summary>
+        /// Specifies an object type field which is bound to a resolver type.
+        /// </summary>
+        /// <param name="propertyOrMethod">
+        /// An expression selecting a property or method of
+        /// <typeparamref name="TResolver"/>.
+        /// The resolver type containing the property or method.
+        /// </param>
+        /// <param name="name">
+        /// The name that the field shall have.
+        /// </param>
+        IObjectFieldDescriptor Field<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod, NameString name);
 
         IObjectTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)

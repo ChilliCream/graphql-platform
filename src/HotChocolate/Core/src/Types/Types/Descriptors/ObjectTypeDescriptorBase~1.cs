@@ -129,6 +129,11 @@ namespace HotChocolate.Types.Descriptors
             return base.Field(propertyOrMethod);
         }
 
+        public IObjectFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> propertyOrMethod, NameString name)
+        {
+            return base.Field(propertyOrMethod, name);
+        }
+
         public new IObjectTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class
