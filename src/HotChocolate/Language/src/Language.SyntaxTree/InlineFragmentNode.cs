@@ -33,6 +33,11 @@ namespace HotChocolate.Language
 
         public IEnumerable<ISyntaxNode> GetNodes()
         {
+            if (TypeCondition is { })
+            {
+                yield return TypeCondition;
+            }
+
             foreach (DirectiveNode directive in Directives)
             {
                 yield return directive;
