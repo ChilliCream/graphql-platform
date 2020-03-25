@@ -31,6 +31,7 @@ namespace HotChocolate.Language.Visitors
             ISyntaxNode node,
             TContext context)
         {
+            // this instance has to go
             var levels = new List<List<ISyntaxNode>>();
             List<ISyntaxNode> ancestors = _listPool.Get();
             List<ISyntaxNode> root = _listPool.Get();
