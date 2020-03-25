@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {
@@ -17,6 +18,10 @@ namespace HotChocolate.Validation
         ISet<string> UnusedVariables { get; }
 
         ISet<string> DeclaredVariables { get; }
+
+        Stack<IType> Types { get; }
+
+        Stack<DirectiveType> Directives { get; }
 
         ICollection<IError> Errors { get; }
     }
