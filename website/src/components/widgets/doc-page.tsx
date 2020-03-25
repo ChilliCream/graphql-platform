@@ -39,28 +39,29 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       <Content>
         <Article>
           <ArticleTitle>{title}</ArticleTitle>
-          <Content dangerouslySetInnerHTML={{ __html: html! }} />
+          <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
         <DisqusWrapper config={disqusConfig} />
       </Content>
       <Aside>
         <FixedContainer>
+          <AsideTitle>Help us improving our content</AsideTitle>
           <CommunityItems>
             <CommunityItem>
-              <Link to="/test">
+              <CommunityLink to="/test">
                 <IconContainer>
                   <GitHubIconSvg />
                 </IconContainer>
                 Edit on GitHub
-              </Link>
+              </CommunityLink>
             </CommunityItem>
             <CommunityItem>
-              <Link to="/test">
+              <CommunityLink to="/test">
                 <IconContainer>
                   <SlackIconSvg />
                 </IconContainer>
                 Discuss on Slack
-              </Link>
+              </CommunityLink>
             </CommunityItem>
           </CommunityItems>
         </FixedContainer>
@@ -106,6 +107,7 @@ const Navigation = styled.nav`
 
 const FixedContainer = styled.div`
   position: fixed;
+  padding: 25px 0 250px;
 `;
 
 const NavigationList = styled.ul`
@@ -120,6 +122,25 @@ const NavigationItem = styled.li`
 `;
 
 const Content = styled.div`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+`;
+
+const Article = styled.article`
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+
+  @media only screen and (min-width: 800px) {
+    border: 1px solid #ccc;
+    border-top: 0 none;
+  }
+`;
+
+const ArticleContent = styled.div`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -188,19 +209,6 @@ const Content = styled.div`
   }
 `;
 
-const Article = styled.article`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-
-  @media only screen and (min-width: 800px) {
-    border: 1px solid #ccc;
-    border-top: 0 none;
-  }
-`;
-
 const DisqusWrapper = styled(Disqus)`
   margin: 0 20px;
 
@@ -219,13 +227,40 @@ const Aside = styled.aside`
   }
 `;
 
+const AsideTitle = styled.h6`
+  padding: 0 20px 10px;
+  font-size: 0.833em;
+`;
+
 const CommunityItems = styled.ul`
   margin: 0;
-  padding: 0;
+  padding: 0 20px 20px;
   list-style-type: none;
 `;
 
 const CommunityItem = styled.li`
-  margin: 0;
+  display: inline-block;
+  margin: 5px 0;
   padding: 0;
+`;
+
+const CommunityLink = styled(Link)`
+  font-size: 0.833em;
+  color: #666;
+
+  > ${IconContainer} {
+    margin-right: 10px;
+
+    > svg {
+      fill: #666;
+    }
+  }
+
+  :hover {
+    color: #000;
+
+    > ${IconContainer} > svg {
+      fill: #000;
+    }
+  }
 `;
