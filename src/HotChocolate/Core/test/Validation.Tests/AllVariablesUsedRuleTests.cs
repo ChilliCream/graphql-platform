@@ -130,7 +130,6 @@ namespace HotChocolate.Validation
             Assert.Empty(context.Errors);
         }
 
-
         [Fact]
         public void VariableNotUsedWithinFragment()
         {
@@ -255,7 +254,6 @@ namespace HotChocolate.Validation
             // assert
             Assert.False(context.Errors.Count > 0);
         }
-
 
         [Fact]
         public void VariableUsedAndNotDeclared()
