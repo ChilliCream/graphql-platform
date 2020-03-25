@@ -9,10 +9,8 @@ namespace HotChocolate.Types.Filters
         public static QueryableClosure AddClosure(
             this IQueryableFilterVisitorContext context,
             Type type)
-        {
-            return context.AddClosure(type, "_s" + context.Closures.Count, context.InMemory);
-        }
-        
+                => context.AddClosure(type, "_s" + context.Closures.Count, context.InMemory);
+
         public static QueryableClosure AddClosure(
             this IQueryableFilterVisitorContext context,
             Type type,
@@ -55,5 +53,13 @@ namespace HotChocolate.Types.Filters
         public static QueryableClosure PopClosure(
             this IQueryableFilterVisitorContext context)
                 => context.Closures.Pop();
+
+        public static Expression<Func<TSource, bool>> CreateFilter<TSource>(
+            this IQueryableFilterVisitorContext context)
+                => context.GetClosure().CreateLambda<Func<TSource, bool>>();
+
+        public static Expression CreateFilter(
+            this IQueryableFilterVisitorContext context)
+                => context.GetClosure().CreateLambda();
     }
 }

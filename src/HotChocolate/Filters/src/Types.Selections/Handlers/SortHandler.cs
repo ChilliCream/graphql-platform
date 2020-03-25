@@ -13,14 +13,15 @@ namespace HotChocolate.Types.Selections.Handlers
             Expression expression)
         {
             var argumentName = context.SelectionContext.SortingArgumentName;
-            if (context.TryGetValueNode(argumentName, out IValueNode sortArgument) &&
+            if (context.TryGetValueNode(argumentName, out IValueNode? sortArgument) &&
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
                 iot is ISortInputType fit)
             {
-                var visitor = new QueryableSortVisitor(iot, fit.EntityType);
+                var visitorContext = new QueryableSortVisitorContext(
+                    iot, fit.EntityType, false);
+                QueryableSortVisitor.Default.Visit(sortArgument, visitorContext);
 
-                sortArgument.Accept(visitor);
-                return visitor.Compile(expression);
+                return visitorContext.Compile(expression);
             }
 
             return expression;

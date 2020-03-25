@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -31,7 +32,7 @@ namespace HotChocolate.Types.Selections
 
         public SelectionMiddlewareContext SelectionContext { get; }
 
-        public bool TryGetValueNode(string key, out IValueNode arg)
+        public bool TryGetValueNode(string key, [NotNullWhen(true)] out IValueNode? arg)
         {
             if (_arguments.TryGetValue(key, out ArgumentValue argumentValue) &&
                 argumentValue.Literal != null &&

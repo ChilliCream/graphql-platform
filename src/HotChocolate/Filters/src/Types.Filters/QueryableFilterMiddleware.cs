@@ -62,18 +62,11 @@ namespace HotChocolate.Types.Filters
                 && iot is IFilterInputType fit)
             {
 
-                if (source is EnumerableQuery)
-                {
-                    var visitor = new QueryableFilterVisitor(iot, fit.EntityType, _converter, true);
-                    visitor.Visit(filter, null);
-                    source = source.Where(visitor.CreateFilter<T>());
-                }
-                else
-                {
-                    var visitor = new QueryableFilterVisitor(iot, fit.EntityType, _converter, false);
-                    visitor.Visit(filter, null);
-                    source = source.Where(visitor.CreateFilter<T>());
-                }
+                var visitorContext = new QueryableFilterVisitorContext(
+                    iot, fit.EntityType, _converter, source is EnumerableQuery);
+                QueryableFilterVisitor.Default.Visit(filter, visitorContext);
+
+                source = source.Where(visitorContext.CreateFilter<T>());
 
                 context.Result = p is null
                     ? (object)source
