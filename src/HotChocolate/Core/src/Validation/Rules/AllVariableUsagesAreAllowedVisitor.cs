@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -241,6 +242,7 @@ namespace HotChocolate.Validation
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
+            ObjectType objectType = GetOperationType(context.Schema, node.Operation);
             return Continue;
         }
 
@@ -273,7 +275,7 @@ namespace HotChocolate.Validation
         }
 
         protected override ISyntaxVisitorAction Enter(
-            ObjectField node,
+            ObjectFieldNode node,
             IDocumentValidatorContext context)
         {
             return Continue;
@@ -286,5 +288,119 @@ namespace HotChocolate.Validation
             return Continue;
         }
 
+        private ObjectType GetOperationType(
+            ISchema schema,
+            OperationType operation)
+        {
+            switch (operation)
+            {
+                case Language.OperationType.Query:
+                    return schema.QueryType;
+                case Language.OperationType.Mutation:
+                    return schema.MutationType;
+                case Language.OperationType.Subscription:
+                    return schema.SubscriptionType;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private void FindVariableUsageErrors()
+        {
+            foreach (VariableUsage variableUsage in _variablesUsages)
+            {
+                if (_varDefs.TryGetValue(
+                    variableUsage.Name,
+                    out VariableDefinitionNode variableDefinition)
+                    && !IsVariableUsageAllowed(
+                        variableDefinition, variableUsage))
+                {
+                    string variableName =
+                        variableDefinition.Variable.Name.Value;
+
+                    Errors.Add(new ValidationError(
+                        $"The variable `{variableName}` type is not " +
+                        "compatible with the type of the argument " +
+                        $"`{variableUsage.InputField.Name}`.\r\n" +
+                        $"Expected type: `{variableUsage.Type.TypeName()}`.",
+                        variableUsage.Argument, variableDefinition));
+                }
+            }
+        }
+
+        // http://facebook.github.io/graphql/June2018/#IsVariableUsageAllowed()
+        private bool IsVariableUsageAllowed(
+            VariableDefinitionNode variableDefinition,
+            IInputField field)
+        {
+            if (field.Type.IsNonNullType()
+                && !variableDefinition.Type.IsNonNullType())
+            {
+                if (variableDefinition.DefaultValue.IsNull()
+                    && field.DefaultValue.IsNull())
+                {
+                    return false;
+                }
+
+                return AreTypesCompatible(
+                    variableDefinition.Type,
+                    field.Type.NullableType());
+            }
+
+            return AreTypesCompatible(
+                variableDefinition.Type,
+                field.Type);
+        }
+
+        // http://facebook.github.io/graphql/June2018/#AreTypesCompatible()
+        private bool AreTypesCompatible(
+            ITypeNode variableType,
+            IType locationType)
+        {
+            if (locationType.IsNonNullType())
+            {
+                if (variableType.IsNonNullType())
+                {
+                    return AreTypesCompatible(
+                        variableType.InnerType(),
+                        locationType.InnerType());
+                }
+                return false;
+            }
+
+            if (variableType.IsNonNullType())
+            {
+                return AreTypesCompatible(
+                    variableType.InnerType(),
+                    locationType);
+            }
+
+            if (locationType.IsListType())
+            {
+                if (variableType.IsListType())
+                {
+                    return AreTypesCompatible(
+                        variableType.InnerType(),
+                        locationType.InnerType());
+                }
+                return false;
+            }
+
+            if (variableType.IsListType())
+            {
+                return false;
+            }
+
+            if (variableType is NamedTypeNode vn
+                && locationType is INamedType lt)
+            {
+                return string.Equals(
+                    vn.Name.Value,
+                    lt.Name,
+                    StringComparison.Ordinal);
+            }
+
+            return false;
+        }
     }
 }
