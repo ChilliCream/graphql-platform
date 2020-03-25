@@ -1,13 +1,13 @@
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class AllVariablesUsedRuleTests
-        : DocumentValidatorVisitorTestBase
+    public class AllVariablesUsedRuleTests_Old
+        : ValidationTestBase
     {
-        public AllVariablesUsedRuleTests()
-            : base(services => services.AddAllVariablesUsedRule())
+        public AllVariablesUsedRuleTests_Old()
+            : base(new AllVariablesUsedRule())
         {
         }
 
@@ -15,7 +15,7 @@ namespace HotChocolate.Validation
         public void VariableUnused()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableUnused($atOtherHomes: Boolean) {
                     dog {
@@ -23,14 +23,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The following variables were not used: " +
                     "atOtherHomes.", t.Message));
@@ -40,7 +39,7 @@ namespace HotChocolate.Validation
         public void VariableUsedInFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
@@ -52,20 +51,19 @@ namespace HotChocolate.Validation
                     isHousetrained(atOtherHomes: $atOtherHomes)
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void VariableUsedInSecondLevelFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
@@ -81,21 +79,20 @@ namespace HotChocolate.Validation
                     isHousetrained(atOtherHomes: $atOtherHomes)
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void VariableUsedInDirective()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query_a = Utf8GraphQLParser.Parse(@"
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode querya = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -107,7 +104,7 @@ namespace HotChocolate.Validation
                 }
             ");
 
-            DocumentNode query_b = Utf8GraphQLParser.Parse(@"
+            DocumentNode queryb = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment @skip(if: $atOtherHomes)
@@ -120,14 +117,12 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            context.Prepare(query_a);
-            Rule.Validate(context, query_a);
-
-            context.Prepare(query_b);
-            Rule.Validate(context, query_b);
+            QueryValidationResult resulta = Rule.Validate(schema, querya);
+            QueryValidationResult resultb = Rule.Validate(schema, queryb);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(resulta.HasErrors);
+            Assert.False(resultb.HasErrors);
         }
 
 
@@ -135,7 +130,7 @@ namespace HotChocolate.Validation
         public void VariableNotUsedWithinFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
                     dog {
@@ -147,14 +142,13 @@ namespace HotChocolate.Validation
                     isHousetrained
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The following variables were not used: " +
                     "atOtherHomes.", t.Message));
@@ -164,7 +158,7 @@ namespace HotChocolate.Validation
         public void QueryWithExtraVar()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query queryWithUsedVar($atOtherHomes: Boolean) {
                     dog {
@@ -182,14 +176,13 @@ namespace HotChocolate.Validation
                     isHousetrained(atOtherHomes: $atOtherHomes)
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The following variables were not used: " +
                     "extra.", t.Message));
@@ -199,7 +192,7 @@ namespace HotChocolate.Validation
         public void VariableUsedAndDeclared()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsDefined($atOtherHomes: Boolean)
                 {
@@ -207,20 +200,19 @@ namespace HotChocolate.Validation
                         isHousetrained(atOtherHomes: $atOtherHomes)
                     }
                 }");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void VariableUsedInComplexInput()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query queryWithComplexInput($name: String)
                 {
@@ -228,32 +220,30 @@ namespace HotChocolate.Validation
                         name
                     }
                 }");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void VariableUsedInListInput()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query queryWithListInput($value: Bool)
                 {
                     booleanList(booleanListArg: [ $value ])
                 }");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.False(result.HasErrors);
         }
 
 
@@ -261,7 +251,7 @@ namespace HotChocolate.Validation
         public void VariableUsedAndNotDeclared()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsDefined
                 {
@@ -269,14 +259,13 @@ namespace HotChocolate.Validation
                         isHousetrained(atOtherHomes: $atOtherHomes)
                     }
                 }");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The following variables were not declared: " +
                     "atOtherHomes.", t.Message));
@@ -286,7 +275,7 @@ namespace HotChocolate.Validation
         public void VariableUsedAndNotDeclared2()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsNotDefinedUsedInNestedFragment {
                     dog {
@@ -301,14 +290,13 @@ namespace HotChocolate.Validation
                 fragment isHousetrainedFragment on Dog {
                     isHousetrained(atOtherHomes: $atOtherHomes)
                 }");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The following variables were not declared: " +
                     "atOtherHomes.", t.Message));
@@ -318,7 +306,7 @@ namespace HotChocolate.Validation
         public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsed()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query housetrainedQueryOne($atOtherHomes: Boolean) {
                     dog {
@@ -341,20 +329,19 @@ namespace HotChocolate.Validation
                 fragment isHousetrainedFragment on Dog {
                     isHousetrained(atOtherHomes: $atOtherHomes)
                 }");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsedErr()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsNotDefinedUsedInNestedFragment {
                     dog {
@@ -369,14 +356,13 @@ namespace HotChocolate.Validation
                 fragment isHousetrainedFragment on Dog {
                     isHousetrained(atOtherHomes: $atOtherHomes)
                 }");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The following variables were not declared: " +
                     "atOtherHomes.", t.Message));

@@ -19,28 +19,38 @@ namespace HotChocolate.Validation.Rules
     ///
     /// https://facebook.github.io/graphql/June2018/#sec-All-Variable-Uses-Defined
     /// </summary>
-    internal sealed class AllVariablesUsedVisitor : DocumentValidationVisitor
+    internal sealed class AllVariablesUsedVisitor : DocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
             VariableDefinitionNode node,
-            IDocumentValidationContext context)
+            IDocumentValidatorContext context)
         {
             context.UnusedVariables.Add(node.Variable.Name.Value);
             context.DeclaredVariables.Add(node.Variable.Name.Value);
-            return Continue;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Enter(
             VariableNode node,
-            IDocumentValidationContext context)
+            IDocumentValidatorContext context)
         {
-            context.UsedVariables.Remove(node.Name.Value);
+            context.UsedVariables.Add(node.Name.Value);
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            OperationDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            context.UnusedVariables.Clear();
+            context.UsedVariables.Clear();
+            context.DeclaredVariables.Clear();
             return Continue;
         }
 
         protected override ISyntaxVisitorAction Leave(
             OperationDefinitionNode node,
-            IDocumentValidationContext context)
+            IDocumentValidatorContext context)
         {
             context.UnusedVariables.ExceptWith(context.UsedVariables);
             context.UsedVariables.ExceptWith(context.DeclaredVariables);
