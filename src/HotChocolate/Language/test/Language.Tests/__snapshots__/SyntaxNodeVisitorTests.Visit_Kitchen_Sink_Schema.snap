@@ -1256,6 +1256,7 @@
       {
         "Kind": "InterfaceTypeDefinition",
         "Description": null,
+        "Interfaces": [],
         "Fields": [
           {
             "Kind": "FieldDefinition",
@@ -1413,6 +1414,7 @@
       {
         "Kind": "InterfaceTypeDefinition",
         "Description": null,
+        "Interfaces": [],
         "Fields": [
           {
             "Kind": "FieldDefinition",
@@ -1582,6 +1584,7 @@
       {
         "Kind": "InterfaceTypeDefinition",
         "Description": null,
+        "Interfaces": [],
         "Fields": [],
         "Location": {
           "Start": 1113,
@@ -1603,6 +1606,7 @@
       },
       {
         "Kind": "InterfaceTypeExtension",
+        "Interfaces": [],
         "Fields": [
           {
             "Kind": "FieldDefinition",
@@ -1717,6 +1721,7 @@
       },
       {
         "Kind": "InterfaceTypeExtension",
+        "Interfaces": [],
         "Fields": [],
         "Location": {
           "Start": 1203,
@@ -7520,6 +7525,7 @@
   {
     "Kind": "InterfaceTypeDefinition",
     "Description": null,
+    "Interfaces": [],
     "Fields": [
       {
         "Kind": "FieldDefinition",
@@ -8000,6 +8006,7 @@
   {
     "Kind": "InterfaceTypeDefinition",
     "Description": null,
+    "Interfaces": [],
     "Fields": [
       {
         "Kind": "FieldDefinition",
@@ -8534,6 +8541,7 @@
   {
     "Kind": "InterfaceTypeDefinition",
     "Description": null,
+    "Interfaces": [],
     "Fields": [],
     "Location": {
       "Start": 1113,
@@ -8565,6 +8573,7 @@
   },
   {
     "Kind": "InterfaceTypeExtension",
+    "Interfaces": [],
     "Fields": [
       {
         "Kind": "FieldDefinition",
@@ -8937,6 +8946,7 @@
   },
   {
     "Kind": "InterfaceTypeExtension",
+    "Interfaces": [],
     "Fields": [],
     "Location": {
       "Start": 1203,

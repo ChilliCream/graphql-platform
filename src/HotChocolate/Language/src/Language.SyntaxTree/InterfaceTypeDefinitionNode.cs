@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
@@ -12,8 +12,9 @@ namespace HotChocolate.Language
             NameNode name,
             StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<NamedTypeNode> interfaces,
             IReadOnlyList<FieldDefinitionNode> fields)
-            : base(location, name, directives, fields)
+            : base(location, name, directives, interfaces, fields)
         {
             Description = description;
         }
@@ -30,6 +31,11 @@ namespace HotChocolate.Language
             }
 
             yield return Name;
+
+            foreach (NamedTypeNode interfaceName in Interfaces)
+            {
+                yield return interfaceName;
+            }
 
             foreach (DirectiveNode directive in Directives)
             {
@@ -67,14 +73,14 @@ namespace HotChocolate.Language
         {
             return new InterfaceTypeDefinitionNode(
                 location, Name, Description,
-                Directives, Fields);
+                Directives, Interfaces, Fields);
         }
 
         public InterfaceTypeDefinitionNode WithName(NameNode name)
         {
             return new InterfaceTypeDefinitionNode(
                 Location, name, Description,
-                Directives, Fields);
+                Directives, Interfaces, Fields);
         }
 
         public InterfaceTypeDefinitionNode WithDescription(
@@ -82,7 +88,7 @@ namespace HotChocolate.Language
         {
             return new InterfaceTypeDefinitionNode(
                 Location, Name, description,
-                Directives, Fields);
+                Directives, Interfaces, Fields);
         }
 
         public InterfaceTypeDefinitionNode WithDirectives(
@@ -90,7 +96,7 @@ namespace HotChocolate.Language
         {
             return new InterfaceTypeDefinitionNode(
                 Location, Name, Description,
-                directives, Fields);
+                directives, Interfaces, Fields);
         }
 
         public InterfaceTypeDefinitionNode WithFields(
@@ -98,7 +104,15 @@ namespace HotChocolate.Language
         {
             return new InterfaceTypeDefinitionNode(
                 Location, Name, Description,
-                Directives, fields);
+                Directives, Interfaces, fields);
+        }
+
+        public InterfaceTypeDefinitionNode WithInterfaces(
+            IReadOnlyList<NamedTypeNode> interfaces)
+        {
+            return new InterfaceTypeDefinitionNode(
+                Location, Name, Description,
+                Directives, interfaces, Fields);
         }
     }
 }

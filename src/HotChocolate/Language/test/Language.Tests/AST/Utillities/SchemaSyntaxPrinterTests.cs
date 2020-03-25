@@ -1,4 +1,4 @@
-﻿using Snapshooter.Xunit;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language.Utilities
@@ -158,6 +158,186 @@ namespace HotChocolate.Language.Utilities
         }
 
         [Fact]
+        public void Serialize_ObjectTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend type Foo { bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "interface Foo { bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string schema = "interface Foo { bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString();
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefWithArgsNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "interface Foo { bar(a: Int = 1 b: Int): String }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefWithArgsWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string schema = "interface Foo { bar(a: Int = 1 b: Int): String }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString();
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefWithDirectivesNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } " +
+                "interface Foo @a @b { bar: String @foo " +
+                "baz(a: String = \"abc\"): [Int] @foo @bar }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefWithDirectivesWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } " +
+                "interface Foo @a @b { bar: String @foo " +
+                "baz(a: String = \"abc\"): [Int] @foo @bar }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString();
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "\"abc\" interface Foo @a { \"abc\" bar: String " +
+                "\"abc\" baz: [Int] } " +
+                "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo " +
+                "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeDefWithDescriptionWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string schema = "\"abc\" interface Foo @a { \"abc\" bar: String " +
+                "\"abc\" baz: [Int] } " +
+                "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo " +
+                "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString();
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeImplementsXYZ_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "interface Foo implements X & Y & Z " +
+                "{ bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeImplementsXYZWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string schema = "interface Foo implements X & Y & Z " +
+                "{ bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString();
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InterfaceTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend interface Foo { bar: String baz: [Int] }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
         public void Serialize_UnionTypeDefNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -242,6 +422,20 @@ namespace HotChocolate.Language.Utilities
         }
 
         [Fact]
+        public void Serialize_UnionTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend union A = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
         public void Serialize_EnumTypeDefNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -323,6 +517,20 @@ namespace HotChocolate.Language.Utilities
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_EnumTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend enum A { B C }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
         }
 
         [Fact]
@@ -412,6 +620,20 @@ namespace HotChocolate.Language.Utilities
         }
 
         [Fact]
+        public void Serialize_InputObjectTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend input A { b: String }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
         public void Serialize_ScalarTypeDefNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -468,6 +690,20 @@ namespace HotChocolate.Language.Utilities
         }
 
         [Fact]
+        public void Serialize_ScalarTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend scalar A @a @b(c: 1)";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
         public void Serialize_SchemaDefWithOpNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -521,6 +757,20 @@ namespace HotChocolate.Language.Utilities
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_SchemaTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend schema { query: A }";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
         }
     }
 }
