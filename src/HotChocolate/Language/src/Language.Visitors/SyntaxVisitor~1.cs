@@ -74,7 +74,10 @@ namespace HotChocolate.Language.Visitors
                     if (result is IContinueSyntaxVisitorAction)
                     {
                         List<ISyntaxNode> nextLevel = _listPool.Get();
-                        nextLevel.AddRange(GetNodes(current, localContext));
+                        foreach (ISyntaxNode child in GetNodes(current, localContext))
+                        {
+                            nextLevel.Insert(0, child);
+                        }
                         levels.Push(nextLevel);
                     }
                     else if (result is ISkipSyntaxVisitorAction)
