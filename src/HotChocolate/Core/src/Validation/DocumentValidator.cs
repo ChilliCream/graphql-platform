@@ -26,7 +26,6 @@ namespace HotChocolate.Validation
 
             _contextPool = contextPool;
             _rules = rules.ToArray();
-
         }
 
         public DocumentValidatorResult Validate(ISchema schema, DocumentNode document)
