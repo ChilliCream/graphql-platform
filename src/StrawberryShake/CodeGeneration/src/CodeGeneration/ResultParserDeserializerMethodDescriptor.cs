@@ -5,14 +5,14 @@ namespace StrawberryShake.CodeGeneration
     /// <summary>
     /// Describes a deserialization method for leaf types in a result parser.
     /// </summary>
-    public class ResultParserDeserializerMethod
+    public class ResultParserDeserializerMethodDescriptor
         : ICodeDescriptor
     {
-        public ResultParserDeserializerMethod(
+        public ResultParserDeserializerMethodDescriptor(
             string name,
             string serializationType,
             string runtimeType,
-            IReadOnlyList<ResultTypeDescriptor> runtimeTypeComponents,
+            IReadOnlyList<ResultTypeComponentDescriptor> runtimeTypeComponents,
             ValueSerializerDescriptor serializer)
         {
             Name = name;
@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration
         /// The type components describing the type structure of the type
         /// deserialized by this deserializer.
         /// </summary>
-        public IReadOnlyList<ResultTypeDescriptor> RuntimeTypeComponents { get; }
+        public IReadOnlyList<ResultTypeComponentDescriptor> RuntimeTypeComponents { get; }
 
         /// <summary>
         /// The serializer that can deserialize the leaf type

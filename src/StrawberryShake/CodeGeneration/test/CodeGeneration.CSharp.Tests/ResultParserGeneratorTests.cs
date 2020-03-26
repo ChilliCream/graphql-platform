@@ -26,15 +26,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Abc", true, true, true),
-                            new ResultTypeDescriptor("Def", true, false, true)
+                            new ResultTypeComponentDescriptor("Abc", true, true, true),
+                            new ResultTypeComponentDescriptor("Def", true, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -62,15 +62,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Abc", false, true, true),
-                            new ResultTypeDescriptor("Def", true, false, true)
+                            new ResultTypeComponentDescriptor("Abc", false, true, true),
+                            new ResultTypeComponentDescriptor("Def", true, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -98,15 +98,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Abc", false, true, true),
-                            new ResultTypeDescriptor("Def", false, false, true)
+                            new ResultTypeComponentDescriptor("Abc", false, true, true),
+                            new ResultTypeComponentDescriptor("Def", false, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -134,16 +134,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Abc", true, true, true),
-                            new ResultTypeDescriptor("Def", true, true, true),
-                            new ResultTypeDescriptor("Ghi", true, false, true)
+                            new ResultTypeComponentDescriptor("Abc", true, true, true),
+                            new ResultTypeComponentDescriptor("Def", true, true, true),
+                            new ResultTypeComponentDescriptor("Ghi", true, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -171,16 +171,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Abc", false, true, true),
-                            new ResultTypeDescriptor("Def", true, true, true),
-                            new ResultTypeDescriptor("Ghi", true, false, true)
+                            new ResultTypeComponentDescriptor("Abc", false, true, true),
+                            new ResultTypeComponentDescriptor("Def", true, true, true),
+                            new ResultTypeComponentDescriptor("Ghi", true, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -208,16 +208,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Abc", false, true, true),
-                            new ResultTypeDescriptor("Def", false, true, true),
-                            new ResultTypeDescriptor("Ghi", true, false, true)
+                            new ResultTypeComponentDescriptor("Abc", false, true, true),
+                            new ResultTypeComponentDescriptor("Def", false, true, true),
+                            new ResultTypeComponentDescriptor("Ghi", true, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -245,16 +245,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Abc", false, true, true),
-                            new ResultTypeDescriptor("Def", false, true, true),
-                            new ResultTypeDescriptor("Ghi", false, false, true)
+                            new ResultTypeComponentDescriptor("Abc", false, true, true),
+                            new ResultTypeComponentDescriptor("Def", false, true, true),
+                            new ResultTypeComponentDescriptor("Ghi", false, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -282,14 +282,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Ghi", true, false, true)
+                            new ResultTypeComponentDescriptor("Ghi", true, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -317,14 +317,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Ghi", false, false, true)
+                            new ResultTypeComponentDescriptor("Ghi", false, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act
@@ -349,12 +349,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "IFoo",
                 Array.Empty<ResultParserMethodDescriptor>(),
                 new[] {
-                    new ResultParserDeserializerMethod(
+                    new ResultParserDeserializerMethodDescriptor(
                         "DeserializeNullableString",
                         "string",
                         "string",
                         new [] {
-                            new ResultTypeDescriptor("string", true, false, true)
+                            new ResultTypeComponentDescriptor("string", true, false, true)
                         },
                         new ValueSerializerDescriptor("String", "_stringSerializer"))
                 },
@@ -384,12 +384,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "IFoo",
                 Array.Empty<ResultParserMethodDescriptor>(),
                 new[] {
-                    new ResultParserDeserializerMethod(
+                    new ResultParserDeserializerMethodDescriptor(
                         "DeserializeNullableString",
                         "string",
                         "string",
                         new [] {
-                            new ResultTypeDescriptor("string", false, false, true)
+                            new ResultTypeComponentDescriptor("string", false, false, true)
                         },
                         new ValueSerializerDescriptor("String", "_stringSerializer"))
                 },
@@ -419,13 +419,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "IFoo",
                 Array.Empty<ResultParserMethodDescriptor>(),
                 new[] {
-                    new ResultParserDeserializerMethod(
+                    new ResultParserDeserializerMethodDescriptor(
                         "DeserializeNullableString",
                         "string",
                         "string",
                         new [] {
-                            new ResultTypeDescriptor("IReadOnlyList", true, true, true),
-                            new ResultTypeDescriptor("string", true, false, true)
+                            new ResultTypeComponentDescriptor("IReadOnlyList", true, true, true),
+                            new ResultTypeComponentDescriptor("string", true, false, true)
                         },
                         new ValueSerializerDescriptor("String", "_stringSerializer"))
                 },
@@ -455,14 +455,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "ParseFooBar",
                         "IBar",
                         new [] {
-                            new ResultTypeDescriptor("Ghi", false, false, true)
+                            new ResultTypeComponentDescriptor("Ghi", false, false, true)
                         },
                         false,
                         new [] {
                             new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
                         }
                     ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
+                Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
             // act

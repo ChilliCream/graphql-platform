@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
@@ -21,15 +19,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var temp = new StringBuilder();
             var typeNames = new HashSet<string>();
             var methodNames = new HashSet<string>();
-            var deserializerMethods = new List<ResultParserDeserializerMethod>();
-            var valueSerializers = new List<ValueSerializerDescriptor>();
             var parserMethods = new List<ResultParserMethodDescriptor>();
+            var deserializerMethods = new List<ResultParserDeserializerMethodDescriptor>();
+            var valueSerializers = new List<ValueSerializerDescriptor>();
 
             foreach (FieldParserModel fieldParser in model.FieldParsers)
             {
+                var possibleTypes = new List<ResultTypeDescriptor>();
+
                 foreach (ComplexOutputTypeModel possibleType in fieldParser.PossibleTypes)
                 {
-                    var possibleTypes = new List<ResultTypeDescriptor>();
+                    var components = new List<ResultTypeComponentDescriptor>();
                     var fields = new List<ResultFieldDescriptor>();
 
                     foreach (OutputFieldModel field in possibleType.Fields)
@@ -55,51 +55,38 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         fields.Add(new ResultFieldDescriptor(field.Name, methodName));
                     }
 
-                    DecomposeType(context, possibleType.)
+                    IType possibleFieldType = RewriteType(fieldParser.FieldType, possibleType.Type);
+                    DecomposeType(context, possibleFieldType, components);
+                    possibleTypes.Add(new ResultTypeDescriptor(
+                        context.GetFullTypeName(
+                            (IOutputType)possibleFieldType,
+                            fieldParser.Selection.SelectionSet),
+                        components,
+                        fields));
                 }
 
-
+                parserMethods.Add(new ResultParserMethodDescriptor(
+                    $"Parse{GetPathName(fieldParser.Path)}",
+                    context.GetFullTypeName(
+                        (IOutputType)fieldParser.FieldType,
+                        fieldParser.Selection.SelectionSet),
+                    possibleTypes,
+                    false));
             }
 
-            new ResultParserDescriptor(
+            return new ResultParserDescriptor(
                 model.Name,
                 context.Namespace,
                 context.GetFullTypeName(model.ReturnType),
-                new[] {
-                    new ResultParserMethodDescriptor(
-                        "ParseFooBar",
-                        "IBar",
-                        new [] {
-                            new ResultTypeDescriptor("Abc", true, true, true),
-                            new ResultTypeDescriptor("Def", true, false, true)
-                        },
-                        false,
-                        new [] {
-                            new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
-                        }
-                    ) },
-                Array.Empty<ResultParserDeserializerMethod>(),
-                Array.Empty<ValueSerializerDescriptor>());
-
-            string CreateMethodName(Path path)
-            {
-                Path current = path;
-                temp.Clear();
-
-                while (current is { })
-                {
-                    temp.Insert(0, path.Name);
-                }
-
-                temp.Insert(0, "Parse");
-                return temp.ToString();
-            }
+                parserMethods,
+                deserializerMethods,
+                valueSerializers);
         }
 
         private static void RegisterDeserializationMethod(
             ICSharpClientBuilderContext context,
             HashSet<string> methodNames,
-            List<ResultParserDeserializerMethod> deserializerMethods,
+            List<ResultParserDeserializerMethodDescriptor> deserializerMethods,
             List<ValueSerializerDescriptor> valueSerializers,
             string deserializerName,
             IType type)
@@ -116,10 +103,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         GetFieldName(leafTypeName, "Serializer"));
                 }
 
-                var runtimeTypeComponents = new List<ResultTypeDescriptor>();
+                var runtimeTypeComponents = new List<ResultTypeComponentDescriptor>();
                 DecomposeType(context, type, runtimeTypeComponents);
 
-                deserializerMethods.Add(new ResultParserDeserializerMethod(
+                deserializerMethods.Add(new ResultParserDeserializerMethodDescriptor(
                     deserializerName,
                     context.GetSerializationTypeName(type),
                     context.GetFullTypeName((IOutputType)type, null),
@@ -131,16 +118,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static void DecomposeType(
             ICSharpClientBuilderContext context,
             IType type,
-            ICollection<ResultTypeDescriptor> components)
+            ICollection<ResultTypeComponentDescriptor> components)
         {
             if (type.IsListType())
             {
-                components.Add(new ResultTypeDescriptor(
+                components.Add(new ResultTypeComponentDescriptor(
                     context.GetFullTypeName((IOutputType)type, null),
                     type.IsNullableType(),
                     type.IsListType(),
-                    context.IsReferenceType((IOutputType)type, null),
-                    Array.Empty<ResultFieldDescriptor>()));
+                    context.IsReferenceType((IOutputType)type, null)));
 
                 DecomposeType(
                     context,
@@ -149,12 +135,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
             else
             {
-                components.Add(new ResultTypeDescriptor(
+                components.Add(new ResultTypeComponentDescriptor(
                     context.GetFullTypeName((IOutputType)type, null),
                     true,
                     type.IsListType(),
-                    context.IsReferenceType((IOutputType)type, null),
-                    Array.Empty<ResultFieldDescriptor>()));
+                    context.IsReferenceType((IOutputType)type, null)));
+            }
+        }
+
+        private IType RewriteType(IType type, INamedType namedType)
+        {
+            if (type is NonNullType nnt)
+            {
+                return new NonNullType(RewriteType(nnt.Type, namedType));
+            }
+            else if (type is ListType lt)
+            {
+                return new ListType(RewriteType(lt.ElementType, namedType));
+            }
+            else
+            {
+                return namedType;
             }
         }
     }

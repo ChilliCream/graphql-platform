@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration
             string @namespace,
             string resultType,
             IReadOnlyList<ResultParserMethodDescriptor> parseMethods,
-            IReadOnlyList<ResultParserDeserializerMethod> deserializerMethods,
+            IReadOnlyList<ResultParserDeserializerMethodDescriptor> deserializerMethods,
             IReadOnlyList<ValueSerializerDescriptor> valueSerializers)
         {
             Name = name;
@@ -29,7 +29,7 @@ namespace StrawberryShake.CodeGeneration
 
         public IReadOnlyList<ResultParserMethodDescriptor> ParseMethods { get; }
 
-        public IReadOnlyList<ResultParserDeserializerMethod> DeserializerMethods { get; }
+        public IReadOnlyList<ResultParserDeserializerMethodDescriptor> DeserializerMethods { get; }
 
         public IReadOnlyList<ValueSerializerDescriptor> ValueSerializers { get; }
     }

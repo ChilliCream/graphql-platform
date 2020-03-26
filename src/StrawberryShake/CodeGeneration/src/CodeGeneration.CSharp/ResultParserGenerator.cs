@@ -54,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
             }
 
-            foreach (ResultParserDeserializerMethod deserializerMethod in
+            foreach (ResultParserDeserializerMethodDescriptor deserializerMethod in
                 descriptor.DeserializerMethods)
             {
                 AddDeserializeMethod(classBuilder, deserializerMethod, CodeWriter.Indent);
@@ -127,10 +127,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetInheritance(Inheritance.Override)
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}?",
-                        IsNullable(methodDescriptor.ResultTypeComponents))
+                        IsNullable(methodDescriptor.PossibleTypes))
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}",
-                        !IsNullable(methodDescriptor.ResultTypeComponents))
+                        !IsNullable(methodDescriptor.PossibleTypes))
                     .SetName("ParseData")
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
@@ -149,7 +149,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             AppendNewObject(
                 body,
-                methodDescriptor.ResultTypeComponents[0].Name,
+                methodDescriptor.PossibleTypes[0].Name,
                 "data",
                 methodDescriptor.Fields,
                 indent,
@@ -165,9 +165,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ResultParserMethodDescriptor methodDescriptor,
             string indent)
         {
-            ImmutableQueue<ResultTypeDescriptor> resultType =
-                ImmutableQueue.CreateRange<ResultTypeDescriptor>(
-                    methodDescriptor.ResultTypeComponents);
+            ImmutableQueue<ResultTypeComponentDescriptor> resultType =
+                ImmutableQueue.CreateRange<ResultTypeComponentDescriptor>(
+                    methodDescriptor.PossibleTypes);
 
             classBuilder.AddMethod(
                 MethodBuilder.New()
@@ -175,10 +175,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetInheritance(Inheritance.Override)
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}?",
-                        IsNullable(methodDescriptor.ResultTypeComponents))
+                        IsNullable(methodDescriptor.PossibleTypes))
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}",
-                        !IsNullable(methodDescriptor.ResultTypeComponents))
+                        !IsNullable(methodDescriptor.PossibleTypes))
                     .SetName(methodDescriptor.Name)
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
@@ -189,13 +189,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private CodeBlockBuilder CreateParseMethodBody(
             ResultParserMethodDescriptor methodDescriptor,
-            ImmutableQueue<ResultTypeDescriptor> resultTypeComponents,
+            ImmutableQueue<ResultTypeComponentDescriptor> resultTypeComponents,
             string indent)
         {
             var body = new StringBuilder();
 
-            ImmutableQueue<ResultTypeDescriptor> next =
-                resultTypeComponents.Dequeue(out ResultTypeDescriptor type);
+            ImmutableQueue<ResultTypeComponentDescriptor> next =
+                resultTypeComponents.Dequeue(out ResultTypeComponentDescriptor type);
 
             if (type.IsList && next.Peek().IsList)
             {
@@ -215,11 +215,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private void AddDeserializeMethod(
             ClassBuilder classBuilder,
-            ResultParserDeserializerMethod methodDescriptor,
+            ResultParserDeserializerMethodDescriptor methodDescriptor,
             string indent)
         {
-            ImmutableQueue<ResultTypeDescriptor> runtimeTypeComponents =
-                ImmutableQueue.CreateRange<ResultTypeDescriptor>(
+            ImmutableQueue<ResultTypeComponentDescriptor> runtimeTypeComponents =
+                ImmutableQueue.CreateRange<ResultTypeComponentDescriptor>(
                     methodDescriptor.RuntimeTypeComponents);
 
             classBuilder.AddMethod(
@@ -244,14 +244,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private CodeBlockBuilder CreateDeserializeMethodBody(
-            ResultParserDeserializerMethod methodDescriptor,
-            ImmutableQueue<ResultTypeDescriptor> runtimeTypeComponents,
+            ResultParserDeserializerMethodDescriptor methodDescriptor,
+            ImmutableQueue<ResultTypeComponentDescriptor> runtimeTypeComponents,
             string indent)
         {
             var body = new StringBuilder();
 
-            ImmutableQueue<ResultTypeDescriptor> next =
-                runtimeTypeComponents.Dequeue(out ResultTypeDescriptor type);
+            ImmutableQueue<ResultTypeComponentDescriptor> next =
+                runtimeTypeComponents.Dequeue(out ResultTypeComponentDescriptor type);
 
             if (type.IsList && next.Peek().IsList)
             {
@@ -271,8 +271,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AppendNestedList(
             StringBuilder body,
             ResultParserMethodDescriptor methodDescriptor,
-            ResultTypeDescriptor type,
-            ImmutableQueue<ResultTypeDescriptor> elementType,
+            ResultTypeComponentDescriptor type,
+            ImmutableQueue<ResultTypeComponentDescriptor> elementType,
             string indent)
         {
             AppendNullHandling(
@@ -326,8 +326,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AppendList(
             StringBuilder body,
             ResultParserMethodDescriptor methodDescriptor,
-            ResultTypeDescriptor type,
-            ImmutableQueue<ResultTypeDescriptor> elementType,
+            ResultTypeComponentDescriptor type,
+            ImmutableQueue<ResultTypeComponentDescriptor> elementType,
             string indent)
         {
             AppendNullHandling(
@@ -370,7 +370,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AppendObject(
             StringBuilder body,
             ResultParserMethodDescriptor methodDescriptor,
-            ResultTypeDescriptor type,
+            ResultTypeComponentDescriptor type,
             string indent)
         {
             AppendNullHandling(
@@ -506,9 +506,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private void AppendDeserializeLeafList(
             StringBuilder body,
-            ResultParserDeserializerMethod methodDescriptor,
-            ResultTypeDescriptor type,
-            ImmutableQueue<ResultTypeDescriptor> runtimeTypeComponents,
+            ResultParserDeserializerMethodDescriptor methodDescriptor,
+            ResultTypeComponentDescriptor type,
+            ImmutableQueue<ResultTypeComponentDescriptor> runtimeTypeComponents,
             string indent)
         {
             AppendNullHandling(
@@ -552,8 +552,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private void AppendDeserializeLeaf(
             StringBuilder body,
-            ResultParserDeserializerMethod methodDescriptor,
-            ResultTypeDescriptor type,
+            ResultParserDeserializerMethodDescriptor methodDescriptor,
+            ResultTypeComponentDescriptor type,
             string indent)
         {
             AppendNullHandling(
@@ -623,10 +623,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             body.Append($"{serializer}.Deserialize({element}.{jsonMethod}())!");
         }
 
-        private bool IsNullable(IReadOnlyList<ResultTypeDescriptor> typeComponents) =>
+        private bool IsNullable(IReadOnlyList<ResultTypeComponentDescriptor> typeComponents) =>
             IsNullable(typeComponents[0]);
 
-        private bool IsNullable(ResultTypeDescriptor typeComponent)
+        private bool IsNullable(ResultTypeComponentDescriptor typeComponent)
         {
             if (typeComponent.IsNullable)
             {
@@ -639,15 +639,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return false;
         }
 
-        private string BuildTypeName(ImmutableQueue<ResultTypeDescriptor> typeComponents)
+        private string BuildTypeName(ImmutableQueue<ResultTypeComponentDescriptor> typeComponents)
         {
-            ImmutableQueue<ResultTypeDescriptor> current = typeComponents;
+            ImmutableQueue<ResultTypeComponentDescriptor> current = typeComponents;
             var typeName = new StringBuilder();
             int count = 0;
 
             while (!current.IsEmpty)
             {
-                current = current.Dequeue(out ResultTypeDescriptor component);
+                current = current.Dequeue(out ResultTypeComponentDescriptor component);
 
                 if (typeName.Length == 0)
                 {
