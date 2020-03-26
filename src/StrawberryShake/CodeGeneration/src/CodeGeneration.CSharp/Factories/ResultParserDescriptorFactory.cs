@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -61,15 +62,23 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         context.GetFullTypeName(
                             (IOutputType)possibleFieldType,
                             fieldParser.Selection.SelectionSet),
+                        possibleFieldType.NamedType().Name,
                         components,
                         fields));
                 }
 
+                var returnTypeComponents = new List<ResultTypeComponentDescriptor>();
+                DecomposeType(context, fieldParser.FieldType, returnTypeComponents);
+
                 parserMethods.Add(new ResultParserMethodDescriptor(
                     $"Parse{GetPathName(fieldParser.Path)}",
-                    context.GetFullTypeName(
+                    new ResultTypeDescriptor(
+                        context.GetFullTypeName(
                         (IOutputType)fieldParser.FieldType,
                         fieldParser.Selection.SelectionSet),
+                        fieldParser.FieldType.NamedType().Name,
+                        returnTypeComponents,
+                        Array.Empty<ResultFieldDescriptor>()),
                     possibleTypes,
                     false));
             }

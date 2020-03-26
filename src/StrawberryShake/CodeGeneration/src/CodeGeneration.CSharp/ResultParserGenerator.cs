@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
@@ -127,10 +128,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetInheritance(Inheritance.Override)
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}?",
-                        IsNullable(methodDescriptor.PossibleTypes))
+                        IsNullable(methodDescriptor.ResultType.Components))
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}",
-                        !IsNullable(methodDescriptor.PossibleTypes))
+                        IsNullable(methodDescriptor.ResultType.Components))
                     .SetName("ParseData")
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
@@ -139,7 +140,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         methodDescriptor, indent)));
         }
 
-        private CodeBlockBuilder CreateParseDataMethodBody(
+        private static CodeBlockBuilder CreateParseDataMethodBody(
             ResultParserMethodDescriptor methodDescriptor,
             string indent)
         {
@@ -151,7 +152,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 body,
                 methodDescriptor.PossibleTypes[0].Name,
                 "data",
-                methodDescriptor.Fields,
+                methodDescriptor.PossibleTypes[0].Fields,
                 indent,
                 string.Empty);
 
@@ -165,49 +166,41 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ResultParserMethodDescriptor methodDescriptor,
             string indent)
         {
-            ImmutableQueue<ResultTypeComponentDescriptor> resultType =
-                ImmutableQueue.CreateRange<ResultTypeComponentDescriptor>(
-                    methodDescriptor.PossibleTypes);
-
             classBuilder.AddMethod(
                 MethodBuilder.New()
                     .SetAccessModifier(AccessModifier.Private)
                     .SetInheritance(Inheritance.Override)
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}?",
-                        IsNullable(methodDescriptor.PossibleTypes))
+                        IsNullable(methodDescriptor.ResultType.Components))
                     .SetReturnType(
                         $"{methodDescriptor.ResultType}",
-                        !IsNullable(methodDescriptor.PossibleTypes))
+                        !IsNullable(methodDescriptor.ResultType.Components))
                     .SetName(methodDescriptor.Name)
                     .AddParameter(ParameterBuilder.New()
                         .SetType(Types.JsonElement)
                         .SetName("parent"))
-                    .AddCode(CreateParseMethodBody(
-                        methodDescriptor, resultType, indent)));
+                    .AddCode(CreateParseMethodBody(methodDescriptor, indent)));
         }
 
         private CodeBlockBuilder CreateParseMethodBody(
             ResultParserMethodDescriptor methodDescriptor,
-            ImmutableQueue<ResultTypeComponentDescriptor> resultTypeComponents,
             string indent)
         {
             var body = new StringBuilder();
 
-            ImmutableQueue<ResultTypeComponentDescriptor> next =
-                resultTypeComponents.Dequeue(out ResultTypeComponentDescriptor type);
-
-            if (type.IsList && next.Peek().IsList)
+            if (methodDescriptor.ResultType.Components[0].IsList
+                && methodDescriptor.ResultType.Components[1].IsList)
             {
-                AppendNestedList(body, methodDescriptor, type, next, indent);
+                AppendNestedList(body, methodDescriptor, indent);
             }
-            else if (type.IsList)
+            else if (methodDescriptor.ResultType.Components[0].IsList)
             {
-                AppendList(body, methodDescriptor, type, next, indent);
+                AppendList(body, methodDescriptor, indent);
             }
             else
             {
-                AppendObject(body, methodDescriptor, type, indent);
+                AppendObject(body, methodDescriptor, indent);
             }
 
             return CodeBlockBuilder.FromStringBuilder(body);
@@ -271,15 +264,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AppendNestedList(
             StringBuilder body,
             ResultParserMethodDescriptor methodDescriptor,
-            ResultTypeComponentDescriptor type,
-            ImmutableQueue<ResultTypeComponentDescriptor> elementType,
             string indent)
         {
             AppendNullHandling(
                 body,
                 "parent",
                 "obj",
-                IsNullable(type),
+                IsNullable(methodDescriptor.ResultType.Components[0]),
                 indent,
                 string.Empty);
 
@@ -294,8 +285,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     "count",
                     "element",
                     "result",
-                    BuildTypeName(elementType)),
-                    IsNullable(elementType.Peek()),
+                    BuildTypeName(methodDescriptor.ResultType.Components)),
+                IsNullable(methodDescriptor.ResultType.Components[1]),
                 listIndent => AppendList(
                     body,
                     new ListInfo(
@@ -304,15 +295,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         "innerCount",
                         "innerElement",
                         "innerResult",
-                        BuildTypeName(elementType.Dequeue())),
-                    IsNullable(elementType.Dequeue().Peek()),
+                        BuildTypeName(methodDescriptor.ResultType.Components, 1)),
+                    IsNullable(methodDescriptor.ResultType.Components[2]),
                     elementIndent => AppendSetElement(
                         body,
                         "innerResult",
                         "j",
-                        BuildTypeName(elementType.Dequeue()),
+                        methodDescriptor,
                         "innerElement",
-                        methodDescriptor.Fields,
                         indent,
                         elementIndent),
                     indent, listIndent),
@@ -326,15 +316,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AppendList(
             StringBuilder body,
             ResultParserMethodDescriptor methodDescriptor,
-            ResultTypeComponentDescriptor type,
-            ImmutableQueue<ResultTypeComponentDescriptor> elementType,
             string indent)
         {
             AppendNullHandling(
                 body,
                 "parent",
                 "obj",
-                IsNullable(type),
+                IsNullable(methodDescriptor.ResultType.Components[0]),
                 indent,
                 string.Empty);
 
@@ -349,15 +337,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     "count",
                     "element",
                     "result",
-                    BuildTypeName(elementType)),
-                IsNullable(elementType.Peek()),
+                    BuildTypeName(methodDescriptor.ResultType.Components)),
+                IsNullable(methodDescriptor.ResultType.Components[1]),
                 initialIndent => AppendSetElement(
                     body,
                     "result",
                     "i",
-                    BuildTypeName(elementType),
+                    methodDescriptor,
                     "element",
-                    methodDescriptor.Fields,
                     indent,
                     initialIndent),
                 indent, string.Empty);
@@ -370,31 +357,69 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private void AppendObject(
             StringBuilder body,
             ResultParserMethodDescriptor methodDescriptor,
-            ResultTypeComponentDescriptor type,
             string indent)
         {
             AppendNullHandling(
                 body,
                 "parent",
                 "obj",
-                IsNullable(type),
+                IsNullable(methodDescriptor.ResultType.Components[0]),
                 indent,
                 string.Empty);
 
             body.AppendLine();
             body.AppendLine();
 
-            body.Append($"return ");
-
-            AppendNewObject(
+            AppendTypeCase(
                 body,
-                type.Name,
-                "obj",
-                methodDescriptor.Fields,
+                methodDescriptor,
+                (ii, type) =>
+                {
+                    body.Append($"{ii}return ");
+
+                    AppendNewObject(
+                        body,
+                        type.Name,
+                        "obj",
+                        type.Fields,
+                        indent,
+                        ii);
+
+                    body.Append(";");
+                },
                 indent,
                 string.Empty);
+        }
 
-            body.Append(";");
+        private void AppendTypeCase(
+            StringBuilder body,
+            ResultParserMethodDescriptor methodDescriptor,
+            Action<string, ResultTypeDescriptor> appendNewObject,
+            string indent,
+            string initialIndent)
+        {
+            if (methodDescriptor.PossibleTypes.Count == 1)
+            {
+                appendNewObject(initialIndent, methodDescriptor.PossibleTypes[0]);
+            }
+            else
+            {
+                body.AppendLine($"{initialIndent}switch(obj.GetProperty(\"__typeName\").GetString())");
+                body.AppendLine($"{initialIndent}{{");
+
+                foreach (ResultTypeDescriptor type in methodDescriptor.PossibleTypes)
+                {
+                    body.AppendLine($"{initialIndent}{indent}case \"{type.GraphQLTypeName}\":");
+                    appendNewObject($"{initialIndent}{indent}{indent}", type);
+                    body.AppendLine();
+                }
+
+                body.AppendLine($"{initialIndent}{indent}default:");
+                body.Append($"{initialIndent}{indent}{indent}");
+                body.Append($"throw new {Types.InvalidOperationException}();");
+
+                body.Append($"{initialIndent}}}");
+            }
         }
 
         private void AppendList(
@@ -463,15 +488,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
             StringBuilder body,
             string array,
             string counter,
-            string resultType,
+            ResultParserMethodDescriptor methodDescriptor,
             string element,
-            IReadOnlyList<ResultFieldDescriptor> fields,
             string indent,
             string initialIndent)
         {
-            body.Append($"{initialIndent}{array}[{counter}] = ");
-            AppendNewObject(body, resultType, element, fields, indent, initialIndent);
-            body.Append(";");
+            bool multipleTypes = methodDescriptor.PossibleTypes.Count > 0;
+
+            AppendTypeCase(
+                body,
+                methodDescriptor,
+                (ii, type) =>
+                {
+                    body.Append($"{ii}{array}[{counter}] = ");
+                    AppendNewObject(
+                        body,
+                        BuildTypeName(type.Components, type.Components.Count - 1),
+                        element,
+                        type.Fields,
+                        indent,
+                        initialIndent);
+                    body.AppendLine(";");
+                    if (multipleTypes)
+                    {
+                        body.Append($"{ii}break;");
+                    }
+                },
+                indent,
+                initialIndent);
         }
 
         private static void AppendNewObject(
@@ -541,7 +585,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     methodDescriptor.SerializationType,
                     runtimeTypeComponents.Peek().Name,
                     IsNullable(runtimeTypeComponents.Peek()),
-                    indent,
                     initialIndent),
                 indent, string.Empty);
 
@@ -580,7 +623,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             body.Append(";");
         }
 
-        private void AppendSetLeafElement(
+        private static void AppendSetLeafElement(
             StringBuilder body,
             string array,
             string counter,
@@ -589,8 +632,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string serializationType,
             string runtimeType,
             bool isNullable,
-
-            string indent,
             string initialIndent)
         {
             body.Append($"{initialIndent}{array}[{counter}] = ");
@@ -639,32 +680,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return false;
         }
 
-        private string BuildTypeName(ImmutableQueue<ResultTypeComponentDescriptor> typeComponents)
+        private string BuildTypeName(
+            IReadOnlyList<ResultTypeComponentDescriptor> typeComponents,
+            int start = 0)
         {
-            ImmutableQueue<ResultTypeComponentDescriptor> current = typeComponents;
             var typeName = new StringBuilder();
-            int count = 0;
 
-            while (!current.IsEmpty)
+            for (int i = start; i < typeComponents.Count; i++)
             {
-                current = current.Dequeue(out ResultTypeComponentDescriptor component);
-
                 if (typeName.Length == 0)
                 {
-                    typeName.Append(IsNullable(component)
-                        ? $"{component.Name}?"
-                        : component.Name);
+                    typeName.Append(IsNullable(typeComponents[i])
+                        ? $"{typeComponents[i].Name}?"
+                        : typeComponents[i].Name);
                 }
                 else
                 {
-                    count++;
-                    typeName.Append(IsNullable(component)
-                        ? $"<{component.Name}?"
-                        : $"<{component.Name}");
+                    typeName.Append(IsNullable(typeComponents[i])
+                        ? $"<{typeComponents[i].Name}?"
+                        : $"<{typeComponents[i].Name}");
                 }
             }
 
-            return typeName.Append(new string('>', count)).ToString();
+            return typeName.Append(new string('>', typeComponents.Count - start)).ToString();
         }
 
         private readonly ref struct ListInfo
@@ -699,77 +737,3 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
     }
 }
-
-/*
-
-1. Object
-2. List of Leaf Types
-3. List of List of Lead Types
-4. List of Object Types
-6. List of List of Object Types
-
-if (!parent.TryGetProperty(field, out JsonElement obj)
-    || obj.ValueKind == JsonValueKind.Null)
-{
-    return null;
-}
-
-
-int count = obj.GetArrayLength();
-var result = new IHasName[objLength];
-
-for (int i = 0; i < count; i++)
-{
-    JsonElement element = obj[i];
-
-    if (!parent.TryGetProperty(field, out JsonElement obj)
-        || obj.ValueKind == JsonValueKind.Null)
-    {
-        list[i] = null;
-    }
-    else
-    {
-        list[i] = new HasName
-        (
-            DeserializeNullableString(obj, "name")
-        );
-    }
-}
-
-int count = obj.GetArrayLength();
-var result = new IHasName[objLength];
-
-for (int i = 0; i < count; i++)
-{
-    JsonElement element = obj[i];
-
-    result[i] = new HasName
-    (
-        DeserializeNullableString(element, "name")
-    );
-}
-
-int count = obj.GetArrayLength();
-var result = new IReadOnlyList<IHasName>[objLength];
-
-for (int i = 0; i < count; i++)
-{
-    JsonElement element = obj[i];
-
-    int innerCount = obj.GetArrayLength();
-    var innerResult = new IHasName[objLength];
-
-    for (int j = 0; j < innerCount; j++)
-    {
-        JsonElement innerElement = element[j];
-
-        innerResult[i] = new HasName
-        (
-            DeserializeNullableString(element, "name")
-        );
-    }
-
-    result[i] = innerResult
-}
-
-*/

@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration
     {
         public ResultParserMethodDescriptor(
             string name,
-            string resultType,
+            ResultTypeDescriptor resultType,
             IReadOnlyList<ResultTypeDescriptor> possibleTypes,
             bool isRoot)
         {
@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration
 
         public string Name { get; }
 
-        public string ResultType { get; }
+        public ResultTypeDescriptor ResultType { get; }
 
         public IReadOnlyList<ResultTypeDescriptor> PossibleTypes { get; }
 

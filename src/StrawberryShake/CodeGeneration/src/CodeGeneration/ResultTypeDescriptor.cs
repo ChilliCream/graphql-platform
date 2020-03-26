@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration
     {
         public ResultTypeDescriptor(
             string name,
+            string graphQLTypeName,
             IReadOnlyList<ResultTypeComponentDescriptor> components,
             IReadOnlyList<ResultFieldDescriptor> fields)
         {
@@ -15,7 +16,15 @@ namespace StrawberryShake.CodeGeneration
             Fields = fields;
         }
 
+        /// <summary>
+        /// Gets the .NET type name.
+        /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Gets the GraphQL type name of the inner named type.
+        /// </summary>
+        public string GraphQLTypeName { get; }
 
         public IReadOnlyList<ResultTypeComponentDescriptor> Components { get; }
 
