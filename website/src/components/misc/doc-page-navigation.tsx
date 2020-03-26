@@ -27,6 +27,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   const handleToggleExpand = (path: string) => {
     dispatch(toggleNavigationGroup({ path }));
   };
+
   const buildNavigationStructure = (items: Item[], basePath: string) => (
     <NavigationList>
       {items.map(({ path, title, items: subItems }) => {
@@ -101,15 +102,6 @@ export const DocPageNavigationGraphQLFragment = graphql`
             title
           }
         }
-      }
-    }
-    docs: allFile(
-      limit: 1000
-      filter: { sourceInstanceName: { eq: "docs" }, extension: { eq: "md" } }
-    ) {
-      nodes {
-        name
-        relativeDirectory
       }
     }
   }

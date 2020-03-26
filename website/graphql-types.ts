@@ -3401,7 +3401,7 @@ export type DocPageNavigationFragment = { config: Maybe<{ products: Maybe<Array<
         Pick<DocsJsonItems, 'path' | 'title'>
         & { items: Maybe<Array<Maybe<Pick<DocsJsonItemsItems, 'path' | 'title'>>>> }
       )>>> }
-    )>>> }>, docs: { nodes: Array<Pick<File, 'name' | 'relativeDirectory'>> } };
+    )>>> }> };
 
 export type Unnamed_1_QueryVariables = {};
 
