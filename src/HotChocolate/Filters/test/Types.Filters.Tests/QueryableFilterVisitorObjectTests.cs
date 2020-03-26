@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -100,7 +100,7 @@ namespace HotChocolate.Types.Filters
                 typeof(EvenDeeper),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
             // assert
@@ -137,7 +137,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Recursive),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<Recursive, bool> func = filter.CreateFilter<Recursive>().Compile();
 
 
@@ -176,7 +176,7 @@ namespace HotChocolate.Types.Filters
                 typeof(EvenDeeper),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
             // assert
@@ -229,7 +229,7 @@ namespace HotChocolate.Types.Filters
                 typeof(EvenDeeper),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            filter.Visit(value, null);
             Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
 
             // assert

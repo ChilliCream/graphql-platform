@@ -16,6 +16,7 @@ namespace HotChocolate.AspNetCore
             // act
             Assert.Equal("/voyager", options.Path);
             Assert.Equal("/", options.QueryPath);
+            Assert.Null(options.GraphQLEndpoint);
         }
 
         [Fact]
@@ -30,6 +31,19 @@ namespace HotChocolate.AspNetCore
             // act
             Assert.Equal("/foo", options.Path);
             Assert.Equal("/", options.QueryPath);
+        }
+
+        [Fact]
+        public void SetGraphQLEndpoint()
+        {
+            // arrange
+            var options = new VoyagerOptions();
+
+            // act
+            options.GraphQLEndpoint = new Uri("https://localhost:8081/graphql");
+
+            // act
+            Assert.Equal("https://localhost:8081/graphql", options.GraphQLEndpoint.AbsoluteUri);
         }
 
         [Fact]
@@ -100,6 +114,21 @@ namespace HotChocolate.AspNetCore
 
             // act
             Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void GraphQLEndpoint_Set_To_Null_Or_Invalid_Exceptions()
+        {
+            // arrange
+            var options = new VoyagerOptions();
+
+            // act
+            Action invalidAction = () => options.GraphQLEndpoint = new Uri("not valid");
+            Action nullAction = () => options.GraphQLEndpoint = new Uri(null);
+
+            // act
+            Assert.Throws<UriFormatException>(invalidAction);
+            Assert.Throws<ArgumentNullException>(nullAction);
         }
     }
 }

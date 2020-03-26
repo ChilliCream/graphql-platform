@@ -5,6 +5,7 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore.Playground;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using System;
 
 namespace HotChocolate.AspNetCore
 {
@@ -58,6 +59,43 @@ namespace HotChocolate.AspNetCore
 
             TestServer server = CreateServer(options);
             string settingsUri = "/foo/settings.js";
+
+            // act
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SetGraphQLEndpoint()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+            options.EnableSubscription = false;
+            options.Path = "/foo-bar";
+            options.GraphQLEndpoint = new Uri("https://hotchocolate.io/graphql");
+
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo-bar/settings.js";
+
+            // act
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SetGraphQLEndpointWithSubscriptions()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+            options.Path = "/bar";
+            options.GraphQLEndpoint = new Uri("https://microsoft.com/graphql");
+
+            TestServer server = CreateServer(options);
+            string settingsUri = "/bar/settings.js";
 
             // act
             string settings_js = await GetSettingsAsync(server, settingsUri);

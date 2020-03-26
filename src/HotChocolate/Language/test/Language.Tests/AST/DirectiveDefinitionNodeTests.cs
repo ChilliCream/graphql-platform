@@ -219,5 +219,53 @@ namespace HotChocolate.Language
             // assert
             directiveDefinition.MatchSnapshot();
         }
+
+        [Fact]
+        public void DirectiveDefinition_ToString()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode> { new NameNode(DirectiveLocation.Field.ToString()) };
+
+            // act
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // assert
+            directiveDefinition.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void DirectiveDefinition_WithArgument_ToString()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>
+            {
+                new InputValueDefinitionNode(
+                    null,
+                    new NameNode("abc"),
+                    new StringValueNode("def"),
+                    new NamedTypeNode("efg"),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            };
+            var locations = new List<NameNode>
+            {
+                new NameNode(DirectiveLocation.Field.ToString())
+            };
+
+            // act
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // assert
+            directiveDefinition.ToString().MatchSnapshot();
+        }
     }
 }

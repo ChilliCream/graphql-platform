@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -27,12 +28,45 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
 
-        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
-        { get; }
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 
         public NamedTypeNode TypeCondition { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public override IEnumerable<ISyntaxNode> GetNodes()
+        {
+            yield return Name;
+            yield return TypeCondition;
+
+            foreach (DirectiveNode directive in Directives)
+            {
+                yield return directive;
+            }
+
+            yield return SelectionSet;
+        }
+
+        /// <summary>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </summary>
+        /// <returns>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </returns>
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        /// <summary>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </summary>
+        /// <param name="indented">
+        /// A value that indicates whether the GraphQL output should be formatted,
+        /// which includes indenting nested GraphQL tokens, adding
+        /// new lines, and adding white space between property names and values.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </returns>
+        public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public FragmentDefinitionNode WithLocation(Location? location)
         {

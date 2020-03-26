@@ -1,4 +1,5 @@
 import { GatsbyLinkProps, Link as GatsbyLink } from "gatsby";
+import { OutboundLink } from "gatsby-plugin-google-analytics";
 import React, { FunctionComponent } from "react";
 
 export const Link: FunctionComponent<GatsbyLinkProps<unknown>> = ({
@@ -20,8 +21,8 @@ export const Link: FunctionComponent<GatsbyLinkProps<unknown>> = ({
       {children}
     </GatsbyLink>
   ) : (
-    <a href={to} target="_blank" className={className}>
+    <OutboundLink href={to} target="_blank" className={className}>
       {children}
-    </a>
+    </OutboundLink>
   );
 };

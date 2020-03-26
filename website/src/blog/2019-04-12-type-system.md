@@ -2,6 +2,7 @@
 path: "/blog/2019/04/12/type-system"
 date: "2019-04-12"
 title: "GraphQL - Hot Chocolate 9.0.0 - Type System"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4

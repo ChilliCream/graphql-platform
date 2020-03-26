@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -10,7 +10,6 @@ namespace HotChocolate.Language
         , IEquatable<ObjectValueNode>
     {
         private int? _hash;
-        private string? _stringValue;
 
         public ObjectValueNode(
             params ObjectFieldNode[] fields)
@@ -38,10 +37,11 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<ObjectFieldNode> Fields { get; }
 
-        IReadOnlyList<ObjectFieldNode>
-            IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
+        IReadOnlyList<ObjectFieldNode> IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
 
         object IValueNode.Value => Fields;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Fields;
 
         /// <summary>
         /// Determines whether the specified <see cref="ObjectValueNode"/>
@@ -179,18 +179,26 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string? ToString()
-        {
-            /*
-            if (_stringValue is null)
-            {
-                _stringValue = QuerySyntaxSerializer.Serialize(this, true);
-            }
-            return _stringValue;
-                */
-                // TODO : Fix this
-            throw new NotImplementedException();
-        }
+        /// <summary>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </summary>
+        /// <returns>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </returns>
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        /// <summary>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </summary>
+        /// <param name="indented">
+        /// A value that indicates whether the GraphQL output should be formatted,
+        /// which includes indenting nested GraphQL tokens, adding
+        /// new lines, and adding white space between property names and values.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </returns>
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public ObjectValueNode WithLocation(Location? location)
         {

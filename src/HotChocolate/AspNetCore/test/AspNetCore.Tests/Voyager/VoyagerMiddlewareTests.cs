@@ -5,6 +5,7 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Voyager;
+using System;
 
 namespace HotChocolate.AspNetCore
 {
@@ -41,6 +42,24 @@ namespace HotChocolate.AspNetCore
 
             TestServer server = CreateServer(options);
             string settingsUri = "/foo/settings.js";
+
+            // act
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SetGraphQLEndpoint()
+        {
+            // arrange
+            var options = new VoyagerOptions();
+            options.Path = "/foo-bar";
+            options.GraphQLEndpoint = new Uri("https://github.com/graphql");
+
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo-bar/settings.js";
 
             // act
             string settings_js = await GetSettingsAsync(server, settingsUri);

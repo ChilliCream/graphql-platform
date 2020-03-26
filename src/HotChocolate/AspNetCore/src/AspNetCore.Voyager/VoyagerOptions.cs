@@ -9,6 +9,8 @@ namespace HotChocolate.AspNetCore.Voyager
         private PathString _path = new PathString("/voyager");
         private PathString _queryPath = new PathString("/");
 
+        public Uri? GraphQLEndpoint { get; set; }
+
         public PathString Path
         {
             get => _path;

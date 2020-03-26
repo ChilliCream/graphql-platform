@@ -264,6 +264,7 @@ namespace HotChocolate
                 new NameNode(interfaceType.Name),
                 SerializeDescription(interfaceType.Description),
                 directives,
+                Array.Empty<NamedTypeNode>(),
                 fields
             );
         }
