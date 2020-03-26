@@ -21,19 +21,33 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "GetHumanResultParser",
                 "Demo",
                 "IFoo",
-                new[] {
+                new[]
+                {
                     new ResultParserMethodDescriptor(
                         "ParseFooBar",
-                        "IBar",
-                        new [] {
-                            new ResultTypeComponentDescriptor("Abc", true, true, true),
-                            new ResultTypeComponentDescriptor("Def", true, false, true)
+                        new ResultTypeDescriptor(
+                            "IBar",
+                            "Bar",
+                            new []
+                            {
+                                new ResultTypeComponentDescriptor("IAbc", true, true, true),
+                                new ResultTypeComponentDescriptor("IDef", true, false, true)
+                            },
+                            Array.Empty<ResultFieldDescriptor>()),
+                        new[]
+                        {
+                            new ResultTypeDescriptor(
+                                "Foo",
+                                "Foo",
+                                new []
+                                {
+                                    new ResultTypeComponentDescriptor("Abc", true, true, true),
+                                    new ResultTypeComponentDescriptor("Def", true, false, true)
+                                },
+                                Array.Empty<ResultFieldDescriptor>())
                         },
-                        false,
-                        new [] {
-                            new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
-                        }
-                    ) },
+                        false)
+                },
                 Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
@@ -57,19 +71,33 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "GetHumanResultParser",
                 "Demo",
                 "IFoo",
-                new[] {
+                new[]
+                {
                     new ResultParserMethodDescriptor(
                         "ParseFooBar",
-                        "IBar",
-                        new [] {
-                            new ResultTypeComponentDescriptor("Abc", false, true, true),
-                            new ResultTypeComponentDescriptor("Def", true, false, true)
+                        new ResultTypeDescriptor(
+                            "IBar",
+                            "Bar",
+                            new []
+                            {
+                                new ResultTypeComponentDescriptor("IAbc", false, true, true),
+                                new ResultTypeComponentDescriptor("IDef", true, false, true)
+                            },
+                            Array.Empty<ResultFieldDescriptor>()),
+                        new[]
+                        {
+                            new ResultTypeDescriptor(
+                                "Foo",
+                                "Foo",
+                                new []
+                                {
+                                    new ResultTypeComponentDescriptor("Abc", false, true, true),
+                                    new ResultTypeComponentDescriptor("Def", true, false, true)
+                                },
+                                Array.Empty<ResultFieldDescriptor>())
                         },
-                        false,
-                        new [] {
-                            new ResultFieldDescriptor("FieldA", "ParseThisAndThat")
-                        }
-                    ) },
+                        false)
+                },
                 Array.Empty<ResultParserDeserializerMethodDescriptor>(),
                 Array.Empty<ValueSerializerDescriptor>());
 
