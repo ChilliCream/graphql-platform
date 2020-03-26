@@ -10,7 +10,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     {
       blog: allMarkdownRemark(
         limit: 1000
-        filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
+        filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
         sort: { order: DESC, fields: [frontmatter___date] }
       ) {
         posts: edges {
@@ -24,19 +24,13 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
           fieldValue
         }
       }
-      docs: allMarkdownRemark(
+      docs: allFile(
         limit: 1000
-        filter: { frontmatter: { path: { regex: "//docs(/.*)?/" } } }
+        filter: { sourceInstanceName: { eq: "docs" }, extension: { eq: "md" } }
       ) {
-        pages: edges {
-          page: node {
-            frontmatter {
-              path
-            }
-          }
-        }
-        navigation: group(field: frontmatter___navigation) {
-          fieldValue
+        pages: nodes {
+          name
+          relativeDirectory
         }
       }
     }
@@ -124,11 +118,16 @@ function createDocPages(createPage, data) {
   const { pages } = data;
 
   // Create Single Pages
-  pages.forEach(({ page }) => {
+  pages.forEach(({ name, relativeDirectory }) => {
+    const path = `/docs/${relativeDirectory}/${name}`;
+    const originPath = `${relativeDirectory}/${name}.md`;
+
     createPage({
-      path: page.frontmatter.path,
+      path,
       component: pageTemplate,
-      context: {},
+      context: {
+        originPath,
+      },
     });
   });
 }

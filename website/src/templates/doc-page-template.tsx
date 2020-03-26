@@ -7,6 +7,7 @@ import { DocPage } from "../components/widgets/doc-page";
 
 interface DocPageTemplateProperties {
   data: DocPageFragment;
+  pageContext: DocPageTemplatePageContext;
 }
 
 const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
@@ -14,7 +15,7 @@ const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
 }) => {
   return (
     <Layout>
-      <SEO title={data.markdownRemark!.frontmatter!.title!} />
+      <SEO title={data.file!.childMarkdownRemark!.frontmatter!.title!} />
       <DocPage data={data} />
     </Layout>
   );
@@ -23,7 +24,11 @@ const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
 export default DocPageTemplate;
 
 export const pageQuery = graphql`
-  query getDocPage($path: String!) {
+  query getDocPage($originPath: String!) {
     ...DocPage
   }
 `;
+
+export interface DocPageTemplatePageContext {
+  path: string;
+}

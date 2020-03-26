@@ -11,7 +11,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs`,
+        link: `/docs/hotchocolate/getting-started`,
       },
       {
         name: `Blog`,
@@ -68,6 +68,7 @@ module.exports = {
         shortname: `chillicream`,
       },
     },
+    `gatsby-transformer-json`,
     {
       resolve: `gatsby-transformer-remark`,
       options: {

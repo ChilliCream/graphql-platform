@@ -4,6 +4,7 @@ import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
 import { ArticleTitle } from "../misc/blog-article-elements";
+import { DocPageNavigation } from "../misc/doc-page-navigation";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
@@ -14,11 +15,10 @@ interface DocPageProperties {
   data: DocPageFragment;
 }
 
-export const DocPage: FunctionComponent<DocPageProperties> = ({
-  data: { markdownRemark, site },
-}) => {
-  const { frontmatter, html } = markdownRemark!;
-  const path = frontmatter!.path!;
+export const DocPage: FunctionComponent<DocPageProperties> = ({ data }) => {
+  const { file, site } = data;
+  const { fields, frontmatter, html } = file!.childMarkdownRemark!;
+  const path = `/docs/${fields!.slug!}`;
   const articelUrl = site!.siteMetadata!.baseUrl! + path;
   const title = frontmatter!.title!;
   const disqusConfig = {
@@ -29,13 +29,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
 
   return (
     <Container>
-      <Navigation>
-        <FixedContainer>
-          <NavigationList>
-            <NavigationItem>Test</NavigationItem>
-          </NavigationList>
-        </FixedContainer>
-      </Navigation>
+      <DocPageNavigation data={data} />
       <Content>
         <Article>
           <ArticleTitle>{title}</ArticleTitle>
@@ -72,12 +66,19 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
 
 export const DocPageGraphQLFragment = graphql`
   fragment DocPage on Query {
-    markdownRemark(frontmatter: { path: { eq: $path } }) {
-      frontmatter {
-        path
-        title
+    file(
+      sourceInstanceName: { eq: "docs" }
+      relativePath: { eq: $originPath }
+    ) {
+      childMarkdownRemark {
+        fields {
+          slug
+        }
+        frontmatter {
+          title
+        }
+        html
       }
-      html
     }
     site {
       siteMetadata {
@@ -85,6 +86,7 @@ export const DocPageGraphQLFragment = graphql`
         baseUrl
       }
     }
+    ...DocPageNavigation
   }
 `;
 
@@ -95,30 +97,10 @@ const Container = styled.div`
   max-width: 1400px;
 `;
 
-const Navigation = styled.nav`
-  display: flex;
-  flex: 0 0 250px;
-  flex-direction: column;
-
-  @media only screen and (min-width: 992px) {
-    display: flex;
-  }
-`;
-
 const FixedContainer = styled.div`
   position: fixed;
   padding: 25px 0 250px;
-`;
-
-const NavigationList = styled.ul`
-  margin: 0;
-  padding: 0;
-`;
-
-const NavigationItem = styled.li`
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
+  width: 250px;
 `;
 
 const Content = styled.div`
@@ -222,6 +204,10 @@ const Aside = styled.aside`
   flex: 0 0 250px;
   flex-direction: column;
 
+  * {
+    user-select: none;
+  }
+
   @media only screen and (min-width: 992px) {
     display: flex;
   }
@@ -232,14 +218,16 @@ const AsideTitle = styled.h6`
   font-size: 0.833em;
 `;
 
-const CommunityItems = styled.ul`
+const CommunityItems = styled.ol`
+  display: flex;
+  flex-direction: column;
   margin: 0;
   padding: 0 20px 20px;
   list-style-type: none;
 `;
 
 const CommunityItem = styled.li`
-  display: inline-block;
+  flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
 `;
