@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
@@ -11,7 +13,8 @@ namespace HotChocolate.Language
         private const byte _i = (byte)'i';
         private const byte _p = (byte)'p';
 
-        private static readonly byte[] _operationName = new[]
+        // This uses C# compiler's ability to refer to static data directly. For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
+        private static ReadOnlySpan<byte> OperationName => new byte[]
         {
             (byte)'o',
             (byte)'p',
@@ -28,7 +31,7 @@ namespace HotChocolate.Language
             (byte)'e'
         };
 
-        private static readonly byte[] _queryName = new[]
+        private static ReadOnlySpan<byte> QueryName => new byte[]
         {
             (byte)'n',
             (byte)'a',
@@ -42,7 +45,7 @@ namespace HotChocolate.Language
             (byte)'y'
         };
 
-        private static readonly byte[] _query = new[]
+        private static ReadOnlySpan<byte> Query => new byte[]
         {
             (byte)'q',
             (byte)'u',
@@ -51,7 +54,7 @@ namespace HotChocolate.Language
             (byte)'y'
         };
 
-        private static readonly byte[] _variables = new[]
+        private static ReadOnlySpan<byte> Variables => new byte[]
         {
             (byte)'v',
             (byte)'a',
@@ -64,7 +67,7 @@ namespace HotChocolate.Language
             (byte)'s'
         };
 
-        private static readonly byte[] _extensions = new[]
+        private static ReadOnlySpan<byte> Extensions => new byte[]
         {
             (byte)'e',
             (byte)'x',
@@ -78,7 +81,7 @@ namespace HotChocolate.Language
             (byte)'s'
         };
 
-        private static readonly byte[] _type = new[]
+        private static ReadOnlySpan<byte> Type => new byte[]
         {
             (byte)'t',
             (byte)'y',
@@ -86,13 +89,13 @@ namespace HotChocolate.Language
             (byte)'e'
         };
 
-        private static readonly byte[] _id = new[]
+        private static ReadOnlySpan<byte> Id => new byte[]
         {
             (byte)'i',
             (byte)'d'
         };
 
-        private static readonly byte[] _payload = new[]
+        private static ReadOnlySpan<byte> Payload => new byte[]
         {
             (byte)'p',
             (byte)'a',
