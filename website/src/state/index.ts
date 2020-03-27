@@ -1,1 +1,1 @@
-export { createStore, State } from "./state";
+export { default, State } from "./state";

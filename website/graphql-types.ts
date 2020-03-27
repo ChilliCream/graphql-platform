@@ -2886,6 +2886,7 @@ export type SitePageFieldsEnum =
   'pluginCreator___pluginOptions___plugins___browserAPIs' |
   'pluginCreator___pluginOptions___plugins___ssrAPIs' |
   'pluginCreator___pluginOptions___plugins___pluginFilepath' |
+  'pluginCreator___pluginOptions___pathToCreateStoreModule' |
   'pluginCreator___pluginOptions___name' |
   'pluginCreator___pluginOptions___path' |
   'pluginCreator___pluginOptions___shortname' |
@@ -3121,6 +3122,7 @@ export type SitePluginFieldsEnum =
   'pluginOptions___plugins___browserAPIs' |
   'pluginOptions___plugins___ssrAPIs' |
   'pluginOptions___plugins___pluginFilepath' |
+  'pluginOptions___pathToCreateStoreModule' |
   'pluginOptions___name' |
   'pluginOptions___path' |
   'pluginOptions___shortname' |
@@ -3263,6 +3265,7 @@ export type SitePluginPackageJsonPeerDependenciesFilterListInput = {
 
 export type SitePluginPluginOptions = {
   plugins?: Maybe<Array<Maybe<SitePluginPluginOptionsPlugins>>>;
+  pathToCreateStoreModule?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   path?: Maybe<Scalars['String']>;
   shortname?: Maybe<Scalars['String']>;
@@ -3293,6 +3296,7 @@ export type SitePluginPluginOptions = {
 
 export type SitePluginPluginOptionsFilterInput = {
   plugins?: Maybe<SitePluginPluginOptionsPluginsFilterListInput>;
+  pathToCreateStoreModule?: Maybe<StringQueryOperatorInput>;
   name?: Maybe<StringQueryOperatorInput>;
   path?: Maybe<StringQueryOperatorInput>;
   shortname?: Maybe<StringQueryOperatorInput>;

@@ -6476,6 +6476,13 @@ gatsby-plugin-react-helmet@^3.1.21:
   dependencies:
     "@babel/runtime" "^7.8.7"
 
+gatsby-plugin-react-redux@^1.1.0-0:
+  version "1.1.0-0"
+  resolved "https://registry.yarnpkg.com/gatsby-plugin-react-redux/-/gatsby-plugin-react-redux-1.1.0-0.tgz#5c76776a4ecd093b876dd527058091fb4e3ab2fb"
+  integrity sha512-xuwF35hS0aaBzDj7gRk67SYzlT0egdp0giyf/DOuAQTCzioje7RCZt/k3WOO3K6/OoaakgfrwfVOSTTcqYiPMw==
+  dependencies:
+    serialize-javascript "^2.1.0"
+
 gatsby-plugin-react-svg@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/gatsby-plugin-react-svg/-/gatsby-plugin-react-svg-3.0.0.tgz#67984bf350bce0532bef965fab094b0b461cdf68"
@@ -12574,7 +12581,7 @@ send@0.17.1:
     range-parser "~1.2.1"
     statuses "~1.5.0"
 
-serialize-javascript@^2.1.2:
+serialize-javascript@^2.1.0, serialize-javascript@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/serialize-javascript/-/serialize-javascript-2.1.2.tgz#ecec53b0e0317bdc95ef76ab7074b7384785fa61"
   integrity sha512-rs9OggEUF0V4jUSecXazOYsLfu7OGK2qIn3c7IPBiffz32XniEp/TX9Xmc9LQfK2nQ2QKHvZ2oygKUGU0lG4jQ==
