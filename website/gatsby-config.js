@@ -11,7 +11,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs`,
+        link: `/docs/hotchocolate/getting-started`,
       },
       {
         name: `Blog`,
@@ -34,10 +34,9 @@ module.exports = {
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
     {
-      resolve: `gatsby-source-filesystem`,
+      resolve: `gatsby-plugin-react-redux`,
       options: {
-        name: `images`,
-        path: `${__dirname}/src/images`,
+        pathToCreateStoreModule: `./src/state`,
       },
     },
     {
@@ -45,6 +44,20 @@ module.exports = {
       options: {
         name: `blog`,
         path: `${__dirname}/src/blog`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `docs`,
+        path: `${__dirname}/src/docs`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `images`,
+        path: `${__dirname}/src/images`,
       },
     },
     {
@@ -61,6 +74,7 @@ module.exports = {
         shortname: `chillicream`,
       },
     },
+    `gatsby-transformer-json`,
     {
       resolve: `gatsby-transformer-remark`,
       options: {

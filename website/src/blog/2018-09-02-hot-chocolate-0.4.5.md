@@ -82,9 +82,5 @@ Custom will allow for writing field resolver middlewares that alter or replace t
 
 Subscriptions is one of our last spec gaps.
 
-| [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ------------------------------------------------------ | ---------------------------------------------------------------------- |
-
-
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

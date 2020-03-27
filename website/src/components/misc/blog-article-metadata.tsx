@@ -1,32 +1,42 @@
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
+import { BlogArticleMetadataFragment } from "../../../graphql-types";
 import { Link } from "../misc/link";
+import { graphql } from "gatsby";
 
 interface BlogArticleMetadataProperties {
-  author: string;
-  authorImageUrl: string;
-  authorUrl: string;
-  date: string;
-  readingTime: string;
+  data: BlogArticleMetadataFragment;
 }
 
 export const BlogArticleMetadata: FunctionComponent<BlogArticleMetadataProperties> = ({
-  author,
-  authorImageUrl,
-  authorUrl,
-  date,
-  readingTime,
+  data: { fields, frontmatter },
 }) => {
   return (
     <Metadata>
-      <AuthorLink to={authorUrl}>
-        <AuthorImage src={authorImageUrl} />
-        {author}
+      <AuthorLink to={frontmatter!.authorUrl!}>
+        <AuthorImage src={frontmatter!.authorImageUrl!} />
+        {frontmatter!.author!}
       </AuthorLink>{" "}
-      ・ {date} ・ {readingTime}
+      ・ {frontmatter!.date!} ・ {fields!.readingTime!.text!}
     </Metadata>
   );
 };
+
+export const BlogArticleMetadataGraphQLFragment = graphql`
+  fragment BlogArticleMetadata on MarkdownRemark {
+    fields {
+      readingTime {
+        text
+      }
+    }
+    frontmatter {
+      author
+      authorImageUrl
+      authorUrl
+      date(formatString: "MMMM DD, YYYY")
+    }
+  }
+`;
 
 const Metadata = styled.div`
   display: flex;
