@@ -273,6 +273,39 @@ namespace HotChocolate.Types.Sorting
             );
         }
 
+        [Fact]
+        public void Sort_Inheritance_ShouldSortByStringAsc()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar",
+                    new EnumValueNode(SortOperationKind.Desc)
+                    )
+            );
+
+            SortInputType<FooInherited> sortType = CreateType(new SortInputType<FooInherited>());
+
+            IQueryable<FooInherited> a = new[]
+            {
+                new FooInherited {Bar = "b"},
+                new FooInherited {Bar = "a"},
+                new FooInherited {Bar = "c"}
+            }.AsQueryable();
+
+            // act
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(FooInherited));
+            value.Accept(filter);
+            ICollection<FooInherited> aFiltered = filter.Sort(a).ToList();
+
+            // assert
+            Assert.Collection(aFiltered,
+                foo => Assert.Equal("c", foo.Bar),
+                foo => Assert.Equal("b", foo.Bar),
+                foo => Assert.Equal("a", foo.Bar)
+            );
+        }
+
         public class FooSortType
             : SortInputType<Foo>
         {
@@ -303,6 +336,11 @@ namespace HotChocolate.Types.Sorting
             public int? NullableInt { get; set; }
             public string Bar { get; set; }
             public string Baz { get; set; }
+        }
+
+        public class FooInherited : Foo
+        {
+            public string Qux { get; set; }
         }
     }
 }
