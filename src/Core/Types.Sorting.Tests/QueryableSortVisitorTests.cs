@@ -57,7 +57,6 @@ namespace HotChocolate.Types.Sorting
             result.MatchSnapshot();
         }
 
-
         [Fact]
         public void Sort_ComparableAsc_ShouldSortByStringAsc()
         {
@@ -246,7 +245,6 @@ namespace HotChocolate.Types.Sorting
                 foo => Assert.Equal("a", foo.Bar)
             );
         }
-
 
         public class FooSortType
             : SortInputType<Foo>
