@@ -4,6 +4,7 @@
     "title": "Hot Chocolate",
     "description": "Configure a GraphQL server to fetch data from multiple data sources.",
     "items": [
+      { "path": "index", "title": "Introduction" },
       { "path": "getting-started", "title": "Getting Started" },
       {
         "path": "api-reference",

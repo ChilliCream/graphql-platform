@@ -7,16 +7,17 @@ import { DocPage } from "../components/widgets/doc-page";
 
 interface DocPageTemplateProperties {
   data: DocPageFragment;
-  pageContext: DocPageTemplatePageContext;
+  pageContext: { originPath: string };
 }
 
 const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
   data,
+  pageContext,
 }) => {
   return (
     <Layout>
       <SEO title={data.file!.childMarkdownRemark!.frontmatter!.title!} />
-      <DocPage data={data} />
+      <DocPage data={data} originPath={pageContext.originPath} />
     </Layout>
   );
 };
@@ -28,7 +29,3 @@ export const pageQuery = graphql`
     ...DocPage
   }
 `;
-
-export interface DocPageTemplatePageContext {
-  path: string;
-}

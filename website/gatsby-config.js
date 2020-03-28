@@ -4,6 +4,7 @@ module.exports = {
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
     baseUrl: `https://chillicream.com`,
+    repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
         name: `Platform`,
@@ -11,7 +12,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs/hotchocolate/getting-started`,
+        link: `/docs/hotchocolate`,
       },
       {
         name: `Blog`,

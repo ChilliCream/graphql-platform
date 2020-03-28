@@ -3,7 +3,7 @@ import Img, { FluidObject } from "gatsby-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { BlogArticlesFragment } from "../../../graphql-types";
-import { ArticleTitle } from "../misc/blog-article-elements";
+import { ArticleTitle } from "../misc/article-elements";
 import { BlogArticleMetadata } from "../misc/blog-article-metadata";
 import { BlogArticleTags } from "../misc/blog-article-tags";
 import { Link } from "../misc/link";
@@ -26,7 +26,7 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
         {edges.map(({ node }) => {
           const existingTags: string[] = node?.frontmatter?.tags
             ? (node.frontmatter.tags.filter(
-                tag => tag && tag.length > 0
+                (tag) => tag && tag.length > 0
               ) as string[])
             : [];
           const featuredImage = node?.frontmatter!.featuredImage

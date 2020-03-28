@@ -1,13 +1,12 @@
 import { combineReducers, createStore as createReduxStore } from "redux";
-import { navigationReducer } from "./navigation/navigation.reducer";
-import { NavigationState } from "./navigation/navigation.state";
+import { commonReducer as common, CommonState } from "./common";
 
 export interface State {
-  navigation: NavigationState;
+  common: CommonState;
 }
 
 const rootReducer = combineReducers<State>({
-  navigation: navigationReducer,
+  common,
 });
 
 export default function createStore(preloadedState: State) {

@@ -1,20 +1,31 @@
-import React, { FunctionComponent, useState, useEffect } from "react";
+import React, { FunctionComponent, useEffect } from "react";
 import { useCookies } from "react-cookie";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import { State } from "../../state";
+import { hideCookieConsent, showCookieConsent } from "../../state/common";
 import { Link } from "./link";
 
 export const CookieConsent: FunctionComponent = () => {
+  const show = useSelector<State, boolean>(
+    (state) => state.common.showCookieConsent
+  );
+  const dispatch = useDispatch();
   const cookieName = "chillicream-cookie-consent";
   const [cookies, setCookie] = useCookies([cookieName]);
-  const [showDialog, setShowDialog] = useState(cookies[cookieName] !== "true");
+  const consentCookieValue = cookies[cookieName];
 
   const clickDismiss = () => {
     setCookie(cookieName, "true", { path: "/" });
   };
 
   useEffect(() => {
-    setShowDialog(cookies[cookieName] !== "true");
-  }, [cookies]);
+    if (consentCookieValue === "true") {
+      dispatch(hideCookieConsent());
+    } else {
+      dispatch(showCookieConsent());
+    }
+  }, [consentCookieValue]);
 
   return (
     <Dialog
@@ -22,7 +33,7 @@ export const CookieConsent: FunctionComponent = () => {
       aria-live="polite"
       aria-label="cookieconsent"
       aria-describedby="cookieconsent:desc"
-      show={showDialog}
+      show={show}
     >
       <Container>
         <Message id="cookieconsent:desc">
@@ -44,7 +55,7 @@ export const CookieConsent: FunctionComponent = () => {
   );
 };
 
-const Dialog = styled.div<{ show: boolean }>(props => ({
+const Dialog = styled.div<{ show: boolean }>((props) => ({
   position: "fixed",
   bottom: 0,
   zIndex: 20,
