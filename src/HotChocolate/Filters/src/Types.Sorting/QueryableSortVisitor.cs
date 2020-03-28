@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Sorting
                 if (!sortField.Operation.IsObject)
                 {
                     var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value);
-                    context.SortOperations.Push(context.CreateSortOperation(kind));
+                    context.SortOperations.Enqueue(context.CreateSortOperation(kind));
                 }
             }
 

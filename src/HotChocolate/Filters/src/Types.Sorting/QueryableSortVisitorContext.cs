@@ -24,8 +24,8 @@ namespace HotChocolate.Types.Sorting
 
         public SortQueryableClosure Closure { get; }
 
-        public Stack<SortOperationInvocation> SortOperations { get; } =
-            new Stack<SortOperationInvocation>();
+        public Queue<SortOperationInvocation> SortOperations { get; } =
+            new Queue<SortOperationInvocation>();
 
         public bool InMemory { get; }
     }

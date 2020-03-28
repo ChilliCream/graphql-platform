@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -41,13 +41,13 @@ namespace HotChocolate.Types.Sorting
             if (!OrderingMethodFinder.OrderMethodExists(source))
             {
                 source = source.CompileInitialSortOperation(
-                    context.SortOperations.Pop());
+                    context.SortOperations.Dequeue());
             }
 
             while (context.SortOperations.Count != 0)
             {
                 source = source.CompileSortOperation(
-                    context.SortOperations.Pop());
+                    context.SortOperations.Dequeue());
             }
 
             return source;
