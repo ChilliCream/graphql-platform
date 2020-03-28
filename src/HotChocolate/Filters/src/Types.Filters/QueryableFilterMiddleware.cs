@@ -37,15 +37,11 @@ namespace HotChocolate.Types.Filters
                 return;
             }
 
-            IQueryable<T> source = null;
-
-            if (context.Result is PageableData<T> p)
+            IQueryable<T>? source = null;
+            PageableData<T>? p = null;
+            if (context.Result is PageableData<T> pd)
             {
-                source = p.Source;
-            }
-            else
-            {
-                p = null;
+                source = pd.Source;
             }
 
             if (context.Result is IQueryable<T> q)
@@ -57,9 +53,9 @@ namespace HotChocolate.Types.Filters
                 source = e.AsQueryable();
             }
 
-            if (source != null
-                && context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot
-                && iot is IFilterInputType fit)
+            if (source != null &&
+                context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
+                iot is IFilterInputType fit)
             {
 
                 var visitorContext = new QueryableFilterVisitorContext(

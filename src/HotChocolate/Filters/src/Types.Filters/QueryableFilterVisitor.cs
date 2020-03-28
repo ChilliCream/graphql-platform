@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -33,7 +34,7 @@ namespace HotChocolate.Types.Filters
             if (TryCombineOperations(
                 operations,
                 (a, b) => Expression.AndAlso(a, b),
-                out Expression combined))
+                out Expression? combined))
             {
                 context.GetLevel().Enqueue(combined);
             }
@@ -71,7 +72,7 @@ namespace HotChocolate.Types.Filters
                         field.Type,
                         node.Value,
                         context,
-                        out Expression expression))
+                        out Expression? expression))
                     {
                         context.GetLevel().Enqueue(expression);
                         break;
@@ -102,7 +103,7 @@ namespace HotChocolate.Types.Filters
         private bool TryCombineOperations(
             Queue<Expression> operations,
             Func<Expression, Expression, Expression> combine,
-            out Expression combined)
+            [NotNullWhen(true)] out Expression? combined)
         {
             if (operations.Count != 0)
             {
@@ -148,7 +149,7 @@ namespace HotChocolate.Types.Filters
             if (TryCombineOperations(
                 operations,
                 combine,
-                out Expression combined))
+                out Expression? combined))
             {
                 context.GetLevel().Enqueue(combined);
             }

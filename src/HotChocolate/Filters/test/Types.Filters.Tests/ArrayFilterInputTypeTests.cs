@@ -815,39 +815,39 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-           [Fact]    
-        public void Create_ArraySimpleFilter_FooImplicitBarImplicit_Collection()    
-        {    
+        [Fact]
+        public void Create_ArraySimpleFilter_FooImplicitBarImplicit_Collection()
+        {
             // arrange    
             // act    
-            var schema = CreateSchema(new FilterInputType<FooSimpleCollection>());    
+            var schema = CreateSchema(new FilterInputType<FooSimpleCollection>());
 
             // assert    
-            schema.ToString().MatchSnapshot();    
+            schema.ToString().MatchSnapshot();
         }
-        
 
-        public class FooSimpleCollection    
-        {    
-            public int[] Array { get; set; }    
-            public int?[] ArrayNullable { get; set; }    
 
-            public List<int> List { get; set; }    
-            public List<int?> ListNullable { get; set; }    
-            public Queue<int> Queue { get; set; }    
-            public Queue<int?> QueueNullable { get; set; }    
-            public Stack<int> Stack { get; set; }    
-            public Stack<int?> StackNullable { get; set; }    
-            public IList<int> IList { get; set; }    
-            public IList<int?> IListNullable { get; set; }    
-            public HashSet<int> HashSet { get; set; }    
-            public HashSet<int?> HashSetNullable { get; set; }    
-            public ICollection<int> ICollection { get; set; }    
-            public ICollection<int?> ICollectionNullable { get; set; }    
-            public IReadOnlyCollection<int> IReadOnlyCollection { get; set; }    
-            public IReadOnlyCollection<int?> IReadOnlyCollectionNullable { get; set; }    
-            public ISet<int> ISet { get; set; }    
-            public ISet<int?> ISetNullable { get; set; }    
+        public class FooSimpleCollection
+        {
+            public int[] Array { get; set; }
+            public int?[] ArrayNullable { get; set; }
+
+            public List<int> List { get; set; }
+            public List<int?> ListNullable { get; set; }
+            public Queue<int> Queue { get; set; }
+            public Queue<int?> QueueNullable { get; set; }
+            public Stack<int> Stack { get; set; }
+            public Stack<int?> StackNullable { get; set; }
+            public IList<int> IList { get; set; }
+            public IList<int?> IListNullable { get; set; }
+            public HashSet<int> HashSet { get; set; }
+            public HashSet<int?> HashSetNullable { get; set; }
+            public ICollection<int> ICollection { get; set; }
+            public ICollection<int?> ICollectionNullable { get; set; }
+            public IReadOnlyCollection<int> IReadOnlyCollection { get; set; }
+            public IReadOnlyCollection<int?> IReadOnlyCollectionNullable { get; set; }
+            public ISet<int> ISet { get; set; }
+            public ISet<int?> ISetNullable { get; set; }
         }
 
         public class FooString

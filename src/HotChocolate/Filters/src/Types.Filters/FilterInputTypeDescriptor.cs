@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -85,13 +86,13 @@ namespace HotChocolate.Types.Filters
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
-            var handledProperties = new HashSet<PropertyInfo>();
+            var handledProperties = new HashSet<PropertyInfo?>();
 
             var explicitFields = Fields.Select(t => t.CreateDefinition()).ToList();
 
             FieldDescriptorUtilities.AddExplicitFields(
                 explicitFields.Where(t => !t.Ignore).SelectMany(t => t.Filters),
-                f => f.Operation.Property,
+                f => f.Operation?.Property,
                 fields,
                 handledProperties);
 
@@ -107,7 +108,7 @@ namespace HotChocolate.Types.Filters
 
         protected virtual void OnCompleteFields(
             IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<PropertyInfo> handledProperties)
+            ISet<PropertyInfo?> handledProperties)
         {
             if (Definition.Fields.IsImplicitBinding()
                 && Definition.EntityType != typeof(object))
@@ -118,7 +119,7 @@ namespace HotChocolate.Types.Filters
                 {
                     if (!handledProperties.Contains(property)
                         && TryCreateImplicitFilter(property,
-                            out FilterFieldDefintion definition))
+                            out FilterFieldDefintion? definition))
                     {
                         foreach (FilterOperationDefintion filter in definition.Filters)
                         {
@@ -134,7 +135,7 @@ namespace HotChocolate.Types.Filters
 
         private bool TryCreateImplicitFilter(
             PropertyInfo property,
-            out FilterFieldDefintion definition)
+            [NotNullWhen(true)] out FilterFieldDefintion? definition)
         {
             Type type = property.PropertyType;
 
@@ -346,7 +347,7 @@ namespace HotChocolate.Types.Filters
 
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct>? ignore = null)
             where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
@@ -354,7 +355,7 @@ namespace HotChocolate.Types.Filters
 
         public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct?>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null)
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct>? ignore = null)
             where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
