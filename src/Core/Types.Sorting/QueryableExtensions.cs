@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Sorting
                 return Expression.Call(
                     type,
                     "OrderByDescending",
-                    new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                    new[] { parameter.Type, operation.Property.PropertyType },
                     source,
                     lambda);
             }
@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Sorting
             return Expression.Call(
                 type,
                 "OrderBy",
-                new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                new[] { parameter.Type, operation.Property.PropertyType },
                 source,
                 lambda);
         }
@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Sorting
                 return Expression.Call(
                     type,
                     "ThenByDescending",
-                    new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                    new[] { parameter.Type, operation.Property.PropertyType },
                     source,
                     lambda);
             }
@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Sorting
             return Expression.Call(
                 type,
                 "ThenBy",
-                new[] { operation.Property.DeclaringType, operation.Property.PropertyType },
+                new[] { parameter.Type, operation.Property.PropertyType },
                 source,
                 lambda);
         }
