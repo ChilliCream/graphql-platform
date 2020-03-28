@@ -33,7 +33,8 @@ namespace HotChocolate.Types.Sorting
                 return;
             }
 
-            IQueryable<T> source = null;
+            IQueryable<T>? source = null;
+            PageableData<T>? p = null;
 
             if (context.Result is IQueryable<T> q)
             {
@@ -44,18 +45,16 @@ namespace HotChocolate.Types.Sorting
                 source = e.AsQueryable();
             }
 
-            if (context.Result is PageableData<T> p)
+            if (context.Result is PageableData<T> pb)
             {
-                source = p.Source;
-            }
-            else
-            {
-                p = null;
+                source = pb.Source;
+                p = pb;
             }
 
-            if (source != null
-                && context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot
-                && iot is ISortInputType fit)
+            if (source != null &&
+                context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
+                iot is ISortInputType fit &&
+                fit.EntityType is { })
             {
                 var visitorCtx = new QueryableSortVisitorContext(
                     iot,

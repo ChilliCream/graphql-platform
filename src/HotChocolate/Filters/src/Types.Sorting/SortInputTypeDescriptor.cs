@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -148,13 +149,16 @@ namespace HotChocolate.Types.Sorting
 
             FieldDescriptorUtilities.AddExplicitFields(
                 explicitFields.Where(t => !t.Ignore),
-                    f => f.Operation.Property,
+                    f => f.Operation?.Property,
                     fields,
                     handledProperties);
 
             foreach (SortOperationDefintion field in explicitFields.Where(t => t.Ignore))
             {
-                handledProperties.Add(field.Operation.Property);
+                if (field.Operation?.Property is { } property)
+                {
+                    handledProperties.Add(property);
+                }
             }
 
             OnCompleteFields(fields, handledProperties);
@@ -181,7 +185,7 @@ namespace HotChocolate.Types.Sorting
                     continue;
                 }
 
-                if (TryCreateImplicitSorting(property, out SortOperationDefintion definition)
+                if (TryCreateImplicitSorting(property, out SortOperationDefintion? definition)
                     && !fields.ContainsKey(definition.Name))
                 {
                     fields[definition.Name] = definition;
@@ -191,7 +195,7 @@ namespace HotChocolate.Types.Sorting
 
         private bool TryCreateImplicitSorting(
             PropertyInfo property,
-            out SortOperationDefintion definition)
+            [NotNullWhen(true)] out SortOperationDefintion? definition)
         {
             Type type = property.PropertyType;
 

@@ -86,7 +86,7 @@ namespace HotChocolate.Types.Filters
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
-            var handledProperties = new HashSet<PropertyInfo?>();
+            var handledProperties = new HashSet<PropertyInfo>();
 
             var explicitFields = Fields.Select(t => t.CreateDefinition()).ToList();
 
@@ -108,7 +108,7 @@ namespace HotChocolate.Types.Filters
 
         protected virtual void OnCompleteFields(
             IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<PropertyInfo?> handledProperties)
+            ISet<PropertyInfo> handledProperties)
         {
             if (Definition.Fields.IsImplicitBinding()
                 && Definition.EntityType != typeof(object))

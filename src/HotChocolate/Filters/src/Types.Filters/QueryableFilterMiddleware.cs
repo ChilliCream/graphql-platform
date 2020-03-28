@@ -42,6 +42,7 @@ namespace HotChocolate.Types.Filters
             if (context.Result is PageableData<T> pd)
             {
                 source = pd.Source;
+                p = pd;
             }
 
             if (context.Result is IQueryable<T> q)

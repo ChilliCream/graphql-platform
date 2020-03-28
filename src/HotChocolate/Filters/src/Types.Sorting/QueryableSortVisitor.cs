@@ -29,7 +29,9 @@ namespace HotChocolate.Types.Sorting
         {
             base.Enter(node, context);
 
-            if (context.Operations.Peek() is SortOperationField sortField)
+            if (context.Operations.Peek() is SortOperationField sortField &&
+                sortField?.Operation is { } &&
+                sortField?.Operation?.Property is { })
             {
                 context.Closure.EnqueueProperty(sortField.Operation.Property);
                 if (!sortField.Operation.IsObject)
