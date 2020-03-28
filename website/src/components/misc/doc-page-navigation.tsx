@@ -19,8 +19,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   data,
 }) => {
   const expandedPaths = useSelector<State, string[]>(
-    (state) => state.common.expandedPaths,
-    () => true
+    (state) => state.common.expandedPaths
   );
   const dispatch = useDispatch();
 
@@ -36,7 +35,9 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
         return (
           <NavigationItem key={itemPath}>
             {subItems ? (
-              <NavigationGroup open={expandedPaths.indexOf(itemPath) !== -1}>
+              <NavigationGroup
+                expanded={expandedPaths.indexOf(itemPath) !== -1}
+              >
                 <NavigationGroupToggle
                   onClick={() => handleToggleExpand(itemPath)}
                 >
@@ -46,7 +47,9 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                     <ArrowUpIconSvg className="arrow-up" />
                   </IconContainer>
                 </NavigationGroupToggle>
-                {buildNavigationStructure(subItems, itemPath)}
+                <NavigationGroupContent>
+                  {buildNavigationStructure(subItems, itemPath)}
+                </NavigationGroupContent>
               </NavigationGroup>
             ) : (
               <NavigationLink to={itemPath}>{title}</NavigationLink>
@@ -147,51 +150,41 @@ const NavigationItem = styled.li`
   list-style-type: none;
 `;
 
-const NavigationGroupToggle = styled.summary`
+const NavigationGroupToggle = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   margin: 5px 0;
   padding: 0;
   font-size: 0.833em;
+`;
 
-  ::-webkit-details-marker {
-    display: none;
+const NavigationGroupContent = styled.div`
+  > ${NavigationList} {
+    padding: 0;
   }
 `;
 
-const NavigationGroup = styled.details`
+const NavigationGroup = styled.div<{ expanded: boolean }>`
   margin: 0;
   padding: 0;
   cursor: pointer;
 
-  > ${NavigationList} {
-    padding: 0;
+  > ${NavigationGroupContent} {
+    display: ${(props) => (props.expanded ? "initial" : "none")};
   }
 
   > ${NavigationGroupToggle} > ${IconContainer} {
     margin-left: auto;
 
     > .arrow-down {
-      display: initial;
+      display: ${(props) => (props.expanded ? "none" : "initial")};
       fill: #666;
     }
 
     > .arrow-up {
-      display: none;
+      display: ${(props) => (props.expanded ? "initial" : "none")};
       fill: #666;
-    }
-  }
-
-  &[open] > ${NavigationGroupToggle} {
-    > ${IconContainer} {
-      > .arrow-down {
-        display: none;
-      }
-
-      > .arrow-up {
-        display: initial;
-      }
     }
   }
 `;
