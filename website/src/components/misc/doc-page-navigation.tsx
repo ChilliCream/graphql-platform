@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
 import { State } from "../../state";
-import { toggleNavigationGroup } from "../../state/navigation/navigation.actions";
+import { toggleNavigationGroup } from "../../state/common";
 import { IconContainer } from "./icon-container";
 import { Link } from "./link";
 
@@ -19,7 +19,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   data,
 }) => {
   const expandedPaths = useSelector<State, string[]>(
-    state => state.navigation.expandedPaths,
+    (state) => state.common.expandedPaths,
     () => true
   );
   const dispatch = useDispatch();
@@ -64,14 +64,14 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
           data.config.products[0]?.items &&
           buildNavigationStructure(
             data.config.products[0].items
-              .filter(item => !!item)
-              .map<Item>(item => ({
+              .filter((item) => !!item)
+              .map<Item>((item) => ({
                 path: item!.path!,
                 title: item!.title!,
                 items: item!.items
                   ? item?.items
-                      .filter(item => !!item)
-                      .map<Item>(item => ({
+                      .filter((item) => !!item)
+                      .map<Item>((item) => ({
                         path: item!.path!,
                         title: item!.title!,
                       }))

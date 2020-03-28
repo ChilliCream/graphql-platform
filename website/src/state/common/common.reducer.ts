@@ -1,9 +1,23 @@
 import { createReducer, onAction } from "../state.helpers";
-import { NavigationState, initialState } from "./navigation.state";
-import { toggleNavigationGroup } from "./navigation.actions";
+import { CommonState, initialState } from "./common.state";
+import {
+  hideCookieConsent,
+  showCookieConsent,
+  toggleNavigationGroup,
+} from "./common.actions";
 
-export const navigationReducer = createReducer<NavigationState>(
+export const commonReducer = createReducer<CommonState>(
   initialState,
+
+  onAction(hideCookieConsent, (state) => ({
+    ...state,
+    showCookieConsent: false,
+  })),
+
+  onAction(showCookieConsent, (state) => ({
+    ...state,
+    showCookieConsent: true,
+  })),
 
   onAction(toggleNavigationGroup, (state, { path }) => {
     const expandedPaths = [...state.expandedPaths];

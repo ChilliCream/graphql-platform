@@ -1,17 +1,17 @@
-export interface Action<Payload = undefined> {
+export interface Action<Payload = unknown> {
   type: string;
   payload: Payload;
 }
 
-interface ActionCreator<Payload = undefined> {
+interface ActionCreator<Payload = unknown> {
   type: string;
-  (payload: Payload): Action<Payload>;
+  (payload?: Payload): Action<Payload>;
 }
 
-export function createAction<Payload = undefined>(
+export function createAction<Payload = unknown>(
   type: string
 ): ActionCreator<Payload> {
-  const actionCreator = <ActionCreator<Payload>>function(payload: Payload) {
+  const actionCreator = <ActionCreator<Payload>>function (payload?: Payload) {
     return {
       type,
       payload,
@@ -23,12 +23,12 @@ export function createAction<Payload = undefined>(
   return actionCreator;
 }
 
-interface ActionReducer<State, Payload = undefined> {
+interface ActionReducer<State, Payload = unknown> {
   type: string;
   reduce: (state: State, payload: Payload) => State;
 }
 
-export function onAction<State, Payload = undefined>(
+export function onAction<State, Payload = unknown>(
   action: ActionCreator<Payload>,
   reduce: (state: State, payload: Payload) => State
 ): ActionReducer<State, Payload> {
@@ -43,7 +43,7 @@ export function createReducer<State>(
   ...reducers: ActionReducer<State, any>[]
 ) {
   return (state: State = initialState, action: Action<any>) => {
-    const reducer = reducers.find(reducer => reducer.type === action.type);
+    const reducer = reducers.find((reducer) => reducer.type === action.type);
 
     if (reducer) {
       return reducer.reduce(state, action.payload);
