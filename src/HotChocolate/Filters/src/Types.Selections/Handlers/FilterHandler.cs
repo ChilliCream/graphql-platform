@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters;
 
@@ -21,7 +22,7 @@ namespace HotChocolate.Types.Selections.Handlers
                 var visitor = new QueryableFilterVisitor(
                     iot, fit.EntityType, context.Conversion, false);
 
-                filter.Accept(visitor);
+                visitor.Visit(filter);
 
                 return Expression.Call(
                     typeof(Enumerable),
