@@ -2226,6 +2226,8 @@ export type QueryAllSitePageArgs = {
 export type QuerySiteArgs = {
   buildTime?: Maybe<DateQueryOperatorInput>;
   siteMetadata?: Maybe<SiteSiteMetadataFilterInput>;
+  port?: Maybe<IntQueryOperatorInput>;
+  host?: Maybe<StringQueryOperatorInput>;
   pathPrefix?: Maybe<StringQueryOperatorInput>;
   polyfill?: Maybe<BooleanQueryOperatorInput>;
   id?: Maybe<StringQueryOperatorInput>;
@@ -2357,6 +2359,8 @@ export type QueryAllSitePluginArgs = {
 export type Site = Node & {
   buildTime?: Maybe<Scalars['Date']>;
   siteMetadata?: Maybe<SiteSiteMetadata>;
+  port?: Maybe<Scalars['Int']>;
+  host?: Maybe<Scalars['String']>;
   pathPrefix?: Maybe<Scalars['String']>;
   polyfill?: Maybe<Scalars['Boolean']>;
   id: Scalars['ID'];
@@ -2560,12 +2564,15 @@ export type SiteFieldsEnum =
   'siteMetadata___description' |
   'siteMetadata___author' |
   'siteMetadata___baseUrl' |
+  'siteMetadata___repositoryUrl' |
   'siteMetadata___topnav' |
   'siteMetadata___topnav___name' |
   'siteMetadata___topnav___link' |
   'siteMetadata___tools___github' |
   'siteMetadata___tools___slack' |
   'siteMetadata___tools___twitter' |
+  'port' |
+  'host' |
   'pathPrefix' |
   'polyfill' |
   'id' |
@@ -2658,6 +2665,8 @@ export type SiteFieldsEnum =
 export type SiteFilterInput = {
   buildTime?: Maybe<DateQueryOperatorInput>;
   siteMetadata?: Maybe<SiteSiteMetadataFilterInput>;
+  port?: Maybe<IntQueryOperatorInput>;
+  host?: Maybe<StringQueryOperatorInput>;
   pathPrefix?: Maybe<StringQueryOperatorInput>;
   polyfill?: Maybe<BooleanQueryOperatorInput>;
   id?: Maybe<StringQueryOperatorInput>;
@@ -3403,6 +3412,7 @@ export type SiteSiteMetadata = {
   description?: Maybe<Scalars['String']>;
   author?: Maybe<Scalars['String']>;
   baseUrl?: Maybe<Scalars['String']>;
+  repositoryUrl?: Maybe<Scalars['String']>;
   topnav?: Maybe<Array<Maybe<SiteSiteMetadataTopnav>>>;
   tools?: Maybe<SiteSiteMetadataTools>;
 };
@@ -3412,6 +3422,7 @@ export type SiteSiteMetadataFilterInput = {
   description?: Maybe<StringQueryOperatorInput>;
   author?: Maybe<StringQueryOperatorInput>;
   baseUrl?: Maybe<StringQueryOperatorInput>;
+  repositoryUrl?: Maybe<StringQueryOperatorInput>;
   topnav?: Maybe<SiteSiteMetadataTopnavFilterListInput>;
   tools?: Maybe<SiteSiteMetadataToolsFilterInput>;
 };
@@ -3474,6 +3485,11 @@ export type BlogArticleMetadataFragment = { fields?: Maybe<{ readingTime?: Maybe
 
 export type BlogArticleTagsFragment = Pick<MarkdownRemarkFrontmatter, 'tags'>;
 
+export type DocPageAsideFragment = { file?: Maybe<{ childMarkdownRemark?: Maybe<{ fields?: Maybe<Pick<MarkdownRemarkFields, 'slug'>> }> }>, site?: Maybe<{ siteMetadata?: Maybe<(
+      Pick<SiteSiteMetadata, 'repositoryUrl'>
+      & { tools?: Maybe<Pick<SiteSiteMetadataTools, 'slack'>> }
+    )> }> };
+
 export type DocPageNavigationFragment = { config?: Maybe<{ products?: Maybe<Array<Maybe<(
       Pick<DocsJson, 'path' | 'title' | 'description'>
       & { items?: Maybe<Array<Maybe<(
@@ -3522,6 +3538,7 @@ export type DocPageFragment = (
       Pick<MarkdownRemark, 'html'>
       & { fields?: Maybe<Pick<MarkdownRemarkFields, 'slug'>>, frontmatter?: Maybe<Pick<MarkdownRemarkFrontmatter, 'title'>> }
     )> }>, site?: Maybe<{ siteMetadata?: Maybe<Pick<SiteSiteMetadata, 'author' | 'baseUrl'>> }> }
+  & DocPageAsideFragment
   & DocPageNavigationFragment
 );
 

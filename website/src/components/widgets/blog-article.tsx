@@ -5,7 +5,7 @@ import React, { FunctionComponent } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
 import { BlogArticleFragment } from "../../../graphql-types";
-import { ArticleTitle } from "../misc/blog-article-elements";
+import { ArticleTitle } from "../misc/article-elements";
 import { BlogArticleMetadata } from "../misc/blog-article-metadata";
 import { BlogArticleTags } from "../misc/blog-article-tags";
 
@@ -29,7 +29,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
     title,
   };
   const existingTags: string[] = frontmatter!.tags!
-    ? (frontmatter!.tags!.filter(tag => tag && tag.length > 0) as string[])
+    ? (frontmatter!.tags!.filter((tag) => tag && tag.length > 0) as string[])
     : [];
   const featuredImage = frontmatter!.featuredImage?.childImageSharp
     ?.fluid as FluidObject;
