@@ -8,7 +8,8 @@ namespace HotChocolate.Validation
     {
         public static IServiceCollection AddValidation(this IServiceCollection services)
         {
-            services.TryAddSingleton<DocumentValidationContextPool>();
+            services.TryAddSingleton(sp => new DocumentValidatorContextPool(8));
+            services.TryAddSingleton<IDocumentValidator, DocumentValidator>();
             services.AddAllVariablesUsedRule();
             return services;
         }
@@ -19,9 +20,9 @@ namespace HotChocolate.Validation
         }
 
         public static IServiceCollection AddValidationRule<T>(this IServiceCollection services)
-            where T : DocumentValidationVisitor, new()
+            where T : DocumentValidatorVisitor, new()
         {
-            return services.AddSingleton<IDocumentValidationRule, DocumentValidationRule<T>>();
+            return services.AddSingleton<IDocumentValidatorRule, DocumentValidatorRule<T>>();
         }
     }
 }

@@ -1,7 +1,6 @@
 import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { GetBlogArticlesQuery } from "../../graphql-types";
-import { Pagination } from "../components/misc/pagination";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 import { BlogArticles } from "../components/widgets/blog-articles";
@@ -12,18 +11,17 @@ interface BlogArticlesTemplateProperties {
 }
 
 const BlogArticlesTemplate: FunctionComponent<BlogArticlesTemplateProperties> = ({
-  pageContext,
-  data,
+  pageContext: { currentPage, numPages },
+  data: { allMarkdownRemark },
 }) => {
   return (
     <Layout>
       <SEO title="Blog Articles" />
-      <BlogArticles data={data} />
-      <Pagination
-        currentPage={pageContext.currentPage}
-        linkPrefix="/blog"
-        totalPages={pageContext.numPages}
-      ></Pagination>
+      <BlogArticles
+        currentPage={currentPage}
+        data={allMarkdownRemark!}
+        totalPages={numPages}
+      />
     </Layout>
   );
 };
@@ -35,35 +33,10 @@ export const pageQuery = graphql`
     allMarkdownRemark(
       limit: $limit
       skip: $skip
+      filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
       sort: { fields: [frontmatter___date], order: DESC }
     ) {
-      edges {
-        node {
-          id
-          excerpt(pruneLength: 250)
-          fields {
-            readingTime {
-              text
-            }
-          }
-          frontmatter {
-            author
-            authorImageUrl
-            authorUrl
-            date(formatString: "MMMM DD, YYYY")
-            featuredImage {
-              childImageSharp {
-                fluid(maxWidth: 800) {
-                  ...GatsbyImageSharpFluid
-                }
-              }
-            }
-            path
-            tags
-            title
-          }
-        }
-      }
+      ...BlogArticles
     }
   }
 `;

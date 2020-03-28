@@ -4,7 +4,7 @@ namespace HotChocolate.Language.Visitors
         : SyntaxVisitor<TContext>
         where TContext : ISyntaxVisitorContext
     {
-        protected SyntaxWalker()
+        protected SyntaxWalker() : base(Continue)
         {
         }
 

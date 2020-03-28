@@ -173,7 +173,7 @@ namespace HotChocolate.Language
             switch (fieldName[0])
             {
                 case _o:
-                    if (fieldName.SequenceEqual(_operationName))
+                    if (fieldName.SequenceEqual(OperationName))
                     {
                         request.OperationName = ParseStringOrNull();
                         return;
@@ -181,7 +181,7 @@ namespace HotChocolate.Language
                     break;
 
                 case _n:
-                    if (fieldName.SequenceEqual(_queryName))
+                    if (fieldName.SequenceEqual(QueryName))
                     {
                         if (request.QueryId is null)
                         {
@@ -196,7 +196,7 @@ namespace HotChocolate.Language
                     break;
 
                 case _i:
-                    if (fieldName.SequenceEqual(_id))
+                    if (fieldName.SequenceEqual(Id))
                     {
                         if (request.QueryId is null)
                         {
@@ -211,7 +211,7 @@ namespace HotChocolate.Language
                     break;
 
                 case _q:
-                    if (fieldName.SequenceEqual(_query))
+                    if (fieldName.SequenceEqual(Query))
                     {
                         request.HasQuery = !IsNullToken();
 
@@ -228,7 +228,7 @@ namespace HotChocolate.Language
                     break;
 
                 case _v:
-                    if (fieldName.SequenceEqual(_variables))
+                    if (fieldName.SequenceEqual(Variables))
                     {
                         request.Variables = ParseObjectOrNull();
                         return;
@@ -236,7 +236,7 @@ namespace HotChocolate.Language
                     break;
 
                 case _e:
-                    if (fieldName.SequenceEqual(_extensions))
+                    if (fieldName.SequenceEqual(Extensions))
                     {
                         request.Extensions = ParseObjectOrNull();
                         return;
@@ -257,7 +257,7 @@ namespace HotChocolate.Language
             switch (fieldName[0])
             {
                 case _t:
-                    if (fieldName.SequenceEqual(_type))
+                    if (fieldName.SequenceEqual(Type))
                     {
                         message.Type = ParseStringOrNull();
                         return;
@@ -265,7 +265,7 @@ namespace HotChocolate.Language
                     break;
 
                 case _i:
-                    if (fieldName.SequenceEqual(_id))
+                    if (fieldName.SequenceEqual(Id))
                     {
                         message.Id = ParseStringOrNull();
                         return;
@@ -273,7 +273,7 @@ namespace HotChocolate.Language
                     break;
 
                 case _p:
-                    if (fieldName.SequenceEqual(_payload))
+                    if (fieldName.SequenceEqual(Payload))
                     {
                         int start = _reader.Start;
                         message.HasPayload = !IsNullToken();
