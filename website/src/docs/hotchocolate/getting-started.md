@@ -1,5 +1,5 @@
 ---
-title: "test"
+title: "Getting Started"
 ---
 
 Docs

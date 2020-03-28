@@ -10,17 +10,15 @@ import SlackIconSvg from "../../images/slack.svg";
 
 interface DocPageAsideProperties {
   data: DocPageAsideFragment;
+  originPath: string;
 }
 
 export const DocPageAside: FunctionComponent<DocPageAsideProperties> = ({
-  data: { file, site },
+  data,
+  originPath,
 }) => {
-  const slug = file!.childMarkdownRemark!.fields!.slug!;
-  const metadata = site!.siteMetadata!;
-  const docPath = `${metadata.repositoryUrl!}/blob/master/website/src/docs/${slug.substring(
-    1,
-    slug.length - 1
-  )}.md`;
+  const metadata = data.site!.siteMetadata!;
+  const docPath = `${metadata.repositoryUrl!}/blob/master/website/src/docs/${originPath}`;
 
   return (
     <Aside>
@@ -51,16 +49,6 @@ export const DocPageAside: FunctionComponent<DocPageAsideProperties> = ({
 
 export const DocPageAsideGraphQLFragment = graphql`
   fragment DocPageAside on Query {
-    file(
-      sourceInstanceName: { eq: "docs" }
-      relativePath: { eq: $originPath }
-    ) {
-      childMarkdownRemark {
-        fields {
-          slug
-        }
-      }
-    }
     site {
       siteMetadata {
         repositoryUrl

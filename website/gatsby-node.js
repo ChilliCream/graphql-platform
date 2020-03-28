@@ -58,7 +58,7 @@ exports.onCreateNode = ({ node, actions, getNode }) => {
 
   if (node.internal.type === `MarkdownRemark`) {
     const value = createFilePath({ node, getNode });
-
+    console.log();
     createNodeField({
       name: `slug`,
       node,
@@ -102,7 +102,7 @@ function createBlogArticles(createPage, data) {
   // Create Tag Pages
   const tagTemplate = path.resolve(`src/templates/blog-tag-template.tsx`);
 
-  tags.forEach(tag => {
+  tags.forEach((tag) => {
     createPage({
       path: `/blog/tags/${tag.fieldValue}`,
       component: tagTemplate,
@@ -119,7 +119,10 @@ function createDocPages(createPage, data) {
 
   // Create Single Pages
   pages.forEach(({ name, relativeDirectory }) => {
-    const path = `/docs/${relativeDirectory}/${name}`;
+    const path =
+      name === "index"
+        ? `/docs/${relativeDirectory}`
+        : `/docs/${relativeDirectory}/${name}`;
     const originPath = `${relativeDirectory}/${name}.md`;
 
     createPage({

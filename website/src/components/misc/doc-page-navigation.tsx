@@ -30,7 +30,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   const buildNavigationStructure = (items: Item[], basePath: string) => (
     <NavigationList>
       {items.map(({ path, title, items: subItems }) => {
-        const itemPath = basePath + "/" + path;
+        const itemPath =
+          !subItems && path === "index" ? basePath : basePath + "/" + path;
 
         return (
           <NavigationItem key={itemPath}>
@@ -147,6 +148,7 @@ const NavigationItem = styled.li`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
+  min-height: 20px;
   list-style-type: none;
 `;
 
@@ -154,20 +156,19 @@ const NavigationGroupToggle = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin: 5px 0;
-  padding: 0;
+  min-height: 20px;
   font-size: 0.833em;
 `;
 
 const NavigationGroupContent = styled.div`
   > ${NavigationList} {
-    padding: 0;
+    padding: 5px 0;
   }
 `;
 
 const NavigationGroup = styled.div<{ expanded: boolean }>`
-  margin: 0;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
   cursor: pointer;
 
   > ${NavigationGroupContent} {
