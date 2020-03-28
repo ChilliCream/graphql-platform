@@ -61,5 +61,6 @@ const PageLink = styled(Link)`
   justify-content: center;
   width: 30px;
   height: 30px;
+  line-height: 30px;
   color: #fff;
 `;
