@@ -3,7 +3,9 @@ import React, { FunctionComponent } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetStartpageDataQuery } from "../../graphql-types";
-import BananaCakepop from "../components/images/banana-cakepop";
+import { BananaCakepop } from "../components/images/banana-cakepop";
+import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
+import { Link } from "../components/misc/link";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
@@ -34,6 +36,17 @@ const IndexPage: FunctionComponent = () => {
           showStatus={false}
           showThumbs={false}
         >
+          <Slide>
+            <Link to="/blog/2020/03/18/entity-framework">
+              <EFMeetsGraphQL />
+              <SlideContent>
+                <SlideTitle>Entity Frameworks meets GraphQL</SlideTitle>
+                <SlideDescription>
+                  Get started with Hot Chocolate and Entity Framework
+                </SlideDescription>
+              </SlideContent>
+            </Link>
+          </Slide>
           <Slide>
             <BananaCakepop />
             <SlideContent>
@@ -134,6 +147,7 @@ const Slideshow = styled(Carousel)<{
       display: flex;
       flex-direction: row;
       justify-content: center;
+      margin-top: 20px;
       list-style: none;
 
       > .dot {
@@ -168,6 +182,9 @@ const Slideshow = styled(Carousel)<{
 
       > .slide {
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         min-width: 100%;
       }
     }
@@ -177,6 +194,12 @@ const Slideshow = styled(Carousel)<{
 const Slide = styled.div`
   margin: 0 auto;
   width: 100%;
+
+  .gatsby-image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   @media only screen and (min-width: 992px) {
     width: 800px;
@@ -216,10 +239,12 @@ const SlideContent = styled.div`
 
 const SlideTitle = styled.h2`
   flex: 0 0 auto;
+  margin-top: 10px;
   font-size: 1em;
   text-align: center;
 
   @media only screen and (min-width: 768px) {
+    margin-top: 0;
     margin-bottom: 10px;
     font-size: 1.667em;
     text-align: initial;
@@ -230,6 +255,7 @@ const SlideTitle = styled.h2`
 const SlideDescription = styled.p`
   display: none;
   flex: 0 0 auto;
+  margin-bottom: 0;
   font-size: 1.111em;
   color: #fff;
 

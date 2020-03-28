@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Runtime.Serialization;
-#if netstandard1_4
-using System.Runtime.Serialization;
-#endif
 
 namespace HotChocolate.Language
 {
@@ -14,9 +11,7 @@ namespace HotChocolate.Language
             : base(message) { }
         public LanguageException(string message, Exception inner)
             : base(message, inner) { }
-        protected LanguageException(
-            SerializationInfo info,
-            StreamingContext context)
+        protected LanguageException(SerializationInfo info, StreamingContext context)
             : base(info, context) { }
     }
 

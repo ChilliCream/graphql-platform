@@ -13,15 +13,13 @@ interface BlogTagTemplateProperties {
 }
 
 const BlogTagTemplate: FunctionComponent<BlogTagTemplateProperties> = ({
-  pageContext,
-  data,
+  pageContext: { tag },
+  data: { allMarkdownRemark },
 }) => {
-  const { tag } = pageContext;
-
   return (
     <Layout>
       <SEO title={`Blog Articles By Tag: ${tag}`} />
-      <BlogArticles data={data} />
+      <BlogArticles data={allMarkdownRemark!} />
     </Layout>
   );
 };
@@ -31,38 +29,11 @@ export default BlogTagTemplate;
 export const pageQuery = graphql`
   query getBlogArticlesByTag($tag: String) {
     allMarkdownRemark(
-      filter: { frontmatter: { tags: { in: [$tag] } } }
       limit: 100
+      filter: { frontmatter: { tags: { in: [$tag] } } }
       sort: { fields: [frontmatter___date], order: DESC }
     ) {
-      totalCount
-      edges {
-        node {
-          id
-          excerpt(pruneLength: 250)
-          fields {
-            readingTime {
-              text
-            }
-          }
-          frontmatter {
-            author
-            authorImageUrl
-            authorUrl
-            date(formatString: "MMMM DD, YYYY")
-            featuredImage {
-              childImageSharp {
-                fluid(maxWidth: 800) {
-                  ...GatsbyImageSharpFluid
-                }
-              }
-            }
-            path
-            tags
-            title
-          }
-        }
-      }
+      ...BlogArticles
     }
   }
 `;

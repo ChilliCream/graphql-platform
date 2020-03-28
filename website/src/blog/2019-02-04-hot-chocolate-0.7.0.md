@@ -230,9 +230,5 @@ Version 7 was a big release with a lot of new features that make it very easy to
 
 After the schema stitching enhancements we will focus on the new schema builder with Version 9. The schema builder will bring in completely new capabilities that let you extend the schema building process. We are basically opening up the schema building process like we did with the execution engine.
 
-| [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ------------------------------------------------------ | ---------------------------------------------------------------------- |
-
-
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
