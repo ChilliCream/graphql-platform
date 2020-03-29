@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using Microsoft.Data.Sqlite;
@@ -13,9 +12,6 @@ namespace HotChocolate.Types.Selections
     {
         private static readonly ILoggerFactory ConsoleLogger =
              LoggerFactory.Create(x => x.AddConsole());
-
-        private static readonly ConcurrentDictionary<object, object> _cache =
-            new ConcurrentDictionary<object, object>();
 
         public (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
             CreateResolver<TResult>(params TResult[] results)
