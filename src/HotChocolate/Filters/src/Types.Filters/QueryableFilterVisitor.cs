@@ -68,6 +68,11 @@ namespace HotChocolate.Types.Filters
             return _context.GetClosure().CreateLambda<Func<TSource, bool>>();
         }
 
+        public Expression CreateFilter()
+        {
+            return _context.GetClosure().CreateLambda();
+        }
+
         #region Object Value
 
         protected override ISyntaxVisitorAction Enter(

@@ -1,51 +1,78 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace HotChocolate.Types.Sorting
 {
     internal static class QueryableExtensions
     {
-        internal static IOrderedQueryable<TSource> AddInitialSortOperation<TSource>(
-            this IQueryable<TSource> source,
+        internal static Expression CompileInitialSortOperation(
+           this Expression source,
+           SortOperationInvocation operation)
+        {
+            Expression lambda
+                = HandleProperty(operation);
+
+            Type type = typeof(Enumerable);
+            if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type) ||
+                typeof(IQueryable).IsAssignableFrom(source.Type))
+            {
+                type = typeof(Queryable);
+            }
+            if (operation.Kind == SortOperationKind.Desc)
+            {
+                return Expression.Call(
+                    type,
+                    "OrderByDescending",
+                    new[] { operation.Parameter.Type, operation.ReturnType },
+                    source,
+                    lambda);
+            }
+
+            return Expression.Call(
+                type,
+                "OrderBy",
+                new[] { operation.Parameter.Type, operation.ReturnType },
+                source,
+                lambda);
+        }
+
+        internal static Expression CompileSortOperation(
+            this Expression source,
             SortOperationInvocation operation)
         {
-            Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation);
+            Expression lambda
+                = HandleProperty(operation);
+
+            Type type = typeof(Enumerable);
+            if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type))
+            {
+                type = typeof(Queryable);
+            }
 
             if (operation.Kind == SortOperationKind.Desc)
             {
-                return source.OrderByDescending(lambda);
+                return Expression.Call(
+                    type,
+                    "ThenByDescending",
+                    new[] { operation.Parameter.Type, operation.ReturnType },
+                    source,
+                    lambda);
             }
 
-            return source.OrderBy(lambda);
+            return Expression.Call(
+                type,
+                "ThenBy",
+                new[] { operation.Parameter.Type, operation.ReturnType },
+                source,
+                lambda);
         }
 
-        internal static IOrderedQueryable<TSource> AddSortOperation<TSource>(
-            this IOrderedQueryable<TSource> source,
-            SortOperationInvocation operation)
+        internal static Expression HandleProperty(
+             SortOperationInvocation operation)
         {
-            Expression<Func<TSource, object>> lambda
-                = HandleProperty<TSource>(operation);
-
-            if (operation.Kind == SortOperationKind.Desc)
-            {
-                return source.ThenByDescending(lambda);
-            }
-
-            return source.ThenBy(lambda);
-        }
-
-        internal static Expression<Func<TSource, object>> HandleProperty<TSource>(
-            SortOperationInvocation operation)
-        {
-            UnaryExpression propAsObject = Expression.Convert(
-                operation.ExpressionBody,
-                typeof(object)
-            );
-            return Expression.Lambda<Func<TSource, object>>(
-                propAsObject,
+            return Expression.Lambda(
+                 operation.ExpressionBody,
                 operation.Parameter
            );
         }

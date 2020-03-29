@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("HotChocolate.Core.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Validation.Tests")]
@@ -6,3 +6,4 @@
 
 // this is temporary until we reworked the variable coercion #1274
 [assembly: InternalsVisibleTo("HotChocolate.Stitching")]
+[assembly: InternalsVisibleTo("HotChocolate.Types.Selections")]
