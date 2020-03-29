@@ -15,7 +15,6 @@ namespace HotChocolate.Types.Sorting
         protected override ISyntaxVisitorAction Enter(
             ObjectValueNode node, QueryableSortVisitorContext context) => Continue;
 
-
         protected override ISyntaxVisitorAction Leave(
             ObjectValueNode node, QueryableSortVisitorContext context) => Continue;
 

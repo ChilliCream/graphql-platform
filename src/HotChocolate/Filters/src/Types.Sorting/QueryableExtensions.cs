@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Sorting
            SortOperationInvocation operation)
         {
             Expression lambda
-                = HandleProperty(operation);
+                = operation.CreateProperty();
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type) ||
@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Sorting
             SortOperationInvocation operation)
         {
             Expression lambda
-                = HandleProperty(operation);
+                = operation.CreateProperty();
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type))
@@ -68,8 +68,8 @@ namespace HotChocolate.Types.Sorting
                 lambda);
         }
 
-        internal static Expression HandleProperty(
-             SortOperationInvocation operation)
+        internal static Expression CreateProperty(
+             this SortOperationInvocation operation)
         {
             return Expression.Lambda(
                 operation.ExpressionBody,

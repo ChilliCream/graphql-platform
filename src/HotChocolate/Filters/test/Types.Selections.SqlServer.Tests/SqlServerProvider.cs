@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using Microsoft.Data.Sqlite;
@@ -13,9 +12,6 @@ namespace HotChocolate.Types.Selections
     {
         private static readonly ILoggerFactory ConsoleLogger =
              LoggerFactory.Create(x => x.AddConsole());
-
-        private static readonly ConcurrentDictionary<object, object> _cache =
-            new ConcurrentDictionary<object, object>();
 
         public (IServiceCollection, Func<IResolverContext, IEnumerable<TResult>>)
             CreateResolver<TResult>(params TResult[] results)
@@ -43,7 +39,6 @@ namespace HotChocolate.Types.Selections
         private class DatabaseContext<TResult> : DbContext
             where TResult : class
         {
-            private static int counter = 0;
             private SqliteConnection _connection;
 
             public DatabaseContext()
@@ -67,8 +62,11 @@ namespace HotChocolate.Types.Selections
         public class SelectionAttributeTestsFooNested
         {
             public Guid FooId { get; set; }
+
             public SelectionAttributeTests.Foo Foo { get; set; }
+
             public Guid NestedFooId { get; set; }
+
             public SelectionAttributeTests.NestedFoo NestedFoo { get; set; }
         }
     }

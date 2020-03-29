@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Selections.Handlers
                 var visitorContext = new QueryableFilterVisitorContext(
                     iot, fit.EntityType, context.Conversion, false);
 
-                visitor.Visit(filter);
+                QueryableFilterVisitor.Default.Visit(filter, visitorContext);
 
                 return Expression.Call(
                     typeof(Enumerable),
