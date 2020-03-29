@@ -1256,7 +1256,7 @@ namespace HotChocolate.Types.Selections
         public class Foo
         {
             [Key]
-            public Guid Id { get; set; }
+            public int Id { get; set; }
 
             public string Bar { get; set; }
 

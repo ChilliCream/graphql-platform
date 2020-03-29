@@ -43,7 +43,6 @@ namespace HotChocolate.Types.Selections
         private class DatabaseContext<TResult> : DbContext
             where TResult : class
         {
-            private static int counter = 0;
             private SqliteConnection _connection;
 
             public DatabaseContext()
@@ -67,8 +66,11 @@ namespace HotChocolate.Types.Selections
         public class SelectionAttributeTestsFooNested
         {
             public Guid FooId { get; set; }
+
             public SelectionAttributeTests.Foo Foo { get; set; }
+
             public Guid NestedFooId { get; set; }
+
             public SelectionAttributeTests.NestedFoo NestedFoo { get; set; }
         }
     }
