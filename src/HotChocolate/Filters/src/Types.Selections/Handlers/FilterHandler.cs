@@ -15,21 +15,21 @@ namespace HotChocolate.Types.Selections.Handlers
             Expression expression)
         {
             var argumentName = context.SelectionContext.FilterArgumentName;
-            if (context.TryGetValueNode(argumentName, out IValueNode filter) &&
+            if (context.TryGetValueNode(argumentName, out IValueNode? filter) &&
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit)
             {
-                var visitor = new QueryableFilterVisitor(
+                var visitorContext = new QueryableFilterVisitorContext(
                     iot, fit.EntityType, context.Conversion, false);
 
-                visitor.Visit(filter);
+                QueryableFilterVisitor.Default.Visit(filter, visitorContext);
 
                 return Expression.Call(
                     typeof(Enumerable),
                     "Where",
                     new[] { fit.EntityType },
                     expression,
-                    visitor.CreateFilter());
+                    visitorContext.CreateFilter());
             }
 
             return expression;

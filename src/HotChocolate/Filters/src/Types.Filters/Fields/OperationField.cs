@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Types.Filters
 {
     public sealed class FilterOperationField
@@ -7,7 +9,8 @@ namespace HotChocolate.Types.Filters
         internal FilterOperationField(FilterOperationDefintion definition)
             : base(definition)
         {
-            Operation = definition.Operation;
+            Operation = definition.Operation ??
+                throw new ArgumentNullException(nameof(definition.Operation));
         }
 
         public FilterOperation Operation { get; }

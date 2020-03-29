@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Sorting
            SortOperationInvocation operation)
         {
             Expression lambda
-                = HandleProperty(operation);
+                = operation.CreateProperty();
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type) ||
@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Sorting
             {
                 return Expression.Call(
                     type,
-                    "OrderByDescending",
+                    nameof(Queryable.OrderByDescending),
                     new[] { operation.Parameter.Type, operation.ReturnType },
                     source,
                     lambda);
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Sorting
 
             return Expression.Call(
                 type,
-                "OrderBy",
+                nameof(Queryable.OrderBy),
                 new[] { operation.Parameter.Type, operation.ReturnType },
                 source,
                 lambda);
@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Sorting
             SortOperationInvocation operation)
         {
             Expression lambda
-                = HandleProperty(operation);
+                = operation.CreateProperty();
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type))
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Sorting
             {
                 return Expression.Call(
                     type,
-                    "ThenByDescending",
+                    nameof(Queryable.ThenByDescending),
                     new[] { operation.Parameter.Type, operation.ReturnType },
                     source,
                     lambda);
@@ -62,17 +62,17 @@ namespace HotChocolate.Types.Sorting
 
             return Expression.Call(
                 type,
-                "ThenBy",
+                nameof(Queryable.ThenBy),
                 new[] { operation.Parameter.Type, operation.ReturnType },
                 source,
                 lambda);
         }
 
-        internal static Expression HandleProperty(
-             SortOperationInvocation operation)
+        internal static Expression CreateProperty(
+             this SortOperationInvocation operation)
         {
             return Expression.Lambda(
-                 operation.ExpressionBody,
+                operation.ExpressionBody,
                 operation.Parameter
            );
         }

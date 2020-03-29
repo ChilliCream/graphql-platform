@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Filters
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        public Type EntityType { get; private set; }
+        public Type EntityType { get; private set; } = typeof(object);
 
         #region Configuration
 
@@ -58,9 +58,11 @@ namespace HotChocolate.Types.Filters
         {
             base.OnCompleteType(context, definition);
 
-            EntityType = definition is FilterInputTypeDefinition ft
-                ? ft.EntityType
-                : typeof(object);
+            if (definition is FilterInputTypeDefinition ft &&
+                ft.EntityType is { })
+            {
+                EntityType = ft.EntityType;
+            }
         }
 
         protected override void OnCompleteFields(

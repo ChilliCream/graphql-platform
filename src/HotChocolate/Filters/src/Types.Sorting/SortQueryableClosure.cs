@@ -19,6 +19,7 @@ namespace HotChocolate.Types.Sorting
         public ParameterExpression Parameter { get; }
 
         private Stack<Expression> Instance { get; }
+
         private Stack<PropertyInfo> Property { get; }
 
         public SortOperationInvocation CreateSortOperation(SortOperationKind kind)

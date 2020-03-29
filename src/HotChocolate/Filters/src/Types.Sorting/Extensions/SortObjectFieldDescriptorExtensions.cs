@@ -61,8 +61,8 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor,
-            Type sortType,
-            ITypeSystemMember sortTypeInstance = null)
+            Type? sortType,
+            ITypeSystemMember? sortTypeInstance = null)
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
@@ -123,11 +123,11 @@ namespace HotChocolate.Types
 
         private static Type GetArgumentType(
             ObjectFieldDefinition definition,
-            Type filterType)
+            Type? filterType)
         {
-            Type argumentType = filterType;
+            Type? argumentType = filterType;
 
-            if (filterType == null)
+            if (argumentType == null)
             {
                 if (!TypeInspector.Default.TryCreate(
                     definition.ResultType, out TypeInfo typeInfo))

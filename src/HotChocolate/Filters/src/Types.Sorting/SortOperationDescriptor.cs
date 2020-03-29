@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -25,7 +24,7 @@ namespace HotChocolate.Types.Sorting
         protected override void OnCreateDefinition(
             SortOperationDefintion definition)
         {
-            if (Definition.Operation.Property is { })
+            if (Definition?.Operation?.Property is { })
             {
                 Context.Inspector.ApplyAttributes(Context, this, Definition.Operation.Property);
             }

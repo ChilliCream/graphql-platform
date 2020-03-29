@@ -6,6 +6,6 @@ namespace HotChocolate.Types.Sorting
     public class SortInputTypeDefinition
         : InputObjectTypeDefinition
     {
-        public Type EntityType { get; set; }
+        public Type? EntityType { get; set; }
     }
 }

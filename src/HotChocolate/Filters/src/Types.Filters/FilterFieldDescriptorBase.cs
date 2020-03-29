@@ -71,14 +71,14 @@ namespace HotChocolate.Types.Filters
             ISet<FilterOperationKind> handledFilterKinds)
         {
             foreach (FilterOperationDefintion filterDefinition in
-                Filters.Select(t => t.CreateDefinition()))
+                Filters.Select(t => t.CreateDefinition()).Where(x => x.Operation is { }))
             {
                 if (!filterDefinition.Ignore)
                 {
                     fields[filterDefinition.Name] = filterDefinition;
                 }
 
-                handledFilterKinds.Add(filterDefinition.Operation.Kind);
+                handledFilterKinds.Add(filterDefinition.Operation!.Kind);
             }
         }
 
