@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Sorting;
 
 namespace HotChocolate.Types.Sorting
 {

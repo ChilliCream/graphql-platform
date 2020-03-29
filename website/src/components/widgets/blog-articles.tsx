@@ -1,57 +1,82 @@
+import { graphql } from "gatsby";
 import Img, { FluidObject } from "gatsby-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { GetBlogArticlesQuery } from "../../../graphql-types";
-import { ArticleTitle } from "../misc/blog-article-elements";
+import { BlogArticlesFragment } from "../../../graphql-types";
+import { ArticleTitle } from "../misc/article-elements";
 import { BlogArticleMetadata } from "../misc/blog-article-metadata";
 import { BlogArticleTags } from "../misc/blog-article-tags";
 import { Link } from "../misc/link";
+import { Pagination } from "../misc/pagination";
 
 interface BlogArticlesProperties {
-  data: GetBlogArticlesQuery;
+  currentPage?: number;
+  data: BlogArticlesFragment;
+  totalPages?: number;
 }
 
 export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
-  data: { allMarkdownRemark },
+  currentPage,
+  data: { edges },
+  totalPages,
 }) => {
-  const { edges } = allMarkdownRemark;
-
   return (
-    <Container>
-      {edges.map(({ node }) => {
-        const existingTags: string[] = node?.frontmatter?.tags
-          ? (node.frontmatter.tags.filter(
-              tag => tag && tag.length > 0
-            ) as string[])
-          : [];
+    <>
+      <Container>
+        {edges.map(({ node }) => {
+          const existingTags: string[] = node?.frontmatter?.tags
+            ? (node.frontmatter.tags.filter(
+                (tag) => tag && tag.length > 0
+              ) as string[])
+            : [];
+          const featuredImage = node?.frontmatter!.featuredImage
+            ?.childImageSharp?.fluid as FluidObject;
 
-        return (
-          <Article key={`article-${node.id}`}>
-            <Link to={node.frontmatter!.path!}>
-              {node?.frontmatter?.featuredImage?.childImageSharp?.fluid && (
-                <Img
-                  fluid={
-                    node.frontmatter.featuredImage.childImageSharp
-                      .fluid as FluidObject
-                  }
-                />
-              )}
-              <ArticleTitle>{node.frontmatter!.title}</ArticleTitle>
-            </Link>
-            <BlogArticleMetadata
-              author={node.frontmatter!.author!}
-              authorImageUrl={node.frontmatter!.authorImageUrl!}
-              authorUrl={node.frontmatter!.authorUrl!}
-              date={node.frontmatter!.date!}
-              readingTime={node.fields!.readingTime!.text!}
-            />
-            <BlogArticleTags tags={existingTags} />
-          </Article>
-        );
-      })}
-    </Container>
+          return (
+            <Article key={`article-${node.id}`}>
+              <Link to={node.frontmatter!.path!}>
+                {featuredImage && <Img fluid={featuredImage} />}
+                <ArticleTitle>{node.frontmatter!.title}</ArticleTitle>
+              </Link>
+              <BlogArticleMetadata data={node!} />
+              <BlogArticleTags tags={existingTags} />
+            </Article>
+          );
+        })}
+      </Container>
+      {currentPage && totalPages && (
+        <Pagination
+          currentPage={currentPage}
+          linkPrefix="/blog"
+          totalPages={totalPages}
+        />
+      )}
+    </>
   );
 };
+
+export const BlogArticlesGraphQLFragment = graphql`
+  fragment BlogArticles on MarkdownRemarkConnection {
+    edges {
+      node {
+        id
+        frontmatter {
+          featuredImage {
+            childImageSharp {
+              fluid(maxWidth: 800) {
+                ...GatsbyImageSharpFluid
+              }
+            }
+          }
+          path
+          title
+          ...BlogArticleTags
+        }
+        ...BlogArticleMetadata
+      }
+    }
+  }
+`;
 
 const Container = styled.ul`
   display: flex;

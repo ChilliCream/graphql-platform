@@ -9,4 +9,9 @@ export const IconContainer = styled.span<{ size?: 16 | 24 | 32 }>`
   font-size: 24px;
   line-height: 24px;
   vertical-align: middle;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
 `;

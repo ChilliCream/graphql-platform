@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context)
         {
             var operation = new SortOperation(property, true);
-            var name = context.Naming.GetMemberName(property, MemberKind.InputObjectField);
+            NameString name = context.Naming.GetMemberName(property, MemberKind.InputObjectField);
             var typeReference = new ClrTypeReference(
                 typeof(SortInputType<>).MakeGenericType(typeof(TObject)),
                 TypeContext.Input);

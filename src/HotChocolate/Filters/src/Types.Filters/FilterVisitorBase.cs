@@ -1,39 +1,28 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterVisitorBase
-        : SyntaxWalker
+    public class FilterVisitorBase<TContext>
+        : SyntaxWalker<TContext>
+        where TContext : IFilterVisitorContextBase
     {
-        protected FilterVisitorBase(InputObjectType initialType)
+        protected FilterVisitorBase()
         {
-            if (initialType is null)
-            {
-                throw new ArgumentNullException(nameof(initialType));
-            }
-            Types.Push(initialType);
         }
-
-        protected Stack<IType> Types { get; } =
-            new Stack<IType>();
-
-        protected Stack<IInputField> Operations { get; } =
-            new Stack<IInputField>();
 
         protected override ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
-            ISyntaxVisitorContext context)
+            TContext context)
         {
-            if (Types.Peek().NamedType() is InputObjectType inputType)
+            if (context.Types.Peek().NamedType() is InputObjectType inputType)
             {
                 if (inputType.Fields.TryGetField(node.Name.Value,
                     out IInputField field))
                 {
-                    Operations.Push(field);
-                    Types.Push(field.Type);
+                    context.Operations.Push(field);
+                    context.Types.Push(field.Type);
                     return Continue;
                 }
 
@@ -49,10 +38,10 @@ namespace HotChocolate.Types.Filters
 
         protected override ISyntaxVisitorAction Leave(
             ObjectFieldNode node,
-            ISyntaxVisitorContext context)
+            TContext context)
         {
-            Operations.Pop();
-            Types.Pop();
+            context.Operations.Pop();
+            context.Types.Pop();
             return Continue;
         }
     }

@@ -1,6 +1,5 @@
-﻿using System.Collections.Concurrent;
 using System;
-using System.Collections.Immutable;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Utilities

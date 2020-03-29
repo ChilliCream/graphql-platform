@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types.Filters.Extensions
@@ -62,7 +61,8 @@ namespace HotChocolate.Types.Filters.Extensions
             }
 
             FilterOperationDescriptorBase operationDescriptor =
-                fields.FirstOrDefault(t => t.Definition.Operation.Kind.Equals(operationKind));
+                fields.FirstOrDefault(
+                    t => t.Definition.Operation?.Kind.Equals(operationKind) == true);
 
             if (operationDescriptor is { })
             {

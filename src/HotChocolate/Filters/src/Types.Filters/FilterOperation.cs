@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace HotChocolate.Types.Filters
@@ -6,7 +7,7 @@ namespace HotChocolate.Types.Filters
     public class FilterOperation
     {
         private bool _singleFilterInitialized;
-        private Type _arrayBaseType;
+        private Type? _arrayBaseType;
 
         public FilterOperation(
             Type type,
@@ -24,7 +25,8 @@ namespace HotChocolate.Types.Filters
 
         public PropertyInfo Property { get; }
 
-        public bool TryGetSimpleFilterBaseType(out Type baseType)
+        public bool TryGetSimpleFilterBaseType(
+            [NotNullWhen(true)]out Type? baseType)
         {
             if (!_singleFilterInitialized)
             {
@@ -32,7 +34,8 @@ namespace HotChocolate.Types.Filters
                 {
                     _arrayBaseType = Type.GetGenericArguments()[0];
                 }
-                if (typeof(ISingleFilter).IsAssignableFrom(Property.DeclaringType))
+                if (typeof(ISingleFilter).IsAssignableFrom(Property.DeclaringType) &&
+                    Property.DeclaringType is { })
                 {
                     _arrayBaseType = Property.DeclaringType.GetGenericArguments()[0];
                 }

@@ -1,95 +1,42 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types.Filters.Expressions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitor
-        : FilterVisitorBase
+        : FilterVisitorBase<QueryableFilterVisitorContext>
     {
-        private readonly QueryableFilterVisitorContext _context;
-
-        public QueryableFilterVisitor(
-            InputObjectType initialType,
-            Type source,
-            ITypeConversion converter,
-            bool inMemory)
-            : this(
-                initialType,
-                source,
-                converter,
-                ExpressionOperationHandlers.All,
-                ExpressionFieldHandlers.All,
-                inMemory)
+        protected QueryableFilterVisitor()
         {
-        }
 
-        public QueryableFilterVisitor(
-            InputObjectType initialType,
-            Type source,
-            ITypeConversion converter,
-            IEnumerable<IExpressionOperationHandler> operationHandlers,
-            IEnumerable<IExpressionFieldHandler> fieldHandlers,
-            bool inMemory)
-            : base(initialType)
-        {
-            if (initialType is null)
-            {
-                throw new ArgumentNullException(nameof(initialType));
-            }
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-            if (operationHandlers is null)
-            {
-                throw new ArgumentNullException(nameof(operationHandlers));
-            }
-            if (converter is null)
-            {
-                throw new ArgumentNullException(nameof(converter));
-            }
-
-            _context = new QueryableFilterVisitorContext(
-                operationHandlers.ToArray(),
-                fieldHandlers.ToArray(),
-                converter,
-                new QueryableClosure(source, "r", inMemory),
-                inMemory);
-        }
-
-        public Expression<Func<TSource, bool>> CreateFilter<TSource>()
-        {
-            return _context.GetClosure().CreateLambda<Func<TSource, bool>>();
         }
 
         #region Object Value
 
         protected override ISyntaxVisitorAction Enter(
             ObjectValueNode node,
-            ISyntaxVisitorContext context)
+            QueryableFilterVisitorContext context)
         {
-            _context.PushLevel(new Queue<Expression>());
+            context.PushLevel(new Queue<Expression>());
             return Continue;
         }
 
         protected override ISyntaxVisitorAction Leave(
             ObjectValueNode node,
-            ISyntaxVisitorContext context)
+            QueryableFilterVisitorContext context)
         {
-            Queue<Expression> operations = _context.PopLevel();
+            Queue<Expression> operations = context.PopLevel();
 
             if (TryCombineOperations(
                 operations,
                 (a, b) => Expression.AndAlso(a, b),
-                out Expression combined))
+                out Expression? combined))
             {
-                _context.GetLevel().Enqueue(combined);
+                context.GetLevel().Enqueue(combined);
             }
 
             return Continue;
@@ -101,33 +48,33 @@ namespace HotChocolate.Types.Filters
 
         protected override ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
-            ISyntaxVisitorContext context)
+            QueryableFilterVisitorContext context)
         {
             base.Enter(node, context);
 
-            if (Operations.Peek() is FilterOperationField field)
+            if (context.Operations.Peek() is FilterOperationField field)
             {
-                for (var i = _context.FieldHandlers.Count - 1; i >= 0; i--)
+                for (var i = context.FieldHandlers.Count - 1; i >= 0; i--)
                 {
-                    if (_context.FieldHandlers[i].Enter(
+                    if (context.FieldHandlers[i].Enter(
                         field,
                         node,
-                        _context,
+                        context,
                         out ISyntaxVisitorAction action))
                     {
                         return action;
                     }
                 }
-                for (var i = _context.OperationHandlers.Count - 1; i >= 0; i--)
+                for (var i = context.OperationHandlers.Count - 1; i >= 0; i--)
                 {
-                    if (_context.OperationHandlers[i].TryHandle(
+                    if (context.OperationHandlers[i].TryHandle(
                         field.Operation,
                         field.Type,
                         node.Value,
-                        _context,
-                        out Expression expression))
+                        context,
+                        out Expression? expression))
                     {
-                        _context.GetLevel().Enqueue(expression);
+                        context.GetLevel().Enqueue(expression);
                         break;
                     }
                 }
@@ -138,16 +85,16 @@ namespace HotChocolate.Types.Filters
 
         protected override ISyntaxVisitorAction Leave(
             ObjectFieldNode node,
-            ISyntaxVisitorContext context)
+            QueryableFilterVisitorContext context)
         {
-            if (Operations.Peek() is FilterOperationField field)
+            if (context.Operations.Peek() is FilterOperationField field)
             {
-                for (var i = _context.FieldHandlers.Count - 1; i >= 0; i--)
+                for (var i = context.FieldHandlers.Count - 1; i >= 0; i--)
                 {
-                    _context.FieldHandlers[i].Leave(
+                    context.FieldHandlers[i].Leave(
                         field,
                         node,
-                        _context);
+                        context);
                 }
             }
             return base.Leave(node, context);
@@ -156,7 +103,7 @@ namespace HotChocolate.Types.Filters
         private bool TryCombineOperations(
             Queue<Expression> operations,
             Func<Expression, Expression, Expression> combine,
-            out Expression combined)
+            [NotNullWhen(true)] out Expression? combined)
         {
             if (operations.Count != 0)
             {
@@ -180,36 +127,38 @@ namespace HotChocolate.Types.Filters
 
         protected override ISyntaxVisitorAction Enter(
             ListValueNode node,
-            ISyntaxVisitorContext context)
+            QueryableFilterVisitorContext context)
         {
-            _context.PushLevel(new Queue<Expression>());
+            context.PushLevel(new Queue<Expression>());
             return Continue;
         }
 
         protected override ISyntaxVisitorAction Leave(
             ListValueNode node,
-            ISyntaxVisitorContext context)
+            QueryableFilterVisitorContext context)
         {
             Func<Expression, Expression, Expression> combine =
-                Operations.Peek() is OrField
+                context.Operations.Peek() is OrField
                     ? new Func<Expression, Expression, Expression>(
                         (a, b) => Expression.OrElse(a, b))
                     : new Func<Expression, Expression, Expression>(
                         (a, b) => Expression.AndAlso(a, b));
 
-            Queue<Expression> operations = _context.PopLevel();
+            Queue<Expression> operations = context.PopLevel();
 
             if (TryCombineOperations(
                 operations,
                 combine,
-                out Expression combined))
+                out Expression? combined))
             {
-                _context.GetLevel().Enqueue(combined);
+                context.GetLevel().Enqueue(combined);
             }
 
             return Continue;
         }
 
         #endregion
+
+        public static QueryableFilterVisitor Default = new QueryableFilterVisitor();
     }
 }

@@ -6,18 +6,36 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContext
-        : IQueryableFilterVisitorContext
+        : FilterVisitorContextBase, IQueryableFilterVisitorContext
     {
+
         public QueryableFilterVisitorContext(
+            InputObjectType initialType,
+            Type source,
+            ITypeConversion converter,
+            bool inMemory)
+            : this(
+                initialType,
+                source,
+                ExpressionOperationHandlers.All,
+                ExpressionFieldHandlers.All,
+                converter,
+                inMemory)
+        {
+        }
+
+        public QueryableFilterVisitorContext(
+            InputObjectType initialType,
+            Type source,
             IReadOnlyList<IExpressionOperationHandler> operationHandlers,
             IReadOnlyList<IExpressionFieldHandler> fieldHandlers,
             ITypeConversion typeConverter,
-            QueryableClosure closures,
             bool inMemory)
+            : base(initialType)
         {
-            if (closures is null)
+            if (source is null)
             {
-                throw new ArgumentNullException(nameof(closures));
+                throw new ArgumentNullException(nameof(source));
             }
             OperationHandlers = operationHandlers ??
                 throw new ArgumentNullException(nameof(operationHandlers));
@@ -27,7 +45,7 @@ namespace HotChocolate.Types.Filters
                 throw new ArgumentNullException(nameof(typeConverter));
             InMemory = inMemory;
             Closures = new Stack<QueryableClosure>();
-            Closures.Push(closures);
+            Closures.Push(new QueryableClosure(source, "r", inMemory));
         }
 
         public IReadOnlyList<IExpressionOperationHandler> OperationHandlers { get; }

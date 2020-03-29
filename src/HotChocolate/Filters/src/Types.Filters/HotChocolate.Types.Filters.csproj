@@ -4,6 +4,7 @@
     <PackageId>HotChocolate.Types.Filters</PackageId>
     <AssemblyName>HotChocolate.Types.Filters</AssemblyName>
     <RootNamespace>HotChocolate.Types.Filters</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

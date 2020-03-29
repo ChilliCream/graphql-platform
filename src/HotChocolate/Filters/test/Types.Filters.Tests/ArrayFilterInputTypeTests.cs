@@ -65,7 +65,6 @@ namespace HotChocolate.Types.Filters
                         .AllowNone().Name("none").And()
                         .AllowSome().Name("some").And();
                     second.AllowAny().Name("any");
-
                 }));
 
             // assert
@@ -501,7 +500,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void Create_ArraySimpleFilterDecimal_FooExplicitBarExplicit()
         {
@@ -541,7 +539,6 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void Create_ArrayStringFilter_FooImplicitBarImplicit()
@@ -625,7 +622,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void Create_ArrayObjectFilter_FooExplicitBarExplicit()
         {
@@ -676,7 +672,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void Create_ArrayObjectFilter_BindExplicitly()
         {
@@ -694,7 +689,6 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         /// <summary>
         /// This test checks if the binding of all allow methods are correct
@@ -815,39 +809,54 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-           [Fact]    
-        public void Create_ArraySimpleFilter_FooImplicitBarImplicit_Collection()    
-        {    
+        [Fact]
+        public void Create_ArraySimpleFilter_FooImplicitBarImplicit_Collection()
+        {
             // arrange    
             // act    
-            var schema = CreateSchema(new FilterInputType<FooSimpleCollection>());    
+            var schema = CreateSchema(new FilterInputType<FooSimpleCollection>());
 
             // assert    
-            schema.ToString().MatchSnapshot();    
+            schema.ToString().MatchSnapshot();
         }
-        
 
-        public class FooSimpleCollection    
-        {    
-            public int[] Array { get; set; }    
-            public int?[] ArrayNullable { get; set; }    
+        public class FooSimpleCollection
+        {
+            public int[] Array { get; set; }
 
-            public List<int> List { get; set; }    
-            public List<int?> ListNullable { get; set; }    
-            public Queue<int> Queue { get; set; }    
-            public Queue<int?> QueueNullable { get; set; }    
-            public Stack<int> Stack { get; set; }    
-            public Stack<int?> StackNullable { get; set; }    
-            public IList<int> IList { get; set; }    
-            public IList<int?> IListNullable { get; set; }    
-            public HashSet<int> HashSet { get; set; }    
-            public HashSet<int?> HashSetNullable { get; set; }    
-            public ICollection<int> ICollection { get; set; }    
-            public ICollection<int?> ICollectionNullable { get; set; }    
-            public IReadOnlyCollection<int> IReadOnlyCollection { get; set; }    
-            public IReadOnlyCollection<int?> IReadOnlyCollectionNullable { get; set; }    
-            public ISet<int> ISet { get; set; }    
-            public ISet<int?> ISetNullable { get; set; }    
+            public int?[] ArrayNullable { get; set; }
+
+            public List<int> List { get; set; }
+
+            public List<int?> ListNullable { get; set; }
+
+            public Queue<int> Queue { get; set; }
+
+            public Queue<int?> QueueNullable { get; set; }
+
+            public Stack<int> Stack { get; set; }
+
+            public Stack<int?> StackNullable { get; set; }
+
+            public IList<int> IList { get; set; }
+
+            public IList<int?> IListNullable { get; set; }
+
+            public HashSet<int> HashSet { get; set; }
+
+            public HashSet<int?> HashSetNullable { get; set; }
+
+            public ICollection<int> ICollection { get; set; }
+
+            public ICollection<int?> ICollectionNullable { get; set; }
+
+            public IReadOnlyCollection<int> IReadOnlyCollection { get; set; }
+
+            public IReadOnlyCollection<int?> IReadOnlyCollectionNullable { get; set; }
+
+            public ISet<int> ISet { get; set; }
+
+            public ISet<int?> ISetNullable { get; set; }
         }
 
         public class FooString
@@ -858,25 +867,45 @@ namespace HotChocolate.Types.Filters
         public class FooSimple
         {
             public IEnumerable<string> BarString { get; set; }
+
             public IEnumerable<bool> BarBool { get; set; }
+
             public IEnumerable<short> BarInt16 { get; set; }
+
             public IEnumerable<int> BarInt32 { get; set; }
+
             public IEnumerable<long> BarInt64 { get; set; }
+
             public IEnumerable<double> BarDouble { get; set; }
+
             public IEnumerable<float> BarSingle { get; set; }
+
             public IEnumerable<decimal> BarDecimal { get; set; }
+
             public IEnumerable<Guid> BarGuid { get; set; }
+
             public IEnumerable<DateTime> BarDatetime { get; set; }
+
             public IEnumerable<DateTimeOffset> BarDatetimeOffset { get; set; }
+
             public IEnumerable<bool?> BarBoolNullable { get; set; }
+
             public IEnumerable<short?> BarInt16Nullable { get; set; }
+
             public IEnumerable<int?> BarInt32Nullable { get; set; }
+
             public IEnumerable<long?> BarInt64Nullable { get; set; }
+
             public IEnumerable<double?> BarDoubleNullable { get; set; }
+
             public IEnumerable<float?> BarSingleNullable { get; set; }
+
             public IEnumerable<decimal?> BarDecimalNullable { get; set; }
+
             public IEnumerable<Guid?> BarGuidNullable { get; set; }
+
             public IEnumerable<DateTime?> BarDatetimeNullable { get; set; }
+
             public IEnumerable<DateTimeOffset?> BarDatetimeOffsetNullable { get; set; }
         }
 
