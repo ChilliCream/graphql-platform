@@ -10,6 +10,7 @@ import {
   ArticleWrapper,
 } from "../misc/article-elements";
 import { DocPageAside } from "../misc/doc-page-aside";
+import { DocPageLegacy } from "../misc/doc-page-legacy";
 import { DocPageNavigation } from "../misc/doc-page-navigation";
 
 interface DocPageProperties {
@@ -30,6 +31,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       <DocPageNavigation data={data} />
       <ArticleWrapper>
         <Article>
+          <DocPageLegacy />
           <ArticleTitle>{title}</ArticleTitle>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
@@ -66,5 +68,13 @@ const Container = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: 1400px;
+  max-width: 800px;
+
+  @media only screen and (min-width: 1050px) {
+    max-width: 1050px;
+  }
+
+  @media only screen and (min-width: 1300px) {
+    max-width: 1300px;
+  }
 `;

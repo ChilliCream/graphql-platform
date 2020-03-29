@@ -10,7 +10,7 @@ export const Layout: FunctionComponent = ({ children }) => {
     <>
       <GlobalStyle />
       <Header />
-      <Content id="content">{children}</Content>
+      <Content>{children}</Content>
       <Footer />
       <CookieConsent />
     </>
@@ -21,9 +21,6 @@ const Content = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-top: 60px;
   background-color: #fff;
-
-  @media only screen and (min-width: 992px) {
-    padding-top: 60px;
-  }
 `;

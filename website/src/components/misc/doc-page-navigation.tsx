@@ -10,6 +10,7 @@ import { Link } from "./link";
 
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
+import ProductSwitcherIconSvg from "../../images/th-large.svg";
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
@@ -64,6 +65,15 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   return (
     <Navigation>
       <FixedContainer>
+        <ProductSwitcher>
+          {data.config?.products &&
+            data.config.products.find(
+              (product) => product?.path === "hotchocolate"
+            )?.title}
+          <IconContainer size={16}>
+            <ProductSwitcherIconSvg />
+          </IconContainer>
+        </ProductSwitcher>
         {data.config?.products &&
           data.config.products[0]?.items &&
           buildNavigationStructure(
@@ -118,7 +128,7 @@ interface Item {
 }
 
 const Navigation = styled.nav`
-  display: flex;
+  display: none;
   flex: 0 0 250px;
   flex-direction: column;
 
@@ -126,7 +136,7 @@ const Navigation = styled.nav`
     user-select: none;
   }
 
-  @media only screen and (min-width: 992px) {
+  @media only screen and (min-width: 1050px) {
     display: flex;
   }
 `;
@@ -135,6 +145,30 @@ const FixedContainer = styled.div`
   position: fixed;
   padding: 25px 0 250px;
   width: 250px;
+`;
+
+const ProductSwitcher = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 6px 14px 20px;
+  padding: 7px 5px;
+  font-size: 0.833em;
+  transition: background-color 0.2s ease-in-out;
+
+  > ${IconContainer} {
+    margin-left: auto;
+
+    > svg {
+      fill: #666;
+    }
+  }
+
+  :hover {
+    background-color: #ddd;
+  }
 `;
 
 const NavigationList = styled.ol`
