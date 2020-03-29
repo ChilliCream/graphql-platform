@@ -155,6 +155,7 @@ const HamburgerOpenButton = styled.div`
   margin-left: auto;
   padding: 0 20px;
   height: 60px;
+  cursor: pointer;
 
   @media only screen and (min-width: 992px) {
     display: none;
@@ -209,6 +210,7 @@ const HamburgerCloseButton = styled.div`
   margin-left: auto;
   padding: 0 20px;
   height: 60px;
+  cursor: pointer;
 
   @media only screen and (min-width: 992px) {
     display: none;
@@ -226,12 +228,13 @@ const Nav = styled.ol`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0;
+  margin: 20px 0 0;
   padding: 0;
   list-style-type: none;
 
   @media only screen and (min-width: 992px) {
     flex-direction: row;
+    margin: 0;
     height: 60px;
   }
 `;
@@ -240,7 +243,7 @@ const NavItem = styled.li`
   flex: 0 0 auto;
   margin: 0 2px;
   padding: 0;
-  height: 60px;
+  height: 50px;
 
   @media only screen and (min-width: 992px) {
     height: initial;
@@ -296,7 +299,6 @@ const SearchField = styled.input`
   width: 100%;
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
-  line-height: 1em;
   background-color: #fff;
 `;
 
