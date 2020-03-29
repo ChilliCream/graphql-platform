@@ -15,11 +15,6 @@ namespace HotChocolate.Types.Filters
 
         }
 
-        public Expression CreateFilter()
-        {
-            return _context.GetClosure().CreateLambda();
-        }
-
         #region Object Value
 
         protected override ISyntaxVisitorAction Enter(

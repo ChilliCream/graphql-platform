@@ -272,10 +272,9 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var filter = new QueryableSortVisitor(
-                sortType, typeof(FooInherited));
-            value.Accept(filter);
-            ICollection<FooInherited> aFiltered = filter.Sort(a).ToList();
+            var context = new QueryableSortVisitorContext(sortType, typeof(FooInherited), false);
+            QueryableSortVisitor.Default.Visit(value, context);
+            ICollection<FooInherited> aFiltered = context.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
