@@ -10,6 +10,7 @@ import {
   ArticleWrapper,
 } from "../misc/article-elements";
 import { DocPageAside } from "../misc/doc-page-aside";
+import { DocPageLegacy } from "../misc/doc-page-legacy";
 import { DocPageNavigation } from "../misc/doc-page-navigation";
 
 interface DocPageProperties {
@@ -30,6 +31,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       <DocPageNavigation data={data} />
       <ArticleWrapper>
         <Article>
+          <DocPageLegacy />
           <ArticleTitle>{title}</ArticleTitle>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
