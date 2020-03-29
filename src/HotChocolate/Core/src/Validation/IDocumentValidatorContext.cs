@@ -19,9 +19,7 @@ namespace HotChocolate.Validation
 
         ISet<string> DeclaredVariables { get; }
 
-        Stack<IType> Types { get; }
-
-        Stack<DirectiveType> Directives { get; }
+        Stack<ITypeSystemMember> Types { get; }
 
         ICollection<IError> Errors { get; }
     }
