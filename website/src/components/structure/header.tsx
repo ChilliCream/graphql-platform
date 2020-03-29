@@ -268,12 +268,16 @@ const NavLink = styled(Link)`
 `;
 
 const Group = styled.div`
-  display: flex;
+  display: none;
   flex: 1 1 auto;
   flex-direction: row;
   justify-content: flex-end;
   padding: 0 20px;
   height: 60px;
+
+  @media only screen and (min-width: 284px) {
+    display: flex;
+  }
 
   @media only screen and (min-width: 992px) {
     flex: 0 0 auto;

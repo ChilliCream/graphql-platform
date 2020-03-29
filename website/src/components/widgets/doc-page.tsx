@@ -66,5 +66,13 @@ const Container = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: 1400px;
+  max-width: 800px;
+
+  @media only screen and (min-width: 1050px) {
+    max-width: 1050px;
+  }
+
+  @media only screen and (min-width: 1300px) {
+    max-width: 1300px;
+  }
 `;

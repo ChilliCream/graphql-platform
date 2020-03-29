@@ -118,7 +118,7 @@ interface Item {
 }
 
 const Navigation = styled.nav`
-  display: flex;
+  display: none;
   flex: 0 0 250px;
   flex-direction: column;
 
@@ -126,7 +126,7 @@ const Navigation = styled.nav`
     user-select: none;
   }
 
-  @media only screen and (min-width: 992px) {
+  @media only screen and (min-width: 1050px) {
     display: flex;
   }
 `;
