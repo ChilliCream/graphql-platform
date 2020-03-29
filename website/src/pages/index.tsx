@@ -33,6 +33,8 @@ const IndexPage: FunctionComponent = () => {
           arrowLeftUrl={data.arrowLeft!.publicURL!}
           arrowRightUrl={data.arrowRight!.publicURL!}
           autoPlay
+          infiniteLoop
+          swipeable
           showStatus={false}
           showThumbs={false}
         >
@@ -73,7 +75,7 @@ const Intro = styled.section<{ url: string }>`
   justify-content: center;
   padding: 25px;
   width: 100%;
-  background-image: url("${props => props.url}");
+  background-image: url("${(props) => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
   background-position-y: 100%;
@@ -124,12 +126,12 @@ const Slideshow = styled(Carousel)<{
 
       &.control-next {
         right: 0;
-        background-image: url("${props => props.arrowRightUrl}");
+        background-image: url("${(props) => props.arrowRightUrl}");
       }
 
       &.control-prev {
         left: 0;
-        background-image: url("${props => props.arrowLeftUrl}");
+        background-image: url("${(props) => props.arrowLeftUrl}");
       }
 
       @media only screen and (min-width: 992px) {
