@@ -16,21 +16,25 @@
   {
     "path": "bananacakepop",
     "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL endpoint."
+    "description": "Use this GUI to get deep insights from any GraphQL endpoint.",
+    "items": [{ "path": "index", "title": "Introduction" }]
   },
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
-    "description": "Configure a GraphQL client in .Net to fetch data from multiple GraphQL endpoints."
+    "description": "Configure a GraphQL client in .Net to fetch data from multiple GraphQL endpoints.",
+    "items": [{ "path": "index", "title": "Introduction" }]
   },
   {
     "path": "marshmellowpie",
     "title": "Marshmellow Pie",
-    "description": "Configure a GraphQL registry to keep track on any GraphQL server and client."
+    "description": "Configure a GraphQL registry to keep track on any GraphQL server and client.",
+    "items": [{ "path": "index", "title": "Introduction" }]
   },
   {
     "path": "greendonut",
     "title": "Green Donut",
-    "description": "Configure data loaders and caching for GraphQL endpoints."
+    "description": "Configure data loaders and caching for GraphQL endpoints.",
+    "items": [{ "path": "index", "title": "Introduction" }]
   }
 ]

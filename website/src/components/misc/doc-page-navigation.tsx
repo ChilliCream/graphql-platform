@@ -1,5 +1,11 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, {
+  FunctionComponent,
+  useState,
+  useEffect,
+  MouseEvent,
+  useCallback,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
@@ -14,19 +20,41 @@ import ProductSwitcherIconSvg from "../../images/th-large.svg";
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
+  selectedProduct: string;
 }
 
 export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> = ({
   data,
+  selectedProduct,
 }) => {
   const expandedPaths = useSelector<State, string[]>(
     (state) => state.common.expandedPaths
   );
   const dispatch = useDispatch();
+  const [productSwitcherOpen, setProductSwitcherOpen] = useState(false);
+  const currentProduct =
+    data.config?.products &&
+    data.config.products.find((product) => product?.path === selectedProduct);
 
-  const handleToggleExpand = (path: string) => {
+  const handleClickDialog = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+  }, []);
+
+  const handleCloseClick = useCallback(() => {
+    setProductSwitcherOpen(false);
+  }, []);
+
+  const handleToggleClick = useCallback(
+    (event: MouseEvent<HTMLButtonElement>, isOpen) => {
+      setProductSwitcherOpen(!isOpen);
+      event.stopPropagation();
+    },
+    []
+  );
+
+  const handleToggleExpand = useCallback((path: string) => {
     dispatch(toggleNavigationGroup({ path }));
-  };
+  }, []);
 
   const buildNavigationStructure = (items: Item[], basePath: string) => (
     <NavigationList>
@@ -62,22 +90,53 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     </NavigationList>
   );
 
+  useEffect(() => {
+    window.addEventListener("click", handleCloseClick);
+
+    return () => {
+      window.removeEventListener("click", handleCloseClick);
+    };
+  }, [handleCloseClick]);
+
   return (
     <Navigation>
       <FixedContainer>
         <ProductSwitcher>
-          {data.config?.products &&
-            data.config.products.find(
-              (product) => product?.path === "hotchocolate"
-            )?.title}
-          <IconContainer size={16}>
-            <ProductSwitcherIconSvg />
-          </IconContainer>
+          <ProductSwitcherButton
+            onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
+          >
+            {currentProduct?.title}
+            <IconContainer size={16}>
+              <ProductSwitcherIconSvg />
+            </IconContainer>
+          </ProductSwitcherButton>
+          <ProductSwitcherDialog
+            open={productSwitcherOpen}
+            onClick={handleClickDialog}
+          >
+            {data.config?.products &&
+              data.config.products.map((product) =>
+                product === currentProduct ? (
+                  <CurrentProduct onClick={handleCloseClick}>
+                    <ProductTitle>{product!.title!}</ProductTitle>
+                    <ProductDescription>
+                      {product!.description!}
+                    </ProductDescription>
+                  </CurrentProduct>
+                ) : (
+                  <ProductLink to={`/docs/${product!.path!}`}>
+                    <ProductTitle>{product!.title!}</ProductTitle>
+                    <ProductDescription>
+                      {product!.description!}
+                    </ProductDescription>
+                  </ProductLink>
+                )
+              )}
+          </ProductSwitcherDialog>
         </ProductSwitcher>
-        {data.config?.products &&
-          data.config.products[0]?.items &&
+        {currentProduct?.items &&
           buildNavigationStructure(
-            data.config.products[0].items
+            currentProduct.items
               .filter((item) => !!item)
               .map<Item>((item) => ({
                 path: item!.path!,
@@ -91,7 +150,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                       }))
                   : undefined,
               })),
-            "/docs/" + data.config.products[0].path!
+            `/docs/${currentProduct.path!}`
           )}
       </FixedContainer>
     </Navigation>
@@ -147,14 +206,17 @@ const FixedContainer = styled.div`
   width: 250px;
 `;
 
-const ProductSwitcher = styled.div`
+const ProductSwitcher = styled.div``;
+
+const ProductSwitcherButton = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin: 6px 14px 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  margin: 6px 14px 20px;
   padding: 7px 5px;
+  width: calc(100% - 28px);
   font-size: 0.833em;
   transition: background-color 0.2s ease-in-out;
 
@@ -169,6 +231,55 @@ const ProductSwitcher = styled.div`
   :hover {
     background-color: #ddd;
   }
+`;
+
+const ProductSwitcherDialog = styled.div<{ open: boolean }>`
+  position: fixed;
+  top: 130px;
+  z-index: 10;
+  display: ${(props) => (props.open ? "flex" : "none")};
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 0 14px;
+  padding: 10px;
+  border-radius: 5px;
+  width: 700px;
+  background-color: #fff;
+  box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25);
+`;
+
+const CurrentProduct = styled.div`
+  flex: 0 0 calc(50% - 32px);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 5px;
+  padding: 10px;
+  font-size: 0.833em;
+  color: #666;
+  background-color: #ddd;
+`;
+
+const ProductLink = styled(Link)`
+  flex: 0 0 calc(50% - 32px);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 5px;
+  padding: 10px;
+  font-size: 0.833em;
+  color: #666;
+  transition: background-color 0.2s ease-in-out;
+
+  :hover {
+    background-color: #ddd;
+  }
+`;
+
+const ProductTitle = styled.h6`
+  font-size: 1em;
+`;
+
+const ProductDescription = styled.p`
+  margin-bottom: 0;
 `;
 
 const NavigationList = styled.ol`
