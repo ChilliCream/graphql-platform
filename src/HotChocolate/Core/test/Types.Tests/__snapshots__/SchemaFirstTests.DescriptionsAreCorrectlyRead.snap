@@ -410,6 +410,12 @@
               "deprecationReason": null
             },
             {
+              "name": "VARIABLE_DEFINITION",
+              "description": "Location adjacent to a variable definition.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "FRAGMENT_DEFINITION",
               "description": "Location adjacent to a fragment definition.",
               "isDeprecated": false,

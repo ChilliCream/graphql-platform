@@ -4,7 +4,7 @@ namespace HotChocolate.Language.Visitors
 {
     public partial class SyntaxWalker
     {
-        protected sealed override ISyntaxVisitorAction Leave(
+        protected override ISyntaxVisitorAction Leave(
             ISyntaxNode node,
             ISyntaxVisitorContext context)
         {

@@ -27,6 +27,11 @@ namespace HotChocolate.Types.Introspection
             descriptor.Item(DirectiveLocation.Field)
                 .Description(TypeResources.DirectiveLocation_Field);
 
+            // TODO : Resources
+            descriptor.Item(DirectiveLocation.VariableDefinition)
+                .Name("VARIABLE_DEFINITION")
+                .Description("Location adjacent to a variable definition.");
+
             descriptor.Item(DirectiveLocation.FragmentDefinition)
                 .Name("FRAGMENT_DEFINITION")
                 .Description(TypeResources.DirectiveLocation_FragmentDefinition);

@@ -4,7 +4,7 @@ namespace HotChocolate.Types
 {
     /// <summary>
     /// A Directive can be adjacent to many parts of the GraphQL language,
-    /// a DirectiveLocation describes one such possible adjacencies.
+    /// a DirectiveLocation describes one such possible adamancies.
     /// </summary>
     [Flags]
     public enum DirectiveLocation
@@ -28,6 +28,11 @@ namespace HotChocolate.Types
         /// Location adjacent to a field.
         /// </summary>
         Field = 0x8,
+
+        /// <summary>
+        /// Location adjacent to a field.
+        /// </summary>
+        VariableDefinition = 0x40000,
 
         /// <summary>
         /// Location adjacent to a fragment definition.

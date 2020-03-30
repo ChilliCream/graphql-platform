@@ -41,6 +41,8 @@ namespace HotChocolate.Validation
 
         public ISet<string> DeclaredVariables { get; } = new HashSet<string>();
 
+        public ISet<string> Names { get; } = new HashSet<string>();
+
         public IList<IType> Types { get; } = new List<IType>();
 
         public IList<DirectiveType> Directives { get; } = new List<DirectiveType>();
@@ -62,6 +64,7 @@ namespace HotChocolate.Validation
             UsedVariables.Clear();
             UnusedVariables.Clear();
             DeclaredVariables.Clear();
+            Names.Clear();
             Types.Clear();
             Directives.Clear();
             OutputFields.Clear();

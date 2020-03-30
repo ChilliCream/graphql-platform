@@ -21,6 +21,8 @@ namespace HotChocolate.Validation
 
         ISet<string> DeclaredVariables { get; }
 
+        ISet<string> Names { get; }
+
         IList<IType> Types { get; }
 
         IList<DirectiveType> Directives { get; }

@@ -31,6 +31,11 @@ namespace HotChocolate.Validation
             this IServiceCollection services)
         {
             return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
+}
+        public static IServiceCollection AddDirectivesRule(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<DirectivesVisitor>();
         }
 
         public static IServiceCollection AddValidationRule<T>(
