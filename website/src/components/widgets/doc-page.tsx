@@ -23,12 +23,14 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   originPath,
 }) => {
   const { fields, frontmatter, html } = data.file!.childMarkdownRemark!;
-  const path = `/docs/${fields!.slug!.substring(1)}`;
+  const slug = fields!.slug!.substring(1);
+  const path = `/docs/${slug}`;
+  const selectedProduct = slug.substring(0, slug.indexOf("/"));
   const title = frontmatter!.title!;
 
   return (
     <Container>
-      <DocPageNavigation data={data} />
+      <DocPageNavigation data={data} selectedProduct={selectedProduct} />
       <ArticleWrapper>
         <Article>
           <DocPageLegacy />
