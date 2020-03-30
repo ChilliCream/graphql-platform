@@ -1,13 +1,15 @@
-﻿using HotChocolate.Language;
+﻿using System.Linq;
+using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class DirectivesAreDefinedRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public DirectivesAreDefinedRuleTests()
-            : base(new DirectivesAreDefinedRule())
+            : base(services => services.AddDirectivesRule())
         {
         }
 
@@ -15,7 +17,7 @@ namespace HotChocolate.Validation
         public void SupportedDirective()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -25,17 +27,17 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void UnsupportedDirective()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -45,15 +47,100 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The specified directive `foo` " +
                     "is not supported by the current schema.",
                     t.Message));
+            context.Errors.First().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SkipDirectiveIsInTheWrongPlace()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query @skip(if: $foo) {
+                    field
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Collection(context.Errors,
+                t => Assert.Equal(
+                    "The specified directive is not valid the " +
+                    "current location.", t.Message));
+            context.Errors.First().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SkipDirectiveIsInTheRightPlace()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query a {
+                    field @skip(if: $foo)
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void DuplicateSkipDirectives()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query ($foo: Boolean = true, $bar: Boolean = false) {
+                    field @skip(if: $foo) @skip(if: $bar)
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Collection(context.Errors,
+                t => Assert.Equal(
+                    "Only one of each directive is allowed per location.",
+                    t.Message));
+            context.Errors.First().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SkipOnTwoDifferentFields()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query ($foo: Boolean = true, $bar: Boolean = false) {
+                    field @skip(if: $foo) {
+                        subfieldA
+                    }
+                    field @skip(if: $bar) {
+                        subfieldB
+                    }
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
         }
     }
 }

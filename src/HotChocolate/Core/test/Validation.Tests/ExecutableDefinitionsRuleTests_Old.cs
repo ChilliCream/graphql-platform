@@ -1,15 +1,13 @@
-﻿using System.Linq;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
+﻿using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class ExecutableDefinitionsRuleTests
-        : DocumentValidatorVisitorTestBase
+    public class ExecutableDefinitionsRuleTests_Old
+        : ValidationTestBase
     {
-        public ExecutableDefinitionsRuleTests()
-            : base(services => services.AddExecutableDefinitionsRule())
+        public ExecutableDefinitionsRuleTests_Old()
+            : base(new ExecutableDefinitionsRule())
         {
         }
 
@@ -17,7 +15,7 @@ namespace HotChocolate.Validation
         public void QueryWithTypeSystemDefinitions()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query getDogName {
                     dog {
@@ -32,21 +30,21 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "A document containing TypeSystemDefinition " +
                     "is invalid for execution.", t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void QueryWithoutTypeSystemDefinitions()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query getDogName {
                     dog {
@@ -57,10 +55,11 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(result.HasErrors);
+            Assert.Empty(result.Errors);
         }
     }
 }

@@ -4,7 +4,7 @@ namespace HotChocolate.Language.Visitors
 {
     public partial class SyntaxWalker<TContext>
     {
-        protected sealed override ISyntaxVisitorAction Enter(
+        protected override ISyntaxVisitorAction Enter(
             ISyntaxNode node,
             TContext context)
         {
