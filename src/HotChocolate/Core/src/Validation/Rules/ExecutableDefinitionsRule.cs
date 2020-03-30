@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
             for (int i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode node = document.Definitions[i];
-                if (node.Kind != NodeKind.OperationDefinition ||
+                if (node.Kind != NodeKind.OperationDefinition &&
                     node.Kind != NodeKind.FragmentDefinition)
                 {
                     typeSystemNode = node;
