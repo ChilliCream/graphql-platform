@@ -73,6 +73,7 @@ namespace HotChocolate.Language.Visitors
                         }
                         current = ancestors.Pop();
                         ancestors.TryPeek(out parent);
+                        localContext = OnBeforeLeave(current, parent, ancestors, localContext);
                         result = Leave(current, localContext);
                         localContext = OnAfterLeave(current, parent, ancestors, localContext);
                         index--;
@@ -82,6 +83,7 @@ namespace HotChocolate.Language.Visitors
                         current = levels[index].Pop();
                         localContext = OnBeforeEnter(current, parent, ancestors, localContext);
                         result = Enter(current, localContext);
+                        localContext = OnAfterEnter(current, parent, ancestors, localContext);
 
                         if (result is IContinueSyntaxVisitorAction)
                         {
@@ -140,6 +142,20 @@ namespace HotChocolate.Language.Visitors
             node.GetNodes();
 
         protected virtual TContext OnBeforeEnter(
+            ISyntaxNode node,
+            ISyntaxNode? parent,
+            IReadOnlyList<ISyntaxNode> ancestors,
+            TContext context) =>
+            context;
+
+        protected virtual TContext OnAfterEnter(
+            ISyntaxNode node,
+            ISyntaxNode? parent,
+            IReadOnlyList<ISyntaxNode> ancestors,
+            TContext context) =>
+            context;
+
+        protected virtual TContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
             IReadOnlyList<ISyntaxNode> ancestors,

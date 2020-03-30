@@ -9,7 +9,9 @@ namespace HotChocolate.Validation
     {
         ISchema Schema { get; }
 
-        Stack<ISyntaxNode> Path { get; }
+        IList<ISyntaxNode> Path { get; }
+
+        IDictionary<string, VariableDefinitionNode> Variables { get; }
 
         IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
@@ -19,11 +21,13 @@ namespace HotChocolate.Validation
 
         ISet<string> DeclaredVariables { get; }
 
-        Stack<IType> Types { get; }
+        IList<IType> Types { get; }
 
-        Stack<DirectiveType> Directives { get; }
+        IList<DirectiveType> Directives { get; }
 
-        IOutputField? OutputField { get; set; }
+        IList<IOutputField> OutputFields { get; }
+
+        IList<IInputField> InputFields { get; }
 
         ICollection<IError> Errors { get; }
 

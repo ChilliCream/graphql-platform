@@ -178,5 +178,7 @@ namespace HotChocolate.Types
             // in all other cases we will pick the internal resolver delegate.
             return currentResolver;
         }
+
+        public override string ToString() => $"{Name}:{Type.Visualize()}";
     }
 }

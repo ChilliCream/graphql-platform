@@ -29,7 +29,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The following variables were not used: " +
@@ -58,7 +57,7 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
@@ -87,7 +86,7 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
@@ -152,7 +151,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The following variables were not used: " +
@@ -187,7 +185,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The following variables were not used: " +
@@ -212,7 +209,7 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
@@ -233,7 +230,7 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
@@ -252,7 +249,7 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
@@ -273,7 +270,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The following variables were not declared: " +
@@ -305,7 +301,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The following variables were not declared: " +
@@ -345,7 +340,7 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.Errors.Count > 0);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
@@ -373,7 +368,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.True(context.Errors.Count > 0);
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The following variables were not declared: " +

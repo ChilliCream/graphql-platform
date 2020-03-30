@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -13,31 +12,38 @@ namespace HotChocolate.Validation
         {
         }
 
-        protected override IDocumentValidatorContext OnBeforeEnter(
+        protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
             IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             INamedOutputType? namedOutputType;
+            IOutputField? outputField;
             IInputField? inputField;
+            DirectiveType? directiveType;
+            IType? type;
 
             switch (node.Kind)
             {
                 case NodeKind.OperationDefinition:
                     var operation = (OperationDefinitionNode)node;
-                    ObjectType type = GetOperationType(context.Schema, operation.Operation);
-                    context.OutputField = null;
+                    context.Types.Push(GetOperationType(context.Schema, operation.Operation));
                     break;
 
-                case NodeKind.FieldDefinition:
-                    var field = ((FieldDefinitionNode)node);
-                    if (context.Types.Count > 0 &&
-                        context.Types.Peek().NamedType() is IComplexOutputType ot &&
+                case NodeKind.VariableDefinition:
+                    var variable = (VariableDefinitionNode)node;
+                    context.Variables[variable.Variable.Name.Value] = variable;
+                    break;
+
+                case NodeKind.Field:
+                    var field = ((FieldNode)node);
+                    if (context.Types.TryPeek(out type) &&
+                        type.NamedType() is IComplexOutputType ot &&
                         ot.Fields.TryGetField(field.Name.Value, out IOutputField of))
                     {
                         context.Types.Push(of.Type);
-                        context.OutputField = of;
+                        context.OutputFields.Push(of);
                     }
                     else
                     {
@@ -50,7 +56,6 @@ namespace HotChocolate.Validation
                     if (inlineFragment.TypeCondition is { } tc &&
                         context.Schema.TryGetType(tc.Name.Value, out namedOutputType))
                     {
-                        context.OutputField = null;
                         context.Types.Push(namedOutputType);
                     }
                     else
@@ -65,7 +70,6 @@ namespace HotChocolate.Validation
                         fragmentDefinition.TypeCondition.Name.Value,
                         out namedOutputType))
                     {
-                        context.OutputField = null;
                         context.Types.Push(namedOutputType);
                     }
                     else
@@ -77,15 +81,17 @@ namespace HotChocolate.Validation
                 case NodeKind.Argument:
                     string argName = ((ArgumentNode)node).Name.Value;
 
-                    if (context.OutputField is { } &&
-                        context.OutputField.Arguments.TryGetField(argName, out inputField))
+                    if (context.Directives.TryPeek(out directiveType) &&
+                        directiveType.Arguments.TryGetField(argName, out inputField))
                     {
                         context.Types.Push(inputField.Type);
+                        context.InputFields.Push(inputField);
                     }
-                    else if (context.Directives.Count > 0 &&
-                        context.Directives.Peek().Arguments.TryGetField(argName, out inputField))
+                    else if (context.OutputFields.TryPeek(out outputField) &&
+                        outputField.Arguments.TryGetField(argName, out inputField))
                     {
                         context.Types.Push(inputField.Type);
+                        context.InputFields.Push(inputField);
                     }
                     else
                     {
@@ -101,6 +107,7 @@ namespace HotChocolate.Validation
                         inputType.Fields.TryGetField(fieldName, out inputField))
                     {
                         context.Types.Push(inputField.Type);
+                        context.InputFields.Push(inputField);
                     }
                     else
                     {
@@ -122,10 +129,10 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnBeforeEnter(node, parent, ancestors, context);
+            return base.OnAfterEnter(node, parent, ancestors, context);
         }
 
-        protected override IDocumentValidatorContext OnAfterLeave(
+        protected override IDocumentValidatorContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
             IReadOnlyList<ISyntaxNode> ancestors,
@@ -134,6 +141,10 @@ namespace HotChocolate.Validation
             switch (node.Kind)
             {
                 case NodeKind.OperationDefinition:
+                    context.Types.Pop();
+                    context.Variables.Clear();
+                    break;
+
                 case NodeKind.InlineFragment:
                 case NodeKind.FragmentDefinition:
                 case NodeKind.Argument:
@@ -143,7 +154,7 @@ namespace HotChocolate.Validation
 
                 case NodeKind.FieldDefinition:
                     context.Types.Pop();
-                    context.OutputField = null;
+                    context.OutputFields.Pop();
                     break;
 
                 case NodeKind.Directive:
@@ -151,42 +162,7 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnBeforeEnter(node, parent, ancestors, context);
-        }
-
-        protected override IEnumerable<ISyntaxNode> GetNodes(
-            ISyntaxNode node,
-            IDocumentValidatorContext context)
-        {
-            switch (node.Kind)
-            {
-                case NodeKind.Document:
-                    return ((DocumentNode)node).Definitions.Where(t =>
-                        t.Kind != NodeKind.FragmentDefinition);
-
-                case NodeKind.FragmentSpread:
-                    return GetFragmentSpreadChildren((FragmentSpreadNode)node, context);
-
-                default:
-                    return node.GetNodes();
-            }
-        }
-
-        private static IEnumerable<ISyntaxNode> GetFragmentSpreadChildren(
-            FragmentSpreadNode fragmentSpread,
-            IDocumentValidatorContext context)
-        {
-            foreach (ISyntaxNode child in fragmentSpread.GetNodes())
-            {
-                yield return child;
-            }
-
-            if (context.Fragments.TryGetValue(
-                fragmentSpread.Name.Value,
-                out FragmentDefinitionNode? fragment))
-            {
-                yield return fragment;
-            }
+            return base.OnBeforeLeave(node, parent, ancestors, context);
         }
 
         private static ObjectType GetOperationType(

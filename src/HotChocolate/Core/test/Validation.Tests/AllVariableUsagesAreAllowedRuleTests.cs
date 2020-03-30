@@ -1,13 +1,15 @@
-﻿using HotChocolate.Language;
+﻿using System.Linq;
+using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class AllVariableUsagesAreAllowedRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public AllVariableUsagesAreAllowedRuleTests()
-            : base(new AllVariableUsagesAreAllowedRule())
+            : base(services => services.AddAllVariableUsagesAreAllowedRule())
         {
         }
 
@@ -15,7 +17,7 @@ namespace HotChocolate.Validation
         public void IntCannotGoIntoBoolean()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query intCannotGoIntoBoolean($intArg: Int) {
                     arguments {
@@ -25,24 +27,22 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
-                    "The variable `intArg` type is not " +
-                    "compatible with the type of the " +
-                    "argument `booleanArg`." +
-                    "\r\nExpected type: `Boolean`.",
+                    "The variable `intArg` is not compatible with the " +
+                    "type of the current location.",
                     t.Message));
+            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void BooleanListCannotGoIntoBoolean()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanListCannotGoIntoBoolean($booleanListArg: [Boolean]) {
                     arguments {
@@ -52,24 +52,22 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
-                    "The variable `booleanListArg` type is not " +
-                    "compatible with the type of the " +
-                    "argument `booleanArg`." +
-                    "\r\nExpected type: `Boolean`.",
+                    "The variable `booleanListArg` is not compatible with the " +
+                    "type of the current location.",
                     t.Message));
+            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void BooleanArgQuery()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanArgQuery($booleanArg: Boolean) {
                     arguments {
@@ -79,24 +77,22 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
-                    "The variable `booleanArg` type is not " +
-                    "compatible with the type of the " +
-                    "argument `nonNullBooleanArg`." +
-                    "\r\nExpected type: `Boolean`.",
+                    "The variable `booleanArg` is not compatible with the " +
+                    "type of the current location.",
                     t.Message));
+            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void NonNullListToList()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query nonNullListToList($nonNullBooleanList: [Boolean]!) {
                     arguments {
@@ -106,17 +102,62 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void BooleanVariableAsListElement()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query nonNullListToList($b: Boolean) {
+                    arguments {
+                        booleanListArgField(booleanListArg: [$b])
+                    }
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void NullableBooleanVariableAsListElement()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query nonNullBooleanListArgField($nullableBoolean: Boolean) {
+                    arguments {
+                        nonNullBooleanListArgField(booleanListArg: [$nullableBoolean])
+                    }
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Collection(context.Errors,
+                t => Assert.Equal(
+                    "The variable `nullableBoolean` is not compatible with the " +
+                    "type of the current location.",
+                    t.Message));
+            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void ListToNonNullList()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query listToNonNullList($booleanList: [Boolean]) {
                     arguments {
@@ -126,24 +167,22 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
-                    "The variable `booleanList` type is not " +
-                    "compatible with the type of the " +
-                    "argument `nonNullBooleanListArg`." +
-                    "\r\nExpected type: `Boolean`.",
+                    "The variable `booleanList` is not compatible with the " +
+                    "type of the current location.",
                     t.Message));
+            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void BooleanArgQueryWithDefault1()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean) {
                     arguments {
@@ -153,17 +192,17 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void BooleanArgQueryWithDefault2()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean = true) {
                     arguments {
@@ -173,10 +212,10 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
     }
 }

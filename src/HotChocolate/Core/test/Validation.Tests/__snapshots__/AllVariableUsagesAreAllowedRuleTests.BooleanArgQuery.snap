@@ -1,0 +1,19 @@
+﻿{
+  "message": "The variable `booleanArg` is not compatible with the type of the current location.",
+  "path": [
+    "arguments",
+    "nonNullBooleanArgField"
+  ],
+  "locations": [
+    {
+      "Line": 4,
+      "Column": 67
+    }
+  ],
+  "extensions": {
+    "variable": "booleanArg",
+    "variableType": "Boolean",
+    "locationType": "Boolean!",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
+  }
+}
