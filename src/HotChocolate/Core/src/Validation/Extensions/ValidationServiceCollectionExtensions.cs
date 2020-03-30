@@ -27,6 +27,12 @@ namespace HotChocolate.Validation
             return services.AddValidationRule<AllVariableUsagesAreAllowedVisitor>();
         }
 
+        public static IServiceCollection AddExecutableDefinitionsRule(
+            this IServiceCollection services)
+        {
+            return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
+        }
+
         public static IServiceCollection AddValidationRule<T>(
             this IServiceCollection services)
             where T : DocumentValidatorVisitor, new()
