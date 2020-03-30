@@ -19,8 +19,17 @@ namespace HotChocolate.Validation
 
         ISet<string> DeclaredVariables { get; }
 
-        Stack<ITypeSystemMember> Types { get; }
+        Stack<IType> Types { get; }
+
+        Stack<DirectiveType> Directives { get; }
+
+        IOutputField? OutputField { get; set; }
 
         ICollection<IError> Errors { get; }
+
+        /// <summary>
+        /// The visitor was unable to resolver types specified in the query.
+        /// </summary>
+        bool IsInError { get; set; }
     }
 }

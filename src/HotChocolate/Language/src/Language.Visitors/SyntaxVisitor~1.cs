@@ -22,10 +22,19 @@ namespace HotChocolate.Language.Visitors
 
         protected virtual ISyntaxVisitorAction DefaultAction { get; }
 
+        /// <summary>
+        /// Ends traversing the graph.
+        /// </summary>
         public static ISyntaxVisitorAction Break { get; } = new BreakSyntaxVisitorAction();
 
+        /// <summary>
+        /// Skips of the child nodes.
+        /// </summary>
         public static ISyntaxVisitorAction Skip { get; } = new SkipSyntaxVisitorAction();
 
+        /// <summary>
+        /// Continues traversing the graph.
+        /// </summary>
         public static ISyntaxVisitorAction Continue { get; } = new ContinueSyntaxVisitorAction();
 
         public ISyntaxVisitorAction Visit(

@@ -236,73 +236,33 @@ namespace HotChocolate.Validation
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-All-Variable-Usages-are-Allowed
     /// </summary>
-    internal sealed class AllVariableUsagesAreAllowedVisitor : DocumentValidatorVisitor
+    internal sealed class AllVariableUsagesAreAllowedVisitor : TypeDocumentValidatorVisitor
     {
-        protected override ISyntaxVisitorAction Enter(
-            OperationDefinitionNode node,
-            IDocumentValidatorContext context)
-        {
-            ObjectType objectType = GetOperationType(context.Schema, node.Operation);
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            FieldNode node,
-            IDocumentValidatorContext context)
-        {
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            DirectiveNode node,
-            IDocumentValidatorContext context)
-        {
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            ArgumentNode node,
-            IDocumentValidatorContext context)
-        {
-            return Continue;
-        }
-
         protected override ISyntaxVisitorAction Enter(
             ListValueNode node,
             IDocumentValidatorContext context)
         {
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            ObjectFieldNode node,
-            IDocumentValidatorContext context)
-        {
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            IValueNode node,
-            IDocumentValidatorContext context)
-        {
-            return Continue;
-        }
-
-        private ObjectType GetOperationType(
-            ISchema schema,
-            OperationType operation)
-        {
-            switch (operation)
+            if (context.Types.Count > 0 && context.Types.Peek().IsListType())
             {
-                case Language.OperationType.Query:
-                    return schema.QueryType;
-                case Language.OperationType.Mutation:
-                    return schema.MutationType;
-                case Language.OperationType.Subscription:
-                    return schema.SubscriptionType;
-                default:
-                    throw new NotSupportedException();
+                context.Types.Push(context.Types.Peek().ElementType());
+                return Continue;
             }
+            return Break;
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            ListValueNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            VariableNode node,
+            IDocumentValidatorContext context)
+        {
+            return Continue;
         }
 
         private void FindVariableUsageErrors()
