@@ -57,5 +57,45 @@ namespace HotChocolate.Validation
                     t.Message));
             context.Errors.First().MatchSnapshot();
         }
+
+        [Fact]
+        public void SkipDirectiveIsInTheWrongPlace()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query @skip(if: $foo) {
+                    field
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Collection(context.Errors,
+                t => Assert.Equal(
+                    "The specified directive is not valid the " +
+                    "current location.", t.Message));
+            context.Errors.First().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SkipDirectiveIsInTheRightPlace()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query a {
+                    field @skip(if: $foo)
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
+        }
     }
 }
