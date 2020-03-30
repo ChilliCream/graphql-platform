@@ -83,6 +83,9 @@ namespace HotChocolate.Language
         public static DirectiveLocation Field { get; } =
             new DirectiveLocation("FIELD");
 
+        public static DirectiveLocation VariableDefinition { get; } =
+            new DirectiveLocation("VARIABLE_DEFINITION");
+
         public static DirectiveLocation FragmentDefinition { get; } =
             new DirectiveLocation("FRAGMENT_DEFINITION");
 

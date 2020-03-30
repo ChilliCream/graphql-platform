@@ -95,8 +95,7 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             _converter = context.Services.GetTypeConversion();
-            MiddlewareComponents =
-                definition.MiddlewareComponents.ToList().AsReadOnly();
+            MiddlewareComponents = definition.MiddlewareComponents.ToList().AsReadOnly();
 
             SyntaxNode = definition.SyntaxNode;
             Locations = definition.Locations.ToList().AsReadOnly();
@@ -104,7 +103,7 @@ namespace HotChocolate.Types
                 definition.Arguments.Select(t => new Argument(t)));
             IsExecutable = MiddlewareComponents.Count > 0;
 
-            if (!Locations.Any())
+            if (Locations.Count == 0)
             {
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(
