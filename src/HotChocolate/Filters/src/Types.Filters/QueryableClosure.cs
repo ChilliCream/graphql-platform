@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters
@@ -10,7 +9,10 @@ namespace HotChocolate.Types.Filters
     {
         private readonly bool _inMemory;
 
-        public QueryableClosure(Type type, string parameterName, bool inMemory)
+        public QueryableClosure(
+            Type type,
+            string parameterName,
+            bool inMemory)
         {
             Parameter = Expression.Parameter(type, parameterName);
             Level = new Stack<Queue<Expression>>();
@@ -22,6 +24,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public ParameterExpression Parameter { get; }
+
         public Stack<Queue<Expression>> Level { get; }
 
         public Stack<Expression> Instance { get; }
@@ -47,8 +50,6 @@ namespace HotChocolate.Types.Filters
         }
 
         private Expression GetExpressionBodyWithNullCheck()
-        {
-            return FilterExpressionBuilder.NotNullAndAlso(Parameter, Level.Peek().Peek());
-        }
+            => FilterExpressionBuilder.NotNullAndAlso(Parameter, Level.Peek().Peek());
     }
 }

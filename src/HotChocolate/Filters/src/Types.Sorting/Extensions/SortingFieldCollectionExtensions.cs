@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace HotChocolate.Types.Sorting.Extensions
 {
@@ -28,7 +27,7 @@ namespace HotChocolate.Types.Sorting.Extensions
 
             SortOperationDescriptorBase fieldDescriptor =
                 fields.FirstOrDefault(
-                    t => t.Definition.Operation.Property.Equals(propertyInfo));
+                    t => t.Definition?.Operation?.Property.Equals(propertyInfo) ?? false);
 
             if (fieldDescriptor is { })
             {

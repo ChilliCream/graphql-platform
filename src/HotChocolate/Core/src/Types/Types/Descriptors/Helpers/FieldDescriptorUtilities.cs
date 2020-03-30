@@ -5,13 +5,14 @@ using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
 namespace HotChocolate.Types.Descriptors
 {
     public static class FieldDescriptorUtilities
     {
         public static void AddExplicitFields<TMember, TField>(
             IEnumerable<TField> fieldDefinitions,
-            Func<TField, TMember> resolveMember,
+            Func<TField, TMember?> resolveMember,
             IDictionary<NameString, TField> fields,
             ISet<TMember> handledMembers)
             where TMember : MemberInfo
@@ -24,7 +25,7 @@ namespace HotChocolate.Types.Descriptors
                     fields[fieldDefinition.Name] = fieldDefinition;
                 }
 
-                TMember member = resolveMember(fieldDefinition);
+                TMember? member = resolveMember(fieldDefinition);
                 if (member != null)
                 {
                     handledMembers.Add(member);

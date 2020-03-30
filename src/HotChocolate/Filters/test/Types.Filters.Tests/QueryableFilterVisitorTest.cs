@@ -1,12 +1,11 @@
 using System;
-using HotChocolate.Language;
 using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorTests
+    public class QueryableFilterVisitorContextTests
         : TypeTestBase
     {
         [Fact]
@@ -14,16 +13,16 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
+                new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default,
                 null,
                 ExpressionFieldHandlers.All,
+                TypeConversion.Default,
                 true);
             };
 
@@ -37,16 +36,16 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
+                new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default,
                 ExpressionOperationHandlers.All,
                 null,
+                TypeConversion.Default,
                 true);
             };
 
@@ -60,11 +59,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
+                new QueryableFilterVisitorContext(
                 fooType, typeof(Foo), null, true);
             };
 
@@ -78,11 +77,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
+                new QueryableFilterVisitorContext(
                 fooType, null, TypeConversion.Default, true);
             };
 
@@ -98,7 +97,7 @@ namespace HotChocolate.Types.Filters
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
+                new QueryableFilterVisitorContext(
                 null, typeof(Foo), TypeConversion.Default, true);
             };
 

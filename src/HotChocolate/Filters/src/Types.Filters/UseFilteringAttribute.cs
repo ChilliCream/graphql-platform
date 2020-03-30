@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         /// Gets or sets the filter type which specifies the filter object structure.
         /// </summary>
         /// <value>The filter type</value>
-        public Type FilterType { get; set; }
+        public Type? FilterType { get; set; }
 
         public override void OnConfigure(
             IDescriptorContext context,

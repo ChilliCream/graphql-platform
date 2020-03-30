@@ -2,7 +2,7 @@ import { graphql, useStaticQuery } from "gatsby";
 import Img from "gatsby-image";
 import React, { FunctionComponent } from "react";
 
-const BananaCakepop: FunctionComponent = () => {
+export const BananaCakepop: FunctionComponent = () => {
   const data = useStaticQuery(graphql`
     query getBananaCakepopImage {
       placeholderImage: file(
@@ -20,5 +20,3 @@ const BananaCakepop: FunctionComponent = () => {
 
   return <Img fluid={data.placeholderImage.childImageSharp.fluid} />;
 };
-
-export default BananaCakepop;

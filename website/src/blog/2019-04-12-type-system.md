@@ -414,9 +414,5 @@ With _Hot Chocolate_ we are building a GraphQL server for the community, so join
 
 We value any kind of contribution, whether you give us a star, a feedback, find a bug, a typo, or whether you contribute code. Every bit matters and makes our project better.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
-
-
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

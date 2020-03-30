@@ -213,9 +213,5 @@ I hope this little field trip into our instrumentation API gives a little outloo
 
 We will add stitching related events with the next view preview builds.
 
-| [HotChocolate Slack Channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) | [Hot Chocolate Documentation](https://hotchocolate.io) | [Hot Chocolate on GitHub](https://github.com/ChilliCream/hotchocolate) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
-
-
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

@@ -8,12 +8,13 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   );
   const result = await graphql(`
     {
-      allMarkdownRemark(
-        sort: { order: DESC, fields: [frontmatter___date] }
+      blog: allMarkdownRemark(
         limit: 1000
+        filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
+        sort: { order: DESC, fields: [frontmatter___date] }
       ) {
-        edges {
-          node {
+        posts: edges {
+          post: node {
             frontmatter {
               path
             }
@@ -21,6 +22,15 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
         }
         tags: group(field: frontmatter___tags) {
           fieldValue
+        }
+      }
+      docs: allFile(
+        limit: 1000
+        filter: { sourceInstanceName: { eq: "docs" }, extension: { eq: "md" } }
+      ) {
+        pages: nodes {
+          name
+          relativeDirectory
         }
       }
     }
@@ -32,17 +42,46 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     return;
   }
 
+  createBlogArticles(createPage, result.data.blog);
+  createDocPages(createPage, result.data.docs);
+
+  createRedirect({
+    fromPath: "/blog/2019/03/18/entity-framework",
+    toPath: "/blog/2020/03/18/entity-framework",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+};
+
+exports.onCreateNode = ({ node, actions, getNode }) => {
+  const { createNodeField } = actions;
+
+  if (node.internal.type === `MarkdownRemark`) {
+    const value = createFilePath({ node, getNode });
+    createNodeField({
+      name: `slug`,
+      node,
+      value,
+    });
+  }
+};
+
+function createBlogArticles(createPage, data) {
+  const blogArticleTemplate = path.resolve(
+    `src/templates/blog-article-template.tsx`
+  );
+  const { posts, tags } = data;
+
   // Create Single Pages
-  result.data.allMarkdownRemark.edges.forEach(({ node }) => {
+  posts.forEach(({ post }) => {
     createPage({
-      path: node.frontmatter.path,
+      path: post.frontmatter.path,
       component: blogArticleTemplate,
-      context: {}, // additional data can be passed via context
+      context: {},
     });
   });
 
   // Create List Pages
-  const posts = result.data.allMarkdownRemark.edges;
   const postsPerPage = 20;
   const numPages = Math.ceil(posts.length / postsPerPage);
 
@@ -60,10 +99,9 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   });
 
   // Create Tag Pages
-  const { tags } = result.data.allMarkdownRemark;
   const tagTemplate = path.resolve(`src/templates/blog-tag-template.tsx`);
 
-  tags.forEach(tag => {
+  tags.forEach((tag) => {
     createPage({
       path: `/blog/tags/${tag.fieldValue}`,
       component: tagTemplate,
@@ -72,25 +110,26 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
       },
     });
   });
+}
 
-  createRedirect({
-    fromPath: "/blog/2019/03/18/entity-framework",
-    toPath: "/blog/2020/03/18/entity-framework",
-    redirectInBrowser: true,
-    isPermanent: true,
-  });
-};
+function createDocPages(createPage, data) {
+  const pageTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
+  const { pages } = data;
 
-exports.onCreateNode = ({ node, actions, getNode }) => {
-  const { createNodeField } = actions;
+  // Create Single Pages
+  pages.forEach(({ name, relativeDirectory }) => {
+    const path =
+      name === "index"
+        ? `/docs/${relativeDirectory}`
+        : `/docs/${relativeDirectory}/${name}`;
+    const originPath = `${relativeDirectory}/${name}.md`;
 
-  if (node.internal.type === `MarkdownRemark`) {
-    const value = createFilePath({ node, getNode });
-
-    createNodeField({
-      name: `slug`,
-      node,
-      value,
+    createPage({
+      path,
+      component: pageTemplate,
+      context: {
+        originPath,
+      },
     });
-  }
-};
+  });
+}

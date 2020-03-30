@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
@@ -10,6 +11,6 @@ namespace HotChocolate.Types.Filters.Expressions
             IInputType type,
             IValueNode value,
             IQueryableFilterVisitorContext context,
-            out Expression expression);
+            [NotNullWhen(true)] out Expression? expression);
     }
 }
