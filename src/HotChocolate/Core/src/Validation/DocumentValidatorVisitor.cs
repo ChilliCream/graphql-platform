@@ -13,7 +13,7 @@ namespace HotChocolate.Validation
         {
         }
 
-        protected override IDocumentValidatorContext OnBeforeEnter(
+        protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
             IReadOnlyList<ISyntaxNode> ancestors,
@@ -23,7 +23,7 @@ namespace HotChocolate.Validation
             return context;
         }
 
-        protected override IDocumentValidatorContext OnAfterLeave(
+        protected override IDocumentValidatorContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
             IReadOnlyList<ISyntaxNode> ancestors,

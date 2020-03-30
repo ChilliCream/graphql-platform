@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
 namespace HotChocolate
@@ -43,7 +44,7 @@ namespace HotChocolate
         IReadOnlyCollection<INamedType> Types { get; }
 
         /// <summary>
-        /// Gets all the direcive types that are supported by this schema.
+        /// Gets all the directive types that are supported by this schema.
         /// </summary>
         IReadOnlyCollection<DirectiveType> DirectiveTypes { get; }
 
@@ -70,7 +71,7 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetType<T>(NameString typeName, out T type)
+        bool TryGetType<T>(NameString typeName, [NotNullWhen(true)]out T type)
             where T : INamedType;
 
         /// <summary>
@@ -82,7 +83,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetClrType(NameString typeName, out Type clrType);
+        bool TryGetClrType(NameString typeName, [NotNullWhen(true)]out Type clrType);
 
         /// <summary>
         /// Gets the possible object types to
@@ -124,6 +125,6 @@ namespace HotChocolate
         /// </returns>
         bool TryGetDirectiveType(
             NameString directiveName,
-            out DirectiveType directiveType);
+            [NotNullWhen(true)]out DirectiveType directiveType);
     }
 }

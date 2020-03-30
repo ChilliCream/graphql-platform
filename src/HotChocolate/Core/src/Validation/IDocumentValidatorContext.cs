@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {
@@ -8,7 +9,9 @@ namespace HotChocolate.Validation
     {
         ISchema Schema { get; }
 
-        Stack<ISyntaxNode> Path { get; }
+        IList<ISyntaxNode> Path { get; }
+
+        IDictionary<string, VariableDefinitionNode> Variables { get; }
 
         IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
@@ -18,6 +21,19 @@ namespace HotChocolate.Validation
 
         ISet<string> DeclaredVariables { get; }
 
+        IList<IType> Types { get; }
+
+        IList<DirectiveType> Directives { get; }
+
+        IList<IOutputField> OutputFields { get; }
+
+        IList<IInputField> InputFields { get; }
+
         ICollection<IError> Errors { get; }
+
+        /// <summary>
+        /// The visitor was unable to resolver types specified in the query.
+        /// </summary>
+        bool IsInError { get; set; }
     }
 }

@@ -13,8 +13,7 @@ namespace HotChocolate.Types
 
         object Source { get; }
 
-        IReadOnlyList<DirectiveMiddleware> MiddlewareComponents
-        { get; }
+        IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; }
 
         bool IsExecutable { get; }
 

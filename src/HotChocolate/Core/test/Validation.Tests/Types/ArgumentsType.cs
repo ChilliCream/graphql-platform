@@ -46,9 +46,16 @@ namespace HotChocolate.Validation
                 .Resolver(() => null);
 
             // booleanListArgField(booleanListArg: [Boolean]!) : [Boolean]
-            descriptor.Field("multiplbooleanListArgFieldeReqs")
+            descriptor.Field("booleanListArgField")
                 .Argument("booleanListArg",
                     t => t.Type<NonNullType<ListType<BooleanType>>>())
+                .Type<ListType<BooleanType>>()
+                .Resolver(() => null);
+
+            // nonNullBooleanListArgField(booleanListArg: [Boolean!]!) : [Boolean]
+            descriptor.Field("nonNullBooleanListArgField")
+                .Argument("booleanListArg",
+                    t => t.Type<NonNullType<ListType<NonNullType<BooleanType>>>>())
                 .Type<ListType<BooleanType>>()
                 .Resolver(() => null);
 
