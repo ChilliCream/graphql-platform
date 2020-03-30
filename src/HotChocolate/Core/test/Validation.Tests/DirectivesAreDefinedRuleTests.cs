@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public DirectivesAreDefinedRuleTests()
-            : base(services => services.AddDirectivesAreDefinedRule())
+            : base(services => services.AddDirectivesRule())
         {
         }
 
@@ -88,6 +88,51 @@ namespace HotChocolate.Validation
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query a {
                     field @skip(if: $foo)
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void DuplicateSkipDirectives()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query ($foo: Boolean = true, $bar: Boolean = false) {
+                    field @skip(if: $foo) @skip(if: $bar)
+                }
+            ");
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Collection(context.Errors,
+                t => Assert.Equal(
+                    "Only one of each directive is allowed per location.",
+                    t.Message));
+            context.Errors.First().MatchSnapshot();
+        }
+
+        [Fact]
+        public void SkipOnTwoDifferentFields()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query ($foo: Boolean = true, $bar: Boolean = false) {
+                    field @skip(if: $foo) {
+                        subfieldA
+                    }
+                    field @skip(if: $bar) {
+                        subfieldB
+                    }
                 }
             ");
 

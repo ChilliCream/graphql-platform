@@ -21,8 +21,19 @@ namespace HotChocolate.Validation
     /// location that the server has declared support for.
     ///
     /// http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations
+    ///
+    /// AND
+    ///
+    /// Directives are used to describe some metadata or behavioral change on
+    /// the definition they apply to.
+    ///
+    /// When more than one directive of the
+    /// same name is used, the expected metadata or behavior becomes ambiguous,
+    /// therefore only one of each directive is allowed per location.
+    ///
+    /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
     /// </summary>
-    internal sealed class DirectivesAreDefinedVisitor
+    internal sealed class DirectivesVisitor
         : DocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
@@ -33,10 +44,11 @@ namespace HotChocolate.Validation
             {
                 case NodeKind.Field:
                 case NodeKind.SelectionSet:
-                case NodeKind.FragmentDefinition:
-                case NodeKind.FragmentSpread:
                 case NodeKind.InlineFragment:
+                case NodeKind.FragmentSpread:
+                case NodeKind.FragmentDefinition:
                 case NodeKind.Directive:
+                case NodeKind.VariableDefinition:
                 case NodeKind.OperationDefinition:
                 case NodeKind.Document:
                     return base.Enter(node, context);
@@ -44,6 +56,54 @@ namespace HotChocolate.Validation
                 default:
                     return Skip;
             }
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            OperationDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            ValidateDirectiveAreUniquePerLocation(node, context);
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            VariableDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            ValidateDirectiveAreUniquePerLocation(node, context);
+            return Skip;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            ValidateDirectiveAreUniquePerLocation(node, context);
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            IDocumentValidatorContext context)
+        {
+            ValidateDirectiveAreUniquePerLocation(node, context);
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FragmentDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            ValidateDirectiveAreUniquePerLocation(node, context);
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FragmentSpreadNode node,
+            IDocumentValidatorContext context)
+        {
+            ValidateDirectiveAreUniquePerLocation(node, context);
+            return Continue;
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -81,6 +141,30 @@ namespace HotChocolate.Validation
             return Skip;
         }
 
+        private void ValidateDirectiveAreUniquePerLocation<T>(
+            T node,
+            IDocumentValidatorContext context)
+            where T : ISyntaxNode, Language.IHasDirectives
+        {
+            context.Names.Clear();
+
+            foreach (DirectiveNode directive in node.Directives)
+            {
+                if (context.Schema.TryGetDirectiveType(directive.Name.Value, out DirectiveType? dt)
+                    && !dt.IsRepeatable
+                    && !context.Names.Add(directive.Name.Value))
+                {
+                    context.Errors.Add(
+                        ErrorBuilder.New()
+                            .SetMessage("Only one of each directive is allowed per location.")
+                            .AddLocation(node)
+                            .SetPath(context.CreateErrorPath())
+                            .SpecifiedBy("sec-Directives-Are-Unique-Per-Location")
+                            .Build());
+                }
+            }
+        }
+
         private static bool TryLookupLocation(ISyntaxNode node, out DirectiveLoc location)
         {
             switch (node.Kind)
@@ -99,6 +183,10 @@ namespace HotChocolate.Validation
 
                 case NodeKind.InlineFragment:
                     location = DirectiveLoc.InlineFragment;
+                    return true;
+
+                case NodeKind.VariableDefinition:
+                    location = DirectiveLoc.VariableDefinition;
                     return true;
 
                 case NodeKind.OperationDefinition:
