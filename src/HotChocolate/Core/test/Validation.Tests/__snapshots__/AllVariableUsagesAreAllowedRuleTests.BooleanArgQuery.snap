@@ -1,16 +1,18 @@
 ﻿{
-  "message": "The variable `booleanArg` is not compatible with the type of the current location.",
-  "path": [
+  "Message": "The variable `booleanArg` is not compatible with the type of the current location.",
+  "Code": null,
+  "Path": [
     "arguments",
     "nonNullBooleanArgField"
   ],
-  "locations": [
+  "Locations": [
     {
       "Line": 4,
       "Column": 67
     }
   ],
-  "extensions": {
+  "Exception": null,
+  "Extensions": {
     "variable": "booleanArg",
     "variableType": "Boolean",
     "locationType": "Boolean!",
