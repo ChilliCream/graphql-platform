@@ -1,15 +1,13 @@
-﻿using System.Linq;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
+﻿using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class DirectivesAreDefinedRuleTests
-        : DocumentValidatorVisitorTestBase
+    public class DirectivesAreDefinedRuleTests_Old
+        : ValidationTestBase
     {
-        public DirectivesAreDefinedRuleTests()
-            : base(services => services.AddDirectivesAreDefinedRule())
+        public DirectivesAreDefinedRuleTests_Old()
+            : base(new DirectivesAreDefinedRule())
         {
         }
 
@@ -17,7 +15,7 @@ namespace HotChocolate.Validation
         public void SupportedDirective()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -27,17 +25,17 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void UnsupportedDirective()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -47,15 +45,15 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The specified directive `foo` " +
                     "is not supported by the current schema.",
                     t.Message));
-            context.Errors.First().MatchSnapshot();
         }
     }
 }

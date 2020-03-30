@@ -27,6 +27,12 @@ namespace HotChocolate.Validation
             return services.AddValidationRule<AllVariableUsagesAreAllowedVisitor>();
         }
 
+        public static IServiceCollection AddDirectivesAreDefinedRule(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<DirectivesAreDefinedVisitor>();
+        }
+
         public static IServiceCollection AddValidationRule<T>(
             this IServiceCollection services)
             where T : DocumentValidatorVisitor, new()
