@@ -61,5 +61,33 @@ namespace HotChocolate.Validation
             Assert.Empty(context.Errors);
         }
 
+        [Fact]
+        public void TwoOperationsThatShareVariableName()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query A($atOtherHomes: Boolean) {
+                  ...HouseTrainedFragment
+                }
+
+                query B($atOtherHomes: Boolean) {
+                  ...HouseTrainedFragment
+                }
+
+                fragment HouseTrainedFragment on Query {
+                  dog {
+                    isHousetrained(atOtherHomes: $atOtherHomes)
+                  }
+                }
+            ");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
+        }
     }
 }
