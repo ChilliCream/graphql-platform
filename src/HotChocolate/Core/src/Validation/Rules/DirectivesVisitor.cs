@@ -33,8 +33,7 @@ namespace HotChocolate.Validation
     ///
     /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
     /// </summary>
-    internal sealed class DirectivesVisitor
-        : DocumentValidatorVisitor
+    internal sealed class DirectivesVisitor : DocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
             ISyntaxNode node,

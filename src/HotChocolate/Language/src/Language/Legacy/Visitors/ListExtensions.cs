@@ -13,6 +13,22 @@ namespace HotChocolate.Language
             return p;
         }
 
+        public static bool TryPop<T>(this IList<T> list, [NotNullWhen(true)]out T item)
+        {
+            if (list.Count > 0)
+            {
+                int lastIndex = list.Count - 1;
+                item = list[lastIndex]!;
+                list.RemoveAt(lastIndex);
+                return true;
+            }
+            else
+            {
+                item = default!;
+                return false;
+            }
+        }
+
         public static T Peek<T>(this IList<T> list)
         {
             int lastIndex = list.Count - 1;
@@ -24,7 +40,7 @@ namespace HotChocolate.Language
             if (list.Count > 0)
             {
                 int lastIndex = list.Count - 1;
-                item = list[lastIndex];
+                item = list[lastIndex]!;
                 return true;
             }
             else
