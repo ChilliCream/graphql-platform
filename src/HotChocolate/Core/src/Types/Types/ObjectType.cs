@@ -47,10 +47,10 @@ namespace HotChocolate.Types
         public bool IsOfType(IResolverContext context, object resolverResult) =>
             _isOfType(context, resolverResult);
 
-        public bool IsAssignableFrom(NameString interfaceTypeName) =>
+        public bool IsImplementing(NameString interfaceTypeName) =>
             _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
 
-        public bool IsAssignableFrom(InterfaceType interfaceType) =>
+        public bool IsImplementing(InterfaceType interfaceType) =>
             _interfaces.Contains(interfaceType);
 
         protected override ObjectTypeDefinition CreateDefinition(

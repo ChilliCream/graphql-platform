@@ -5,5 +5,6 @@
         , IHasName
         , IHasDescription
     {
+        bool IsAssignableFrom(INamedType type);
     }
 }

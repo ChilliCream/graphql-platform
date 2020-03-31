@@ -51,6 +51,9 @@ namespace HotChocolate.Types
 
         public IDirectiveCollection Directives { get; private set; }
 
+        public bool IsAssignableFrom(INamedType type) =>
+            ReferenceEquals(type, this);
+
         /// <summary>
         /// Defines if the specified <paramref name="literal" />
         /// can be parsed by this scalar.

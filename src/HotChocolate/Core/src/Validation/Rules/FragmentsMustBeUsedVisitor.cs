@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
     /// <summary>
     /// Defined fragments must be used within a document.
     ///
-    /// http://facebook.github.io/graphql/June2018/#sec-Fragments-Must-Be-Used
+    /// http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used
     ///
     /// AND
     ///
@@ -16,7 +16,19 @@ namespace HotChocolate.Validation
     /// They can only be applied on non‐leaf fields.
     /// This rule applies to both inline and named fragments.
     ///
-    /// http://facebook.github.io/graphql/June2018/#sec-Fragments-On-Composite-Types
+    /// http://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types
+    ///
+    /// AND
+    ///
+    /// Fragments are declared on a type and will only apply when the
+    /// runtime object type matches the type condition.
+    ///
+    /// They also are spread within the context of a parent type.
+    ///
+    /// A fragment spread is only valid if its type condition could ever
+    /// apply within the parent type.
+    ///
+    /// http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible
     /// </summary>
     internal sealed class FragmentsMustBeUsedVisitor : TypeDocumentValidatorVisitor
     {
@@ -66,6 +78,28 @@ namespace HotChocolate.Validation
         {
             ValidateTypeCondition(node, context);
             return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FragmentSpreadNode node,
+            IDocumentValidatorContext context)
+        {
+
+            return Continue;
+        }
+
+        private void ValidateFragmentSpreadIsPossible(
+            ISyntaxNode node,
+            IType parentType,
+            IType typeCondition,
+            IDocumentValidatorContext context)
+        {
+            if (typeCondition.NamedType().IsAssignableFrom(parentType.NamedType()))
+            {
+                // Errors.Add(new ValidationError(
+                //                     "The parent type does not match the type condition on " +
+                //                     $"the fragment `{fragment.Name}`.", fragmentSpread));
+            }
         }
 
         private void ValidateTypeCondition(
