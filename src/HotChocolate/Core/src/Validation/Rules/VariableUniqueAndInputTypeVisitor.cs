@@ -49,16 +49,10 @@ namespace HotChocolate.Validation
                        .SetPath(context.CreateErrorPath())
                        .SetExtension("variable", variableName)
                        .SetExtension("variableType", node.Type.ToString())
-                       .SetExtension("locationType", context.Types.Peek().Visualize())
-                       .SpecifiedBy("sec-Variables-Are-Input-Types")
                        .Build());
             }
 
-            if (!context.DeclaredVariables.Contains(variableName))
-            {
-                context.DeclaredVariables.Add(variableName);
-            }
-            else
+            if (!context.DeclaredVariables.Add(variableName))
             {
                 // TODO : Resources
                 context.Errors.Add(
@@ -71,7 +65,6 @@ namespace HotChocolate.Validation
                         .SetPath(context.CreateErrorPath())
                         .SetExtension("variable", variableName)
                         .SetExtension("variableType", node.Type.ToString())
-                        .SetExtension("locationType", context.Types.Peek().Visualize())
                         .SpecifiedBy("sec-Validation.Variables")
                         .Build());
             }
