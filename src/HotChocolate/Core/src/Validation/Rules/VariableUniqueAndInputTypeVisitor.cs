@@ -55,7 +55,7 @@ namespace HotChocolate.Validation
             string name = node.Variable.Name.Value;
             if (!context.DeclaredVariables.Contains(name))
             {
-                context.DeclaredVariables.Add(node.Variable.Name.Value);
+                context.DeclaredVariables.Add(name);
             }
             else
             {
@@ -68,6 +68,9 @@ namespace HotChocolate.Validation
                            "name is invalid for execution.")
                         .AddLocation(node)
                         .SetPath(context.CreateErrorPath())
+                        .SetExtension("variable", name)
+                        .SetExtension("variableType", node.Type.ToString())
+                        .SetExtension("locationType", context.Types.Peek().Visualize())
                         .SpecifiedBy("sec-Validation.Variables")
                         .Build());
             }
