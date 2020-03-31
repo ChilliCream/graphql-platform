@@ -17,7 +17,7 @@ namespace HotChocolate.Validation
                 .AddAllVariableUsagesAreAllowedRule()
                 .AddDirectivesRule()
                 .AddExecutableDefinitionsRule()
-                .AddVariableUniquenessRule();
+                .AddVariableUniqueAndInputTypeRule();
 
             return services;
         }
@@ -122,17 +122,25 @@ namespace HotChocolate.Validation
             return services.AddSingleton<IDocumentValidatorRule, DocumentValidatorRule<T>>();
         }
 
-        /// <summary>
+        /// <summary> 
         /// If any operation defines more than one variable with the same name,
         /// it is ambiguous and invalid. It is invalid even if the type of the
         /// duplicate variable is the same.
         ///
         /// http://spec.graphql.org/June2018/#sec-Validation.Variables
+        /// 
+        /// AND
+        /// 
+        /// Variables can only be input types. Objects,
+        /// unions, and interfaces cannot be used as inputs.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
         /// </summary>
-        public static IServiceCollection AddVariableUniquenessRule(
+        public static IServiceCollection AddVariableUniqueAndInputTypeRule(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<VariableUniquenessVisitor>();
+            return services.AddValidationRule<VariableUniqueAndInputTypeVisitor>();
         }
+
     }
 }

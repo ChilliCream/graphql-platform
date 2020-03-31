@@ -1,5 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation
 {
@@ -9,9 +11,16 @@ namespace HotChocolate.Validation
     /// duplicate variable is the same.
     ///
     /// http://spec.graphql.org/June2018/#sec-Validation.Variables
+    /// 
+    /// AND
+    /// 
+    /// Variables can only be input types. Objects,
+    /// unions, and interfaces cannot be used as inputs.
+    ///
+    /// http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
     /// </summary>
-    internal sealed class VariableUniquenessVisitor
-        : DocumentValidatorVisitor
+    internal sealed class VariableUniqueAndInputTypeVisitor
+        : TypeDocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
             OperationDefinitionNode node,
@@ -25,6 +34,25 @@ namespace HotChocolate.Validation
             VariableDefinitionNode node,
             IDocumentValidatorContext context)
         {
+
+            if (context.Schema.TryGetTypeFromAst(node.Type, out IType type) &&
+                !type.IsInputType())
+            {
+                context.Errors.Add(
+                   ErrorBuilder.New()
+                       .SetMessage(
+                            "The type of variable " +
+                            $"`{node.Variable.Name.Value}` " +
+                            "is not an input type.")
+                       .AddLocation(node)
+                       .SetPath(context.CreateErrorPath())
+                       .SetExtension("variable", node.Variable.Name.Value)
+                       .SetExtension("variableType", node.Type.ToString())
+                       .SetExtension("locationType", context.Types.Peek().Visualize())
+                       .SpecifiedBy("sec-Variables-Are-Input-Types")
+                       .Build());
+            }
+
             string name = node.Variable.Name.Value;
             if (!context.DeclaredVariables.Contains(name))
             {
