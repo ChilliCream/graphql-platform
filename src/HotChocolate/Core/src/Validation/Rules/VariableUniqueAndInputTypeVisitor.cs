@@ -34,7 +34,6 @@ namespace HotChocolate.Validation
             VariableDefinitionNode node,
             IDocumentValidatorContext context)
         {
-
             if (context.Schema.TryGetTypeFromAst(node.Type, out IType type) &&
                 !type.IsInputType())
             {

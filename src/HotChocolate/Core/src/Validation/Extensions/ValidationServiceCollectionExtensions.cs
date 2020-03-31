@@ -141,6 +141,5 @@ namespace HotChocolate.Validation
         {
             return services.AddValidationRule<VariableUniqueAndInputTypeVisitor>();
         }
-
     }
 }
