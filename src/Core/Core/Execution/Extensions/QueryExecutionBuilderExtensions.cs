@@ -163,9 +163,11 @@ namespace HotChocolate.Execution
 
             var listener = new DiagnosticListener(DiagnosticNames.Listener);
 
+            /*
             builder
                 .RemoveService<DiagnosticListener>()
                 .RemoveService<DiagnosticSource>();
+                */
 
             builder.Services
                 .AddSingleton(listener)

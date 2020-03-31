@@ -61,21 +61,23 @@ namespace HotChocolate.Types.Selections
         protected virtual bool EnterSelection(IFieldSelection selection)
         {
             Fields.Push(selection.Field);
-            if (selection.Field.Type.IsListType() ||
-                selection.Field.Type.ToClrType() == typeof(IConnection) ||
-                (selection.Field.Member is PropertyInfo propertyInfo &&
-                    IsListType(propertyInfo.PropertyType)))
-            {
-                if (EnterList(selection))
-                {
-                    LeaveList(selection);
-                }
-            }
-            else if (selection.Field.Type.IsLeafType())
+            if (selection.Field.Type.IsLeafType() ||
+                (selection.Field.Type.IsListType() &&
+                    selection.Field.Type.ElementType().IsLeafType()))
             {
                 if (EnterLeaf(selection))
                 {
                     LeaveLeaf(selection);
+                }
+            }
+            else if (selection.Field.Type.IsListType() ||
+              selection.Field.Type.ToClrType() == typeof(IConnection) ||
+              (selection.Field.Member is PropertyInfo propertyInfo &&
+                  IsListType(propertyInfo.PropertyType)))
+            {
+                if (EnterList(selection))
+                {
+                    LeaveList(selection);
                 }
             }
             else if (selection.Field.Type.IsObjectType())
