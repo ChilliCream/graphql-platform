@@ -16,7 +16,8 @@ namespace HotChocolate.Validation
                 .AddAllVariablesUsedRule()
                 .AddAllVariableUsagesAreAllowedRule()
                 .AddDirectivesRule()
-                .AddExecutableDefinitionsRule();
+                .AddExecutableDefinitionsRule()
+                .AddFieldMustBeDefinedRule();
 
             return services;
         }
@@ -112,6 +113,18 @@ namespace HotChocolate.Validation
             this IServiceCollection services)
         {
             return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
+        }
+
+        /// <summary>
+        /// The target field of a field selection must be defined on the scoped
+        /// type of the selection set. There are no limitations on alias names.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+        /// </summary>
+        public static IServiceCollection AddFieldMustBeDefinedRule(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<FieldMustBeDefinedVisitor>();
         }
 
         public static IServiceCollection AddValidationRule<T>(

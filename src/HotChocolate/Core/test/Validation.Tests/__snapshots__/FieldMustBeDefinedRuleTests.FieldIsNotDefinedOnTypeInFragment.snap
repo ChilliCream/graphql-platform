@@ -1,0 +1,36 @@
+﻿[
+  {
+    "Message": "The field `meowVolume` does not exist on the type `Dog`.",
+    "Code": null,
+    "Path": [
+      "dog"
+    ],
+    "Locations": [
+      {
+        "Line": 10,
+        "Column": 21
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  },
+  {
+    "Message": "The field `kawVolume` does not exist on the type `Dog`.",
+    "Code": null,
+    "Path": [
+      "dog"
+    ],
+    "Locations": [
+      {
+        "Line": 14,
+        "Column": 21
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  }
+]
