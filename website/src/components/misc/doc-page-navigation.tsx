@@ -12,6 +12,7 @@ import { DocPageNavigationFragment } from "../../../graphql-types";
 import { State } from "../../state";
 import { toggleNavigationGroup } from "../../state/common";
 import { IconContainer } from "./icon-container";
+import { motion } from "framer-motion";
 import { Link } from "./link";
 
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
@@ -98,6 +99,32 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     };
   }, [handleCloseClick]);
 
+  const container = {
+    hidden: {
+      opacity: 0,
+      y: 20,
+      transitionEnd: { display: "none" },
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      display: "flex",
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.05,
+        duration: 0.025,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+    },
+  };
+
   return (
     <Navigation>
       <FixedContainer>
@@ -113,18 +140,21 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
           <ProductSwitcherDialog
             open={productSwitcherOpen}
             onClick={handleClickDialog}
+            variants={container}
+            initial="hidden"
+            animate={productSwitcherOpen ? "visible" : "hidden"}
           >
             {data.config?.products &&
               data.config.products.map((product) =>
                 product === currentProduct ? (
-                  <CurrentProduct onClick={handleCloseClick}>
+                  <CurrentProduct onClick={handleCloseClick} variants={item}>
                     <ProductTitle>{product!.title!}</ProductTitle>
                     <ProductDescription>
                       {product!.description!}
                     </ProductDescription>
                   </CurrentProduct>
                 ) : (
-                  <ProductLink to={`/docs/${product!.path!}`}>
+                  <ProductLink variants={item}>
                     <ProductTitle>{product!.title!}</ProductTitle>
                     <ProductDescription>
                       {product!.description!}
@@ -233,11 +263,11 @@ const ProductSwitcherButton = styled.button`
   }
 `;
 
-const ProductSwitcherDialog = styled.div<{ open: boolean }>`
+const ProductSwitcherDialog = motion.custom(styled.div<{ open: boolean }>`
   position: fixed;
   top: 130px;
   z-index: 10;
-  display: ${(props) => (props.open ? "flex" : "none")};
+  display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   margin: 0 14px;
@@ -246,9 +276,9 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   width: 700px;
   background-color: #fff;
   box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25);
-`;
+`);
 
-const CurrentProduct = styled.div`
+const CurrentProduct = motion.custom(styled.div`
   flex: 0 0 calc(50% - 32px);
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -257,9 +287,9 @@ const CurrentProduct = styled.div`
   font-size: 0.833em;
   color: #666;
   background-color: #ddd;
-`;
+`);
 
-const ProductLink = styled(Link)`
+const ProductLink = motion.custom(styled.div`
   flex: 0 0 calc(50% - 32px);
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -272,7 +302,7 @@ const ProductLink = styled(Link)`
   :hover {
     background-color: #ddd;
   }
-`;
+`);
 
 const ProductTitle = styled.h6`
   font-size: 1em;
