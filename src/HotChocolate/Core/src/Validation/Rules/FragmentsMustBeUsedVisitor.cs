@@ -69,6 +69,7 @@ namespace HotChocolate.Validation
         {
             context.Names.Add(node.Name.Value);
             ValidateTypeCondition(node, context);
+            ValidateFragmentSpreadIsPossible(node, context);
             return Continue;
         }
 
@@ -77,28 +78,39 @@ namespace HotChocolate.Validation
             IDocumentValidatorContext context)
         {
             ValidateTypeCondition(node, context);
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
-            FragmentSpreadNode node,
-            IDocumentValidatorContext context)
-        {
-
+            ValidateFragmentSpreadIsPossible(node, context);
             return Continue;
         }
 
         private void ValidateFragmentSpreadIsPossible(
             ISyntaxNode node,
-            IType parentType,
-            IType typeCondition,
             IDocumentValidatorContext context)
         {
-            if (typeCondition.NamedType().IsAssignableFrom(parentType.NamedType()))
+            if (context.Types.Count > 1)
             {
-                // Errors.Add(new ValidationError(
-                //                     "The parent type does not match the type condition on " +
-                //                     $"the fragment `{fragment.Name}`.", fragmentSpread));
+                INamedType typeCondition = context.Types[context.Types.Count - 1].NamedType();
+                INamedType parentType = context.Types[context.Types.Count - 2].NamedType();
+
+                if (!parentType.IsAssignableFrom(typeCondition))
+                {
+                    IErrorBuilder builder =
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "The parent type does not match the type condition on the fragment.")
+                        .AddLocation(node)
+                        .SetPath(context.CreateErrorPath())
+                        .SetExtension("typeCondition", typeCondition.Visualize());
+
+                    if (node.Kind == NodeKind.FragmentDefinition)
+                    {
+                        builder.SetExtension("fragment", ((FragmentDefinitionNode)node).Name.Value);
+                    }
+
+                    context.Errors.Add(
+                        builder
+                            .SpecifiedBy("sec-Fragment-spread-is-possible")
+                            .Build());
+                }
             }
         }
 
