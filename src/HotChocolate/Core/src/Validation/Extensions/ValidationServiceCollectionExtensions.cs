@@ -114,6 +114,19 @@ namespace HotChocolate.Validation
             return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
         }
 
+        /// <summary>
+        /// Fragment definitions are referenced in fragment spreads by name.
+        /// To avoid ambiguity, each fragment’s name must be unique within a
+        /// document.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness
+        /// </summary>
+        public static IServiceCollection AddFragmentNameUniquenessRule(
+            this IServiceCollection services)
+        {
+            return services.AddSingleton<IDocumentValidatorRule, FragmentNameUniquenessRule>();
+        }
+
         public static IServiceCollection AddValidationRule<T>(
             this IServiceCollection services)
             where T : DocumentValidatorVisitor, new()

@@ -32,7 +32,7 @@ namespace HotChocolate.Validation
                 if (node.Kind == NodeKind.FragmentDefinition)
                 {
                     string fragmentName = ((FragmentDefinitionNode)node).Name.Value;
-                    if (context.Names.Add(fragmentName))
+                    if (!context.Names.Add(fragmentName))
                     {
                         context.Errors.Add(
                             ErrorBuilder.New()
