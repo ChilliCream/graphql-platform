@@ -33,6 +33,8 @@ namespace HotChocolate.Validation
             VariableDefinitionNode node,
             IDocumentValidatorContext context)
         {
+            string variableName = node.Variable.Name.Value;
+
             if (context.Schema.TryGetType(
                     node.Type.NamedType().Name.Value, out INamedType type) &&
                 !type.IsInputType())
@@ -41,21 +43,20 @@ namespace HotChocolate.Validation
                    ErrorBuilder.New()
                        .SetMessage(
                             "The type of variable " +
-                            $"`{node.Variable.Name.Value}` " +
+                            $"`{variableName}` " +
                             "is not an input type.")
                        .AddLocation(node)
                        .SetPath(context.CreateErrorPath())
-                       .SetExtension("variable", node.Variable.Name.Value)
+                       .SetExtension("variable", variableName)
                        .SetExtension("variableType", node.Type.ToString())
                        .SetExtension("locationType", context.Types.Peek().Visualize())
                        .SpecifiedBy("sec-Variables-Are-Input-Types")
                        .Build());
             }
 
-            string name = node.Variable.Name.Value;
-            if (!context.DeclaredVariables.Contains(name))
+            if (!context.DeclaredVariables.Contains(variableName))
             {
-                context.DeclaredVariables.Add(name);
+                context.DeclaredVariables.Add(variableName);
             }
             else
             {
@@ -68,7 +69,7 @@ namespace HotChocolate.Validation
                            "name is invalid for execution.")
                         .AddLocation(node)
                         .SetPath(context.CreateErrorPath())
-                        .SetExtension("variable", name)
+                        .SetExtension("variable", variableName)
                         .SetExtension("variableType", node.Type.ToString())
                         .SetExtension("locationType", context.Types.Peek().Visualize())
                         .SpecifiedBy("sec-Validation.Variables")
