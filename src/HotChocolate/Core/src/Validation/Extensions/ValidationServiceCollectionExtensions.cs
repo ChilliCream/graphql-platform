@@ -16,7 +16,8 @@ namespace HotChocolate.Validation
                 .AddAllVariablesUsedRule()
                 .AddAllVariableUsagesAreAllowedRule()
                 .AddDirectivesRule()
-                .AddExecutableDefinitionsRule();
+                .AddExecutableDefinitionsRule()
+                .AddVariableUniquenessRule();
 
             return services;
         }
@@ -119,6 +120,19 @@ namespace HotChocolate.Validation
             where T : DocumentValidatorVisitor, new()
         {
             return services.AddSingleton<IDocumentValidatorRule, DocumentValidatorRule<T>>();
+        }
+
+        /// <summary>
+        /// If any operation defines more than one variable with the same name,
+        /// it is ambiguous and invalid. It is invalid even if the type of the
+        /// duplicate variable is the same.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Validation.Variables
+        /// </summary>
+        public static IServiceCollection AddVariableUniquenessRule(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<VariableUniquenessVisitor>();
         }
     }
 }

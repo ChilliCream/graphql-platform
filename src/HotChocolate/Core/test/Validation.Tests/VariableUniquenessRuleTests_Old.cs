@@ -3,11 +3,11 @@ using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class VariableUniquenessRuleTests
-        : DocumentValidatorVisitorTestBase
+    public class VariableUniquenessRuleTests_Old
+        : ValidationTestBase
     {
-        public VariableUniquenessRuleTests()
-            : base(services => services.AddVariableUniquenessRule())
+        public VariableUniquenessRuleTests_Old()
+            : base(new VariableUniquenessRule())
         {
         }
 
@@ -15,7 +15,7 @@ namespace HotChocolate.Validation
         public void OperationWithTwoVariablesThatHaveTheSameName()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
@@ -23,14 +23,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Single(context.Errors);
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "A document containing operations that " +
                     "define more than one variable with the same " +
@@ -41,7 +40,7 @@ namespace HotChocolate.Validation
         public void NoOperationHasVariablesThatShareTheSameName()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) {
@@ -52,14 +51,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(result.HasErrors);
         }
-
     }
 }
