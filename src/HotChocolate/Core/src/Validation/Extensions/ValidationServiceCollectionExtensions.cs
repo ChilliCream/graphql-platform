@@ -128,11 +128,16 @@ namespace HotChocolate.Validation
             return services.AddValidationRule<FieldMustBeDefinedVisitor>();
         }
 
-        public static IServiceCollection AddValidationRule<T>(
+        /// Fragment definitions are referenced in fragment spreads by name.
+        /// To avoid ambiguity, each fragment’s name must be unique within a
+        /// document.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness
+        /// </summary>
+        public static IServiceCollection AddFragmentNameUniquenessRule(
             this IServiceCollection services)
-            where T : DocumentValidatorVisitor, new()
         {
-            return services.AddSingleton<IDocumentValidatorRule, DocumentValidatorRule<T>>();
+            return services.AddSingleton<IDocumentValidatorRule, FragmentNameUniquenessRule>();
         }
 
         /// <summary> 
@@ -153,6 +158,13 @@ namespace HotChocolate.Validation
             this IServiceCollection services)
         {
             return services.AddValidationRule<VariableUniqueAndInputTypeVisitor>();
+        }
+      
+        public static IServiceCollection AddValidationRule<T>(
+            this IServiceCollection services)
+            where T : DocumentValidatorVisitor, new()
+        {
+            return services.AddSingleton<IDocumentValidatorRule, DocumentValidatorRule<T>>();
         }
     }
 }

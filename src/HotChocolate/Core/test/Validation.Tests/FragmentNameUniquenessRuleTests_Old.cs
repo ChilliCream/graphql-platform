@@ -1,15 +1,13 @@
-﻿using System.Linq;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
+﻿using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class FragmentNameUniquenessRuleTests
-        : DocumentValidatorVisitorTestBase
+    public class FragmentNameUniquenessRuleTests_Old
+        : ValidationTestBase
     {
-        public FragmentNameUniquenessRuleTests()
-            : base(services => services.AddFragmentNameUniquenessRule())
+        public FragmentNameUniquenessRuleTests_Old()
+            : base(new FragmentNameUniquenessRule())
         {
         }
 
@@ -17,7 +15,7 @@ namespace HotChocolate.Validation
         public void UniqueFragments()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -38,17 +36,17 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void DuplicateFragments()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -68,14 +66,14 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "There are multiple fragments with the name `fragmentOne`.",
                     t.Message));
-            context.Errors.First().MatchSnapshot();
         }
     }
 }
