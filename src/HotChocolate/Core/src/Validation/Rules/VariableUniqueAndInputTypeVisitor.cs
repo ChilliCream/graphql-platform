@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation
 {
@@ -34,7 +33,8 @@ namespace HotChocolate.Validation
             VariableDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Schema.TryGetTypeFromAst(node.Type, out IType type) &&
+            if (context.Schema.TryGetType(
+                    node.Type.NamedType().Name.Value, out INamedType type) &&
                 !type.IsInputType())
             {
                 context.Errors.Add(
