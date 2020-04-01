@@ -5,6 +5,14 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     /// <summary>
+    /// Fragment definitions are referenced in fragment spreads by name.
+    /// To avoid ambiguity, each fragment’s name must be unique within a
+    /// document.
+    ///
+    /// http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness
+    ///
+    /// AND
+    ///
     /// Defined fragments must be used within a document.
     ///
     /// http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used
@@ -62,6 +70,30 @@ namespace HotChocolate.Validation
             IDocumentValidatorContext context)
         {
             context.Names.Clear();
+
+            for (int i = 0; i < node.Definitions.Count; i++)
+            {
+                IDefinitionNode definition = node.Definitions[i];
+                if (definition.Kind == NodeKind.FragmentDefinition)
+                {
+                    string fragmentName = ((FragmentDefinitionNode)definition).Name.Value;
+                    if (!context.Names.Add(fragmentName))
+                    {
+                        context.Errors.Add(
+                            ErrorBuilder.New()
+                                .SetMessage(
+                                    "There are multiple fragments with the name " +
+                                    $"`{fragmentName}`.")
+                                .AddLocation(definition)
+                                .SetExtension("fragment", fragmentName)
+                                .SpecifiedBy("sec-Fragment-Name-Uniqueness")
+                                .Build());
+                    }
+                }
+            }
+
+            context.Names.Clear();
+
             return Continue;
         }
 
@@ -191,7 +223,7 @@ namespace HotChocolate.Validation
                             .Build());
                 }
             }
-            else if (context.Types.TryPeek(out IType type) && type.IsCompositeType())
+            else if (context.Types.TryPeek(out IType type) && !type.IsCompositeType())
             {
                 context.Errors.Add(
                     ErrorBuilder.New()

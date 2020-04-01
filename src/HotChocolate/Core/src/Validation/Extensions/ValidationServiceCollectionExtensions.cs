@@ -1,10 +1,11 @@
+using HotChocolate.Validation;
 using HotChocolate.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate.Validation
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ValidationServiceCollectionExtensions
+    public static class HotChocolateValidationServiceCollectionExtensions
     {
         public static IServiceCollection AddValidation(
             this IServiceCollection services)
@@ -13,10 +14,10 @@ namespace HotChocolate.Validation
             services.TryAddSingleton<IDocumentValidator, DocumentValidator>();
 
             services
-                .AddDirectivesRule()
+                .AddDirectivesAreValidRule()
                 .AddExecutableDefinitionsRule()
                 .AddFieldMustBeDefinedRule()
-                .AddFragmentNameUniquenessRule()
+                .AddFragmentsAreValidRule()
                 .AddAllVariablesUsedRule()
                 .AddAllVariableUsagesAreAllowedRule()
                 .AddVariableUniqueAndInputTypeRule();
@@ -52,7 +53,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
         /// </summary>
-        public static IServiceCollection AddDirectivesRule(
+        public static IServiceCollection AddDirectivesAreValidRule(
             this IServiceCollection services)
         {
             return services.AddValidationRule<DirectivesVisitor>();
@@ -91,16 +92,69 @@ namespace HotChocolate.Validation
             return services.AddValidationRule<FieldMustBeDefinedVisitor>();
         }
 
+        /// <summary>
         /// Fragment definitions are referenced in fragment spreads by name.
         /// To avoid ambiguity, each fragment’s name must be unique within a
         /// document.
         ///
         /// http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Defined fragments must be used within a document.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used
+        ///
+        /// AND
+        ///
+        /// Fragments can only be declared on unions, interfaces, and objects.
+        /// They are invalid on scalars.
+        /// They can only be applied on non‐leaf fields.
+        /// This rule applies to both inline and named fragments.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types
+        ///
+        /// AND
+        ///
+        /// Fragments are declared on a type and will only apply when the
+        /// runtime object type matches the type condition.
+        ///
+        /// They also are spread within the context of a parent type.
+        ///
+        /// A fragment spread is only valid if its type condition could ever
+        /// apply within the parent type.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible
+        ///
+        /// AND
+        ///
+        /// Named fragment spreads must refer to fragments defined within the
+        /// document.
+        ///
+        /// It is a validation error if the target of a spread is not defined.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined
+        ///
+        /// AND
+        ///
+        /// The graph of fragment spreads must not form any cycles including
+        /// spreading itself. Otherwise an operation could infinitely spread or
+        /// infinitely execute on cycles in the underlying data.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles
+        ///
+        /// AND
+        ///
+        /// Fragments must be specified on types that exist in the schema.
+        /// This applies for both named and inline fragments.
+        /// If they are not defined in the schema, the query does not validate.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
         /// </summary>
-        public static IServiceCollection AddFragmentNameUniquenessRule(
+        public static IServiceCollection AddFragmentsAreValidRule(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, FragmentNameUniquenessRule>();
+            return services.AddValidationRule<FragmentsVisitor>();
         }
 
         /// <summary>

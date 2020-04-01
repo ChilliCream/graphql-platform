@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -9,7 +10,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public DirectivesAreDefinedRuleTests()
-            : base(services => services.AddDirectivesRule())
+            : base(services => services.AddDirectivesAreValidRule())
         {
         }
 
