@@ -62,7 +62,8 @@ namespace HotChocolate.Validation
 
             if (context.Fragments.TryGetValue(
                 fragmentSpread.Name.Value,
-                out FragmentDefinitionNode? fragment))
+                out FragmentDefinitionNode? fragment) &&
+                !context.Path.Contains(fragment))
             {
                 yield return fragment;
             }
