@@ -1,15 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
+﻿using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class FragmentSpreadTargetDefinedRuleTests
-        : DocumentValidatorVisitorTestBase
+    public class FragmentSpreadTargetDefinedRuleTests_Old
+        : ValidationTestBase
     {
-        public FragmentSpreadTargetDefinedRuleTests()
-            : base(services => services.AddFragmentsAreValidRule())
+        public FragmentSpreadTargetDefinedRuleTests_Old()
+            : base(new FragmentSpreadTargetDefinedRule())
         {
         }
 
@@ -17,7 +15,7 @@ namespace HotChocolate.Validation
         public void UndefinedFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -25,25 +23,24 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The specified fragment `undefinedFragment` " +
                     "does not exist.",
                     t.Message));
-            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void DefinedFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -56,13 +53,12 @@ namespace HotChocolate.Validation
                     barkVolume
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(result.HasErrors);
         }
     }
 }

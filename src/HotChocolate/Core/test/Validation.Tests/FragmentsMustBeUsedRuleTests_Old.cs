@@ -1,15 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
+﻿using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class FragmentsMustBeUsedRuleTests
-       : DocumentValidatorVisitorTestBase
+    public class FragmentsMustBeUsedRuleTests_Old
+       : ValidationTestBase
     {
-        public FragmentsMustBeUsedRuleTests()
-            : base(services => services.AddFragmentsAreValidRule())
+        public FragmentsMustBeUsedRuleTests_Old()
+            : base(new FragmentsMustBeUsedRule())
         {
         }
 
@@ -17,7 +15,7 @@ namespace HotChocolate.Validation
         public void UnusedFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog { # unused
                     name
@@ -29,24 +27,23 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Collection(context.Errors,
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The specified fragment `nameFragment` " +
                     "is not used within the current document.", t.Message));
-            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void UsedFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
@@ -59,20 +56,19 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void UsedNestedFragment()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
@@ -90,13 +86,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
 
             // act
-            Rule.Validate(context, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
-            Assert.Empty(context.Errors);
+            Assert.False(result.HasErrors);
         }
     }
 }

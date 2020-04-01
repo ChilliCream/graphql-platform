@@ -101,20 +101,21 @@ namespace HotChocolate.Validation
             DocumentNode node,
             IDocumentValidatorContext context)
         {
-            context.Names.ExceptWith(context.Fragments.Keys);
-
-            foreach (string fragmentName in context.Names)
+            foreach (string fragmentName in context.Fragments.Keys)
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            $"The specified fragment `{fragmentName}` " +
-                            "is not used within the current document.")
-                        .AddLocation(context.Fragments[fragmentName])
-                        .SetPath(context.CreateErrorPath())
-                        .SetExtension("fragment", fragmentName)
-                        .SpecifiedBy("sec-Fragments-Must-Be-Used")
-                        .Build());
+                if (context.Names.Add(fragmentName))
+                {
+                    context.Errors.Add(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                $"The specified fragment `{fragmentName}` " +
+                                "is not used within the current document.")
+                            .AddLocation(context.Fragments[fragmentName])
+                            .SetPath(context.CreateErrorPath())
+                            .SetExtension("fragment", fragmentName)
+                            .SpecifiedBy("sec-Fragments-Must-Be-Used")
+                            .Build());
+                }
             }
 
             return Continue;
@@ -181,12 +182,14 @@ namespace HotChocolate.Validation
             ISyntaxNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Types.Count > 1)
+            if (context.Types.Count > 1 &&
+                context.Types.TryPeek(out IType type) &&
+                type.IsComplexType())
             {
-                INamedType typeCondition = context.Types[context.Types.Count - 1].NamedType();
+                INamedType typeCondition = type.NamedType();
                 INamedType parentType = context.Types[context.Types.Count - 2].NamedType();
 
-                if (!parentType.IsAssignableFrom(typeCondition))
+                if (!IsCompatibleType(parentType, typeCondition))
                 {
                     context.Errors.Add(
                         ErrorBuilder.New()
@@ -199,6 +202,26 @@ namespace HotChocolate.Validation
                             .SpecifiedBy("sec-Fragment-spread-is-possible")
                             .Build());
                 }
+            }
+        }
+
+        private static bool IsCompatibleType(INamedType parentType, INamedType typeCondition)
+        {
+            if (parentType.IsAssignableFrom(typeCondition))
+            {
+                return true;
+            }
+            else if (parentType.Kind == TypeKind.Object &&
+                typeCondition.Kind == TypeKind.Interface &&
+                parentType is ObjectType o &&
+                typeCondition is InterfaceType i &&
+                o.IsImplementing(i))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 

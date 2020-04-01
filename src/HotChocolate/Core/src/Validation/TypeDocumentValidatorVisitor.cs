@@ -46,19 +46,26 @@ namespace HotChocolate.Validation
                     }
                     else
                     {
+                        context.Types.Push(context.Types.Peek());
                         context.IsInError = true;
                     }
                     break;
 
                 case NodeKind.InlineFragment:
                     var inlineFragment = ((InlineFragmentNode)node);
-                    if (inlineFragment.TypeCondition is { } tc &&
-                        context.Schema.TryGetType(tc.Name.Value, out namedOutputType))
+                    if (inlineFragment.TypeCondition is null)
+                    {
+                        context.Types.Push(context.Types.Peek());
+                    }
+                    else if (context.Schema.TryGetType(
+                        inlineFragment.TypeCondition.Name.Value,
+                        out namedOutputType))
                     {
                         context.Types.Push(namedOutputType);
                     }
                     else
                     {
+                        context.Types.Push(context.Types.Peek());
                         context.IsInError = true;
                     }
                     break;
@@ -73,6 +80,7 @@ namespace HotChocolate.Validation
                     }
                     else
                     {
+                        context.Types.Push(context.Types.Peek());
                         context.IsInError = true;
                     }
                     break;
@@ -92,6 +100,7 @@ namespace HotChocolate.Validation
                     }
                     else
                     {
+                        context.Types.Push(context.Types.Peek());
                         context.IsInError = true;
                     }
                     break;
@@ -107,6 +116,7 @@ namespace HotChocolate.Validation
                     }
                     else
                     {
+                        context.Types.Push(context.Types.Peek());
                         context.IsInError = true;
                     }
                     break;
@@ -120,6 +130,7 @@ namespace HotChocolate.Validation
                     }
                     else
                     {
+                        context.Types.Push(context.Types.Peek());
                         context.IsInError = true;
                     }
                     break;
