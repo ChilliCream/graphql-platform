@@ -154,5 +154,18 @@ namespace HotChocolate.Validation
         {
             return services.AddValidationRule<VariableUniqueAndInputTypeVisitor>();
         }
+
+        /// <summary>
+        /// Literal values must be compatible with the type expected in the position
+        /// they are found as per the coercion rules defined in the Type System
+        /// chapter.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+        /// </summary>
+        public static IServiceCollection AddValuesOfCorrectTypeRule(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<ValuesOfCorrectTypeVisitor>();
+        }
     }
 }

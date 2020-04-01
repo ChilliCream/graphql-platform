@@ -1,13 +1,13 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class ValuesOfCorrectTypeRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public ValuesOfCorrectTypeRuleTests()
-            : base(new ValuesOfCorrectTypeRule())
+            : base(services => services.AddValuesOfCorrectTypeRule())
         {
         }
 
@@ -15,7 +15,7 @@ namespace HotChocolate.Validation
         public void GoodBooleanArg()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     arguments {
@@ -27,19 +27,148 @@ namespace HotChocolate.Validation
                     booleanArgField(booleanArg: true)
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodBooleanListArg()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query queryWithListInput()
+                {
+                    booleanList(booleanListArg: [ true, false ])
+                }");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodBooleanListVariableArg()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query queryWithListInput($value: Boolean!)
+                {
+                    booleanList(booleanListArg: [ true, $value ])
+                }");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void BadBooleanListNonNullVariableArg()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query queryWithListInput($value: Boolean)
+                {
+                    booleanList(booleanListArg: [ true, $value ])
+                }");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Collection(context.Errors,
+                t =>
+                {
+                    Assert.Equal(
+                        "The specified argument value does not" +
+                        " match the argument type.",
+                        t.Message);
+                    Assert.Equal("Boolean!", t.Extensions["locationType"]);
+                    Assert.Equal("booleanListArg", t.Extensions["argument"]);
+                });
+        }
+
+        [Fact]
+        public void BadBooleanListArg()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query queryWithListInput()
+                {
+                    booleanList(booleanListArg: [ true, ""false"" ])
+                }");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Collection(context.Errors,
+                t =>
+                {
+                    Assert.Equal(
+                        "The specified argument value does not" +
+                        " match the argument type.",
+                        t.Message);
+                    Assert.Equal("Boolean!", t.Extensions["locationType"]);
+                    Assert.Equal("booleanListArg", t.Extensions["argument"]);
+                });
+        }
+
+        [Fact]
+        public void BadBooleanListArgString()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query queryWithListInput()
+                {
+                    booleanList(booleanListArg:  ""false"" )
+                }");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Collection(context.Errors,
+                t =>
+                {
+                    Assert.Equal(
+                        "The specified argument value does not" +
+                        " match the argument type.",
+                        t.Message);
+                    Assert.Equal("[Boolean!]", t.Extensions["locationType"]);
+                    Assert.Equal("booleanListArg", t.Extensions["argument"]);
+                });
         }
 
         [Fact]
         public void CoercedIntIntoFloatArg()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     arguments {
@@ -52,37 +181,41 @@ namespace HotChocolate.Validation
                     floatArgField(floatArg: 123)
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void GoodComplexDefaultValue()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query goodComplexDefaultValue($search: ComplexInput = { name: ""Fido"" }) {
                     findDog(complex: $search)
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void StringIntoInt()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     arguments {
@@ -94,16 +227,16 @@ namespace HotChocolate.Validation
                     intArgField(intArg: ""123"")
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The specified argument value does not match the " +
-                    "argument type.\nArgument: `intArg`\nValue: `123`",
+                    "argument type.",
                     t.Message));
         }
 
@@ -111,19 +244,19 @@ namespace HotChocolate.Validation
         public void BadComplexValueArgument()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query badComplexValue {
                     findDog(complex: { name: 123 })
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The specified value type of field `name` " +
                     "does not match the field type.",
@@ -131,22 +264,70 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void BadVariableValueComplexArgument()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query badVariableValue($badArg: Int) {
+                    findDog(complex: { name: $badArg })
+                }
+            ");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Collection(context.Errors,
+                t => Assert.Equal(
+                    "The specified value type of field `name` " +
+                    "does not match the field type.",
+                    t.Message));
+        }
+
+        [Fact]
+        public void BadVariableValueArgument()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query badVariableValue($badArg: String) {
+                    arguments {
+                       intArgField(intArg: $badArg )
+                    }
+                }
+            ");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Collection(context.Errors,
+                t => Assert.Equal(
+                    "The specified argument value " +
+                    "does not match the argument type.",
+                    t.Message));
+        }
+
+        [Fact]
         public void BadComplexValueVariable()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query goodComplexDefaultValue($search: ComplexInput = { name: 123 }) {
                     findDog(complex: $search)
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The specified value type of field `name` " +
                     "does not match the field type.",
@@ -157,19 +338,19 @@ namespace HotChocolate.Validation
         public void BadValueVariable()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query goodComplexDefaultValue($search: ComplexInput = 123) {
                     findDog(complex: $search)
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The specified value type of variable `search` " +
                     "does not match the variable type.",

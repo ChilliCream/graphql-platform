@@ -34,6 +34,27 @@ namespace HotChocolate.Validation
                 case NodeKind.VariableDefinition:
                     var variable = (VariableDefinitionNode)node;
                     context.Variables[variable.Variable.Name.Value] = variable;
+                    if (context.Schema.TryGetType(
+                            variable.Type.NamedType().Name.Value, out INamedType variableType))
+                    {
+                        context.Types.Push(variableType);
+                    }
+                    else
+                    {
+                        context.IsInError = true;
+                    }
+                    break;
+
+                case NodeKind.ListValue:
+                    if (context.Types.TryPeek(out type) &&
+                        type is ListType listType)
+                    {
+                        context.Types.Push(listType.ElementType());
+                    }
+                    else
+                    {
+                        context.IsInError = true;
+                    }
                     break;
 
                 case NodeKind.Field:
@@ -149,6 +170,8 @@ namespace HotChocolate.Validation
                 case NodeKind.FragmentDefinition:
                 case NodeKind.Argument:
                 case NodeKind.ObjectField:
+                case NodeKind.ListValue:
+                case NodeKind.VariableDefinition:
                     context.Types.Pop();
                     break;
 
