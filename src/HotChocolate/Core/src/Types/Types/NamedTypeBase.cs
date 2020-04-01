@@ -46,6 +46,9 @@ namespace HotChocolate.Types
 
         public Type? TypeIdentity { get; private set; }
 
+        public virtual bool IsAssignableFrom(INamedType type) =>
+            ReferenceEquals(type, this);
+
         protected override void OnRegisterDependencies(
             IInitializationContext context,
             TDefinition definition)

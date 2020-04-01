@@ -37,9 +37,22 @@ namespace HotChocolate.Types
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
-        public ObjectType ResolveType(
-            IResolverContext context,
-            object resolverResult)
+        public override bool IsAssignableFrom(INamedType namedType)
+        {
+            switch (namedType.Kind)
+            {
+                case TypeKind.Interface:
+                    return ReferenceEquals(namedType, this);
+
+                case TypeKind.Object:
+                    return ((ObjectType)namedType).IsImplementing(this);
+
+                default:
+                    return false;
+            }
+        }
+
+        public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
             if (context == null)
             {
@@ -48,8 +61,6 @@ namespace HotChocolate.Types
 
             return _resolveAbstractType.Invoke(context, resolverResult);
         }
-
-        #region Initialization
 
         protected override InterfaceTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -125,7 +136,5 @@ namespace HotChocolate.Types
                 _resolveAbstractType = resolveAbstractType;
             }
         }
-
-        #endregion
     }
 }
