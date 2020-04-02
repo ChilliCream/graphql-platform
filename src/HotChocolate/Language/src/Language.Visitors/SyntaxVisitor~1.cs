@@ -6,16 +6,20 @@ namespace HotChocolate.Language.Visitors
         : ISyntaxVisitor<TContext>
         where TContext : ISyntaxVisitorContext
     {
-        private static readonly SyntaxNodeListPool _listPool = new SyntaxNodeListPool();
+        private readonly SyntaxVisitorOptions _options;
 
-        public SyntaxVisitor()
+        public SyntaxVisitor(SyntaxVisitorOptions options = default)
         {
             DefaultAction = Skip;
+            _options = options;
         }
 
-        public SyntaxVisitor(ISyntaxVisitorAction defaultResult)
+        public SyntaxVisitor(
+            ISyntaxVisitorAction defaultResult,
+            SyntaxVisitorOptions options = default)
         {
             DefaultAction = defaultResult;
+            _options = options;
         }
 
         protected virtual ISyntaxVisitorAction DefaultAction { get; }

@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
 
 namespace HotChocolate.Language.Visitors
 {
     public partial class SyntaxVisitor<TContext>
     {
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ISyntaxNode node,
             TContext context)
         {
@@ -15,20 +14,33 @@ namespace HotChocolate.Language.Visitors
                     return VisitChildren((FieldNode)node, context);
                 case NodeKind.Argument:
                     return VisitChildren((ArgumentNode)node, context);
+                case NodeKind.Variable:
+                    return VisitChildren((VariableNode)node, context);
                 case NodeKind.FragmentSpread:
                     return VisitChildren((FragmentSpreadNode)node, context);
                 case NodeKind.InlineFragment:
                     return VisitChildren((InlineFragmentNode)node, context);
                 case NodeKind.FragmentDefinition:
                     return VisitChildren((FragmentDefinitionNode)node, context);
+                case NodeKind.ListValue:
+                    return VisitChildren((ListValueNode)node, context);
+                case NodeKind.ObjectValue:
+                    return VisitChildren((ObjectValueNode)node, context);
+                case NodeKind.ObjectField:
+                    return VisitChildren((ObjectFieldNode)node, context);
+                case NodeKind.Name:
+                case NodeKind.StringValue:
+                case NodeKind.IntValue:
+                case NodeKind.FloatValue:
+                case NodeKind.EnumValue:
+                case NodeKind.BooleanValue:
+                    return DefaultAction;
                 case NodeKind.Document:
                     return VisitChildren((DocumentNode)node, context);
                 case NodeKind.OperationDefinition:
                     return VisitChildren((OperationDefinitionNode)node, context);
                 case NodeKind.VariableDefinition:
                     return VisitChildren((VariableDefinitionNode)node, context);
-                case NodeKind.Variable:
-                    return VisitChildren((VariableNode)node, context);
                 case NodeKind.SelectionSet:
                     return VisitChildren((SelectionSetNode)node, context);
                 case NodeKind.Directive:
@@ -39,12 +51,6 @@ namespace HotChocolate.Language.Visitors
                     return VisitChildren((ListTypeNode)node, context);
                 case NodeKind.NonNullType:
                     return VisitChildren((NonNullTypeNode)node, context);
-                case NodeKind.ListValue:
-                    return VisitChildren((ListValueNode)node, context);
-                case NodeKind.ObjectValue:
-                    return VisitChildren((ObjectValueNode)node, context);
-                case NodeKind.ObjectField:
-                    return VisitChildren((ObjectFieldNode)node, context);
                 case NodeKind.SchemaDefinition:
                     return VisitChildren((SchemaDefinitionNode)node, context);
                 case NodeKind.OperationTypeDefinition:
@@ -84,20 +90,12 @@ namespace HotChocolate.Language.Visitors
                 case NodeKind.InputObjectTypeExtension:
                     return VisitChildren((InputObjectTypeExtensionNode)node, context);
 
-                case NodeKind.Name:
-                case NodeKind.StringValue:
-                case NodeKind.IntValue:
-                case NodeKind.FloatValue:
-                case NodeKind.EnumValue:
-                case NodeKind.BooleanValue:
-                    return DefaultAction;
-
                 default:
                     throw new NotSupportedException(node.GetType().FullName);
             }
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             DocumentNode node,
             TContext context)
         {
@@ -113,13 +111,13 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             OperationDefinitionNode node,
             TContext context)
         {
-            if (node.Name is { })
+            if (_options.VisitNames && node.Name is { })
             {
-                if (Visit(node.Name, node, context).IsBreak())
+                if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
                 {
                     return Break;
                 }
@@ -149,7 +147,7 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             VariableDefinitionNode node,
             TContext context)
         {
@@ -162,7 +160,6 @@ namespace HotChocolate.Language.Visitors
             {
                 return Break;
             }
-
 
             if (node.DefaultValue is { })
             {
@@ -183,18 +180,18 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             VariableNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             SelectionSetNode node,
             TContext context)
         {
@@ -209,11 +206,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             FieldNode node,
             TContext context)
         {
-            if (node.Alias is { })
+            if (_options.VisitNames && node.Alias is { })
             {
                 if (Visit(node.Alias, node, context).IsBreak())
                 {
@@ -221,7 +218,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -253,11 +250,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ArgumentNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -270,11 +267,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             FragmentSpreadNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -290,7 +287,7 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             InlineFragmentNode node,
             TContext context)
         {
@@ -318,11 +315,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             FragmentDefinitionNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -351,11 +348,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             DirectiveNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -371,18 +368,18 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             NamedTypeNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ListTypeNode node,
             TContext context)
         {
@@ -393,7 +390,7 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             NonNullTypeNode node,
             TContext context)
         {
@@ -404,7 +401,7 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ListValueNode node,
             TContext context)
         {
@@ -419,7 +416,7 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ObjectValueNode node,
             TContext context)
         {
@@ -434,11 +431,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ObjectFieldNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -451,11 +448,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             SchemaDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -482,7 +479,7 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             OperationTypeDefinitionNode node,
             TContext context)
         {
@@ -493,11 +490,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ScalarTypeDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -505,7 +502,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -521,11 +518,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ObjectTypeDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -533,7 +530,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -565,11 +562,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             FieldDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -577,7 +574,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -601,11 +598,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             InputValueDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -613,7 +610,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -637,11 +634,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             InterfaceTypeDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -649,7 +646,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -681,11 +678,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             UnionTypeDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -693,7 +690,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -717,11 +714,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             EnumTypeDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -729,7 +726,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -753,11 +750,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             EnumValueDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -765,7 +762,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -781,11 +778,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             InputObjectTypeDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -793,7 +790,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -817,11 +814,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             DirectiveDefinitionNode node,
             TContext context)
         {
-            if (node.Description is { })
+            if (_options.VisitDescriptions && node.Description is { })
             {
                 if (Visit(node.Description, node, context).IsBreak())
                 {
@@ -829,7 +826,7 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -853,7 +850,7 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             SchemaExtensionNode node,
             TContext context)
         {
@@ -876,11 +873,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ScalarTypeExtensionNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -896,11 +893,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             ObjectTypeExtensionNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -932,11 +929,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             InterfaceTypeExtensionNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -968,11 +965,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             UnionTypeExtensionNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -996,11 +993,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             EnumTypeExtensionNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
@@ -1024,11 +1021,11 @@ namespace HotChocolate.Language.Visitors
             return DefaultAction;
         }
 
-        private ISyntaxVisitorAction VisitChildren(
+        protected virtual ISyntaxVisitorAction VisitChildren(
             InputObjectTypeExtensionNode node,
             TContext context)
         {
-            if (Visit(node.Name, node, context).IsBreak())
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
             {
                 return Break;
             }
