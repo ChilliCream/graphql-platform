@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {
@@ -32,7 +32,7 @@ namespace HotChocolate.Validation
                 .Type<FloatType>()
                 .Resolver(() => null);
 
-            // intArgField(intArg: Int): Int
+            // intArgField(intArg: Int): Int!
             descriptor.Field("intArgField")
                 .Argument("intArg", t => t.Type<IntType>())
                 .Type<NonNullType<IntType>>()
@@ -72,6 +72,24 @@ namespace HotChocolate.Validation
                 .Argument("nonNullBooleanListArg",
                     t => t.Type<NonNullType<ListType<BooleanType>>>())
                 .Type<ListType<BooleanType>>()
+                .Resolver(() => null);
+
+            // intArgField(intArg: ID): ID!
+            descriptor.Field("idArgField")
+                .Argument("idArg", t => t.Type<IdType>())
+                .Type<NonNullType<IdType>>()
+                .Resolver(() => null);
+
+            // intArgField(intArg: String): String!
+            descriptor.Field("stringArgField")
+                .Argument("stringArg", t => t.Type<StringType>())
+                .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            // intArgField(intArg: DogCommand): String!
+            descriptor.Field("enumArgField")
+                .Argument("enumArg", t => t.Type<EnumType<DogCommand>>())
+                .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
         }
     }

@@ -356,5 +356,357 @@ namespace HotChocolate.Validation
                     "does not match the variable type.",
                     t.Message));
         }
+
+        [Fact]
+        public void GoodNullToIntNullableValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    intArgField(intArg: null)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodIntValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    intArgField(intArg: 2)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodIntNegativeValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    intArgField(intArg: -2)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodNullToBooleanNullableValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    booleanArgField(booleanArg: true)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodBooleanValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    booleanArgField(booleanArg: true)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodStringValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    stringArgField(stringArg: ""foo"")
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodNullToStringNullableValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    stringArgField(stringArg: null)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodNullToFloatNullableValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    floatArgField(floatArg: null)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodFloatValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    floatArgField(floatArg: 1.1)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodNegativeFloatValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    floatArgField(floatArg: -1.1)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodIntToFloat()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    floatArgField(floatArg: 1)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodIntToId()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    idArgField(idArg: 1)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodStringToId()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    idArgField(idArg: ""someIdString"")
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodNullToIdNullable()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    idArgField(idArg: null)
+                  }
+                } 
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodEnumValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    enumArgField(enumArg: SIT)
+                  }
+                }
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
+
+        [Fact]
+        public void GoodNullToEnumNullableValue()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                {
+                  arguments {
+                    enumArgField(enumArg: null)
+                  }
+                }
+            ");
+            context.Prepare(query);
+
+            // act 
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.False(context.IsInError);
+            Assert.Empty(context.Errors);
+        }
     }
 }
