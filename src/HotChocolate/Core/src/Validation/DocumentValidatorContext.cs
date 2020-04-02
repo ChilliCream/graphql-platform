@@ -53,7 +53,7 @@ namespace HotChocolate.Validation
 
         public ICollection<IError> Errors { get; } = new List<IError>();
 
-        public bool IsInError { get; set; }
+        public IList<bool> IsInError { get; } = new List<bool>();
 
         public void Clear()
         {
@@ -70,7 +70,7 @@ namespace HotChocolate.Validation
             OutputFields.Clear();
             InputFields.Clear();
             Errors.Clear();
-            IsInError = false;
+            IsInError.Clear();
         }
     }
 }

@@ -13,28 +13,24 @@ namespace HotChocolate.Validation
     internal sealed class InputObjectFieldNamesVisitor : TypeDocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
-           ObjectValueNode node,
+           ObjectFieldNode node,
            IDocumentValidatorContext context)
         {
-            foreach (ObjectFieldNode fieldValue in objectValue.Fields)
+            if (!context.IsInError.PeekOrDefault(true))
             {
-                if (type.Fields.TryGetField(fieldValue.Name.Value,
-                    out InputField inputField))
-                {
-                    if (inputField.Type is InputObjectType inputFieldType
-                        && fieldValue.Value is ObjectValueNode ov)
-                    {
-                        VisitObjectValue(inputFieldType, ov);
-                    }
-                }
-                else
-                {
-                    Errors.Add(new ValidationError(
-                        "The specified input object field " +
-                        $"`{fieldValue.Name.Value}` does not exist.",
-                        fieldValue));
-                }
+                context.Errors.Add(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "The specified input object field " +
+                            $"`{node.Name.Value}` does not exist.")
+                        .AddLocation(node)
+                        .SetPath(context.CreateErrorPath())
+                        .SetExtension("field", node.Name.Value)
+                        .SpecifiedBy("sec-Executable-Definitions")
+                        .Build());
+                return Skip;
             }
+            return Continue;
         }
     }
 }

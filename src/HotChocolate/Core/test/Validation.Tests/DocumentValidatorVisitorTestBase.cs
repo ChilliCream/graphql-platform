@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -42,6 +44,41 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
+        }
+
+        public void ExpectValid(string sourceText)
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
+        }
+
+        public void ExpectFailed(string sourceText, params Action<IError>[] elementInspectors)
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.NotEmpty(context.Errors);
+
+            if (elementInspectors.Length > 0)
+            {
+                Assert.Collection(context.Errors, elementInspectors);
+            }
+
+            context.Errors.MatchSnapshot();
         }
     }
 }
