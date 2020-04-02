@@ -7,6 +7,8 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class InterfaceType
@@ -15,34 +17,45 @@ namespace HotChocolate.Types
         , IHasClrType
         , INamedType
     {
+        private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
         private readonly Action<IInterfaceTypeDescriptor> _configure;
-        private ResolveAbstractType _resolveAbstractType;
+        private ResolveAbstractType? _resolveAbstractType;
 
         protected InterfaceType()
         {
             _configure = Configure;
+            Fields = FieldCollection<InterfaceField>.Empty;
         }
 
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+            Fields = FieldCollection<InterfaceField>.Empty;
         }
 
         public override TypeKind Kind => TypeKind.Interface;
 
-        public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
+        public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+
+        public InterfaceTypeDefinitionNode? SyntaxNode { get; private set; }
 
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
+
+        public bool IsImplementing(NameString interfaceTypeName) =>
+            _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
+
+        public bool IsImplementing(InterfaceType interfaceType) =>
+            _interfaces.Contains(interfaceType);
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
             switch (namedType.Kind)
             {
                 case TypeKind.Interface:
-                    return ReferenceEquals(namedType, this);
+                    return ReferenceEquals(namedType, this) ||
+                        ((InterfaceType)namedType).IsImplementing(this);
 
                 case TypeKind.Object:
                     return ((ObjectType)namedType).IsImplementing(this);
@@ -98,6 +111,10 @@ namespace HotChocolate.Types
             CompleteAbstractTypeResolver(
                 context,
                 definition.ResolveAbstractType);
+
+            CompleteInterfacesHelper.Complete(
+                context, definition, ClrType, _interfaces, this, SyntaxNode);
+
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }
 
@@ -136,5 +153,9 @@ namespace HotChocolate.Types
                 _resolveAbstractType = resolveAbstractType;
             }
         }
+
+
     }
+
+
 }

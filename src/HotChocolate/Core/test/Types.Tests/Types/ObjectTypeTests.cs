@@ -109,7 +109,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntArgumentIsInferedAsNonNullType()
+        public void IntArgumentIsinferredAsNonNullType()
         {
             // arrange
             // act

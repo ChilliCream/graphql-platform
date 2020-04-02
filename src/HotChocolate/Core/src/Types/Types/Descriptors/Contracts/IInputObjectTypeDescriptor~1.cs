@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         IInputObjectTypeDescriptor<T> BindFieldsExplicitly();
 
         /// <summary>
-        /// Defines that all fields shall be infered
+        /// Defines that all fields shall be inferred
         /// from the associated .Net type,
         /// </summary>
         IInputObjectTypeDescriptor<T> BindFieldsImplicitly();

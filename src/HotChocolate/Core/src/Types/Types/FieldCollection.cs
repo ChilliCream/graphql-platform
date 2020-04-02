@@ -55,5 +55,8 @@ namespace HotChocolate.Types
         {
             return GetEnumerator();
         }
+
+        public static FieldCollection<T> Empty { get; } =
+            new FieldCollection<T>(Enumerable.Empty<T>());
     }
 }
