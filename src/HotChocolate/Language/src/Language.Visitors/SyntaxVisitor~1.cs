@@ -6,9 +6,7 @@ namespace HotChocolate.Language.Visitors
         : ISyntaxVisitor<TContext>
         where TContext : ISyntaxVisitorContext
     {
-        private static readonly SyntaxNodeLevelPool _levelPool = new SyntaxNodeLevelPool();
         private static readonly SyntaxNodeListPool _listPool = new SyntaxNodeListPool();
-        private static readonly List<ISyntaxNode> _empty = new List<ISyntaxNode>();
 
         public SyntaxVisitor()
         {
@@ -41,89 +39,52 @@ namespace HotChocolate.Language.Visitors
             ISyntaxNode node,
             TContext context)
         {
-            List<List<ISyntaxNode>> levels = _levelPool.Get();
             List<ISyntaxNode> ancestors = _listPool.Get();
-            List<ISyntaxNode> root = _listPool.Get();
-            TContext localContext = context;
-            int index = 0;
-
-            root.Push(node);
-            levels.Push(root);
-
-            ISyntaxNode? parent = null;
-            ISyntaxVisitorAction result = DefaultAction;
 
             try
             {
-                while (levels.Count > 0)
-                {
-                    bool isLeaving = levels[index].Count == 0;
-                    ISyntaxNode? current;
-
-                    if (isLeaving)
-                    {
-                        if (index == 0)
-                        {
-                            break;
-                        }
-                        List<ISyntaxNode> lastLevel = levels.Pop();
-                        if (lastLevel != _empty)
-                        {
-                            _listPool.Return(lastLevel);
-                        }
-                        current = ancestors.Pop();
-                        ancestors.TryPeek(out parent);
-                        localContext = OnBeforeLeave(current, parent, ancestors, localContext);
-                        result = Leave(current, localContext);
-                        localContext = OnAfterLeave(current, parent, ancestors, localContext);
-                        index--;
-                    }
-                    else
-                    {
-                        current = levels[index].Pop();
-                        localContext = OnBeforeEnter(current, parent, ancestors, localContext);
-                        result = Enter(current, localContext);
-                        localContext = OnAfterEnter(current, parent, ancestors, localContext);
-
-                        if (result is IContinueSyntaxVisitorAction)
-                        {
-                            List<ISyntaxNode> nextLevel = _listPool.Get();
-                            nextLevel.AddRange(GetNodes(current, localContext));
-                            nextLevel.Reverse();
-                            levels.Push(nextLevel);
-                        }
-                        else if (result is ISkipSyntaxVisitorAction)
-                        {
-                            levels.Push(_empty);
-                        }
-
-                        parent = current;
-                        ancestors.Push(current);
-                        index++;
-                    }
-
-                    if (result is IBreakSyntaxVisitorAction)
-                    {
-                        break;
-                    }
-                }
-
-                return result;
+                return Visit(node, ancestors, context);
             }
             finally
             {
+                _listPool.Return(ancestors);
+            }
+        }
 
-                if (levels.Count > 0)
+        private ISyntaxVisitorAction Visit(
+            ISyntaxNode node,
+            List<ISyntaxNode> ancestors,
+            TContext context)
+        {
+            ancestors.TryPeek(out ISyntaxNode? parent);
+            var localContext = OnBeforeEnter(node, parent, ancestors, context);
+            var result = Enter(node, localContext);
+            localContext = OnAfterEnter(node, parent, ancestors, localContext);
+
+            if (result.Kind == SyntaxVisitorActionKind.Break)
+            {
+                return result;
+            }
+
+            if (result.Kind == SyntaxVisitorActionKind.Continue)
+            {
+                ancestors.Push(node);
+                foreach (ISyntaxNode child in GetNodes(node, localContext))
                 {
-                    for (int i = 0; i < levels.Count; i++)
+                    result = Visit(child, ancestors, localContext);
+                    if (result.Kind == SyntaxVisitorActionKind.Break)
                     {
-                        _listPool.Return(levels[i]);
+                        return result;
                     }
                 }
-
-                _listPool.Return(ancestors);
-                _levelPool.Return(levels);
+                ancestors.Pop();
             }
+
+            localContext = OnBeforeLeave(node, parent, ancestors, localContext);
+            result = Leave(node, localContext);
+            localContext = OnAfterLeave(node, parent, ancestors, localContext);
+
+            return result;
         }
 
         protected virtual ISyntaxVisitorAction Enter(
