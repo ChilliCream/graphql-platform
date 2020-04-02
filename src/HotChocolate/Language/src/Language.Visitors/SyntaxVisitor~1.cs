@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language.Visitors
 {
-    public class SyntaxVisitor<TContext>
+    public partial class SyntaxVisitor<TContext>
         : ISyntaxVisitor<TContext>
         where TContext : ISyntaxVisitorContext
     {
@@ -37,29 +37,19 @@ namespace HotChocolate.Language.Visitors
 
         public ISyntaxVisitorAction Visit(
             ISyntaxNode node,
-            TContext context)
-        {
-            List<ISyntaxNode> ancestors = _listPool.Get();
+            TContext context) =>
+            Visit<ISyntaxNode, ISyntaxNode?>(node, null, context);
 
-            try
-            {
-                return Visit(node, ancestors, context);
-            }
-            finally
-            {
-                _listPool.Return(ancestors);
-            }
-        }
-
-        private ISyntaxVisitorAction Visit(
-            ISyntaxNode node,
-            List<ISyntaxNode> ancestors,
+        private ISyntaxVisitorAction Visit<T, P>(
+            T node,
+            P parent,
             TContext context)
+            where T : notnull, ISyntaxNode
+            where P : ISyntaxNode?
         {
-            ancestors.TryPeek(out ISyntaxNode? parent);
-            var localContext = OnBeforeEnter(node, parent, ancestors, context);
+            var localContext = OnBeforeEnter(node, parent, context);
             var result = Enter(node, localContext);
-            localContext = OnAfterEnter(node, parent, ancestors, localContext);
+            localContext = OnAfterEnter(node, parent, localContext);
 
             if (result.Kind == SyntaxVisitorActionKind.Break)
             {
@@ -68,21 +58,12 @@ namespace HotChocolate.Language.Visitors
 
             if (result.Kind == SyntaxVisitorActionKind.Continue)
             {
-                ancestors.Push(node);
-                foreach (ISyntaxNode child in GetNodes(node, localContext))
-                {
-                    result = Visit(child, ancestors, localContext);
-                    if (result.Kind == SyntaxVisitorActionKind.Break)
-                    {
-                        return result;
-                    }
-                }
-                ancestors.Pop();
+                VisitChildren(node, context);
             }
 
-            localContext = OnBeforeLeave(node, parent, ancestors, localContext);
+            localContext = OnBeforeLeave(node, parent, localContext);
             result = Leave(node, localContext);
-            localContext = OnAfterLeave(node, parent, ancestors, localContext);
+            localContext = OnAfterLeave(node, parent, localContext);
 
             return result;
         }
@@ -105,28 +86,24 @@ namespace HotChocolate.Language.Visitors
         protected virtual TContext OnBeforeEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             TContext context) =>
             context;
 
         protected virtual TContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             TContext context) =>
             context;
 
         protected virtual TContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             TContext context) =>
             context;
 
         protected virtual TContext OnAfterLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             TContext context) =>
             context;
     }
