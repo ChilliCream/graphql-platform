@@ -52,6 +52,24 @@ namespace HotChocolate.Validation
                 }
             }
 
+            if (!context.IsInError.PeekOrDefault(true))
+            {
+                var type = (InputObjectType)context.Types.Peek().NamedType();
+                if (context.Names.Count < type.Fields.Count)
+                {
+                    for (int i = 0; i < type.Fields.Count; i++)
+                    {
+                        IInputField field = type.Fields[i];
+                        if (field.Type.IsNonNullType() &&
+                            field.DefaultValue.IsNull() &&
+                            context.Names.Add(field.Name))
+                        {
+                            InputFieldRequiredError(node, field.Name, context);
+                        }
+                    }
+                }
+            }
+
             return Continue;
         }
 
@@ -80,17 +98,25 @@ namespace HotChocolate.Validation
                     field.DefaultValue.IsNull() &&
                     node.Value.IsNull())
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage("`{0}` is a required field and cannot be null.", field.Name)
-                            .AddLocation(node)
-                            .SetPath(context.CreateErrorPath())
-                            .SetExtension("field", node.Name.Value)
-                            .SpecifiedBy("sec-Input-Object-Required-Fields")
-                            .Build());
+                    InputFieldRequiredError(node, field.Name, context);
                 }
             }
             return Continue;
+        }
+
+        private static void InputFieldRequiredError(
+            ISyntaxNode node,
+            string fieldName,
+            IDocumentValidatorContext context)
+        {
+            context.Errors.Add(
+                ErrorBuilder.New()
+                    .SetMessage("`{0}` is a required field and cannot be null.", fieldName)
+                    .AddLocation(node)
+                    .SetPath(context.CreateErrorPath())
+                    .SetExtension("field", fieldName)
+                    .SpecifiedBy("sec-Input-Object-Required-Fields")
+                    .Build());
         }
     }
 }

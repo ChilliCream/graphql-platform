@@ -1,6 +1,6 @@
 namespace HotChocolate.Language.Visitors
 {
-    internal static class SyntaxVisitorActionExtension
+    public static class SyntaxVisitorActionExtension
     {
         public static bool IsBreak(this ISyntaxVisitorAction action)
         {

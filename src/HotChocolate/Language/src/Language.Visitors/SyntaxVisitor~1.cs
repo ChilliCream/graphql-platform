@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Language.Visitors
 {
     public partial class SyntaxVisitor<TContext>
@@ -44,7 +42,7 @@ namespace HotChocolate.Language.Visitors
             TContext context) =>
             Visit<ISyntaxNode, ISyntaxNode?>(node, null, context);
 
-        private ISyntaxVisitorAction Visit<T, P>(
+        protected ISyntaxVisitorAction Visit<T, P>(
             T node,
             P parent,
             TContext context)
@@ -81,11 +79,6 @@ namespace HotChocolate.Language.Visitors
             ISyntaxNode node,
             TContext context) =>
             DefaultAction;
-
-        protected virtual IEnumerable<ISyntaxNode> GetNodes(
-            ISyntaxNode node,
-            TContext context) =>
-            node.GetNodes();
 
         protected virtual TContext OnBeforeEnter(
             ISyntaxNode node,

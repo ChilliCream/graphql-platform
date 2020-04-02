@@ -34,6 +34,7 @@ namespace HotChocolate.Language.Visitors
                 case NodeKind.FloatValue:
                 case NodeKind.EnumValue:
                 case NodeKind.BooleanValue:
+                case NodeKind.NullValue:
                     return DefaultAction;
                 case NodeKind.Document:
                     return VisitChildren((DocumentNode)node, context);
@@ -101,10 +102,9 @@ namespace HotChocolate.Language.Visitors
         {
             for (int i = 0; i < node.Definitions.Count; i++)
             {
-                var result = Visit(node.Definitions[i], context);
-                if (result.Kind == SyntaxVisitorActionKind.Break)
+                if (Visit(node.Definitions[i], node, context).IsBreak())
                 {
-                    return result;
+                    return Break;
                 }
             }
 

@@ -11,6 +11,8 @@ namespace HotChocolate.Validation
 
         IList<ISyntaxNode> Path { get; }
 
+        ISet<string> VisitedFragments { get; }
+
         IDictionary<string, VariableDefinitionNode> Variables { get; }
 
         IDictionary<string, FragmentDefinitionNode> Fragments { get; }

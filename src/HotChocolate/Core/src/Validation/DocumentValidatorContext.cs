@@ -29,6 +29,8 @@ namespace HotChocolate.Validation
 
         public IList<ISyntaxNode> Path { get; } = new List<ISyntaxNode>();
 
+        public ISet<string> VisitedFragments { get; } = new HashSet<string>();
+
         public IDictionary<string, VariableDefinitionNode> Variables { get; } =
             new Dictionary<string, VariableDefinitionNode>();
 
@@ -59,6 +61,7 @@ namespace HotChocolate.Validation
         {
             _schema = null;
             Path.Clear();
+            VisitedFragments.Clear();
             Variables.Clear();
             Fragments.Clear();
             UsedVariables.Clear();
