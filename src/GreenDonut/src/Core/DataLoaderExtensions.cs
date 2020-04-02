@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
         /// </exception>
-        public static Task DispatchAsync(this IDataLoader dataLoader)
+        public static Task DispatchAsync([DisallowNull]this IDataLoader? dataLoader)
         {
             if (dataLoader == null)
             {
@@ -48,8 +49,8 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        public static Task<object> LoadAsync(
-            this IDataLoader dataLoader,
+        public static Task<object?> LoadAsync(
+            [DisallowNull]this IDataLoader? dataLoader,
             object key)
         {
             if (dataLoader == null)
@@ -77,8 +78,8 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        public static Task<IReadOnlyList<object>> LoadAsync(
-            this IDataLoader dataLoader,
+        public static Task<IReadOnlyList<object?>> LoadAsync(
+            [DisallowNull]this IDataLoader? dataLoader,
             params object[] keys)
         {
             if (dataLoader == null)
@@ -106,8 +107,8 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        public static Task<IReadOnlyList<object>> LoadAsync(
-            this IDataLoader dataLoader,
+        public static Task<IReadOnlyList<object?>> LoadAsync(
+            [DisallowNull]this IDataLoader? dataLoader,
             IReadOnlyCollection<object> keys)
         {
             if (dataLoader == null)
@@ -131,9 +132,9 @@ namespace GreenDonut
         /// Throws if <paramref name="key"/> is <c>null</c>.
         /// </exception>
         public static void Set(
-            this IDataLoader dataLoader,
+            [DisallowNull]this IDataLoader? dataLoader,
             object key,
-            object value)
+            object? value)
         {
             if (dataLoader == null)
             {
@@ -166,8 +167,9 @@ namespace GreenDonut
         /// error which may occurred during the call.
         /// </returns>
         public static Task<TValue> LoadAsync<TKey, TValue>(
-            this IDataLoader<TKey, TValue> dataLoader,
+            [DisallowNull]this IDataLoader<TKey, TValue>? dataLoader,
             TKey key)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {
@@ -197,8 +199,9 @@ namespace GreenDonut
         /// error which may occurred during the call.
         /// </returns>
         public static Task<IReadOnlyList<TValue>> LoadAsync<TKey, TValue>(
-            this IDataLoader<TKey, TValue> dataLoader,
+            [DisallowNull]this IDataLoader<TKey, TValue>? dataLoader,
             params TKey[] keys)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {
@@ -228,8 +231,9 @@ namespace GreenDonut
         /// error which may occurred during the call.
         /// </returns>
         public static Task<IReadOnlyList<TValue>> LoadAsync<TKey, TValue>(
-            this IDataLoader<TKey, TValue> dataLoader,
+            [DisallowNull]this IDataLoader<TKey, TValue>? dataLoader,
             IReadOnlyCollection<TKey> keys)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {
@@ -254,9 +258,10 @@ namespace GreenDonut
         /// Throws if <paramref name="key"/> is <c>null</c>.
         /// </exception>
         public static void Set<TKey, TValue>(
-            this IDataLoader<TKey, TValue> dataLoader,
+            [DisallowNull]this IDataLoader<TKey, TValue>? dataLoader,
             TKey key,
             TValue value)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {

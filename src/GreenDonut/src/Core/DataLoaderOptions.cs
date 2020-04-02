@@ -7,6 +7,7 @@ namespace GreenDonut
     /// </summary>
     /// <typeparam name="TKey">A key type.</typeparam>
     public class DataLoaderOptions<TKey>
+        where TKey : notnull
     {
         /// <summary>
         /// Initializes a new instance of the
@@ -47,7 +48,7 @@ namespace GreenDonut
         /// differ from the key that is used to accessing the backend.
         /// The default value is set to <c>null</c>.
         /// </summary>
-        public CacheKeyResolverDelegate<TKey> CacheKeyResolver { get; set; }
+        public CacheKeyResolverDelegate<TKey>? CacheKeyResolver { get; set; }
 
         /// <summary>
         /// Gets or sets the cache size. If set to <c>10</c> for example, it

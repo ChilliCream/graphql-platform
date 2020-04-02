@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace GreenDonut
     public abstract class DataLoaderBase<TKey, TValue>
         : IDataLoader<TKey, TValue>
         , IDisposable
+        where TKey : notnull
     {
         private readonly object _sync = new object();
         private readonly CancellationTokenSource _disposeTokenSource =
@@ -33,7 +35,7 @@ namespace GreenDonut
         private TaskCompletionBuffer<TKey, TValue> _buffer;
         private ITaskCache<TValue> _cache;
         private readonly CacheKeyResolverDelegate<TKey> _cacheKeyResolver;
-        private AutoResetEvent _delaySignal;
+        private AutoResetEvent? _delaySignal;
         private DataLoaderOptions<TKey> _options;
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="cache"/> is <c>null</c>.
         /// </exception>
-        protected DataLoaderBase(ITaskCache<TValue> cache)
+        protected DataLoaderBase([DisallowNull]ITaskCache<TValue>? cache)
             : this(new DataLoaderOptions<TKey>(), cache)
         { }
 
@@ -68,7 +70,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="options"/> is <c>null</c>.
         /// </exception>
-        protected DataLoaderBase(DataLoaderOptions<TKey> options)
+        protected DataLoaderBase([DisallowNull]DataLoaderOptions<TKey>? options)
             : this(options, new TaskCache<TValue>(
                 options?.CacheSize ?? Defaults.CacheSize,
                 options?.SlidingExpiration ??
@@ -91,8 +93,8 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="cache"/> is <c>null</c>.
         /// </exception>
-        protected DataLoaderBase(DataLoaderOptions<TKey> options,
-            ITaskCache<TValue> cache)
+        protected DataLoaderBase([DisallowNull]DataLoaderOptions<TKey>? options,
+            [DisallowNull]ITaskCache<TValue>? cache)
         {
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
@@ -106,7 +108,7 @@ namespace GreenDonut
         }
 
         /// <inheritdoc />
-        public event RequestBufferedEventHandler RequestBuffered;
+        public event RequestBufferedEventHandler? RequestBuffered;
 
         /// <inheritdoc />
         public int BufferedRequests => _buffer.Count;
@@ -117,7 +119,7 @@ namespace GreenDonut
         #region Explicit Implementation of IDataLoader
 
         /// <inheritdoc />
-        Task<object> IDataLoader.LoadAsync(
+        Task<object?> IDataLoader.LoadAsync(
             object key,
             CancellationToken cancellationToken)
         {
@@ -126,7 +128,7 @@ namespace GreenDonut
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return Task.Factory.StartNew<Task<object>>(async () =>
+            return Task.Factory.StartNew<Task<object?>>(async () =>
                 await LoadAsync((TKey)key, cancellationToken)
                     .ConfigureAwait(false),
                         TaskCreationOptions.RunContinuationsAsynchronously)
@@ -134,7 +136,7 @@ namespace GreenDonut
         }
 
         /// <inheritdoc />
-        Task<IReadOnlyList<object>> IDataLoader.LoadAsync(
+        Task<IReadOnlyList<object?>> IDataLoader.LoadAsync(
             CancellationToken cancellationToken,
             params object[] keys)
         {
@@ -146,7 +148,7 @@ namespace GreenDonut
             TKey[] newKeys = keys.Select(k => (TKey)k).ToArray();
 
             return Task.Factory.StartNew(async () =>
-                (IReadOnlyList<object>)await LoadAsync(
+                (IReadOnlyList<object?>)await LoadAsync(
                     newKeys,
                     cancellationToken)
                         .ConfigureAwait(false),
@@ -155,7 +157,7 @@ namespace GreenDonut
         }
 
         /// <inheritdoc />
-        Task<IReadOnlyList<object>> IDataLoader.LoadAsync(
+        Task<IReadOnlyList<object?>> IDataLoader.LoadAsync(
             IReadOnlyCollection<object> keys,
             CancellationToken cancellationToken)
         {
@@ -167,7 +169,7 @@ namespace GreenDonut
             TKey[] newKeys = keys.Select(k => (TKey)k).ToArray();
 
             return Task.Factory.StartNew(async () =>
-                (IReadOnlyList<object>)await LoadAsync(
+                (IReadOnlyList<object?>)await LoadAsync(
                     newKeys,
                     cancellationToken)
                         .ConfigureAwait(false),
@@ -182,7 +184,7 @@ namespace GreenDonut
         }
 
         /// <inheritdoc />
-        void IDataLoader.Set(object key, Task<object> value)
+        void IDataLoader.Set(object key, Task<object?> value)
         {
             if (key == null)
             {
@@ -223,7 +225,7 @@ namespace GreenDonut
                     // this line is for interrupting the delay to wait before
                     // auto dispatching sends the next batch. this is like an
                     // implicit dispatch.
-                    _delaySignal.Set();
+                    _delaySignal!.Set();
                 }
                 else
                 {
@@ -437,47 +439,58 @@ namespace GreenDonut
 
         private Task DispatchBatchAsync(CancellationToken cancellationToken)
         {
-            return _sync.LockAsync(
-                () => !_buffer.IsEmpty,
-                async () =>
+            if (!_buffer.IsEmpty)
+            {
+                lock (_sync)
                 {
-                    TaskCompletionBuffer<TKey, TValue> copy =
-                        CopyAndClearBuffer();
-                    TKey[] keys = copy.Keys.ToArray();
-
-                    if (_options.MaxBatchSize > 0 &&
-                        copy.Count > _options.MaxBatchSize)
+                    if (!_buffer.IsEmpty)
                     {
-                        // splits items from buffer into chunks and instead of
-                        // sending the complete buffer, it sends chunk by chunk
-                        var chunkSize = (int)Math.Ceiling(
-                            (decimal)copy.Count / _options.MaxBatchSize);
-
-                        for (var i = 0; i < chunkSize; i++)
+                        Func<Task> execute = async () =>
                         {
-                            TKey[] chunkedKeys = keys
-                                .Skip(i * _options.MaxBatchSize)
-                                .Take(_options.MaxBatchSize)
-                                .ToArray();
+                            TaskCompletionBuffer<TKey, TValue> copy =
+                                CopyAndClearBuffer();
+                            TKey[] keys = copy.Keys.ToArray();
 
-                            await FetchInternalAsync(
-                                copy,
-                                chunkedKeys,
-                                cancellationToken)
-                                    .ConfigureAwait(false);
-                        }
+                            if (_options.MaxBatchSize > 0 &&
+                                copy.Count > _options.MaxBatchSize)
+                            {
+                                // splits items from buffer into chunks and instead of
+                                // sending the complete buffer, it sends chunk by chunk
+                                var chunkSize = (int)Math.Ceiling(
+                                    (decimal)copy.Count / _options.MaxBatchSize);
+
+                                for (var i = 0; i < chunkSize; i++)
+                                {
+                                    TKey[] chunkedKeys = keys
+                                        .Skip(i * _options.MaxBatchSize)
+                                        .Take(_options.MaxBatchSize)
+                                        .ToArray();
+
+                                    await FetchInternalAsync(
+                                        copy,
+                                        chunkedKeys,
+                                        cancellationToken)
+                                            .ConfigureAwait(false);
+                                }
+                            }
+                            else
+                            {
+                                // sends all items from the buffer in one batch
+                                // operation
+                                await FetchInternalAsync(
+                                    copy,
+                                    keys,
+                                    cancellationToken)
+                                        .ConfigureAwait(false);
+                            }
+                        };
+
+                        return execute();
                     }
-                    else
-                    {
-                        // sends all items from the buffer in one batch
-                        // operation
-                        await FetchInternalAsync(
-                            copy,
-                            keys,
-                            cancellationToken)
-                                .ConfigureAwait(false);
-                    }
-                });
+                }
+            }
+
+            return Task.CompletedTask;
         }
 
         private async Task DispatchSingleAsync(
@@ -486,8 +499,7 @@ namespace GreenDonut
             CancellationToken cancellationToken)
         {
             var keys = new TKey[] { key };
-            Activity activity = DiagnosticEvents
-                .StartSingle(key);
+            Activity? activity = DiagnosticEvents.StartSingle(key);
             IReadOnlyList<Result<TValue>> results =
                 await FetchAsync(keys, cancellationToken)
                     .ConfigureAwait(false);
@@ -514,8 +526,7 @@ namespace GreenDonut
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {
-            Activity activity = DiagnosticEvents
-                .StartBatching(keys);
+            Activity? activity = DiagnosticEvents.StartBatching(keys);
             IReadOnlyList<Result<TValue>> results = new Result<TValue>[0];
 
             try
@@ -569,8 +580,8 @@ namespace GreenDonut
         {
             if (result.IsError)
             {
-                DiagnosticEvents.ReceivedError(key, result);
-                promise.SetException(result);
+                DiagnosticEvents.ReceivedError(key, result!);
+                promise.SetException(result!);
             }
             else
             {
@@ -618,7 +629,7 @@ namespace GreenDonut
                     Clear();
                     _disposeTokenSource.Cancel();
                     _delaySignal?.Set();
-                    (_cache as IDisposable).Dispose();
+                    (_cache as IDisposable)?.Dispose();
                     _disposeTokenSource.Dispose();
                     _delaySignal?.Dispose();
                 }

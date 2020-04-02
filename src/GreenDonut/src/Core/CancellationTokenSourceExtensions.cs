@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace GreenDonut
@@ -5,7 +6,7 @@ namespace GreenDonut
     internal static class CancellationTokenSourceExtensions
     {
         public static CancellationToken CreateLinkedCancellationToken(
-            this CancellationTokenSource source,
+            [DisallowNull]this CancellationTokenSource? source,
             CancellationToken cancellationToken)
         {
             if (source == null)

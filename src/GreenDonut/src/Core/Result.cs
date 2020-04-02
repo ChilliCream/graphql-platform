@@ -14,7 +14,7 @@ namespace GreenDonut
         /// Gets an error if <see cref="IsError"/> is <c>true</c>;
         /// otherwise <c>null</c>.
         /// </summary>
-        public Exception Error { get; private set; }
+        public Exception? Error { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the result is an error.
@@ -36,7 +36,7 @@ namespace GreenDonut
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
             {
@@ -50,7 +50,7 @@ namespace GreenDonut
         public override int GetHashCode()
         {
             return (IsError)
-                ? Error.GetHashCode()
+                ? Error!.GetHashCode()
                 : Value?.GetHashCode() ?? 0;
         }
 
@@ -78,7 +78,7 @@ namespace GreenDonut
         /// Creates a new error result.
         /// </summary>
         /// <param name="error">An arbitrary error.</param>
-        public static implicit operator Result<TValue>(Exception error)
+        public static implicit operator Result<TValue>(Exception? error)
         {
             if (error == null)
             {
@@ -112,7 +112,7 @@ namespace GreenDonut
         /// Extracts the error from a result.
         /// </summary>
         /// <param name="result">An arbitrary result.</param>
-        public static implicit operator Exception(Result<TValue> result)
+        public static implicit operator Exception?(Result<TValue> result)
         {
             return result.Error;
         }
