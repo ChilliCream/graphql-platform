@@ -15,7 +15,6 @@ namespace HotChocolate.Validation
         protected override IDocumentValidatorContext OnBeforeEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             INamedOutputType? namedOutputType;
@@ -145,13 +144,12 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnBeforeEnter(node, parent, ancestors, context);
+            return base.OnBeforeEnter(node, parent, context);
         }
 
         protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             IOutputField? outputField;
@@ -184,13 +182,12 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnAfterEnter(node, parent, ancestors, context);
+            return base.OnAfterEnter(node, parent, context);
         }
 
         protected override IDocumentValidatorContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             IOutputField? outputField;
@@ -223,13 +220,12 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnBeforeLeave(node, parent, ancestors, context);
+            return base.OnBeforeLeave(node, parent, context);
         }
 
         protected override IDocumentValidatorContext OnAfterLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             IOutputField? outputField;
@@ -282,7 +278,7 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnAfterLeave(node, parent, ancestors, context);
+            return base.OnAfterLeave(node, parent, context);
         }
 
         private static ObjectType GetOperationType(
