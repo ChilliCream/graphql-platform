@@ -10,13 +10,35 @@ The ChilliCream GraphQL Platform at its core is a new way to create powerful Bac
 
 ## Product Overview
 
-| Product                                           | Description             |
-| ------------------------------------------------- | ----------------------- |
-| [Banana Cake Pop](src/BananaCakePop/README.md)    | GraphQL IDE             |
-| [Green Donut](src/GreenDonut/README.md)           | Data Loader             |
-| [Hot Chocolate](src/HotChocolate/README.md)       | GraphQL Server for .Net |
-| [Marshmellow Pie](src/MarshmellowPie/README.md)   | GraphQL Schema Registry |
-| [Strawberry Shake](src/StrawberryShake/README.md) | GraphQL Client for .Net |
+### Banana Cake Pop
+
+Our IDE to explore, request and analyze any GraphQL endpoint.
+
+[Readme](src/BananaCakePop/README.md)
+
+### Green Donut
+
+Our dataloader to solve the N+1 problem.
+
+[Readme](src/GreenDonut/README.md)
+
+### Hot Chocolate
+
+Our GraphQL server to create GraphQL endpoints and merge schemas.
+
+[Readme](src/HotChocolate/README.md)
+
+### Marshmellow Pie
+
+Our schema registry for any GrapQL client and server.
+
+[Readme](src/MarshmellowPie/README.md)
+
+### Strawberry Shake
+
+Our GraphQL client to fetch data from any GraphQL endpoint.
+
+[Readme](src/StrawberryShake/README.md)
 
 ## Examples & Templates
 
