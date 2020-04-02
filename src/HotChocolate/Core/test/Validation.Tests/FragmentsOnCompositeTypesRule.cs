@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -13,12 +11,13 @@ namespace HotChocolate.Validation
         {
         }
 
+        /// <summary>
+        /// Validate: Fragments on composite types
+        /// </summary>
         [Fact]
-        public void FragOnObject()
+        public void Fragment_On_Object_Is_Valid()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                        ... fragOnObject
@@ -29,21 +28,15 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
+        /// <summary>
+        /// Interface is valid fragment type
+        /// </summary>
         [Fact]
-        public void FragOnInterface()
+        public void Fragment_On_Interface_Is_Valid()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                        ... fragOnInterface
@@ -54,21 +47,82 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
+        /// <summary>
+        /// Object is valid inline fragment type
+        /// </summary>
         [Fact]
-        public void FragOnUnion()
+        public void Object_Is_Valid_Inline_FragmentType()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                       ... validFragment
+                    }
+                }
+
+                fragment validFragment on Pet {
+                    ... on Dog {
+                        barks
+                    }
+                }
+            ");
+        }
+
+        // TODO : interfaces implement interfaces
+        /*
+        /// <summary>
+        /// interface is valid inline fragment type
+        /// </summary>
+        [Fact]
+        public void Interface_Is_Valid_Inline_FragmentType()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                       ... validFragment
+                    }
+                }
+
+                fragment validFragment on Mammal {
+                    ... on Canine {
+                        name
+                    }
+                }
+            ");
+        }
+        */
+
+        /// <summary>
+        /// inline fragment without type is valid
+        /// </summary>
+        [Fact]
+        public void InlineFragment_Without_Type_Is_Valid()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                       ... validFragment
+                    }
+                }
+
+                fragment validFragment on Pet {
+                    ... {
+                        name
+                    }
+                }
+            ");
+        }
+
+        /// <summary>
+        /// union is valid fragment type
+        /// </summary>
+        [Fact]
+        public void Fragment_On_Union_Is_Valid()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                        ... fragOnUnion
@@ -81,21 +135,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
         [Fact]
-        public void FragOnScalar()
+        public void Fragment_On_Scalar_Is_Invalid()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                        ... fragOnScalar
@@ -105,26 +150,16 @@ namespace HotChocolate.Validation
                 fragment fragOnScalar on Int {
                     something
                 }
-            ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(t.Message,
-                    "Fragments can only be declared on unions, interfaces, " +
-                    "and objects."));
-            context.Errors.MatchSnapshot();
+            ",
+            t => Assert.Equal(t.Message,
+                "Fragments can only be declared on unions, interfaces, " +
+                "and objects."));
         }
 
         [Fact]
-        public void InlineFragOnScalar()
+        public void InlineFragment_On_Scalar_Is_Invalid()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                        ... inlineFragOnScalar
@@ -136,18 +171,10 @@ namespace HotChocolate.Validation
                         somethingElse
                     }
                 }
-            ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(t.Message,
-                    "Fragments can only be declared on unions, interfaces, " +
-                    "and objects."));
-            context.Errors.MatchSnapshot();
+            ",
+            t => Assert.Equal(t.Message,
+                "Fragments can only be declared on unions, interfaces, " +
+                "and objects."));
         }
     }
 }

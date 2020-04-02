@@ -9,8 +9,9 @@ namespace HotChocolate.Language.Visitors
         public DelegateSyntaxVisitor(
             VisitSyntaxNode? enter = null,
             VisitSyntaxNode? leave = null,
-            ISyntaxVisitorAction? defaultResult = null)
-            : base(defaultResult ?? Skip)
+            ISyntaxVisitorAction? defaultResult = null,
+            SyntaxVisitorOptions options = default)
+            : base(defaultResult ?? Skip, options)
         {
             _enter = enter ?? new VisitSyntaxNode((n, c) => DefaultAction);
             _leave = leave ?? new VisitSyntaxNode((n, c) => DefaultAction);

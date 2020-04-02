@@ -230,7 +230,7 @@ namespace HotChocolate.Validation
             NamedTypeNode? typeCondition,
             IDocumentValidatorContext context)
         {
-            if (context.IsInError)
+            if (context.IsInError.PeekOrDefault(true))
             {
                 if (typeCondition is { } &&
                     !context.Schema.TryGetType<INamedType>(typeCondition.Name.Value, out _))
