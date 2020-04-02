@@ -60,7 +60,7 @@ namespace HotChocolate.Validation
             Assert.Empty(context.Errors);
         }
 
-        public void ExpectFailed(string sourceText, params Action<IError>[] elementInspectors)
+        public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors)
         {
             // arrange
             IDocumentValidatorContext context = ValidationUtils.CreateContext();

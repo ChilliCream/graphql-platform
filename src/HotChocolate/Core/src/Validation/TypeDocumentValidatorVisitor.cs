@@ -169,7 +169,7 @@ namespace HotChocolate.Validation
 
                 case NodeKind.ObjectField:
                     if (context.InputFields.TryPeek(out inputField) &&
-                        inputField.Name.Equals(((ObjectField)node).Name.Value))
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
                     {
                         context.Types.Push(inputField.Type);
                     }
@@ -208,7 +208,7 @@ namespace HotChocolate.Validation
 
                 case NodeKind.ObjectField:
                     if (context.InputFields.TryPeek(out inputField) &&
-                        inputField.Name.Equals(((ObjectField)node).Name.Value))
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
                     {
                         context.Types.TryPop(out _);
                     }
@@ -260,7 +260,7 @@ namespace HotChocolate.Validation
 
                 case NodeKind.ObjectField:
                     if (context.InputFields.TryPeek(out inputField) &&
-                        inputField.Name.Equals(((ObjectField)node).Name.Value))
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
                     {
                         context.InputFields.Pop();
                     }

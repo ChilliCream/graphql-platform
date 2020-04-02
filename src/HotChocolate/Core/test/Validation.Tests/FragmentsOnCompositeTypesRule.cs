@@ -140,7 +140,7 @@ namespace HotChocolate.Validation
         [Fact]
         public void Fragment_On_Scalar_Is_Invalid()
         {
-            ExpectFailed(@"
+            ExpectErrors(@"
                 {
                     dog {
                        ... fragOnScalar
@@ -159,7 +159,7 @@ namespace HotChocolate.Validation
         [Fact]
         public void InlineFragment_On_Scalar_Is_Invalid()
         {
-            ExpectFailed(@"
+            ExpectErrors(@"
                 {
                     dog {
                        ... inlineFragOnScalar

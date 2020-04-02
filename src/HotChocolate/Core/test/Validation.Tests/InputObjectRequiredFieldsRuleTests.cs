@@ -1,116 +1,76 @@
 ﻿using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class InputObjectRequiredFieldsRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public InputObjectRequiredFieldsRuleTests()
-            : base(new InputObjectRequiredFieldsRule())
+            : base(services => services.AddInputObjectsAreValidRule())
         {
         }
 
         [Fact]
         public void RequiredFieldsHaveValidValue()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     findDog2(complex: { name: ""Foo"" })
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void NestedRequiredFieldsHaveValidValue()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     findDog2(complex: { name: ""Foo"" child: { name: ""123"" } })
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void RequiredFieldIsNull()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     findDog2(complex: { name: null })
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "`name` is a required field and cannot be null.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "`name` is a required field and cannot be null.",
+                t.Message));
         }
 
         [Fact]
         public void RequiredFieldIsNotSet()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     findDog2(complex: { })
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "`name` is a required field and cannot be null.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "`name` is a required field and cannot be null.",
+                t.Message));
         }
 
         [Fact]
         public void NestedRequiredFieldIsNotSet()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     findDog2(complex: { name: ""foo"" child: { owner: ""bar"" } })
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "`name` is a required field and cannot be null.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "`name` is a required field and cannot be null.",
+                t.Message));
         }
     }
 }
