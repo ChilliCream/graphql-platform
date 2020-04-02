@@ -272,7 +272,7 @@ namespace GreenDonut
 
                 if (_options.Caching && _cache.TryGetValue(
                     cacheKey,
-                    out Task<TValue> cachedValue))
+                    out Task<TValue>? cachedValue))
                 {
                     DiagnosticEvents.ReceivedValueFromCache(
                         key,
@@ -290,7 +290,7 @@ namespace GreenDonut
                     if (!_buffer.TryAdd(key, promise) &&
                         _buffer.TryGetValue(
                             key,
-                            out TaskCompletionSource<TValue> value))
+                            out TaskCompletionSource<TValue>? value))
                     {
                         promise.TrySetCanceled();
                         promise = value;
@@ -634,10 +634,7 @@ namespace GreenDonut
                     _delaySignal?.Dispose();
                 }
 
-                _buffer = null;
-                _cache = null;
                 _delaySignal = null;
-                _options = null;
 
                 _disposed = true;
             }

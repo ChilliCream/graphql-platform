@@ -48,7 +48,7 @@ namespace GreenDonut
         {
             lock (_sync)
             {
-                if (_cache.TryRemove(key, out CacheEntry entry))
+                if (_cache.TryRemove(key, out CacheEntry? entry))
                 {
                     _ranking.Remove(entry.Rank);
                 }
@@ -85,24 +85,22 @@ namespace GreenDonut
             return added;
         }
 
-        public bool TryGetValue(object key, [NotNullWhen(true)]out Task<TValue> value)
+        public bool TryGetValue(object key, [NotNullWhen(true)]out Task<TValue>? value)
         {
-            var exists = false;
-            Task<TValue> cachedValue = null;
+            Task<TValue>? cachedValue = null;
 
             lock (_sync)
             {
-                if (_cache.TryGetValue(key, out CacheEntry entry))
+                if (_cache.TryGetValue(key, out CacheEntry? entry))
                 {
                     TouchEntry(entry);
                     cachedValue = entry.Value;
-                    exists = true;
                 }
             }
 
             value = cachedValue;
 
-            return exists;
+            return value != null;
         }
 
         private void EnsureCacheSizeDoesNotExceed()
@@ -111,7 +109,7 @@ namespace GreenDonut
             {
                 object key = _ranking.Last!.Value;
 
-                if (_cache.TryRemove(key, out CacheEntry entry))
+                if (_cache.TryRemove(key, out CacheEntry? entry))
                 {
                     _ranking.Remove(entry.Rank);
                 }
@@ -145,7 +143,7 @@ namespace GreenDonut
                         if (_ranking.Last != null &&
                             _cache.TryGetValue(
                                 _ranking.Last.Value,
-                                out CacheEntry entry) &&
+                                out CacheEntry? entry) &&
                             removeAfter > entry.LastTouched)
                         {
                             Remove(entry.Key);

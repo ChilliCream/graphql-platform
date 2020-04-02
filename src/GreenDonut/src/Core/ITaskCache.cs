@@ -67,6 +67,6 @@ namespace GreenDonut
         /// <returns>
         /// A value indicating whether the get request returned an entry.
         /// </returns>
-        bool TryGetValue(object key, [NotNullWhen(true)]out Task<TValue> value);
+        bool TryGetValue(object key, [NotNullWhen(true)]out Task<TValue>? value);
     }
 }
