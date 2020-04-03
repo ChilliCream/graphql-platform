@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +55,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="cache"/> is <c>null</c>.
         /// </exception>
-        protected DataLoaderBase([DisallowNull]ITaskCache<TValue>? cache)
+        protected DataLoaderBase(ITaskCache<TValue> cache)
             : this(new DataLoaderOptions<TKey>(), cache)
         { }
 
@@ -70,7 +69,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="options"/> is <c>null</c>.
         /// </exception>
-        protected DataLoaderBase([DisallowNull]DataLoaderOptions<TKey>? options)
+        protected DataLoaderBase(DataLoaderOptions<TKey> options)
             : this(options, new TaskCache<TValue>(
                 options?.CacheSize ?? Defaults.CacheSize,
                 options?.SlidingExpiration ??
@@ -93,14 +92,12 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="cache"/> is <c>null</c>.
         /// </exception>
-        protected DataLoaderBase([DisallowNull]DataLoaderOptions<TKey>? options,
-            [DisallowNull]ITaskCache<TValue>? cache)
+        protected DataLoaderBase(DataLoaderOptions<TKey> options, ITaskCache<TValue> cache)
         {
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _buffer = new TaskCompletionBuffer<TKey, TValue>();
-            _cache = cache ??
-                throw new ArgumentNullException(nameof(cache));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _cacheKeyResolver = _options.CacheKeyResolver ??
                 ((TKey key) => key);
 
@@ -197,7 +194,7 @@ namespace GreenDonut
             }
 
             Task<TValue> newValue = Task.Factory.StartNew(async () =>
-                (TValue)await value.ConfigureAwait(false),
+                ((TValue)await value.ConfigureAwait(false) ?? default)!,
                     TaskCreationOptions.RunContinuationsAsynchronously)
                         .Unwrap();
 
