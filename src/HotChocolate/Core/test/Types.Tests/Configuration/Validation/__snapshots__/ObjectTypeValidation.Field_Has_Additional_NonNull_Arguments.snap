@@ -1,0 +1,19 @@
+﻿[
+  {
+    "Message": "The field `abc` must only declare additional arguments to an implemented field that are nullable.",
+    "Code": null,
+    "TypeSystemObject": "Foo",
+    "Path": null,
+    "SyntaxNodes": [
+      "abc(a: String b: String!): String",
+      "abc(a: String): String"
+    ],
+    "Extensions": {
+      "argument": "b",
+      "field": "abc",
+      "implementedField": "abc",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+    },
+    "Exception": null
+  }
+]

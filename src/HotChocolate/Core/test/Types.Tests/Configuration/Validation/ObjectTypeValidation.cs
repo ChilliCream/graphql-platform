@@ -165,6 +165,42 @@ namespace HotChocolate.Configuration.Validation
         }
 
         [Fact]
+        public void Field_Has_Additional_Arguments()
+        {
+            ExpectValid(@"
+                type Query {
+                    foo: Foo
+                }
+
+                interface FooInterface {
+                    abc(a: String): String
+                }
+
+                type Foo implements FooInterface {
+                    abc(a: String b:String): String
+                }
+            ");
+        }
+
+        [Fact]
+        public void Field_Has_Additional_NonNull_Arguments()
+        {
+            ExpectError(@"
+                type Query {
+                    foo: Foo
+                }
+
+                interface FooInterface {
+                    abc(a: String): String
+                }
+
+                type Foo implements FooInterface {
+                    abc(a: String b:String!): String
+                }
+            ");
+        }
+
+        [Fact]
         public void Arguments_Are_Not_Implemented()
         {
             ExpectError(@"
@@ -196,6 +232,74 @@ namespace HotChocolate.Configuration.Validation
 
                 type Foo implements FooInterface {
                     abc(a: String!): String
+                }
+            ");
+        }
+
+        [Fact]
+        public void Object_Implements_All_Interfaces()
+        {
+            ExpectValid(@"
+                type Query {
+                    foo: Foo
+                }
+
+                interface B {
+                    cde: String
+                }
+
+                interface A implements B {
+                    abc(a: String): String
+                }
+
+                type Foo implements A & B {
+                    abc(a: String): String
+                    cde: String
+                }
+            ");
+        }
+
+        [Fact]
+        public void Object_Implements_Not_The_Interfaces_Of_Its_Interfaces()
+        {
+            ExpectError(@"
+                type Query {
+                    foo: Foo
+                }
+
+                interface B {
+                    cde: String
+                }
+
+                interface A implements B {
+                    abc(a: String): String
+                }
+
+                type Foo implements A {
+                    abc(a: String): String
+                    cde: String
+                }
+            ");
+        }
+
+        [Fact]
+        public void Object_Implements_Not_The_Interfaces_Of_Its_Interfaces_2()
+        {
+            ExpectError(@"
+                type Query {
+                    foo: Foo
+                }
+
+                interface B {
+                    cde: String
+                }
+
+                interface A implements B {
+                    abc(a: String): String
+                }
+
+                type Foo implements A {
+                    abc(a: String): String
                 }
             ");
         }

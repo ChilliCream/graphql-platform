@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Message": "The object type must also declare all interfaces declared by implemented interfaces.",
+    "Code": null,
+    "TypeSystemObject": "Foo",
+    "Path": null,
+    "SyntaxNodes": [
+      "type Foo implements A {\n  abc(a: String): String\n}",
+      "interface A implements B {\n  abc(a: String): String\n}"
+    ],
+    "Extensions": {
+      "implementedType": "A",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation",
+      "type": "Foo"
+    },
+    "Exception": null
+  }
+]

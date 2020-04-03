@@ -181,7 +181,7 @@ namespace HotChocolate.Configuration.Validation
                     errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(
                             "The field `{0}` must only declare additional arguments to an " +
-                            "implemented field that are nullable." +
+                            "implemented field that are nullable.",
                             field.Name)
                         .SetTypeSystemObject(argument.DeclaringType)
                         .AddSyntaxNode(field.SyntaxNode)

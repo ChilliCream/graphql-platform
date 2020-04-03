@@ -26,6 +26,7 @@ namespace HotChocolate.Configuration.Validation
                     .AddDocumentFromString(schema)
                     .Use(next => context => Task.CompletedTask)
                     .Create();
+                Assert.False(true, "Expected error!");
             }
             catch (SchemaException ex)
             {
