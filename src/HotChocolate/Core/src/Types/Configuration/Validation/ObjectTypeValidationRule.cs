@@ -198,7 +198,7 @@ namespace HotChocolate.Configuration.Validation
             {
                 errors.Add(SchemaErrorBuilder.New()
                     .SetMessage(
-                        "The argument `{0}` of the implemented field `{1}` must be defined."  +
+                        "The argument `{0}` of the implemented field `{1}` must be defined. "  +
                         "The field `{2}` must include an argument of the same name for " +
                         "every argument defined on the implemented field " +
                         "of the interface type `{3}`.",

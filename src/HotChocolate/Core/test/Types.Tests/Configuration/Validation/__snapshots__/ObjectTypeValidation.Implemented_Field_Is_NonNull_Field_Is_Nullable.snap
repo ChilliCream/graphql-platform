@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Message": "Field `bar` must return a type which is equal to or a sub‐type of (covariant) the return type `String!` of the interface field.",
+    "Code": null,
+    "TypeSystemObject": "Foo",
+    "Path": null,
+    "SyntaxNodes": [
+      "bar: String",
+      "bar: String!"
+    ],
+    "Extensions": {
+      "field": "bar",
+      "implementedField": "bar",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+    },
+    "Exception": null
+  }
+]
