@@ -1,21 +1,11 @@
-﻿[
-  {
-    "Message": "The argument `a` of the implemented field `abc` must be defined. The field `abc` must include an argument of the same name for every argument defined on the implemented field of the interface type `FooInterface`.",
-    "Code": null,
-    "TypeSystemObject": "Foo",
-    "Path": null,
-    "SyntaxNodes": [
-      "type Foo implements FooInterface {\n  abc: String\n}",
-      "abc: String",
-      "abc(a: String): String",
-      "a: String"
-    ],
-    "Extensions": {
-      "field": "abc",
-      "implementedField": "abc",
-      "missingArgument": "a",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
-    },
-    "Exception": null
+﻿{
+  "message": "The argument \u0060a\u0060 of the implemented field \u0060abc\u0060 must be defined. The field \u0060abc\u0060 must include an argument of the same name for every argument defined on the implemented field of the interface type \u0060FooInterface\u0060.",
+  "type": "Foo",
+  "extensions": {
+    "field": "abc",
+    "implementedField": "abc",
+    "missingArgument": "a",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
   }
-]
+}
+

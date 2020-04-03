@@ -1,17 +1,9 @@
-﻿[
-  {
-    "Message": "The interface type must also declare all interfaces declared by implemented interfaces.",
-    "Code": null,
-    "TypeSystemObject": "A",
-    "Path": null,
-    "SyntaxNodes": [
-      "interface A implements B {\n  abc(a: String): String\n  cde: String\n  def: String\n}",
-      "interface B implements C {\n  cde: String\n  def: String\n}"
-    ],
-    "Extensions": {
-      "implementedType": "B",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
-    },
-    "Exception": null
+﻿{
+  "message": "The interface type must also declare all interfaces declared by implemented interfaces.",
+  "type": "A",
+  "extensions": {
+    "implementedType": "B",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
   }
-]
+}
+

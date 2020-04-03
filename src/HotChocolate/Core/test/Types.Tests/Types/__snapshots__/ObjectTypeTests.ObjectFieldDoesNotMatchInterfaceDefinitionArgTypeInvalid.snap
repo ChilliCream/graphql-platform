@@ -1,3 +1,4 @@
-﻿Multiple schema errors occurred:
-The named argument `a` on field `a` must accept the same type `String` (invariant) as that named argument on the interface `A`. - Type: C
-The named argument `a` on field `a` must accept the same type `String` (invariant) as that named argument on the interface `B`. - Type: C
+﻿For more details look at the `Errors` property.
+
+1. The named argument `a` on field `a` must accept the same type `String` (invariant) as that named argument on the interface `A`.
+2. The named argument `a` on field `a` must accept the same type `String` (invariant) as that named argument on the interface `B`.

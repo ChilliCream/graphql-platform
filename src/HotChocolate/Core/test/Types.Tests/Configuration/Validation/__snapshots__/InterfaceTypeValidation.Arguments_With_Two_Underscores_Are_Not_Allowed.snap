@@ -1,36 +1,20 @@
-﻿[
-  {
-    "Message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
-    "Code": null,
-    "TypeSystemObject": "Foo",
-    "Path": null,
-    "SyntaxNodes": [
-      "type Foo implements FooInterface {\n  foo(__bar: String): String\n}",
-      "foo(__bar: String): String",
-      "__bar: String"
-    ],
-    "Extensions": {
-      "argument": "__bar",
-      "field": "foo",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
-    "Code": null,
-    "TypeSystemObject": "FooInterface",
-    "Path": null,
-    "SyntaxNodes": [
-      "interface FooInterface {\n  foo(__bar: String): String\n}",
-      "foo(__bar: String): String",
-      "__bar: String"
-    ],
-    "Extensions": {
-      "argument": "__bar",
-      "field": "foo",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
-    },
-    "Exception": null
+﻿{
+  "message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "__bar",
+    "field": "foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
   }
-]
+}
+
+{
+  "message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
+  "type": "FooInterface",
+  "extensions": {
+    "argument": "__bar",
+    "field": "foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
+  }
+}
+

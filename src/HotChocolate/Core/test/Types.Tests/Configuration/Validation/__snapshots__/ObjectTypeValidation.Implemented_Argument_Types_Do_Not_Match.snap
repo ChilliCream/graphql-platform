@@ -1,19 +1,10 @@
-﻿[
-  {
-    "Message": "The named argument `a` on field `abc` must accept the same type `String` (invariant) as that named argument on the interface `FooInterface`.",
-    "Code": null,
-    "TypeSystemObject": "Foo",
-    "Path": null,
-    "SyntaxNodes": [
-      "type Foo implements FooInterface {\n  abc(a: String!): String\n}",
-      "a: String!",
-      "a: String"
-    ],
-    "Extensions": {
-      "argument": "a",
-      "implementedArgument": "a",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
-    },
-    "Exception": null
+﻿{
+  "message": "The named argument \u0060a\u0060 on field \u0060abc\u0060 must accept the same type \u0060String\u0060 (invariant) as that named argument on the interface \u0060FooInterface\u0060.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "a",
+    "implementedArgument": "a",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
   }
-]
+}
+

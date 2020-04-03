@@ -270,6 +270,7 @@ namespace HotChocolate.Configuration.Validation
 
                 interface A implements B {
                     abc(a: String): String
+                    cde: String
                 }
 
                 type Foo implements A & B {

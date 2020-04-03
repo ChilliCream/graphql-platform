@@ -1,17 +1,9 @@
-﻿[
-  {
-    "Message": "Field names starting with `__` are reserved for the GraphQL specification.",
-    "Code": null,
-    "TypeSystemObject": "Query",
-    "Path": null,
-    "SyntaxNodes": [
-      "type Query {\n  __foo: String\n}",
-      "__foo: String"
-    ],
-    "Extensions": {
-      "field": "__foo",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
-    },
-    "Exception": null
+﻿{
+  "message": "Field names starting with \u0060__\u0060 are reserved for the GraphQL specification.",
+  "type": "Query",
+  "extensions": {
+    "field": "__foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
   }
-]
+}
+

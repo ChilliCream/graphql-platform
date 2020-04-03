@@ -1,19 +1,10 @@
-﻿[
-  {
-    "Message": "Field `bar` must return a type which is equal to or a sub‐type of (covariant) the return type `String!` of the interface field.",
-    "Code": null,
-    "TypeSystemObject": "Foo",
-    "Path": null,
-    "SyntaxNodes": [
-      "type Foo implements FooInterface {\n  bar: String\n}",
-      "bar: String",
-      "bar: String!"
-    ],
-    "Extensions": {
-      "field": "bar",
-      "implementedField": "bar",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
-    },
-    "Exception": null
+﻿{
+  "message": "Field \u0060bar\u0060 must return a type which is equal to or a sub\u2010type of (covariant) the return type \u0060String!\u0060 of the interface field.",
+  "type": "Foo",
+  "extensions": {
+    "field": "bar",
+    "implementedField": "bar",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
   }
-]
+}
+
