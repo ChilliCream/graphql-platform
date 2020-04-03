@@ -27,8 +27,7 @@ namespace GreenDonut
         public void ConstructorANoException()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
 
             // act
             Action verify = () => new DataLoader<string, string>(fetch);
@@ -49,8 +48,7 @@ namespace GreenDonut
             var options = new DataLoaderOptions<string>();
 
             // act
-            Action verify = () => new DataLoader<string, string>(options,
-                fetch);
+            Action verify = () => new DataLoader<string, string>(options, fetch);
 
             // assert
             Assert.Throws<ArgumentNullException>("fetch", verify);
@@ -60,13 +58,11 @@ namespace GreenDonut
         public void ConstructorBOptionsNull()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             DataLoaderOptions<string> options = null;
 
             // act
-            Action verify = () => new DataLoader<string, string>(options,
-                fetch);
+            Action verify = () => new DataLoader<string, string>(options, fetch);
 
             // assert
             Assert.Throws<ArgumentNullException>("options", verify);
@@ -76,13 +72,11 @@ namespace GreenDonut
         public void ConstructorBNoException()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
 
             // act
-            Action verify = () => new DataLoader<string, string>(options,
-                fetch);
+            Action verify = () => new DataLoader<string, string>(options, fetch);
 
             // assert
             Assert.Null(Record.Exception(verify));
@@ -97,8 +91,7 @@ namespace GreenDonut
         {
             // arrange
             var raiseCount = 0;
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -125,8 +118,7 @@ namespace GreenDonut
         public void BufferedRequestsZero()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -141,8 +133,7 @@ namespace GreenDonut
         public void BufferedRequestsTwo()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -166,8 +157,7 @@ namespace GreenDonut
         public void CachedValuesAlwaysZero()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
                 Caching = false
@@ -192,8 +182,7 @@ namespace GreenDonut
         public void CachedValuesZero()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -208,8 +197,7 @@ namespace GreenDonut
         public void CachedValuesTwo()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -235,8 +223,7 @@ namespace GreenDonut
         public void ClearNoException()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -251,8 +238,7 @@ namespace GreenDonut
         public async Task ClearAllEntries()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
                 Batching = false
@@ -267,7 +253,7 @@ namespace GreenDonut
 
             // assert
             Func<Task> verify = () => loader.LoadAsync("Foo", "Bar");
-            
+
             await Assert.ThrowsAsync<InvalidOperationException>(verify)
                 .ConfigureAwait(false);
         }
@@ -280,8 +266,7 @@ namespace GreenDonut
         public async Task DispatchAsyncNoException()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -307,8 +292,7 @@ namespace GreenDonut
             var loader = new DataLoader<string, string>(options, fetch);
 
             // this would block if batching would be enabled
-            var loadResult = await loader.LoadAsync("Foo")
-                .ConfigureAwait(false);
+            var loadResult = await loader.LoadAsync("Foo").ConfigureAwait(false);
 
             // act
             await loader.DispatchAsync().ConfigureAwait(false);
@@ -336,8 +320,7 @@ namespace GreenDonut
             await loader.DispatchAsync().ConfigureAwait(false);
 
             // assert
-            Assert.Equal(expectedResult.Value,
-                await loadResult.ConfigureAwait(false));
+            Assert.Equal(expectedResult.Value, await loadResult.ConfigureAwait(false));
         }
 
         [Fact(DisplayName = "DispatchAsync: Should interrupt the 10 minutes delay if auto dispatching is enabled")]
@@ -361,16 +344,14 @@ namespace GreenDonut
             await loader.DispatchAsync().ConfigureAwait(false);
 
             // assert
-            Assert.Equal(expectedResult.Value,
-                await loadResult.ConfigureAwait(false));
+            Assert.Equal(expectedResult.Value, await loadResult.ConfigureAwait(false));
         }
 
         [Fact(DisplayName = "DispatchAsync: Should return an invalid operation exception due to 2 missing values")]
         public async Task DispatchAsyncKeysValuesNotMatching()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
                 BatchRequestDelay = TimeSpan.FromMinutes(10)
@@ -387,8 +368,7 @@ namespace GreenDonut
             Func<Task> verify = () => loadResult;
 
             // assert
-            await Assert.ThrowsAsync<InvalidOperationException>(verify)
-                .ConfigureAwait(false);
+            await Assert.ThrowsAsync<InvalidOperationException>(verify).ConfigureAwait(false);
         }
 
         [Fact(DisplayName = "DispatchAsync: Should interrupt auto dispatching wait delay")]
@@ -425,8 +405,7 @@ namespace GreenDonut
         public void DisposeNoException()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
                 AutoDispatching = true
@@ -444,8 +423,7 @@ namespace GreenDonut
         public void DisposeNoExceptionNobatchingAndCaching()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
                 Batching = false,
@@ -468,8 +446,7 @@ namespace GreenDonut
         public async Task LoadSingleKeyNull()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>();
             var loader = new DataLoader<string, string>(options, fetch);
             string key = null;
@@ -478,8 +455,7 @@ namespace GreenDonut
             Func<Task<string>> verify = () => loader.LoadAsync(key);
 
             // assert
-            await Assert.ThrowsAsync<ArgumentNullException>("key", verify)
-                .ConfigureAwait(false);
+            await Assert.ThrowsAsync<ArgumentNullException>("key", verify).ConfigureAwait(false);
         }
 
         [Fact(DisplayName = "LoadAsync: Should not throw any exception")]
@@ -499,8 +475,7 @@ namespace GreenDonut
             Func<Task<string>> verify = () => loader.LoadAsync(key);
 
             // assert
-            Assert.Null(await Record.ExceptionAsync(verify)
-                .ConfigureAwait(false));
+            Assert.Null(await Record.ExceptionAsync(verify).ConfigureAwait(false));
         }
 
         [Fact(DisplayName = "LoadAsync: Should return one result")]
@@ -568,7 +543,7 @@ namespace GreenDonut
             await Assert.ThrowsAsync<ArgumentNullException>("keys", verify)
                 .ConfigureAwait(false);
         }
-        
+
         [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
         public async Task LoadParamsZeroKeys()
         {
@@ -1026,7 +1001,7 @@ namespace GreenDonut
             {
                 asyncResult.AsyncWaitHandle.WaitOne();
             }
-            
+
             Assert.NotNull(loadResult.Exception);
         }
 
@@ -1104,7 +1079,7 @@ namespace GreenDonut
 
             // assert
             var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
-            
+
             Assert.Equal(value.Result, loadResult);
         }
 
@@ -1126,7 +1101,7 @@ namespace GreenDonut
 
             // assert
             var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
-            
+
             Assert.Equal(first.Result, loadResult);
         }
 
@@ -1525,7 +1500,7 @@ namespace GreenDonut
             {
                 asyncResult.AsyncWaitHandle.WaitOne();
             }
-            
+
             Assert.NotNull(loadResult.Exception);
         }
 
@@ -1607,7 +1582,7 @@ namespace GreenDonut
 
             // assert
             var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
-            
+
             Assert.Equal(value.Result, loadResult);
         }
 

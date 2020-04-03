@@ -109,7 +109,7 @@ namespace GreenDonut
 
             // assert
             var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
-            
+
             Assert.Equal(value, loadResult);
         }
 
@@ -131,7 +131,7 @@ namespace GreenDonut
 
             // assert
             var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
-            
+
             Assert.Equal(first, loadResult);
         }
 
