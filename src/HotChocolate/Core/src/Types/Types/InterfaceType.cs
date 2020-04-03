@@ -72,7 +72,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return _resolveAbstractType.Invoke(context, resolverResult);
+            return _resolveAbstractType!.Invoke(context, resolverResult);
         }
 
         protected override InterfaceTypeDefinition CreateDefinition(
@@ -120,7 +120,7 @@ namespace HotChocolate.Types
 
         private void CompleteAbstractTypeResolver(
             ICompletionContext context,
-            ResolveAbstractType resolveAbstractType)
+            ResolveAbstractType? resolveAbstractType)
         {
             if (resolveAbstractType == null)
             {
@@ -128,7 +128,7 @@ namespace HotChocolate.Types
 
                 // if there is no custom type resolver we will use this default
                 // abstract type resolver.
-                IReadOnlyCollection<ObjectType> types = null;
+                IReadOnlyCollection<ObjectType>? types = null;
                 _resolveAbstractType = (c, r) =>
                 {
                     if (types == null)
@@ -153,9 +153,5 @@ namespace HotChocolate.Types
                 _resolveAbstractType = resolveAbstractType;
             }
         }
-
-
     }
-
-
 }

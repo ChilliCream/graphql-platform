@@ -49,14 +49,12 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            context.Interceptor.OnBeforeRegisterDependencies(
-                context, _definition, _definition.ContextData);
+            OnBeforeRegisterDependencies(context, _definition, _definition.ContextData);
 
             RegisterConfigurationDependencies(context, _definition);
             OnRegisterDependencies(context, _definition);
 
-            context.Interceptor.OnAfterRegisterDependencies(
-                context, _definition, _definition.ContextData);
+            OnAfterRegisterDependencies(context, _definition, _definition.ContextData);
 
             base.Initialize(context);
         }
@@ -78,8 +76,7 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            context.Interceptor.OnBeforeCompleteName(
-                context, _definition, _definition.ContextData);
+            OnBeforeCompleteName(context, _definition, _definition.ContextData);
 
             ExecuteConfigurations(context, _definition, ApplyConfigurationOn.Naming);
             OnCompleteName(context, _definition);
@@ -98,8 +95,7 @@ namespace HotChocolate.Types
 
             base.CompleteName(context);
 
-            context.Interceptor.OnAfterCompleteName(
-                context, _definition, _definition.ContextData);
+            OnAfterCompleteName(context, _definition, _definition.ContextData);
         }
 
         protected virtual void OnCompleteName(
@@ -122,8 +118,7 @@ namespace HotChocolate.Types
 
             TDefinition definition = _definition;
 
-            context.Interceptor.OnBeforeCompleteType(
-                context, definition, definition.ContextData);
+            OnBeforeCompleteType(context, definition, definition.ContextData);
 
             ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
             Description = definition.Description;
@@ -134,8 +129,7 @@ namespace HotChocolate.Types
 
             base.CompleteType(context);
 
-            context.Interceptor.OnAfterCompleteType(
-                context, definition, _contextData);
+            OnAfterCompleteType(context, definition, _contextData);
         }
 
         protected virtual void OnCompleteType(
@@ -168,6 +162,60 @@ namespace HotChocolate.Types
             {
                 configuration.Configure(context);
             }
+        }
+
+        protected virtual void OnBeforeRegisterDependencies(
+            IInitializationContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.Interceptor.OnBeforeRegisterDependencies(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnAfterRegisterDependencies(
+            IInitializationContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.Interceptor.OnAfterRegisterDependencies(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnBeforeCompleteName(
+            ICompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.Interceptor.OnBeforeCompleteName(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnAfterCompleteName(
+            ICompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.Interceptor.OnAfterCompleteName(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnBeforeCompleteType(
+            ICompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.Interceptor.OnBeforeCompleteType(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnAfterCompleteType(
+            ICompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.Interceptor.OnAfterCompleteType(
+                context, definition, contextData);
         }
     }
 }

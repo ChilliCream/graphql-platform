@@ -56,9 +56,9 @@ namespace HotChocolate.Types
         }
 
         private static void TryInferInterfaceUsageFromClrType(
-           ICompletionContext context,
-           Type clrType,
-           ICollection<InterfaceType> interfaces)
+            ICompletionContext context,
+            Type clrType,
+            ICollection<InterfaceType> interfaces)
         {
             foreach (Type interfaceType in clrType.GetInterfaces())
             {
