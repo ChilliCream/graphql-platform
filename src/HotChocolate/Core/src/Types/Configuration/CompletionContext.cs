@@ -113,10 +113,10 @@ namespace HotChocolate.Configuration
                 && _typeInitializer.DiscoveredTypes is { }
                 && _typeInitializer.DiscoveredTypes.TryGetType(
                     normalized, out RegisteredType registered)
-                && registered.Type is IType t
+                && registered.Type is INamedType namedType
                 && _typeInitializer.TypeInspector.TryCreate(
                     clrRef.Type, out TypeInfo typeInfo)
-                && typeInfo.TypeFactory.Invoke(t) is T casted)
+                && typeInfo.TypeFactory.Invoke(namedType) is T casted)
             {
                 type = casted;
                 return true;

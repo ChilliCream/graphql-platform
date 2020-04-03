@@ -14,13 +14,6 @@ namespace HotChocolate.Types
         public ListType(IType elementType)
             : base(elementType)
         {
-            if (elementType.IsListType())
-            {
-                // TODO : resources
-                throw new ArgumentException(
-                    "It is not possible to put a list type into list type.",
-                    nameof(elementType));
-            }
         }
 
         public override TypeKind Kind => TypeKind.List;

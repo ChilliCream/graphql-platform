@@ -42,9 +42,9 @@ namespace HotChocolate.Configuration.Validation
                                 .Build());
                         }
 
-                        for (int j = 0; j < field.Arguments.Count; i++)
+                        for (int j = 0; j < field.Arguments.Count; j++)
                         {
-                            Argument argument = field.Arguments[i];
+                            Argument argument = field.Arguments[j];
 
                             if (argument.Name.Value.StartsWith("__"))
                             {
