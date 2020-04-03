@@ -9,6 +9,8 @@ namespace HotChocolate.Types
     {
         T this[string fieldName] { get; }
 
+        T this[int index] { get; }
+
         bool ContainsField(NameString fieldName);
     }
 

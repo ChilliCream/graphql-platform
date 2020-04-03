@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Language.Visitors</PackageId>
     <AssemblyName>HotChocolate.Language.Visitors</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>
