@@ -10,8 +10,7 @@ namespace HotChocolate.Configuration.Validation
     /// Implements the object type validation defined in the spec.
     /// http://spec.graphql.org/draft/#sec-Objects.Type-Validation
     /// </summary>
-    internal class ObjectTypeValidationRule
-        : ISchemaValidationRule
+    internal class ObjectTypeValidationRule : ISchemaValidationRule
     {
         public void Validate(
             IReadOnlyList<ITypeSystemObject> typeSystemObjects,
@@ -23,6 +22,21 @@ namespace HotChocolate.Configuration.Validation
                 foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
                 {
                     ValidateImplementations(objectType, errors);
+
+                    if (objectType.Fields.Count == 0 ||
+                        objectType.Fields.All(t => t.IsIntrospectionField))
+                    {
+                        // TODO : Resources
+                        errors.Add(SchemaErrorBuilder.New()
+                            .SetMessage(
+                                "The object type `{0}` has to at least define one field in " +
+                                "order to be valid.",
+                                objectType.Name)
+                            .SetTypeSystemObject(objectType)
+                            .AddSyntaxNode(objectType.SyntaxNode)
+                            .SpecifiedBy("sec-Objects.Type-Validation")
+                            .Build());
+                    }
 
                     for (int i = 0; i < objectType.Fields.Count; i++)
                     {
@@ -198,7 +212,7 @@ namespace HotChocolate.Configuration.Validation
             {
                 errors.Add(SchemaErrorBuilder.New()
                     .SetMessage(
-                        "The argument `{0}` of the implemented field `{1}` must be defined. "  +
+                        "The argument `{0}` of the implemented field `{1}` must be defined. " +
                         "The field `{2}` must include an argument of the same name for " +
                         "every argument defined on the implemented field " +
                         "of the interface type `{3}`.",
