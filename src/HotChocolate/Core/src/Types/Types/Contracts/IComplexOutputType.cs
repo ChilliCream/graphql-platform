@@ -9,7 +9,6 @@ namespace HotChocolate.Types
     public interface IComplexOutputType
         : INamedOutputType
         , IHasDirectives
-        , IHasSyntaxNode
     {
         /// <summary>
         /// Gets the interfaces that are implemented by this type.

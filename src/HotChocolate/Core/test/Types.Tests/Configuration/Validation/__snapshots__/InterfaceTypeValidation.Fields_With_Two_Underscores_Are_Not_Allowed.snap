@@ -1,0 +1,32 @@
+﻿[
+  {
+    "Message": "Field names starting with `__` are reserved for the GraphQL specification.",
+    "Code": null,
+    "TypeSystemObject": "Foo",
+    "Path": null,
+    "SyntaxNodes": [
+      "type Foo implements FooInterface {\n  __foo: String\n}",
+      "__foo: String"
+    ],
+    "Extensions": {
+      "field": "__foo",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "Field names starting with `__` are reserved for the GraphQL specification.",
+    "Code": null,
+    "TypeSystemObject": "FooInterface",
+    "Path": null,
+    "SyntaxNodes": [
+      "interface FooInterface {\n  __foo: String\n}",
+      "__foo: String"
+    ],
+    "Extensions": {
+      "field": "__foo",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
+    },
+    "Exception": null
+  }
+]

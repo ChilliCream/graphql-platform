@@ -5,6 +5,7 @@
     "TypeSystemObject": "Foo",
     "Path": null,
     "SyntaxNodes": [
+      "type Foo implements FooInterface {\n  abc(a: String!): String\n}",
       "a: String!",
       "a: String"
     ],

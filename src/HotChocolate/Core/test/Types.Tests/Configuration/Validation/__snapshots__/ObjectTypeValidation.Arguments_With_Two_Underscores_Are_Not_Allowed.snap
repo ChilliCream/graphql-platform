@@ -1,0 +1,19 @@
+﻿[
+  {
+    "Message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
+    "Code": null,
+    "TypeSystemObject": "Query",
+    "Path": null,
+    "SyntaxNodes": [
+      "type Query {\n  foo(__bar: String): String\n}",
+      "foo(__bar: String): String",
+      "__bar: String"
+    ],
+    "Extensions": {
+      "argument": "__bar",
+      "field": "foo",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+    },
+    "Exception": null
+  }
+]

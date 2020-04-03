@@ -5,8 +5,10 @@
     "TypeSystemObject": "Foo",
     "Path": null,
     "SyntaxNodes": [
+      "type Foo implements FooInterface {\n  abc(a: String b: String!): String\n}",
       "abc(a: String b: String!): String",
-      "abc(a: String): String"
+      "abc(a: String): String",
+      "b: String!"
     ],
     "Extensions": {
       "argument": "b",

@@ -5,8 +5,10 @@
     "TypeSystemObject": "Foo",
     "Path": null,
     "SyntaxNodes": [
+      "type Foo implements FooInterface {\n  abc: String\n}",
       "abc: String",
-      "abc(a: String): String"
+      "abc(a: String): String",
+      "a: String"
     ],
     "Extensions": {
       "field": "abc",

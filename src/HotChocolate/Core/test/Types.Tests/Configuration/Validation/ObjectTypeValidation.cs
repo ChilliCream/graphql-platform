@@ -5,6 +5,26 @@ namespace HotChocolate.Configuration.Validation
     public class ObjectTypeValidation : TypeValidationTestBase
     {
         [Fact]
+        public void Fields_With_Two_Underscores_Are_Not_Allowed()
+        {
+            ExpectError(@"
+                type Query {
+                    __foo : String
+                }
+            ");
+        }
+
+        [Fact]
+        public void Arguments_With_Two_Underscores_Are_Not_Allowed()
+        {
+            ExpectError(@"
+                type Query {
+                    foo(__bar: String) : String
+                }
+            ");
+        }
+
+        [Fact]
         public void Implemented_Field_Is_UnionType_Field_Is_ObjectType()
         {
             ExpectValid(@"

@@ -23,9 +23,16 @@ namespace HotChocolate
 
         public static ISchemaErrorBuilder SpecifiedBy(
             this ISchemaErrorBuilder errorBuilder,
-            string section) =>
-            errorBuilder.SetExtension(
-                "specifiedBy",
-                "http://spec.graphql.org/June2018/#" + section);
+            string section,
+            bool condition = true)
+        {
+            if (condition)
+            {
+                errorBuilder.SetExtension(
+                   "specifiedBy",
+                   "http://spec.graphql.org/June2018/#" + section);
+            }
+            return errorBuilder;
+        }
     }
 }

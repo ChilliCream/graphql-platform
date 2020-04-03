@@ -11,6 +11,7 @@ namespace HotChocolate.Configuration.Validation
             new ISchemaValidationRule[]
             {
                 new ObjectTypeValidationRule(),
+                new InterfaceTypeValidationRule(),
                 new InterfaceHasAtLeastOneImplementationRule()
             };
 

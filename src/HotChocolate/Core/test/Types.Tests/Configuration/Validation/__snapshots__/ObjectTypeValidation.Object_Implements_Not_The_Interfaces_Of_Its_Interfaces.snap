@@ -10,8 +10,7 @@
     ],
     "Extensions": {
       "implementedType": "A",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation",
-      "type": "Foo"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
     },
     "Exception": null
   }
