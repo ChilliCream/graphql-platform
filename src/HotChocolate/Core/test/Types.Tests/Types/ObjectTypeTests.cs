@@ -547,7 +547,7 @@ namespace HotChocolate.Types
                 }
 
                 type C implements A & B {
-                    a(a: String!): String
+                    a(a: [String]): String
                 }";
 
             // act
@@ -581,7 +581,7 @@ namespace HotChocolate.Types
                 }
 
                 type C implements A & B {
-                    a(a: String): String!
+                    a(a: String): Int
                 }";
 
             // act

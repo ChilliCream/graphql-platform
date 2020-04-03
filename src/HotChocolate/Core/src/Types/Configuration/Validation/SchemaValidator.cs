@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration.Validation
 
             foreach (ISchemaValidationRule rule in _rules)
             {
-                errors.AddRange(rule.Validate(types, options));
+                rule.Validate(types, options, errors);
             }
 
             return errors;

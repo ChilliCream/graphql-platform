@@ -1,1 +1,3 @@
-The return type of the interface field a does not match the field declared by object type C. - Type: C
+﻿Multiple schema errors occurred:
+Field `a` must return a type which is equal to or a sub‐type of (covariant) the return type `String` of the interface field. - Type: C
+Field `a` must return a type which is equal to or a sub‐type of (covariant) the return type `String` of the interface field. - Type: C

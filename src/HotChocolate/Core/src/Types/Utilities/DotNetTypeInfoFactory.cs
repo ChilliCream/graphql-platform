@@ -159,16 +159,29 @@ namespace HotChocolate.Utilities
                 {
                     if (IsPossibleNamedType(component))
                     {
-                        bluePrint = TypeFactoryHelper.PlaceHolder;
+                        bluePrint = component.IsValueType
+                            ? (IType)new NonNullType(TypeFactoryHelper.PlaceHolder)
+                            : TypeFactoryHelper.PlaceHolder;
+                        return true;
+                    }
+                }
+                else if (IsNullableType(component))
+                {
+                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
+                    {
+                        bluePrint = innerType.Kind == TypeKind.NonNull
+                            ? innerType.InnerType()
+                            : innerType;
                         return true;
                     }
                 }
                 else if (IsNonNullType(component))
                 {
-                    if (TryCreateBluePrint(components, index + 1, out IType innerType) &&
-                        innerType.Kind != TypeKind.NonNull)
+                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
                     {
-                        bluePrint = new NonNullType(innerType);
+                        bluePrint = innerType.Kind == TypeKind.NonNull
+                            ? innerType
+                            : new NonNullType(innerType);
                         return true;
                     }
                 }

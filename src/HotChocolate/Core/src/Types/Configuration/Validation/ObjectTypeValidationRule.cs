@@ -13,16 +13,17 @@ namespace HotChocolate.Configuration.Validation
     internal class ObjectTypeValidationRule
         : ISchemaValidationRule
     {
-        public IEnumerable<ISchemaError> Validate(
+        public void Validate(
             IReadOnlyList<ITypeSystemObject> typeSystemObjects,
-            IReadOnlySchemaOptions options)
+            IReadOnlySchemaOptions options,
+            ICollection<ISchemaError> errors)
         {
-            var errors = new List<ISchemaError>();
-
             if (options.StrictValidation)
             {
                 foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
                 {
+                    ValidateImplementations(objectType, errors);
+
                     for (int i = 0; i < objectType.Fields.Count; i++)
                     {
                         ObjectField field = objectType.Fields[i];
@@ -66,8 +67,6 @@ namespace HotChocolate.Configuration.Validation
                     }
                 }
             }
-
-            return errors;
         }
 
         private static void ValidateImplementations(

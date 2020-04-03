@@ -1,1 +1,1 @@
-The arguments of the interface field a from interface A and B do not match and are implemented by object type C. - Type: C
+﻿The argument `b` of the implemented field `a` must be defined.The field `a` must include an argument of the same name for every argument defined on the implemented field of the interface type `B`. - Type: C
