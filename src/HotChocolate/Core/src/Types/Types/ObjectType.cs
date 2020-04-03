@@ -10,48 +10,57 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Relay;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class ObjectType
         : NamedTypeBase<ObjectTypeDefinition>
-        , IComplexOutputType
+        , IObjectType
         , IHasClrType
         , IHasSyntaxNode
     {
         private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
-        private Action<IObjectTypeDescriptor> _configure;
-        private IsOfType _isOfType;
+        private Action<IObjectTypeDescriptor>? _configure;
+        private IsOfType? _isOfType;
 
         protected ObjectType()
         {
             _configure = Configure;
+            Fields = FieldCollection<ObjectField>.Empty;
         }
 
         public ObjectType(Action<IObjectTypeDescriptor> configure)
         {
             _configure = configure;
+            Fields = FieldCollection<ObjectField>.Empty;
         }
 
         public override TypeKind Kind => TypeKind.Object;
 
-        public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
+        public ObjectTypeDefinitionNode? SyntaxNode { get; private set; }
 
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+
+        IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => Interfaces;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public bool IsOfType(IResolverContext context, object resolverResult) =>
-            _isOfType(context, resolverResult);
+            _isOfType!.Invoke(context, resolverResult);
 
         public bool IsImplementing(NameString interfaceTypeName) =>
             _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _interfaces.Contains(interfaceType);
+            _interfaces.IndexOf(interfaceType) != -1;
+
+        public bool IsImplementing(IInterfaceType interfaceType) =>
+            interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
 
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -59,7 +68,7 @@ namespace HotChocolate.Types
             var descriptor = ObjectTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
                 GetType());
-            _configure(descriptor);
+            _configure!.Invoke(descriptor);
             _configure = null;
             return descriptor.CreateDefinition();
         }

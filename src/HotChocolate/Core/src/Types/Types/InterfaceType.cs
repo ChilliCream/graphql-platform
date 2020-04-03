@@ -13,12 +13,12 @@ namespace HotChocolate.Types
 {
     public class InterfaceType
         : NamedTypeBase<InterfaceTypeDefinition>
-        , IComplexOutputType
+        , IInterfaceType
         , IHasClrType
         , INamedType
     {
         private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
-        private readonly Action<IInterfaceTypeDescriptor> _configure;
+        private Action<IInterfaceTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 
         protected InterfaceType()
@@ -35,7 +35,11 @@ namespace HotChocolate.Types
 
         public override TypeKind Kind => TypeKind.Interface;
 
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
         public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+
+        IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => _interfaces;
 
         public InterfaceTypeDefinitionNode? SyntaxNode { get; private set; }
 
@@ -47,7 +51,10 @@ namespace HotChocolate.Types
             _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _interfaces.Contains(interfaceType);
+            _interfaces.IndexOf(interfaceType) != -1;
+
+        public bool IsImplementing(IInterfaceType interfaceType) =>
+            interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
@@ -81,7 +88,8 @@ namespace HotChocolate.Types
             var descriptor = InterfaceTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
                 GetType());
-            _configure(descriptor);
+            _configure!.Invoke(descriptor);
+            _configure = null;
             return descriptor.CreateDefinition();
         }
 

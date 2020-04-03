@@ -20,6 +20,12 @@ namespace HotChocolate
                 format,
                 args));
         }
-    }
 
+        public static ISchemaErrorBuilder SpecifiedBy(
+            this ISchemaErrorBuilder errorBuilder,
+            string section) =>
+            errorBuilder.SetExtension(
+                "specifiedBy",
+                "http://spec.graphql.org/June2018/#" + section);
+    }
 }
