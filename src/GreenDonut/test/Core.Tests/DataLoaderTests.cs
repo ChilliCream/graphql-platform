@@ -829,46 +829,21 @@ namespace GreenDonut
 
         #region LoadTest
 
-        [InlineData(5, 25, 25, 1, true, true, 0)]
-        [InlineData(5, 25, 25, 0, true, true, 0)]
-        [InlineData(5, 25, 25, 0, true, true, 25)]
-        [InlineData(5, 25, 25, 0, true, false, 0)]
-        [InlineData(5, 25, 25, 0, false, true, 0)]
-        [InlineData(5, 25, 25, 0, false, false, 0)]
-        [InlineData(100, 1000, 25, 25, true, true, 0)]
-        [InlineData(100, 1000, 25, 0, true, true, 0)]
-        [InlineData(100, 1000, 25, 0, true, true, 25)]
-        [InlineData(100, 1000, 25, 0, true, false, 0)]
-        [InlineData(100, 1000, 25, 0, false, true, 0)]
-        [InlineData(100, 1000, 25, 0, false, false, 0)]
-        //[InlineData(1000, 100000, 15, 50, true, true, 0)]
-        //[InlineData(1000, 100000, 15, 0, true, true, 0)]
-        //[InlineData(1000, 100000, 15, 0, true, true, 25)]
-        //[InlineData(1000, 100000, 15, 0, true, false, 0)]
-        //[InlineData(1000, 100000, 15, 0, false, true, 0)]
-        //[InlineData(1000, 100000, 15, 0, false, false, 0)]
-        //[InlineData(1500, 10000, 20, 100, true, true, 0)]
-        //[InlineData(1500, 10000, 20, 0, true, true, 0)]
-        //[InlineData(1500, 10000, 20, 0, true, true, 25)]
-        //[InlineData(1500, 10000, 20, 0, true, false, 0)]
-        //[InlineData(1500, 10000, 20, 0, false, true, 0)]
-        //[InlineData(1500, 10000, 20, 0, false, false, 0)]
-        //[InlineData(3000, 100000, 10, 250, true, true, 0)]
-        //[InlineData(3000, 100000, 10, 0, true, true, 0)]
-        //[InlineData(3000, 100000, 10, 0, true, true, 25)]
-        //[InlineData(3000, 100000, 10, 0, true, false, 0)]
-        //[InlineData(3000, 100000, 10, 0, false, true, 0)]
-        //[InlineData(3000, 100000, 10, 0, false, false, 0)]
-        //[InlineData(10000, 1000000, 10, 100, true, true, 0)]
-        //[InlineData(10000, 1000000, 10, 0, true, true, 0)]
-        //[InlineData(10000, 1000000, 10, 100, true, true, 25)]
-        //[InlineData(10000, 1000000, 10, 0, true, false, 0)]
-        //[InlineData(10000, 1000000, 10, 100, false, true, 0)]
-        //[InlineData(10000, 1000000, 10, 0, false, false, 0)]
+        [InlineData(5, 25, 25, 1, true, true)]
+        [InlineData(5, 25, 25, 0, true, true)]
+        [InlineData(5, 25, 25, 0, true, true)]
+        [InlineData(5, 25, 25, 0, true, false)]
+        [InlineData(5, 25, 25, 0, false, true)]
+        [InlineData(5, 25, 25, 0, false, false)]
+        [InlineData(100, 1000, 25, 25, true, true)]
+        [InlineData(100, 1000, 25, 0, true, true)]
+        [InlineData(100, 1000, 25, 0, true, true)]
+        [InlineData(100, 1000, 25, 0, true, false)]
+        [InlineData(100, 1000, 25, 0, false, true)]
+        [InlineData(100, 1000, 25, 0, false, false)]
         [Theory(DisplayName = "LoadAsync: Runs integration tests with different settings")]
         public async Task LoadTest(int uniqueKeys, int maxRequests,
-            int maxDelay, int maxBatchSize, bool caching, bool batching,
-            int slidingExpirationInMilliseconds)
+            int maxDelay, int maxBatchSize, bool caching, bool batching)
         {
             // arrange
             var random = new Random();
@@ -890,16 +865,12 @@ namespace GreenDonut
 
                     return values;
                 };
-            TimeSpan slidingExpiration = (slidingExpirationInMilliseconds > 0)
-                ? TimeSpan.FromMilliseconds(slidingExpirationInMilliseconds)
-                : TimeSpan.Zero;
             var options = new DataLoaderOptions<Guid>
             {
                 AutoDispatching = true,
                 Caching = caching,
                 Batching = batching,
-                MaxBatchSize = maxBatchSize,
-                SlidingExpiration = slidingExpiration
+                MaxBatchSize = maxBatchSize
             };
             var dataLoader = new DataLoader<Guid, int>(options, fetch);
             var keyArray = new Guid[uniqueKeys];

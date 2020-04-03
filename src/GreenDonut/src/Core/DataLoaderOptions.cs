@@ -20,7 +20,6 @@ namespace GreenDonut
             BatchRequestDelay = Defaults.BatchRequestDelay;
             CacheSize = Defaults.CacheSize;
             Caching = true;
-            SlidingExpiration = Defaults.SlidingExpiration;
         }
 
         /// <summary>
@@ -42,6 +41,15 @@ namespace GreenDonut
         /// set to <c>50</c> milliseconds.
         /// </summary>
         public TimeSpan BatchRequestDelay { get; set; }
+
+        /// <summary>
+        /// Gets or sets a cache instance to either share a cache instance
+        /// across serveral dataloader or to provide a custom cache
+        /// implementation. In case no cache instance is provided, the
+        /// dataloader will use the default cache implementation.
+        /// The default value is set to <c>null</c>.
+        /// </summary>
+        public ITaskCache? Cache {get; set;}
 
         /// <summary>
         /// Gets or sets a delegate which resolves the cache key which might
@@ -70,15 +78,5 @@ namespace GreenDonut
         /// default value is set to <c>0</c>.
         /// </summary>
         public int MaxBatchSize { get; set; }
-
-        /// <summary>
-        /// Gets or sets the sliding cache expiration. If a cahce entry expires
-        /// the entry will be removed from the cache. If set to
-        /// <see cref="TimeSpan.Zero"/> the sliding expiration is disabled.
-        /// This means an entry could live forever if the
-        /// <see cref="CacheSize"/> is not exceeded. The default value is set
-        /// to <see cref="TimeSpan.Zero"/>.
-        /// </summary>
-        public TimeSpan SlidingExpiration { get; set; }
     }
 }
