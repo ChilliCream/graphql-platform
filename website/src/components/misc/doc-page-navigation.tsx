@@ -154,7 +154,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                     </ProductDescription>
                   </CurrentProduct>
                 ) : (
-                  <ProductLink variants={item}>
+                  <ProductLink  to={`/docs/${product!.path!}`} variants={item}>
                     <ProductTitle>{product!.title!}</ProductTitle>
                     <ProductDescription>
                       {product!.description!}
@@ -289,7 +289,7 @@ const CurrentProduct = motion.custom(styled.div`
   background-color: #ddd;
 `);
 
-const ProductLink = motion.custom(styled.div`
+const ProductLink = motion.custom(styled(Link)`
   flex: 0 0 calc(50% - 32px);
   border: 1px solid #ccc;
   border-radius: 5px;
