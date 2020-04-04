@@ -11,9 +11,19 @@ namespace HotChocolate.Types
         : NonNamedType
         , INullableType
     {
+        private readonly bool _isNestedList;
+        private readonly IInputType _namedType;
+
         public ListType(IType elementType)
             : base(elementType)
         {
+            if (elementType.IsInputType())
+            {
+                _isNestedList = elementType.IsListType();
+                _namedType = _isNestedList
+                    ? (IInputType)elementType.ElementType()
+                    : (IInputType)elementType;
+            }
         }
 
         public override TypeKind Kind => TypeKind.List;
@@ -27,22 +37,43 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (InnerInputType.IsInstanceOfType(literal))
+            IInputType inputType = InnerInputType;
+
+            if (_namedType.IsInstanceOfType(literal))
             {
                 return true;
             }
 
-            if (literal is ListValueNode listValueLiteral)
+            if (_isNestedList)
             {
-                foreach (IValueNode element in listValueLiteral.Items)
+                if (literal is ListValueNode listValueLiteral)
                 {
-                    if (!InnerInputType.IsInstanceOfType(element))
+                    foreach (IValueNode element in listValueLiteral.Items)
                     {
-                        return false;
+                        if (element.Kind != NodeKind.ListValue
+                            || !InnerInputType.IsInstanceOfType(element))
+                        {
+                            return false;
+                        }
                     }
-                }
 
-                return true;
+                    return true;
+                }
+            }
+            else
+            {
+                if (literal is ListValueNode listValueLiteral)
+                {
+                    foreach (IValueNode element in listValueLiteral.Items)
+                    {
+                        if (!InnerInputType.IsInstanceOfType(element))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
             }
             return false;
         }
@@ -54,14 +85,24 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (InnerInputType.IsInstanceOfType(literal))
+            if (literal.Kind != NodeKind.ListValue && InnerInputType.IsInstanceOfType(literal))
             {
                 return CreateList(new ListValueNode(literal));
             }
 
-            if (literal is ListValueNode listValueLiteral)
+            if (literal.Kind == NodeKind.ListValue)
             {
-                return CreateList(listValueLiteral);
+                if (_isNestedList)
+                {
+                    if (IsInstanceOfType(literal))
+                    {
+                        return CreateList((ListValueNode)literal);
+                    }
+                }
+                else
+                {
+                    return CreateList((ListValueNode)literal);
+                }
             }
 
             // TODO : resources
@@ -81,8 +122,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            Type elementType = DotNetTypeInfoFactory
-                .GetInnerListType(value.GetType());
+            Type elementType = DotNetTypeInfoFactory.GetInnerListType(value.GetType());
 
             if (elementType is null)
             {
