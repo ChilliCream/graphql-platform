@@ -11,19 +11,23 @@ namespace HotChocolate.Language.Visitors
         , ISyntaxVisitor
     {
 
-        public SyntaxVisitor()
+        public SyntaxVisitor(SyntaxVisitorOptions options = default)
+            : base(options)
         {
         }
 
-        public SyntaxVisitor(ISyntaxVisitorAction defaultResult)
-            : base(defaultResult)
+        public SyntaxVisitor(
+            ISyntaxVisitorAction defaultResult,
+            SyntaxVisitorOptions options = default)
+            : base(defaultResult, options)
         {
         }
 
         public static ISyntaxVisitor Create(
             Func<ISyntaxNode, ISyntaxVisitorAction>? enter = null,
             Func<ISyntaxNode, ISyntaxVisitorAction>? leave = null,
-            ISyntaxVisitorAction? defaultAction = null)
+            ISyntaxVisitorAction? defaultAction = null,
+            SyntaxVisitorOptions options = default)
         {
             return new DelegateSyntaxVisitor(
                 enter is { }
@@ -32,15 +36,17 @@ namespace HotChocolate.Language.Visitors
                 leave is { }
                     ? new VisitSyntaxNode((n, c) => leave(n))
                     : null,
-                default);
+                default,
+                options);
         }
 
         public static ISyntaxVisitor Create(
             VisitSyntaxNode? enter = null,
             VisitSyntaxNode? leave = null,
-            ISyntaxVisitorAction? defaultAction = null)
+            ISyntaxVisitorAction? defaultAction = null,
+            SyntaxVisitorOptions options = default)
         {
-            return new DelegateSyntaxVisitor(enter, leave, default);
+            return new DelegateSyntaxVisitor(enter, leave, default, options);
         }
     }
 }

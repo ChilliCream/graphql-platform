@@ -1,6 +1,5 @@
 using HotChocolate.Validation;
 using HotChocolate.Validation.Rules;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -155,6 +154,36 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             return services.AddValidationRule<FragmentsVisitor>();
+        }
+
+        /// <summary>
+        /// Every input field provided in an input object value must be defined in
+        /// the set of possible fields of that input object’s expected type.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names
+        ///
+        /// AND
+        ///
+        /// Input objects must not contain more than one field of the same name,
+        /// otherwise an ambiguity would exist which includes an ignored portion
+        /// of syntax.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Input object fields may be required. Much like a field may have
+        /// required arguments, an input object may have required fields.
+        ///
+        /// An input field is required if it has a non‐null type and does not have
+        /// a default value. Otherwise, the input object field is optional.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
+        /// </summary>
+        public static IServiceCollection AddInputObjectsAreValidRule(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<InputObjectVisitor>();
         }
 
         /// <summary>

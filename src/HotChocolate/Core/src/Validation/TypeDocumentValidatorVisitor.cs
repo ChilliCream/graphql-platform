@@ -15,7 +15,6 @@ namespace HotChocolate.Validation
         protected override IDocumentValidatorContext OnBeforeEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             INamedOutputType? namedOutputType;
@@ -29,6 +28,7 @@ namespace HotChocolate.Validation
                 case NodeKind.OperationDefinition:
                     var operation = (OperationDefinitionNode)node;
                     context.Types.Push(GetOperationType(context.Schema, operation.Operation));
+                    context.IsInError.Push(false);
                     break;
 
                 case NodeKind.VariableDefinition:
@@ -43,11 +43,12 @@ namespace HotChocolate.Validation
                         ot.Fields.TryGetField(field.Name.Value, out IOutputField of))
                     {
                         context.OutputFields.Push(of);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
                         context.Types.Push(context.Types.Peek());
-                        context.IsInError = true;
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -56,17 +57,19 @@ namespace HotChocolate.Validation
                     if (inlineFragment.TypeCondition is null)
                     {
                         context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(false);
                     }
                     else if (context.Schema.TryGetType(
                         inlineFragment.TypeCondition.Name.Value,
                         out namedOutputType))
                     {
                         context.Types.Push(namedOutputType);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
                         context.Types.Push(context.Types.Peek());
-                        context.IsInError = true;
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -77,11 +80,12 @@ namespace HotChocolate.Validation
                         out namedOutputType))
                     {
                         context.Types.Push(namedOutputType);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
                         context.Types.Push(context.Types.Peek());
-                        context.IsInError = true;
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -92,16 +96,18 @@ namespace HotChocolate.Validation
                         directiveType.Arguments.TryGetField(argName, out inputField))
                     {
                         context.InputFields.Push(inputField);
+                        context.IsInError.Push(false);
                     }
                     else if (context.OutputFields.TryPeek(out outputField) &&
                         outputField.Arguments.TryGetField(argName, out inputField))
                     {
                         context.InputFields.Push(inputField);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
                         context.Types.Push(context.Types.Peek());
-                        context.IsInError = true;
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -113,11 +119,12 @@ namespace HotChocolate.Validation
                         inputType.Fields.TryGetField(fieldName, out inputField))
                     {
                         context.InputFields.Push(inputField);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
                         context.Types.Push(context.Types.Peek());
-                        context.IsInError = true;
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -127,22 +134,22 @@ namespace HotChocolate.Validation
                     if (context.Schema.TryGetDirectiveType(directiveName, out DirectiveType d))
                     {
                         context.Directives.Push(d);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
                         context.Types.Push(context.Types.Peek());
-                        context.IsInError = true;
+                        context.IsInError.Push(true);
                     }
                     break;
             }
 
-            return base.OnBeforeEnter(node, parent, ancestors, context);
+            return base.OnBeforeEnter(node, parent, context);
         }
 
         protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             IOutputField? outputField;
@@ -160,7 +167,7 @@ namespace HotChocolate.Validation
 
                 case NodeKind.ObjectField:
                     if (context.InputFields.TryPeek(out inputField) &&
-                        inputField.Name.Equals(((ObjectField)node).Name.Value))
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
                     {
                         context.Types.Push(inputField.Type);
                     }
@@ -175,13 +182,12 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnAfterEnter(node, parent, ancestors, context);
+            return base.OnAfterEnter(node, parent, context);
         }
 
         protected override IDocumentValidatorContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             IOutputField? outputField;
@@ -199,7 +205,7 @@ namespace HotChocolate.Validation
 
                 case NodeKind.ObjectField:
                     if (context.InputFields.TryPeek(out inputField) &&
-                        inputField.Name.Equals(((ObjectField)node).Name.Value))
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
                     {
                         context.Types.TryPop(out _);
                     }
@@ -214,13 +220,12 @@ namespace HotChocolate.Validation
                     break;
             }
 
-            return base.OnBeforeLeave(node, parent, ancestors, context);
+            return base.OnBeforeLeave(node, parent, context);
         }
 
         protected override IDocumentValidatorContext OnAfterLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             IOutputField? outputField;
@@ -231,11 +236,13 @@ namespace HotChocolate.Validation
                 case NodeKind.OperationDefinition:
                     context.Types.Pop();
                     context.Variables.Clear();
+                    context.IsInError.Pop();
                     break;
 
                 case NodeKind.InlineFragment:
                 case NodeKind.FragmentDefinition:
                     context.Types.Pop();
+                    context.IsInError.Pop();
                     break;
 
                 case NodeKind.Field:
@@ -244,14 +251,16 @@ namespace HotChocolate.Validation
                     {
                         context.OutputFields.Pop();
                     }
+                    context.IsInError.Pop();
                     break;
 
                 case NodeKind.ObjectField:
                     if (context.InputFields.TryPeek(out inputField) &&
-                        inputField.Name.Equals(((ObjectField)node).Name.Value))
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
                     {
                         context.InputFields.Pop();
                     }
+                    context.IsInError.Pop();
                     break;
 
                 case NodeKind.Argument:
@@ -260,14 +269,16 @@ namespace HotChocolate.Validation
                     {
                         context.InputFields.Pop();
                     }
+                    context.IsInError.Pop();
                     break;
 
                 case NodeKind.Directive:
                     context.Directives.Pop();
+                    context.IsInError.Pop();
                     break;
             }
 
-            return base.OnAfterLeave(node, parent, ancestors, context);
+            return base.OnAfterLeave(node, parent, context);
         }
 
         private static ObjectType GetOperationType(

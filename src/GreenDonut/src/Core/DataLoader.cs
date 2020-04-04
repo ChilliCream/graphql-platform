@@ -25,6 +25,7 @@ namespace GreenDonut
     /// <typeparam name="TValue">A value type.</typeparam>
     public sealed class DataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
+            where TKey : notnull
     {
         private readonly FetchDataDelegate<TKey, TValue> _fetch;
 
@@ -61,8 +62,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="fetch"/> is <c>null</c>.
         /// </exception>
-        public DataLoader(
-            DataLoaderOptions<TKey> options,
+        public DataLoader(DataLoaderOptions<TKey> options,
             FetchDataDelegate<TKey, TValue> fetch)
                 : base(options)
         {

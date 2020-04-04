@@ -11,6 +11,8 @@ namespace HotChocolate.Validation
 
         IList<ISyntaxNode> Path { get; }
 
+        ISet<string> VisitedFragments { get; }
+
         IDictionary<string, VariableDefinitionNode> Variables { get; }
 
         IDictionary<string, FragmentDefinitionNode> Fragments { get; }
@@ -36,6 +38,6 @@ namespace HotChocolate.Validation
         /// <summary>
         /// The visitor was unable to resolver types specified in the query.
         /// </summary>
-        bool IsInError { get; set; }
+        IList<bool> IsInError { get; }
     }
 }

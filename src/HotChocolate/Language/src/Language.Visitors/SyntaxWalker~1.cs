@@ -4,12 +4,15 @@ namespace HotChocolate.Language.Visitors
         : SyntaxVisitor<TContext>
         where TContext : ISyntaxVisitorContext
     {
-        protected SyntaxWalker() : base(Continue)
+        protected SyntaxWalker(SyntaxVisitorOptions options = default)
+            : base(Continue, options)
         {
         }
 
-        protected SyntaxWalker(ISyntaxVisitorAction defaultResult)
-            : base(defaultResult)
+        protected SyntaxWalker(
+            ISyntaxVisitorAction defaultResult,
+            SyntaxVisitorOptions options = default)
+            : base(defaultResult, options)
         {
         }
     }

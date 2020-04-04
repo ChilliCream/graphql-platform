@@ -1,55 +1,36 @@
-﻿
-using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class InputObjectFieldUniquenessRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public InputObjectFieldUniquenessRuleTests()
-            : base(new InputObjectFieldUniquenessRule())
+            : base(services => services.AddInputObjectsAreValidRule())
         {
         }
 
         [Fact]
         public void NoFieldAmbiguity()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     findDog(complex: { name: ""A"", owner: ""B"" })
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void NameFieldIsAmbiguous()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     findDog(complex: { name: ""A"", name: ""B"" })
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "Field `name` is ambiguous.",
-                    t.Message));
+            ",
+            error => Assert.Equal("Field `name` is ambiguous.", error.Message));
         }
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace GreenDonut
@@ -10,7 +12,7 @@ namespace GreenDonut
         {
             if (source == null)
             {
-                return cancellationToken;
+                throw new ArgumentNullException(nameof(source));
             }
 
             if (cancellationToken == CancellationToken.None)
