@@ -154,7 +154,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                     </ProductDescription>
                   </CurrentProduct>
                 ) : (
-                  <ProductLink  to={`/docs/${product!.path!}`} variants={item}>
+                  <ProductLink to={`/docs/${product!.path!}`} variants={item}>
                     <ProductTitle>{product!.title!}</ProductTitle>
                     <ProductDescription>
                       {product!.description!}
