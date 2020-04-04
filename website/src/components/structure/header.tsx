@@ -6,12 +6,12 @@ import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
 import BarsIconSvg from "../../images/bars.svg";
-import GithubIconSvg from "../../images/github.svg";
-import LogoIconSvg from "../../images/chillicream.svg";
+import GithubIconSvg from "../../images/github.svg"; 
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import { WinkingLogo } from "../misc/winking-logo";
 
 export const Header: FunctionComponent = () => {
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
@@ -132,7 +132,7 @@ const LogoLink = styled(Link)`
   height: 60px;
 `;
 
-const LogoIcon = styled(LogoIconSvg)`
+const LogoIcon = styled(WinkingLogo)`
   height: 40px;
   fill: #fff;
 `;
