@@ -1,0 +1,18 @@
+﻿{
+  "message": "The object type must also declare all interfaces declared by implemented interfaces.",
+  "type": "Foo",
+  "extensions": {
+    "implementedType": "A",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "The field `cde` must be implement by interface type `A`.",
+  "type": "A",
+  "extensions": {
+    "implementedField": "cde",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
+  }
+}
+

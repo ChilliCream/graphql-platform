@@ -161,7 +161,7 @@
             }
           ],
           "inputFields": null,
-          "interfaces": null,
+          "interfaces": [],
           "enumValues": null,
           "possibleTypes": []
         },

@@ -47,7 +47,7 @@ namespace HotChocolate.Types
         IEnumTypeDescriptor<T> BindValuesExplicitly();
 
         /// <summary>
-        /// Defines that all enum values shall be infered
+        /// Defines that all enum values shall be inferred
         /// from the associated .Net type,
         /// </summary>
         IEnumTypeDescriptor<T> BindValuesImplicitly();

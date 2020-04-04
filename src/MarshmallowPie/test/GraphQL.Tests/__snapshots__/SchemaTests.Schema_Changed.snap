@@ -42,7 +42,7 @@ type ClientVersion {
   externalId: String!
   id: ID!
   published: DateTime!
-  queryIds: [ID]!
+  queryIds: [ID!]!
   tags: [Tag!]!
 }
 

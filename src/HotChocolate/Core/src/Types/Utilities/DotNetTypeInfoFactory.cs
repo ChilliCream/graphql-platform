@@ -20,12 +20,14 @@ namespace HotChocolate.Utilities
             {
                 List<Type> components = DecomposeType(type);
 
-                if (components.Any()
-                    && (TryCreate4ComponentType(components, out typeInfo)
-                    || TryCreate3ComponentType(components, out typeInfo)
-                    || TryCreate2ComponentType(components, out typeInfo)
-                    || TryCreate1ComponentType(components, out typeInfo)))
+                if (components.Count > 0 &&
+                    TryCreateBluePrint(components, 0, out IType bluePrint) &&
+                    TypeFactoryHelper.IsTypeStructureValid(bluePrint))
                 {
+                    typeInfo = new TypeInfo(
+                        components.Last(),
+                        components,
+                        n => bluePrint.Rewrite(n));
                     return true;
                 }
             }
@@ -138,169 +140,70 @@ namespace HotChocolate.Utilities
             return typeof(List<>).MakeGenericType(elementType);
         }
 
-        private static Type MakeNonNullListType(Type elementType)
-        {
-            return MakeNonNullType(MakeListType(elementType));
-        }
-
         private static Type MakeNonNullType(Type nullableType)
         {
             Type wrapper = typeof(NativeType<>).MakeGenericType(nullableType);
             return typeof(NonNullType<>).MakeGenericType(wrapper);
         }
 
-        private static bool TryCreate4ComponentType(
-            List<Type> components, out TypeInfo typeInfo)
+        private static bool TryCreateBluePrint(
+            List<Type> components,
+            int index,
+            out IType bluePrint)
         {
-            if (components.Count == 4)
+            if (index < components.Count)
             {
-                if (IsNonNullType(components[0])
-                    && IsListType(components[1])
-                    && IsNonNullType(components[2])
-                    && IsPossibleNamedType(components[3]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[3],
-                        components,
-                        t => new NonNullType(new ListType(new NonNullType(t))));
-                    return true;
-                }
+                Type component = components[index];
 
-                if (IsNonNullType(components[0])
-                    && IsListType(components[1])
-                    && IsNullableType(components[2])
-                    && components[3].IsValueType)
+                if (index == components.Count - 1)
                 {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new NonNullType(new ListType(t)));
-                    return true;
+                    if (IsPossibleNamedType(component))
+                    {
+                        bluePrint = component.IsValueType
+                            ? (IType)new NonNullType(TypeFactoryHelper.PlaceHolder)
+                            : TypeFactoryHelper.PlaceHolder;
+                        return true;
+                    }
+                }
+                else if (IsNullableType(component))
+                {
+                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
+                    {
+                        bluePrint = innerType.Kind == TypeKind.NonNull
+                            ? innerType.InnerType()
+                            : innerType;
+                        return true;
+                    }
+                }
+                else if (IsNonNullType(component))
+                {
+                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
+                    {
+                        bluePrint = innerType.Kind == TypeKind.NonNull
+                            ? innerType
+                            : new NonNullType(innerType);
+                        return true;
+                    }
+                }
+                else if (IsNullableType(component))
+                {
+                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
+                    {
+                        bluePrint = innerType;
+                        return true;
+                    }
+                }
+                else if (IsListType(component))
+                {
+                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
+                    {
+                        bluePrint = new ListType(innerType);
+                        return true;
+                    }
                 }
             }
 
-            typeInfo = default;
-            return false;
-        }
-
-        private static bool TryCreate3ComponentType(
-             List<Type> components, out TypeInfo typeInfo)
-        {
-            if (components.Count == 3)
-            {
-                if (IsListType(components[0])
-                    && IsNullableType(components[1])
-                    && components[2].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new ListType(t));
-                    return true;
-                }
-
-                if (IsListType(components[0])
-                    && IsNonNullType(components[1])
-                    && IsPossibleNamedType(components[2]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new ListType(new NonNullType(t)));
-                    return true;
-                }
-
-                if (IsNonNullType(components[0])
-                    && IsListType(components[1])
-                    && IsPossibleNamedType(components[2]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[2],
-                        components,
-                        t => new NonNullType(new ListType(t)));
-                    return true;
-                }
-            }
-
-            typeInfo = default;
-            return false;
-        }
-
-        private static bool TryCreate2ComponentType(
-             List<Type> components, out TypeInfo typeInfo)
-        {
-            if (components.Count == 2)
-            {
-                if (IsListType(components[0])
-                    && components[1].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => new ListType(new NonNullType(t)));
-                    return true;
-                }
-
-                if (IsListType(components[0])
-                    && IsPossibleNamedType(components[1]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => new ListType(t));
-                    return true;
-                }
-
-                if (IsNullableType(components[0])
-                    && components[1].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => t);
-                    return true;
-                }
-
-                if (IsNonNullType(components[0])
-                    && IsPossibleNamedType(components[1]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[1],
-                        components,
-                        t => new NonNullType(t));
-                    return true;
-                }
-            }
-
-            typeInfo = default;
-            return false;
-        }
-
-        private static bool TryCreate1ComponentType(
-            List<Type> components, out TypeInfo typeInfo)
-        {
-            if (components.Count == 1)
-            {
-                if (components[0].IsValueType)
-                {
-                    typeInfo = new TypeInfo(
-                        components[0],
-                        components,
-                        t => new NonNullType(t));
-                    return true;
-                }
-
-                if (IsPossibleNamedType(components[0]))
-                {
-                    typeInfo = new TypeInfo(
-                        components[0],
-                        components,
-                        t => t);
-                    return true;
-                }
-            }
-
-            typeInfo = default;
+            bluePrint = null;
             return false;
         }
 

@@ -8,7 +8,7 @@ namespace HotChocolate.Utilities
     {
         public TypeInfo(Type clrType,
             IReadOnlyList<Type> components,
-            Func<IType, IType> typeFactory)
+            Func<INamedType, IType> typeFactory)
         {
             ClrType = clrType;
             Components = components;
@@ -19,6 +19,6 @@ namespace HotChocolate.Utilities
 
         public Type ClrType { get; }
 
-        public Func<IType, IType> TypeFactory { get; }
+        public Func<INamedType, IType> TypeFactory { get; }
     }
 }

@@ -21,17 +21,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Create_ElementTypeIsListType_ArgExec()
-        {
-            // arrange
-            // act
-            Action action = () => new ListType(new ListType(new StringType()));
-
-            // assert
-            Assert.Throws<ArgumentException>(action);
-        }
-
-        [Fact]
         public void InstanceOf_LiteralIsNull_ArgNullExec()
         {
             // arrange

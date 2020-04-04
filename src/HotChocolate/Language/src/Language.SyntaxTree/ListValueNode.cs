@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         private int? _hash;
 
         public ListValueNode(IValueNode item)
-            : this(null, item)
+            : this(default(Location?), item)
         {
         }
 
@@ -31,6 +31,11 @@ namespace HotChocolate.Language
 
         public ListValueNode(
             IReadOnlyList<IValueNode> items)
+            : this(null, items)
+        {
+        }
+
+        public ListValueNode(params IValueNode[] items)
             : this(null, items)
         {
         }
