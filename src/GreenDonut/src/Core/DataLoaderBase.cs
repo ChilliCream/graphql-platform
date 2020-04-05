@@ -37,8 +37,14 @@ namespace GreenDonut
         private DataLoaderOptions<TKey> _options;
 
         /// <summary>
-        /// Initializes a new instance of the
-        /// <see cref="DataLoader{TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
+        /// </summary>
+        protected DataLoaderBase()
+            : this(new DataLoaderOptions<TKey>())
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
         /// </summary>
         /// <param name="options">
         /// An options object to configure the behavior of this particular

@@ -30,8 +30,7 @@ namespace GreenDonut
         private readonly FetchDataDelegate<TKey, TValue> _fetch;
 
         /// <summary>
-        /// Initializes a new instance of the
-        /// <see cref="DataLoader{TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
         /// </summary>
         /// <param name="fetch">
         /// A delegate to fetch data batches which will be invoked every time
@@ -45,8 +44,7 @@ namespace GreenDonut
         { }
 
         /// <summary>
-        /// Initializes a new instance of the
-        /// <see cref="DataLoader{TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
         /// </summary>
         /// <param name="options">
         /// An options object to configure the behavior of this particular
