@@ -43,7 +43,6 @@ namespace HotChocolate.Types
             // Input coercion rules specify that float values can be coerced
             // from IntValueNode and FloatValueNode:
             // http://facebook.github.io/graphql/June2018/#sec-Float
-
             if (literal is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
             {
                 return true;

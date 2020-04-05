@@ -1,0 +1,11 @@
+﻿{
+  "message": "The argument \u0060a\u0060 of the implemented field \u0060abc\u0060 must be defined. The field \u0060abc\u0060 must include an argument of the same name for every argument defined on the implemented field of the interface type \u0060FooInterface\u0060.",
+  "type": "Foo",
+  "extensions": {
+    "field": "abc",
+    "implementedField": "abc",
+    "missingArgument": "a",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+

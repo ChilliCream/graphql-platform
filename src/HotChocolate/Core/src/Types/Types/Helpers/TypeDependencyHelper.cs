@@ -58,6 +58,10 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(definition));
             }
 
+            context.RegisterDependencyRange(
+                definition.Interfaces,
+                TypeDependencyKind.Default);
+
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
             RegisterFieldDependencies(context, definition.Fields);

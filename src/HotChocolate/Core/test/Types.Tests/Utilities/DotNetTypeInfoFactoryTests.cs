@@ -23,6 +23,7 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(Task<string>), "String")]
         [InlineData(typeof(List<string>), "[String]")]
         [InlineData(typeof(Task<List<string>>), "[String]")]
+        [InlineData(typeof(Task<List<List<string>>>), "[[String]]")]
         [InlineData(typeof(string[]), "[String]")]
         [InlineData(typeof(Task<string[]>), "[String]")]
         [InlineData(typeof(NativeType<string>), "String")]
@@ -48,6 +49,8 @@ namespace HotChocolate.Utilities
                 typeInfo.TypeFactory(new StringType()).Visualize());
         }
 
+        [InlineData(typeof(NonNullType<NativeType<Nullable<int>>>), "Int!")]
+        [InlineData(typeof(List<NativeType<Nullable<int>>>), "[Int]")]
         [InlineData(typeof(Optional<int>), "Int!")]
         [InlineData(typeof(int), "Int!")]
         [InlineData(typeof(Task<int>), "Int!")]
@@ -75,8 +78,8 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<Task<int?[]>>), "[Int]")]
         [Theory]
         public void CreateTypeInfoFromValueType(
-                    Type clrType,
-                    string expectedTypeName)
+            Type clrType,
+            string expectedTypeName)
         {
             // arrange
             var factory = new DotNetTypeInfoFactory();
