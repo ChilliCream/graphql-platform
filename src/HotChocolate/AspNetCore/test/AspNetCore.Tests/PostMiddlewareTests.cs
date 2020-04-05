@@ -83,7 +83,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendPostRequestAsync("[]");
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);

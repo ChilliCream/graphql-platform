@@ -1,8 +1,8 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake.Transport.WebSockets;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class WebSocketConnectionPoolServiceCollectionExtensions
     {

@@ -1,10 +1,10 @@
-using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake.Demo;
 using HotChocolate;
 using HotChocolate.StarWars;
 using HotChocolate.Execution.Batching;
 using HotChocolate.Subscriptions;
 
-namespace StrawberryShake.Demo
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class TestingServiceCollectionExtensions
     {

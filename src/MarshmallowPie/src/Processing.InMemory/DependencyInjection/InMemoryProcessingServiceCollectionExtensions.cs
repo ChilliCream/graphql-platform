@@ -1,8 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
+using MarshmallowPie;
 using MarshmallowPie.Processing;
 using MarshmallowPie.Processing.InMemory;
 
-namespace MarshmallowPie
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class InMemoryProcessingServiceCollectionExtensions
     {

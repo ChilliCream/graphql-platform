@@ -1,9 +1,9 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake.Transport.WebSockets;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace StrawberryShake.Transport.WebSockets
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Extensions methods to configure an <see cref="IServiceCollection"/> for <see cref="IWebSocketClientFactory"/>.

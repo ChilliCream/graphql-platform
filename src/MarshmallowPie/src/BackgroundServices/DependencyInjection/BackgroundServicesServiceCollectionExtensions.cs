@@ -1,8 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
+using MarshmallowPie;
 using MarshmallowPie.BackgroundServices;
 using MarshmallowPie.Processing;
 
-namespace MarshmallowPie
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class BackgroundServicesServiceCollectionExtensions
     {

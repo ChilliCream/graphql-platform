@@ -1,10 +1,10 @@
 using System;
+using MarshmallowPie;
 using MarshmallowPie.Repositories;
 using MarshmallowPie.Repositories.Mongo;
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 
-namespace MarshmallowPie
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class MongoServiceCollectionExtensions
     {

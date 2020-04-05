@@ -1,11 +1,11 @@
 ﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
 using HotChocolate.DataLoader;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using GreenDonut;
 
-namespace HotChocolate
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DataLoaderServiceCollectionExtensions
     {

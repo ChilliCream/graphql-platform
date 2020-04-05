@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;

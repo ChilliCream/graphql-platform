@@ -1,12 +1,12 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Batching;
 using System.Linq;
 using HotChocolate.Types.Relay;
 
-namespace HotChocolate
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class SchemaServiceCollectionExtensions
     {

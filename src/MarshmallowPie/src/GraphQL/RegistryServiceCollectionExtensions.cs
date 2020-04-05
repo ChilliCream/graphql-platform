@@ -1,10 +1,10 @@
 using HotChocolate;
+using MarshmallowPie.GraphQL;
 using MarshmallowPie.GraphQL.Environments;
 using MarshmallowPie.GraphQL.ErrorFilters;
 using MarshmallowPie.GraphQL.Schemas;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace MarshmallowPie.GraphQL
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class RegistryServiceCollectionExtensions
     {

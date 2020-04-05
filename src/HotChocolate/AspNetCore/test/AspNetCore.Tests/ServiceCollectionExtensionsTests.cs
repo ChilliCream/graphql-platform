@@ -20,8 +20,7 @@ namespace HotChocolate.AspNetCore
             var services = new ServiceCollection();
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 SchemaBuilder.New()
                     .AddDocumentFromString("type Query { a: String }")
                     .Use(next => context => Task.CompletedTask));
@@ -40,8 +39,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null, schema);
+            Action action = () => ((IServiceCollection)null).AddGraphQL(schema);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -52,8 +50,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(), default(Schema));
+            Action action = () => new ServiceCollection().AddGraphQL(default(Schema));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -67,9 +64,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
-                schema);
+            services.AddGraphQL(schema);
 
             // assert
             services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
@@ -86,8 +81,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 schema,
                 new Action<IQueryExecutionBuilder>(c => { }));
 
@@ -100,8 +94,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(Schema),
                 new Action<IQueryExecutionBuilder>(c => { }));
 
@@ -116,8 +109,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 schema,
                 default(Action<IQueryExecutionBuilder>));
 
@@ -135,8 +127,7 @@ namespace HotChocolate.AspNetCore
                 c => c.UseDefaultPipeline());
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 schema,
                 cfg);
 
@@ -154,8 +145,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null, new Func<IServiceProvider, ISchema>(s => schema));
+            Action action = () => ((IServiceCollection)null).AddGraphQL(new Func<IServiceProvider, ISchema>(s => schema));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -166,9 +156,9 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
-                default(Func<IServiceProvider, ISchema>));
+            Action action = () => new ServiceCollection().AddGraphQL(
+                default(Func<IServiceProvider, ISchema>)
+            );
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -181,8 +171,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 new Func<IServiceProvider, ISchema>(s => schema),
                 new Action<IQueryExecutionBuilder>(c => { }));
 
@@ -195,8 +184,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(Func<IServiceProvider, ISchema>),
                 new Action<IQueryExecutionBuilder>(c => { }));
 
@@ -211,8 +199,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 new Func<IServiceProvider, ISchema>(s => schema),
                 default(Action<IQueryExecutionBuilder>));
 
@@ -230,8 +217,7 @@ namespace HotChocolate.AspNetCore
                 c => c.UseDefaultPipeline());
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 sp => schema,
                 cfg);
 
@@ -249,8 +235,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 new Action<ISchemaConfiguration>(c => { }));
 
             // assert
@@ -262,8 +247,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(Action<ISchemaConfiguration>));
 
             // assert
@@ -279,8 +263,7 @@ namespace HotChocolate.AspNetCore
                 c => c.Options.StrictValidation = false);
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 schemaCfg);
 
             // assert
@@ -295,8 +278,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 new Action<ISchemaConfiguration>(c => { }),
                 new Action<IQueryExecutionBuilder>(c => { }));
 
@@ -309,8 +291,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(Action<ISchemaConfiguration>),
                 new Action<IQueryExecutionBuilder>(c => { }));
 
@@ -325,8 +306,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 new Action<ISchemaConfiguration>(c => { }),
                 default(Action<IQueryExecutionBuilder>));
 
@@ -345,8 +325,7 @@ namespace HotChocolate.AspNetCore
                 c => c.UseDefaultPipeline());
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 schemaCfg,
                 cfg);
 
@@ -362,8 +341,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }));
 
@@ -376,8 +354,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(string),
                 new Action<ISchemaConfiguration>(c => { }));
 
@@ -390,8 +367,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 string.Empty,
                 new Action<ISchemaConfiguration>(c => { }));
 
@@ -406,8 +382,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 "type Query { a: String }",
                 default(Action<ISchemaConfiguration>));
 
@@ -425,8 +400,7 @@ namespace HotChocolate.AspNetCore
                 c => c.Options.StrictValidation = false);
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 schema,
                 schemaCfg);
 
@@ -442,8 +416,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
                 new Action<IQueryExecutionBuilder>(c => { }));
@@ -457,8 +430,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(string),
                 new Action<ISchemaConfiguration>(c => { }),
                 new Action<IQueryExecutionBuilder>(c => { }));
@@ -472,8 +444,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 string.Empty,
                 new Action<ISchemaConfiguration>(c => { }),
                 new Action<IQueryExecutionBuilder>(c => { }));
@@ -489,8 +460,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 "type Query { a: String }",
                 default(Action<ISchemaConfiguration>),
                 new Action<IQueryExecutionBuilder>(c => { }));
@@ -504,8 +474,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
                 default(Action<IQueryExecutionBuilder>));
@@ -526,8 +495,7 @@ namespace HotChocolate.AspNetCore
                 c => c.UseDefaultPipeline());
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 schema,
                 schemaCfg,
                 cfg);
@@ -546,8 +514,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 schema,
                 new QueryExecutionOptions());
 
@@ -560,8 +527,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(Schema),
                 new QueryExecutionOptions());
 
@@ -576,8 +542,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 schema,
                 default(IQueryExecutionOptionsAccessor));
 
@@ -594,8 +559,7 @@ namespace HotChocolate.AspNetCore
             var options = new QueryExecutionOptions();
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 schema,
                 options);
 
@@ -613,8 +577,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 sp => schema,
                 new QueryExecutionOptions());
 
@@ -627,8 +590,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(Func<IServiceProvider, ISchema>),
                 new QueryExecutionOptions());
 
@@ -643,8 +605,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 sp => schema,
                 default(IQueryExecutionOptionsAccessor));
 
@@ -661,8 +622,7 @@ namespace HotChocolate.AspNetCore
             var options = new QueryExecutionOptions();
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 sp => schema,
                 options);
 
@@ -680,8 +640,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 new Action<ISchemaConfiguration>(c => { }),
                 new QueryExecutionOptions());
 
@@ -694,8 +653,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(Action<ISchemaConfiguration>),
                 new QueryExecutionOptions());
 
@@ -710,8 +668,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 new Action<ISchemaConfiguration>(c => { }),
                 default(IQueryExecutionOptionsAccessor));
 
@@ -727,8 +684,7 @@ namespace HotChocolate.AspNetCore
             var options = new QueryExecutionOptions();
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 c => c.Options.StrictValidation = false,
                 options);
 
@@ -747,8 +703,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 schema.MakeExecutable());
 
             // assert
@@ -761,8 +716,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 default(IQueryExecutor));
 
             // assert
@@ -774,8 +728,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null,
+            Action action = () => ((IServiceCollection)null).AddGraphQL(
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
                 new Action<IQueryExecutionBuilder>(c => { }));
@@ -789,8 +742,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 null,
                 new Action<ISchemaConfiguration>(c => { }),
                 new Action<IQueryExecutionBuilder>(c => { }));
@@ -804,8 +756,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 "type Query { a: String }",
                 default(Action<ISchemaConfiguration>),
                 new Action<IQueryExecutionBuilder>(c => { }));
@@ -821,8 +772,7 @@ namespace HotChocolate.AspNetCore
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
 
             // act
-            Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                new ServiceCollection(),
+            Action action = () => new ServiceCollection().AddGraphQL(
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
                 default(Action<IQueryExecutionBuilder>));
@@ -843,8 +793,7 @@ namespace HotChocolate.AspNetCore
                 c => c.UseDefaultPipeline());
 
             // act
-            ServiceCollectionExtensions.AddGraphQL(
-                services,
+            services.AddGraphQL(
                 schema,
                 schemaCfg,
                 cfg);

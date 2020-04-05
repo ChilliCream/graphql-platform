@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
 using StrawberryShake.Configuration;
@@ -12,7 +11,7 @@ using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Serializers;
 using StrawberryShake.Transport;
 
-namespace StrawberryShake
+namespace Microsoft.Extensions.DependencyInjection
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class SchemaRegistryClientServiceCollectionExtensions

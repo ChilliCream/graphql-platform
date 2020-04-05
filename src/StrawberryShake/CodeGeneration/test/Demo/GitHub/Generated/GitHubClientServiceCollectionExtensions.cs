@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
 using StrawberryShake.Configuration;
@@ -11,8 +10,9 @@ using StrawberryShake.Http.Pipelines;
 using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Serializers;
 using StrawberryShake.Transport;
+using StrawberryShake.Client.GitHub;
 
-namespace StrawberryShake.Client.GitHub
+namespace Microsoft.Extensions.DependencyInjection
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static class GitHubClientServiceCollectionExtensions

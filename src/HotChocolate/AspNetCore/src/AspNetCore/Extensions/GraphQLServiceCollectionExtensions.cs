@@ -1,6 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Configuration;
@@ -10,9 +10,9 @@ using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Interceptors;
 using HotChocolate.Types.Relay;
 
-namespace HotChocolate
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ServiceCollectionExtensions
+    public static class GraphQLServiceCollectionExtensions
     {
         public static IServiceCollection AddGraphQL(
             this IServiceCollection services,

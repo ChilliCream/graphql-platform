@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class TypeConverterServiceCollectionExtensions
     {

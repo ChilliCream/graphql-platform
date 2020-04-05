@@ -1,12 +1,12 @@
 using System.Collections.Generic;
+using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Interceptors;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
 using HotChocolate.Server;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class SubscriptionServiceCollectionExtensions
     {

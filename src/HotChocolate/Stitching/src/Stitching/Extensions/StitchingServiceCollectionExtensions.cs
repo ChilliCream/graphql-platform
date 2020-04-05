@@ -1,15 +1,15 @@
 using System;
 using System.Linq;
+using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class StitchingServiceCollectionExtensions
     {

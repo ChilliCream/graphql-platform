@@ -1,9 +1,9 @@
 using System.IO;
-using Microsoft.Extensions.DependencyInjection;
+using MarshmallowPie;
 using MarshmallowPie.Storage;
 using MarshmallowPie.Storage.FileSystem;
 
-namespace MarshmallowPie
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class FileSystemStorageServiceCollectionExtensions
     {

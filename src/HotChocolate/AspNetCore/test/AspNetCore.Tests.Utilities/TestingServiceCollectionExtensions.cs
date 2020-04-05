@@ -1,9 +1,10 @@
 using HotChocolate.Execution.Batching;
+using HotChocolate;
 using HotChocolate.StarWars;
 using HotChocolate.Subscriptions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.AspNetCore.Tests.Utilities
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class TestingServiceCollectionExtensions
     {

@@ -1,10 +1,10 @@
 using System;
 using Microsoft.Azure.Storage.Blob;
-using Microsoft.Extensions.DependencyInjection;
+using MarshmallowPie;
 using MarshmallowPie.Storage;
 using MarshmallowPie.Storage.AzureBlob;
 
-namespace MarshmallowPie
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class AzureBlobStorageServiceCollectionExtensions
     {

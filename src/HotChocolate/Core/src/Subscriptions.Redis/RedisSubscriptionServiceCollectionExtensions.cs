@@ -1,9 +1,9 @@
 using System;
+using HotChocolate.Subscriptions;
 using HotChocolate.Subscriptions.Redis;
-using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 
-namespace HotChocolate.Subscriptions
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class RedisSubscriptionServiceCollectionExtensions
     {

@@ -2,6 +2,7 @@
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation
 {

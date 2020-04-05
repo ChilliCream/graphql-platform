@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.FileSystem;
 
-namespace HotChocolate
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Provides utility methods to setup dependency injection.

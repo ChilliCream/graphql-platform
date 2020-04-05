@@ -1,8 +1,8 @@
 using HotChocolate.Validation.Rules;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate.Validation
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ValidationServiceCollectionExtensions
     {

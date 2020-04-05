@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 

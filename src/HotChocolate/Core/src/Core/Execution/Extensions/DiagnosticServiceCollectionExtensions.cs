@@ -1,8 +1,9 @@
 using System;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Execution
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DiagnosticServiceCollectionExtensions
     {
