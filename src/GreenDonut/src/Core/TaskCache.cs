@@ -18,8 +18,8 @@ namespace GreenDonut
 
         public TaskCache(int size)
         {
-            Size = (Defaults.MinimumCacheSize > size)
-                ? Defaults.MinimumCacheSize
+            Size = (Defaults.MinCacheSize > size)
+                ? Defaults.MinCacheSize
                 : size;
         }
 

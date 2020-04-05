@@ -6,6 +6,6 @@ namespace GreenDonut
     {
         public const int CacheSize = 1000;
         public static readonly TimeSpan BatchRequestDelay = TimeSpan.FromMilliseconds(50);
-        public const int MinimumCacheSize = 1;
+        public const int MinCacheSize = 1;
     }
 }
