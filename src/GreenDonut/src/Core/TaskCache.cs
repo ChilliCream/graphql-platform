@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,9 +12,9 @@ namespace GreenDonut
         , IDisposable
     {
         private const int _cleanupDelay = 10;
-        private readonly ConcurrentDictionary<object, CacheEntry>
-            _cache = new ConcurrentDictionary<object, CacheEntry>();
-        private CancellationTokenSource _disposeTokenSource;
+        private readonly ConcurrentDictionary<object, CacheEntry> _cache =
+            new ConcurrentDictionary<object, CacheEntry>();
+        private CancellationTokenSource? _disposeTokenSource;
         private bool _disposed;
         private readonly LinkedList<object> _ranking =
             new LinkedList<object>();
@@ -47,7 +48,7 @@ namespace GreenDonut
         {
             lock (_sync)
             {
-                if (_cache.TryRemove(key, out CacheEntry entry))
+                if (_cache.TryRemove(key, out CacheEntry? entry))
                 {
                     _ranking.Remove(entry.Rank);
                 }
@@ -63,50 +64,52 @@ namespace GreenDonut
 
             var added = false;
 
-            _sync.Lock(
-                () => !_cache.ContainsKey(key),
-                () =>
+            if (!_cache.ContainsKey(key))
+            {
+                lock (_sync)
                 {
-                    var entry = new CacheEntry(key, value);
-
-                    if (_cache.TryAdd(entry.Key, entry))
+                    if (!_cache.ContainsKey(key))
                     {
-                        EnsureCacheSizeDoesNotExceed();
-                        _ranking.AddFirst(entry.Rank);
-                        added = true;
+                        var entry = new CacheEntry(key, value);
+
+                        if (_cache.TryAdd(entry.Key, entry))
+                        {
+                            EnsureCacheSizeDoesNotExceed();
+                            _ranking.AddFirst(entry.Rank);
+                            added = true;
+                        }
                     }
-                });
+                }
+            }
 
             return added;
         }
 
-        public bool TryGetValue(object key, out Task<TValue> value)
+        public bool TryGetValue(object key, [NotNullWhen(true)]out Task<TValue>? value)
         {
-            var exists = false;
-            Task<TValue> cachedValue = null;
+            Task<TValue>? cachedValue = null;
 
             lock (_sync)
             {
-                if (_cache.TryGetValue(key, out CacheEntry entry))
+                if (_cache.TryGetValue(key, out CacheEntry? entry))
                 {
                     TouchEntry(entry);
                     cachedValue = entry.Value;
-                    exists = true;
                 }
             }
 
             value = cachedValue;
 
-            return exists;
+            return value != null;
         }
 
         private void EnsureCacheSizeDoesNotExceed()
         {
             if (_cache.Count > Size)
             {
-                object key = _ranking.Last.Value;
+                object key = _ranking.Last!.Value;
 
-                if (_cache.TryRemove(key, out CacheEntry entry))
+                if (_cache.TryRemove(key, out CacheEntry? entry))
                 {
                     _ranking.Remove(entry.Rank);
                 }
@@ -140,7 +143,7 @@ namespace GreenDonut
                         if (_ranking.Last != null &&
                             _cache.TryGetValue(
                                 _ranking.Last.Value,
-                                out CacheEntry entry) &&
+                                out CacheEntry? entry) &&
                             removeAfter > entry.LastTouched)
                         {
                             Remove(entry.Key);

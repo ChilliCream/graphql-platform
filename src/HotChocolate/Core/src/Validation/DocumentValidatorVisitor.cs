@@ -16,7 +16,6 @@ namespace HotChocolate.Validation
         protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             context.Path.Push(node);
@@ -26,29 +25,61 @@ namespace HotChocolate.Validation
         protected override IDocumentValidatorContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             context.Path.Pop();
             return context;
         }
 
-        protected override IEnumerable<ISyntaxNode> GetNodes(
+        protected override IDocumentValidatorContext OnAfterLeave(
             ISyntaxNode node,
+            ISyntaxNode? parent,
             IDocumentValidatorContext context)
         {
-            switch (node.Kind)
+            if (node.Kind == NodeKind.FragmentDefinition)
             {
-                case NodeKind.Document:
-                    return ((DocumentNode)node).Definitions.Where(t =>
-                        t.Kind != NodeKind.FragmentDefinition);
-
-                case NodeKind.FragmentSpread:
-                    return GetFragmentSpreadChildren((FragmentSpreadNode)node, context);
-
-                default:
-                    return node.GetNodes();
+                context.VisitedFragments.Remove(((FragmentDefinitionNode)node).Name.Value);
             }
+            return context;
+        }
+
+        protected override ISyntaxVisitorAction VisitChildren(
+            DocumentNode node,
+            IDocumentValidatorContext context)
+        {
+            for (int i = 0; i < node.Definitions.Count; i++)
+            {
+                if (node.Definitions[i].Kind != NodeKind.FragmentDefinition &&
+                    Visit(node.Definitions[i], node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+
+            return DefaultAction;
+        }
+
+        protected override ISyntaxVisitorAction VisitChildren(
+            FragmentSpreadNode node,
+            IDocumentValidatorContext context)
+        {
+            if (base.VisitChildren(node, context).IsBreak())
+            {
+                return Break;
+            }
+
+            if (context.Fragments.TryGetValue(
+                node.Name.Value,
+                out FragmentDefinitionNode? fragment) &&
+                context.VisitedFragments.Add(fragment.Name.Value))
+            {
+                if (Visit(fragment, node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+
+            return DefaultAction;
         }
 
         private static IEnumerable<ISyntaxNode> GetFragmentSpreadChildren(
@@ -62,7 +93,8 @@ namespace HotChocolate.Validation
 
             if (context.Fragments.TryGetValue(
                 fragmentSpread.Name.Value,
-                out FragmentDefinitionNode? fragment))
+                out FragmentDefinitionNode? fragment) &&
+                !context.Path.Contains(fragment))
             {
                 yield return fragment;
             }

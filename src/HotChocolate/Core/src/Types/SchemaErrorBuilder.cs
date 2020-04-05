@@ -76,6 +76,11 @@ namespace HotChocolate
 
         public ISchemaError Build()
         {
+            if (_error.Message is null)
+            {
+                throw new InvalidOperationException("The message is mandatory.");
+            }
+
             return _error.Clone();
         }
 

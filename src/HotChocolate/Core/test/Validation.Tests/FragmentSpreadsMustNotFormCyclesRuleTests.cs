@@ -1,13 +1,15 @@
-﻿using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
 using Xunit;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FragmentSpreadsMustNotFormCyclesRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FragmentSpreadsMustNotFormCyclesRuleTests()
-            : base(new FragmentSpreadsMustNotFormCyclesRule())
+            : base(services => services.AddFragmentsAreValidRule())
         {
         }
 
@@ -15,7 +17,7 @@ namespace HotChocolate.Validation
         public void FragmentCycle1()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -33,25 +35,26 @@ namespace HotChocolate.Validation
                     ...nameFragment
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(t.Message,
                     "The graph of fragment spreads must not form any " +
                     "cycles including spreading itself. Otherwise an " +
                     "operation could infinitely spread or infinitely " +
                     "execute on cycles in the underlying data."));
+            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void FragmentCycle2()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -79,25 +82,26 @@ namespace HotChocolate.Validation
                     ...nameFragment
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(t.Message,
                     "The graph of fragment spreads must not form any " +
                     "cycles including spreading itself. Otherwise an " +
                     "operation could infinitely spread or infinitely " +
                     "execute on cycles in the underlying data."));
+            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void InfiniteRecursion()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -119,25 +123,26 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(t.Message,
                     "The graph of fragment spreads must not form any " +
                     "cycles including spreading itself. Otherwise an " +
                     "operation could infinitely spread or infinitely " +
                     "execute on cycles in the underlying data."));
+            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void QueryWithSideBySideFragSpreads()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -155,12 +160,13 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
     }
 }

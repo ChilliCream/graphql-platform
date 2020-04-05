@@ -32,7 +32,7 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// Adds explanatory text to the <see cref="DirectiveType"/>
-        /// that can be accessd via introspection.
+        /// that can be accessed via introspection.
         /// </summary>
         /// <param name="value">The object type description.</param>
         IDirectiveTypeDescriptor Description(string value);

@@ -1,0 +1,20 @@
+﻿[
+  {
+    "Message": "The specified fragment `undefinedFragment` does not exist.",
+    "Code": null,
+    "Path": [
+      "dog"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 25
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "fragment": "undefinedFragment",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
+    }
+  }
+]

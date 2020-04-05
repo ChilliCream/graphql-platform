@@ -7,6 +7,18 @@ namespace HotChocolate.Types
 {
     public static class TypeExtensions
     {
+        public static int Depth(this IType type)
+        {
+            if (type is INamedType)
+            {
+                return 1;
+            }
+            return Depth(type.InnerType()) + 1;
+        }
+
+        public static bool IsNullableType(this IType type) =>
+            !IsNonNullType(type);
+
         public static bool IsNonNullType(this IType type)
         {
             if (type == null)
@@ -434,6 +446,28 @@ namespace HotChocolate.Types
             if (typeNode is NamedTypeNode)
             {
                 return namedType;
+            }
+
+            throw new NotSupportedException(
+                TypeResources.TypeExtensions_KindIsNotSupported);
+        }
+
+        public static IType Rewrite(this IType original, INamedType newNamedType)
+        {
+            if (original is NonNullType nnt
+                && Rewrite(nnt.Type, newNamedType) is INullableType nullableType)
+            {
+                return new NonNullType(nullableType);
+            }
+
+            if (original is ListType lt)
+            {
+                return new ListType(Rewrite(lt.ElementType, newNamedType));
+            }
+
+            if (original is INamedType)
+            {
+                return newNamedType;
             }
 
             throw new NotSupportedException(

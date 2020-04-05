@@ -42,8 +42,20 @@ namespace HotChocolate.Types.Factories
                     d.Directive(directive);
                 }
 
+                DeclareInterfaces(d, node.Interfaces);
+
                 DeclareFields(d, node.Fields);
             });
+        }
+
+        private static void DeclareInterfaces(
+            IInterfaceTypeDescriptor typeDescriptor,
+            IReadOnlyCollection<NamedTypeNode> interfaceReferences)
+        {
+            foreach (NamedTypeNode typeNode in interfaceReferences)
+            {
+                typeDescriptor.Interface(typeNode);
+            }
         }
 
         private static void DeclareFields(

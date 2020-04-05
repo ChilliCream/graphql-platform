@@ -1,13 +1,15 @@
 ﻿using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FragmentSpreadIsPossibleRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FragmentSpreadIsPossibleRuleTests()
-            : base(new FragmentSpreadIsPossibleRule())
+            : base(services => services.AddFragmentsAreValidRule())
         {
         }
 
@@ -15,7 +17,7 @@ namespace HotChocolate.Validation
         public void FragmentDoesNotMatchType()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -27,23 +29,24 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(t.Message,
                     "The parent type does not match the type condition on " +
-                    "the fragment `fragmentDoesNotMatchType`."));
+                    "the fragment."));
+            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void InterfaceTypeDoesMatch()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -55,19 +58,20 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void UnionTypeDoesMatch()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -79,19 +83,20 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void ObjectTypeDoesMatch()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -103,12 +108,13 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
     }
 }

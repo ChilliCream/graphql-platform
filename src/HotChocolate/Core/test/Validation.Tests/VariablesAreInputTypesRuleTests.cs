@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;

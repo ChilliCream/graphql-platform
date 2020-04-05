@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public interface ISchemaError
@@ -18,9 +20,9 @@ namespace HotChocolate
         /// process an error.
         /// This property is optional and can be null.
         /// </summary>
-        string Code { get; }
+        string? Code { get; }
 
-        ITypeSystemObject TypeSystemObject { get; }
+        ITypeSystemObject? TypeSystemObject { get; }
 
         IReadOnlyCollection<ISyntaxNode> SyntaxNodes { get; }
 
@@ -28,7 +30,7 @@ namespace HotChocolate
         /// Gets the path to the object that caused the error.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyCollection<object> Path { get; }
+        IReadOnlyCollection<object>? Path { get; }
 
         /// <summary>
         /// Gets non-spec error properties.
@@ -38,7 +40,8 @@ namespace HotChocolate
 
         /// <summary>
         /// Gets the exception associated with this error.
+        /// This property is optional and can be null.
         /// </summary>
-        Exception Exception { get; }
+        Exception? Exception { get; }
     }
 }

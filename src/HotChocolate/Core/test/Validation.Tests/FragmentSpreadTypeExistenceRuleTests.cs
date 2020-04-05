@@ -1,13 +1,15 @@
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Xunit;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FragmentSpreadTypeExistenceRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FragmentSpreadTypeExistenceRuleTests()
-            : base(new FragmentSpreadTypeExistenceRule())
+            : base(services => services.AddFragmentsAreValidRule())
         {
         }
 
@@ -15,7 +17,7 @@ namespace HotChocolate.Validation
         public void CorrectTypeOnFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -27,19 +29,20 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void CorrectTypeOnInlineFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -53,19 +56,20 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void CorrectTypeOnInlineFragment2()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -79,19 +83,20 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void NotOnExistingTypeOnFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -103,29 +108,27 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t =>
                 {
                     Assert.Equal(
                         "Unknown type `NotInSchema`.",
                         t.Message);
-                    Assert.Equal(
-                        ErrorCodes.Validation.UnknownType,
-                        t.Code);
                 });
+            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void NotExistingTypeOnInlineFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -139,22 +142,20 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t =>
                 {
                     Assert.Equal(
                         "Unknown type `NotInSchema`.",
                         t.Message);
-                    Assert.Equal(
-                        ErrorCodes.Validation.UnknownType,
-                        t.Code);
                 });
+            context.Errors.MatchSnapshot();
         }
     }
 }

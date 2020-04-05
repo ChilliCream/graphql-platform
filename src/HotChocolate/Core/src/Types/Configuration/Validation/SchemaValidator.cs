@@ -10,8 +10,9 @@ namespace HotChocolate.Configuration.Validation
         private static ISchemaValidationRule[] _rules =
             new ISchemaValidationRule[]
             {
-                new InterfaceHasAtLeastOneImplementationRule(),
-                new InterfaceFieldsAreImplementedRule()
+                new ObjectTypeValidationRule(),
+                new InterfaceTypeValidationRule(),
+                new InterfaceHasAtLeastOneImplementationRule()
             };
 
         public static IReadOnlyCollection<ISchemaError> Validate(
@@ -33,7 +34,7 @@ namespace HotChocolate.Configuration.Validation
 
             foreach (ISchemaValidationRule rule in _rules)
             {
-                errors.AddRange(rule.Validate(types, options));
+                rule.Validate(types, options, errors);
             }
 
             return errors;

@@ -32,6 +32,44 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task Interfaces_Impl_Interfaces_Are_Correctly_Exposed_Through_Introspection()
+        {
+            // arrange
+            string source = @"
+                type Query {
+                    c: C
+                }
+
+                interface A {
+                    a: String
+                }
+
+                interface B implements A {
+                    a: String
+                }
+
+                type C implements A & B {
+                    a: String
+                }
+            ";
+            string query = FileResource.Open("IntrospectionQuery.graphql");
+
+            // act
+            ISchema schema = Schema.Create(
+                source,
+                c =>
+                {
+                    c.Options.StrictValidation = false;
+                    c.Use(next => context => next(context));
+                });
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            IExecutionResult result = await executor.ExecuteAsync(query);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SchemaDescription()
         {
             // arrange

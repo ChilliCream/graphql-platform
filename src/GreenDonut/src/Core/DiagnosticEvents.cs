@@ -25,6 +25,7 @@ namespace GreenDonut
         public static void ReceivedBatchError<TKey>(
             IReadOnlyList<TKey> keys,
             Exception exception)
+                where TKey : notnull
         {
             var payload = new
             {
@@ -41,6 +42,7 @@ namespace GreenDonut
         public static void ReceivedError<TKey>(
             TKey key,
             Exception exception)
+                where TKey : notnull
         {
             var payload = new
             {
@@ -58,6 +60,7 @@ namespace GreenDonut
             TKey key,
             object cacheKey,
             Task<TValue> value)
+                where TKey : notnull
         {
             var payload = new
             {
@@ -72,8 +75,9 @@ namespace GreenDonut
             }
         }
 
-        public static Activity StartBatching<TKey>(
+        public static Activity? StartBatching<TKey>(
             IReadOnlyList<TKey> keys)
+                where TKey : notnull
         {
             var payload = new
             {
@@ -93,9 +97,10 @@ namespace GreenDonut
         }
 
         public static void StopBatching<TKey, TValue>(
-            Activity activity,
+            Activity? activity,
             IReadOnlyList<TKey> keys,
             IReadOnlyCollection<TValue> values)
+                where TKey : notnull
         {
             if (activity != null)
             {
@@ -112,7 +117,8 @@ namespace GreenDonut
             }
         }
 
-        public static Activity StartSingle<TKey>(TKey key)
+        public static Activity? StartSingle<TKey>(TKey key)
+            where TKey : notnull
         {
             var payload = new
             {
@@ -132,9 +138,10 @@ namespace GreenDonut
         }
 
         public static void StopSingle<TKey, TValue>(
-            Activity activity,
+            Activity? activity,
             TKey key,
             IReadOnlyCollection<TValue> values)
+                where TKey : notnull
         {
             if (activity != null)
             {

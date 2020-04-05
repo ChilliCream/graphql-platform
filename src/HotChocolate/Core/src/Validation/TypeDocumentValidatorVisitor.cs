@@ -12,10 +12,9 @@ namespace HotChocolate.Validation
         {
         }
 
-        protected override IDocumentValidatorContext OnAfterEnter(
+        protected override IDocumentValidatorContext OnBeforeEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
             INamedOutputType? namedOutputType;
@@ -29,6 +28,7 @@ namespace HotChocolate.Validation
                 case NodeKind.OperationDefinition:
                     var operation = (OperationDefinitionNode)node;
                     context.Types.Push(GetOperationType(context.Schema, operation.Operation));
+                    context.IsInError.Push(false);
                     break;
 
                 case NodeKind.VariableDefinition:
@@ -42,25 +42,34 @@ namespace HotChocolate.Validation
                         type.NamedType() is IComplexOutputType ot &&
                         ot.Fields.TryGetField(field.Name.Value, out IOutputField of))
                     {
-                        context.Types.Push(of.Type);
                         context.OutputFields.Push(of);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
-                        context.IsInError = true;
+                        context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(true);
                     }
                     break;
 
                 case NodeKind.InlineFragment:
                     var inlineFragment = ((InlineFragmentNode)node);
-                    if (inlineFragment.TypeCondition is { } tc &&
-                        context.Schema.TryGetType(tc.Name.Value, out namedOutputType))
+                    if (inlineFragment.TypeCondition is null)
+                    {
+                        context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(false);
+                    }
+                    else if (context.Schema.TryGetType(
+                        inlineFragment.TypeCondition.Name.Value,
+                        out namedOutputType))
                     {
                         context.Types.Push(namedOutputType);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
-                        context.IsInError = true;
+                        context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -71,10 +80,12 @@ namespace HotChocolate.Validation
                         out namedOutputType))
                     {
                         context.Types.Push(namedOutputType);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
-                        context.IsInError = true;
+                        context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -84,18 +95,19 @@ namespace HotChocolate.Validation
                     if (context.Directives.TryPeek(out directiveType) &&
                         directiveType.Arguments.TryGetField(argName, out inputField))
                     {
-                        context.Types.Push(inputField.Type);
                         context.InputFields.Push(inputField);
+                        context.IsInError.Push(false);
                     }
                     else if (context.OutputFields.TryPeek(out outputField) &&
                         outputField.Arguments.TryGetField(argName, out inputField))
                     {
-                        context.Types.Push(inputField.Type);
                         context.InputFields.Push(inputField);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
-                        context.IsInError = true;
+                        context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -106,12 +118,13 @@ namespace HotChocolate.Validation
                         context.Types.Peek().NamedType() is InputObjectType inputType &&
                         inputType.Fields.TryGetField(fieldName, out inputField))
                     {
-                        context.Types.Push(inputField.Type);
                         context.InputFields.Push(inputField);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
-                        context.IsInError = true;
+                        context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(true);
                     }
                     break;
 
@@ -121,48 +134,151 @@ namespace HotChocolate.Validation
                     if (context.Schema.TryGetDirectiveType(directiveName, out DirectiveType d))
                     {
                         context.Directives.Push(d);
+                        context.IsInError.Push(false);
                     }
                     else
                     {
-                        context.IsInError = true;
+                        context.Types.Push(context.Types.Peek());
+                        context.IsInError.Push(true);
                     }
                     break;
             }
 
-            return base.OnAfterEnter(node, parent, ancestors, context);
+            return base.OnBeforeEnter(node, parent, context);
+        }
+
+        protected override IDocumentValidatorContext OnAfterEnter(
+            ISyntaxNode node,
+            ISyntaxNode? parent,
+            IDocumentValidatorContext context)
+        {
+            IOutputField? outputField;
+            IInputField? inputField;
+
+            switch (node.Kind)
+            {
+                case NodeKind.Field:
+                    if (context.OutputFields.TryPeek(out outputField) &&
+                        outputField.Name.Equals(((FieldNode)node).Name.Value))
+                    {
+                        context.Types.Push(outputField.Type);
+                    }
+                    break;
+
+                case NodeKind.ObjectField:
+                    if (context.InputFields.TryPeek(out inputField) &&
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
+                    {
+                        context.Types.Push(inputField.Type);
+                    }
+                    break;
+
+                case NodeKind.Argument:
+                    if (context.InputFields.TryPeek(out inputField) &&
+                        inputField.Name.Equals(((ArgumentNode)node).Name.Value))
+                    {
+                        context.Types.Push(inputField.Type);
+                    }
+                    break;
+            }
+
+            return base.OnAfterEnter(node, parent, context);
         }
 
         protected override IDocumentValidatorContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
+            IOutputField? outputField;
+            IInputField? inputField;
+
+            switch (node.Kind)
+            {
+                case NodeKind.Field:
+                    if (context.OutputFields.TryPeek(out outputField) &&
+                        outputField.Name.Equals(((FieldNode)node).Name.Value))
+                    {
+                        context.Types.TryPop(out _);
+                    }
+                    break;
+
+                case NodeKind.ObjectField:
+                    if (context.InputFields.TryPeek(out inputField) &&
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
+                    {
+                        context.Types.TryPop(out _);
+                    }
+                    break;
+
+                case NodeKind.Argument:
+                    if (context.InputFields.TryPeek(out inputField) &&
+                        inputField.Name.Equals(((ArgumentNode)node).Name.Value))
+                    {
+                        context.Types.TryPop(out _);
+                    }
+                    break;
+            }
+
+            return base.OnBeforeLeave(node, parent, context);
+        }
+
+        protected override IDocumentValidatorContext OnAfterLeave(
+            ISyntaxNode node,
+            ISyntaxNode? parent,
+            IDocumentValidatorContext context)
+        {
+            IOutputField? outputField;
+            IInputField? inputField;
+
             switch (node.Kind)
             {
                 case NodeKind.OperationDefinition:
                     context.Types.Pop();
                     context.Variables.Clear();
+                    context.IsInError.Pop();
                     break;
 
                 case NodeKind.InlineFragment:
                 case NodeKind.FragmentDefinition:
-                case NodeKind.Argument:
-                case NodeKind.ObjectField:
                     context.Types.Pop();
+                    context.IsInError.Pop();
                     break;
 
-                case NodeKind.FieldDefinition:
-                    context.Types.Pop();
-                    context.OutputFields.Pop();
+                case NodeKind.Field:
+                    if (context.OutputFields.TryPeek(out outputField) &&
+                        outputField.Name.Equals(((FieldNode)node).Name.Value))
+                    {
+                        context.OutputFields.Pop();
+                    }
+                    context.IsInError.Pop();
+                    break;
+
+                case NodeKind.ObjectField:
+                    if (context.InputFields.TryPeek(out inputField) &&
+                        inputField.Name.Equals(((ObjectFieldNode)node).Name.Value))
+                    {
+                        context.InputFields.Pop();
+                    }
+                    context.IsInError.Pop();
+                    break;
+
+                case NodeKind.Argument:
+                    if (context.InputFields.TryPeek(out inputField) &&
+                        inputField.Name.Equals(((ArgumentNode)node).Name.Value))
+                    {
+                        context.InputFields.Pop();
+                    }
+                    context.IsInError.Pop();
                     break;
 
                 case NodeKind.Directive:
                     context.Directives.Pop();
+                    context.IsInError.Pop();
                     break;
             }
 
-            return base.OnBeforeLeave(node, parent, ancestors, context);
+            return base.OnAfterLeave(node, parent, context);
         }
 
         private static ObjectType GetOperationType(

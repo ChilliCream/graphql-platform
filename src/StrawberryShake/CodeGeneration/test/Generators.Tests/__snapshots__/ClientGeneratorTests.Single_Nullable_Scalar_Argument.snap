@@ -237,7 +237,7 @@ namespace StrawberryShake.Client
             IOperationClientBuilder builder = serviceCollection.AddOperationClientOptions(_clientName)
                 .AddResultParser(serializers => new GetBarsResultParser(serializers))
                 .AddOperationFormatter(serializers => new JsonOperationFormatter(serializers))
-                .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
+                .AddHttpOperationPipeline(b => b.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
             return builder;
