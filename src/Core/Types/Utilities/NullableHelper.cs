@@ -120,7 +120,6 @@ namespace HotChocolate.Utilities
                 Nullable state = context;
                 if (!flags.IsEmpty)
                 {
-                    state = (Nullable)flags[position++];
                     if (flags.Length > position)
                     {
                         state = (Nullable) flags[position++];
