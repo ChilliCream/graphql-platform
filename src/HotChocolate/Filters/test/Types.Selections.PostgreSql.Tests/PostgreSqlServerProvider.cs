@@ -78,17 +78,23 @@ namespace HotChocolate.Types.Selections
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
-                modelBuilder.Entity<SelectionTests.Foo>()
-                    .Ignore(x => x.ObjectArray);
+                modelBuilder.Entity<SelectionTests.Foo>().HasOne(x => x.NestedNull);
+                modelBuilder.Entity<SelectionTests.Foo>().HasOne(x => x.Nested);
+                modelBuilder.Entity<SelectionTests.Foo>().HasMany(x => x.ObjectList);
+                modelBuilder.Entity<SelectionTests.Foo>().Ignore(x => x.ObjectArray);
+                modelBuilder.Entity<SelectionTests.NestedFoo>().HasMany(x => x.ObjectArray);
+                modelBuilder.Entity<SelectionTests.NestedFoo>().HasOne(x => x.NestedNull);
+                modelBuilder.Entity<SelectionTests.NestedFoo>().HasOne(x => x.Nested);
+                base.OnModelCreating(modelBuilder);
             }
         }
+    }
 
-        public class SelectionAttributeTestsFooNested
-        {
-            public Guid FooId { get; set; }
-            public SelectionAttributeTests.Foo Foo { get; set; }
-            public Guid NestedFooId { get; set; }
-            public SelectionAttributeTests.NestedFoo NestedFoo { get; set; }
-        }
+    public class SelectionAttributeTestsFooNested
+    {
+        public Guid FooId { get; set; }
+        public SelectionAttributeTests.Foo Foo { get; set; }
+        public Guid NestedFooId { get; set; }
+        public SelectionAttributeTests.NestedFoo NestedFoo { get; set; }
     }
 }
