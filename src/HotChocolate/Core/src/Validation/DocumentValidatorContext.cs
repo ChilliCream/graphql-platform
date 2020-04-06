@@ -37,11 +37,11 @@ namespace HotChocolate.Validation
         public IDictionary<string, FragmentDefinitionNode> Fragments { get; } =
             new Dictionary<string, FragmentDefinitionNode>();
 
-        public ISet<string> UsedVariables { get; } = new HashSet<string>();
+        public ISet<string> Used { get; } = new HashSet<string>();
 
-        public ISet<string> UnusedVariables { get; } = new HashSet<string>();
+        public ISet<string> Unused { get; } = new HashSet<string>();
 
-        public ISet<string> DeclaredVariables { get; } = new HashSet<string>();
+        public ISet<string> Declared { get; } = new HashSet<string>();
 
         public ISet<string> Names { get; } = new HashSet<string>();
 
@@ -64,9 +64,9 @@ namespace HotChocolate.Validation
             VisitedFragments.Clear();
             Variables.Clear();
             Fragments.Clear();
-            UsedVariables.Clear();
-            UnusedVariables.Clear();
-            DeclaredVariables.Clear();
+            Used.Clear();
+            Unused.Clear();
+            Declared.Clear();
             Names.Clear();
             Types.Clear();
             Directives.Clear();

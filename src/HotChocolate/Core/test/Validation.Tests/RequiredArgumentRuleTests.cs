@@ -1,22 +1,26 @@
-﻿using HotChocolate.Language;
-using Xunit;
+﻿using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class RequiredArgumentRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public RequiredArgumentRuleTests()
-            : base(new RequiredArgumentRule())
+            : base(services => services.AddArgumentsAreValidRule())
         {
         }
 
         [Fact]
         public void BooleanArgFieldAndNonNullBooleanArgField()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... goodBooleanArg
+                        ... goodNonNullArg
+                    }
+                }
+
                 fragment goodBooleanArg on Arguments {
                     booleanArgField(booleanArg: true)
                 }
@@ -25,96 +29,77 @@ namespace HotChocolate.Validation
                     nonNullBooleanArgField(nonNullBooleanArg: true)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void GoodBooleanArgDefault()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... goodBooleanArgDefault
+                    }
+                }
+
                 fragment goodBooleanArgDefault on Arguments {
                     booleanArgField
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void MissingRequiredArg()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query {
+                    arguments {
+                        ... missingRequiredArg
+                    }
+                }
+
                 fragment missingRequiredArg on Arguments {
                     nonNullBooleanArgField
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"The argument `nonNullBooleanArg` is required " +
-                    "and does not allow null values.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"The argument `nonNullBooleanArg` is required.", t.Message));
         }
 
         [Fact]
         public void MissingRequiredArgNonNullBooleanArg()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query {
+                    arguments {
+                        ... missingRequiredArg
+                    }
+                }
+
                 fragment missingRequiredArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: null)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"The argument `nonNullBooleanArg` is required " +
-                    "and does not allow null values.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"The argument `nonNullBooleanArg` is required.", t.Message));
         }
 
         [Fact]
         public void MissingRequiredDirectiveArg()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query {
+                    arguments {
+                        ... missingRequiredArg
+                    }
+                }
+
                 fragment missingRequiredArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: true) @skip()
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"The argument `if` is required " +
-                    "and does not allow null values.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"The argument `if` is required.", t.Message));
         }
     }
 }

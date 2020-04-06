@@ -2,7 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Rules
 {
     /// <summary>
     /// Every input field provided in an input object value must be defined in
@@ -30,6 +30,15 @@ namespace HotChocolate.Validation
     /// </summary>
     internal sealed class InputObjectVisitor : TypeDocumentValidatorVisitor
     {
+        public InputObjectVisitor()
+            : base(new SyntaxVisitorOptions
+                {
+                    VisitDirectives = true,
+                    VisitArguments = true
+                })
+        {
+        }
+
         protected override ISyntaxVisitorAction Enter(
             ObjectValueNode node,
             IDocumentValidatorContext context)
@@ -38,17 +47,10 @@ namespace HotChocolate.Validation
 
             for (int i = 0; i < node.Fields.Count; i++)
             {
-                string name = node.Fields[i].Name.Value;
-                if (!context.Names.Add(name))
+                ObjectFieldNode field = node.Fields[i];
+                if (!context.Names.Add(field.Name.Value))
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage("Field `{0}` is ambiguous.", name)
-                            .AddLocation(node)
-                            .SetPath(context.CreateErrorPath())
-                            .SetExtension("field", name)
-                            .SpecifiedBy("sec-Input-Object-Field-Uniqueness")
-                            .Build());
+                    context.Errors.Add(context.InputFieldAmbiguous(field));
                 }
             }
 
@@ -79,16 +81,7 @@ namespace HotChocolate.Validation
         {
             if (context.IsInError.PeekOrDefault(true))
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "The specified input object field " +
-                            $"`{node.Name.Value}` does not exist.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SetExtension("field", node.Name.Value)
-                        .SpecifiedBy("sec-Input-Object-Field-Names")
-                        .Build());
+                context.Errors.Add(context.InputFieldDoesNotExist(node));
                 return Skip;
             }
             else

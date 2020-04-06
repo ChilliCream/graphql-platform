@@ -1,53 +1,49 @@
-﻿using HotChocolate.Language;
-using Xunit;
+﻿using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class ArgumentUniquenessRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public ArgumentUniquenessRuleTests()
-            : base(new ArgumentUniquenessRule())
+            : base(services => services.AddArgumentsAreValidRule())
         {
         }
 
         [Fact]
         public void NoDuplicateArgument()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... goodNonNullArg
+                    }
+                }
+
                 fragment goodNonNullArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: true)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void DuplicateArgument()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query {
+                    arguments {
+                        ... goodNonNullArg
+                    }
+                }
+
                 fragment goodNonNullArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: true, nonNullBooleanArg: true)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"Arguments are not unique.", t.Message));
+            ",
+            t => Assert.Equal(
+                "More than one argument with the same name in an argument " +
+                "set is ambiguous and invalid.",
+                t.Message));
         }
     }
 }

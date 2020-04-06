@@ -17,9 +17,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddExecutableDefinitionsRule()
                 .AddFieldMustBeDefinedRule()
                 .AddFragmentsAreValidRule()
-                .AddAllVariablesUsedRule()
-                .AddAllVariableUsagesAreAllowedRule()
-                .AddVariableUniqueAndInputTypeRule();
+                .AddVariablesAreValidRule()
+                .AddArgumentsAreValidRule();
 
             return services;
         }

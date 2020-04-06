@@ -3,7 +3,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Rules
 {
     /// <summary>
     /// The target field of a field selection must be defined on the scoped
@@ -21,15 +21,7 @@ namespace HotChocolate.Validation
                 type.NamedType().IsUnionType() &&
                 HasFields(node))
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "A union type cannot declare a field directly. " +
-                            "Use inline fragments or fragments instead")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
-                        .Build());
+                context.Errors.Add(context.UnionFieldError(node, (UnionType)type));
                 return Skip;
             }
             return Continue;
@@ -42,15 +34,7 @@ namespace HotChocolate.Validation
             if (context.Types.Peek() is IComplexOutputType ct &&
                 !FieldExists(ct, node.Name.Value))
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            $"The field `{node.Name.Value}` does not exist " +
-                            $"on the type `{ct.Name}`.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
-                        .Build());
+                context.Errors.Add(context.FieldDoesNotExist(node, ct));
                 return Skip;
             }
             return Continue;

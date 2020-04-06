@@ -3,7 +3,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using DirectiveLoc = HotChocolate.Types.DirectiveLocation;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Rules
 {
     /// <summary>
     /// GraphQL servers define what directives they support.
@@ -35,6 +35,14 @@ namespace HotChocolate.Validation
     /// </summary>
     internal sealed class DirectivesVisitor : DocumentValidatorVisitor
     {
+        public DirectivesVisitor()
+            : base(new SyntaxVisitorOptions
+                {
+                    VisitDirectives = true
+                })
+        {
+        }
+
         protected override ISyntaxVisitorAction Enter(
             ISyntaxNode node,
             IDocumentValidatorContext context)
@@ -115,27 +123,12 @@ namespace HotChocolate.Validation
                     TryLookupLocation(parent, out DirectiveLoc location) &&
                     !dt.Locations.Contains(location))
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                "The specified directive is not valid the current location.")
-                            .AddLocation(node)
-                            .SetPath(context.CreateErrorPath())
-                            .SpecifiedBy("sec-Directives-Are-In-Valid-Locations")
-                            .Build());
+                    context.Errors.Add(ErrorHelper.DirectiveNotValidInLocation(context, node));
                 }
             }
             else
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            $"The specified directive `{node.Name.Value}` " +
-                            "is not supported by the current schema.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SpecifiedBy("sec-Directives-Are-Defined")
-                        .Build());
+                context.Errors.Add(ErrorHelper.DirectiveNotSupported(context, node));
             }
             return Skip;
         }
