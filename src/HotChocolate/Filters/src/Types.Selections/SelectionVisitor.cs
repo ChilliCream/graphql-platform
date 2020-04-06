@@ -73,7 +73,6 @@ namespace HotChocolate.Types.Selections
                         Expression.Default(memberInit.Type),
                         memberInit);
 
-
                 Closures.Peek().Projections[selection.Field.Name] =
                     Expression.Bind(selection.Field.Member, withNullCheck);
             }

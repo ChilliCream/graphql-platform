@@ -93,8 +93,11 @@ namespace HotChocolate.Types.Selections
     public class SelectionAttributeTestsFooNested
     {
         public Guid FooId { get; set; }
+
         public SelectionAttributeTests.Foo Foo { get; set; }
+
         public Guid NestedFooId { get; set; }
+
         public SelectionAttributeTests.NestedFoo NestedFoo { get; set; }
     }
 }
