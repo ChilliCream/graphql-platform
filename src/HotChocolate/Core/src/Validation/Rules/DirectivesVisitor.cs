@@ -3,7 +3,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using DirectiveLoc = HotChocolate.Types.DirectiveLocation;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Rules
 {
     /// <summary>
     /// GraphQL servers define what directives they support.

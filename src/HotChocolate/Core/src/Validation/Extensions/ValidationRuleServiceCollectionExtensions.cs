@@ -198,6 +198,21 @@ namespace HotChocolate.Validation
         }
 
         /// <summary>
+        /// If any operation defines more than one variable with the same name,
+        /// it is ambiguous and invalid. It is invalid even if the type of the
+        /// duplicate variable is the same.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Validation.Variables
+        ///
+        /// AND
+        ///
+        /// Variables can only be input types. Objects,
+        /// unions, and interfaces cannot be used as inputs.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
+        ///
+        /// AND
+        ///
         /// All variables defined by an operation must be used in that operation
         /// or a fragment transitively included by that operation.
         ///
@@ -212,14 +227,9 @@ namespace HotChocolate.Validation
         /// at the top level of that operation
         ///
         /// http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined
-        /// </summary>
-        public static IServiceCollection AddAllVariablesUsedRule(
-            this IServiceCollection services)
-        {
-            return services.AddValidationRule<AllVariablesUsedVisitor>();
-        }
-
-        /// <summary>
+        ///
+        /// AND
+        ///
         /// Variable usages must be compatible with the arguments
         /// they are passed to.
         ///
@@ -229,30 +239,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
         /// </summary>
-        public static IServiceCollection AddAllVariableUsagesAreAllowedRule(
+        public static IServiceCollection AddVariablesAreValidRule(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<AllVariableUsagesAreAllowedVisitor>();
-        }
-
-        /// <summary>
-        /// If any operation defines more than one variable with the same name,
-        /// it is ambiguous and invalid. It is invalid even if the type of the
-        /// duplicate variable is the same.
-        ///
-        /// http://spec.graphql.org/June2018/#sec-Validation.Variables
-        ///
-        /// AND
-        ///
-        /// Variables can only be input types. Objects,
-        /// unions, and interfaces cannot be used as inputs.
-        ///
-        /// http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
-        /// </summary>
-        public static IServiceCollection AddVariableUniqueAndInputTypeRule(
-            this IServiceCollection services)
-        {
-            return services.AddValidationRule<VariableUniqueAndInputTypeVisitor>();
+            return services.AddValidationRule<VariablesVisitor>();
         }
 
         /// <summary>

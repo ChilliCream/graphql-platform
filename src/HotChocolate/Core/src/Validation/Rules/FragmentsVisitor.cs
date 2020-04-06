@@ -2,7 +2,7 @@
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Rules
 {
     /// <summary>
     /// Fragment definitions are referenced in fragment spreads by name.
