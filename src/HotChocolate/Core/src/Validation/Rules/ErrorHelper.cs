@@ -345,16 +345,29 @@ namespace HotChocolate.Validation
         public static IError ArgumentNotUnique(
             this IDocumentValidatorContext context,
             ArgumentNode node,
-            IOutputField field)
+            IOutputField? field = null,
+            DirectiveType? directive = null)
         {
-            return ErrorBuilder.New()
+            IErrorBuilder builder = ErrorBuilder.New()
                 .SetMessage(
                     "More than one argument with the same name in an argument " +
                     "set is ambiguous and invalid.")
                 .AddLocation(node)
-                .SetPath(context.CreateErrorPath())
-                .SetExtension("type", field.DeclaringType.Name)
-                .SetExtension("field", field.Name)
+                .SetPath(context.CreateErrorPath());
+
+            if (field is { })
+            {
+                builder
+                    .SetExtension("type", field.DeclaringType.Name)
+                    .SetExtension("field", field.Name);
+            }
+
+            if (directive is { })
+            {
+                builder.SetExtension("directive", directive.Name);
+            }
+
+            return builder
                 .SetExtension("argument", node.Name.Value)
                 .SpecifiedBy("sec-Argument-Uniqueness")
                 .Build();
@@ -364,14 +377,27 @@ namespace HotChocolate.Validation
             this IDocumentValidatorContext context,
             ISyntaxNode node,
             string argumentName,
-            IOutputField field)
+            IOutputField? field = null,
+            DirectiveType? directive = null)
         {
-            return ErrorBuilder.New()
+            IErrorBuilder builder = ErrorBuilder.New()
                 .SetMessage("The argument `{0}` is required.", argumentName)
                 .AddLocation(node)
-                .SetPath(context.CreateErrorPath())
-                .SetExtension("type", field.DeclaringType.Name)
-                .SetExtension("field", field.Name)
+                .SetPath(context.CreateErrorPath());
+
+            if (field is { })
+            {
+                builder
+                    .SetExtension("type", field.DeclaringType.Name)
+                    .SetExtension("field", field.Name);
+            }
+
+            if (directive is { })
+            {
+                builder.SetExtension("directive", directive.Name);
+            }
+
+            return builder
                 .SetExtension("argument", argumentName)
                 .SpecifiedBy("sec-Required-Arguments")
                 .Build();
@@ -380,14 +406,27 @@ namespace HotChocolate.Validation
         public static IError ArgumentDoesNotExist(
             this IDocumentValidatorContext context,
             ArgumentNode node,
-            IOutputField field)
+            IOutputField? field = null,
+            DirectiveType? directive = null)
         {
-            return ErrorBuilder.New()
+            IErrorBuilder builder = ErrorBuilder.New()
                 .SetMessage("The argument `{0}` does not exist.", node.Name.Value)
                 .AddLocation(node)
-                .SetPath(context.CreateErrorPath())
-                .SetExtension("type", field.DeclaringType.Name)
-                .SetExtension("field", field.Name)
+                .SetPath(context.CreateErrorPath());
+
+            if (field is { })
+            {
+                builder
+                    .SetExtension("type", field.DeclaringType.Name)
+                    .SetExtension("field", field.Name);
+            }
+
+            if (directive is { })
+            {
+                builder.SetExtension("directive", directive.Name);
+            }
+
+            return builder
                 .SetExtension("argument", node.Name.Value)
                 .SpecifiedBy("sec-Required-Arguments")
                 .Build();

@@ -18,6 +18,15 @@ namespace HotChocolate.Validation
     /// </summary>
     internal sealed class AllVariableUsagesAreAllowedVisitor : TypeDocumentValidatorVisitor
     {
+        public AllVariableUsagesAreAllowedVisitor()
+            : base(new SyntaxVisitorOptions
+                {
+                    VisitDirectives = true,
+                    VisitArguments = true
+                })
+        {
+        }
+
         protected override ISyntaxVisitorAction Enter(
             VariableDefinitionNode node,
             IDocumentValidatorContext context) =>

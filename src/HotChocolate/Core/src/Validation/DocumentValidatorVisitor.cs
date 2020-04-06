@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -8,8 +7,8 @@ namespace HotChocolate.Validation
     public class DocumentValidatorVisitor
         : SyntaxWalker<IDocumentValidatorContext>
     {
-        protected DocumentValidatorVisitor()
-            : base(Continue)
+        protected DocumentValidatorVisitor(SyntaxVisitorOptions options = default)
+            : base(Continue, options)
         {
         }
 

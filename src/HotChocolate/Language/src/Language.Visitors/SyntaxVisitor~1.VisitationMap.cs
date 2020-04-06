@@ -131,11 +131,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -169,11 +172,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -223,19 +229,25 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Arguments.Count; i++)
+            if (_options.VisitArguments)
             {
-                if (Visit(node.Arguments[i], node, context).IsBreak())
+                for (int i = 0; i < node.Arguments.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Arguments[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -276,11 +288,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -299,11 +314,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -332,11 +350,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -357,11 +378,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Arguments.Count; i++)
+            if (_options.VisitArguments)
             {
-                if (Visit(node.Arguments[i], node, context).IsBreak())
+                for (int i = 0; i < node.Arguments.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Arguments[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -460,11 +484,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -507,11 +534,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -543,11 +573,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -579,19 +612,25 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Arguments.Count; i++)
+            if (_options.VisitArguments)
             {
-                if (Visit(node.Arguments[i], node, context).IsBreak())
+                for (int i = 0; i < node.Arguments.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Arguments[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -623,11 +662,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -659,11 +701,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -695,11 +740,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -731,13 +779,17 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
+
 
             for (int i = 0; i < node.Values.Count; i++)
             {
@@ -767,11 +819,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -795,11 +850,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -831,11 +889,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Arguments.Count; i++)
+            if (_options.VisitArguments)
             {
-                if (Visit(node.Arguments[i], node, context).IsBreak())
+                for (int i = 0; i < node.Arguments.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Arguments[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -854,11 +915,14 @@ namespace HotChocolate.Language.Visitors
             SchemaExtensionNode node,
             TContext context)
         {
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -882,11 +946,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -910,11 +977,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -946,11 +1016,14 @@ namespace HotChocolate.Language.Visitors
                 }
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -974,11 +1047,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -1002,11 +1078,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 
@@ -1030,11 +1109,14 @@ namespace HotChocolate.Language.Visitors
                 return Break;
             }
 
-            for (int i = 0; i < node.Directives.Count; i++)
+            if (_options.VisitDirectives)
             {
-                if (Visit(node.Directives[i], node, context).IsBreak())
+                for (int i = 0; i < node.Directives.Count; i++)
                 {
-                    return Break;
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
                 }
             }
 

@@ -6,6 +6,36 @@ namespace HotChocolate.Validation
     public static class ValidationRuleServiceCollectionExtensions
     {
         /// <summary>
+        /// Every argument provided to a field or directive must be defined
+        /// in the set of possible arguments of that field or directive.
+        ///
+        /// http://facebook.github.io/graphql/June2018/#sec-Argument-Names
+        ///
+        /// AND
+        ///
+        /// Fields and directives treat arguments as a mapping of argument name
+        /// to value.
+        ///
+        /// More than one argument with the same name in an argument set
+        /// is ambiguous and invalid.
+        ///
+        /// http://facebook.github.io/graphql/June2018/#sec-Argument-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Arguments can be required. An argument is required if the argument
+        /// type is non‐null and does not have a default value. Otherwise,
+        /// the argument is optional.
+        ///
+        /// http://facebook.github.io/graphql/June2018/#sec-Required-Arguments
+        /// </summary>
+        public static IServiceCollection AddArgumentsAreValidRule(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<ArgumentsVisitor>();
+        }
+
+        /// <summary>
         /// GraphQL servers define what directives they support.
         /// For each usage of a directive, the directive must be available
         /// on that server.

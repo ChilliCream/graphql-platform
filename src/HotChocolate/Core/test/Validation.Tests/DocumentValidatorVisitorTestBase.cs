@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 

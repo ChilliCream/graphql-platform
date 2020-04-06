@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Validation
@@ -8,7 +8,8 @@ namespace HotChocolate.Validation
     public class TypeDocumentValidatorVisitor
        : DocumentValidatorVisitor
     {
-        protected TypeDocumentValidatorVisitor()
+        protected TypeDocumentValidatorVisitor(SyntaxVisitorOptions options = default)
+            : base(options)
         {
         }
 

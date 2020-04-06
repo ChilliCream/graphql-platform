@@ -18,10 +18,10 @@ namespace HotChocolate.Validation
             IDocumentValidatorContext context)
         {
             if (context.Types.TryPeek(out IType type) &&
-                type.NamedType() is UnionType unionType &&
+                type.NamedType().IsUnionType() &&
                 HasFields(node))
             {
-                context.Errors.Add(context.UnionFieldError(node, unionType));
+                context.Errors.Add(context.UnionFieldError(node, (UnionType)type));
                 return Skip;
             }
             return Continue;

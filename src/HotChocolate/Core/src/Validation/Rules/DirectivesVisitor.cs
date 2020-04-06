@@ -35,6 +35,14 @@ namespace HotChocolate.Validation
     /// </summary>
     internal sealed class DirectivesVisitor : DocumentValidatorVisitor
     {
+        public DirectivesVisitor()
+            : base(new SyntaxVisitorOptions
+                {
+                    VisitDirectives = true
+                })
+        {
+        }
+
         protected override ISyntaxVisitorAction Enter(
             ISyntaxNode node,
             IDocumentValidatorContext context)

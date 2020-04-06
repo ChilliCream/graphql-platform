@@ -30,6 +30,15 @@ namespace HotChocolate.Validation
     /// </summary>
     internal sealed class InputObjectVisitor : TypeDocumentValidatorVisitor
     {
+        public InputObjectVisitor()
+            : base(new SyntaxVisitorOptions
+                {
+                    VisitDirectives = true,
+                    VisitArguments = true
+                })
+        {
+        }
+
         protected override ISyntaxVisitorAction Enter(
             ObjectValueNode node,
             IDocumentValidatorContext context)

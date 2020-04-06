@@ -21,6 +21,15 @@ namespace HotChocolate.Validation.Rules
     /// </summary>
     internal sealed class AllVariablesUsedVisitor : DocumentValidatorVisitor
     {
+        public AllVariablesUsedVisitor()
+            : base(new SyntaxVisitorOptions
+                {
+                    VisitDirectives = true,
+                    VisitArguments = true
+                })
+        {
+        }
+
         protected override ISyntaxVisitorAction Enter(
             VariableDefinitionNode node,
             IDocumentValidatorContext context)

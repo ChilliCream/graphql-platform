@@ -19,7 +19,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFragmentsAreValidRule()
                 .AddAllVariablesUsedRule()
                 .AddAllVariableUsagesAreAllowedRule()
-                .AddVariableUniqueAndInputTypeRule();
+                .AddVariableUniqueAndInputTypeRule()
+                .AddArgumentsAreValidRule();
 
             return services;
         }

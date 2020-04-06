@@ -1,100 +1,99 @@
-﻿using HotChocolate.Language;
-using Xunit;
+﻿using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class ArgumentNamesRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public ArgumentNamesRuleTests()
-            : base(new ArgumentNamesRule())
+            : base(services => services.AddArgumentsAreValidRule())
         {
         }
 
         [Fact]
         public void ArgOnRequiredArg()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    dog {
+                        ... argOnRequiredArg
+                    }
+                }
+
                 fragment argOnRequiredArg on Dog {
                     doesKnowCommand(dogCommand: SIT)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void ArgOnOptional()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    dog {
+                        ... argOnOptional
+                    }
+                }
+
                 fragment argOnOptional on Dog {
                     isHousetrained(atOtherHomes: true) @include(if: true)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void InvalidFieldArgName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... invalidArgName
+                    }
+                }
+
                 fragment invalidArgName on Dog {
                     doesKnowCommand(command: CLEAN_UP_HOUSE)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"The argument `command` does not exist.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"The argument `command` does not exist.", t.Message),
+            t => Assert.Equal(
+                $"The argument `dogCommand` is required.", t.Message));
         }
 
         [Fact]
         public void InvalidDirectiveArgName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... invalidArgName
+                    }
+                }
+
                 fragment invalidArgName on Dog {
                     isHousetrained(atOtherHomes: true) @include(unless: false)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"The argument `unless` does not exist.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"The argument `unless` does not exist.", t.Message),
+            t => Assert.Equal(
+                $"The argument `if` is required.", t.Message));
         }
 
         [Fact]
         public void ArgumentOrderDoesNotMatter()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... multipleArgs
+                        ... multipleArgsReverseOrder
+                    }
+                }
+
                 fragment multipleArgs on Arguments {
                     multipleReqs(x: 1, y: 2)
                 }
@@ -103,12 +102,6 @@ namespace HotChocolate.Validation
                     multipleReqs(y: 1, x: 2)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
     }
 }
