@@ -110,7 +110,15 @@ namespace HotChocolate.Language
             ObjectFieldNode node,
             TContext context)
         {
-            return node;
+            ObjectFieldNode current = node;
+
+            current = Rewrite(current, node.Name, context,
+                RewriteName, current.WithName);
+
+            current = Rewrite(current, node.Value, context,
+                RewriteValue, current.WithValue);
+
+            return current;
         }
 
         protected virtual DirectiveNode RewriteDirective(
