@@ -122,7 +122,11 @@ namespace HotChocolate.AspNetCore.Authorization
 
             if (authorizeService == null || policyProvider == null)
             {
-                return string.IsNullOrWhiteSpace(directive.Policy);
+                if(string.IsNullOrWhiteSpace(directive.Policy))
+                {
+                    return principal.Identities.Any(t => t.IsAuthenticated);
+                }
+                return false;
             }
 
             AuthorizationPolicy policy = null;
