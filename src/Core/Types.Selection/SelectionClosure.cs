@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Selections
 
         public Dictionary<string, MemberAssignment> Projections { get; }
 
-        public Expression CreateMemberInit()
+        public MemberInitExpression CreateMemberInit()
         {
             NewExpression ctor = Expression.New(ClrType);
             return Expression.MemberInit(ctor, Projections.Values);
