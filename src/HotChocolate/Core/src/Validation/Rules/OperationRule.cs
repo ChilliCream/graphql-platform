@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation
@@ -21,6 +22,16 @@ namespace HotChocolate.Validation
             IDocumentValidatorContext context,
             DocumentNode document)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             bool hasAnonymousOp = false;
             int opCount = 0;
             OperationDefinitionNode? anonymousOp = null;
