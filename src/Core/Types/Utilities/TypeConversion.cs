@@ -61,9 +61,17 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(to));
             }
 
-            if (source is null || from == to)
+            if (from == to)
             {
                 converted = source;
+                return true;
+            }
+
+            if (source is null)
+            {
+                converted = to.IsValueType
+                    ? Activator.CreateInstance(to)
+                    : null;
                 return true;
             }
 
