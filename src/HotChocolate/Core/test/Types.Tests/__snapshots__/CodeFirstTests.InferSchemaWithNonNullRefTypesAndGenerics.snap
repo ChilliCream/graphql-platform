@@ -1,0 +1,37 @@
+﻿schema {
+  query: QueryWithGenerics
+}
+
+interface IPet {
+  name: String
+}
+
+type Dog implements IPet {
+  name: String
+}
+
+type GenericWrapperOfIPet {
+  value: IPet!
+}
+
+type QueryWithGenerics {
+  pet(id: Int!): IPet
+  pets(arg1: Int arg2: Boolean arg3: Boolean arg4: String arg5: GenericWrapperOfStringInput arg6: GreetingsInput): GenericWrapperOfIPet!
+}
+
+input GenericWrapperOfStringInput {
+  value: String!
+}
+
+input GreetingsInput {
+  name: String!
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
