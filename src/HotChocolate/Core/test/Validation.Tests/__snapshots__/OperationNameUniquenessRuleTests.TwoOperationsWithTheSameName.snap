@@ -11,7 +11,6 @@
     ],
     "Exception": null,
     "Extensions": {
-      "operations": 2,
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness"
     }
   }

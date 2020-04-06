@@ -60,7 +60,6 @@ namespace HotChocolate.Validation
                                     "The operation name `{0}` is not unique.",
                                     operation.Name.Value)
                                 .AddLocation(operation)
-                                .SetExtension("operations", opCount)
                                 .SpecifiedBy("sec-Operation-Name-Uniqueness")
                                 .Build());
 
