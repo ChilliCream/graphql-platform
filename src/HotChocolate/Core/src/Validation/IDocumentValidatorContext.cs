@@ -17,11 +17,11 @@ namespace HotChocolate.Validation
 
         IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
-        ISet<string> UsedVariables { get; }
+        ISet<string> Used { get; }
 
-        ISet<string> UnusedVariables { get; }
+        ISet<string> Unused { get; }
 
-        ISet<string> DeclaredVariables { get; }
+        ISet<string> Declared { get; }
 
         ISet<string> Names { get; }
 

@@ -25,8 +25,8 @@ namespace HotChocolate.Validation.Rules
             VariableDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            context.UnusedVariables.Add(node.Variable.Name.Value);
-            context.DeclaredVariables.Add(node.Variable.Name.Value);
+            context.Unused.Add(node.Variable.Name.Value);
+            context.Declared.Add(node.Variable.Name.Value);
             return Skip;
         }
 
@@ -34,7 +34,7 @@ namespace HotChocolate.Validation.Rules
             VariableNode node,
             IDocumentValidatorContext context)
         {
-            context.UsedVariables.Add(node.Name.Value);
+            context.Used.Add(node.Name.Value);
             return Continue;
         }
 
@@ -42,9 +42,9 @@ namespace HotChocolate.Validation.Rules
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            context.UnusedVariables.Clear();
-            context.UsedVariables.Clear();
-            context.DeclaredVariables.Clear();
+            context.Unused.Clear();
+            context.Used.Clear();
+            context.Declared.Clear();
             return Continue;
         }
 
@@ -52,34 +52,17 @@ namespace HotChocolate.Validation.Rules
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            context.UnusedVariables.ExceptWith(context.UsedVariables);
-            context.UsedVariables.ExceptWith(context.DeclaredVariables);
+            context.Unused.ExceptWith(context.Used);
+            context.Used.ExceptWith(context.Declared);
 
-            if (context.UnusedVariables.Count > 0)
+            if (context.Unused.Count > 0)
             {
-                // TODO : Resources
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "The following variables were not used: " +
-                            $"{string.Join(", ", context.UnusedVariables)}.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SpecifiedBy("sec-All-Variables-Used")
-                        .Build());
+                context.Errors.Add(context.VariableNotUsed(node));
             }
 
-            if (context.UsedVariables.Count > 0)
+            if (context.Used.Count > 0)
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "The following variables were not declared: " +
-                            $"{string.Join(", ", context.UsedVariables)}.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SpecifiedBy("sec-All-Variable-Uses-Defined")
-                        .Build());
+                context.Errors.Add(context.VariableNotDeclared(node));
             }
 
             return Continue;

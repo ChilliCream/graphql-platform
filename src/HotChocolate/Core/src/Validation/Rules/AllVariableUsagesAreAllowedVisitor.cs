@@ -67,20 +67,8 @@ namespace HotChocolate.Validation
                 out VariableDefinitionNode? variableDefinition)
                 && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
             {
-                string variableName = variableDefinition.Variable.Name.Value;
-
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            $"The variable `{variableName}` is not compatible " +
-                            "with the type of the current location.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SetExtension("variable", variableName)
-                        .SetExtension("variableType", variableDefinition.Type.ToString())
-                        .SetExtension("locationType", context.Types.Peek().Visualize())
-                        .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
-                        .Build());
+                context.Errors.Add(ErrorHelper.VariableIsNotCompatible(
+                    context, node, variableDefinition));
             }
             return Skip;
         }

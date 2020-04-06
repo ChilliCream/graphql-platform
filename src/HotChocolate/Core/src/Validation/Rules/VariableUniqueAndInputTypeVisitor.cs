@@ -25,7 +25,7 @@ namespace HotChocolate.Validation
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            context.DeclaredVariables.Clear();
+            context.Declared.Clear();
             return Continue;
         }
 
@@ -52,7 +52,7 @@ namespace HotChocolate.Validation
                        .Build());
             }
 
-            if (!context.DeclaredVariables.Add(variableName))
+            if (!context.Declared.Add(variableName))
             {
                 // TODO : Resources
                 context.Errors.Add(
