@@ -1,22 +1,19 @@
-﻿using HotChocolate.Language;
-using Xunit;
+﻿using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class OperationNameUniquenessRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public OperationNameUniquenessRuleTests()
-            : base(new OperationNameUniquenessRule())
+            : base(services => services.AddOperationsAreValidRule())
         {
         }
 
         [Fact]
         public void TwoUniqueQueryOperations()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query getDogName {
                     dog {
                         name
@@ -31,22 +28,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
-            Assert.Empty(result.Errors);
         }
 
 
         [Fact]
         public void TwoQueryOperationsWithTheSameName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query getName {
                     dog {
                         name
@@ -60,25 +48,16 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        $"The operation name `getName` is not unique.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                $"The operation name `getName` is not unique.",
+                t.Message));
         }
 
         [Fact]
         public void TwoOperationsWithTheSameName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query dogOperation {
                     dog {
                         name
@@ -90,17 +69,10 @@ namespace HotChocolate.Validation
                         id
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        $"The operation name `dogOperation` is not unique.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                $"The operation name `dogOperation` is not unique.",
+                t.Message));
         }
     }
 }
