@@ -11,14 +11,14 @@ namespace HotChocolate.Types
     {
         // <summary>
         /// Associates the specified
-        /// <paramref name="syntaxinterfaceTypeDefinitionode"/>
+        /// <paramref name="interfaceTypeDefinitionNode"/>
         /// with the <see cref="InterfaceType"/>.
         /// </summary>
         /// <param name="interfaceTypeDefinition">
         /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
         /// </param>
         IInterfaceTypeDescriptor<T> SyntaxNode(
-            InterfaceTypeDefinitionNode syntaxinterfaceTypeDefinitionode);
+            InterfaceTypeDefinitionNode interfaceTypeDefinitionNode);
 
         /// <summary>
         /// Defines the name of the <see cref="InterfaceType"/>.
@@ -32,10 +32,60 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// Adds explanatory text to the <see cref="InterfaceType"/>
-        /// that can be accessd via introspection.
+        /// that can be accessed via introspection.
         /// </summary>
         /// <param name="value">The interface type description.</param>
         IInterfaceTypeDescriptor<T> Description(string value);
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <typeparam name="T">The interface type.</typeparam>
+        IInterfaceTypeDescriptor<T> Interface<TInterface>()
+            where TInterface : InterfaceType;
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <typeparam name="T">The interface type.</typeparam>
+        IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
+            where TInterface : InterfaceType;
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <param name="type">
+        /// A syntax node representing an interface type.
+        /// </param>
+        IInterfaceTypeDescriptor<T> Interface(NamedTypeNode type);
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <typeparam name="T">The interface type.</typeparam>
+        IInterfaceTypeDescriptor<T> Implements<TInterface>()
+            where TInterface : InterfaceType;
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <typeparam name="T">The interface type.</typeparam>
+        IInterfaceTypeDescriptor<T> Implements<TInterface>(TInterface type)
+            where TInterface : InterfaceType;
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <param name="type">
+        /// A syntax node representing an interface type.
+        /// </param>
+        IInterfaceTypeDescriptor<T> Implements(NamedTypeNode type);
 
         /// <summary>
         /// Defines the field binding behavior.
@@ -64,7 +114,7 @@ namespace HotChocolate.Types
         IInterfaceTypeDescriptor<T> BindFieldsExplicitly();
 
         /// <summary>
-        /// Defines that all fields shall be infered
+        /// Defines that all fields shall be inferred
         /// from the associated .Net type,
         /// </summary>
         IInterfaceTypeDescriptor<T> BindFieldsImplicitly();

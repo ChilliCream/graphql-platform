@@ -7,42 +7,62 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class InterfaceType
         : NamedTypeBase<InterfaceTypeDefinition>
-        , IComplexOutputType
+        , IInterfaceType
         , IHasClrType
         , INamedType
     {
-        private readonly Action<IInterfaceTypeDescriptor> _configure;
-        private ResolveAbstractType _resolveAbstractType;
+        private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
+        private Action<IInterfaceTypeDescriptor>? _configure;
+        private ResolveAbstractType? _resolveAbstractType;
 
         protected InterfaceType()
         {
             _configure = Configure;
+            Fields = FieldCollection<InterfaceField>.Empty;
         }
 
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+            Fields = FieldCollection<InterfaceField>.Empty;
         }
 
         public override TypeKind Kind => TypeKind.Interface;
 
-        public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+        public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+
+        IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => _interfaces;
+
+        public InterfaceTypeDefinitionNode? SyntaxNode { get; private set; }
 
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
+
+        public bool IsImplementing(NameString interfaceTypeName) =>
+            _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
+
+        public bool IsImplementing(InterfaceType interfaceType) =>
+            _interfaces.IndexOf(interfaceType) != -1;
+
+        public bool IsImplementing(IInterfaceType interfaceType) =>
+            interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
             switch (namedType.Kind)
             {
                 case TypeKind.Interface:
-                    return ReferenceEquals(namedType, this);
+                    return ReferenceEquals(namedType, this) ||
+                        ((InterfaceType)namedType).IsImplementing(this);
 
                 case TypeKind.Object:
                     return ((ObjectType)namedType).IsImplementing(this);
@@ -59,7 +79,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return _resolveAbstractType.Invoke(context, resolverResult);
+            return _resolveAbstractType!.Invoke(context, resolverResult);
         }
 
         protected override InterfaceTypeDefinition CreateDefinition(
@@ -68,7 +88,8 @@ namespace HotChocolate.Types
             var descriptor = InterfaceTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
                 GetType());
-            _configure(descriptor);
+            _configure!.Invoke(descriptor);
+            _configure = null;
             return descriptor.CreateDefinition();
         }
 
@@ -98,12 +119,16 @@ namespace HotChocolate.Types
             CompleteAbstractTypeResolver(
                 context,
                 definition.ResolveAbstractType);
+
+            CompleteInterfacesHelper.Complete(
+                context, definition, ClrType, _interfaces, this, SyntaxNode);
+
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }
 
         private void CompleteAbstractTypeResolver(
             ICompletionContext context,
-            ResolveAbstractType resolveAbstractType)
+            ResolveAbstractType? resolveAbstractType)
         {
             if (resolveAbstractType == null)
             {
@@ -111,7 +136,7 @@ namespace HotChocolate.Types
 
                 // if there is no custom type resolver we will use this default
                 // abstract type resolver.
-                IReadOnlyCollection<ObjectType> types = null;
+                IReadOnlyCollection<ObjectType>? types = null;
                 _resolveAbstractType = (c, r) =>
                 {
                     if (types == null)

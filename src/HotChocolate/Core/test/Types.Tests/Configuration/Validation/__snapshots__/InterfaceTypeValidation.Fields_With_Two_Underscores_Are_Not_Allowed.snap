@@ -1,0 +1,18 @@
+﻿{
+  "message": "Field names starting with `__` are reserved for the GraphQL specification.",
+  "type": "Foo",
+  "extensions": {
+    "field": "__foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "Field names starting with `__` are reserved for the GraphQL specification.",
+  "type": "FooInterface",
+  "extensions": {
+    "field": "__foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
+  }
+}
+

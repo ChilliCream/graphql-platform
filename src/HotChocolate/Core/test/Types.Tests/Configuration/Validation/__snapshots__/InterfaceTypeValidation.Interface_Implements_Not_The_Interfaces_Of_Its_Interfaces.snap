@@ -1,0 +1,9 @@
+﻿{
+  "message": "The interface type must also declare all interfaces declared by implemented interfaces.",
+  "type": "A",
+  "extensions": {
+    "implementedType": "B",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
+  }
+}
+

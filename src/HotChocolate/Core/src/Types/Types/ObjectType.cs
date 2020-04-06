@@ -10,48 +10,57 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Relay;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class ObjectType
         : NamedTypeBase<ObjectTypeDefinition>
-        , IComplexOutputType
+        , IObjectType
         , IHasClrType
         , IHasSyntaxNode
     {
         private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
-        private Action<IObjectTypeDescriptor> _configure;
-        private IsOfType _isOfType;
+        private Action<IObjectTypeDescriptor>? _configure;
+        private IsOfType? _isOfType;
 
         protected ObjectType()
         {
             _configure = Configure;
+            Fields = FieldCollection<ObjectField>.Empty;
         }
 
         public ObjectType(Action<IObjectTypeDescriptor> configure)
         {
             _configure = configure;
+            Fields = FieldCollection<ObjectField>.Empty;
         }
 
         public override TypeKind Kind => TypeKind.Object;
 
-        public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
+        public ObjectTypeDefinitionNode? SyntaxNode { get; private set; }
 
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+
+        IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => Interfaces;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public bool IsOfType(IResolverContext context, object resolverResult) =>
-            _isOfType(context, resolverResult);
+            _isOfType!.Invoke(context, resolverResult);
 
         public bool IsImplementing(NameString interfaceTypeName) =>
             _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _interfaces.Contains(interfaceType);
+            _interfaces.IndexOf(interfaceType) != -1;
+
+        public bool IsImplementing(IInterfaceType interfaceType) =>
+            interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
 
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -59,7 +68,7 @@ namespace HotChocolate.Types
             var descriptor = ObjectTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
                 GetType());
-            _configure(descriptor);
+            _configure!.Invoke(descriptor);
             _configure = null;
             return descriptor.CreateDefinition();
         }
@@ -93,7 +102,9 @@ namespace HotChocolate.Types
 
                 Fields = new FieldCollection<ObjectField>(fields);
 
-                CompleteInterfaces(context, definition);
+                CompleteInterfacesHelper.Complete(
+                    context, definition, ClrType, _interfaces, this, SyntaxNode);
+
                 CompleteIsOfType(context);
                 FieldInitHelper.CompleteFields(context, definition, Fields);
             }
@@ -121,65 +132,6 @@ namespace HotChocolate.Types
                 && context.ContextData.ContainsKey(RelayConstants.IsRelaySupportEnabled))
             {
                 fields.Add(new NodeField(context.DescriptorContext));
-            }
-        }
-
-        private void CompleteInterfaces(
-            ICompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            if (definition.Name == "Some")
-            {
-
-            }
-            if (ClrType != typeof(object))
-            {
-                TryInferInterfaceUsageFromClrType(context, ClrType);
-            }
-
-            if (definition.KnownClrTypes.Count > 0)
-            {
-                definition.KnownClrTypes.Remove(typeof(object));
-
-                foreach (Type clrType in definition.KnownClrTypes.Distinct())
-                {
-                    TryInferInterfaceUsageFromClrType(context, clrType);
-                }
-            }
-
-            foreach (ITypeReference interfaceRef in definition.Interfaces)
-            {
-                if (!context.TryGetType(interfaceRef, out InterfaceType type))
-                {
-                    // TODO : resources
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage("COULD NOT RESOLVE INTERFACE")
-                        .SetCode(ErrorCodes.Schema.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                }
-
-                if (!_interfaces.Contains(type))
-                {
-                    _interfaces.Add(type);
-                }
-            }
-        }
-
-        private void TryInferInterfaceUsageFromClrType(
-           ICompletionContext context,
-           Type clrType)
-        {
-            foreach (Type interfaceType in clrType.GetInterfaces())
-            {
-                if (context.TryGetType(
-                    new ClrTypeReference(interfaceType, TypeContext.Output),
-                    out InterfaceType type)
-                    && !_interfaces.Contains(type))
-                {
-                    _interfaces.Add(type);
-                }
             }
         }
 
