@@ -267,6 +267,10 @@ namespace HotChocolate.Execution
                     WriteList(writer, list);
                     break;
 
+                case IError error:
+                    WriteError(writer, error);
+                    break;
+
                 case string s:
                     writer.WriteStringValue(s);
                     break;
