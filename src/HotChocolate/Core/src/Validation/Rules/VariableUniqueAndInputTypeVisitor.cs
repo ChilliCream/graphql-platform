@@ -10,9 +10,9 @@ namespace HotChocolate.Validation
     /// duplicate variable is the same.
     ///
     /// http://spec.graphql.org/June2018/#sec-Validation.Variables
-    /// 
+    ///
     /// AND
-    /// 
+    ///
     /// Variables can only be input types. Objects,
     /// unions, and interfaces cannot be used as inputs.
     ///
