@@ -23,19 +23,19 @@ namespace HotChocolate.Validation
                     {
                         if (!context.Names.Add(argument.Name.Value))
                         {
-                            // error 1
+                            context.ArgumentNotUnique(argument, field);
                         }
 
                         if (arg.Type.IsNonNullType() &&
                             arg.DefaultValue.IsNull() &&
                             argument.Value.IsNull())
                         {
-                            // error 3
+                            context.ArgumentRequired(argument, argument.Name.Value, field);
                         }
                     }
                     else
                     {
-                        // error 2
+                        context.ArgumentDoesNotExist(argument, field);
                     }
                 }
 
@@ -47,70 +47,12 @@ namespace HotChocolate.Validation
                         argument.DefaultValue.IsNull() &&
                         context.Names.Add(argument.Name))
                     {
-                        // error 3
+                        context.ArgumentRequired(node, argument.Name, field);
                     }
                 }
             }
 
             return Continue;
-        }
-    }
-
-    internal static class ErrorHelper
-    {
-        public static IError VariableNotUsed(
-            this IDocumentValidatorContext context,
-            OperationDefinitionNode node)
-        {
-            return ErrorBuilder.New()
-                .SetMessage(
-                    "The following variables were not used: " +
-                    $"{string.Join(", ", context.Unused)}.")
-                .AddLocation(node)
-                .SetPath(context.CreateErrorPath())
-                .SpecifiedBy("sec-All-Variables-Used")
-                .Build();
-        }
-
-        public static IError VariableNotDeclared(
-            this IDocumentValidatorContext context,
-            OperationDefinitionNode node)
-        {
-            return ErrorBuilder.New()
-                .SetMessage(
-                    "The following variables were not declared: " +
-                    $"{string.Join(", ", context.Used)}.")
-                .AddLocation(node)
-                .SetPath(context.CreateErrorPath())
-                .SpecifiedBy("sec-All-Variable-Uses-Defined")
-                .Build();
-        }
-
-        public static IError VariableIsNotCompatible(
-            this IDocumentValidatorContext context,
-            VariableNode variable,
-            VariableDefinitionNode variableDefinition)
-        {
-            string variableName = variableDefinition.Variable.Name.Value;
-
-            return ErrorBuilder.New()
-                .SetMessage(
-                    $"The variable `{variableName}` is not compatible " +
-                    "with the type of the current location.")
-                .AddLocation(variable)
-                .SetPath(context.CreateErrorPath())
-                .SetExtension("variable", variableName)
-                .SetExtension("variableType", variableDefinition.Type.ToString())
-                .SetExtension("locationType", context.Types.Peek().Visualize())
-                .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
-                .Build();
-        }
-
-
-
-        public static IError ArgumentNotUnique()
-        {
-
         }
     }
 }

@@ -39,34 +39,12 @@ namespace HotChocolate.Validation
                     node.Type.NamedType().Name.Value, out INamedType type) &&
                 !type.IsInputType())
             {
-                context.Errors.Add(
-                   ErrorBuilder.New()
-                       .SetMessage(
-                            "The type of variable " +
-                            $"`{variableName}` " +
-                            "is not an input type.")
-                       .AddLocation(node)
-                       .SetPath(context.CreateErrorPath())
-                       .SetExtension("variable", variableName)
-                       .SetExtension("variableType", node.Type.ToString())
-                       .Build());
+                context.Errors.Add(context.VariableNotInputType(node, variableName));
             }
 
             if (!context.Declared.Add(variableName))
             {
-                // TODO : Resources
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                           "A document containing operations that " +
-                           "define more than one variable with the same " +
-                           "name is invalid for execution.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SetExtension("variable", variableName)
-                        .SetExtension("variableType", node.Type.ToString())
-                        .SpecifiedBy("sec-Validation.Variables")
-                        .Build());
+                context.Errors.Add(context.VariableNameNotUnique(node,variableName));
             }
             return Skip;
         }

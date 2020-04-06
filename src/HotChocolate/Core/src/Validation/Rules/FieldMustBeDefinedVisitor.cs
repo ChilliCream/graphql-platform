@@ -18,18 +18,10 @@ namespace HotChocolate.Validation
             IDocumentValidatorContext context)
         {
             if (context.Types.TryPeek(out IType type) &&
-                type.NamedType().IsUnionType() &&
+                type.NamedType() is UnionType unionType &&
                 HasFields(node))
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "A union type cannot declare a field directly. " +
-                            "Use inline fragments or fragments instead")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
-                        .Build());
+                context.Errors.Add(context.UnionFieldError(node, unionType));
                 return Skip;
             }
             return Continue;
@@ -42,15 +34,7 @@ namespace HotChocolate.Validation
             if (context.Types.Peek() is IComplexOutputType ct &&
                 !FieldExists(ct, node.Name.Value))
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            $"The field `{node.Name.Value}` does not exist " +
-                            $"on the type `{ct.Name}`.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
-                        .Build());
+                context.Errors.Add(context.FieldDoesNotExist(node, ct));
                 return Skip;
             }
             return Continue;

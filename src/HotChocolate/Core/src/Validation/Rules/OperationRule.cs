@@ -54,31 +54,15 @@ namespace HotChocolate.Validation
                     }
                     else if (!context.Names.Add(operation.Name.Value))
                     {
-                        context.Errors.Add(
-                            ErrorBuilder.New()
-                                .SetMessage(
-                                    "The operation name `{0}` is not unique.",
-                                    operation.Name.Value)
-                                .AddLocation(operation)
-                                .SpecifiedBy("sec-Operation-Name-Uniqueness")
-                                .Build());
-
+                        context.Errors.Add(context.OperationNameNotUnique(
+                            operation, operation.Name.Value));
                     }
                 }
             }
 
             if (hasAnonymousOp && opCount > 1)
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "GraphQL allows a short‐hand form for defining query " +
-                            "operations when only that one operation exists in the " +
-                            "document.")
-                        .AddLocation(anonymousOp)
-                        .SetExtension("operations", opCount)
-                        .SpecifiedBy("sec-Lone-Anonymous-Operation")
-                        .Build());
+                context.Errors.Add(context.OperationAnonymousMoreThanOne(anonymousOp!, opCount));
             }
         }
     }

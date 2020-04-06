@@ -76,18 +76,10 @@ namespace HotChocolate.Validation
                 IDefinitionNode definition = node.Definitions[i];
                 if (definition.Kind == NodeKind.FragmentDefinition)
                 {
-                    string fragmentName = ((FragmentDefinitionNode)definition).Name.Value;
-                    if (!context.Names.Add(fragmentName))
+                    FragmentDefinitionNode fragment = (FragmentDefinitionNode)definition;
+                    if (!context.Names.Add(fragment.Name.Value))
                     {
-                        context.Errors.Add(
-                            ErrorBuilder.New()
-                                .SetMessage(
-                                    "There are multiple fragments with the name " +
-                                    $"`{fragmentName}`.")
-                                .AddLocation(definition)
-                                .SetExtension("fragment", fragmentName)
-                                .SpecifiedBy("sec-Fragment-Name-Uniqueness")
-                                .Build());
+                        context.Errors.Add(context.FragmentNameNotUnique(fragment));
                     }
                 }
             }
@@ -105,16 +97,7 @@ namespace HotChocolate.Validation
             {
                 if (context.Names.Add(fragmentName))
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                $"The specified fragment `{fragmentName}` " +
-                                "is not used within the current document.")
-                            .AddLocation(context.Fragments[fragmentName])
-                            .SetPath(context.CreateErrorPath())
-                            .SetExtension("fragment", fragmentName)
-                            .SpecifiedBy("sec-Fragments-Must-Be-Used")
-                            .Build());
+                    context.Errors.Add(context.FragmentNotUsed(context.Fragments[fragmentName]));
                 }
             }
 
@@ -144,36 +127,18 @@ namespace HotChocolate.Validation
             FragmentSpreadNode node,
             IDocumentValidatorContext context)
         {
-            string fragmentName = node.Name.Value;
-
-            if (context.Fragments.TryGetValue(fragmentName, out FragmentDefinitionNode? fragment))
+            if (context.Fragments.TryGetValue(
+                node.Name.Value,
+                out FragmentDefinitionNode? fragment))
             {
                 if (context.Path.Contains(fragment))
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                "The graph of fragment spreads must not form any " +
-                                "cycles including spreading itself. Otherwise an " +
-                                "operation could infinitely spread or infinitely " +
-                                "execute on cycles in the underlying data.")
-                            .AddLocation(node)
-                            .SetPath(context.CreateErrorPath())
-                            .SetExtension("fragment", fragmentName)
-                            .SpecifiedBy("sec-Fragment-spreads-must-not-form-cycles")
-                            .Build());
+                    context.Errors.Add(context.FragmentCycleDetected(node));
                 }
             }
             else
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage("The specified fragment `{0}` does not exist.", fragmentName)
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SetExtension("fragment", fragmentName)
-                        .SpecifiedBy("sec-Fragment-spread-target-defined")
-                        .Build());
+                context.Errors.Add(context.FragmentDoesNotExist(node));
             }
             return Continue;
         }
@@ -191,16 +156,8 @@ namespace HotChocolate.Validation
 
                 if (!IsCompatibleType(parentType, typeCondition))
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                "The parent type does not match the type condition on the fragment.")
-                            .AddLocation(node)
-                            .SetPath(context.CreateErrorPath())
-                            .SetExtension("typeCondition", typeCondition.Visualize())
-                            .SetFragmentName(node)
-                            .SpecifiedBy("sec-Fragment-spread-is-possible")
-                            .Build());
+                    context.Errors.Add(context.FragmentNotPossible(
+                        node, typeCondition, parentType));
                 }
             }
         }
@@ -235,30 +192,12 @@ namespace HotChocolate.Validation
                 if (typeCondition is { } &&
                     !context.Schema.TryGetType<INamedType>(typeCondition.Name.Value, out _))
                 {
-                    context.Errors.Add(
-                        ErrorBuilder.New()
-                            .SetMessage("Unknown type `{0}`.", typeCondition.Name.Value)
-                            .AddLocation(node)
-                            .SetPath(context.CreateErrorPath())
-                            .SetExtension("typeCondition", typeCondition.Name.Value)
-                            .SetFragmentName(node)
-                            .SpecifiedBy("sec-Fragment-Spread-Type-Existence")
-                            .Build());
+                    context.Errors.Add(context.FragmentTypeConditionUnknown(node, typeCondition));
                 }
             }
             else if (context.Types.TryPeek(out IType type) && !type.IsCompositeType())
             {
-                context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "Fragments can only be declared on unions, interfaces, " +
-                            "and objects.")
-                        .AddLocation(node)
-                        .SetPath(context.CreateErrorPath())
-                        .SetExtension("typeCondition", type.Visualize())
-                        .SetFragmentName(node)
-                        .SpecifiedBy("sec-Fragments-On-Composite-Types")
-                        .Build());
+                context.Errors.Add(context.FragmentOnlyCompositType(node, type.NamedType()));
             }
         }
     }

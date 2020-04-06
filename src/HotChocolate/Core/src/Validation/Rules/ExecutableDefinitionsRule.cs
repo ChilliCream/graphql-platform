@@ -48,13 +48,8 @@ namespace HotChocolate.Validation
             if (typeSystemNode is { })
             {
                 context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "A document containing TypeSystemDefinition " +
-                            "is invalid for execution.")
-                        .AddLocation(typeSystemNode)
-                        .SpecifiedBy("sec-Executable-Definitions")
-                        .Build());
+                    ErrorHelper.TypeSystemDefinitionNotAllowed(
+                        context, typeSystemNode));
             }
         }
     }
