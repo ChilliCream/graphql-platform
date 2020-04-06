@@ -29,8 +29,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         public async Task InvokeAsync(IDirectiveContext context)
         {
-            AuthorizeDirective directive = context.Directive
-                .ToObject<AuthorizeDirective>();
+            AuthorizeDirective directive = context.Directive.ToObject<AuthorizeDirective>();
 
             ClaimsPrincipal principal = null;
             var allowed = false;
@@ -41,8 +40,19 @@ namespace HotChocolate.AspNetCore.Authorization
                 && o is ClaimsPrincipal p)
             {
                 principal = p;
-                authenticated = allowed =
-                    p.Identities.Any(t => t.IsAuthenticated);
+
+                #if !ASPNETCLASSIC
+                if (NeedsPolicyValidation(directive))
+                {
+                    authenticated = allowed = true;
+                }
+                else
+                {
+                    authenticated = allowed = p.Identities.Any(t => t.IsAuthenticated);
+                }
+                #else
+                authenticated = allowed = p.Identities.Any(t => t.IsAuthenticated);
+                #endif
             }
 
             allowed = allowed && IsInAnyRole(principal, directive.Roles);
@@ -94,11 +104,9 @@ namespace HotChocolate.AspNetCore.Authorization
         }
 #if !ASPNETCLASSIC
 
-        private static bool NeedsPolicyValidation(
-            AuthorizeDirective directive)
+        private static bool NeedsPolicyValidation(AuthorizeDirective directive)
         {
-            return directive.Roles.Count == 0
-                || !string.IsNullOrEmpty(directive.Policy);
+            return directive.Roles.Count == 0 || !string.IsNullOrEmpty(directive.Policy);
         }
 
         private static async Task<bool> AuthorizeWithPolicyAsync(
