@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment argOnOptional on Dog {
-                    isHousetrained(atOtherHomes: true) @include(if: true)
+                    isHouseTrained(atOtherHomes: true) @include(if: true)
                 }
             ");
         }
@@ -73,7 +73,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment invalidArgName on Dog {
-                    isHousetrained(atOtherHomes: true) @include(unless: false)
+                    isHouseTrained(atOtherHomes: true) @include(unless: false)
                 }
             ",
             t => Assert.Equal(

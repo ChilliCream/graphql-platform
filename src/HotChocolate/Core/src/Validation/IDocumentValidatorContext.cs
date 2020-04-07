@@ -39,5 +39,7 @@ namespace HotChocolate.Validation
         /// The visitor was unable to resolver types specified in the query.
         /// </summary>
         IList<bool> IsInError { get; }
+
+        bool UnexpectedErrorsDetected { get; set; }
     }
 }

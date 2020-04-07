@@ -57,6 +57,8 @@ namespace HotChocolate.Validation
 
         public IList<bool> IsInError { get; } = new List<bool>();
 
+        public bool UnexpectedErrorsDetected { get; set; }
+
         public void Clear()
         {
             _schema = null;
@@ -74,6 +76,7 @@ namespace HotChocolate.Validation
             InputFields.Clear();
             Errors.Clear();
             IsInError.Clear();
+            UnexpectedErrorsDetected = false;
         }
     }
 }

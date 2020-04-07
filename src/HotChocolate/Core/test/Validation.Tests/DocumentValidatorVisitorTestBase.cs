@@ -62,6 +62,7 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
+            Assert.False(context.UnexpectedErrorsDetected);
             Assert.Empty(context.Errors);
         }
         public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
