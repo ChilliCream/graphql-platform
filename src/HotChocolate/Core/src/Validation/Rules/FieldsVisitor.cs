@@ -10,8 +10,19 @@ namespace HotChocolate.Validation.Rules
     /// type of the selection set. There are no limitations on alias names.
     ///
     /// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+    ///
+    /// AND
+    ///
+    /// Field selections on scalars or enums are never allowed,
+    /// because they are the leaf nodes of any GraphQL query.
+    ///
+    /// Conversely the leaf field selections of GraphQL queries
+    /// must be of type scalar or enum. Leaf selections on objects,
+    /// interfaces, and unions without subfields are disallowed.
+    ///
+    /// http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
     /// </summary>
-    internal sealed class FieldMustBeDefinedVisitor : TypeDocumentValidatorVisitor
+    internal sealed class FieldsVisitor : TypeDocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
             FieldNode node,
@@ -26,6 +37,24 @@ namespace HotChocolate.Validation.Rules
             {
                 if (ct.Fields.TryGetField(node.Name.Value, out IOutputField of))
                 {
+                    if (node.SelectionSet is null)
+                    {
+                        if (of.Type.NamedType().IsCompositeType())
+                        {
+                            context.Errors.Add(context.NoSelectionOnCompositeField(
+                                node, ct, of.Type));
+                        }
+                    }
+                    else
+                    {
+                        if (of.Type.NamedType().IsLeafType())
+                        {
+                            context.Errors.Add(context.LeafFieldsCannotHaveSelections(
+                                node, ct, of.Type));
+                            return Skip;
+                        }
+                    }
+
                     context.OutputFields.Push(of);
                     context.Types.Push(of.Type);
                     return Continue;

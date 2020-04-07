@@ -127,6 +127,50 @@ namespace HotChocolate.Validation.Rules
                 .Build();
         }
 
+        public static IError LeafFieldsCannotHaveSelections(
+            this IDocumentValidatorContext context,
+            FieldNode node,
+            IComplexOutputType declaringType,
+            IType fieldType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "`{0}` returns {0} value. Selections on scalars " +
+                    "or enums are never allowed, because they are the leaf " +
+                    "nodes of any GraphQL query.",
+                    node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "en enum")
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("declaringType", declaringType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("type", fieldType.Print())
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
+                .SpecifiedBy("sec-Leaf-Field-Selections")
+                .Build();
+        }
+
+        public static IError NoSelectionOnCompositeField(
+            this IDocumentValidatorContext context,
+            FieldNode node,
+            IComplexOutputType declaringType,
+            IType fieldType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "`{0}` is an object, interface or union type " +
+                    "field. Leaf selections on objects, interfaces, and " +
+                    "unions without subfields are disallowed.",
+                    node.Name.Value)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("declaringType", declaringType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("type", fieldType.Print())
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
+                .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .Build();
+        }
+
         public static IError FragmentNameNotUnique(
             this IDocumentValidatorContext context,
             FragmentDefinitionNode fragmentDefinition)
