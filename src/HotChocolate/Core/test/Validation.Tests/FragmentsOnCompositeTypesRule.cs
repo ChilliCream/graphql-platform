@@ -70,8 +70,6 @@ namespace HotChocolate.Validation
             ");
         }
 
-        // TODO : interfaces implement interfaces
-        /*
         /// <summary>
         /// interface is valid inline fragment type
         /// </summary>
@@ -92,7 +90,6 @@ namespace HotChocolate.Validation
                 }
             ");
         }
-        */
 
         /// <summary>
         /// inline fragment without type is valid

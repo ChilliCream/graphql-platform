@@ -7,9 +7,10 @@ namespace HotChocolate.Validation
     {
         protected override void Configure(IObjectTypeDescriptor<Dog> descriptor)
         {
-            descriptor.Interface<PetType>();
-            descriptor.Field(t => t.Name)
-                .Type<NonNullType<StringType>>();
+            descriptor.Implements<PetType>();
+            descriptor.Implements<MammalType>();
+            descriptor.Implements<CanineType>();
+            descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field(t => t.DoesKnowCommand(default))
                 .Argument("dogCommand", a => a.Type<NonNullType<EnumType<DogCommand>>>());
         }
