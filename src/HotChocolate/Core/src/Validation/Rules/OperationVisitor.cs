@@ -22,6 +22,9 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-Single-root-field
     /// </summary>
+    /// <remarks>
+    /// http://spec.graphql.org/draft/#sec-Validation.Operations
+    /// </remarks>
     public class OperationVisitor : DocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(

@@ -84,7 +84,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
         /// </summary>
-        public static IServiceCollection AddExecutableDefinitionRule(
+        public static IServiceCollection AddDocumentRules(
             this IServiceCollection services)
         {
             return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
@@ -276,12 +276,6 @@ namespace HotChocolate.Validation
         /// http://spec.graphql.org/June2018/#sec-Single-root-field
         /// </summary>
         public static IServiceCollection AddOperationRules(
-            this IServiceCollection services)
-        {
-            return services.AddValidationRule<OperationVisitor>();
-        }
-
-        public static IServiceCollection AddSubscriptionRules(
             this IServiceCollection services)
         {
             return services.AddValidationRule<OperationVisitor>();

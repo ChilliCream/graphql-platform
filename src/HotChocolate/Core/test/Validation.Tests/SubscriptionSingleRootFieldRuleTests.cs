@@ -6,7 +6,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public SubscriptionSingleRootFieldRuleTests()
-            : base(services => services.AddSubscriptionRules())
+            : base(services => services.AddOperationRules())
         {
         }
 
