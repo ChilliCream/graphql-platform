@@ -32,8 +32,7 @@ namespace HotChocolate.Validation
             // act
             Rule.Validate(context, query);
 
-            // assert
-            Assert.False(context.IsInError);
+            // assert 
             Assert.Empty(context.Errors);
         }
 
@@ -53,7 +52,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -73,7 +71,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -93,7 +90,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Collection(context.Errors,
                 t =>
                 {
@@ -122,7 +118,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Collection(context.Errors,
                 t =>
                 {
@@ -151,7 +146,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Collection(context.Errors,
                 t =>
                 {
@@ -187,7 +181,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -207,7 +200,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -375,7 +367,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -397,7 +388,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -419,7 +409,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -441,7 +430,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -463,7 +451,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -485,7 +472,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -507,7 +493,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -529,7 +514,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -551,7 +535,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -573,7 +556,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -595,7 +577,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -617,7 +598,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -639,7 +619,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -661,7 +640,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -683,7 +661,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
 
@@ -705,7 +682,6 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
-            Assert.False(context.IsInError);
             Assert.Empty(context.Errors);
         }
     }
