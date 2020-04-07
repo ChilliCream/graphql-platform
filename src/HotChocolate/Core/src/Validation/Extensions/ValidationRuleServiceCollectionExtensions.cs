@@ -268,17 +268,23 @@ namespace HotChocolate.Validation
         /// when referred to by its name.
         ///
         /// http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Subscription operations must have exactly one root field.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Single-root-field
         /// </summary>
         public static IServiceCollection AddOperationRules(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, OperationRule>();
+            return services.AddValidationRule<OperationVisitor>();
         }
 
         public static IServiceCollection AddSubscriptionRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<SubscriptionVisitor>();
+            return services.AddValidationRule<OperationVisitor>();
         }
 
         /// <summary>
