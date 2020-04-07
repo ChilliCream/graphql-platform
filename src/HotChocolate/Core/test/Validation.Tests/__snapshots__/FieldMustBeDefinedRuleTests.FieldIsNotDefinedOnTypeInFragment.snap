@@ -14,7 +14,8 @@
     "Exception": null,
     "Extensions": {
       "type": "Dog",
-      "field": "Dog",
+      "field": "meowVolume",
+      "responseName": "meowVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     }
   },
@@ -33,7 +34,8 @@
     "Exception": null,
     "Extensions": {
       "type": "Dog",
-      "field": "Dog",
+      "field": "kawVolume",
+      "responseName": "barkVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     }
   }

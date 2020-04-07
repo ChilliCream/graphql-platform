@@ -116,12 +116,13 @@ namespace HotChocolate.Validation.Rules
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    $"The field `{node.Name.Value}` does not exist " +
-                    $"on the type `{outputType.Name}`.")
+                    "The field `{0}` does not exist on the type `{1}`.",
+                    node.Name.Value, outputType.Name)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("type", outputType.Name)
-                .SetExtension("field", outputType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
                 .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
                 .Build();
         }

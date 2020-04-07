@@ -52,8 +52,7 @@ namespace HotChocolate.Validation.Rules
                     context, node, node.Arguments,
                     TypeNameField.Arguments, field: TypeNameField);
 
-                context.OutputFields.Push(TypeNameField);
-                return Continue;
+                return Skip;
             }
             else if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
@@ -64,6 +63,7 @@ namespace HotChocolate.Validation.Rules
                     of.Arguments, field: of);
 
                 context.OutputFields.Push(of);
+                context.Types.Push(of.Type);
                 return Continue;
             }
             else
@@ -77,6 +77,7 @@ namespace HotChocolate.Validation.Rules
             FieldNode node,
             IDocumentValidatorContext context)
         {
+            context.Types.Pop();
             context.OutputFields.Pop();
             return Continue;
         }

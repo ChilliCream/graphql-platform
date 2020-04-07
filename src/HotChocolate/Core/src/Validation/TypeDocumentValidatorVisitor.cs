@@ -315,6 +315,8 @@ namespace HotChocolate.Validation
     {
         internal static __TypeNameField TypeNameField { get; } =
             new __TypeNameField(DescriptorContext.Create());
+        internal static StringType TypeNameFieldType { get; } =
+            new StringType();
 
         protected TypeDocumentValidatorVisitor2(SyntaxVisitorOptions options = default)
             : base(options)

@@ -11,14 +11,46 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
     /// </summary>
-    internal sealed class FieldMustBeDefinedVisitor : TypeDocumentValidatorVisitor
+    internal sealed class FieldMustBeDefinedVisitor : TypeDocumentValidatorVisitor2
     {
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Names.Clear();
+
+            if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+            {
+                return Skip;
+            }
+            else if (context.Types.TryPeek(out IType type) &&
+                type.NamedType() is IComplexOutputType ct)
+            {
+                if (ct.Fields.TryGetField(node.Name.Value, out IOutputField of))
+                {
+                    context.OutputFields.Push(of);
+                    context.Types.Push(of.Type);
+                    return Continue;
+                }
+                else
+                {
+                    context.Errors.Add(context.FieldDoesNotExist(node, ct));
+                    return Skip;
+                }
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
         protected override ISyntaxVisitorAction Enter(
             SelectionSetNode node,
             IDocumentValidatorContext context)
         {
             if (context.Types.TryPeek(out IType type) &&
-                type.NamedType().IsUnionType() &&
+                type.NamedType().Kind == TypeKind.Union &&
                 HasFields(node))
             {
                 context.Errors.Add(context.UnionFieldError(node, (UnionType)type));
@@ -27,16 +59,12 @@ namespace HotChocolate.Validation.Rules
             return Continue;
         }
 
-        protected override ISyntaxVisitorAction Enter(
+        protected override ISyntaxVisitorAction Leave(
             FieldNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Types.Peek() is IComplexOutputType ct &&
-                !FieldExists(ct, node.Name.Value))
-            {
-                context.Errors.Add(context.FieldDoesNotExist(node, ct));
-                return Skip;
-            }
+            context.OutputFields.Pop();
+            context.Types.Pop();
             return Continue;
         }
 
@@ -54,17 +82,6 @@ namespace HotChocolate.Validation.Rules
                 }
             }
             return false;
-        }
-
-        private static bool FieldExists(
-            IComplexOutputType type,
-            NameString fieldName)
-        {
-            if (IsTypeNameField(fieldName))
-            {
-                return true;
-            }
-            return type.Fields.ContainsField(fieldName);
         }
 
         private static bool IsTypeNameField(NameString fieldName)
