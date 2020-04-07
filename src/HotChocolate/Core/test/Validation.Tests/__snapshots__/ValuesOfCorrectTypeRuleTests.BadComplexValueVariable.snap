@@ -1,0 +1,29 @@
+﻿[
+  {
+    "Message": "The specified value type of field `name` does not match the field type.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 79
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "fieldName": "name",
+      "fieldType": {
+        "ClrType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+        "Kind": "Scalar",
+        "Bind": "Implicit",
+        "ContextData": {},
+        "Directives": [],
+        "SyntaxNode": null,
+        "Name": "String",
+        "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+      },
+      "locationType": "String",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]
