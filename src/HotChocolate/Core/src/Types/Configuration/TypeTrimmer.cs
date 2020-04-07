@@ -129,7 +129,7 @@ namespace HotChocolate.Configuration
                 foreach (ObjectType objectType in
                     _discoveredTypes.Types.Select(t => t.Type).OfType<ObjectType>())
                 {
-                    if (objectType.IsAssignableFrom(type))
+                    if (objectType.IsImplementing(type))
                     {
                         Visit(objectType);
                     }

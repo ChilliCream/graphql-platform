@@ -230,6 +230,15 @@ namespace HotChocolate.Integration.TypeConversion
             Assert.Throws<ArgumentNullException>(action);
         }
 
+        [Fact]
+        public void Convert_Null_To_Value_Type_Default()
+        {
+            Guid empty = TypeConversionExtensions.Convert<object, Guid>(
+                Utilities.TypeConversion.Default,
+                null);
+            Assert.Equal(Guid.Empty, empty);
+        }
+
         public class QueryType
             : ObjectType<Query>
         {

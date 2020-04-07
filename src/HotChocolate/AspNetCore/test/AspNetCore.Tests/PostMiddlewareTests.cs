@@ -847,7 +847,7 @@ namespace HotChocolate.AspNetCore
                     path);
 
             // assert
-            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, message.StatusCode);
             byte[] json = await message.Content.ReadAsByteArrayAsync();
             Utf8GraphQLRequestParser.ParseJson(json).MatchSnapshot();
         }

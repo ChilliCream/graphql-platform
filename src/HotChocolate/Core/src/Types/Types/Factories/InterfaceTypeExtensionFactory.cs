@@ -35,6 +35,8 @@ namespace HotChocolate.Types.Factories
                         t => t.ClrType = bindingInfo.SourceType);
                 }
 
+                DeclareInterfaces(d, node.Interfaces);
+
                 foreach (DirectiveNode directive in node.Directives)
                 {
                     d.Directive(directive);
@@ -42,6 +44,16 @@ namespace HotChocolate.Types.Factories
 
                 DeclareFields(d, node.Fields);
             });
+        }
+
+        private static void DeclareInterfaces(
+            IInterfaceTypeDescriptor typeDescriptor,
+            IReadOnlyCollection<NamedTypeNode> interfaceReferences)
+        {
+            foreach (NamedTypeNode typeNode in interfaceReferences)
+            {
+                typeDescriptor.Interface(typeNode);
+            }
         }
 
         private static void DeclareFields(

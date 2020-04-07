@@ -80,8 +80,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IObjectTypeDescriptor<T> Interface<TInterface>(
-            TInterface type)
+        public new IObjectTypeDescriptor<T> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType
         {
             base.Interface(type);

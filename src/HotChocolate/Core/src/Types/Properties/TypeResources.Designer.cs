@@ -10,8 +10,8 @@
 
 namespace HotChocolate.Properties {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace HotChocolate.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TypeResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal TypeResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace HotChocolate.Properties {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace HotChocolate.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The argument `{0}` has no type. Specify the type with `.Argument(&quot;{0}&quot;, a.Type&lt;MyType&gt;())` to fix this issue..
         /// </summary>
@@ -68,7 +68,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Argument_TypeIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The argument type has to be an input-type..
         /// </summary>
@@ -77,7 +77,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ArgumentDescriptor_InputTypeViolation", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Argument `{0}` of non-null type `{1}` must not be null..
         /// </summary>
@@ -86,7 +86,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ArgumentValueBuilder_NonNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `Boolean` scalar type represents `true` or `false`..
         /// </summary>
@@ -95,7 +95,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("BooleanType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255..
         /// </summary>
@@ -104,7 +104,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ByteType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only type system objects are allowed..
         /// </summary>
@@ -113,7 +113,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ClrTypeReference_OnlyTsosAreAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified IComplexTypeFieldBindingBuilder-implementation is not supported..
         /// </summary>
@@ -122,7 +122,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field binding builder is not completed and cannot be added..
         /// </summary>
@@ -131,7 +131,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldNotComplete", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The DataLoader key cannot be null or empty..
         /// </summary>
@@ -140,7 +140,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DataLoaderRegistry_KeyNullOrEmpty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to No DataLoader registry was registerd with your dependency injection..
         /// </summary>
@@ -149,7 +149,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_RegistryIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to register a DataLoader with your DataLoader registry..
         /// </summary>
@@ -158,7 +158,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_UnableToRegister", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `DateTime` scalar represents an ISO-8601 compliant date time type..
         /// </summary>
@@ -167,7 +167,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DateTimeType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `Date` scalar represents an ISO-8601 compliant date type..
         /// </summary>
@@ -176,7 +176,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DateType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The built-in `Decimal` scalar type..
         /// </summary>
@@ -185,7 +185,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DecimalType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified member has to be a method or a property..
         /// </summary>
@@ -194,7 +194,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DefaultTypeInspector_MemberInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only type system objects are allowed as schema type..
         /// </summary>
@@ -203,7 +203,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DependencyDescriptorBase_OnlyTsoIsAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.
         ///
@@ -214,7 +214,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Directive_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Use `locations`..
         /// </summary>
@@ -223,7 +223,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Directive_UseLocation", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified directive `@{0}` is unique and cannot be added twice..
         /// </summary>
@@ -232,7 +232,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveCollection_DirectiveIsUnique", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified directive `@{0}` is not allowed on the current location `{1}`..
         /// </summary>
@@ -241,7 +241,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveCollection_LocationNotAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an argument definition.
         /// </summary>
@@ -250,7 +250,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_ArgumentDefinition", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies..
         /// </summary>
@@ -259,7 +259,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an enum definition..
         /// </summary>
@@ -268,7 +268,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Enum", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an enum value definition..
         /// </summary>
@@ -277,7 +277,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_EnumValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a field..
         /// </summary>
@@ -286,7 +286,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Field", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a field definition..
         /// </summary>
@@ -295,7 +295,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_FieldDefinition", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a fragment definition..
         /// </summary>
@@ -304,7 +304,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_FragmentDefinition", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a fragment spread..
         /// </summary>
@@ -313,7 +313,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_FragmentSpread", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an inline fragment..
         /// </summary>
@@ -322,7 +322,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_InlineFragment", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an input object field definition..
         /// </summary>
@@ -331,7 +331,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_InputFieldDefinition", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an input object type definition..
         /// </summary>
@@ -340,7 +340,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_InputObject", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an interface definition..
         /// </summary>
@@ -349,7 +349,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Interface", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a mutation operation..
         /// </summary>
@@ -358,7 +358,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Mutation", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an object type definition..
         /// </summary>
@@ -367,7 +367,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Object", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a query operation..
         /// </summary>
@@ -376,7 +376,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Query", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a scalar definition..
         /// </summary>
@@ -385,7 +385,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Scalar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a schema definition..
         /// </summary>
@@ -394,7 +394,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Schema", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a subscription operation..
         /// </summary>
@@ -403,7 +403,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Subscription", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Location adjacent to a union definition..
         /// </summary>
@@ -412,7 +412,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Union", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `{0}` directive does not declare any location on which it is valid..
         /// </summary>
@@ -421,7 +421,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveType_NoLocations", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Replace Middleware with `Use`..
         /// </summary>
@@ -430,7 +430,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveType_ReplaceWithUse", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to convert the argument value to the specified type..
         /// </summary>
@@ -439,7 +439,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveType_UnableToConvert", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only property expressions are allowed to describe a directive type argument..
         /// </summary>
@@ -448,7 +448,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveTypeDescriptor_OnlyProperties", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified location `{0}` is not supported..
         /// </summary>
@@ -457,7 +457,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveTypeFactory_LocationNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The cursor cannot be null or empty..
         /// </summary>
@@ -466,7 +466,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Edge_CursorIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The enum type `{0}` has no values..
         /// </summary>
@@ -475,7 +475,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("EnumType_NoValues", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The enum type extension can only be merged with an enum type..
         /// </summary>
@@ -484,7 +484,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("EnumTypeExtension_CannotMerge", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The enum value `{0}` of the enum type extension is not assignabe with the target enum type..
         /// </summary>
@@ -493,7 +493,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("EnumTypeExtension_ValueTypeInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string..
         /// </summary>
@@ -502,7 +502,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("EnumValue_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The inner value of enum value cannot be null or empty..
         /// </summary>
@@ -511,7 +511,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("EnumValue_ValueIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type..
         /// </summary>
@@ -520,7 +520,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Field_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Could not parse the native value of input field `{0}.{1}`..
         /// </summary>
@@ -529,7 +529,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("FieldInitHelper_InvalidDefaultValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {0} `{1}` has no fields declared..
         /// </summary>
@@ -538,7 +538,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("FieldInitHelper_NoFields", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point)..
         /// </summary>
@@ -547,7 +547,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("FloatType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to decode the id string..
         /// </summary>
@@ -556,7 +556,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("IdSerializer_UnableToDecode", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to encode data..
         /// </summary>
@@ -565,7 +565,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("IdSerializer_UnableToEncode", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `&quot;4&quot;`) or integer (such as `4`) input value will be accepted as an ID..
         /// </summary>
@@ -574,7 +574,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("IdType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to set the input field value..
         /// </summary>
@@ -583,7 +583,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InputField_CannotSetValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The input object type can only parse object value literals..
         /// </summary>
@@ -592,7 +592,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InputObjectType_CannotParseLiteral", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The input object `{0}` does not have any fields..
         /// </summary>
@@ -601,7 +601,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InputObjectType_NoFields", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The input object type extension can only be merged with an input object type..
         /// </summary>
@@ -610,7 +610,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InputObjectTypeExtension_CannotMerge", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The input value of type `{0}` must not be null..
         /// </summary>
@@ -619,7 +619,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InputTypeNonNullCheck_ValueIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A GraphQL-formatted string representing the default value for this input value..
         /// </summary>
@@ -628,7 +628,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InputValue_DefaultValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value..
         /// </summary>
@@ -637,7 +637,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InputValue_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The arguments of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}..
         /// </summary>
@@ -646,7 +646,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InterfaceImplRule_ArgumentsDontMatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Object type {0} does not implement all arguments of field {1} from interface {2}..
         /// </summary>
@@ -655,7 +655,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InterfaceImplRule_ArgumentsNotImpl", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Object type {0} does not implement the field {1} from interface {2}..
         /// </summary>
@@ -664,7 +664,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InterfaceImplRule_FieldNotImpl", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The return type of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}..
         /// </summary>
@@ -673,7 +673,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InterfaceImplRule_FieldTypeInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The return type of the interface field {0} does not match the field declared by object type {1}..
         /// </summary>
@@ -682,7 +682,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InterfaceImplRule_ReturnTypeInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The interface type extension can only be merged with an interface type..
         /// </summary>
@@ -691,7 +691,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("InterfaceTypeExtension_CannotMerge", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1..
         /// </summary>
@@ -700,7 +700,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("IntType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1..
         /// </summary>
@@ -709,7 +709,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("LongType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The multiplier path scalar represents a valid GraphQL multiplier path string..
         /// </summary>
@@ -718,7 +718,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("MultiplierPathType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The multiplier path scalar represents a valid GraphQL multiplier path string..
         /// </summary>
@@ -727,7 +727,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Name_Cannot_BeEmpty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types..
         /// </summary>
@@ -736,7 +736,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NameType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified type is not an input type..
         /// </summary>
@@ -745,7 +745,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NonNullType_NotAnInputType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The inner type of non-null type must be a nullable type..
         /// </summary>
@@ -754,7 +754,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NonNullType_TypeIsNunNullType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A non null type cannot parse null value literals..
         /// </summary>
@@ -763,7 +763,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NonNullType_ValueIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field-type must be an output-type..
         /// </summary>
@@ -772,7 +772,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ObjectFieldDescriptorBase_FieldType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The interface base class cannot be used as interface implementation declaration..
         /// </summary>
@@ -781,7 +781,16 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ObjectTypeDescriptor_InterfaceBaseClass", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The interface base class cannot be used as interface implementation declaration..
+        /// </summary>
+        internal static string InterfaceTypeDescriptor_InterfaceBaseClass {
+            get {
+                return ResourceManager.GetString("InterfaceTypeDescriptor_InterfaceBaseClass", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to A field-expression must be a property-expression or a method-call-expression..
         /// </summary>
@@ -790,7 +799,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ObjectTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Schema types cannot be used as resolver types..
         /// </summary>
@@ -799,7 +808,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ObjectTypeDescriptor_Resolver_SchemaType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The object type extension can only be merged with an object type..
         /// </summary>
@@ -808,7 +817,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ObjectTypeExtension_CannotMerge", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The member expression must specify a property or method that is public and that belongs to the type {0}.
         /// </summary>
@@ -817,7 +826,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Reflection_MemberMust_BeMethodOrProperty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A directive type mustn&apos;t be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`..
         /// </summary>
@@ -826,7 +835,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ResolverCompiler_UnknownParameterType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified IResolverFieldBindingBuilder-implementation is not supported..
         /// </summary>
@@ -835,7 +844,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The field binding builder is not completed and cannot be added..
         /// </summary>
@@ -844,7 +853,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldNotComplete", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {0} cannot deserialize the given value..
         /// </summary>
@@ -853,7 +862,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Scalar_Cannot_Deserialize", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {0} cannot parse the given literal of type `{1}`..
         /// </summary>
@@ -862,7 +871,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Scalar_Cannot_ParseLiteral", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {0} cannot parse the given value of type `{1}`..
         /// </summary>
@@ -871,7 +880,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Scalar_Cannot_ParseValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {0} cannot serialize the given value..
         /// </summary>
@@ -880,7 +889,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Scalar_Cannot_Serialize", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations..
         /// </summary>
@@ -889,7 +898,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A list of all directives supported by this server..
         /// </summary>
@@ -898,7 +907,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Schema_Directives", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to If this server supports mutation, the type that mutation operations will be rooted at..
         /// </summary>
@@ -907,7 +916,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Schema_MutationType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type that query operations will be rooted at..
         /// </summary>
@@ -916,7 +925,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Schema_QueryType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to If this server support subscription, the type that subscription operations will be rooted at..
         /// </summary>
@@ -925,7 +934,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Schema_SubscriptionType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A list of all types supported by this server..
         /// </summary>
@@ -934,7 +943,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Schema_Types", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to There is no handler registered that can handle the specified schema binding..
         /// </summary>
@@ -943,7 +952,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_Binding_CannotBeHandled", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The schema binding is not valid..
         /// </summary>
@@ -952,7 +961,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_Binding_Invalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified convention type is not supported..
         /// </summary>
@@ -961,7 +970,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_Convention_NotSuppported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified interceptor type is not supported..
         /// </summary>
@@ -970,7 +979,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_Interceptor_NotSuppported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The given schema has to inherit from TypeSystemObjectBase in order to be initializable..
         /// </summary>
@@ -979,7 +988,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to schemaType must be a schema type..
         /// </summary>
@@ -988,7 +997,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_MustBeSchemaType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode..
         /// </summary>
@@ -997,7 +1006,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_NoQueryType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A root type must be a class..
         /// </summary>
@@ -1006,7 +1015,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_RootType_MustBeClass", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A root type must be an object type..
         /// </summary>
@@ -1015,7 +1024,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_RootType_MustBeObjectType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Non-generic schema types are not allowed..
         /// </summary>
@@ -1024,7 +1033,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_RootType_NonGenericType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The given schema has to inherit from `Schema` in order to be initializable..
         /// </summary>
@@ -1033,7 +1042,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_SchemaTypeInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A directive type mustn&apos;t be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`..
         /// </summary>
@@ -1042,7 +1051,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilderExtensions_DirectiveTypeIsBaseType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A directive type must inherit from `DirectiveType` or `DirectiveType&lt;T&gt;`..
         /// </summary>
@@ -1051,7 +1060,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilderExtensions_MustBeDirectiveType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The schema string cannot be null or empty..
         /// </summary>
@@ -1060,7 +1069,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
         /// </summary>
@@ -1069,7 +1078,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Access the current type schema of this server..
         /// </summary>
@@ -1078,7 +1087,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaField_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unknown operation type..
         /// </summary>
@@ -1087,7 +1096,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaSyntaxVisitor_UnknownOperationType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1..
         /// </summary>
@@ -1096,7 +1105,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ShortType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `{0}` cannot be null or empty..
         /// </summary>
@@ -1105,7 +1114,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("String_Argument_NullOrEmpty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text..
         /// </summary>
@@ -1114,7 +1123,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("StringType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
         ///
@@ -1125,7 +1134,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Type_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The configuration delegate mustn&apos;t be null..
         /// </summary>
@@ -1134,7 +1143,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeConfiguration_ConfigureIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Definition mustn&apos;t be null..
         /// </summary>
@@ -1143,7 +1152,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeConfiguration_DefinitionIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to convert type from `{0}` to `{1}`.
         /// </summary>
@@ -1152,7 +1161,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeConvertion_ConvertNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified type is not a schema type..
         /// </summary>
@@ -1161,7 +1170,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeDependency_MustBeSchemaType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type structure is invalid..
         /// </summary>
@@ -1170,7 +1179,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeExtensions_InvalidStructure", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified type kind is not supported..
         /// </summary>
@@ -1179,7 +1188,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeExtensions_KindIsNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified type is not a valid list type..
         /// </summary>
@@ -1188,7 +1197,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeExtensions_NoListType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The given type is not a {0}..
         /// </summary>
@@ -1197,7 +1206,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeExtensions_TypeIsNotOfT", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Request the type information of a single type..
         /// </summary>
@@ -1206,7 +1215,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeField_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to resolve dependencies {1} for type `{0}`..
         /// </summary>
@@ -1215,7 +1224,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeInitializer_CannotResolveDependency", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name `{0}` was already registered by another type..
         /// </summary>
@@ -1224,7 +1233,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeInitializer_CompleteName_Duplicate", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The kind of the extension does not match the kind of the type `{0}`..
         /// </summary>
@@ -1233,7 +1242,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeInitializer_Merge_KindDoesNotMatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to An enum describing what kind of type a given `__Type` is..
         /// </summary>
@@ -1242,7 +1251,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is an enum. `enumValues` is a valid field..
         /// </summary>
@@ -1251,7 +1260,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_Enum", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is an input object. `inputFields` is a valid field..
         /// </summary>
@@ -1260,7 +1269,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_InputObject", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is an interface. `fields` and `possibleTypes` are valid fields..
         /// </summary>
@@ -1269,7 +1278,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_Interface", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is a list. `ofType` is a valid field..
         /// </summary>
@@ -1278,7 +1287,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_List", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is a non-null. `ofType` is a valid field..
         /// </summary>
@@ -1287,7 +1296,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_NonNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is an object. `fields` and `interfaces` are valid fields..
         /// </summary>
@@ -1296,7 +1305,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_Object", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is a scalar..
         /// </summary>
@@ -1305,7 +1314,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_Scalar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Indicates this type is a union. `possibleTypes` is a valid field..
         /// </summary>
@@ -1314,7 +1323,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeKind_Union", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the current Object type at runtime..
         /// </summary>
@@ -1323,7 +1332,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeNameField_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid type structure..
         /// </summary>
@@ -1332,7 +1341,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeNameHelper_InvalidTypeStructure", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only type system objects are allowed as dependency..
         /// </summary>
@@ -1341,7 +1350,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeNameHelper_OnlyTsosAreAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to infer or resolve a schema type from the type reference `{0}`..
         /// </summary>
@@ -1350,7 +1359,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeRegistrar_TypesInconsistent", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The typeName mustn&apos;t be null or empty..
         /// </summary>
@@ -1359,7 +1368,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The description becomes immutable once it was assigned..
         /// </summary>
@@ -1368,7 +1377,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeSystemObject_DescriptionImmutable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name becomes immutable once it was assigned..
         /// </summary>
@@ -1377,7 +1386,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeSystemObject_NameImmutable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type definition is null which means that the type was initialized incorrectly..
         /// </summary>
@@ -1386,7 +1395,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeSystemObjectBase_DefinitionIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type name was not completed correctly and is still empty. Type names are not allowed to remain empty after name completion was executed.
         ///Type: `{0}`.
@@ -1396,7 +1405,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("TypeSystemObjectBase_NameIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A Union type must define one or more unique member types..
         /// </summary>
@@ -1405,7 +1414,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("UnionType_MustHaveTypes", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to resolve the specified type reference..
         /// </summary>
@@ -1414,7 +1423,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("UnionType_UnableToResolveType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The union type extension can only be merged with an union type..
         /// </summary>
@@ -1423,7 +1432,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("UnionTypeExtension_CannotMerge", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Variable `{0}` of type `{1}` must be an input type..
         /// </summary>
@@ -1432,7 +1441,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableValueBuilder_InputType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Variable `{0}` got invalid value..
         /// </summary>
@@ -1441,7 +1450,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableValueBuilder_InvalidValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type node kind is not supported..
         /// </summary>
@@ -1450,7 +1459,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableValueBuilder_NodeKind", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Variable `{0}` of type `{1}` must not be null..
         /// </summary>
@@ -1459,7 +1468,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableValueBuilder_NonNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Detected non-null violation in variable `{0}`..
         /// </summary>
@@ -1468,7 +1477,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableValueBuilder_NonNull_In_Graph", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Variable name mustn&apos;t be null or empty..
         /// </summary>

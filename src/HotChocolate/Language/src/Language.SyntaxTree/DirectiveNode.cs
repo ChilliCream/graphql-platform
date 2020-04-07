@@ -34,10 +34,8 @@ namespace HotChocolate.Language
             IReadOnlyList<ArgumentNode> arguments)
         {
             Location = location;
-            Name = name
-                ?? throw new ArgumentNullException(nameof(name));
-            Arguments = arguments
-                ?? throw new ArgumentNullException(nameof(arguments));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
         }
 
         public NodeKind Kind { get; } = NodeKind.Directive;

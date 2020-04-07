@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -9,7 +10,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public FragmentNameUniquenessRuleTests()
-            : base(services => services.AddFragmentNameUniquenessRule())
+            : base(services => services.AddFragmentsAreValidRule())
         {
         }
 
@@ -36,6 +37,7 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
             Rule.Validate(context, query);
@@ -66,6 +68,7 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
             Rule.Validate(context, query);

@@ -6,12 +6,14 @@ namespace HotChocolate.Types
     {
         private const int _maxTypeDepth = 6;
 
-        public static string Visualize(this IType type)
+        public static string Print(this IType type)
         {
-            return Visualize(type, 0);
+            return Print(type, 0);
         }
 
-        private static string Visualize(IType type, int count)
+        public static string Visualize(this IType type) => Print(type);
+
+        private static string Print(IType type, int count)
         {
             if (count > _maxTypeDepth)
             {
@@ -21,12 +23,12 @@ namespace HotChocolate.Types
 
             if (type is NonNullType nnt)
             {
-                return $"{Visualize(nnt.Type, ++count)}!";
+                return $"{Print(nnt.Type, ++count)}!";
             }
 
             if (type is ListType lt)
             {
-                return $"[{Visualize(lt.ElementType, ++count)}]";
+                return $"[{Print(lt.ElementType, ++count)}]";
             }
 
             if (type is INamedType n)

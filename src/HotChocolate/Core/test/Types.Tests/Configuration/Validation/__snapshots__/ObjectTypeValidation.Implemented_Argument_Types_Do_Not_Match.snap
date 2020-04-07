@@ -1,0 +1,10 @@
+﻿{
+  "message": "The named argument \u0060a\u0060 on field \u0060abc\u0060 must accept the same type \u0060String\u0060 (invariant) as that named argument on the interface \u0060FooInterface\u0060.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "a",
+    "implementedArgument": "a",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+

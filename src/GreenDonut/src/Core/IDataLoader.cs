@@ -65,7 +65,7 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        Task<object> LoadAsync(
+        Task<object?> LoadAsync(
             object key,
             CancellationToken cancellationToken);
 
@@ -82,7 +82,7 @@ namespace GreenDonut
         /// <returns>
         /// A list of values in the same order as the provided keys.
         /// </returns>
-        Task<IReadOnlyList<object>> LoadAsync(
+        Task<IReadOnlyList<object?>> LoadAsync(
             CancellationToken cancellationToken,
             params object[] keys);
 
@@ -99,7 +99,7 @@ namespace GreenDonut
         /// <returns>
         /// A list of values in the same order as the provided keys.
         /// </returns>
-        Task<IReadOnlyList<object>> LoadAsync(
+        Task<IReadOnlyList<object?>> LoadAsync(
             IReadOnlyCollection<object> keys,
             CancellationToken cancellationToken);
 
@@ -123,7 +123,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="value"/> is <c>null</c>.
         /// </exception>
-        void Set(object key, Task<object> value);
+        void Set(object key, Task<object?> value);
     }
 
     #endregion
@@ -145,6 +145,7 @@ namespace GreenDonut
     /// <typeparam name="TValue">A value type.</typeparam>
     public interface IDataLoader<TKey, TValue>
         : IDataLoader
+        where TKey : notnull
     {
         /// <summary>
         /// Loads a single value by key. This call may return a cached value

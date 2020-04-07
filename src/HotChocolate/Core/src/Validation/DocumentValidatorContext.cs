@@ -29,17 +29,19 @@ namespace HotChocolate.Validation
 
         public IList<ISyntaxNode> Path { get; } = new List<ISyntaxNode>();
 
+        public ISet<string> VisitedFragments { get; } = new HashSet<string>();
+
         public IDictionary<string, VariableDefinitionNode> Variables { get; } =
             new Dictionary<string, VariableDefinitionNode>();
 
         public IDictionary<string, FragmentDefinitionNode> Fragments { get; } =
             new Dictionary<string, FragmentDefinitionNode>();
 
-        public ISet<string> UsedVariables { get; } = new HashSet<string>();
+        public ISet<string> Used { get; } = new HashSet<string>();
 
-        public ISet<string> UnusedVariables { get; } = new HashSet<string>();
+        public ISet<string> Unused { get; } = new HashSet<string>();
 
-        public ISet<string> DeclaredVariables { get; } = new HashSet<string>();
+        public ISet<string> Declared { get; } = new HashSet<string>();
 
         public ISet<string> Names { get; } = new HashSet<string>();
 
@@ -53,24 +55,25 @@ namespace HotChocolate.Validation
 
         public ICollection<IError> Errors { get; } = new List<IError>();
 
-        public bool IsInError { get; set; }
+        public IList<bool> IsInError { get; } = new List<bool>();
 
         public void Clear()
         {
             _schema = null;
             Path.Clear();
+            VisitedFragments.Clear();
             Variables.Clear();
             Fragments.Clear();
-            UsedVariables.Clear();
-            UnusedVariables.Clear();
-            DeclaredVariables.Clear();
+            Used.Clear();
+            Unused.Clear();
+            Declared.Clear();
             Names.Clear();
             Types.Clear();
             Directives.Clear();
             OutputFields.Clear();
             InputFields.Clear();
             Errors.Clear();
-            IsInError = false;
+            IsInError.Clear();
         }
     }
 }

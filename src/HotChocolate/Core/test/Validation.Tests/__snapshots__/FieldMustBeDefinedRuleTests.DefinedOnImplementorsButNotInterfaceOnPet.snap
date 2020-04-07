@@ -1,0 +1,19 @@
+﻿{
+  "Message": "The field `nickname` does not exist on the type `Pet`.",
+  "Code": null,
+  "Path": [
+    "dog"
+  ],
+  "Locations": [
+    {
+      "Line": 9,
+      "Column": 21
+    }
+  ],
+  "Exception": null,
+  "Extensions": {
+    "type": "Pet",
+    "field": "Pet",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+  }
+}

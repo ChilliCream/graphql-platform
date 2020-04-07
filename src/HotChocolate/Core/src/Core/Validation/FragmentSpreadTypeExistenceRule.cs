@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
     /// This applies for both named and inline fragments.
     /// If they are not defined in the schema, the query does not validate.
     ///
-    /// http://facebook.github.io/graphql/June2018/#sec-Fragment-Spread-Type-Existence
+    /// http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
     /// </summary>
     internal sealed class FragmentSpreadTypeExistenceRule
         : QueryVisitorValidationErrorBase

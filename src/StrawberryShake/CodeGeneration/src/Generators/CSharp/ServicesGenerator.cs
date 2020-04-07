@@ -234,7 +234,7 @@ namespace StrawberryShake.Generators.CSharp
         private static async Task WriteAddHttpDefaultPipelineAsync(CodeWriter writer)
         {
             await writer.WriteIndentedLineAsync(
-                ".AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());")
+                ".AddHttpOperationPipeline(b => b.UseHttpDefaultPipeline());")
                 .ConfigureAwait(false);
         }
 
