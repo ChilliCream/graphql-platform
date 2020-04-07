@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -28,6 +29,14 @@ namespace HotChocolate.Validation.Rules
     /// a default value. Otherwise, the input object field is optional.
     ///
     /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
+    ///
+    /// AND
+    /// 
+    /// Literal values must be compatible with the type expected in the position
+    /// they are found as per the coercion rules defined in the Type System
+    /// chapter.
+    ///
+    /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
     /// </summary>
     internal sealed class InputObjectVisitor : TypeDocumentValidatorVisitor
     {
@@ -69,6 +78,56 @@ namespace HotChocolate.Validation.Rules
         {
             context.Types.Pop();
             context.OutputFields.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            VariableDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Schema.TryGetType(
+                    node.Type.NamedType().Name.Value, out INamedType variableType))
+            {
+                context.Types.Push(variableType);
+                return base.Enter(node, context);
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            VariableDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            ListValueNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Types.TryPeek(out IType type) &&
+                        type is ListType listType)
+            {
+                context.Types.Push(listType.ElementType);
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            ListValueNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
             return Continue;
         }
 
@@ -163,7 +222,8 @@ namespace HotChocolate.Validation.Rules
                         field.DefaultValue.IsNull() &&
                         context.Names.Add(field.Name))
                     {
-                        InputFieldRequiredError(node, field.Name, context);
+                        context.Errors.Add(
+                            context.FieldIsRequiredButNull(node, field.Name));
                     }
                 }
             }
@@ -183,7 +243,8 @@ namespace HotChocolate.Validation.Rules
                     field.DefaultValue.IsNull() &&
                     node.Value.IsNull())
                 {
-                    InputFieldRequiredError(node, field.Name, context);
+                    context.Errors.Add(
+                        context.FieldIsRequiredButNull(node, field.Name));
                 }
 
                 context.InputFields.Push(field);
@@ -206,19 +267,145 @@ namespace HotChocolate.Validation.Rules
             return Continue;
         }
 
-        private static void InputFieldRequiredError(
-            ISyntaxNode node,
-            string fieldName,
+        protected override ISyntaxVisitorAction Enter(
+            IValueNode valueNode,
             IDocumentValidatorContext context)
         {
-            context.Errors.Add(
-                ErrorBuilder.New()
-                    .SetMessage("`{0}` is a required field and cannot be null.", fieldName)
-                    .AddLocation(node)
-                    .SetPath(context.CreateErrorPath())
-                    .SetExtension("field", fieldName)
-                    .SpecifiedBy("sec-Input-Object-Required-Fields")
-                    .Build());
+            if (context.Types.TryPeek(out IType currentType) &&
+                currentType is IInputType locationType)
+            {
+                if (!IsInstanceOfType(context, locationType, valueNode))
+                {
+                    if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
+                        TryCreateValueError(
+                            context, locationType, valueNode, node, out IError? error))
+                    {
+                        context.Errors.Add(error);
+                    }
+                }
+                else
+                {
+                    return Continue;
+                }
+            }
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
+        }
+
+        private bool TryCreateValueError(
+            IDocumentValidatorContext context,
+            IInputType locationType,
+            IValueNode valueNode,
+            ISyntaxNode node,
+            [NotNullWhen(true)]out IError? error)
+        {
+            error = node.Kind switch
+            {
+                NodeKind.ObjectField =>
+                    context.InputFields.TryPeek(out IInputField field)
+                        ? context.FieldValueIsNotCompatible(field, locationType, valueNode)
+                        : null,
+                NodeKind.VariableDefinition =>
+                    context.VariableDefaultValueIsNotCompatible(
+                        (VariableDefinitionNode)node, locationType, valueNode),
+                NodeKind.Argument =>
+                    context.ArgumentValueIsNotCompatible(
+                        (ArgumentNode)node, locationType, valueNode),
+                _ => null
+            };
+            return error != null;
+        }
+
+        private bool TryPeekLastDefiningSyntaxNode(
+            IDocumentValidatorContext context,
+            [NotNullWhen(true)] out ISyntaxNode? node)
+        {
+            for (var i = context.Path.Count - 1; i > 0; i--)
+            {
+                if (context.Path[i].Kind == NodeKind.Argument ||
+                    context.Path[i].Kind == NodeKind.ObjectField ||
+                    context.Path[i].Kind == NodeKind.VariableDefinition)
+                {
+                    node = context.Path[i];
+                    return true;
+                }
+            }
+            node = null;
+            return false;
+        }
+
+        private bool IsInstanceOfType(
+            IDocumentValidatorContext context,
+            IInputType inputType,
+            IValueNode? value)
+        {
+            if (value is VariableNode v
+                && context.Variables.TryGetValue(v.Name.Value, out VariableDefinitionNode? t)
+                && t?.Type is ITypeNode typeNode)
+            {
+                return IsTypeCompatible(inputType, typeNode);
+            }
+
+            IInputType internalType = inputType;
+
+            if (internalType.IsNonNullType())
+            {
+                internalType = (IInputType)internalType.InnerType();
+            }
+
+            if (internalType is ListType listType
+                && listType.ElementType is IInputType elementType
+                && value is ListValueNode list)
+            {
+                for (int i = 0; i < list.Items.Count; i++)
+                {
+                    if (!IsInstanceOfType(context, elementType, list.Items[i]))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            return internalType.IsInstanceOfType(value);
+        }
+
+        private bool IsTypeCompatible(IType left, ITypeNode right)
+        {
+            if (left is NonNullType leftNonNull)
+            {
+                if (right is NonNullTypeNode rightNonNull)
+                {
+                    return IsTypeCompatible(
+                        leftNonNull.Type,
+                        rightNonNull.Type);
+                }
+                return false;
+            }
+
+            if (right is NonNullTypeNode nonNull)
+            {
+                return IsTypeCompatible(left, nonNull.Type);
+            }
+
+            if (left is ListType leftList)
+            {
+                if (right is ListTypeNode rightList)
+                {
+                    return IsTypeCompatible(
+                        leftList.ElementType,
+                        rightList.Type);
+                }
+                return false;
+            }
+
+            if (left is INamedType leftNamedType
+                && right is NamedTypeNode rightNamedType)
+            {
+                return leftNamedType.Name.Equals(rightNamedType.Name.Value);
+            }
+
+            return false;
         }
     }
 }

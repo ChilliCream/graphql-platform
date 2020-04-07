@@ -201,6 +201,14 @@ namespace HotChocolate.Validation
         /// a default value. Otherwise, the input object field is optional.
         ///
         /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
+        ///
+        /// AND
+        /// 
+        /// Literal values must be compatible with the type expected in the position
+        /// they are found as per the coercion rules defined in the Type System
+        /// chapter.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
         /// </summary>
         public static IServiceCollection AddInputObjectRules(
             this IServiceCollection services)
@@ -273,20 +281,6 @@ namespace HotChocolate.Validation
             this IServiceCollection services)
         {
             return services.AddSingleton<IDocumentValidatorRule, OperationRule>();
-        }
-        
-
-        /// <summary>
-        /// Literal values must be compatible with the type expected in the position
-        /// they are found as per the coercion rules defined in the Type System
-        /// chapter.
-        ///
-        /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
-        /// </summary>
-        public static IServiceCollection AddValuesOfCorrectTypeRule(
-            this IServiceCollection services)
-        {
-            return services.AddValidationRule<ValuesOfCorrectTypeVisitor>();
         }
 
         public static IServiceCollection AddValidationRule<T>(

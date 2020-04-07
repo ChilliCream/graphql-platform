@@ -18,8 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFieldRules()
                 .AddFragmentRules()
                 .AddVariableRules()
-                .AddArgumentsAreValidRule()
-                .AddValuesOfCorrectTypeRule();
+                .AddArgumentsAreValidRule();
 
             return services;
         }

@@ -149,6 +149,65 @@ namespace HotChocolate.Validation.Rules
                 .Build();
         }
 
+        public static IError ArgumentValueIsNotCompatible(
+            this IDocumentValidatorContext context,
+            ArgumentNode node,
+            IInputType locationType,
+            IValueNode valueNode)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "The specified argument value " +
+                    "does not match the argument type.")
+                .AddLocation(valueNode)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("argument", node.Name.Value)
+                .SetExtension("argumentValue", valueNode)
+                .SetExtension("locationType", locationType.Visualize())
+                .SpecifiedBy("sec-Values-of-Correct-Type")
+                .Build();
+        }
+
+        public static IError FieldValueIsNotCompatible(
+            this IDocumentValidatorContext context,
+            IInputField field,
+            IInputType locationType,
+            IValueNode valueNode)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "The specified value type of field " +
+                    $"`{field.Name.Value}` " +
+                    "does not match the field type.")
+                .AddLocation(valueNode)
+                .SetExtension("fieldName", field.Name.Value)
+                .SetExtension("fieldType", field.Type)
+                .SetExtension("locationType", locationType.Visualize())
+                .SetPath(context.CreateErrorPath())
+                .SpecifiedBy("sec-Values-of-Correct-Type")
+                .Build();
+        }
+
+        public static IError VariableDefaultValueIsNotCompatible(
+            this IDocumentValidatorContext context,
+            VariableDefinitionNode node,
+            IInputType locationType,
+            IValueNode valueNode)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "The specified value type of variable " +
+                    $"`{node.Variable.Name.Value}` " +
+                    "does not match the variable type.")
+                .AddLocation(valueNode)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("variable", node.Variable.Name.Value)
+                .SetExtension("variableType", node.Type.ToString())
+                .SetExtension("locationType", locationType.Visualize())
+                .SpecifiedBy("sec-Values-of-Correct-Type")
+                .Build();
+        }
+
         public static IError NoSelectionOnCompositeField(
             this IDocumentValidatorContext context,
             FieldNode node,
@@ -168,6 +227,20 @@ namespace HotChocolate.Validation.Rules
                 .SetExtension("type", fieldType.Print())
                 .SetExtension("responseName", (node.Alias ?? node.Name).Value)
                 .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .Build();
+        }
+
+        public static IError FieldIsRequiredButNull(
+            this IDocumentValidatorContext context,
+            ISyntaxNode node,
+            string fieldName)
+        {
+            return ErrorBuilder.New()
+                .SetMessage("`{0}` is a required field and cannot be null.", fieldName)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("field", fieldName)
+                .SpecifiedBy("sec-Input-Object-Required-Fields")
                 .Build();
         }
 

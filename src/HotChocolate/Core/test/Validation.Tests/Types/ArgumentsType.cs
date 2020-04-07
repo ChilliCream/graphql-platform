@@ -86,9 +86,15 @@ namespace HotChocolate.Validation
                 .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
 
-            // intArgField(intArg: DogCommand): String!
+            // enumArgField(intArg: DogCommand): String!
             descriptor.Field("enumArgField")
                 .Argument("enumArg", t => t.Type<EnumType<DogCommand>>())
+                .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            // "nonNullenumArgField(intArg: DogCommand!): String!
+            descriptor.Field("nonNullenumArgField")
+                .Argument("enumArg", t => t.Type<NonNullType<EnumType<DogCommand>>>())
                 .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
         }
