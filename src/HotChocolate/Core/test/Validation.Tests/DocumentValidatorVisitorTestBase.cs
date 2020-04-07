@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -15,9 +16,12 @@ namespace HotChocolate.Validation
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             Rule = services.GetRequiredService<IDocumentValidatorRule>();
+            StarWars = SchemaBuilder.New().AddStarWarsTypes().Create();
         }
 
         protected IDocumentValidatorRule Rule { get; }
+
+        protected ISchema StarWars { get; }
 
         [Fact]
         public void ContextIsNull()
@@ -45,10 +49,12 @@ namespace HotChocolate.Validation
             Assert.Throws<ArgumentNullException>(a);
         }
 
-        public void ExpectValid(string sourceText)
+        public void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
+
+        public void ExpectValid(ISchema schema, string sourceText)
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 
@@ -58,11 +64,16 @@ namespace HotChocolate.Validation
             // assert
             Assert.Empty(context.Errors);
         }
+        public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
+            ExpectErrors(null, sourceText, elementInspectors);
 
-        public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors)
+        public void ExpectErrors(
+            ISchema schema,
+            string sourceText,
+            params Action<IError>[] elementInspectors)
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 

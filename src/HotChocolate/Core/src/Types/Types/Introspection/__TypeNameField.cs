@@ -15,8 +15,7 @@ namespace HotChocolate.Types.Introspection
 
         public override bool IsIntrospectionField => true;
 
-        private static ObjectFieldDefinition CreateDefinition(
-            IDescriptorContext context)
+        private static ObjectFieldDefinition CreateDefinition(IDescriptorContext context)
         {
             var descriptor = ObjectFieldDescriptor
                 .New(context, IntrospectionFields.TypeName);

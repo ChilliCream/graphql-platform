@@ -116,5 +116,47 @@ namespace HotChocolate.Validation
             // assert
             Assert.Empty(context.Errors);
         }
+
+        [Fact]
+        public void Star_Wars_With_Inline_Fragments()
+        {
+            ExpectValid(
+                StarWars,
+                @"
+                query ExecutionDepthShouldNotLeadToEmptyObects {
+                    hero(episode: NEWHOPE) {
+                        __typename
+                        id
+                        name
+                        ... on Human {
+                            __typename
+                            homePlanet
+                        }
+                        ... on Droid {
+                            __typename
+                            primaryFunction
+                        }
+                        friends {
+                            nodes {
+                                __typename
+                                ... on Human {
+                                    __typename
+                                    homePlanet
+                                    friends {
+                                        __typename
+                                    }
+                                }
+                                ... on Droid {
+                                    __typename
+                                    primaryFunction
+                                    friends {
+                                        __typename
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }");
+        }
     }
 }

@@ -33,9 +33,9 @@ namespace HotChocolate.Validation.Rules
     {
         public ArgumentsVisitor()
             : base(new SyntaxVisitorOptions
-                {
-                    VisitDirectives = true
-                })
+            {
+                VisitDirectives = true
+            })
         {
         }
 

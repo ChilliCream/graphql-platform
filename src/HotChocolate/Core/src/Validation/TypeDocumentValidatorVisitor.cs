@@ -2,12 +2,17 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation
 {
     public class TypeDocumentValidatorVisitor
        : DocumentValidatorVisitor
     {
+        private static __TypeNameField _typeNameField =
+            new __TypeNameField(DescriptorContext.Create());
+
         protected TypeDocumentValidatorVisitor(SyntaxVisitorOptions options = default)
             : base(options)
         {
@@ -39,7 +44,12 @@ namespace HotChocolate.Validation
 
                 case NodeKind.Field:
                     var field = ((FieldNode)node);
-                    if (context.Types.TryPeek(out type) &&
+                    if(IntrospectionFields.TypeName.Equals(field.Name.Value))
+                    {
+                        context.OutputFields.Push(_typeNameField);
+                        context.IsInError.Push(false);
+                    }
+                    else if (context.Types.TryPeek(out type) &&
                         type.NamedType() is IComplexOutputType ot &&
                         ot.Fields.TryGetField(field.Name.Value, out IOutputField of))
                     {
