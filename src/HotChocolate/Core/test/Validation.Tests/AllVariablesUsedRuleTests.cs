@@ -17,7 +17,7 @@ namespace HotChocolate.Validation
             ExpectErrors(@"
                 query variableUnused($atOtherHomes: Boolean) {
                     dog {
-                        isHousetrained
+                        isHouseTrained
                     }
                 }
             ",
@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedFragment on Dog {
-                    isHousetrained(atOtherHomes: $atOtherHomes)
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
             ");
         }
@@ -57,7 +57,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedFragmentLevel2 on Dog {
-                    isHousetrained(atOtherHomes: $atOtherHomes)
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
             ");
         }
@@ -73,7 +73,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedFragment on Dog {
-                    isHousetrained @skip(if: $atOtherHomes)
+                    isHouseTrained @skip(if: $atOtherHomes)
                 }
             ");
 
@@ -85,7 +85,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedFragment on Dog {
-                    isHousetrained
+                    isHouseTrained
                 }
             ");
         }
@@ -102,7 +102,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedWithoutVariableFragment on Dog {
-                    isHousetrained
+                    isHouseTrained
                 }
             ",
             t => Assert.Equal(
@@ -127,7 +127,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedFragment on Dog {
-                    isHousetrained(atOtherHomes: $atOtherHomes)
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }
             ",
             t => Assert.Equal(
@@ -142,7 +142,7 @@ namespace HotChocolate.Validation
                 query variableIsDefined($atOtherHomes: Boolean)
                 {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }");
         }
@@ -177,7 +177,7 @@ namespace HotChocolate.Validation
                 query variableIsDefined
                 {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }",
                 t => Assert.Equal(
@@ -200,7 +200,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedFragment on Dog {
-                    isHousetrained(atOtherHomes: $atOtherHomes)
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }",
                 t => Assert.Equal(
                     "The following variables were not declared: " +
@@ -225,12 +225,12 @@ namespace HotChocolate.Validation
 
                 query housetrainedQueryThree {
                     dog {
-                        isHousetrained(atOtherHomes: true)
+                        isHouseTrained(atOtherHomes: true)
                     }
                 }
 
                 fragment isHousetrainedFragment on Dog {
-                    isHousetrained(atOtherHomes: $atOtherHomes)
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }");
         }
 
@@ -249,7 +249,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment isHousetrainedFragment on Dog {
-                    isHousetrained(atOtherHomes: $atOtherHomes)
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                 }",
                 t => Assert.Equal(
                     "The following variables were not declared: " +

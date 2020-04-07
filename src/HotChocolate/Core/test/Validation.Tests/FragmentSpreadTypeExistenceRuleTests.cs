@@ -1,7 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
-using Xunit;
 using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Validation
 {

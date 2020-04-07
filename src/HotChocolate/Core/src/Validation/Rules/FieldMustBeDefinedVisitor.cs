@@ -11,14 +11,12 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
     /// </summary>
-    internal sealed class FieldMustBeDefinedVisitor : TypeDocumentValidatorVisitor2
+    internal sealed class FieldMustBeDefinedVisitor : TypeDocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
             FieldNode node,
             IDocumentValidatorContext context)
         {
-            context.Names.Clear();
-
             if (IntrospectionFields.TypeName.Equals(node.Name.Value))
             {
                 return Skip;

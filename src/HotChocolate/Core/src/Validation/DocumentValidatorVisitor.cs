@@ -26,19 +26,11 @@ namespace HotChocolate.Validation
             ISyntaxNode? parent,
             IDocumentValidatorContext context)
         {
-            context.Path.Pop();
-            return context;
-        }
-
-        protected override IDocumentValidatorContext OnAfterLeave(
-            ISyntaxNode node,
-            ISyntaxNode? parent,
-            IDocumentValidatorContext context)
-        {
-            if (node.Kind == NodeKind.FragmentDefinition)
+            if (node.Kind == NodeKind.OperationDefinition)
             {
-                context.VisitedFragments.Remove(((FragmentDefinitionNode)node).Name.Value);
+                context.VisitedFragments.Clear();
             }
+            context.Path.Pop();
             return context;
         }
 

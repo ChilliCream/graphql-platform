@@ -64,7 +64,7 @@ namespace HotChocolate.Validation
 
                 fragment validFragment on Pet {
                     ... on Dog {
-                        barks
+                        barkVolume
                     }
                 }
             ");

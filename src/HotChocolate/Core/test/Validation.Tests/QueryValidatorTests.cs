@@ -320,11 +320,11 @@ namespace HotChocolate.Validation
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
                     dog {
-                        ...isHousetrainedWithoutVariableFragment
+                        ...isHouseTrainedWithoutVariableFragment
                     }
                 }
 
-                fragment isHousetrainedWithoutVariableFragment on Dog {
+                fragment isHouseTrainedWithoutVariableFragment on Dog {
                     barkVolume
                 }
             ");

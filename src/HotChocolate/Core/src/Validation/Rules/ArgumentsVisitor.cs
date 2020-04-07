@@ -30,7 +30,7 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Required-Arguments
     /// </summary>
-    internal sealed class ArgumentsVisitor : TypeDocumentValidatorVisitor2
+    internal sealed class ArgumentsVisitor : TypeDocumentValidatorVisitor
     {
         public ArgumentsVisitor()
             : base(new SyntaxVisitorOptions

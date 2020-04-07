@@ -35,11 +35,6 @@ namespace HotChocolate.Validation
 
         ICollection<IError> Errors { get; }
 
-        /// <summary>
-        /// The visitor was unable to resolver types specified in the query.
-        /// </summary>
-        IList<bool> IsInError { get; }
-
         bool UnexpectedErrorsDetected { get; set; }
     }
 }

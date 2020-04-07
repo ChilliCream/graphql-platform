@@ -8,6 +8,7 @@ namespace HotChocolate.Validation
     public sealed class DocumentValidatorContext : IDocumentValidatorContext
     {
         private ISchema? _schema;
+        private bool unexpectedErrorsDetected;
 
         public ISchema Schema
         {
@@ -55,9 +56,14 @@ namespace HotChocolate.Validation
 
         public ICollection<IError> Errors { get; } = new List<IError>();
 
-        public IList<bool> IsInError { get; } = new List<bool>();
-
-        public bool UnexpectedErrorsDetected { get; set; }
+        public bool UnexpectedErrorsDetected
+        {
+            get => unexpectedErrorsDetected;
+            set
+            {
+                unexpectedErrorsDetected = value;
+            }
+        }
 
         public void Clear()
         {
@@ -75,7 +81,6 @@ namespace HotChocolate.Validation
             OutputFields.Clear();
             InputFields.Clear();
             Errors.Clear();
-            IsInError.Clear();
             UnexpectedErrorsDetected = false;
         }
     }

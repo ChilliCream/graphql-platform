@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Xunit;
 
@@ -20,7 +19,7 @@ namespace HotChocolate.Validation
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query takesBoolean($atOtherHomes: Boolean) {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }
 
