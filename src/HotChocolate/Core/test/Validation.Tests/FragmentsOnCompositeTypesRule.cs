@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public FragmentsOnCompositeTypesRuleTests()
-            : base(services => services.AddFragmentsAreValidRule())
+            : base(services => services.AddFragmentRules())
         {
         }
 
@@ -64,14 +64,12 @@ namespace HotChocolate.Validation
 
                 fragment validFragment on Pet {
                     ... on Dog {
-                        barks
+                        barkVolume
                     }
                 }
             ");
         }
 
-        // TODO : interfaces implement interfaces
-        /*
         /// <summary>
         /// interface is valid inline fragment type
         /// </summary>
@@ -92,7 +90,6 @@ namespace HotChocolate.Validation
                 }
             ");
         }
-        */
 
         /// <summary>
         /// inline fragment without type is valid

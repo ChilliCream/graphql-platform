@@ -1,6 +1,7 @@
 ﻿using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation.Rules
 {
@@ -105,22 +106,109 @@ namespace HotChocolate.Validation.Rules
         }
 
         protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+            {
+                return Skip;
+            }
+            else if (context.Types.TryPeek(out IType type) &&
+                type.NamedType() is IComplexOutputType ot &&
+                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+            {
+                context.OutputFields.Push(of);
+                context.Types.Push(of.Type);
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
+            context.OutputFields.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
             FragmentDefinitionNode node,
             IDocumentValidatorContext context)
         {
             context.Names.Add(node.Name.Value);
-            ValidateTypeCondition(node, node.TypeCondition, context);
-            ValidateFragmentSpreadIsPossible(node, context);
-            return Continue;
+
+            if (context.Schema.TryGetType(
+                node.TypeCondition.Name.Value,
+                out INamedOutputType type))
+            {
+                if (type.IsCompositeType())
+                {
+                    ValidateFragmentSpreadIsPossible(
+                        node, context,
+                        context.Types.Peek().NamedType(),
+                        type);
+                    context.Types.Push(type);
+                    return Continue;
+                }
+                else
+                {
+                    context.Errors.Add(context.FragmentOnlyCompositType(node, type.NamedType()));
+                    return Skip;
+                }
+            }
+            else
+            {
+                context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FragmentDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            context.VisitedFragments.Remove(node.Name.Value);
+            return base.Enter(node,context);
         }
 
         protected override ISyntaxVisitorAction Enter(
             InlineFragmentNode node,
             IDocumentValidatorContext context)
         {
-            ValidateTypeCondition(node, node.TypeCondition, context);
-            ValidateFragmentSpreadIsPossible(node, context);
-            return Continue;
+            if (node.TypeCondition is null)
+            {
+                return Continue;
+            }
+            else if (context.Schema.TryGetType(
+                node.TypeCondition.Name.Value,
+                out INamedOutputType type))
+            {
+                if (type.IsCompositeType())
+                {
+                    ValidateFragmentSpreadIsPossible(
+                        node, context,
+                        context.Types.Peek().NamedType(),
+                        type);
+                    context.Types.Push(type);
+                    return Continue;
+                }
+                else
+                {
+                    context.Errors.Add(context.FragmentOnlyCompositType(node, type.NamedType()));
+                    return Skip;
+                }
+            }
+            else
+            {
+                context.Errors.Add(context.FragmentTypeConditionUnknown(node, node.TypeCondition));
+                return Skip;
+            }
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -145,20 +233,15 @@ namespace HotChocolate.Validation.Rules
 
         private void ValidateFragmentSpreadIsPossible(
             ISyntaxNode node,
-            IDocumentValidatorContext context)
+            IDocumentValidatorContext context,
+            INamedType parentType,
+            INamedType typeCondition)
         {
-            if (context.Types.Count > 1 &&
-                context.Types.TryPeek(out IType type) &&
-                type.IsComplexType())
+            if (typeCondition.IsComplexType() &&
+                !IsCompatibleType(parentType, typeCondition))
             {
-                INamedType typeCondition = type.NamedType();
-                INamedType parentType = context.Types[context.Types.Count - 2].NamedType();
-
-                if (!IsCompatibleType(parentType, typeCondition))
-                {
-                    context.Errors.Add(context.FragmentNotPossible(
-                        node, typeCondition, parentType));
-                }
+                context.Errors.Add(context.FragmentNotPossible(
+                    node, typeCondition, parentType));
             }
         }
 
@@ -179,25 +262,6 @@ namespace HotChocolate.Validation.Rules
             else
             {
                 return false;
-            }
-        }
-
-        private void ValidateTypeCondition(
-            ISyntaxNode node,
-            NamedTypeNode? typeCondition,
-            IDocumentValidatorContext context)
-        {
-            if (context.IsInError.PeekOrDefault(true))
-            {
-                if (typeCondition is { } &&
-                    !context.Schema.TryGetType<INamedType>(typeCondition.Name.Value, out _))
-                {
-                    context.Errors.Add(context.FragmentTypeConditionUnknown(node, typeCondition));
-                }
-            }
-            else if (context.Types.TryPeek(out IType type) && !type.IsCompositeType())
-            {
-                context.Errors.Add(context.FragmentOnlyCompositType(node, type.NamedType()));
             }
         }
     }

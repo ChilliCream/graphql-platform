@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation.Rules
 {
@@ -32,11 +33,109 @@ namespace HotChocolate.Validation.Rules
     {
         public InputObjectVisitor()
             : base(new SyntaxVisitorOptions
-                {
-                    VisitDirectives = true,
-                    VisitArguments = true
-                })
+            {
+                VisitDirectives = true,
+                VisitArguments = true
+            })
         {
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+            {
+                return Skip;
+            }
+            else if (context.Types.TryPeek(out IType type) &&
+                type.NamedType() is IComplexOutputType ot &&
+                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+            {
+                context.OutputFields.Push(of);
+                context.Types.Push(of.Type);
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
+            context.OutputFields.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            DirectiveNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
+            {
+                context.Directives.Push(d);
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            DirectiveNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Directives.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            ArgumentNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Directives.TryPeek(out DirectiveType directive))
+            {
+                if (directive.Arguments.TryGetField(node.Name.Value, out Argument argument))
+                {
+                    context.InputFields.Push(argument);
+                    context.Types.Push(argument.Type);
+                    return Continue;
+                }
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+            else if (context.OutputFields.TryPeek(out IOutputField field))
+            {
+                if (field.Arguments.TryGetField(node.Name.Value, out IInputField argument))
+                {
+                    context.InputFields.Push(argument);
+                    context.Types.Push(argument.Type);
+                    return Continue;
+                }
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            ArgumentNode node,
+            IDocumentValidatorContext context)
+        {
+            context.InputFields.Pop();
+            context.Types.Pop();
+            return Continue;
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -54,20 +153,17 @@ namespace HotChocolate.Validation.Rules
                 }
             }
 
-            if (!context.IsInError.PeekOrDefault(true))
+            var type = (InputObjectType)context.Types.Peek().NamedType();
+            if (context.Names.Count < type.Fields.Count)
             {
-                var type = (InputObjectType)context.Types.Peek().NamedType();
-                if (context.Names.Count < type.Fields.Count)
+                for (int i = 0; i < type.Fields.Count; i++)
                 {
-                    for (int i = 0; i < type.Fields.Count; i++)
+                    IInputField field = type.Fields[i];
+                    if (field.Type.IsNonNullType() &&
+                        field.DefaultValue.IsNull() &&
+                        context.Names.Add(field.Name))
                     {
-                        IInputField field = type.Fields[i];
-                        if (field.Type.IsNonNullType() &&
-                            field.DefaultValue.IsNull() &&
-                            context.Names.Add(field.Name))
-                        {
-                            InputFieldRequiredError(node, field.Name, context);
-                        }
+                        InputFieldRequiredError(node, field.Name, context);
                     }
                 }
             }
@@ -79,21 +175,34 @@ namespace HotChocolate.Validation.Rules
             ObjectFieldNode node,
             IDocumentValidatorContext context)
         {
-            if (context.IsInError.PeekOrDefault(true))
+            if (context.Types.TryPeek(out IType type) &&
+                type.NamedType() is InputObjectType it &&
+                it.Fields.TryGetField(node.Name.Value, out InputField field))
             {
-                context.Errors.Add(context.InputFieldDoesNotExist(node));
-                return Skip;
-            }
-            else
-            {
-                IInputField field = context.InputFields.Peek();
                 if (field.Type.IsNonNullType() &&
                     field.DefaultValue.IsNull() &&
                     node.Value.IsNull())
                 {
                     InputFieldRequiredError(node, field.Name, context);
                 }
+
+                context.InputFields.Push(field);
+                context.Types.Push(field.Type);
+                return Continue;
             }
+            else
+            {
+                context.Errors.Add(context.InputFieldDoesNotExist(node));
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            ObjectFieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.InputFields.Pop();
+            context.Types.Pop();
             return Continue;
         }
 

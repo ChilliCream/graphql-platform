@@ -139,7 +139,6 @@ namespace HotChocolate.Validation.Rules
             where T : ISyntaxNode, Language.IHasDirectives
         {
             context.Names.Clear();
-
             foreach (DirectiveNode directive in node.Directives)
             {
                 if (context.Schema.TryGetDirectiveType(directive.Name.Value, out DirectiveType? dt)

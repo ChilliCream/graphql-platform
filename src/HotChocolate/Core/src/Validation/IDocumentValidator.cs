@@ -4,8 +4,6 @@ namespace HotChocolate.Validation
 {
     public interface IDocumentValidator
     {
-        DocumentValidatorResult Validate(
-            ISchema schema,
-            DocumentNode document);
+        DocumentValidatorResult Validate(ISchema schema, DocumentNode document);
     }
 }
