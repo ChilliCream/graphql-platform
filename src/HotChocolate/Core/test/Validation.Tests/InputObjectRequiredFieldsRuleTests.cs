@@ -8,7 +8,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public InputObjectRequiredFieldsRuleTests()
-            : base(services => services.AddInputObjectsAreValidRule())
+            : base(services => services.AddInputObjectRules())
         {
         }
 

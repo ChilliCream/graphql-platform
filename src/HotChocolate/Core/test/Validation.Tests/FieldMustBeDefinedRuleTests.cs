@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -10,7 +9,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public FieldMustBeDefinedRuleTests()
-            : base(services => services.AddFieldMustBeDefinedRule())
+            : base(services => services.AddFieldRules())
         {
         }
 

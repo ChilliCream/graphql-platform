@@ -135,7 +135,7 @@ namespace HotChocolate.Validation.Rules
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "`{0}` returns {0} value. Selections on scalars " +
+                    "`{0}` returns {1} value. Selections on scalars " +
                     "or enums are never allowed, because they are the leaf " +
                     "nodes of any GraphQL query.",
                     node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "en enum")

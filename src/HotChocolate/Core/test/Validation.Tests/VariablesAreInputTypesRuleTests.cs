@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public VariablesAreInputTypesRuleTests()
-            : base(services => services.AddVariablesAreValidRule())
+            : base(services => services.AddVariableRules())
         {
         }
 
