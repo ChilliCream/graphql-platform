@@ -116,12 +116,57 @@ namespace HotChocolate.Validation.Rules
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    $"The field `{node.Name.Value}` does not exist " +
-                    $"on the type `{outputType.Name}`.")
+                    "The field `{0}` does not exist on the type `{1}`.",
+                    node.Name.Value, outputType.Name)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("type", outputType.Name)
-                .SetExtension("field", outputType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
+                .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .Build();
+        }
+
+        public static IError LeafFieldsCannotHaveSelections(
+            this IDocumentValidatorContext context,
+            FieldNode node,
+            IComplexOutputType declaringType,
+            IType fieldType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "`{0}` returns {1} value. Selections on scalars " +
+                    "or enums are never allowed, because they are the leaf " +
+                    "nodes of any GraphQL query.",
+                    node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "en enum")
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("declaringType", declaringType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("type", fieldType.Print())
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
+                .SpecifiedBy("sec-Leaf-Field-Selections")
+                .Build();
+        }
+
+        public static IError NoSelectionOnCompositeField(
+            this IDocumentValidatorContext context,
+            FieldNode node,
+            IComplexOutputType declaringType,
+            IType fieldType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "`{0}` is an object, interface or union type " +
+                    "field. Leaf selections on objects, interfaces, and " +
+                    "unions without subfields are disallowed.",
+                    node.Name.Value)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("declaringType", declaringType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("type", fieldType.Print())
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
                 .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
                 .Build();
         }

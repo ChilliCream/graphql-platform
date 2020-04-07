@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation.Rules
 {
@@ -33,9 +34,9 @@ namespace HotChocolate.Validation.Rules
     {
         public ArgumentsVisitor()
             : base(new SyntaxVisitorOptions
-                {
-                    VisitDirectives = true
-                })
+            {
+                VisitDirectives = true
+            })
         {
         }
 
@@ -45,14 +46,39 @@ namespace HotChocolate.Validation.Rules
         {
             context.Names.Clear();
 
-            if (!context.IsInError.PeekOrDefault(true) &&
-                context.OutputFields.TryPeek(out IOutputField field))
+            if (IntrospectionFields.TypeName.Equals(node.Name.Value))
             {
                 ValidateArguments(
                     context, node, node.Arguments,
-                    field.Arguments, field: field);
-            }
+                    TypeNameField.Arguments, field: TypeNameField);
 
+                return Skip;
+            }
+            else if (context.Types.TryPeek(out IType type) &&
+                type.NamedType() is IComplexOutputType ot &&
+                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+            {
+                ValidateArguments(
+                    context, node, node.Arguments,
+                    of.Arguments, field: of);
+
+                context.OutputFields.Push(of);
+                context.Types.Push(of.Type);
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
+            context.OutputFields.Pop();
             return Continue;
         }
 
@@ -62,14 +88,28 @@ namespace HotChocolate.Validation.Rules
         {
             context.Names.Clear();
 
-            if (!context.IsInError.PeekOrDefault(true) &&
-                context.Directives.TryPeek(out DirectiveType directiveType))
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
             {
+                context.Directives.Push(d);
+
                 ValidateArguments(
                     context, node, node.Arguments,
-                    directiveType.Arguments, directive: directiveType);
-            }
+                    d.Arguments, directive: d);
 
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            DirectiveNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Directives.Pop();
             return Continue;
         }
 

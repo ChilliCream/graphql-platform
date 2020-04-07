@@ -63,7 +63,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
         /// </summary>
-        public static IServiceCollection AddDirectivesAreValidRule(
+        public static IServiceCollection AddDirectiveRules(
             this IServiceCollection services)
         {
             return services.AddValidationRule<DirectivesVisitor>();
@@ -84,7 +84,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
         /// </summary>
-        public static IServiceCollection AddExecutableDefinitionsRule(
+        public static IServiceCollection AddExecutableDefinitionRule(
             this IServiceCollection services)
         {
             return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
@@ -95,11 +95,22 @@ namespace HotChocolate.Validation
         /// type of the selection set. There are no limitations on alias names.
         ///
         /// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+        ///
+        /// AND
+        ///
+        /// Field selections on scalars or enums are never allowed,
+        /// because they are the leaf nodes of any GraphQL query.
+        ///
+        /// Conversely the leaf field selections of GraphQL queries
+        /// must be of type scalar or enum. Leaf selections on objects,
+        /// interfaces, and unions without subfields are disallowed.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
         /// </summary>
-        public static IServiceCollection AddFieldMustBeDefinedRule(
+        public static IServiceCollection AddFieldRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<FieldMustBeDefinedVisitor>();
+            return services.AddValidationRule<FieldsVisitor>();
         }
 
         /// <summary>
@@ -161,7 +172,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
         /// </summary>
-        public static IServiceCollection AddFragmentsAreValidRule(
+        public static IServiceCollection AddFragmentRules(
             this IServiceCollection services)
         {
             return services.AddValidationRule<FragmentsVisitor>();
@@ -191,7 +202,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
         /// </summary>
-        public static IServiceCollection AddInputObjectsAreValidRule(
+        public static IServiceCollection AddInputObjectRules(
             this IServiceCollection services)
         {
             return services.AddValidationRule<InputObjectVisitor>();
@@ -239,7 +250,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
         /// </summary>
-        public static IServiceCollection AddVariablesAreValidRule(
+        public static IServiceCollection AddVariableRules(
             this IServiceCollection services)
         {
             return services.AddValidationRule<VariablesVisitor>();
@@ -258,7 +269,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
         /// </summary>
-        public static IServiceCollection AddOperationsAreValidRule(
+        public static IServiceCollection AddOperationRules(
             this IServiceCollection services)
         {
             return services.AddSingleton<IDocumentValidatorRule, OperationRule>();

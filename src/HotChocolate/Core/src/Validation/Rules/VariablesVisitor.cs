@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation.Rules
 {
@@ -47,8 +48,7 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
     /// </summary>
-    internal sealed class VariablesVisitor
-        : TypeDocumentValidatorVisitor
+    internal sealed class VariablesVisitor : TypeDocumentValidatorVisitor
     {
         public VariablesVisitor()
             : base(new SyntaxVisitorOptions
@@ -67,13 +67,35 @@ namespace HotChocolate.Validation.Rules
             context.Unused.Clear();
             context.Used.Clear();
             context.Declared.Clear();
-            return Continue;
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+           OperationDefinitionNode node,
+           IDocumentValidatorContext context)
+        {
+            context.Unused.ExceptWith(context.Used);
+            context.Used.ExceptWith(context.Declared);
+
+            if (context.Unused.Count > 0)
+            {
+                context.Errors.Add(context.VariableNotUsed(node));
+            }
+
+            if (context.Used.Count > 0)
+            {
+                context.Errors.Add(context.VariableNotDeclared(node));
+            }
+
+            return base.Leave(node, context);
         }
 
         protected override ISyntaxVisitorAction Enter(
             VariableDefinitionNode node,
             IDocumentValidatorContext context)
         {
+            base.Enter(node, context);
+
             string variableName = node.Variable.Name.Value;
 
             context.Unused.Add(variableName);
@@ -90,7 +112,134 @@ namespace HotChocolate.Validation.Rules
             {
                 context.Errors.Add(context.VariableNameNotUnique(node, variableName));
             }
+
             return Skip;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+            {
+                return Skip;
+            }
+            else if (context.Types.TryPeek(out IType type) &&
+                type.NamedType() is IComplexOutputType ot &&
+                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+            {
+                context.OutputFields.Push(of);
+                context.Types.Push(of.Type);
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
+            context.OutputFields.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            DirectiveNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
+            {
+                context.Directives.Push(d);
+                return Continue;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            DirectiveNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Directives.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            ArgumentNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Directives.TryPeek(out DirectiveType directive))
+            {
+                if (directive.Arguments.TryGetField(node.Name.Value, out Argument argument))
+                {
+                    context.InputFields.Push(argument);
+                    context.Types.Push(argument.Type);
+                    return Continue;
+                }
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+            else if (context.OutputFields.TryPeek(out IOutputField field))
+            {
+                if (field.Arguments.TryGetField(node.Name.Value, out IInputField argument))
+                {
+                    context.InputFields.Push(argument);
+                    context.Types.Push(argument.Type);
+                    return Continue;
+                }
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            ArgumentNode node,
+            IDocumentValidatorContext context)
+        {
+            context.InputFields.Pop();
+            context.Types.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            ObjectFieldNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Types.TryPeek(out IType type) &&
+                type.NamedType() is InputObjectType it &&
+                it.Fields.TryGetField(node.Name.Value, out InputField field))
+            {
+                context.InputFields.Push(field);
+                context.Types.Push(field.Type);
+                return Continue;
+            }
+            else
+            {
+                context.Errors.Add(context.InputFieldDoesNotExist(node));
+                return Skip;
+            }
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            ObjectFieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.InputFields.Pop();
+            context.Types.Pop();
+            return Continue;
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -99,31 +248,28 @@ namespace HotChocolate.Validation.Rules
         {
             context.Used.Add(node.Name.Value);
 
-            if (!context.IsInError.PeekOrDefault(true))
+            ISyntaxNode parent = context.Path.Peek();
+            IValueNode? defaultValue;
+
+            switch (parent.Kind)
             {
-                ISyntaxNode parent = context.Path.Peek();
-                IValueNode? defaultValue;
+                case NodeKind.Argument:
+                case NodeKind.ObjectField:
+                    defaultValue = context.InputFields.Peek().DefaultValue;
+                    break;
 
-                switch (parent.Kind)
-                {
-                    case NodeKind.Argument:
-                    case NodeKind.ObjectField:
-                        defaultValue = context.InputFields.Peek().DefaultValue;
-                        break;
+                default:
+                    defaultValue = null;
+                    break;
+            }
 
-                    default:
-                        defaultValue = null;
-                        break;
-                }
-
-                if (context.Variables.TryGetValue(
-                    node.Name.Value,
-                    out VariableDefinitionNode? variableDefinition)
-                    && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
-                {
-                    context.Errors.Add(ErrorHelper.VariableIsNotCompatible(
-                        context, node, variableDefinition));
-                }
+            if (context.Variables.TryGetValue(
+                node.Name.Value,
+                out VariableDefinitionNode? variableDefinition)
+                && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
+            {
+                context.Errors.Add(ErrorHelper.VariableIsNotCompatible(
+                    context, node, variableDefinition));
             }
 
             return Skip;
@@ -146,26 +292,6 @@ namespace HotChocolate.Validation.Rules
             IDocumentValidatorContext context)
         {
             context.Types.Pop();
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Leave(
-            OperationDefinitionNode node,
-            IDocumentValidatorContext context)
-        {
-            context.Unused.ExceptWith(context.Used);
-            context.Used.ExceptWith(context.Declared);
-
-            if (context.Unused.Count > 0)
-            {
-                context.Errors.Add(context.VariableNotUsed(node));
-            }
-
-            if (context.Used.Count > 0)
-            {
-                context.Errors.Add(context.VariableNotDeclared(node));
-            }
-
             return Continue;
         }
 
