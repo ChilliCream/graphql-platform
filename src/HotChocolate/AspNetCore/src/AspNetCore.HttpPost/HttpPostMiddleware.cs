@@ -218,8 +218,9 @@ namespace HotChocolate.AspNetCore
                 default:
                     throw new NotSupportedException();
 
-                return batch;
             }
+
+            return batch;
         }
 
         private static AllowedContentType ParseContentType(string s)
