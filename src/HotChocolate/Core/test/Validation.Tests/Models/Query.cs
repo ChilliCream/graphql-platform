@@ -37,6 +37,11 @@
             return null;
         }
 
+        public object GetDogOrHuman()
+        {
+            return null;
+        }
+
         public string[] GetStringList()
         {
             return null;
