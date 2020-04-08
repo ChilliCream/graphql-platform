@@ -65,7 +65,7 @@ namespace HotChocolate.Validation
             Assert.False(context.UnexpectedErrorsDetected);
             Assert.Empty(context.Errors);
         }
-        
+
         public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
             ExpectErrors(null, sourceText, elementInspectors);
 

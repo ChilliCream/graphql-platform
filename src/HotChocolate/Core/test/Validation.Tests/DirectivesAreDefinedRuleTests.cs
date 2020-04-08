@@ -18,115 +18,75 @@ namespace HotChocolate.Validation
         public void SupportedDirective()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         name @skip(if: true)
                     }
                 }
             ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void UnsupportedDirective()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         name @foo(bar: true)
                     }
                 }
-            ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "The specified directive `foo` " +
                     "is not supported by the current schema.",
                     t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void SkipDirectiveIsInTheWrongPlace()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query @skip(if: $foo) {
                     field
                 }
-            ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "The specified directive is not valid the " +
                     "current location.", t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void SkipDirectiveIsInTheRightPlace()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query a {
                     field @skip(if: $foo)
                 }
             ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void DuplicateSkipDirectives()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) @skip(if: $bar)
                 }
-            ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "Only one of each directive is allowed per location.",
                     t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void SkipOnTwoDifferentFields()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) {
                         subfieldA
@@ -136,12 +96,132 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+        }
 
-            // act
-            Rule.Validate(context, query);
+        [Fact]
+        public void WithNoDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo {
+                    name
+                    ...Frag
+                }
+                fragment Frag on Dog {
+                    name
+                }
+            ");
+        }
 
-            // assert
-            Assert.Empty(context.Errors);
+        [Fact]
+        public void WithKnownDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                 {
+                    dog @include(if: true) {
+                        name
+                    }
+                    human @skip(if: false) {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithUnknownDirectives()
+        {
+            // arrange
+            ExpectErrors(@"
+                 {
+                    dog @unknown(directive: ""value"") {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithManyUnknownDirectives()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    dog @unknown(directive: ""value"") {
+                        name
+                    }
+                    human @unknown(directive: ""value"") {
+                        name
+                        pets @unknown(directive: ""value"") {
+                            name
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithWellPlacedDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                query ($var: Boolean) @onQuery {
+                    name @include(if: $var)
+                    ...Frag @include(if: true)
+                    skippedField @skip(if: true)
+                    ...SkippedFrag @skip(if: true)
+                    ... @skip(if: true) {
+                    skippedField
+                    }
+                }
+                mutation @onMutation {
+                    someField
+                }
+                subscription @onSubscription {
+                    someField
+                }
+                fragment Frag on SomeType @onFragmentDefinition {
+                    someField
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithWellPlacedVariableDefinitionDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo($var: Boolean @onVariableDefinition) {
+                    name
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectives()
+        {
+            // arrange
+            ExpectErrors(@"
+                 query Foo($var: Boolean) @include(if: true) {
+                    name @onQuery @include(if: $var)
+                    ...Frag @onQuery
+                }
+                mutation Bar @onQuery {
+                    someField
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedVariableDefinitionDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo($var: Boolean @onField) {
+                    name
+                }
+            ");
         }
     }
 }

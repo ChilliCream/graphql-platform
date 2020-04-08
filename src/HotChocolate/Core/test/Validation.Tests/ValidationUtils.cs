@@ -1,4 +1,6 @@
-﻿using HotChocolate.Language;
+﻿using HotChocolate.Configuration;
+using HotChocolate.Language;
+using HotChocolate.Types;
 
 #nullable enable
 
@@ -26,6 +28,13 @@ namespace HotChocolate.Validation
             }
         }
 
+        public static void RegisterDirective(
+            this ISchemaConfiguration context,
+            string name,
+            Types.DirectiveLocation location)
+                => context.RegisterDirective(
+                    new DirectiveType(x => x.Name(name).Location(location)));
+
         public static Schema CreateSchema()
         {
             return Schema.Create(c =>
@@ -46,6 +55,11 @@ namespace HotChocolate.Validation
                 c.RegisterType<ComplexInput3Type>();
                 c.RegisterType<InvalidScalar>();
                 c.RegisterDirective<ComplexDirective>();
+                c.RegisterDirective("onMutation", Types.DirectiveLocation.Mutation);
+                c.RegisterDirective("onQuery", Types.DirectiveLocation.Query);
+                c.RegisterDirective("onSubscription", Types.DirectiveLocation.Subscription);
+                c.RegisterDirective("onFragmentDefinition", Types.DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("onVariableDefinition", Types.DirectiveLocation.VariableDefinition);
             });
         }
     }
