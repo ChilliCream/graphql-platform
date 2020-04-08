@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
         /// Every argument provided to a field or directive must be defined
         /// in the set of possible arguments of that field or directive.
         ///
-        /// http://facebook.github.io/graphql/June2018/#sec-Argument-Names
+        /// http://spec.graphql.org/June2018/#sec-Argument-Names
         ///
         /// AND
         ///
@@ -19,7 +19,7 @@ namespace HotChocolate.Validation
         /// More than one argument with the same name in an argument set
         /// is ambiguous and invalid.
         ///
-        /// http://facebook.github.io/graphql/June2018/#sec-Argument-Uniqueness
+        /// http://spec.graphql.org/June2018/#sec-Argument-Uniqueness
         ///
         /// AND
         ///
@@ -27,9 +27,9 @@ namespace HotChocolate.Validation
         /// type is non‐null and does not have a default value. Otherwise,
         /// the argument is optional.
         ///
-        /// http://facebook.github.io/graphql/June2018/#sec-Required-Arguments
+        /// http://spec.graphql.org/June2018/#sec-Required-Arguments
         /// </summary>
-        public static IServiceCollection AddArgumentsAreValidRule(
+        public static IServiceCollection AddArgumentRules(
             this IServiceCollection services)
         {
             return services.AddValidationRule<ArgumentsVisitor>();
@@ -84,7 +84,7 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
         /// </summary>
-        public static IServiceCollection AddExecutableDefinitionRule(
+        public static IServiceCollection AddDocumentRules(
             this IServiceCollection services)
         {
             return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
@@ -276,13 +276,24 @@ namespace HotChocolate.Validation
         /// when referred to by its name.
         ///
         /// http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Subscription operations must have exactly one root field.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Single-root-field
         /// </summary>
         public static IServiceCollection AddOperationRules(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, OperationRule>();
+            return services.AddValidationRule<OperationVisitor>();
         }
 
+        /// <summary>
+        /// Subscription operations must have exactly one root field.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Single-root-field
+        /// </summary>
         public static IServiceCollection AddValidationRule<T>(
             this IServiceCollection services)
             where T : DocumentValidatorVisitor, new()

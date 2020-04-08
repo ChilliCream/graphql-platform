@@ -549,5 +549,16 @@ namespace HotChocolate.Validation.Rules
                 .SpecifiedBy("sec-Required-Arguments")
                 .Build();
         }
+
+        public static IError SubscriptionSingleRootField(
+            this IDocumentValidatorContext context,
+            OperationDefinitionNode operation)
+        {
+            return ErrorBuilder.New()
+                .SetMessage("Subscription operations must have exactly one root field.")
+                .AddLocation(operation)
+                .SpecifiedBy("sec-Single-root-field")
+                .Build();
+        }
     }
 }
