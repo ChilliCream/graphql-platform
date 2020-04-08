@@ -18,8 +18,8 @@
       "argumentValue": {
         "Kind": "NullValue",
         "Location": {
-          "Start": 109,
-          "End": 114,
+          "Start": 106,
+          "End": 111,
           "Line": 4,
           "Column": 56
         },

@@ -18,8 +18,8 @@
       "argumentValue": {
         "Kind": "StringValue",
         "Location": {
-          "Start": 95,
-          "End": 103,
+          "Start": 92,
+          "End": 100,
           "Line": 4,
           "Column": 41
         },
@@ -49,8 +49,8 @@
       "argumentValue": {
         "Kind": "StringValue",
         "Location": {
-          "Start": 105,
-          "End": 111,
+          "Start": 102,
+          "End": 108,
           "Line": 4,
           "Column": 51
         },

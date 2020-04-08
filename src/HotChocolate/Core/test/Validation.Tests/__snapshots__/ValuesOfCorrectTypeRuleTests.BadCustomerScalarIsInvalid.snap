@@ -17,8 +17,8 @@
       "argumentValue": {
         "Kind": "IntValue",
         "Location": {
-          "Start": 56,
-          "End": 60,
+          "Start": 54,
+          "End": 58,
           "Line": 3,
           "Column": 36
         },

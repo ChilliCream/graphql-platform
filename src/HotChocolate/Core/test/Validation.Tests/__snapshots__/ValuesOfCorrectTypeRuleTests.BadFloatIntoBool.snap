@@ -18,8 +18,8 @@
       "argumentValue": {
         "Kind": "FloatValue",
         "Location": {
-          "Start": 106,
-          "End": 112,
+          "Start": 103,
+          "End": 109,
           "Line": 4,
           "Column": 53
         },

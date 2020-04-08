@@ -18,8 +18,8 @@
       "argumentValue": {
         "Kind": "BooleanValue",
         "Location": {
-          "Start": 102,
-          "End": 107,
+          "Start": 99,
+          "End": 104,
           "Line": 4,
           "Column": 49
         },

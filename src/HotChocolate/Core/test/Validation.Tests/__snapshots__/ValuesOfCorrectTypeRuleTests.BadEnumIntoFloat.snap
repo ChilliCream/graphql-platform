@@ -18,8 +18,8 @@
       "argumentValue": {
         "Kind": "EnumValue",
         "Location": {
-          "Start": 102,
-          "End": 106,
+          "Start": 99,
+          "End": 103,
           "Line": 4,
           "Column": 49
         },
