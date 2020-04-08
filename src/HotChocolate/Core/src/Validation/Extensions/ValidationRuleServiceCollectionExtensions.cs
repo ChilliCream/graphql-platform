@@ -32,7 +32,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddArgumentRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<ArgumentsVisitor>();
+            return services.AddValidationRule<ArgumentVisitor>();
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddDirectiveRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<DirectivesVisitor>();
+            return services.AddValidationRule<DirectiveVisitor>();
         }
 
         /// <summary>
