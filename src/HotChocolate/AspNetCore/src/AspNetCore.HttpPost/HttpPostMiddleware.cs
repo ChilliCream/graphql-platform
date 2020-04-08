@@ -194,31 +194,29 @@ namespace HotChocolate.AspNetCore
         protected async Task<IReadOnlyList<GraphQLRequest>> ReadRequestAsync(
             HttpContext context)
         {
-            using (Stream stream = context.Request.Body)
+            Stream stream = context.Request.Body;
+            IReadOnlyList<GraphQLRequest>? batch = null;
+
+            switch (ParseContentType(context.Request.ContentType))
             {
-                IReadOnlyList<GraphQLRequest>? batch = null;
+                case AllowedContentType.Json:
+                    batch = await _requestHelper
+                        .ReadJsonRequestAsync(
+                            stream,
+                            context.GetCancellationToken())
+                        .ConfigureAwait(false);
+                    break;
 
-                switch (ParseContentType(context.Request.ContentType))
-                {
-                    case AllowedContentType.Json:
-                        batch = await _requestHelper
-                            .ReadJsonRequestAsync(
-                                stream,
-                                context.GetCancellationToken())
-                            .ConfigureAwait(false);
-                        break;
+                case AllowedContentType.GraphQL:
+                    batch = await _requestHelper
+                        .ReadGraphQLQueryAsync(
+                            stream,
+                            context.GetCancellationToken())
+                        .ConfigureAwait(false);
+                    break;
 
-                    case AllowedContentType.GraphQL:
-                        batch = await _requestHelper
-                            .ReadGraphQLQueryAsync(
-                                stream,
-                                context.GetCancellationToken())
-                            .ConfigureAwait(false);
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
+                default:
+                    throw new NotSupportedException();
 
                 return batch;
             }
