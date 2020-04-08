@@ -241,6 +241,27 @@ namespace HotChocolate.Validation.Rules
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", fieldName)
                 .SpecifiedBy("sec-Input-Object-Required-Fields")
+                 .Build();
+        }
+
+        public static IError FieldsAreNotMergable(
+            this IDocumentValidatorContext context,
+            FieldInfo fieldA,
+            FieldInfo fieldB)
+        {
+            return ErrorBuilder.New()
+                .SetMessage("Encountered fields for the same object that cannot be merged.")
+                .AddLocation(fieldA.Field)
+                .AddLocation(fieldB.Field)
+                .SetExtension("declaringTypeA", fieldA.DeclaringType.NamedType().Name)
+                .SetExtension("declaringTypeB", fieldB.DeclaringType.NamedType().Name)
+                .SetExtension("fieldA", fieldA.Field.Name.Value)
+                .SetExtension("fieldB", fieldB.Field.Name.Value)
+                .SetExtension("typeA", fieldA.Type.Print())
+                .SetExtension("typeB", fieldB.Type.Print())
+                .SetExtension("responseNameA", fieldA.ResponseName)
+                .SetExtension("responseNameB", fieldB.ResponseName)
+                .SpecifiedBy("sec-Field-Selection-Merging")
                 .Build();
         }
 
