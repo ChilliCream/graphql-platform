@@ -61,11 +61,11 @@ namespace HotChocolate.Language.Visitors
             if (result.Kind == SyntaxVisitorActionKind.Continue)
             {
                 VisitChildren(node, context);
-            }
 
-            localContext = OnBeforeLeave(node, parent, localContext);
-            result = Leave(node, localContext);
-            localContext = OnAfterLeave(node, parent, localContext);
+                localContext = OnBeforeLeave(node, parent, localContext);
+                result = Leave(node, localContext);
+                localContext = OnAfterLeave(node, parent, localContext);
+            }
 
             return result;
         }

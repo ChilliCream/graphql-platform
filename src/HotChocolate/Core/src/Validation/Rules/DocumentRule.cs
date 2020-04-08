@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Rules
 {
     /// <summary>
     /// GraphQL execution will only consider the executable definitions
@@ -18,7 +18,7 @@ namespace HotChocolate.Validation
     ///
     /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
     /// </summary>
-    internal sealed class ExecutableDefinitionsRule : IDocumentValidatorRule
+    internal sealed class DocumentRule : IDocumentValidatorRule
     {
         public void Validate(IDocumentValidatorContext context, DocumentNode document)
         {
@@ -48,13 +48,8 @@ namespace HotChocolate.Validation
             if (typeSystemNode is { })
             {
                 context.Errors.Add(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "A document containing TypeSystemDefinition " +
-                            "is invalid for execution.")
-                        .AddLocation(typeSystemNode)
-                        .SpecifiedBy("sec-Executable-Definitions")
-                        .Build());
+                    ErrorHelper.TypeSystemDefinitionNotAllowed(
+                        context, typeSystemNode));
             }
         }
     }

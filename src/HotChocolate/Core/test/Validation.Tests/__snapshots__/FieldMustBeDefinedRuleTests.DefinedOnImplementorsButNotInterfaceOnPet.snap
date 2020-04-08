@@ -12,6 +12,9 @@
   ],
   "Exception": null,
   "Extensions": {
+    "type": "Pet",
+    "field": "nickname",
+    "responseName": "nickname",
     "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
   }
 }

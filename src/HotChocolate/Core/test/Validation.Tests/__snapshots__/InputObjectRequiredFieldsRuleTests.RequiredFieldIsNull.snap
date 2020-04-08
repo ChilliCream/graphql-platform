@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "`name` is a required field and cannot be null.",
+    "Message": "The specified value type of field `name` does not match the field type.",
     "Code": null,
     "Path": [
       "findDog2"
@@ -8,13 +8,15 @@
     "Locations": [
       {
         "Line": 3,
-        "Column": 41
+        "Column": 47
       }
     ],
     "Exception": null,
     "Extensions": {
-      "field": "name",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
+      "fieldName": "name",
+      "fieldType": "String!",
+      "locationType": "String!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
   }
 ]

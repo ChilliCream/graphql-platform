@@ -9,7 +9,13 @@ namespace HotChocolate.Validation
     {
         ISchema Schema { get; }
 
+        IOutputType NonNullString { get; }
+
         IList<ISyntaxNode> Path { get; }
+
+        IList<SelectionSetNode> SelectionSets { get; }
+
+        IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; }
 
         ISet<string> VisitedFragments { get; }
 
@@ -17,11 +23,11 @@ namespace HotChocolate.Validation
 
         IDictionary<string, FragmentDefinitionNode> Fragments { get; }
 
-        ISet<string> UsedVariables { get; }
+        ISet<string> Used { get; }
 
-        ISet<string> UnusedVariables { get; }
+        ISet<string> Unused { get; }
 
-        ISet<string> DeclaredVariables { get; }
+        ISet<string> Declared { get; }
 
         ISet<string> Names { get; }
 
@@ -35,9 +41,8 @@ namespace HotChocolate.Validation
 
         ICollection<IError> Errors { get; }
 
-        /// <summary>
-        /// The visitor was unable to resolver types specified in the query.
-        /// </summary>
-        IList<bool> IsInError { get; }
+        bool UnexpectedErrorsDetected { get; set; }
+
+        IList<FieldInfo> RentFieldInfoList();
     }
 }

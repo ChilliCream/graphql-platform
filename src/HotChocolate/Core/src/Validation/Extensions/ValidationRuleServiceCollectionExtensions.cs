@@ -6,6 +6,36 @@ namespace HotChocolate.Validation
     public static class ValidationRuleServiceCollectionExtensions
     {
         /// <summary>
+        /// Every argument provided to a field or directive must be defined
+        /// in the set of possible arguments of that field or directive.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Argument-Names
+        ///
+        /// AND
+        ///
+        /// Fields and directives treat arguments as a mapping of argument name
+        /// to value.
+        ///
+        /// More than one argument with the same name in an argument set
+        /// is ambiguous and invalid.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Argument-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Arguments can be required. An argument is required if the argument
+        /// type is non‐null and does not have a default value. Otherwise,
+        /// the argument is optional.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Required-Arguments
+        /// </summary>
+        public static IServiceCollection AddArgumentRules(
+            this IServiceCollection services)
+        {
+            return services.AddValidationRule<ArgumentVisitor>();
+        }
+
+        /// <summary>
         /// GraphQL servers define what directives they support.
         /// For each usage of a directive, the directive must be available
         /// on that server.
@@ -33,10 +63,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
         /// </summary>
-        public static IServiceCollection AddDirectivesAreValidRule(
+        public static IServiceCollection AddDirectiveRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<DirectivesVisitor>();
+            return services.AddValidationRule<DirectiveVisitor>();
         }
 
         /// <summary>
@@ -54,10 +84,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
         /// </summary>
-        public static IServiceCollection AddExecutableDefinitionsRule(
+        public static IServiceCollection AddDocumentRules(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
+            return services.AddSingleton<IDocumentValidatorRule, DocumentRule>();
         }
 
         /// <summary>
@@ -65,11 +95,22 @@ namespace HotChocolate.Validation
         /// type of the selection set. There are no limitations on alias names.
         ///
         /// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+        ///
+        /// AND
+        ///
+        /// Field selections on scalars or enums are never allowed,
+        /// because they are the leaf nodes of any GraphQL query.
+        ///
+        /// Conversely the leaf field selections of GraphQL queries
+        /// must be of type scalar or enum. Leaf selections on objects,
+        /// interfaces, and unions without subfields are disallowed.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
         /// </summary>
-        public static IServiceCollection AddFieldMustBeDefinedRule(
+        public static IServiceCollection AddFieldRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<FieldMustBeDefinedVisitor>();
+            return services.AddValidationRule<FieldVisitor>();
         }
 
         /// <summary>
@@ -131,10 +172,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
         /// </summary>
-        public static IServiceCollection AddFragmentsAreValidRule(
+        public static IServiceCollection AddFragmentRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<FragmentsVisitor>();
+            return services.AddValidationRule<FragmentVisitor>();
         }
 
         /// <summary>
@@ -160,49 +201,19 @@ namespace HotChocolate.Validation
         /// a default value. Otherwise, the input object field is optional.
         ///
         /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
-        /// </summary>
-        public static IServiceCollection AddInputObjectsAreValidRule(
-            this IServiceCollection services)
-        {
-            return services.AddValidationRule<InputObjectVisitor>();
-        }
-
-        /// <summary>
-        /// All variables defined by an operation must be used in that operation
-        /// or a fragment transitively included by that operation.
-        ///
-        /// Unused variables cause a validation error.
-        ///
-        /// http://spec.graphql.org/June2018/#sec-All-Variables-Used
         ///
         /// AND
         ///
-        /// Variables are scoped on a per‐operation basis. That means that
-        /// any variable used within the context of an operation must be defined
-        /// at the top level of that operation
+        /// Literal values must be compatible with the type expected in the position
+        /// they are found as per the coercion rules defined in the Type System
+        /// chapter.
         ///
-        /// http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined
+        /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
         /// </summary>
-        public static IServiceCollection AddAllVariablesUsedRule(
+        public static IServiceCollection AddInputObjectRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<AllVariablesUsedVisitor>();
-        }
-
-        /// <summary>
-        /// Variable usages must be compatible with the arguments
-        /// they are passed to.
-        ///
-        /// Validation failures occur when variables are used in the context
-        /// of types that are complete mismatches, or if a nullable type in a
-        ///  variable is passed to a non‐null argument type.
-        ///
-        /// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
-        /// </summary>
-        public static IServiceCollection AddAllVariableUsagesAreAllowedRule(
-            this IServiceCollection services)
-        {
-            return services.AddValidationRule<AllVariableUsagesAreAllowedVisitor>();
+            return services.AddValidationRule<ValueVisitor>();
         }
 
         /// <summary>
@@ -218,11 +229,39 @@ namespace HotChocolate.Validation
         /// unions, and interfaces cannot be used as inputs.
         ///
         /// http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
+        ///
+        /// AND
+        ///
+        /// All variables defined by an operation must be used in that operation
+        /// or a fragment transitively included by that operation.
+        ///
+        /// Unused variables cause a validation error.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-All-Variables-Used
+        ///
+        /// AND
+        ///
+        /// Variables are scoped on a per‐operation basis. That means that
+        /// any variable used within the context of an operation must be defined
+        /// at the top level of that operation
+        ///
+        /// http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined
+        ///
+        /// AND
+        ///
+        /// Variable usages must be compatible with the arguments
+        /// they are passed to.
+        ///
+        /// Validation failures occur when variables are used in the context
+        /// of types that are complete mismatches, or if a nullable type in a
+        ///  variable is passed to a non‐null argument type.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
         /// </summary>
-        public static IServiceCollection AddVariableUniqueAndInputTypeRule(
+        public static IServiceCollection AddVariableRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<VariableUniqueAndInputTypeVisitor>();
+            return services.AddValidationRule<VariableVisitor>();
         }
 
         /// <summary>
@@ -237,13 +276,24 @@ namespace HotChocolate.Validation
         /// when referred to by its name.
         ///
         /// http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Subscription operations must have exactly one root field.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Single-root-field
         /// </summary>
-        public static IServiceCollection AddOperationsAreValidRule(
+        public static IServiceCollection AddOperationRules(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, OperationRule>();
+            return services.AddValidationRule<OperationVisitor>();
         }
 
+        /// <summary>
+        /// Subscription operations must have exactly one root field.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Single-root-field
+        /// </summary>
         public static IServiceCollection AddValidationRule<T>(
             this IServiceCollection services)
             where T : DocumentValidatorVisitor, new()

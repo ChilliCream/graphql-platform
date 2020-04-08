@@ -1,12 +1,14 @@
 ﻿using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Validation
 {
     public static class ValidationUtils
     {
-        public static IDocumentValidatorContext CreateContext()
+        public static IDocumentValidatorContext CreateContext(ISchema? schema = null)
         {
-            return new DocumentValidatorContext { Schema = CreateSchema() };
+            return new DocumentValidatorContext { Schema = schema ?? CreateSchema() };
         }
 
         public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)
@@ -41,6 +43,9 @@ namespace HotChocolate.Validation
                 c.RegisterSubscriptionType<SubscriptionType>();
                 c.RegisterType<ComplexInputType>();
                 c.RegisterType<ComplexInput2Type>();
+                c.RegisterType<ComplexInput3Type>();
+                c.RegisterType<InvalidScalar>();
+                c.RegisterDirective<ComplexDirective>();
             });
         }
     }

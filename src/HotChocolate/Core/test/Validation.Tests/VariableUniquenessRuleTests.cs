@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Xunit;
 
@@ -8,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public VariableUniquenessRuleTests()
-            : base(services => services.AddVariableUniqueAndInputTypeRule())
+            : base(services => services.AddVariableRules())
         {
         }
 
@@ -20,7 +19,7 @@ namespace HotChocolate.Validation
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }
             ");
@@ -45,11 +44,11 @@ namespace HotChocolate.Validation
             IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
-                    field @skip(if: $foo) {
-                        subfieldA
+                    dog @skip(if: $foo) {
+                        isHouseTrained
                     }
-                    field @skip(if: $bar) {
-                        subfieldB
+                    dog @skip(if: $bar) {
+                        isHouseTrained
                     }
                 }
             ");
@@ -78,7 +77,7 @@ namespace HotChocolate.Validation
 
                 fragment HouseTrainedFragment on Query {
                   dog {
-                    isHousetrained(atOtherHomes: $atOtherHomes)
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
                   }
                 }
             ");

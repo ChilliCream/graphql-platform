@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -8,8 +7,8 @@ namespace HotChocolate.Validation
     public class DocumentValidatorVisitor
         : SyntaxWalker<IDocumentValidatorContext>
     {
-        protected DocumentValidatorVisitor()
-            : base(Continue)
+        protected DocumentValidatorVisitor(SyntaxVisitorOptions options = default)
+            : base(Continue, options)
         {
         }
 
@@ -27,19 +26,11 @@ namespace HotChocolate.Validation
             ISyntaxNode? parent,
             IDocumentValidatorContext context)
         {
-            context.Path.Pop();
-            return context;
-        }
-
-        protected override IDocumentValidatorContext OnAfterLeave(
-            ISyntaxNode node,
-            ISyntaxNode? parent,
-            IDocumentValidatorContext context)
-        {
-            if (node.Kind == NodeKind.FragmentDefinition)
+            if (node.Kind == NodeKind.OperationDefinition)
             {
-                context.VisitedFragments.Remove(((FragmentDefinitionNode)node).Name.Value);
+                context.VisitedFragments.Clear();
             }
+            context.Path.Pop();
             return context;
         }
 

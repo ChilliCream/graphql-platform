@@ -91,7 +91,7 @@ namespace HotChocolate.Execution
 
         public IOperation Operation { get; set; }
 
-        public QueryValidationResult ValidationResult { get; set; }
+        public DocumentValidatorResult ValidationResult { get; set; }
 
         public CancellationToken RequestAborted { get; set; }
 
