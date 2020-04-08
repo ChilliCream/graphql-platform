@@ -97,14 +97,15 @@ namespace HotChocolate.Validation
 
         public IList<FieldInfo> RentFieldInfoList()
         {
-            if (_buffers.Count == 0
-                || !_buffers.TryPeek(out FieldInfoListBuffer? buffer)
-                || !buffer.TryPop(out IList<FieldInfo>? list))
+            FieldInfoListBuffer buffer = _buffers.Peek();
+
+            if (!buffer.TryPop(out IList<FieldInfo>? list))
             {
                 buffer = _fieldInfoPool.Get();
                 _buffers.Push(buffer);
                 list = buffer.Pop();
             }
+
             return list;
         }
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation
 {
@@ -26,7 +25,9 @@ namespace HotChocolate.Validation
             new List<FieldInfo>(),
             new List<FieldInfo>(),
         };
+        private readonly int _max = 16;
         private int _index = 0;
+
 
         public IList<FieldInfo> Pop()
         {
@@ -39,7 +40,7 @@ namespace HotChocolate.Validation
 
         public bool TryPop([NotNullWhen(true)] out IList<FieldInfo>? list)
         {
-            if (_index < _buffer.Length)
+            if (_index < _max)
             {
                 list = _buffer[_index++];
                 return true;
@@ -51,6 +52,13 @@ namespace HotChocolate.Validation
 
         public void Reset()
         {
+            if (_index > 0)
+            {
+                for (int i = 0; i < _index; i++)
+                {
+                    _buffer[i].Clear();
+                }
+            }
             _index = 0;
         }
     }

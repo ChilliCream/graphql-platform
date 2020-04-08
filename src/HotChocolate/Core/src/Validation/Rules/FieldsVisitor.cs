@@ -197,7 +197,7 @@ namespace HotChocolate.Validation.Rules
                                 {
                                     if (AreArgumentsIdentical(fieldA.Field, fieldB.Field))
                                     {
-
+                                        TryMergeFieldsInSet(context, fieldA, fieldB);
                                     }
                                     else
                                     {
