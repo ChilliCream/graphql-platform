@@ -111,10 +111,13 @@ namespace HotChocolate.Validation.Rules
             IDocumentValidatorContext context)
         {
             if (context.Types.TryPeek(out IType type) &&
-                        type is ListType listType)
+                type.IsListType())
             {
-                context.Types.Push(listType.ElementType);
+                context.Types.Push(type.ElementType());
                 return Continue;
+            }
+            else if (type is AnyType) {
+                return Skip;
             }
             else
             {
@@ -211,8 +214,13 @@ namespace HotChocolate.Validation.Rules
                     context.Errors.Add(context.InputFieldAmbiguous(field));
                 }
             }
+            
+            INamedType namedType = context.Types.Peek().NamedType();
+            if(namedType is AnyType ){
+                return Skip;
+            }
 
-            var type = (InputObjectType)context.Types.Peek().NamedType();
+            var type = (InputObjectType)namedType;
             if (context.Names.Count < type.Fields.Count)
             {
                 for (int i = 0; i < type.Fields.Count; i++)
@@ -241,7 +249,7 @@ namespace HotChocolate.Validation.Rules
             {
                 if (field.Type.IsNonNullType() &&
                     field.DefaultValue.IsNull() &&
-                    node.Value.IsNull())
+                    node.Value is null)
                 {
                     context.Errors.Add(
                         context.FieldIsRequiredButNull(node, field.Name));
@@ -274,7 +282,11 @@ namespace HotChocolate.Validation.Rules
             if (context.Types.TryPeek(out IType currentType) &&
                 currentType is IInputType locationType)
             {
-                if (!IsInstanceOfType(context, locationType, valueNode))
+                if (currentType is AnyType)
+                {
+                    return Skip;
+                }
+                else if (!IsInstanceOfType(context, locationType, valueNode))
                 {
                     if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
                         TryCreateValueError(
@@ -351,6 +363,10 @@ namespace HotChocolate.Validation.Rules
             if (internalType.IsNonNullType())
             {
                 internalType = (IInputType)internalType.InnerType();
+                if (value.IsNull())
+                {
+                    return false;
+                }
             }
 
             if (internalType is ListType listType

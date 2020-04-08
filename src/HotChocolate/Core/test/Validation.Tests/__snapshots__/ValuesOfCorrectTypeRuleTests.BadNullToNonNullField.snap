@@ -1,0 +1,36 @@
+﻿[
+  {
+    "Message": "The specified value type of field `nonNullField` does not match the field type.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "complexArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 6,
+        "Column": 43
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "fieldName": "nonNullField",
+      "fieldType": {
+        "Kind": "NonNull",
+        "Type": {
+          "ClrType": "System.Boolean, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+          "Kind": "Scalar",
+          "Bind": "Implicit",
+          "ContextData": {},
+          "Directives": [],
+          "SyntaxNode": null,
+          "Name": "Boolean",
+          "Description": "The `Boolean` scalar type represents `true` or `false`."
+        },
+        "ClrType": "System.Boolean, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
+      },
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]

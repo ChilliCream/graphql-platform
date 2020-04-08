@@ -1,0 +1,32 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "enumArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 47
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "enumArg",
+      "argumentValue": {
+        "Kind": "EnumValue",
+        "Location": {
+          "Start": 100,
+          "End": 104,
+          "Line": 4,
+          "Column": 47
+        },
+        "Value": "sit"
+      },
+      "locationType": "DogCommand",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]

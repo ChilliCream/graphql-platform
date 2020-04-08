@@ -1,22 +1,23 @@
 ﻿[
   {
-    "Message": "The specified value type of field `name` does not match the field type.",
+    "Message": "The specified value type of field `stringListField` does not match the field type.",
     "Code": null,
     "Path": [
-      "findDog2"
+      "arguments",
+      "complexArgField"
     ],
     "Locations": [
       {
-        "Line": 3,
-        "Column": 47
+        "Line": 5,
+        "Column": 54
       }
     ],
     "Exception": null,
     "Extensions": {
-      "fieldName": "name",
+      "fieldName": "stringListField",
       "fieldType": {
-        "Kind": "NonNull",
-        "Type": {
+        "Kind": "List",
+        "ElementType": {
           "ClrType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
           "Kind": "Scalar",
           "Bind": "Implicit",
@@ -26,9 +27,9 @@
           "Name": "String",
           "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
         },
-        "ClrType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
+        "ClrType": "System.Collections.Generic.List`1[[System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
       },
-      "locationType": "String!",
+      "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
   }

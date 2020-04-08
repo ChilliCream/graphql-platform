@@ -20,6 +20,20 @@ namespace HotChocolate.Validation
                 .Type<NonNullType<IntType>>()
                 .Resolver(() => null);
 
+            descriptor.Field("multipleOpts")
+                .Argument("opt1", t => t.Type<IntType>())
+                .Argument("opt2", t => t.Type<IntType>())
+                .Type<NonNullType<IntType>>()
+                .Resolver(() => null);
+
+            descriptor.Field("multipleOptsAndReqs")
+                .Argument("req1", t => t.Type<NonNullType<IntType>>())
+                .Argument("req2", t => t.Type<NonNullType<IntType>>())
+                .Argument("opt1", t => t.Type<IntType>())
+                .Argument("opt2", t => t.Type<IntType>())
+                .Type<NonNullType<IntType>>()
+                .Resolver(() => null);
+
             //  booleanArgField(booleanArg: Boolean) : Boolean
             descriptor.Field("booleanArgField")
                 .Argument("booleanArg", t => t.Type<BooleanType>())
@@ -32,9 +46,21 @@ namespace HotChocolate.Validation
                 .Type<FloatType>()
                 .Resolver(() => null);
 
+            // nonNullFloatArgField(floatArg: Float): Float
+            descriptor.Field("nonNullFloatArgField")
+                .Argument("floatArg", t => t.Type<NonNullType<FloatType>>())
+                .Type<FloatType>()
+                .Resolver(() => null);
+
             // intArgField(intArg: Int): Int!
             descriptor.Field("intArgField")
                 .Argument("intArg", t => t.Type<IntType>())
+                .Type<NonNullType<IntType>>()
+                .Resolver(() => null);
+
+            // nonNullIntArgField(intArg: Int!): Int!
+            descriptor.Field("nonNullIntArgField")
+                .Argument("intArg", t => t.Type<NonNullType<IntType>>())
                 .Type<NonNullType<IntType>>()
                 .Resolver(() => null);
 
@@ -80,10 +106,26 @@ namespace HotChocolate.Validation
                 .Type<NonNullType<IdType>>()
                 .Resolver(() => null);
 
-            // intArgField(intArg: String): String!
+            descriptor.Field("nonNullIdArgField")
+                .Argument("idArg", t => t.Type<NonNullType<IdType>>())
+                .Type<NonNullType<IdType>>()
+                .Resolver(() => null);
+
+            // stringArgField(intArg: String): String!
             descriptor.Field("stringArgField")
                 .Argument("stringArg", t => t.Type<StringType>())
                 .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            descriptor.Field("nonNullStringArgField")
+                .Argument("stringArg", t => t.Type<NonNullType<StringType>>())
+                .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            descriptor.Field("stringListArgField")
+                .Argument("stringListArg",
+                    t => t.Type<ListType<StringType>>())
+                .Type<ListType<StringType>>()
                 .Resolver(() => null);
 
             // enumArgField(intArg: DogCommand): String!
@@ -93,8 +135,14 @@ namespace HotChocolate.Validation
                 .Resolver(() => null);
 
             // "nonNullenumArgField(intArg: DogCommand!): String!
-            descriptor.Field("nonNullenumArgField")
+            descriptor.Field("nonNullEnumArgField")
                 .Argument("enumArg", t => t.Type<NonNullType<EnumType<DogCommand>>>())
+                .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            // "nonNullenumArgField(intArg: DogCommand!): String!
+            descriptor.Field("complexArgField")
+                .Argument("complexArg", t => t.Type<ComplexInput3Type>())
                 .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
         }

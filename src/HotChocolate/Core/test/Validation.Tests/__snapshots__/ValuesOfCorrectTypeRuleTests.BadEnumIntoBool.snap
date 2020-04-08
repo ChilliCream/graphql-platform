@@ -1,0 +1,32 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "booleanArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 53
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "booleanArg",
+      "argumentValue": {
+        "Kind": "EnumValue",
+        "Location": {
+          "Start": 106,
+          "End": 110,
+          "Line": 4,
+          "Column": 53
+        },
+        "Value": "BAR"
+      },
+      "locationType": "Boolean",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]

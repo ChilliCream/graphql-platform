@@ -1,0 +1,62 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": [
+      "dog"
+    ],
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 38
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "if",
+      "argumentValue": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 57,
+          "End": 63,
+          "Line": 3,
+          "Column": 38
+        },
+        "Value": "yes",
+        "Block": false
+      },
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  },
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": [
+      "dog",
+      "name"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 40
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "if",
+      "argumentValue": {
+        "Kind": "EnumValue",
+        "Location": {
+          "Start": 106,
+          "End": 111,
+          "Line": 4,
+          "Column": 40
+        },
+        "Value": "ENUM"
+      },
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]

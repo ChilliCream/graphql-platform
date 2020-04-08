@@ -1,0 +1,32 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "nonNullIntArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 52
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "intArg",
+      "argumentValue": {
+        "Kind": "NullValue",
+        "Location": {
+          "Start": 105,
+          "End": 110,
+          "Line": 4,
+          "Column": 52
+        },
+        "Value": null
+      },
+      "locationType": "Int!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]
