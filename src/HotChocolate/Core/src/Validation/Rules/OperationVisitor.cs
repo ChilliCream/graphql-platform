@@ -1,5 +1,5 @@
-using System;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Validation.Rules
 {
@@ -15,32 +15,31 @@ namespace HotChocolate.Validation.Rules
     /// when referred to by its name.
     ///
     /// http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
+    ///
+    /// AND
+    ///
+    /// Subscription operations must have exactly one root field.
+    ///
+    /// http://spec.graphql.org/June2018/#sec-Single-root-field
     /// </summary>
-    internal class OperationRule : IDocumentValidatorRule
+    /// <remarks>
+    /// http://spec.graphql.org/draft/#sec-Validation.Operations
+    /// </remarks>
+    public class OperationVisitor : DocumentValidatorVisitor
     {
-        public void Validate(
-            IDocumentValidatorContext context,
-            DocumentNode document)
+        protected override ISyntaxVisitorAction Enter(
+            DocumentNode node,
+            IDocumentValidatorContext context)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
             bool hasAnonymousOp = false;
             int opCount = 0;
             OperationDefinitionNode? anonymousOp = null;
 
             context.Names.Clear();
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (int i = 0; i < node.Definitions.Count; i++)
             {
-                IDefinitionNode definition = document.Definitions[i];
+                IDefinitionNode definition = node.Definitions[i];
                 if (definition.Kind == NodeKind.OperationDefinition)
                 {
                     opCount++;
@@ -64,6 +63,41 @@ namespace HotChocolate.Validation.Rules
             {
                 context.Errors.Add(context.OperationAnonymousMoreThanOne(anonymousOp!, opCount));
             }
+
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            OperationDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Names.Clear();
+
+            if (node.Operation == OperationType.Subscription)
+            {
+                return Continue;
+            }
+
+            return Skip;
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            OperationDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Names.Count > 1)
+            {
+                context.Errors.Add(context.SubscriptionSingleRootField(node));
+            }
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Names.Add((node.Alias ?? node.Name).Value);
+            return Skip;
         }
     }
 }

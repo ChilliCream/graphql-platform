@@ -1,0 +1,17 @@
+﻿[
+  {
+    "Message": "Subscription operations must have exactly one root field.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Single-root-field"
+    }
+  }
+]
