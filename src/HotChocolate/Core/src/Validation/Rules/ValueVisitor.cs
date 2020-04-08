@@ -31,16 +31,16 @@ namespace HotChocolate.Validation.Rules
     /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
     ///
     /// AND
-    /// 
+    ///
     /// Literal values must be compatible with the type expected in the position
     /// they are found as per the coercion rules defined in the Type System
     /// chapter.
     ///
     /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
     /// </summary>
-    internal sealed class InputObjectVisitor : TypeDocumentValidatorVisitor
+    internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     {
-        public InputObjectVisitor()
+        public ValueVisitor()
             : base(new SyntaxVisitorOptions
             {
                 VisitDirectives = true,
