@@ -162,8 +162,8 @@ namespace HotChocolate.Validation.Rules
                 .AddLocation(valueNode)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("argument", node.Name.Value)
-                .SetExtension("argumentValue", valueNode)
-                .SetExtension("locationType", locationType.Visualize())
+                .SetExtension("argumentValue", valueNode.ToString())
+                .SetExtension("locationType", locationType.Print())
                 .SpecifiedBy("sec-Values-of-Correct-Type")
                 .Build();
         }
@@ -181,8 +181,8 @@ namespace HotChocolate.Validation.Rules
                     "does not match the field type.")
                 .AddLocation(valueNode)
                 .SetExtension("fieldName", field.Name.Value)
-                .SetExtension("fieldType", field.Type)
-                .SetExtension("locationType", locationType.Visualize())
+                .SetExtension("fieldType", field.Type.Print())
+                .SetExtension("locationType", locationType.Print())
                 .SetPath(context.CreateErrorPath())
                 .SpecifiedBy("sec-Values-of-Correct-Type")
                 .Build();
@@ -203,7 +203,7 @@ namespace HotChocolate.Validation.Rules
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("variable", node.Variable.Name.Value)
                 .SetExtension("variableType", node.Type.ToString())
-                .SetExtension("locationType", locationType.Visualize())
+                .SetExtension("locationType", locationType.Print())
                 .SpecifiedBy("sec-Values-of-Correct-Type")
                 .Build();
         }

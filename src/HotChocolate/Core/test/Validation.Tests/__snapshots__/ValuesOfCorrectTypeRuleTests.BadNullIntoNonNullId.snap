@@ -15,16 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "idArg",
-      "argumentValue": {
-        "Kind": "NullValue",
-        "Location": {
-          "Start": 100,
-          "End": 105,
-          "Line": 4,
-          "Column": 50
-        },
-        "Value": null
-      },
+      "argumentValue": "null",
       "locationType": "ID!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

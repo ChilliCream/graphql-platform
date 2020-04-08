@@ -14,16 +14,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "arg",
-      "argumentValue": {
-        "Kind": "IntValue",
-        "Location": {
-          "Start": 54,
-          "End": 58,
-          "Line": 3,
-          "Column": 36
-        },
-        "Value": "123"
-      },
+      "argumentValue": "123",
       "locationType": "Invalid",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

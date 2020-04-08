@@ -15,16 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "intArg",
-      "argumentValue": {
-        "Kind": "EnumValue",
-        "Location": {
-          "Start": 95,
-          "End": 99,
-          "Line": 4,
-          "Column": 45
-        },
-        "Value": "BAR"
-      },
+      "argumentValue": "BAR",
       "locationType": "Int",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

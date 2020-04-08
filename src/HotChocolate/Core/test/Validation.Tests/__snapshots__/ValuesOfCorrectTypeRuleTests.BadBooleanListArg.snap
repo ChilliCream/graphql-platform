@@ -8,23 +8,13 @@
     "Locations": [
       {
         "Line": 4,
-        "Column": 57
+        "Column": 49
       }
     ],
     "Exception": null,
     "Extensions": {
       "argument": "booleanListArg",
-      "argumentValue": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 118,
-          "End": 127,
-          "Line": 4,
-          "Column": 57
-        },
-        "Value": "false",
-        "Block": false
-      },
+      "argumentValue": "[ true, \"false\" ]",
       "locationType": "[Boolean!]",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

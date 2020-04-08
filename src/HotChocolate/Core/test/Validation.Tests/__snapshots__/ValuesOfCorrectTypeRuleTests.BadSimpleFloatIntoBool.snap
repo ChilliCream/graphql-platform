@@ -15,17 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "booleanArg",
-      "argumentValue": {
-        "Kind": "FloatValue",
-        "Location": {
-          "Start": 103,
-          "End": 107,
-          "Line": 4,
-          "Column": 53
-        },
-        "Format": "FixedPoint",
-        "Value": "3.0"
-      },
+      "argumentValue": "3.0",
       "locationType": "Boolean",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

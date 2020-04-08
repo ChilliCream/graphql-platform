@@ -15,17 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "x",
-      "argumentValue": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 92,
-          "End": 100,
-          "Line": 4,
-          "Column": 41
-        },
-        "Value": "two",
-        "Block": false
-      },
+      "argumentValue": "\"two\"",
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
@@ -46,17 +36,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "y",
-      "argumentValue": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 102,
-          "End": 108,
-          "Line": 4,
-          "Column": 51
-        },
-        "Value": "one",
-        "Block": false
-      },
+      "argumentValue": "\"one\"",
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

@@ -15,16 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "floatArg",
-      "argumentValue": {
-        "Kind": "EnumValue",
-        "Location": {
-          "Start": 99,
-          "End": 103,
-          "Line": 4,
-          "Column": 49
-        },
-        "Value": "BAR"
-      },
+      "argumentValue": "BAR",
       "locationType": "Float",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

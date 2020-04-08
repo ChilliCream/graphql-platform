@@ -15,17 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "stringArg",
-      "argumentValue": {
-        "Kind": "FloatValue",
-        "Location": {
-          "Start": 101,
-          "End": 105,
-          "Line": 4,
-          "Column": 51
-        },
-        "Format": "FixedPoint",
-        "Value": "1.0"
-      },
+      "argumentValue": "1.0",
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

@@ -15,16 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "enumArg",
-      "argumentValue": {
-        "Kind": "EnumValue",
-        "Location": {
-          "Start": 97,
-          "End": 103,
-          "Line": 4,
-          "Column": 47
-        },
-        "Value": "HELLO"
-      },
+      "argumentValue": "HELLO",
       "locationType": "DogCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
