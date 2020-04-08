@@ -18,8 +18,7 @@ namespace HotChocolate.Validation
         public void QueryWithTypeSystemDefinitions()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query getDogName {
                     dog {
                         name
@@ -30,25 +29,17 @@ namespace HotChocolate.Validation
                 extend type Dog {
                     color: String
                 }
-            ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "A document containing TypeSystemDefinition " +
                     "is invalid for execution.", t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void QueryWithoutTypeSystemDefinitions()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query getDogName {
                     dog {
                         name
@@ -56,12 +47,72 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+        }
 
-            // act
-            Rule.Validate(context, query);
+        [Fact]
+        public void GoodExecuableDefinitionsWithOnlyOperation()
+        {
+            // arrange
+            ExpectValid(@"
+                 query Foo {
+                    dog {
+                        name
+                    }
+                }
+            ");
+        }
 
-            // assert
-            Assert.Empty(context.Errors);
+        [Fact]
+        public void GoodExecuableDefinitionsWithOperationAndFragment()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo {
+                    dog {
+                        name
+                        ...Frag
+                    }
+                }
+                fragment Frag on Dog {
+                    name
+                }
+            ");
+        }
+
+        [Fact]
+        public void GoodExecuableDefinitionsWithTypeDefinitions()
+        {
+            // arrange
+            ExpectErrors(@"
+                query Foo {
+                    dog {
+                        name
+                    }
+                }
+                type Cow {
+                    name: String
+                }
+                extend type Dog {
+                    color: String
+                }
+            ");
+        }
+
+        [Fact]
+        public void GoodExecuableDefinitionsWithSchemaDefinitions()
+        {
+            // arrange
+            ExpectErrors(@"
+                schema {
+                    query: Query
+                }
+
+                type Query {
+                    test: String
+                }
+
+                extend schema @directive
+            ");
         }
     }
 }
