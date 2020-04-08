@@ -1,21 +1,22 @@
 ﻿[
   {
-    "Message": "The specified value type of field `name` does not match the field type.",
+    "Message": "The specified argument value does not match the argument type.",
     "Code": null,
     "Path": [
-      "findDog2"
+      "arguments",
+      "enumArgField"
     ],
     "Locations": [
       {
-        "Line": 3,
+        "Line": 4,
         "Column": 47
       }
     ],
     "Exception": null,
     "Extensions": {
-      "fieldName": "name",
-      "fieldType": "String!",
-      "locationType": "String!",
+      "argument": "enumArg",
+      "argumentValue": "HELLO",
+      "locationType": "DogCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
   }

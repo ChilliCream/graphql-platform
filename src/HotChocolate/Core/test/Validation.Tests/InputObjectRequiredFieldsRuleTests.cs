@@ -41,7 +41,8 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                "`name` is a required field and cannot be null.",
+                "The specified value type of field `name` " +
+                    "does not match the field type.",
                 t.Message));
         }
 

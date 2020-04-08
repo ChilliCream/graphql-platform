@@ -24,7 +24,7 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
     /// </summary>
-    internal sealed class FieldsVisitor : TypeDocumentValidatorVisitor
+    internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Leave(
             OperationDefinitionNode node,

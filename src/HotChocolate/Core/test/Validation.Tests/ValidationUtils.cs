@@ -43,6 +43,9 @@ namespace HotChocolate.Validation
                 c.RegisterSubscriptionType<SubscriptionType>();
                 c.RegisterType<ComplexInputType>();
                 c.RegisterType<ComplexInput2Type>();
+                c.RegisterType<ComplexInput3Type>();
+                c.RegisterType<InvalidScalar>();
+                c.RegisterDirective<ComplexDirective>();
             });
         }
     }

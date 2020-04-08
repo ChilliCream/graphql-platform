@@ -1,0 +1,23 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "nonNullBooleanArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 67
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "nonNullBooleanArg",
+      "argumentValue": "null",
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]

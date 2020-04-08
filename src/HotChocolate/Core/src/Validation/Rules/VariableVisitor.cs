@@ -48,9 +48,9 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
     /// </summary>
-    internal sealed class VariablesVisitor : TypeDocumentValidatorVisitor
+    internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     {
-        public VariablesVisitor()
+        public VariableVisitor()
             : base(new SyntaxVisitorOptions
             {
                 VisitDirectives = true,

@@ -32,7 +32,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddArgumentRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<ArgumentsVisitor>();
+            return services.AddValidationRule<ArgumentVisitor>();
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddDirectiveRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<DirectivesVisitor>();
+            return services.AddValidationRule<DirectiveVisitor>();
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddDocumentRules(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
+            return services.AddSingleton<IDocumentValidatorRule, DocumentRule>();
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddFieldRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<FieldsVisitor>();
+            return services.AddValidationRule<FieldVisitor>();
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddFragmentRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<FragmentsVisitor>();
+            return services.AddValidationRule<FragmentVisitor>();
         }
 
         /// <summary>
@@ -201,11 +201,19 @@ namespace HotChocolate.Validation
         /// a default value. Otherwise, the input object field is optional.
         ///
         /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
+        ///
+        /// AND
+        ///
+        /// Literal values must be compatible with the type expected in the position
+        /// they are found as per the coercion rules defined in the Type System
+        /// chapter.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
         /// </summary>
         public static IServiceCollection AddInputObjectRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<InputObjectVisitor>();
+            return services.AddValidationRule<ValueVisitor>();
         }
 
         /// <summary>
@@ -253,7 +261,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddVariableRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<VariablesVisitor>();
+            return services.AddValidationRule<VariableVisitor>();
         }
 
         /// <summary>
