@@ -25,7 +25,7 @@
         },
         "Value": "2"
       },
-      "locationType": "String",
+      "locationType": "[String]",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
   }

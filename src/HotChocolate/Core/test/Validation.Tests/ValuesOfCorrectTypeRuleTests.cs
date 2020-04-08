@@ -61,7 +61,7 @@ namespace HotChocolate.Validation
                          "The specified argument value does not" +
                          " match the argument type.",
                          t.Message);
-                     Assert.Equal("Boolean!", t.Extensions["locationType"]);
+                     Assert.Equal("[Boolean!]", t.Extensions["locationType"]);
                      Assert.Equal("booleanListArg", t.Extensions["argument"]);
                  });
         }

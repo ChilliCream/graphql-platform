@@ -25,7 +25,7 @@
         "Value": "false",
         "Block": false
       },
-      "locationType": "Boolean!",
+      "locationType": "[Boolean!]",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
   }

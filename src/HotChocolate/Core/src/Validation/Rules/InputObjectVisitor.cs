@@ -107,34 +107,6 @@ namespace HotChocolate.Validation.Rules
         }
 
         protected override ISyntaxVisitorAction Enter(
-            ListValueNode node,
-            IDocumentValidatorContext context)
-        {
-            if (context.Types.TryPeek(out IType type) &&
-                type.IsListType())
-            {
-                context.Types.Push(type.ElementType());
-                return Continue;
-            }
-            else if (type is AnyType) {
-                return Skip;
-            }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
-        }
-
-        protected override ISyntaxVisitorAction Leave(
-            ListValueNode node,
-            IDocumentValidatorContext context)
-        {
-            context.Types.Pop();
-            return Continue;
-        }
-
-        protected override ISyntaxVisitorAction Enter(
             DirectiveNode node,
             IDocumentValidatorContext context)
         {
@@ -214,26 +186,33 @@ namespace HotChocolate.Validation.Rules
                     context.Errors.Add(context.InputFieldAmbiguous(field));
                 }
             }
-            
-            INamedType namedType = context.Types.Peek().NamedType();
-            if(namedType is AnyType ){
-                return Skip;
-            }
 
-            var type = (InputObjectType)namedType;
-            if (context.Names.Count < type.Fields.Count)
+            INamedType namedType = context.Types.Peek().NamedType();
+
+            if (namedType.IsLeafType())
             {
-                for (int i = 0; i < type.Fields.Count; i++)
+                return Enter((IValueNode)node, context);
+            }
+            else if (namedType is InputObjectType inputObjectType)
+            {
+                if (context.Names.Count < inputObjectType.Fields.Count)
                 {
-                    IInputField field = type.Fields[i];
-                    if (field.Type.IsNonNullType() &&
-                        field.DefaultValue.IsNull() &&
-                        context.Names.Add(field.Name))
+                    for (int i = 0; i < inputObjectType.Fields.Count; i++)
                     {
-                        context.Errors.Add(
-                            context.FieldIsRequiredButNull(node, field.Name));
+                        IInputField field = inputObjectType.Fields[i];
+                        if (field.Type.IsNonNullType() &&
+                            field.DefaultValue.IsNull() &&
+                            context.Names.Add(field.Name))
+                        {
+                            context.Errors.Add(
+                                context.FieldIsRequiredButNull(node, field.Name));
+                        }
                     }
                 }
+            }
+            else
+            {
+                context.UnexpectedErrorsDetected = true;
             }
 
             return Continue;
@@ -282,11 +261,7 @@ namespace HotChocolate.Validation.Rules
             if (context.Types.TryPeek(out IType currentType) &&
                 currentType is IInputType locationType)
             {
-                if (currentType is AnyType)
-                {
-                    return Skip;
-                }
-                else if (!IsInstanceOfType(context, locationType, valueNode))
+                if (!IsInstanceOfType(context, locationType, valueNode))
                 {
                     if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
                         TryCreateValueError(
@@ -297,6 +272,9 @@ namespace HotChocolate.Validation.Rules
                 }
                 else
                 {
+                    if(currentType.IsLeafType()) {
+                        return Skip;
+                    }
                     return Continue;
                 }
             }
