@@ -135,7 +135,9 @@ namespace HotChocolate.Validation
                     ...Foo
                 }
                 fragment Foo on Query {
-                    field
+                    dog {
+                        name
+                    }
                 }
             ");
         }
