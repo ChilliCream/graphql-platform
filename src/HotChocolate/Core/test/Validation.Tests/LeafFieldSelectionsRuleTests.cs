@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace HotChocolate.Validation
 {
@@ -6,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public LeafFieldSelectionsRuleTests()
-            : base(services => services.AddFieldRules())
+            : base(builder => builder.AddFieldRules())
         {
         }
 

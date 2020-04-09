@@ -8,7 +8,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public InputObjectRequiredFieldsRuleTests()
-            : base(services => services.AddInputObjectRules())
+            : base(builder => builder.AddValueRules())
         {
         }
 
@@ -41,8 +41,7 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                "The specified value type of field `name` " +
-                    "does not match the field type.",
+                "`name` is a required field and cannot be null.",
                 t.Message));
         }
 
@@ -72,6 +71,21 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "`name` is a required field and cannot be null.",
                 t.Message));
+        }
+
+        [Fact]
+        public void BadNullToNonNullField()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {
+                            requiredField: true,
+                            nonNullField: null,
+                        })
+                    }
+                }
+            ");
         }
     }
 }
