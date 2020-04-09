@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class ArgumentsType
         : ObjectType

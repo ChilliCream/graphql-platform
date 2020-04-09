@@ -62,6 +62,9 @@ namespace HotChocolate.Validation
 
         public ISet<string> VisitedFragments { get; } = new HashSet<string>();
 
+        public IDictionary<string, object> VariableValues { get; } =
+            new Dictionary<string, object>();
+
         public IDictionary<string, VariableDefinitionNode> Variables { get; } =
             new Dictionary<string, VariableDefinitionNode>();
 
@@ -95,6 +98,10 @@ namespace HotChocolate.Validation
             }
         }
 
+        public int Count { get; set; }
+
+        public int Max { get; set; }
+
         public IList<FieldInfo> RentFieldInfoList()
         {
             FieldInfoListBuffer buffer = _buffers.Peek();
@@ -126,6 +133,7 @@ namespace HotChocolate.Validation
             SelectionSets.Clear();
             FieldSets.Clear();
             VisitedFragments.Clear();
+            VariableValues.Clear();
             Variables.Clear();
             Fragments.Clear();
             Used.Clear();
@@ -138,6 +146,8 @@ namespace HotChocolate.Validation
             InputFields.Clear();
             Errors.Clear();
             UnexpectedErrorsDetected = false;
+            Count = 0;
+            Max = 0;
         }
     }
 }

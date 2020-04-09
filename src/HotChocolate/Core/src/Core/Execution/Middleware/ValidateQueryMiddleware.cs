@@ -19,18 +19,20 @@ namespace HotChocolate.Execution
 
         public ValidateQueryMiddleware(
             QueryDelegate next,
-            IDocumentValidator validator,
+            IDocumentValidatorFactory validatorFactory,
             Cache<DocumentValidatorResult> validatorCache,
             QueryExecutionDiagnostics diagnostics)
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _validator = validator ??
-                throw new ArgumentNullException(nameof(validator));
+            if (validatorFactory == null)
+            {
+                throw new ArgumentNullException(nameof(validatorFactory));
+            }
+
+            _next = next ??  throw new ArgumentNullException(nameof(next));
+            _validator = validatorFactory.CreateValidator();
             _validatorCache = validatorCache ??
                 new Cache<DocumentValidatorResult>(Defaults.CacheSize);
-            _diagnostics = diagnostics ??
-                throw new ArgumentNullException(nameof(diagnostics));
+            _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
         public async Task InvokeAsync(IQueryContext context)
@@ -68,7 +70,6 @@ namespace HotChocolate.Execution
                     await _next(context).ConfigureAwait(false);
                 }
             }
-
         }
 
         private DocumentValidatorResult Validate(ISchema schema, DocumentNode document)

@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Message": "The specified fragment `conflictingBecauseAlias` is not used within the current document.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "fragment": "conflictingBecauseAlias",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
+    }
+  }
+]
