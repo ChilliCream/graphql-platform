@@ -1,4 +1,5 @@
 ﻿using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 
 #nullable enable
@@ -48,6 +49,9 @@ namespace HotChocolate.Validation
                 c.RegisterType<ComplexInput3Type>();
                 c.RegisterType<InvalidScalar>();
                 c.RegisterDirective<ComplexDirective>();
+                c.RegisterDirective(new CustomDirectiveType("directive"));
+                c.RegisterDirective(new CustomDirectiveType("directive1"));
+                c.RegisterDirective(new CustomDirectiveType("directive2"));
             });
         }
     }
