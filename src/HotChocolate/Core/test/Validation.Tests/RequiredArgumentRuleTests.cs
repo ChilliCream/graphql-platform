@@ -216,7 +216,7 @@ namespace HotChocolate.Validation
             ExpectValid(@"
               {
                 arguments {
-                        nonNullFieldWithDefault
+                        optionalNonNullBooleanArgField(y:1)
                     }
                 }
             ");
@@ -352,7 +352,7 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        } 
+        }
 
         [Fact]
         public void WithDirectivesOfValidTypes()
