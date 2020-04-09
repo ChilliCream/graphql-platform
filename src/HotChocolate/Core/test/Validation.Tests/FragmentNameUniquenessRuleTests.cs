@@ -17,9 +17,7 @@ namespace HotChocolate.Validation
         [Fact]
         public void UniqueFragments()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         ...fragmentOne
@@ -37,21 +35,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void DuplicateFragments()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         ...fragmentOne
@@ -67,18 +57,10 @@ namespace HotChocolate.Validation
                         name
                     }
                 }
-            ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+             t => Assert.Equal(
                     "There are multiple fragments with the name `fragmentOne`.",
                     t.Message));
-            context.Errors.First().MatchSnapshot();
         }
     }
 }
