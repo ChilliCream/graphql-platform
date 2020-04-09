@@ -1,6 +1,8 @@
-﻿using HotChocolate.Configuration;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Language;
+using HotChocolate.Validation.Types;
 
 #nullable enable
 

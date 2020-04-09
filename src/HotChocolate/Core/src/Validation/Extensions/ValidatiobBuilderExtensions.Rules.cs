@@ -1,9 +1,12 @@
+using HotChocolate.Validation.Options;
 using HotChocolate.Validation.Rules;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Validation
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ValidationRuleServiceCollectionExtensions
+    /// <summary>
+    /// Extension methods for configuring an <see cref="IValidationBuilder"/>
+    /// </summary>
+    public static partial class HotChocolateValidationBuilderExtensions
     {
         /// <summary>
         /// Every argument provided to a field or directive must be defined
@@ -29,10 +32,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Required-Arguments
         /// </summary>
-        public static IServiceCollection AddArgumentRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddArgumentRules(
+            this IValidationBuilder builder)
         {
-            return services.AddValidationRule<ArgumentVisitor>();
+            return builder.AddValidationRule<ArgumentVisitor>();
         }
 
         /// <summary>
@@ -63,10 +66,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
         /// </summary>
-        public static IServiceCollection AddDirectiveRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddDirectiveRules(
+            this IValidationBuilder builder)
         {
-            return services.AddValidationRule<DirectiveVisitor>();
+            return builder.AddValidationRule<DirectiveVisitor>();
         }
 
         /// <summary>
@@ -84,10 +87,11 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
         /// </summary>
-        public static IServiceCollection AddDocumentRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddDocumentRules(
+            this IValidationBuilder builder)
         {
-            return services.AddSingleton<IDocumentValidatorRule, DocumentRule>();
+            return builder.ConfigureValidation(
+                m => m.Modifiers.Add(o => o.Rules.Add(new DocumentRule())));
         }
 
         /// <summary>
@@ -107,10 +111,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
         /// </summary>
-        public static IServiceCollection AddFieldRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddFieldRules(
+            this IValidationBuilder builder)
         {
-            return services.AddValidationRule<FieldVisitor>();
+            return builder.AddValidationRule<FieldVisitor>();
         }
 
         /// <summary>
@@ -172,10 +176,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
         /// </summary>
-        public static IServiceCollection AddFragmentRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddFragmentRules(
+            this IValidationBuilder builder)
         {
-            return services.AddValidationRule<FragmentVisitor>();
+            return builder.AddValidationRule<FragmentVisitor>();
         }
 
         /// <summary>
@@ -206,10 +210,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
         /// </summary>
-        public static IServiceCollection AddInputObjectRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddValueRules(
+            this IValidationBuilder builder)
         {
-            return services.AddValidationRule<ValueVisitor>();
+            return builder.AddValidationRule<ValueVisitor>();
         }
 
         /// <summary>
@@ -254,10 +258,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
         /// </summary>
-        public static IServiceCollection AddVariableRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddVariableRules(
+            this IValidationBuilder builder)
         {
-            return services.AddValidationRule<VariableVisitor>();
+            return builder.AddValidationRule<VariableVisitor>();
         }
 
         /// <summary>
@@ -279,22 +283,28 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Single-root-field
         /// </summary>
-        public static IServiceCollection AddOperationRules(
-            this IServiceCollection services)
+        public static IValidationBuilder AddOperationRules(
+            this IValidationBuilder builder)
         {
-            return services.AddValidationRule<OperationVisitor>();
+            return builder.AddValidationRule<OperationVisitor>();
         }
 
-        /// <summary>
-        /// Subscription operations must have exactly one root field.
-        ///
-        /// http://spec.graphql.org/June2018/#sec-Single-root-field
-        /// </summary>
-        public static IServiceCollection AddValidationRule<T>(
-            this IServiceCollection services)
-            where T : DocumentValidatorVisitor, new()
+        public static IValidationBuilder AddMaxComplexityRule(
+            this IValidationBuilder builder,
+            int maxAllowedComplexity)
         {
-            return services.AddSingleton<IDocumentValidatorRule, DocumentValidatorRule<T>>();
+            return builder
+                .AddValidationRule((s, o) => new MaxComplexityVisitor(o))
+                .SetAllowedComplexity(maxAllowedComplexity);
+        }
+
+        public static IValidationBuilder AddMaxExecutionDepthRule(
+            this IValidationBuilder builder,
+            int maxAllowedExecutionDepth)
+        {
+            return builder
+                .AddValidationRule((s, o) => new MaxExecutionDepthVisitor(o))
+                .SetAllowedExecutionDepth(maxAllowedExecutionDepth);
         }
     }
 }

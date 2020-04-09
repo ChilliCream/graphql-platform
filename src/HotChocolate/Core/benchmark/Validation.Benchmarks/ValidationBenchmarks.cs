@@ -21,7 +21,7 @@ namespace HotChocolate.Validation.Benchmarks
         {
             _services = new ServiceCollection()
                 // new
-                .AddValidation()
+                .AddValidation().Services
                 // old
                 .AddQueryValidation()
                 .AddDefaultValidationRules()
@@ -31,7 +31,8 @@ namespace HotChocolate.Validation.Benchmarks
                 .AddGraphQLSchema(b => b.AddStarWarsTypes())
                 .BuildServiceProvider();
 
-            _validator = _services.GetRequiredService<IDocumentValidator>();
+            _validator =
+                _services.GetRequiredService<IDocumentValidatorFactory>().CreateValidator();
             _validator_Old = _services.GetRequiredService<IQueryValidator>();
 
             _schema = _services.GetRequiredService<ISchema>();

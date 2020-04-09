@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class InvalidScalar
         : ScalarType<string>
