@@ -349,8 +349,8 @@ namespace HotChocolate.Validation
         {
             // arrange
             DocumentNode query = Utf8GraphQLParser.Parse(@"
-                query @skip(if: $foo) {
-                    field
+                query @skip(if: true) {
+                    dog { name }
                 }
             ");
 
