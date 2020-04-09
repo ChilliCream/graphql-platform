@@ -1,0 +1,68 @@
+﻿[
+  {
+    "Message": "The specified directive is not valid the current location.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 43
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+    }
+  },
+  {
+    "Message": "The specified directive is not valid the current location.",
+    "Code": null,
+    "Path": [
+      "name"
+    ],
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 26
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+    }
+  },
+  {
+    "Message": "The specified directive is not valid the current location.",
+    "Code": null,
+    "Path": [
+      "name"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 29
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+    }
+  },
+  {
+    "Message": "The specified directive is not valid the current location.",
+    "Code": null,
+    "Path": [
+      "name"
+    ],
+    "Locations": [
+      {
+        "Line": 6,
+        "Column": 30
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+    }
+  }
+]

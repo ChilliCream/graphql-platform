@@ -13,8 +13,8 @@ namespace HotChocolate.Execution
         public async Task SyntaxError()
         {
             // arrange
-            string query = "{ error1";
-            int i = 0;
+            var query = "{ error1";
+            var i = 0;
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -30,8 +30,8 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_NoAwait_Throw_ApplicationError()
         {
             // arrange
-            string query = "{ error1 }";
-            int i = 0;
+            var query = "{ error1 }";
+            var i = 0;
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -47,8 +47,8 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_Await_Throw_ApplicationError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error4 }";
+            var i = 0;
+            var query = "{ error4 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -64,8 +64,8 @@ namespace HotChocolate.Execution
         public async Task SyncMethod_Throw_ApplicationError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error7 }";
+            var i = 0;
+            var query = "{ error7 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -81,11 +81,10 @@ namespace HotChocolate.Execution
         public async Task Property_Throw_ApplicationError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error10 }";
+            var query = "{ error10 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query, () => i++);
+            IExecutionResult result = await ExecuteQuery(query, () => { });
 
             // assert
             Assert.NotNull(result.Errors);
@@ -97,8 +96,8 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_NoAwait_Throw_UnexpectedError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error2 }";
+            var i = 0;
+            var query = "{ error2 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -114,8 +113,8 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_Await_Throw_UnexpectedError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error5 }";
+            var i = 0;
+            var query = "{ error5 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -131,8 +130,8 @@ namespace HotChocolate.Execution
         public async Task SyncMethod_Throw_UnexpectedError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error8 }";
+            var i = 0;
+            var query = "{ error8 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -148,8 +147,8 @@ namespace HotChocolate.Execution
         public async Task Property_Throw_UnexpectedError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error11 }";
+            var i = 0;
+            var query = "{ error11 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -165,8 +164,8 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_NoAwait_Return_ApplicationError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error3 }";
+            var i = 0;
+            var query = "{ error3 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -182,8 +181,8 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_Await_Return_ApplicationError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error6 }";
+            var i = 0;
+            var query = "{ error6 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -199,8 +198,8 @@ namespace HotChocolate.Execution
         public async Task SyncMethod_Return_ApplicationError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error9 }";
+            var i = 0;
+            var query = "{ error9 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -216,8 +215,8 @@ namespace HotChocolate.Execution
         public async Task Property_Return_ApplicationError()
         {
             // arrange
-            int i = 0;
-            string query = "{ error12 }";
+            var i = 0;
+            var query = "{ error12 }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -233,8 +232,8 @@ namespace HotChocolate.Execution
         public async Task Property_Return_UnexpectedErrorWithPath()
         {
             // arrange
-            int i = 0;
-            string query = "{ error13 { bar } }";
+            var i = 0;
+            var query = "{ error13 { bar } }";
 
             // act
             IExecutionResult result = await ExecuteQuery(query, () => i++);
@@ -250,7 +249,7 @@ namespace HotChocolate.Execution
         public async Task RootTypeNotDefined()
         {
             // arrange
-            string query = "mutation { foo }";
+            var query = "mutation { foo }";
 
             var schema = Schema.Create(
                 "type Query { foo: String }",
@@ -269,7 +268,7 @@ namespace HotChocolate.Execution
         public async Task RootFieldNotDefined()
         {
             // arrange
-            string query = "mutation { foo }";
+            var query = "mutation { foo }";
 
             var schema = Schema.Create(
                 "type Query { a: String } type Mutation { bar: String }",
@@ -288,7 +287,7 @@ namespace HotChocolate.Execution
         public async Task ErrorFilterHandlesException()
         {
             // arrange
-            string query = "{ error14 }";
+            var query = "{ error14 }";
 
             ISchema schema = CreateSchema();
             IQueryExecutor executor = schema.MakeExecutable(b =>

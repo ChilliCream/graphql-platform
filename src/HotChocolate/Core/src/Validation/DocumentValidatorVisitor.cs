@@ -15,9 +15,13 @@ namespace HotChocolate.Validation
         protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IDocumentValidatorContext context)
+            IDocumentValidatorContext context,
+            ISyntaxVisitorAction action)
         {
-            context.Path.Push(node);
+            if (action.IsContinue())
+            {
+                context.Path.Push(node);
+            }
             return context;
         }
 

@@ -28,7 +28,7 @@ namespace HotChocolate.Language.Visitors
         public static ISyntaxVisitorAction Break { get; } = new BreakSyntaxVisitorAction();
 
         /// <summary>
-        /// Skips of the child nodes.
+        /// Skips the child nodes and the current node.
         /// </summary>
         public static ISyntaxVisitorAction Skip { get; } = new SkipSyntaxVisitorAction();
 
@@ -36,6 +36,12 @@ namespace HotChocolate.Language.Visitors
         /// Continues traversing the graph.
         /// </summary>
         public static ISyntaxVisitorAction Continue { get; } = new ContinueSyntaxVisitorAction();
+
+        /// <summary>
+        /// Skips the child node but completes the current node.
+        /// </summary>
+        public static ISyntaxVisitorAction SkipAndLeave { get; } =
+            new SkipAndLeaveSyntaxVisitorAction();
 
         public ISyntaxVisitorAction Visit(
             ISyntaxNode node,
@@ -51,20 +57,19 @@ namespace HotChocolate.Language.Visitors
         {
             var localContext = OnBeforeEnter(node, parent, context);
             var result = Enter(node, localContext);
-            localContext = OnAfterEnter(node, parent, localContext);
-
-            if (result.Kind == SyntaxVisitorActionKind.Break)
-            {
-                return result;
-            }
+            localContext = OnAfterEnter(node, parent, localContext, result);
 
             if (result.Kind == SyntaxVisitorActionKind.Continue)
             {
                 VisitChildren(node, context);
+            }
 
+            if (result.Kind == SyntaxVisitorActionKind.Continue ||
+                result.Kind == SyntaxVisitorActionKind.SkipAndLeave)
+            {
                 localContext = OnBeforeLeave(node, parent, localContext);
                 result = Leave(node, localContext);
-                localContext = OnAfterLeave(node, parent, localContext);
+                OnAfterLeave(node, parent, localContext, result);
             }
 
             return result;
@@ -89,7 +94,8 @@ namespace HotChocolate.Language.Visitors
         protected virtual TContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            TContext context) =>
+            TContext context,
+            ISyntaxVisitorAction action) =>
             context;
 
         protected virtual TContext OnBeforeLeave(
@@ -101,7 +107,8 @@ namespace HotChocolate.Language.Visitors
         protected virtual TContext OnAfterLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            TContext context) =>
+            TContext context,
+            ISyntaxVisitorAction action) =>
             context;
     }
 }

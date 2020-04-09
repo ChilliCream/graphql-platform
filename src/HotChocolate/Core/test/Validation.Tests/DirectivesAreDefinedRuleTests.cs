@@ -10,7 +10,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public DirectivesAreDefinedRuleTests()
-            : base(services => services.AddDirectiveRules())
+            : base(builder => builder.AddDirectiveRules())
         {
         }
 
@@ -18,115 +18,75 @@ namespace HotChocolate.Validation
         public void SupportedDirective()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         name @skip(if: true)
                     }
                 }
             ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void UnsupportedDirective()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         name @foo(bar: true)
                     }
                 }
-            ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "The specified directive `foo` " +
                     "is not supported by the current schema.",
                     t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void SkipDirectiveIsInTheWrongPlace()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query @skip(if: $foo) {
                     field
                 }
-            ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "The specified directive is not valid the " +
                     "current location.", t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void SkipDirectiveIsInTheRightPlace()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query a {
                     field @skip(if: $foo)
                 }
             ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void DuplicateSkipDirectives()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) @skip(if: $bar)
                 }
-            ");
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "Only one of each directive is allowed per location.",
                     t.Message));
-            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void SkipOnTwoDifferentFields()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) {
                         subfieldA
@@ -136,12 +96,335 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+        }
 
-            // act
-            Rule.Validate(context, query);
+        [Fact]
+        public void WithNoDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo {
+                    name
+                    ...Frag
+                }
+                fragment Frag on Dog {
+                    name
+                }
+            ");
+        }
 
-            // assert
-            Assert.Empty(context.Errors);
+        [Fact]
+        public void WithKnownDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                 {
+                    dog @include(if: true) {
+                        name
+                    }
+                    human @skip(if: false) {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithUnknownDirectives()
+        {
+            // arrange
+            ExpectErrors(@"
+                 {
+                    dog @unknown(directive: ""value"") {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithManyUnknownDirectives()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    dog @unknown(directive: ""value"") {
+                        name
+                    }
+                    human @unknown(directive: ""value"") {
+                        name
+                        pets @unknown(directive: ""value"") {
+                            name
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithWellPlacedDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                query ($var: Boolean) @onQuery {
+                    name @include(if: $var)
+                    ...Frag @include(if: true)
+                    skippedField @skip(if: true)
+                    ...SkippedFrag @skip(if: true)
+                    ... @skip(if: true) {
+                    skippedField
+                    }
+                }
+                mutation @onMutation {
+                    someField
+                }
+                subscription @onSubscription {
+                    someField
+                }
+                fragment Frag on SomeType @onFragmentDefinition {
+                    someField
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithWellPlacedVariableDefinitionDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo($var: Boolean @onVariableDefinition) {
+                    name
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectiveOnQuery()
+        {
+            // arrange
+            ExpectErrors(@"
+                query Foo($var: Boolean) @include(if: true) {
+                    name   
+                } 
+            ");
+        }
+        [Fact]
+        public void WithMisplacedDirectivesOnField()
+        {
+            // arrange
+            ExpectErrors(@"
+                 query Foo($var: Boolean)  {
+                    name @onQuery   
+                } 
+            ");
+        }
+        [Fact]
+        public void WithMisplacedDirectivesOnFieldRepeatedly()
+        {
+            // arrange
+            ExpectErrors(@"
+                 query Foo($var: Boolean)  {
+                    name @onQuery @include(if: $var) 
+                } 
+            ");
+        }
+        [Fact]
+        public void WithMisplacedDirectivesOnMutation()
+        {
+            // arrange
+            ExpectErrors(@" 
+                mutation Bar @onQuery {
+                    someField
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectivesOnSubscription()
+        {
+            // arrange
+            ExpectErrors(@" 
+                subscription Bar @onQuery {
+                    someField
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectivesOnVariableDefinition()
+        {
+            // arrange
+            ExpectErrors(@"
+                query Foo($var: Boolean @onQuery(if: true))  {
+                    name  
+                } 
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectivesOnFragemnt()
+        {
+            // arrange
+            ExpectErrors(@"
+                 query Foo($var: Boolean)  { 
+                    ...Frag @onQuery
+                }
+                fragment Frag on Query  {
+                    name
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedVariableDefinitionDirective()
+        {
+            // arrange
+            ExpectErrors(@"
+                query Foo($var: Boolean @onField) {
+                    name
+                }
+            ");
+        }
+
+        [Fact]
+        public void NoDirectives()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    name
+                } 
+            ");
+        }
+
+        [Fact]
+        public void UniqueDirectivesInDifferentLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA {
+                    field @directiveB
+                }
+            ");
+        }
+
+        [Fact]
+        public void UniqueDirectivesInSameLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA @directiveB {
+                    field @directiveA @directiveB
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameDirectivesInDifferentLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA {
+                    field @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameDirectivesInSimilarLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA
+                    field @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void RepeatableDirectivesInSameLocation()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @repeatable @repeatable {
+                    field @repeatable @repeatable
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateDirectivesInOneLocation()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void ManyDuplicateDirectivesInOneLocation()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA @directiveA @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void DifferentDuplicateDirectivesInOneLocation()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA @directiveB @directiveA @directiveB
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateDirectivesInManyLocations()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA @directiveA {
+                    field @directiveA @directiveA
+                }
+            ");
         }
     }
 }
