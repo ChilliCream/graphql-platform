@@ -20,7 +20,6 @@
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
     "Path": [
-      "dog",
       "human"
     ],
     "Locations": [
@@ -38,7 +37,6 @@
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
     "Path": [
-      "dog",
       "human",
       "pets"
     ],
