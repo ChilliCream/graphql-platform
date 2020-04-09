@@ -22,6 +22,7 @@ namespace HotChocolate.Validation
                     __typename
                     name
                 }
+                
                 query {
                     dog {
                          ...objectFieldSelection
@@ -34,10 +35,11 @@ namespace HotChocolate.Validation
         public void GoodAliasedObjectFieldSelection()
         {
             ExpectValid(@"
-                 fragment aliasedObjectFieldSelection on Dog {
+                fragment aliasedObjectFieldSelection on Dog {
                     tn : __typename
                     otherName : name
                 }
+                
                 query {
                     dog {
                          ...aliasedObjectFieldSelection
@@ -53,6 +55,7 @@ namespace HotChocolate.Validation
                 fragment interfaceFieldSelection on Pet {
                     otherName : name
                 }
+                
                 query {
                     pet {
                          ...interfaceFieldSelection
@@ -67,7 +70,13 @@ namespace HotChocolate.Validation
             ExpectValid(@"
                 fragment unknownSelection on UnknownType {
                     unknownField
-                } 
+                }
+                
+                query {
+                    pet {
+                         ... unknownSelection
+                    } 
+                }
             ");
         }
 
@@ -97,6 +106,7 @@ namespace HotChocolate.Validation
                 fragment fieldNotDefined on Dog {
                     meowVolume
                 }
+                
                 query {
                     dog {
                          ...fieldNotDefined
@@ -114,6 +124,7 @@ namespace HotChocolate.Validation
                         deeper_unknown_field
                     }
                 }
+                
                 query {
                     dog {
                          ...deepFieldNotDefined
@@ -131,6 +142,7 @@ namespace HotChocolate.Validation
                         unknown_field
                     }
                 }
+                
                 query {
                     human {
                          ...subFieldNotDefined
@@ -148,6 +160,7 @@ namespace HotChocolate.Validation
                         meowVolume
                     }
                 }
+                
                 query {
                     pet {
                          ...fieldNotDefined
@@ -163,6 +176,7 @@ namespace HotChocolate.Validation
                 fragment aliasedFieldTargetNotDefined on Dog {
                     volume : mooVolume
                 }
+                
                 query {
                     dog {
                          ...aliasedFieldTargetNotDefined
@@ -178,6 +192,7 @@ namespace HotChocolate.Validation
                 fragment aliasedLyingFieldTargetNotDefined on Dog {
                     barkVolume : kawVolume
                 }
+                
                 query {
                     dog {
                          ...aliasedLyingFieldTargetNotDefined
@@ -193,6 +208,7 @@ namespace HotChocolate.Validation
                 fragment notDefinedOnInterface on Pet {
                     tailLength
                 }
+                
                 query {
                     pet {
                          ...notDefinedOnInterface
@@ -208,6 +224,7 @@ namespace HotChocolate.Validation
                 fragment definedOnImplementorsButNotInterface on Pet {
                     nickname
                 }
+                
                 query {
                     pet {
                          ...definedOnImplementorsButNotInterface
@@ -223,6 +240,7 @@ namespace HotChocolate.Validation
                 fragment directFieldSelectionOnUnion on CatOrDog {
                   __typename
                 }
+                
                 query {
                     catOrDog {
                          ...directFieldSelectionOnUnion
@@ -238,6 +256,7 @@ namespace HotChocolate.Validation
                 fragment directFieldSelectionOnUnion on CatOrDog {
                     directField
                 }
+                
                 query {
                     catOrDog {
                          ...directFieldSelectionOnUnion
@@ -253,6 +272,7 @@ namespace HotChocolate.Validation
                fragment definedOnImplementorsQueriedOnUnion on CatOrDog {
                     name
                 }
+                
                 query {
                     catOrDog {
                          ...definedOnImplementorsQueriedOnUnion
