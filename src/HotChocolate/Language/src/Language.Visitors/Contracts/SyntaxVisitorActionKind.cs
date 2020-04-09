@@ -4,6 +4,7 @@ namespace HotChocolate.Language.Visitors
     {
         Continue,
         Skip,
-        Break
+        Break,
+        SkipAndLeave
     }
 }

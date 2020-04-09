@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 action = SyntaxVisitor.Continue;
                 return true;
             }
-            action = SyntaxVisitor.Skip;
+            action = SyntaxVisitor.SkipAndLeave;
             return false;
         }
 
