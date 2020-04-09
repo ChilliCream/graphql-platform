@@ -121,17 +121,14 @@ namespace HotChocolate.Validation
                 query houseTrainedQuery(
                     $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }
             ",
             t => Assert.Equal(
                 "A document containing operations that " +
                 "define more than one variable with the same " +
-                "name is invalid for execution.", t.Message),
-            t => Assert.Equal(
-                "The field `isHousetrained` does not exist " +
-                "on the type `Dog`.", t.Message));
+                "name is invalid for execution.", t.Message));
         }
 
         [Fact]
@@ -270,28 +267,28 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                "The following variables were not used: cat.",
-                t.Message),
-            t => Assert.Equal(
-                "The following variables were not used: dog.",
-                t.Message),
-            t => Assert.Equal(
-                "The following variables were not used: pets.",
-                t.Message),
-            t => Assert.Equal(
-                "The following variables were not used: catOrDog.",
-                t.Message),
-            t => Assert.Equal(
                 "The type of variable `cat` is not an input type.",
+                t.Message),
+            t => Assert.Equal(
+                "The following variables were not used: cat.",
                 t.Message),
             t => Assert.Equal(
                 "The type of variable `dog` is not an input type.",
                 t.Message),
             t => Assert.Equal(
+                "The following variables were not used: dog.",
+                t.Message),
+            t => Assert.Equal(
                 "The type of variable `pets` is not an input type.",
                 t.Message),
             t => Assert.Equal(
+                "The following variables were not used: pets.",
+                t.Message),
+            t => Assert.Equal(
                 "The type of variable `catOrDog` is not an input type.",
+                t.Message),
+            t => Assert.Equal(
+                "The following variables were not used: catOrDog.",
                 t.Message));
         }
 
@@ -498,9 +495,6 @@ namespace HotChocolate.Validation
                 Assert.Equal(
                     "Unknown type `NotInSchema`.",
                     t.Message);
-                Assert.Equal(
-                    ErrorCodes.Validation.UnknownType,
-                    t.Code);
             });
         }
 
