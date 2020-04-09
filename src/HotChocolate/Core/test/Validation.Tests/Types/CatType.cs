@@ -8,6 +8,7 @@ namespace HotChocolate.Validation
         protected override void Configure(IObjectTypeDescriptor<Cat> descriptor)
         {
             descriptor.Interface<PetType>();
+            descriptor.Interface<BeingType>();
             descriptor.Implements<MammalType>();
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field(t => t.DoesKnowCommand(default))

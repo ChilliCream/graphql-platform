@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Message": "The parent type does not match the type condition on the fragment.",
+    "Code": null,
+    "Path": [
+      "catOrDog"
+    ],
+    "Locations": [
+      {
+        "Line": 8,
+        "Column": 17
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "typeCondition": "Intelligent",
+      "selectionSetType": "Cat",
+      "fragment": "intelligentFragment",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
+    }
+  }
+]

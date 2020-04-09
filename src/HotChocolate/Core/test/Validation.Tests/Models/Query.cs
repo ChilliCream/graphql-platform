@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Validation
+﻿using System;
+
+namespace HotChocolate.Validation
 {
     public class Query
     {
@@ -38,6 +40,11 @@
         }
 
         public string[] GetStringList()
+        {
+            return null;
+        }
+
+        public object GetDogOrHuman()
         {
             return null;
         }
