@@ -10,7 +10,7 @@ namespace HotChocolate.Validation
             descriptor.Name("Mutation");
 
             descriptor.Field("fieldB")
-                .Type<NonNullType<MessageType>>()
+                .Type<NonNullType<StringType>>()
                 .Resolver(() => "foo");
         }
     }
