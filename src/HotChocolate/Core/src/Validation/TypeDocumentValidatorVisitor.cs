@@ -22,9 +22,13 @@ namespace HotChocolate.Validation
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            context.Types.Push(GetOperationType(context.Schema, node.Operation));
-            context.Variables.Clear();
-            return Continue;
+            if (GetOperationType(context.Schema, node.Operation) is { } type)
+            {
+                context.Types.Push(type);
+                context.Variables.Clear();
+                return Continue;
+            }
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Enter(

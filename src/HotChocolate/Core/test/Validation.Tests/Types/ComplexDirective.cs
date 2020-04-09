@@ -1,7 +1,6 @@
-using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class ComplexDirective
         : DirectiveType
@@ -12,8 +11,8 @@ namespace HotChocolate.Validation
             descriptor.Repeatable();
 
             descriptor.Name("complex");
-            
-            descriptor.Location(Types.DirectiveLocation.Field);
+
+            descriptor.Location(HotChocolate.Types.DirectiveLocation.Field);
 
             descriptor.Argument("anyArg")
                 .Type<AnyType>();
