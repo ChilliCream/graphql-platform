@@ -99,7 +99,6 @@ namespace HotChocolate.Utilities
             return typeof(List<>).MakeGenericType(elementType);
         }
 
-
         private static Type MakeNonNullType(Type nullableType)
         {
             Type wrapper = typeof(NativeType<>).MakeGenericType(nullableType);

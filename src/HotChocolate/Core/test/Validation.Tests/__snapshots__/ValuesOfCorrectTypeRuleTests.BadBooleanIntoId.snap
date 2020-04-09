@@ -15,16 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "idArg",
-      "argumentValue": {
-        "Kind": "BooleanValue",
-        "Location": {
-          "Start": 96,
-          "End": 101,
-          "Line": 4,
-          "Column": 43
-        },
-        "Value": true
-      },
+      "argumentValue": "true",
       "locationType": "ID",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

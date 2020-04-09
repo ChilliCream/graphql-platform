@@ -163,6 +163,23 @@ namespace HotChocolate.Types
             return type.IsUnionType() || type.IsInterfaceType();
         }
 
+        public static bool IsNamedType(this IType type)
+        {
+            switch (type.Kind)
+            {
+                case TypeKind.Directive:
+                case TypeKind.Enum:
+                case TypeKind.InputObject:
+                case TypeKind.Interface:
+                case TypeKind.Object:
+                case TypeKind.Scalar:
+                case TypeKind.Union:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static bool IsType<T>(this IType type)
             where T : IType
         {

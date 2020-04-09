@@ -1,4 +1,4 @@
-query GetSchemaByTag {
+query introspection {
   __schema {
     queryType {
       name
@@ -49,7 +49,7 @@ fragment IntrospectionFullType on __Type {
     name
     description
     isDeprecated
-    depreactionReason
+    deprecationReason
   }
   possibleTypes {
     ...IntrospectionTypeRef

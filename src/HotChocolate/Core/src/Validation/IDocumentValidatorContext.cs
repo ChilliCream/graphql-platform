@@ -9,7 +9,13 @@ namespace HotChocolate.Validation
     {
         ISchema Schema { get; }
 
+        IOutputType NonNullString { get; }
+
         IList<ISyntaxNode> Path { get; }
+
+        IList<SelectionSetNode> SelectionSets { get; }
+
+        IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; }
 
         ISet<string> VisitedFragments { get; }
 
@@ -36,5 +42,7 @@ namespace HotChocolate.Validation
         ICollection<IError> Errors { get; }
 
         bool UnexpectedErrorsDetected { get; set; }
+
+        IList<FieldInfo> RentFieldInfoList();
     }
 }
