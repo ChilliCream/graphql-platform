@@ -17,7 +17,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void QueryWithTypeSystemDefinitions()
         {
-            // arrange
             ExpectErrors(@"
                 query getDogName {
                     dog {
@@ -38,7 +37,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void QueryWithoutTypeSystemDefinitions()
         {
-            // arrange
             ExpectValid(@"
                 query getDogName {
                     dog {
@@ -52,7 +50,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void GoodExecuableDefinitionsWithOnlyOperation()
         {
-            // arrange
             ExpectValid(@"
                  query Foo {
                     dog {
@@ -65,7 +62,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void GoodExecuableDefinitionsWithOperationAndFragment()
         {
-            // arrange
             ExpectValid(@"
                 query Foo {
                     dog {
@@ -82,7 +78,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void GoodExecuableDefinitionsWithTypeDefinitions()
         {
-            // arrange
             ExpectErrors(@"
                 query Foo {
                     dog {
@@ -101,7 +96,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void GoodExecuableDefinitionsWithSchemaDefinitions()
         {
-            // arrange
             ExpectErrors(@"
                 schema {
                     query: Query
