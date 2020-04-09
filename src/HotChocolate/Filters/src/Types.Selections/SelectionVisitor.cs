@@ -59,14 +59,22 @@ namespace HotChocolate.Types.Selections
 
         protected override void LeaveObject(IFieldSelection selection)
         {
-            if (selection.Field.Member is PropertyInfo)
+            if (selection.Field.Member is PropertyInfo member)
             {
-                Expression memberInit = Closures.Pop().CreateMemberInit();
+                SelectionClosure closure = Closures.Pop();
+
+                MemberInitExpression memberInit = closure.CreateMemberInit();
+
+                MemberExpression property = Expression.Property(
+                    Closures.Peek().Instance.Peek(), member);
+
+                Expression withNullCheck = Expression.Condition(
+                        Expression.Equal(property, Expression.Constant(null)),
+                        Expression.Default(memberInit.Type),
+                        memberInit);
 
                 Closures.Peek().Projections[selection.Field.Name] =
-                    Expression.Bind(selection.Field.Member, memberInit);
-
-                base.LeaveObject(selection);
+                    Expression.Bind(selection.Field.Member, withNullCheck);
             }
             else
             {
