@@ -1,7 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Language;
+using HotChocolate.Types; 
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 using System;
@@ -66,6 +65,9 @@ namespace HotChocolate.Validation
                 c.RegisterType<ComplexInput3Type>();
                 c.RegisterType<InvalidScalar>();
                 c.RegisterDirective<ComplexDirective>();
+                c.RegisterDirective(new CustomDirectiveType("directive"));
+                c.RegisterDirective(new CustomDirectiveType("directive1"));
+                c.RegisterDirective(new CustomDirectiveType("directive2"));
                 c.RegisterDirective("onMutation", DirectiveLocation.Mutation);
                 c.RegisterDirective("onQuery", DirectiveLocation.Query);
                 c.RegisterDirective("onSubscription", DirectiveLocation.Subscription);
@@ -80,6 +82,7 @@ namespace HotChocolate.Validation
                 c.RegisterDirective("repeatable",
                      DirectiveLocation.Field | DirectiveLocation.FragmentDefinition,
                      x => x.Repeatable());
+
             });
         }
     }
