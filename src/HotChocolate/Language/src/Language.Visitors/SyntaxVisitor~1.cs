@@ -37,6 +37,12 @@ namespace HotChocolate.Language.Visitors
         /// </summary>
         public static ISyntaxVisitorAction Continue { get; } = new ContinueSyntaxVisitorAction();
 
+        /// <summary>
+        /// Continues traversing the graph.
+        /// </summary>
+        public static ISyntaxVisitorAction SkipAndLeave { get; }
+            = new SkipAndLeaveSyntaxVisitorAction();
+
         public ISyntaxVisitorAction Visit(
             ISyntaxNode node,
             TContext context) =>
@@ -53,18 +59,17 @@ namespace HotChocolate.Language.Visitors
             var result = Enter(node, localContext);
             localContext = OnAfterEnter(node, parent, localContext, result);
 
-            if (result.Kind == SyntaxVisitorActionKind.Break)
-            {
-                return result;
-            }
-
             if (result.Kind == SyntaxVisitorActionKind.Continue)
             {
                 VisitChildren(node, context);
+            }
 
+            if (result.Kind == SyntaxVisitorActionKind.Continue ||
+                result.Kind == SyntaxVisitorActionKind.SkipAndLeave)
+            {
                 localContext = OnBeforeLeave(node, parent, localContext);
                 result = Leave(node, localContext);
-                localContext = OnAfterLeave(node, parent, localContext, result);
+                OnAfterLeave(node, parent, localContext, result);
             }
 
             return result;
