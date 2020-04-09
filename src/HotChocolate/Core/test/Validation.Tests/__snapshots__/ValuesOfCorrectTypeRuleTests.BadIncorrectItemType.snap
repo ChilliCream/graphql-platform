@@ -9,12 +9,17 @@
     "Locations": [
       {
         "Line": 4,
+<<<<<<< HEAD
         "Column": 67
+=======
+        "Column": 59
+>>>>>>> master
       }
     ],
     "Exception": null,
     "Extensions": {
       "argument": "stringListArg",
+<<<<<<< HEAD
       "argumentValue": {
         "Kind": "IntValue",
         "Location": {
@@ -25,6 +30,9 @@
         },
         "Value": "2"
       },
+=======
+      "argumentValue": "[ \"one\", 2 ]",
+>>>>>>> master
       "locationType": "[String]",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

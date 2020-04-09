@@ -15,6 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "booleanArg",
+<<<<<<< HEAD
       "argumentValue": {
         "Kind": "FloatValue",
         "Location": {
@@ -26,6 +27,9 @@
         "Format": "FixedPoint",
         "Value": "3.0"
       },
+=======
+      "argumentValue": "3.0",
+>>>>>>> master
       "locationType": "Boolean",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

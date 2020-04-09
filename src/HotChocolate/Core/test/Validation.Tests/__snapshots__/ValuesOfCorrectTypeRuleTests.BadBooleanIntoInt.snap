@@ -15,6 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "intArg",
+<<<<<<< HEAD
       "argumentValue": {
         "Kind": "BooleanValue",
         "Location": {
@@ -25,6 +26,9 @@
         },
         "Value": false
       },
+=======
+      "argumentValue": "false",
+>>>>>>> master
       "locationType": "Int",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

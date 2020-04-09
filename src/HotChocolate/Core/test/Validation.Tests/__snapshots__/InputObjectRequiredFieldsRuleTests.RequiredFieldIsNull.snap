@@ -14,6 +14,7 @@
     "Exception": null,
     "Extensions": {
       "fieldName": "name",
+<<<<<<< HEAD
       "fieldType": {
         "Kind": "NonNull",
         "Type": {
@@ -28,6 +29,9 @@
         },
         "ClrType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
       },
+=======
+      "fieldType": "String!",
+>>>>>>> master
       "locationType": "String!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

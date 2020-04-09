@@ -15,6 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "y",
+<<<<<<< HEAD
       "argumentValue": {
         "Kind": "NullValue",
         "Location": {
@@ -25,6 +26,9 @@
         },
         "Value": null
       },
+=======
+      "argumentValue": "null",
+>>>>>>> master
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

@@ -15,6 +15,7 @@
     "Exception": null,
     "Extensions": {
       "fieldName": "nonNullField",
+<<<<<<< HEAD
       "fieldType": {
         "Kind": "NonNull",
         "Type": {
@@ -29,6 +30,9 @@
         },
         "ClrType": "System.Boolean, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e"
       },
+=======
+      "fieldType": "Boolean!",
+>>>>>>> master
       "locationType": "Boolean!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

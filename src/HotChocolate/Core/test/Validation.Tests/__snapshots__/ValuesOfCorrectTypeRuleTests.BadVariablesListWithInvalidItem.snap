@@ -6,7 +6,11 @@
     "Locations": [
       {
         "Line": 2,
+<<<<<<< HEAD
         "Column": 58
+=======
+        "Column": 50
+>>>>>>> master
       }
     ],
     "Exception": null,

@@ -1,0 +1,130 @@
+﻿{
+  "Kind": "Document",
+  "Location": {
+    "Start": 0,
+    "End": 106,
+    "Line": 1,
+    "Column": 1
+  },
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 106,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 24,
+            "End": 38,
+            "Line": 2,
+            "Column": 24
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 24,
+              "End": 29,
+              "Line": 2,
+              "Column": 24
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 25,
+                "End": 29,
+                "Line": 2,
+                "Column": 25
+              },
+              "Value": "var"
+            },
+            "Value": "var"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 30,
+              "End": 38,
+              "Line": 2,
+              "Column": 30
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 30,
+                "End": 38,
+                "Line": 2,
+                "Column": 30
+              },
+              "Value": "Boolean"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": {
+            "Start": 39,
+            "End": 49,
+            "Line": 2,
+            "Column": 39
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 40,
+              "End": 49,
+              "Line": 2,
+              "Column": 40
+            },
+            "Value": "onQuery"
+          },
+          "Arguments": []
+        }
+      ],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 48,
+          "End": 106,
+          "Line": 2,
+          "Column": 48
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 70,
+              "End": 93,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 70,
+                "End": 93,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "field"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  ]
+}
