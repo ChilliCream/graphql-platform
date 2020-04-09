@@ -18,8 +18,7 @@ namespace HotChocolate.Validation
         public void UniqueFragments()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         ...fragmentOne
@@ -37,21 +36,13 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void DuplicateFragments()
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         ...fragmentOne
@@ -67,18 +58,125 @@ namespace HotChocolate.Validation
                         name
                     }
                 }
+            ",
+             t => Assert.Equal(
+                     "There are multiple fragments with the name `fragmentOne`.",
+                     t.Message));
+        }
+
+        [Fact]
+        public void OneFragment()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    ...fragA
+                }
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
             ");
-            context.Prepare(query);
+        }
 
-            // act
-            Rule.Validate(context, query);
+        [Fact]
+        public void ManyFragments()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    ...fragA
+                    ...fragB
+                    ...fragC
+                }
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
+                fragment fragB on Query {
+                    dog {
+                        name
+                    }
+                }
+                fragment fragC on Query {
+                    anyArg
+                }
+            ");
+        }
 
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
-                    "There are multiple fragments with the name `fragmentOne`.",
-                    t.Message));
-            context.Errors.First().MatchSnapshot();
+        [Fact]
+        public void InlineFragmentsAreAlwaysUnique()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    ...on Query {
+                        arguments { 
+                            idArgField
+                        }
+                    }
+                    ...on Query {
+                        dog {
+                            name
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentAndOperationNamedTheSame()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo {
+                    ...Foo
+                }
+                fragment Foo on Query {
+                    field
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentsNamedTheSame()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    ...fragA
+                }
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
+                fragment fragA on Query {
+                    dog {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentsNamedTheSameWithoutBeingReferenced()
+        {
+            // arrange
+            ExpectErrors(@"
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
+                fragment fragA on Query {
+                    dog {
+                        name
+                    }
+                }
+            ");
         }
     }
 }

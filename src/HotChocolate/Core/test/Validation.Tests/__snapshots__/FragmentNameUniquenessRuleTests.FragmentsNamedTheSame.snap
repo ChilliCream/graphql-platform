@@ -1,17 +1,17 @@
 ﻿[
   {
-    "Message": "There are multiple fragments with the name `fragmentOne`.",
+    "Message": "There are multiple fragments with the name `fragA`.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 12,
+        "Line": 10,
         "Column": 17
       }
     ],
     "Exception": null,
     "Extensions": {
-      "fragment": "fragmentOne",
+      "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness"
     }
   }
