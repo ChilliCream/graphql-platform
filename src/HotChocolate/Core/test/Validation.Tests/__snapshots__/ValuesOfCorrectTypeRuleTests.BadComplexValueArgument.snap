@@ -14,20 +14,7 @@
     "Exception": null,
     "Extensions": {
       "fieldName": "name",
-<<<<<<< HEAD
-      "fieldType": {
-        "ClrType": "System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
-        "Kind": "Scalar",
-        "Bind": "Implicit",
-        "ContextData": {},
-        "Directives": [],
-        "SyntaxNode": null,
-        "Name": "String",
-        "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
-      },
-=======
       "fieldType": "String",
->>>>>>> master
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

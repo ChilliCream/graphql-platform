@@ -15,20 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "stringArg",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "BooleanValue",
-        "Location": {
-          "Start": 104,
-          "End": 109,
-          "Line": 4,
-          "Column": 51
-        },
-        "Value": true
-      },
-=======
       "argumentValue": "true",
->>>>>>> master
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

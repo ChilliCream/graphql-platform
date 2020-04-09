@@ -15,21 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "floatArg",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 102,
-          "End": 110,
-          "Line": 4,
-          "Column": 49
-        },
-        "Value": "3.333",
-        "Block": false
-      },
-=======
       "argumentValue": "\"3.333\"",
->>>>>>> master
       "locationType": "Float",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

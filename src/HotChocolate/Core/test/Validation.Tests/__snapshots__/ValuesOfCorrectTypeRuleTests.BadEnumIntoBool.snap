@@ -15,20 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "booleanArg",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "EnumValue",
-        "Location": {
-          "Start": 106,
-          "End": 110,
-          "Line": 4,
-          "Column": 53
-        },
-        "Value": "BAR"
-      },
-=======
       "argumentValue": "BAR",
->>>>>>> master
       "locationType": "Boolean",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

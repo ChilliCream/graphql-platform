@@ -15,20 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "nonNullBooleanArg",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "NullValue",
-        "Location": {
-          "Start": 120,
-          "End": 125,
-          "Line": 4,
-          "Column": 67
-        },
-        "Value": null
-      },
-=======
       "argumentValue": "null",
->>>>>>> master
       "locationType": "Boolean!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

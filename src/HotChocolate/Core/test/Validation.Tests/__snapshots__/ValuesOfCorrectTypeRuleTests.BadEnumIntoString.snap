@@ -15,20 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "stringArg",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "EnumValue",
-        "Location": {
-          "Start": 104,
-          "End": 108,
-          "Line": 4,
-          "Column": 51
-        },
-        "Value": "BAR"
-      },
-=======
       "argumentValue": "BAR",
->>>>>>> master
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

@@ -241,8 +241,6 @@ namespace HotChocolate.Validation.Rules
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", fieldName)
                 .SpecifiedBy("sec-Input-Object-Required-Fields")
-<<<<<<< HEAD
-=======
                  .Build();
         }
 
@@ -264,7 +262,6 @@ namespace HotChocolate.Validation.Rules
                 .SetExtension("responseNameA", fieldA.ResponseName)
                 .SetExtension("responseNameB", fieldB.ResponseName)
                 .SpecifiedBy("sec-Field-Selection-Merging")
->>>>>>> master
                 .Build();
         }
 

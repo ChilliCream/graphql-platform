@@ -14,21 +14,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "if",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 57,
-          "End": 63,
-          "Line": 3,
-          "Column": 38
-        },
-        "Value": "yes",
-        "Block": false
-      },
-=======
       "argumentValue": "\"yes\"",
->>>>>>> master
       "locationType": "Boolean!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
@@ -49,20 +35,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "if",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "EnumValue",
-        "Location": {
-          "Start": 106,
-          "End": 111,
-          "Line": 4,
-          "Column": 40
-        },
-        "Value": "ENUM"
-      },
-=======
       "argumentValue": "ENUM",
->>>>>>> master
       "locationType": "Boolean!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

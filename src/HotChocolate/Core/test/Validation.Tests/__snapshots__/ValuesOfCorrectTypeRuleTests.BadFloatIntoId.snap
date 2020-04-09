@@ -15,21 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "idArg",
-<<<<<<< HEAD
-      "argumentValue": {
-        "Kind": "FloatValue",
-        "Location": {
-          "Start": 96,
-          "End": 100,
-          "Line": 4,
-          "Column": 43
-        },
-        "Format": "FixedPoint",
-        "Value": "1.0"
-      },
-=======
       "argumentValue": "1.0",
->>>>>>> master
       "locationType": "ID",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
