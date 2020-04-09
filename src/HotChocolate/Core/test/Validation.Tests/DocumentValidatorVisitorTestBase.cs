@@ -4,18 +4,25 @@ using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.Validation.Options;
+using System.Linq;
 
 namespace HotChocolate.Validation
 {
     public abstract class DocumentValidatorVisitorTestBase
     {
-        public DocumentValidatorVisitorTestBase(Action<IServiceCollection> configure)
+        public DocumentValidatorVisitorTestBase(Action<IValidationBuilder> configure)
         {
             var serviceCollection = new ServiceCollection();
-            configure(serviceCollection);
+
+            IValidationBuilder builder = serviceCollection
+                .AddValidation()
+                .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()));
+            configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            Rule = services.GetRequiredService<IDocumentValidatorRule>();
+            Rule = services.GetRequiredService<IValidationConfiguration>()
+                .GetRules("Default").First();
             StarWars = SchemaBuilder.New().AddStarWarsTypes().Create();
         }
 
@@ -65,7 +72,7 @@ namespace HotChocolate.Validation
             Assert.False(context.UnexpectedErrorsDetected);
             Assert.Empty(context.Errors);
         }
-        
+
         public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
             ExpectErrors(null, sourceText, elementInspectors);
 
