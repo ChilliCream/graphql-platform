@@ -78,7 +78,7 @@ namespace HotChocolate.Types.Filters
                         break;
                     }
                 }
-                return Skip;
+                return SkipAndLeave;
             }
             return Continue;
         }
