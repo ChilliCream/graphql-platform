@@ -56,7 +56,7 @@ namespace HotChocolate.Validation
             // arrange
             ExpectValid(@"
                 {
-                    catOrDog {
+                    dog {
                         ...unionTypeDoesMatch
                     }
                 }
