@@ -102,5 +102,77 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"The argument `if` is required.", t.Message));
         }
+
+        [Fact]
+        public void BadMultipleNullValueType()
+        {
+            ExpectErrors(@"
+                 {
+                     arguments {
+                         multipleReqs(x: 1, y: null)
+                     }
+                 }
+             ");
+        }
+
+        [Fact]
+        public void BadNullIntoNonNullBool()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        nonNullBooleanArgField(nonNullBooleanArg: null)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void BadNullIntoNonNullFloat()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        nonNullFloatArgField(floatArg: null)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void BadNullIntoNonNullId()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        nonNullIdArgField(idArg: null)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void BadNullIntoNonNullInt()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        nonNullIntArgField(intArg: null)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void BadNullIntoNonNullString()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        nonNullStringArgField(stringArg: null)
+                    }
+                }
+            ");
+        }
     }
 }
