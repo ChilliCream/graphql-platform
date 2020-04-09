@@ -2,7 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation.Rules
+namespace HotChocolate.Validation
 {
     internal static class ErrorHelper
     {
@@ -579,6 +579,23 @@ namespace HotChocolate.Validation.Rules
                 .SetMessage("Subscription operations must have exactly one root field.")
                 .AddLocation(operation)
                 .SpecifiedBy("sec-Single-root-field")
+                .Build();
+        }
+
+        public static IError MaxOperationComplexity(
+            this IDocumentValidatorContext context,
+            OperationDefinitionNode operation,
+            int allowedComplexity,
+            int detectedComplexity)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    "The GraphQL document has an operation complexity of {0} " +
+                    "which exceeds the max allowed operation complexity of {1}.",
+                    detectedComplexity, allowedComplexity)
+                .AddLocation(operation)
+                .SetExtension("allowedComplexity", allowedComplexity)
+                .SetExtension("detectedComplexity", detectedComplexity)
                 .Build();
         }
     }

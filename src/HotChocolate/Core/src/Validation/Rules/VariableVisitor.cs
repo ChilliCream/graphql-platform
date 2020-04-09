@@ -96,13 +96,13 @@ namespace HotChocolate.Validation.Rules
         {
             base.Enter(node, context);
 
-            string variableName = node.Variable.Name.Value;
+            var variableName = node.Variable.Name.Value;
 
             context.Unused.Add(variableName);
             context.Declared.Add(variableName);
 
             if (context.Schema.TryGetType(
-                    node.Type.NamedType().Name.Value, out INamedType type) &&
+                node.Type.NamedType().Name.Value, out INamedType type) &&
                 !type.IsInputType())
             {
                 context.Errors.Add(context.VariableNotInputType(node, variableName));
@@ -124,7 +124,8 @@ namespace HotChocolate.Validation.Rules
             {
                 return Skip;
             }
-            else if (context.Types.TryPeek(out IType type) &&
+
+            if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
                 ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
             {
@@ -132,11 +133,9 @@ namespace HotChocolate.Validation.Rules
                 context.Types.Push(of.Type);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -157,11 +156,9 @@ namespace HotChocolate.Validation.Rules
                 context.Directives.Push(d);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -187,7 +184,8 @@ namespace HotChocolate.Validation.Rules
                 context.UnexpectedErrorsDetected = true;
                 return Skip;
             }
-            else if (context.OutputFields.TryPeek(out IOutputField field))
+
+            if (context.OutputFields.TryPeek(out IOutputField field))
             {
                 if (field.Arguments.TryGetField(node.Name.Value, out IInputField argument))
                 {
@@ -198,11 +196,9 @@ namespace HotChocolate.Validation.Rules
                 context.UnexpectedErrorsDetected = true;
                 return Skip;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -226,11 +222,8 @@ namespace HotChocolate.Validation.Rules
                 context.Types.Push(field.Type);
                 return Continue;
             }
-            else
-            {
-                context.Errors.Add(context.InputFieldDoesNotExist(node));
-                return Skip;
-            }
+
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -249,23 +242,17 @@ namespace HotChocolate.Validation.Rules
             context.Used.Add(node.Name.Value);
 
             ISyntaxNode parent = context.Path.Peek();
-            IValueNode? defaultValue;
 
-            switch (parent.Kind)
+            IValueNode? defaultValue = parent.Kind switch
             {
-                case NodeKind.Argument:
-                case NodeKind.ObjectField:
-                    defaultValue = context.InputFields.Peek().DefaultValue;
-                    break;
-
-                default:
-                    defaultValue = null;
-                    break;
-            }
+                NodeKind.Argument => context.InputFields.Peek().DefaultValue,
+                NodeKind.ObjectField => context.InputFields.Peek().DefaultValue,
+                _ => null
+            };
 
             if (context.Variables.TryGetValue(
-                node.Name.Value,
-                out VariableDefinitionNode? variableDefinition)
+                    node.Name.Value,
+                    out VariableDefinitionNode? variableDefinition)
                 && !IsVariableUsageAllowed(variableDefinition, context.Types.Peek(), defaultValue))
             {
                 context.Errors.Add(ErrorHelper.VariableIsNotCompatible(

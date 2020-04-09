@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace HotChocolate.Validation
 {
@@ -6,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public ArgumentUniquenessRuleTests()
-            : base(services => services.AddArgumentRules())
+            : base(builder => builder.AddArgumentRules())
         {
         }
 

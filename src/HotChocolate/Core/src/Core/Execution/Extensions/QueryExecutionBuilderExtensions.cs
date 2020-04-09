@@ -8,6 +8,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
+using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Execution
 {
@@ -121,7 +122,17 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options)
         {
-            builder.Services.AddValidation();
+            IValidationBuilder validation = builder.Services.AddValidation();
+
+            if (options.MaxExecutionDepth.HasValue)
+            {
+                validation.AddMaxExecutionDepthRule(options.MaxExecutionDepth.Value);
+            }
+
+            if (options.MaxOperationComplexity.HasValue)
+            {
+                validation.AddMaxComplexityRule(options.MaxOperationComplexity.Value);
+            }
 
             return builder
                 .AddOptions(options)
