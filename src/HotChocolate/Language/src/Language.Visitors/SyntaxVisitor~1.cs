@@ -28,7 +28,7 @@ namespace HotChocolate.Language.Visitors
         public static ISyntaxVisitorAction Break { get; } = new BreakSyntaxVisitorAction();
 
         /// <summary>
-        /// Skips of the child nodes.
+        /// Skips the child nodes and the current node.
         /// </summary>
         public static ISyntaxVisitorAction Skip { get; } = new SkipSyntaxVisitorAction();
 
@@ -38,10 +38,10 @@ namespace HotChocolate.Language.Visitors
         public static ISyntaxVisitorAction Continue { get; } = new ContinueSyntaxVisitorAction();
 
         /// <summary>
-        /// Continues traversing the graph.
+        /// Skips the child node but completes the current node.
         /// </summary>
-        public static ISyntaxVisitorAction SkipAndLeave { get; }
-            = new SkipAndLeaveSyntaxVisitorAction();
+        public static ISyntaxVisitorAction SkipAndLeave { get; } =
+            new SkipAndLeaveSyntaxVisitorAction();
 
         public ISyntaxVisitorAction Visit(
             ISyntaxNode node,
