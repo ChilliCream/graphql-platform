@@ -1,4 +1,5 @@
 ﻿using ChilliCream.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -7,7 +8,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public FieldSelectionMergingRuleTests()
-            : base(services => services.AddFieldRules())
+            : base(builder => builder.AddFieldRules())
         {
         }
 

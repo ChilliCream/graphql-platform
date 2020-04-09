@@ -30,9 +30,11 @@ namespace HotChocolate.Validation.Rules
         {
             context.Max = context.Count > context.Max ? context.Count : context.Max;
 
-            if (_options.MaxAllowedComplexity < context.Max)
+            if (_options.MaxAllowedComplexity.HasValue &&
+                _options.MaxAllowedComplexity < context.Max)
             {
-                context.Errors.Add();
+                context.Errors.Add(context.MaxOperationComplexity(
+                    node, _options.MaxAllowedComplexity.Value, context.Max));
                 return Break;
             }
 
@@ -43,28 +45,30 @@ namespace HotChocolate.Validation.Rules
             FieldNode node,
             IDocumentValidatorContext context)
         {
-            context.Names.Clear();
-
             if (IntrospectionFields.TypeName.Equals(node.Name.Value))
             {
-                context.Count += _options.Calculation.Invoke(
+                context.Count += _options.ComplexityCalculation.Invoke(
                     TypeNameField,
+                    node,
                     null,
                     context.OutputFields.Count + 1,
                     context.Path.Count + 1,
-                    GetVariable);
+                    GetVariable,
+                    _options);
                 return Skip;
             }
             else if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
                 ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
             {
-                context.Count += context.Count += _options.Calculation.Invoke(
+                context.Count += context.Count += _options.ComplexityCalculation.Invoke(
                     of,
+                    node,
                     of.Directives["cost"].FirstOrDefault()?.ToObject<CostDirective>(),
                     context.OutputFields.Count + 1,
                     context.Path.Count + 1,
-                    GetVariable);
+                    GetVariable,
+                    _options);
 
                 context.OutputFields.Push(of);
                 context.Types.Push(of.Type);
