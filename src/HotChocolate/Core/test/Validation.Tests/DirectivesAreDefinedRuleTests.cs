@@ -199,16 +199,78 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void WithMisplacedDirectives()
+        public void WithMisplacedDirectiveOnQuery()
         {
             // arrange
             ExpectErrors(@"
-                 query Foo($var: Boolean) @include(if: true) {
-                    name @onQuery @include(if: $var)
-                    ...Frag @onQuery
-                }
+                query Foo($var: Boolean) @include(if: true) {
+                    name   
+                } 
+            ");
+        }
+        [Fact]
+        public void WithMisplacedDirectivesOnField()
+        {
+            // arrange
+            ExpectErrors(@"
+                 query Foo($var: Boolean)  {
+                    name @onQuery   
+                } 
+            ");
+        }
+        [Fact]
+        public void WithMisplacedDirectivesOnFieldRepeatedly()
+        {
+            // arrange
+            ExpectErrors(@"
+                 query Foo($var: Boolean)  {
+                    name @onQuery @include(if: $var) 
+                } 
+            ");
+        }
+        [Fact]
+        public void WithMisplacedDirectivesOnMutation()
+        {
+            // arrange
+            ExpectErrors(@" 
                 mutation Bar @onQuery {
                     someField
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectivesOnSubscription()
+        {
+            // arrange
+            ExpectErrors(@" 
+                subscription Bar @onQuery {
+                    someField
+                }
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectivesOnVariableDefinition()
+        {
+            // arrange
+            ExpectErrors(@"
+                query Foo($var: Boolean @onQuery(if: true))  {
+                    name  
+                } 
+            ");
+        }
+
+        [Fact]
+        public void WithMisplacedDirectivesOnFragemnt()
+        {
+            // arrange
+            ExpectErrors(@"
+                 query Foo($var: Boolean)  { 
+                    ...Frag @onQuery
+                }
+                fragment Frag on Query  {
+                    name
                 }
             ");
         }
@@ -217,7 +279,7 @@ namespace HotChocolate.Validation
         public void WithMisplacedVariableDefinitionDirective()
         {
             // arrange
-            ExpectValid(@"
+            ExpectErrors(@"
                 query Foo($var: Boolean @onField) {
                     name
                 }
