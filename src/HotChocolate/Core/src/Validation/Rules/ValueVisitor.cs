@@ -225,7 +225,7 @@ namespace HotChocolate.Validation.Rules
             {
                 if (field.Type.IsNonNullType() &&
                     field.DefaultValue.IsNull() &&
-                    node.Value is null)
+                    node.Value.IsNull())
                 {
                     context.Errors.Add(
                         context.FieldIsRequiredButNull(node, field.Name));

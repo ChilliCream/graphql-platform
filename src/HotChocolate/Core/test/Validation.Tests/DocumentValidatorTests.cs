@@ -384,10 +384,10 @@ namespace HotChocolate.Validation
                     }
                 }
             ",
-            t => Assert.Equal(t.Message,
-                "`barkVolume` is a scalar field. Selections on scalars " +
-                "or enums are never allowed, because they are the leaf " +
-                "nodes of any GraphQL query."));
+            t => Assert.Equal(
+                "`barkVolume` returns a scalar value. Selections on scalars or enums" +
+                " are never allowed, because they are the leaf nodes of any GraphQL query.",
+                t.Message));
         }
 
         [Fact]
@@ -579,7 +579,7 @@ namespace HotChocolate.Validation
             ",
             t => Assert.Equal(
                 "The specified argument value does not match the " +
-                "argument type.\nArgument: `intArg`\nValue: `123`",
+                "argument type.",
                 t.Message));
         }
 
