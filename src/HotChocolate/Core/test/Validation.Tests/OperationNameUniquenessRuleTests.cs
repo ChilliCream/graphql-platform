@@ -31,7 +31,6 @@ namespace HotChocolate.Validation
             ");
         }
 
-
         [Fact]
         public void TwoQueryOperationsWithTheSameName()
         {
@@ -74,6 +73,98 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 $"The operation name `dogOperation` is not unique.",
                 t.Message));
+        }
+
+        [Fact]
+        public void OneAnonOperation()
+        {
+            ExpectValid(@"
+                {
+                    anyArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void OneNamedOperation()
+        {
+            ExpectValid(@"
+                query Foo {
+                    anyArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleOperationsOfDifferentTypes()
+        {
+            ExpectValid(@"
+                query Foo {
+                    anyArg
+                }
+                mutation Bar {
+                    field
+                }
+                subscription Baz {
+                    newMessage {
+                        bdoy
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentAndOperationNamedTheSame()
+        {
+            ExpectValid(@"
+                query Foo {
+                    ...Foo
+                }
+                fragment Foo on Query {
+                    anyArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleOperationsOfSameName()
+        {
+            ExpectErrors(@"
+                query Foo {
+                    anyArg
+                }
+                query Foo {
+                    anyArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleOpsOfSameNameOfDifferentTypesMutation()
+        {
+            ExpectErrors(@"
+                query Foo {
+                    anyArg
+                }
+                mutation Foo {
+                    fieldB
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleOpsOfSameNameOfDifferentTypesSubscription()
+        {
+            ExpectErrors(@"
+                query Foo {
+                    anyArg
+                }
+                subscription Foo {
+                    newMessage {
+                        bdoy
+                    }
+                }
+            ");
         }
     }
 }
