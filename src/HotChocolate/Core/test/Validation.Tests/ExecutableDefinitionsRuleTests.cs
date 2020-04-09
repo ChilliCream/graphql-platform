@@ -10,7 +10,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public ExecutableDefinitionsRuleTests()
-            : base(services => services.AddDocumentRules())
+            : base(builder => builder.AddDocumentRules())
         {
         }
 
