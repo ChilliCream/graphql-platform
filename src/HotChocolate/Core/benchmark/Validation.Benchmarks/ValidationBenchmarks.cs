@@ -16,6 +16,7 @@ namespace HotChocolate.Validation.Benchmarks
         private readonly IQueryValidator _validator_Old;
         private readonly ISchema _schema;
         private readonly DocumentNode _introspectionQuery;
+        private readonly DocumentNode _starWarsQuery;
 
         public ValidationBenchmarks()
         {
@@ -39,6 +40,8 @@ namespace HotChocolate.Validation.Benchmarks
             var resources = new ResourceHelper();
             _introspectionQuery = Utf8GraphQLParser.Parse(
                 resources.GetResourceString("IntrospectionQuery.graphql"));
+            _starWarsQuery = Utf8GraphQLParser.Parse(
+                resources.GetResourceString("StarWarsQuery.graphql"));
         }
 
         [GlobalSetup]
@@ -56,6 +59,18 @@ namespace HotChocolate.Validation.Benchmarks
 
         [Benchmark]
         public void ValidateIntrospection_Old()
+        {
+            _validator_Old.Validate(_schema, _introspectionQuery);
+        }
+
+        [Benchmark]
+        public void ValidateStarWars()
+        {
+            _validator.Validate(_schema, _introspectionQuery);
+        }
+
+        [Benchmark]
+        public void ValidateStarWars_Old()
         {
             _validator_Old.Validate(_schema, _introspectionQuery);
         }

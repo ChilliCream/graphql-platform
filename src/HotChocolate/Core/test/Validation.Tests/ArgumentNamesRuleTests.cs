@@ -1,5 +1,5 @@
-using HotChocolate.Language; 
-using Microsoft.Extensions.DependencyInjection; 
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -106,31 +106,6 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void IgnoreArgsOfUnknowFields()
-        {
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
-                query {
-                    dog {
-                        ... argOnUnknownField 
-                    }
-                }
-
-                fragment argOnUnknownField on Dog {
-                    unknownField(unknownArg: SIT)
-                }
-            ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.True(context.UnexpectedErrorsDetected);
-            Assert.Empty(context.Errors);
-        }
-
-        [Fact]
         public void ArgsAreKnowDeeply()
         {
             ExpectValid(@"
@@ -234,6 +209,150 @@ namespace HotChocolate.Validation
                             }
                         }
                     }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NoArgumentsOnField()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void NoArgumentsOnDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg @directive
+                }
+            ");
+        }
+
+        [Fact]
+        public void ArgumentOnField()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void ArgumentOnDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg @directive(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameArgumentOnTwoFields()
+        {
+            // arrange
+            ExpectValid(@"
+                {      
+                    one: fieldWithArg(arg: ""value"")
+                    two: fieldWithArg(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameArgumentOnFieldAndDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                {      
+                    fieldWithArg(arg: ""value"") @directive(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameArgumentOnTwoDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                {       
+                    fieldWithArg @directive1(arg: ""value"") @directive2(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleFieldArguments()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                fieldWithArg(arg1: ""value"", arg2: ""value"", arg3: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleDirectiveArguments()
+        {
+            // arrange
+            ExpectValid(@"
+                {       
+                    fieldWithArg @directive(arg1: ""value"", arg2: ""value"", arg3: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateFieldArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg(arg1: ""value"", arg1: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void ManyDuplicateFieldArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg(arg1: ""value"", arg1: ""value"", arg1: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateDirectiveArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg @directive(arg1: ""value"", arg1: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void ManyDuplicateDirectiveArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg @directive(arg1: ""value"", arg1: ""value"", arg1: ""value"")
                 }
             ");
         }
