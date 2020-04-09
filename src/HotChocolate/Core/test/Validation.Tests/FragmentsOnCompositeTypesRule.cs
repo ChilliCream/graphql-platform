@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public FragmentsOnCompositeTypesRuleTests()
-            : base(services => services.AddFragmentRules())
+            : base(builder => builder.AddFragmentRules())
         {
         }
 
