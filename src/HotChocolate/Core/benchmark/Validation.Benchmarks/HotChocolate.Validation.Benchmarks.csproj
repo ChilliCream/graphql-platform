@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\IntrospectionQuery.graphql" />
-    <EmbeddedResource Include="Resources\IntrospectionQuery.graphql" />
+    <None Remove="Resources\*.graphql" />
+    <EmbeddedResource Include="Resources\*.graphql" />
   </ItemGroup>
 
 </Project>
