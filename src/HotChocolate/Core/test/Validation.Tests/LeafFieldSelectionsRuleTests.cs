@@ -98,5 +98,117 @@ namespace HotChocolate.Validation
                 "unions without subfields are disallowed.",
                 t.Message));
         }
+
+        [Fact]
+        public void InterfaceTypeMissingSelection()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    human { pets }
+                }
+            ",
+            t => Assert.Equal(
+                "`pets` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedOnBoolean()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    dog {
+                        barks {
+                            sinceWhen
+                        }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`barks` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedOnEnum()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    catOrDog {
+                        ... on Cat {
+                            furColor {
+                                inHexDec 
+                            }
+                        }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`furColor` returns an enum value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedWithArgs()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    dog {
+                        doesKnowCommand(dogCommand: SIT) { sinceWhen }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`doesKnowCommand` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedWithDirectives()
+        {
+            // arrange
+            ExpectErrors(@"
+                { 
+                    dog {
+                        name @include(if: true) { isAlsoHumanName }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`name` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedWithDirectivesAndArgs()
+        {
+            // arrange
+            ExpectErrors(@"
+                { 
+                    dog {
+                        doesKnowCommand(dogCommand: SIT) @include(if: true) { sinceWhen }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`doesKnowCommand` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
     }
 }
