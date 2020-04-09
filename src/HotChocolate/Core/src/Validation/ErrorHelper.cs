@@ -380,7 +380,7 @@ namespace HotChocolate.Validation
             ObjectFieldNode field)
         {
             return ErrorBuilder.New()
-                .SetMessage("Field `{0}` is ambiguous.", field.Name.Value)
+                .SetMessage("There can be only one input field named `{0}`.", field.Name.Value)
                 .AddLocation(field)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", field.Name.Value)

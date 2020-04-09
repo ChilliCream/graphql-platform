@@ -30,7 +30,8 @@ namespace HotChocolate.Validation
                     findDog(complex: { name: ""A"", name: ""B"" })
                 }
             ",
-            error => Assert.Equal("Field `name` is ambiguous.", error.Message));
+            error =>
+                Assert.Equal("There can be only one input field named `name`.", error.Message));
         }
 
         [Fact]

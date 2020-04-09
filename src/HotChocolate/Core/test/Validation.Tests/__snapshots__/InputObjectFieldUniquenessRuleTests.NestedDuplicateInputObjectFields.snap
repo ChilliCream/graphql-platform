@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "Field `f2` is ambiguous.",
+    "Message": "There can be only one input field named `f2`.",
     "Code": null,
     "Path": [
       "arguments",
