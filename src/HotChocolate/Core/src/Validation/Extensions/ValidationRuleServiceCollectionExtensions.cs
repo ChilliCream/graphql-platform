@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
         /// Every argument provided to a field or directive must be defined
         /// in the set of possible arguments of that field or directive.
         ///
-        /// http://facebook.github.io/graphql/June2018/#sec-Argument-Names
+        /// http://spec.graphql.org/June2018/#sec-Argument-Names
         ///
         /// AND
         ///
@@ -19,7 +19,7 @@ namespace HotChocolate.Validation
         /// More than one argument with the same name in an argument set
         /// is ambiguous and invalid.
         ///
-        /// http://facebook.github.io/graphql/June2018/#sec-Argument-Uniqueness
+        /// http://spec.graphql.org/June2018/#sec-Argument-Uniqueness
         ///
         /// AND
         ///
@@ -27,12 +27,12 @@ namespace HotChocolate.Validation
         /// type is non‐null and does not have a default value. Otherwise,
         /// the argument is optional.
         ///
-        /// http://facebook.github.io/graphql/June2018/#sec-Required-Arguments
+        /// http://spec.graphql.org/June2018/#sec-Required-Arguments
         /// </summary>
-        public static IServiceCollection AddArgumentsAreValidRule(
+        public static IServiceCollection AddArgumentRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<ArgumentsVisitor>();
+            return services.AddValidationRule<ArgumentVisitor>();
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddDirectiveRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<DirectivesVisitor>();
+            return services.AddValidationRule<DirectiveVisitor>();
         }
 
         /// <summary>
@@ -84,10 +84,10 @@ namespace HotChocolate.Validation
         ///
         /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
         /// </summary>
-        public static IServiceCollection AddExecutableDefinitionRule(
+        public static IServiceCollection AddDocumentRules(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, ExecutableDefinitionsRule>();
+            return services.AddSingleton<IDocumentValidatorRule, DocumentRule>();
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddFieldRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<FieldsVisitor>();
+            return services.AddValidationRule<FieldVisitor>();
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddFragmentRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<FragmentsVisitor>();
+            return services.AddValidationRule<FragmentVisitor>();
         }
 
         /// <summary>
@@ -203,17 +203,13 @@ namespace HotChocolate.Validation
         /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
         ///
         /// AND
-        /// 
-        /// Literal values must be compatible with the type expected in the position
-        /// they are found as per the coercion rules defined in the Type System
-        /// chapter.
         ///
         /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
         /// </summary>
         public static IServiceCollection AddInputObjectRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<InputObjectVisitor>();
+            return services.AddValidationRule<ValueVisitor>();
         }
 
         /// <summary>
@@ -261,7 +257,7 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddVariableRules(
             this IServiceCollection services)
         {
-            return services.AddValidationRule<VariablesVisitor>();
+            return services.AddValidationRule<VariableVisitor>();
         }
 
         /// <summary>
@@ -276,13 +272,24 @@ namespace HotChocolate.Validation
         /// when referred to by its name.
         ///
         /// http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
+        ///
+        /// AND
+        ///
+        /// Subscription operations must have exactly one root field.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Single-root-field
         /// </summary>
         public static IServiceCollection AddOperationRules(
             this IServiceCollection services)
         {
-            return services.AddSingleton<IDocumentValidatorRule, OperationRule>();
+            return services.AddValidationRule<OperationVisitor>();
         }
 
+        /// <summary>
+        /// Subscription operations must have exactly one root field.
+        ///
+        /// http://spec.graphql.org/June2018/#sec-Single-root-field
+        /// </summary>
         public static IServiceCollection AddValidationRule<T>(
             this IServiceCollection services)
             where T : DocumentValidatorVisitor, new()

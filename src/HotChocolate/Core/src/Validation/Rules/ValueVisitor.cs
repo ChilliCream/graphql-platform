@@ -31,16 +31,16 @@ namespace HotChocolate.Validation.Rules
     /// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
     ///
     /// AND
-    /// 
+    ///
     /// Literal values must be compatible with the type expected in the position
     /// they are found as per the coercion rules defined in the Type System
     /// chapter.
     ///
     /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
     /// </summary>
-    internal sealed class InputObjectVisitor : TypeDocumentValidatorVisitor
+    internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     {
-        public InputObjectVisitor()
+        public ValueVisitor()
             : base(new SyntaxVisitorOptions
             {
                 VisitDirectives = true,
@@ -86,7 +86,7 @@ namespace HotChocolate.Validation.Rules
             IDocumentValidatorContext context)
         {
             if (context.Schema.TryGetType(
-                    node.Type.NamedType().Name.Value, out INamedType variableType))
+                node.Type.NamedType().Name.Value, out INamedType variableType))
             {
                 context.Types.Push(variableType);
                 return base.Enter(node, context);
@@ -255,27 +255,56 @@ namespace HotChocolate.Validation.Rules
         }
 
         protected override ISyntaxVisitorAction Enter(
+            ListValueNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Types.TryPeek(out IType? type))
+            {
+                if (type.NamedType().IsLeafType())
+                {
+                    return Enter((IValueNode)node, context);
+                }
+
+                if (type.IsListType())
+                {
+                    context.Types.Push(type.ElementType());
+                    return Continue;
+                }
+            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Break;
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            ListValueNode node,
+            IDocumentValidatorContext context)
+        {
+            context.Types.Pop();
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
             IValueNode valueNode,
             IDocumentValidatorContext context)
         {
             if (context.Types.TryPeek(out IType currentType) &&
                 currentType is IInputType locationType)
             {
-                if (!IsInstanceOfType(context, locationType, valueNode))
+                if (IsInstanceOfType(context, locationType, valueNode))
+                {
+                    return Skip;
+                }
+                else
                 {
                     if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
                         TryCreateValueError(
                             context, locationType, valueNode, node, out IError? error))
                     {
                         context.Errors.Add(error);
-                    }
-                }
-                else
-                {
-                    if(currentType.IsLeafType()) {
                         return Skip;
                     }
-                    return Continue;
+
                 }
             }
             context.UnexpectedErrorsDetected = true;

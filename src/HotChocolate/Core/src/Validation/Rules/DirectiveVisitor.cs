@@ -33,9 +33,9 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
     /// </summary>
-    internal sealed class DirectivesVisitor : DocumentValidatorVisitor
+    internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     {
-        public DirectivesVisitor()
+        public DirectiveVisitor()
             : base(new SyntaxVisitorOptions
                 {
                     VisitDirectives = true

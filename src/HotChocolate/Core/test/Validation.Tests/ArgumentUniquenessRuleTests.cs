@@ -6,7 +6,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public ArgumentUniquenessRuleTests()
-            : base(services => services.AddArgumentsAreValidRule())
+            : base(services => services.AddArgumentRules())
         {
         }
 

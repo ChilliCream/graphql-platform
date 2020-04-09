@@ -15,17 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "enumArg",
-      "argumentValue": {
-        "Kind": "FloatValue",
-        "Location": {
-          "Start": 100,
-          "End": 104,
-          "Line": 4,
-          "Column": 47
-        },
-        "Format": "FixedPoint",
-        "Value": "1.0"
-      },
+      "argumentValue": "1.0",
       "locationType": "DogCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }

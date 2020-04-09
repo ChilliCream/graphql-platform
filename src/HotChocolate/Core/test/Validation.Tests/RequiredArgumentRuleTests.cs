@@ -6,7 +6,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public RequiredArgumentRuleTests()
-            : base(services => services.AddArgumentsAreValidRule())
+            : base(services => services.AddArgumentRules())
         {
         }
 

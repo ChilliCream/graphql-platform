@@ -64,7 +64,7 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
     /// </summary>
-    internal sealed class FragmentsVisitor : TypeDocumentValidatorVisitor
+    internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     {
         protected override ISyntaxVisitorAction Enter(
             DocumentNode node,
