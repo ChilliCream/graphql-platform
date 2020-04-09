@@ -19,6 +19,8 @@ namespace HotChocolate.Validation
 
         ISet<string> VisitedFragments { get; }
 
+        IDictionary<string, object> VariableValues { get; }
+
         IDictionary<string, VariableDefinitionNode> Variables { get; }
 
         IDictionary<string, FragmentDefinitionNode> Fragments { get; }
@@ -40,6 +42,10 @@ namespace HotChocolate.Validation
         IList<IInputField> InputFields { get; }
 
         ICollection<IError> Errors { get; }
+
+        int Count { get; set; }
+
+        int Max { get; set; }
 
         bool UnexpectedErrorsDetected { get; set; }
 

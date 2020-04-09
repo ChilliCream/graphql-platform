@@ -2,14 +2,22 @@
   "Data": null,
   "Errors": [
     {
-      "Exception": null,
-      "message": "The field `foo` does not exist on the type `Mutation`.",
-      "locations": [
+      "Message": "The field `foo` does not exist on the type `Mutation`.",
+      "Code": null,
+      "Path": [],
+      "Locations": [
         {
           "Line": 1,
           "Column": 12
         }
-      ]
+      ],
+      "Exception": null,
+      "Extensions": {
+        "type": "Mutation",
+        "field": "foo",
+        "responseName": "foo",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
     }
   ],
   "Extensions": null,

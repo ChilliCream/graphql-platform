@@ -709,7 +709,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         }
 
         [Fact]
-        public void ExecutionDepthShouldNotLeadToEmptyObects()
+        public void ExecutionDepthShouldNotLeadToEmptyObjects()
         {
             // arrange
             var query = @"
@@ -745,6 +745,8 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     }
                 }
             }";
+
+            ISchema schema = CreateSchema();
 
             IQueryExecutor executor = CreateSchema().MakeExecutable(
                 new QueryExecutionOptions { MaxExecutionDepth = 3 });

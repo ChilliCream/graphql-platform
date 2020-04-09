@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Message": "The argument `stringArg` is required.",
+    "Code": null,
+    "Path": [
+      "arguments"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 47
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "type": "Arguments",
+      "field": "nonNullStringArgField",
+      "argument": "stringArg",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    }
+  }
+]
