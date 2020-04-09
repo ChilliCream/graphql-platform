@@ -12,6 +12,9 @@ namespace HotChocolate.Validation
             descriptor.Field("pets")
                 .Type<ListType<PetType>>()
                 .Resolver(() => "");
+            descriptor.Field("relatives")
+                .Type<ListType<HumanType>>()
+                .Resolver(() => "");
         }
     }
 }
