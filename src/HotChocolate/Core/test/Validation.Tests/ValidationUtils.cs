@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Language;
 using HotChocolate.Validation.Types;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 #nullable enable
 
@@ -33,7 +34,7 @@ namespace HotChocolate.Validation
         public static void RegisterDirective(
             this ISchemaConfiguration context,
             string name,
-            Types.DirectiveLocation location)
+            DirectiveLocation location)
                 => context.RegisterDirective(
                     new DirectiveType(x => x.Name(name).Location(location)));
 
@@ -57,11 +58,11 @@ namespace HotChocolate.Validation
                 c.RegisterType<ComplexInput3Type>();
                 c.RegisterType<InvalidScalar>();
                 c.RegisterDirective<ComplexDirective>();
-                c.RegisterDirective("onMutation", Types.DirectiveLocation.Mutation);
-                c.RegisterDirective("onQuery", Types.DirectiveLocation.Query);
-                c.RegisterDirective("onSubscription", Types.DirectiveLocation.Subscription);
-                c.RegisterDirective("onFragmentDefinition", Types.DirectiveLocation.FragmentDefinition);
-                c.RegisterDirective("onVariableDefinition", Types.DirectiveLocation.VariableDefinition);
+                c.RegisterDirective("onMutation", DirectiveLocation.Mutation);
+                c.RegisterDirective("onQuery", DirectiveLocation.Query);
+                c.RegisterDirective("onSubscription", DirectiveLocation.Subscription);
+                c.RegisterDirective("onFragmentDefinition", DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("onVariableDefinition", DirectiveLocation.VariableDefinition);
             });
         }
     }
