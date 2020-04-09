@@ -65,22 +65,6 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void GoodIngoresFieldOnUnknownType()
-        {
-            ExpectValid(@"
-                fragment unknownSelection on UnknownType {
-                    unknownField
-                }
-                
-                query {
-                    pet {
-                         ... unknownSelection
-                    } 
-                }
-            ");
-        }
-
-        [Fact]
         public void BadReportsErrorWhenTypeIsKnown()
         {
             ExpectErrors(@"
