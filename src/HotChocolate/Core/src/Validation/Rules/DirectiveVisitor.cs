@@ -78,7 +78,7 @@ namespace HotChocolate.Validation.Rules
             IDocumentValidatorContext context)
         {
             ValidateDirectiveAreUniquePerLocation(node, context);
-            return Skip;
+            return Continue;
         }
 
         protected override ISyntaxVisitorAction Enter(
