@@ -1,0 +1,40 @@
+﻿[
+  {
+    "Message": "Field `f1` is ambiguous.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "complexArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 7,
+        "Column": 29
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "field": "f1",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
+    }
+  },
+  {
+    "Message": "Field `f1` is ambiguous.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "complexArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 8,
+        "Column": 29
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "field": "f1",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
+    }
+  }
+]
