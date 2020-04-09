@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -146,7 +148,7 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                $"More than one argument with the same name in an argument set "+
+                $"More than one argument with the same name in an argument set " +
                 "is ambiguous and invalid.", t.Message));
         }
 
@@ -612,6 +614,15 @@ namespace HotChocolate.Validation
                         "which exceeds the max allowed operation complexity of 1.",
                         t.Message);
                 });
+        }
+
+        [Fact]
+        public void StarWars_Query_Is_Valid()
+        {
+            ExpectValid(
+                SchemaBuilder.New().AddStarWarsTypes().Create(),
+                null,
+                FileResource.Open("StarWars_Request.graphql"));
         }
 
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
