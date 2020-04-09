@@ -8,7 +8,10 @@
           "line": 2,
           "column": 21
         }
-      ]
+      ],
+      "extensions": {
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
+      }
     }
   ],
   "Extensions": null
