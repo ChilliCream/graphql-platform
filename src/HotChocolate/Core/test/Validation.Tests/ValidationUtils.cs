@@ -4,6 +4,7 @@ using HotChocolate.Types;
 using HotChocolate.Language;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
+using System;
 
 #nullable enable
 
@@ -35,8 +36,15 @@ namespace HotChocolate.Validation
             this ISchemaConfiguration context,
             string name,
             DirectiveLocation location)
+                => RegisterDirective(context, name, location, x => x);
+
+        public static void RegisterDirective(
+            this ISchemaConfiguration context,
+            string name,
+            DirectiveLocation location,
+            Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure)
                 => context.RegisterDirective(
-                    new DirectiveType(x => x.Name(name).Location(location)));
+                    new DirectiveType(x => configure(x.Name(name).Location(location))));
 
         public static Schema CreateSchema()
         {
@@ -63,6 +71,15 @@ namespace HotChocolate.Validation
                 c.RegisterDirective("onSubscription", DirectiveLocation.Subscription);
                 c.RegisterDirective("onFragmentDefinition", DirectiveLocation.FragmentDefinition);
                 c.RegisterDirective("onVariableDefinition", DirectiveLocation.VariableDefinition);
+                c.RegisterDirective("directiveA",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("directiveB",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("directiveC",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("repeatable",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition,
+                     x => x.Repeatable());
             });
         }
     }
