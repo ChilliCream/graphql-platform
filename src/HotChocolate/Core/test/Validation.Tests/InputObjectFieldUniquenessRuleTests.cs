@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public InputObjectFieldUniquenessRuleTests()
-            : base(builder => builder.AddInputObjectRules())
+            : base(builder => builder.AddValueRules())
         {
         }
 

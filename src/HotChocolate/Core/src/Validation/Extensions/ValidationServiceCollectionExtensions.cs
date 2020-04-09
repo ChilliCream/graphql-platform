@@ -32,7 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddFieldRules()
                 .AddArgumentRules()
                 .AddFragmentRules()
-                .AddInputObjectRules()
+                .AddValueRules()
                 .AddDirectiveRules()
                 .AddVariableRules();
 

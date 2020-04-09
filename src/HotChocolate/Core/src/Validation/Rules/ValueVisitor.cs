@@ -224,7 +224,6 @@ namespace HotChocolate.Validation.Rules
                 it.Fields.TryGetField(node.Name.Value, out InputField field))
             {
                 if (field.Type.IsNonNullType() &&
-                    field.DefaultValue.IsNull() &&
                     node.Value.IsNull())
                 {
                     context.Errors.Add(

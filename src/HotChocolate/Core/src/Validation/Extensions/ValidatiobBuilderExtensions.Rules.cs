@@ -214,7 +214,7 @@ namespace Microsoft.Extensions.DependencyInjection
         ///
         /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
         /// </summary>
-        public static IValidationBuilder AddInputObjectRules(
+        public static IValidationBuilder AddValueRules(
             this IValidationBuilder builder)
         {
             return builder.AddValidationRule<ValueVisitor>();
