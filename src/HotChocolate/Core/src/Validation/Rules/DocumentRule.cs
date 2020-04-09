@@ -18,7 +18,7 @@ namespace HotChocolate.Validation.Rules
     ///
     /// http://spec.graphql.org/June2018/#sec-Executable-Definitions
     /// </summary>
-    internal sealed class ExecutableDefinitionsRule : IDocumentValidatorRule
+    internal sealed class DocumentRule : IDocumentValidatorRule
     {
         public void Validate(IDocumentValidatorContext context, DocumentNode document)
         {

@@ -12,13 +12,14 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IDocumentValidator, DocumentValidator>();
 
             services
+                .AddDocumentRules()
                 .AddOperationRules()
-                .AddDirectiveRules()
-                .AddExecutableDefinitionRule()
                 .AddFieldRules()
+                .AddArgumentRules()
                 .AddFragmentRules()
-                .AddVariableRules()
-                .AddArgumentsAreValidRule();
+                .AddInputObjectRules()
+                .AddDirectiveRules()
+                .AddVariableRules();
 
             return services;
         }

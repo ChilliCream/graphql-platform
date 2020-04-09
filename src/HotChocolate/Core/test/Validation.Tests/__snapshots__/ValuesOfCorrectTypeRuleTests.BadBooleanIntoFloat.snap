@@ -15,16 +15,7 @@
     "Exception": null,
     "Extensions": {
       "argument": "floatArg",
-      "argumentValue": {
-        "Kind": "BooleanValue",
-        "Location": {
-          "Start": 102,
-          "End": 107,
-          "Line": 4,
-          "Column": 49
-        },
-        "Value": true
-      },
+      "argumentValue": "true",
       "locationType": "Float",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
