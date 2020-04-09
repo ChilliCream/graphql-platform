@@ -35,16 +35,16 @@ namespace HotChocolate.Validation
         public static void RegisterDirective(
             this ISchemaConfiguration context,
             string name,
-            DirectiveLocation location)
-                => RegisterDirective(context, name, location, x => x);
+            DirectiveLocation location) =>
+            RegisterDirective(context, name, location, x => x);
 
         public static void RegisterDirective(
             this ISchemaConfiguration context,
             string name,
             DirectiveLocation location,
-            Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure)
-                => context.RegisterDirective(
-                    new DirectiveType(x => configure(x.Name(name).Location(location))));
+            Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure) => 
+            context.RegisterDirective(new DirectiveType(x => 
+                configure(x.Name(name).Location(location))));
 
         public static Schema CreateSchema()
         {
