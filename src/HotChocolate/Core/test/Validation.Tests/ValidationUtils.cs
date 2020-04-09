@@ -31,6 +31,7 @@ namespace HotChocolate.Validation
             return Schema.Create(c =>
             {
                 c.RegisterQueryType<QueryType>();
+                c.RegisterMutationType<MutationType>();
                 c.RegisterType<AlienType>();
                 c.RegisterType<CatOrDogType>();
                 c.RegisterType<CatType>();
