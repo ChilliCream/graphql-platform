@@ -177,7 +177,7 @@ namespace HotChocolate.Validation
         [Fact]
         public void IgnoresUnknownArguments()
         {
-            ExpectValid(@"
+            ExpectErrors(@"
                 {
                     dog {
                         isHouseTrained(unknownArgument: true)
@@ -240,7 +240,7 @@ namespace HotChocolate.Validation
             ExpectValid(@"
                 {
                     arguments {
-                        multipleReqs(req2: 2, req1: 1)
+                        multipleReqs(x: 2, y: 1)
                     }
                 }
             ");
@@ -352,17 +352,7 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
-
-        [Fact]
-        public void IgnoresUnknownDirectives()
-        {
-            ExpectValid(@"
-                {
-                    dog @unknown
-                }
-            ");
-        }
+        } 
 
         [Fact]
         public void WithDirectivesOfValidTypes()
