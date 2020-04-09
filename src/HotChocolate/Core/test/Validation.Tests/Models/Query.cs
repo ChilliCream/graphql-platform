@@ -45,6 +45,9 @@ namespace HotChocolate.Validation
         }
 
         public object GetDogOrHuman()
+        {
+            return null;
+        }
 
         public string GetFieldWithArg(
             string arg,
