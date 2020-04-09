@@ -174,7 +174,7 @@ namespace HotChocolate.Validation.Rules
             IDocumentValidatorContext context)
         {
             context.VisitedFragments.Remove(node.Name.Value);
-            return base.Enter(node,context);
+            return base.Leave(node,context);
         }
 
         protected override ISyntaxVisitorAction Enter(
