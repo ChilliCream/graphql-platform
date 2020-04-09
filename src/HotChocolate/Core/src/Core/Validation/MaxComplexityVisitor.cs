@@ -31,8 +31,7 @@ namespace HotChocolate.Validation
                     nameof(calculateComplexity));
             }
 
-            var context = MaxComplexityVisitorContext
-                .New(schema, calculateComplexity);
+            var context = MaxComplexityVisitorContext.New(schema, calculateComplexity);
             Visit(node, context);
             return context.MaxComplexity;
         }

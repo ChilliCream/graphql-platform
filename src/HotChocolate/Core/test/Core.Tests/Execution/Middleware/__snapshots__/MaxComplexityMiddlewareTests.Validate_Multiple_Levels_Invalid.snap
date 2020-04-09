@@ -2,7 +2,7 @@
   "Data": null,
   "Errors": [
     {
-      "Message": "The operation that shall be executed has a complexity of 5.\nThe maximum allowed query complexity is 4.",
+      "Message": "The GraphQL document has an operation complexity of 8 which exceeds the max allowed operation complexity of 4.",
       "Code": null,
       "Path": null,
       "Locations": [
@@ -12,7 +12,10 @@
         }
       ],
       "Exception": null,
-      "Extensions": {}
+      "Extensions": {
+        "allowedComplexity": 4,
+        "detectedComplexity": 8
+      }
     }
   ],
   "Extensions": null,

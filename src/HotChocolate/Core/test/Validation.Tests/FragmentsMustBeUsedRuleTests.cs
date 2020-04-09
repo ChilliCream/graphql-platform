@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
        : DocumentValidatorVisitorTestBase
     {
         public FragmentsMustBeUsedRuleTests()
-            : base(services => services.AddFragmentRules())
+            : base(builder => builder.AddFragmentRules())
         {
         }
 
