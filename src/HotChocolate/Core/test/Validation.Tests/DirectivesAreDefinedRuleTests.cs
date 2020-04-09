@@ -128,7 +128,6 @@ namespace HotChocolate.Validation
                 }
             ");
         }
-
         [Fact]
         public void WithUnknownDirectives()
         {
@@ -282,6 +281,147 @@ namespace HotChocolate.Validation
             ExpectErrors(@"
                 query Foo($var: Boolean @onField) {
                     name
+                }
+            ");
+        }
+        
+        [Fact]
+        public void NoDirectives()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    name
+                } 
+            ");
+        }
+
+        [Fact]
+        public void UniqueDirectivesInDifferentLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA {
+                    field @directiveB
+                }
+            ");
+        }
+
+        [Fact]
+        public void UniqueDirectivesInSameLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA @directiveB {
+                    field @directiveA @directiveB
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameDirectivesInDifferentLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA {
+                    field @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameDirectivesInSimilarLocations()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA
+                    field @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void RepeatableDirectivesInSameLocation()
+        {
+            // arrange
+            ExpectValid(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @repeatable @repeatable {
+                    field @repeatable @repeatable
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateDirectivesInOneLocation()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void ManyDuplicateDirectivesInOneLocation()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA @directiveA @directiveA
+                }
+            ");
+        }
+
+        [Fact]
+        public void DifferentDuplicateDirectivesInOneLocation()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query {
+                    field @directiveA @directiveB @directiveA @directiveB
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateDirectivesInManyLocations()
+        {
+            // arrange
+            ExpectErrors(@"  
+                {
+                    ...Test
+                }
+                fragment Test on Query @directiveA @directiveA {
+                    field @directiveA @directiveA
                 }
             ");
         }

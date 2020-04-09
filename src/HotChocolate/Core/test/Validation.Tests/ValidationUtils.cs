@@ -1,9 +1,9 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Language;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
+using System;
 
 #nullable enable
 
@@ -34,9 +34,16 @@ namespace HotChocolate.Validation
         public static void RegisterDirective(
             this ISchemaConfiguration context,
             string name,
-            DirectiveLocation location)
-                => context.RegisterDirective(
-                    new DirectiveType(x => x.Name(name).Location(location)));
+            DirectiveLocation location) =>
+            RegisterDirective(context, name, location, x => x);
+
+        public static void RegisterDirective(
+            this ISchemaConfiguration context,
+            string name,
+            DirectiveLocation location,
+            Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure) =>
+            context.RegisterDirective(new DirectiveType(x =>
+                configure(x.Name(name).Location(location))));
 
         public static Schema CreateSchema()
         {
@@ -58,11 +65,23 @@ namespace HotChocolate.Validation
                 c.RegisterType<ComplexInput3Type>();
                 c.RegisterType<InvalidScalar>();
                 c.RegisterDirective<ComplexDirective>();
+                c.RegisterDirective(new CustomDirectiveType("directive"));
+                c.RegisterDirective(new CustomDirectiveType("directive1"));
+                c.RegisterDirective(new CustomDirectiveType("directive2"));
                 c.RegisterDirective("onMutation", DirectiveLocation.Mutation);
                 c.RegisterDirective("onQuery", DirectiveLocation.Query);
                 c.RegisterDirective("onSubscription", DirectiveLocation.Subscription);
                 c.RegisterDirective("onFragmentDefinition", DirectiveLocation.FragmentDefinition);
                 c.RegisterDirective("onVariableDefinition", DirectiveLocation.VariableDefinition);
+                c.RegisterDirective("directiveA",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("directiveB",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("directiveC",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition);
+                c.RegisterDirective("repeatable",
+                     DirectiveLocation.Field | DirectiveLocation.FragmentDefinition,
+                     x => x.Repeatable());
             });
         }
     }
