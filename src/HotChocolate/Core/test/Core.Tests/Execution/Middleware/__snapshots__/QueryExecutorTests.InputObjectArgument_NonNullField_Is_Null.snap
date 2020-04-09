@@ -2,14 +2,22 @@
   "Data": null,
   "Errors": [
     {
-      "Exception": null,
-      "message": "`baz` is a required field and cannot be null.",
-      "locations": [
+      "Message": "`baz` is a required field and cannot be null.",
+      "Code": null,
+      "Path": [
+        "z"
+      ],
+      "Locations": [
         {
           "Line": 3,
           "Column": 45
         }
-      ]
+      ],
+      "Exception": null,
+      "Extensions": {
+        "field": "baz",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
+      }
     }
   ],
   "Extensions": null,

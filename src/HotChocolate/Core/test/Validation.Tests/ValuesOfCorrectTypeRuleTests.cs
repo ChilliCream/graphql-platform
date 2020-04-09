@@ -8,7 +8,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public ValuesOfCorrectTypeRuleTests()
-            : base(builder => builder.AddInputObjectRules())
+            : base(builder => builder.AddValueRules())
         {
         }
 
@@ -416,18 +416,6 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void BadNullIntoNonNullString()
-        {
-            ExpectErrors(@"
-                {
-                    arguments {
-                        nonNullStringArgField(stringArg: null)
-                    }
-                }
-            ");
-        }
-
-        [Fact]
         public void BadStringIntoInt()
         {
             ExpectErrors(@"
@@ -488,18 +476,6 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void BadNullIntoNonNullInt()
-        {
-            ExpectErrors(@"
-                {
-                    arguments {
-                        nonNullIntArgField(intArg: null)
-                    }
-                }
-            ");
-        }
-
-        [Fact]
         public void BadStringIntoFloat()
         {
             ExpectErrors(@"
@@ -530,18 +506,6 @@ namespace HotChocolate.Validation
                 {
                     arguments {
                         floatArgField(floatArg: BAR)
-                    }
-                }
-            ");
-        }
-
-        [Fact]
-        public void BadNullIntoNonNullFloat()
-        {
-            ExpectErrors(@"
-                {
-                    arguments {
-                        nonNullFloatArgField(floatArg: null)
                     }
                 }
             ");
@@ -596,18 +560,6 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void BadNullIntoNonNullBool()
-        {
-            ExpectErrors(@"
-                {
-                    arguments {
-                        nonNullBooleanArgField(nonNullBooleanArg: null)
-                    }
-                }
-            ");
-        }
-
-        [Fact]
         public void BadFloatIntoId()
         {
             ExpectErrors(@"
@@ -638,18 +590,6 @@ namespace HotChocolate.Validation
                 {
                     arguments {
                         idArgField(idArg: TRUE)
-                    }
-                }
-            ");
-        }
-
-        [Fact]
-        public void BadNullIntoNonNullId()
-        {
-            ExpectErrors(@"
-                {
-                    arguments {
-                        nonNullIdArgField(idArg: null)
                     }
                 }
             ");
@@ -932,18 +872,6 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void BadMultipleNullValueType()
-        {
-            ExpectErrors(@"
-                {
-                    arguments {
-                        multipleReqs(x: 1, y: null)
-                    }
-                }
-            ");
-        }
-
-        [Fact]
         public void GoodOptionalArgDespiteRequiredFieldInType()
         {
             ExpectValid(@"
@@ -1043,21 +971,6 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void BadNullToNonNullField()
-        {
-            ExpectErrors(@"
-                {
-                    arguments {
-                        complexArgField(complexArg: {
-                            requiredField: true,
-                            nonNullField: null,
-                        })
-                    }
-                }
-            ");
-        }
-
-        [Fact]
         public void BadUnknownFieldOnComplexType()
         {
             // arrange
@@ -1092,7 +1005,7 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void GoodCustomerScalarAcceeptComplexLiterals()
+        public void GoodCustomerScalarAcceptsComplexLiterals()
         {
             ExpectValid(@"
                 {
