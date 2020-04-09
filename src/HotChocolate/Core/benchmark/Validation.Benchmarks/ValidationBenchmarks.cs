@@ -21,7 +21,7 @@ namespace HotChocolate.Validation.Benchmarks
         {
             _services = new ServiceCollection()
                 // new
-                .AddValidation()
+                .AddValidation().Services
                 // old
                 .AddQueryValidation()
                 .AddDefaultValidationRules()

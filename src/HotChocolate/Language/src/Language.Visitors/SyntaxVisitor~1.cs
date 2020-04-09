@@ -51,7 +51,7 @@ namespace HotChocolate.Language.Visitors
         {
             var localContext = OnBeforeEnter(node, parent, context);
             var result = Enter(node, localContext);
-            localContext = OnAfterEnter(node, parent, localContext);
+            localContext = OnAfterEnter(node, parent, localContext, result);
 
             if (result.Kind == SyntaxVisitorActionKind.Break)
             {
@@ -64,7 +64,7 @@ namespace HotChocolate.Language.Visitors
 
                 localContext = OnBeforeLeave(node, parent, localContext);
                 result = Leave(node, localContext);
-                localContext = OnAfterLeave(node, parent, localContext);
+                localContext = OnAfterLeave(node, parent, localContext, result);
             }
 
             return result;
@@ -89,7 +89,8 @@ namespace HotChocolate.Language.Visitors
         protected virtual TContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            TContext context) =>
+            TContext context,
+            ISyntaxVisitorAction action) =>
             context;
 
         protected virtual TContext OnBeforeLeave(
@@ -101,7 +102,8 @@ namespace HotChocolate.Language.Visitors
         protected virtual TContext OnAfterLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            TContext context) =>
+            TContext context,
+            ISyntaxVisitorAction action) =>
             context;
     }
 }
