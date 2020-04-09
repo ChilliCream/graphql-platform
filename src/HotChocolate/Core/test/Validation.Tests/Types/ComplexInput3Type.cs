@@ -1,7 +1,6 @@
-﻿using HotChocolate.Language;
-using HotChocolate.Types;
+﻿using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class ComplexInput3Type
         : InputObjectType
@@ -23,7 +22,7 @@ namespace HotChocolate.Validation
 
             descriptor.Field("stringListField")
                 .Type<ListType<StringType>>();
-                
+
             descriptor.Field("nonNullField")
                 .Type<NonNullType<BooleanType>>()
                 .DefaultValue(true);

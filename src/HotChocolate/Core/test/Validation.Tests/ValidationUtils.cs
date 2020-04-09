@@ -1,4 +1,5 @@
 ﻿using HotChocolate.Language;
+using HotChocolate.Validation.Types;
 
 #nullable enable
 

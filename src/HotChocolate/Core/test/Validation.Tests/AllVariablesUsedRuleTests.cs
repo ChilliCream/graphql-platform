@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -6,7 +7,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public AllVariablesUsedRuleTests()
-            : base(services => services.AddVariableRules())
+            : base(builder => builder.AddVariableRules())
         {
         }
 

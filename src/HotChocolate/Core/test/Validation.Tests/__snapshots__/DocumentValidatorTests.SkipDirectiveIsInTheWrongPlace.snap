@@ -1,0 +1,50 @@
+﻿[
+  {
+    "Message": "The field `field` does not exist on the type `Query`.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 21
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "type": "Query",
+      "field": "field",
+      "responseName": "field",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  },
+  {
+    "Message": "The specified directive is not valid the current location.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 23
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+    }
+  },
+  {
+    "Message": "The following variables were not declared: foo.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+    }
+  }
+]
