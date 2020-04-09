@@ -138,34 +138,38 @@ namespace HotChocolate.Validation
         public void DuplicateArgument()
         {
             ExpectErrors(@"
+                {
+                    arguments {
+                        ... goodNonNullArg
+                    }
+                }
                 fragment goodNonNullArg on Arguments {
                     nonNullBooleanArgField(
                         nonNullBooleanArg: true, nonNullBooleanArg: true)
                 }
             ",
             t => Assert.Equal(
-                $"Arguments are not unique.", t.Message),
-            t => Assert.Equal(
-                "The specified fragment `goodNonNullArg` " +
-                "is not used within the current document.",
-                t.Message));
+                $"More than one argument with the same name in an argument set "+
+                "is ambiguous and invalid.", t.Message));
         }
 
         [Fact]
         public void MissingRequiredArgNonNullBooleanArg()
         {
             ExpectErrors(@"
+                {
+                    arguments {
+                        ... missingRequiredArg
+                    }
+                }
+
                 fragment missingRequiredArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: null)
                 }
             ",
-            t => Assert.Equal(
-                $"The argument `nonNullBooleanArg` is required " +
-                "and does not allow null values.", t.Message),
-            t => Assert.Equal(
-                "The specified fragment `missingRequiredArg` " +
-                "is not used within the current document.",
-                t.Message));
+                t => Assert.Equal(
+                    $"The argument `nonNullBooleanArg` is required.",
+                    t.Message));
         }
 
         [Fact]
@@ -181,8 +185,8 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                $"Subscription operation `sub` must " +
-                "have exactly one root field.", t.Message),
+                $"Subscription operations must have exactly one root field.",
+                t.Message),
             t => Assert.Equal(
                 "The field `disallowedSecondRootField` does not exist " +
                 "on the type `Subscription`.", t.Message));
@@ -192,6 +196,13 @@ namespace HotChocolate.Validation
         public void FieldIsNotDefinedOnTypeInFragment()
         {
             ExpectErrors(@"
+                {
+                    dog {
+                        ... fieldNotDefined
+                        ... aliasedLyingFieldTargetNotDefined
+                    }
+                }
+
                 fragment fieldNotDefined on Dog {
                     meowVolume
                 }
@@ -205,16 +216,7 @@ namespace HotChocolate.Validation
                 "on the type `Dog`.", t.Message),
             t => Assert.Equal(
                 "The field `kawVolume` does not exist " +
-                "on the type `Dog`.", t.Message),
-            t => Assert.Equal(
-                "The specified fragment `fieldNotDefined` " +
-                "is not used within the current document.",
-                t.Message),
-            t => Assert.Equal(
-                "The specified fragment " +
-                "`aliasedLyingFieldTargetNotDefined` " +
-                "is not used within the current document.",
-                t.Message));
+                "on the type `Dog`.", t.Message));
         }
 
         [Fact]
@@ -302,10 +304,7 @@ namespace HotChocolate.Validation
                     name
                 }
             ",
-            t => Assert.Equal(
-                "The query has non-mergable fields.",
-                t.Message),
-            t => Assert.Equal(
+                t => Assert.Equal(
                 "The specified fragment `conflictingBecauseAlias` " +
                 "is not used within the current document.",
                 t.Message));
@@ -315,19 +314,20 @@ namespace HotChocolate.Validation
         public void InvalidFieldArgName()
         {
             ExpectErrors(@"
+                {
+                    dog {
+                        ... invalidArgName
+                    }
+                }
+
                 fragment invalidArgName on Dog {
                     doesKnowCommand(command: CLEAN_UP_HOUSE)
                 }
             ",
             t => Assert.Equal(
-                "The argument `dogCommand` is required and does not " +
-                "allow null values.",
-                t.Message),
-            t => Assert.Equal(
                 "The argument `command` does not exist.", t.Message),
             t => Assert.Equal(
-                "The specified fragment `invalidArgName` " +
-                "is not used within the current document.",
+                "The argument `dogCommand` is required.",
                 t.Message));
         }
 
@@ -473,7 +473,7 @@ namespace HotChocolate.Validation
             ",
             t => Assert.Equal(
                 "The parent type does not match the type condition on " +
-                "the fragment `fragmentDoesNotMatchType`.",
+                "the fragment.",
                 t.Message));
         }
 
@@ -614,44 +614,44 @@ namespace HotChocolate.Validation
                 t =>
                 {
                     Assert.Equal(
-                        "The query exceeded the maximum allowed execution " +
-                            "depth of 1.",
+                        "The GraphQL document has an operation complexity of 3 " +
+                        "which exceeds the max allowed operation complexity of 1.",
                         t.Message);
                 });
         }
 
-        public void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
+        private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
 
-        public void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
+        private void ExpectValid(ISchema schema, IDocumentValidator validator, string sourceText)
         {
             // arrange
-            schema = schema ?? ValidationUtils.CreateSchema();
-            validator = validator ?? CreateValidator();
+            schema ??= ValidationUtils.CreateSchema();
+            validator ??= CreateValidator();
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
 
             // act
-            var result = validator.Validate(schema, query);
+            DocumentValidatorResult result = validator.Validate(schema, query);
 
             // assert
             Assert.Empty(result.Errors);
         }
 
-        public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
+        private void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
             ExpectErrors(null, null, sourceText, elementInspectors);
 
-        public void ExpectErrors(
+        private void ExpectErrors(
             ISchema schema,
             IDocumentValidator validator,
             string sourceText,
             params Action<IError>[] elementInspectors)
         {
             // arrange
-            schema = schema ?? ValidationUtils.CreateSchema();
-            validator = validator ?? CreateValidator();
+            schema ??= ValidationUtils.CreateSchema();
+            validator ??= CreateValidator();
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
 
             // act
-            var result = validator.Validate(schema, query);
+            DocumentValidatorResult result = validator.Validate(schema, query);
 
             // assert
             Assert.NotEmpty(result.Errors);

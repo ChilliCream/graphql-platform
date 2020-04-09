@@ -53,7 +53,8 @@ namespace HotChocolate.Validation.Rules
             {
                 return Skip;
             }
-            else if (context.Types.TryPeek(out IType type) &&
+
+            if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
                 ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
             {
@@ -61,11 +62,9 @@ namespace HotChocolate.Validation.Rules
                 context.Types.Push(of.Type);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
