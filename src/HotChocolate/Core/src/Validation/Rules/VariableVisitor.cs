@@ -102,7 +102,7 @@ namespace HotChocolate.Validation.Rules
             context.Declared.Add(variableName);
 
             if (context.Schema.TryGetType(
-                    node.Type.NamedType().Name.Value, out INamedType type) &&
+                node.Type.NamedType().Name.Value, out INamedType type) &&
                 !type.IsInputType())
             {
                 context.Errors.Add(context.VariableNotInputType(node, variableName));
