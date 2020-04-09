@@ -2,11 +2,13 @@
   {
     "Message": "The specified directive is not valid the current location.",
     "Code": null,
-    "Path": [],
+    "Path": [
+      "name"
+    ],
     "Locations": [
       {
-        "Line": 2,
-        "Column": 23
+        "Line": 3,
+        "Column": 26
       }
     ],
     "Exception": null,

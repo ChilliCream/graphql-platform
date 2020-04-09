@@ -1,15 +1,12 @@
 ﻿[
   {
-    "Message": "The specified directive `foo` is not supported by the current schema.",
+    "Message": "The specified directive `onField` is not supported by the current schema.",
     "Code": null,
-    "Path": [
-      "dog",
-      "name"
-    ],
+    "Path": [],
     "Locations": [
       {
-        "Line": 4,
-        "Column": 30
+        "Line": 2,
+        "Column": 41
       }
     ],
     "Exception": null,
