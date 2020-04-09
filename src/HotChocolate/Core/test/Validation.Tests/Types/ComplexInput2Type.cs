@@ -1,7 +1,7 @@
 ﻿using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class ComplexInput2Type
         : InputObjectType<ComplexInput2>

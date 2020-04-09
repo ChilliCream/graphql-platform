@@ -57,7 +57,8 @@ namespace HotChocolate.Validation.Rules
             {
                 return Skip;
             }
-            else if (context.Types.TryPeek(out IType type) &&
+
+            if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
                 ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
             {
@@ -65,11 +66,9 @@ namespace HotChocolate.Validation.Rules
                 context.Types.Push(of.Type);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -91,11 +90,9 @@ namespace HotChocolate.Validation.Rules
                 context.Types.Push(variableType);
                 return base.Enter(node, context);
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -115,11 +112,9 @@ namespace HotChocolate.Validation.Rules
                 context.Directives.Push(d);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -145,7 +140,8 @@ namespace HotChocolate.Validation.Rules
                 context.UnexpectedErrorsDetected = true;
                 return Skip;
             }
-            else if (context.OutputFields.TryPeek(out IOutputField field))
+
+            if (context.OutputFields.TryPeek(out IOutputField field))
             {
                 if (field.Arguments.TryGetField(node.Name.Value, out IInputField argument))
                 {
@@ -156,11 +152,9 @@ namespace HotChocolate.Validation.Rules
                 context.UnexpectedErrorsDetected = true;
                 return Skip;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -178,7 +172,7 @@ namespace HotChocolate.Validation.Rules
         {
             context.Names.Clear();
 
-            for (int i = 0; i < node.Fields.Count; i++)
+            for (var i = 0; i < node.Fields.Count; i++)
             {
                 ObjectFieldNode field = node.Fields[i];
                 if (!context.Names.Add(field.Name.Value))
@@ -193,20 +187,23 @@ namespace HotChocolate.Validation.Rules
             {
                 return Enter((IValueNode)node, context);
             }
-            else if (namedType is InputObjectType inputObjectType)
+
+            if (namedType is InputObjectType inputObjectType)
             {
-                if (context.Names.Count < inputObjectType.Fields.Count)
+                if (context.Names.Count >= inputObjectType.Fields.Count)
                 {
-                    for (int i = 0; i < inputObjectType.Fields.Count; i++)
+                    return Continue;
+                }
+
+                for (var i = 0; i < inputObjectType.Fields.Count; i++)
+                {
+                    IInputField field = inputObjectType.Fields[i];
+                    if (field.Type.IsNonNullType() &&
+                        field.DefaultValue.IsNull() &&
+                        context.Names.Add(field.Name))
                     {
-                        IInputField field = inputObjectType.Fields[i];
-                        if (field.Type.IsNonNullType() &&
-                            field.DefaultValue.IsNull() &&
-                            context.Names.Add(field.Name))
-                        {
-                            context.Errors.Add(
-                                context.FieldIsRequiredButNull(node, field.Name));
-                        }
+                        context.Errors.Add(
+                            context.FieldIsRequiredButNull(node, field.Name));
                     }
                 }
             }
@@ -227,8 +224,7 @@ namespace HotChocolate.Validation.Rules
                 it.Fields.TryGetField(node.Name.Value, out InputField field))
             {
                 if (field.Type.IsNonNullType() &&
-                    field.DefaultValue.IsNull() &&
-                    node.Value is null)
+                    node.Value.IsNull())
                 {
                     context.Errors.Add(
                         context.FieldIsRequiredButNull(node, field.Name));
@@ -291,20 +287,16 @@ namespace HotChocolate.Validation.Rules
             if (context.Types.TryPeek(out IType currentType) &&
                 currentType is IInputType locationType)
             {
-                if (IsInstanceOfType(context, locationType, valueNode))
+                if (valueNode.IsNull() || IsInstanceOfType(context, locationType, valueNode))
                 {
                     return Skip;
                 }
-                else
-                {
-                    if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
-                        TryCreateValueError(
-                            context, locationType, valueNode, node, out IError? error))
-                    {
-                        context.Errors.Add(error);
-                        return Skip;
-                    }
 
+                if (TryPeekLastDefiningSyntaxNode(context, out ISyntaxNode? node) &&
+                    TryCreateValueError(context, locationType, valueNode, node, out IError? error))
+                {
+                    context.Errors.Add(error);
+                    return Skip;
                 }
             }
             context.UnexpectedErrorsDetected = true;
@@ -360,7 +352,7 @@ namespace HotChocolate.Validation.Rules
         {
             if (value is VariableNode v
                 && context.Variables.TryGetValue(v.Name.Value, out VariableDefinitionNode? t)
-                && t?.Type is ITypeNode typeNode)
+                && t?.Type is { } typeNode)
             {
                 return IsTypeCompatible(inputType, typeNode);
             }
@@ -380,7 +372,7 @@ namespace HotChocolate.Validation.Rules
                 && listType.ElementType is IInputType elementType
                 && value is ListValueNode list)
             {
-                for (int i = 0; i < list.Items.Count; i++)
+                for (var i = 0; i < list.Items.Count; i++)
                 {
                     if (!IsInstanceOfType(context, elementType, list.Items[i]))
                     {

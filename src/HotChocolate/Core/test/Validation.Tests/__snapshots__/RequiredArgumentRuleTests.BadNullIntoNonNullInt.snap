@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Message": "The argument `intArg` is required.",
+    "Code": null,
+    "Path": [
+      "arguments"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 44
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "type": "Arguments",
+      "field": "nonNullIntArgField",
+      "argument": "intArg",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    }
+  }
+]
