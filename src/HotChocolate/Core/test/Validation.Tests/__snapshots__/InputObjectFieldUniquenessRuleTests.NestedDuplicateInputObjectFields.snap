@@ -1,19 +1,20 @@
 ﻿[
   {
-    "Message": "There can be only one input field named `name`.",
+    "Message": "There can be only one input field named `f2`.",
     "Code": null,
     "Path": [
-      "findDog"
+      "arguments",
+      "complexArgField"
     ],
     "Locations": [
       {
-        "Line": 3,
-        "Column": 51
+        "Line": 9,
+        "Column": 33
       }
     ],
     "Exception": null,
     "Extensions": {
-      "field": "name",
+      "field": "f2",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
     }
   }
