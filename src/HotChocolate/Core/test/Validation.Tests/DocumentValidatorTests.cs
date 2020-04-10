@@ -677,18 +677,5 @@ namespace HotChocolate.Validation
                 .GetRequiredService<IDocumentValidatorFactory>()
                 .CreateValidator();
         }
-
-        private static IQueryValidator CreateValidator(
-            IQueryExecutionOptionsAccessor options)
-        {
-            IServiceCollection services = new ServiceCollection()
-                .AddOptions(options)
-                .AddQueryValidation()
-                .AddDefaultValidationRules();
-
-            return services
-                .BuildServiceProvider()
-                .GetRequiredService<IQueryValidator>();
-        }
     }
 }
