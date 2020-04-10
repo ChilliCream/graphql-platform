@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
