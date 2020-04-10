@@ -476,10 +476,11 @@ namespace HotChocolate.Execution
 
             // act
             var resolver = new VariableValueBuilder(schema, operation);
-            Action action = () => resolver.CreateValues(variableValues);
+            VariableValueCollection coercedVariableValues = 
+                resolver.CreateValues(variableValues);
 
             // assert
-            Assert.Throws<QueryException>(action);
+            Assert.Equal("bar", coercedVariableValues.GetVariable<Baz>("test").Bar);
         }
 
         [Fact]
@@ -525,10 +526,12 @@ namespace HotChocolate.Execution
 
             // act
             var resolver = new VariableValueBuilder(schema, operation);
-            Action action = () => resolver.CreateValues(variableValues);
+            VariableValueCollection variables = resolver.CreateValues(variableValues);
 
             // assert
-            Assert.Throws<QueryException>(action);
+            Baz baz = variables.GetVariable<Baz>("test");
+            Assert.Equal("foo", baz.Foo);
+            Assert.Collection(baz.Quox, t => Assert.Null(t));
         }
 
         [Fact]
