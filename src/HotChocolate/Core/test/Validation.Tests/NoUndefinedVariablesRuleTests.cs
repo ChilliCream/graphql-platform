@@ -15,7 +15,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void AllVariablesDefined()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
                     field(a: $a, b: $b, c: $c)
@@ -26,7 +25,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void AllVariablesDeeplyDefined()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
                     field(a: $a) {
@@ -41,7 +39,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void AllVariablesDeeplyInInlineFragmentsDefined()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
                     ... on Query {
@@ -60,7 +57,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void AllVariablesInFragmentsDeeplyDefined()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
                     ...FragA
@@ -84,14 +80,15 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableWithinSingleFragmentDefinedInMultipleOperations()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($a: String) {
                     ...FragA
                 }
+                
                 query Bar($a: String) {
                     ...FragA
                 }
+                
                 fragment FragA on Query {
                     field(a: $a)
                 }
@@ -101,17 +98,19 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableWithinFragmentsDefinedInOperations()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($a: String) {
                     ...FragA
                 }
+                
                 query Bar($b: String) {
                     ...FragB
                 }
+                
                 fragment FragA on Query {
                     field(a: $a)
                 }
+                
                 fragment FragB on Query {
                     field(b: $b)
                 }
@@ -121,11 +120,11 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableWithinRecursiveFragmentDefined()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($a: String) {
                     ...FragA
                 }
+                
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragA
@@ -137,7 +136,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableNotDefined()
         {
-            // arrange
             ExpectErrors(@"
                 query Foo($a: String, $b: String, $c: String) {
                     field(a: $a, b: $b, c: $c, d: $d)
@@ -148,7 +146,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableNotDefinedByUnNamedQuery()
         {
-            // arrange
             ExpectErrors(@"
                 query Foo($a: String, $b: String, $c: String) {
                     field(a: $a, b: $b, c: $c, d: $d)
@@ -159,7 +156,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void MultipleVariablesNotDefined()
         {
-            // arrange
             ExpectErrors(@"
                 query Foo($b: String) {
                     field(a: $a, b: $b, c: $c)
@@ -170,11 +166,11 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableInFragmentNotDefinedByUnNamedQuery()
         {
-            // arrange
             ExpectErrors(@" 
                 {
                     ...FragA
                 }
+                
                 fragment FragA on Query {
                     field(a: $a)
                 }
@@ -184,21 +180,23 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableInFragmentNotDefinedByOperation()
         {
-            // arrange
             ExpectErrors(@" 
                 query Foo($a: String, $b: String) {
                     ...FragA
                 }
+                
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragB
                     }
                 }
+                
                 fragment FragB on Query {
                     field(b: $b) {
                     ...FragC
                     }
                 }
+                
                 fragment FragC on Query {
                     field(c: $c)
                 }
@@ -208,21 +206,23 @@ namespace HotChocolate.Validation
         [Fact]
         public void MultipleVariablesInFragmentsNotDefined()
         {
-            // arrange
             ExpectErrors(@" 
                 query Foo($b: String) {
                     ...FragA
                 }
+                
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragB
                     }
                 }
+                
                 fragment FragB on Query {
                     field(b: $b) {
                     ...FragC
                     }
                 }
+                
                 fragment FragC on Query {
                     field(c: $c)
                 }
@@ -232,14 +232,15 @@ namespace HotChocolate.Validation
         [Fact]
         public void SingleVariableInFragmentNotDefinedByMultipleOperations()
         {
-            // arrange
             ExpectErrors(@" 
                 query Foo($a: String) {
                     ...FragAB
                 }
+                
                 query Bar($a: String) {
                     ...FragAB
                 }
+                
                 fragment FragAB on Query {
                     field(a: $a, b: $b)
                 }
@@ -249,14 +250,15 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariablesInFragmentNotDefinedByMultipleOperations()
         {
-            // arrange
             ExpectErrors(@" 
                 query Foo($b: String) {
                     ...FragAB
                 }
+                
                 query Bar($a: String) {
                     ...FragAB
                 }
+                
                 fragment FragAB on Query {
                     field(a: $a, b: $b)
                 }
@@ -266,17 +268,19 @@ namespace HotChocolate.Validation
         [Fact]
         public void VariableInFragmentUsedByOtherOperation()
         {
-            // arrange
             ExpectErrors(@" 
                 query Foo($b: String) {
                     ...FragA
                 }
+                
                 query Bar($a: String) {
                     ...FragB
                 }
+                
                 fragment FragA on Query {
                     field(a: $a)
                 }
+                
                 fragment FragB on Query {
                     field(b: $b)
                 }
@@ -286,17 +290,19 @@ namespace HotChocolate.Validation
         [Fact]
         public void MultipleUndefinedVariablesProduceMultipleErrors()
         {
-            // arrange
             ExpectErrors(@" 
                 query Foo($b: String) {
                     ...FragA
                 }
+                
                 query Bar($a: String) {
                     ...FragB
                 }
+                
                 fragment FragA on Query {
                     field(a: $a)
                 }
+                
                 fragment FragB on Query {
                     field(b: $b)
                 }
