@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
@@ -60,8 +60,8 @@ namespace HotChocolate.Validation
                 }
             ",
              t => Assert.Equal(
-                     "There are multiple fragments with the name `fragmentOne`.",
-                     t.Message));
+                 "There are multiple fragments with the name `fragmentOne`.",
+                 t.Message));
         }
 
         [Fact]
@@ -72,6 +72,7 @@ namespace HotChocolate.Validation
                 {
                     ...fragA
                 }
+                
                 fragment fragA on Query {
                     arguments { 
                         idArgField
@@ -90,16 +91,19 @@ namespace HotChocolate.Validation
                     ...fragB
                     ...fragC
                 }
+                
                 fragment fragA on Query {
                     arguments { 
                         idArgField
                     }
                 }
+                
                 fragment fragB on Query {
                     dog {
                         name
                     }
                 }
+                
                 fragment fragC on Query {
                     anyArg
                 }
@@ -134,6 +138,7 @@ namespace HotChocolate.Validation
                 query Foo {
                     ...Foo
                 }
+                
                 fragment Foo on Query {
                     dog {
                         name
@@ -150,11 +155,13 @@ namespace HotChocolate.Validation
                 {
                     ...fragA
                 }
+                
                 fragment fragA on Query {
                     arguments { 
                         idArgField
                     }
                 }
+                
                 fragment fragA on Query {
                     dog {
                         name
@@ -173,6 +180,7 @@ namespace HotChocolate.Validation
                         idArgField
                     }
                 }
+                
                 fragment fragA on Query {
                     dog {
                         name
