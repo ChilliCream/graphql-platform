@@ -1,18 +1,17 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class BooleanEqualsOperationHandler
-        : IExpressionOperationHandler
+    public static class BooleanOperationHandlers
     {
-        public bool TryHandle(
+        public static Expression Equals(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)] out Expression? expression)
+            IQueryableFilterVisitorContext context)
         {
             if (operation.Type == typeof(bool) && type.IsInstanceOfType(value))
             {
@@ -25,22 +24,37 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 object parserValue = type.ParseLiteral(value);
 
-                switch (operation.Kind)
-                {
-                    case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.Equals(
-                            property, parserValue);
-                        return true;
-
-                    case FilterOperationKind.NotEquals:
-                        expression = FilterExpressionBuilder.NotEquals(
-                            property, parserValue);
-                        return true;
-                }
+                return FilterExpressionBuilder.Equals(property, parserValue);
             }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+        }
 
-            expression = null;
-            return false;
+        public static Expression NotEquals(
+            FilterOperation operation,
+            IInputType type,
+            IValueNode value,
+            IQueryableFilterVisitorContext context)
+        {
+            if (operation.Type == typeof(bool) && type.IsInstanceOfType(value))
+            {
+                Expression property = context.GetInstance();
+
+                if (!operation.IsSimpleArrayType())
+                {
+                    property = Expression.Property(context.GetInstance(), operation.Property);
+                }
+
+                object parserValue = type.ParseLiteral(value);
+
+                return FilterExpressionBuilder.NotEquals(property, parserValue);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
     }
 }

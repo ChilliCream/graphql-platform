@@ -6,8 +6,11 @@ using System.Text;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public class FilterConventionDescriptor : IFilterConventionDescriptor
+    public class FilterConventionDescriptor
+        : IFilterConventionDescriptor
     {
+        private IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase>? _visitorDescriptor = null;
+
         protected FilterConventionDescriptor()
         {
         }
@@ -41,6 +44,13 @@ namespace HotChocolate.Types.Filters.Conventions
             GetFilterTypeName factory)
         {
             Definition.FilterTypeNameFactory = factory;
+            return this;
+        }
+
+        public IFilterConventionDescriptor Visitor(
+            IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase> visitor)
+        {
+            _visitorDescriptor = visitor;
             return this;
         }
 
@@ -113,6 +123,13 @@ namespace HotChocolate.Types.Filters.Conventions
                     }
                 }
             }
+
+            if (_visitorDescriptor != null)
+            {
+                _visitorDescriptor.Convention(Definition);
+                Definition.VisitorDefinition = _visitorDescriptor.CreateDefinition();
+            }
+
             return Definition;
         }
 

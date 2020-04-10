@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -80,5 +83,10 @@ namespace HotChocolate.Types.Filters.Conventions
         /// </summary>
         /// <returns></returns>
         IEnumerable<TryCreateImplicitFilter> GetImplicitFilterFactories();
+
+        Task ApplyFilter<T>(
+            FieldDelegate next,
+            ITypeConversion converter,
+            IMiddlewareContext context);
     }
 }

@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -50,6 +53,25 @@ namespace HotChocolate.Types.Filters.Conventions
         public NameString GetArrayFilterPropertyName()
         {
             return GetOrCreateConfiguration().ElementName;
+        }
+
+        public async Task ApplyFilter<T>(
+            FieldDelegate next,
+            ITypeConversion converter,
+            IMiddlewareContext context)
+        {
+            if (GetOrCreateConfiguration().VisitorDefinition is { } definition)
+            {
+                await definition.ApplyFilter<T>(next, converter, context).ConfigureAwait(false);
+            }
+            else
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                    .SetMessage("No visitor definiton found for this FilterConvention")
+                    .SetCode(ErrorCodes.Filtering.NoOperationNameFound)
+                    .Build());
+            }
         }
 
         public ISet<FilterOperationKind> GetAllowedOperations(FilterFieldDefintion definition)

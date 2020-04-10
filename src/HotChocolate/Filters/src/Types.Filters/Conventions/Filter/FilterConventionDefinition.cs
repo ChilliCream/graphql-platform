@@ -24,6 +24,11 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public NameString ElementName { get; set; }
 
+        public FilterVisitorDefinitionBase? VisitorDefinition
+        {
+            get; set;
+        }
+
         public GetFilterTypeName FilterTypeNameFactory { get; set; }
             = FilterConventionExtensions.FilterTypeName;
 

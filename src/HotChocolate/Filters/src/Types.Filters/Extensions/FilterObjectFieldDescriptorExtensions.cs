@@ -145,7 +145,7 @@ namespace HotChocolate.Types
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType,
-                    FilterMiddlewareContext.Create(convention.GetArgumentName()));
+                    FilterMiddlewareContext.Create(convention));
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

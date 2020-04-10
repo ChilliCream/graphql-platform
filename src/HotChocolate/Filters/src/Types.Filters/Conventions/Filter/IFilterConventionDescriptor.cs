@@ -49,8 +49,8 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <summary>
         /// Specifies the configuration of a <see cref="FilterKind"/> with a
         /// <see cref="FilterConventionTypeDescriptor"/>
-        /// </summary> 
-        /// <param name="kind">The <see cref="FilterKind"/> to configure</param>  
+        /// </summary>
+        /// <param name="kind">The <see cref="FilterKind"/> to configure</param>
         IFilterConventionTypeDescriptor Type(FilterKind kind);
 
         /// <summary>
@@ -60,10 +60,10 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterConventionDescriptor Reset();
 
         /// <summary>
-        /// Ignores a <see cref="FilterKind"/>  
+        /// Ignores a <see cref="FilterKind"/>
         /// </summary>
         /// <param name="kind">The <see cref="FilterKind"/> to ignore</param>
-        /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param> 
+        /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
         IFilterConventionDescriptor Ignore(FilterKind kind, bool ignore = true);
 
         /// <summary>
@@ -71,5 +71,12 @@ namespace HotChocolate.Types.Filters.Conventions
         /// </summary>
         /// <param name="kind">The <see cref="FilterOperationKind"/> to configure</param> 
         IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind);
+
+        /// <summary>
+        /// Configures the visitor that is used to process the filters
+        /// </summary>
+        /// <param name="visitor">The <see cref="IFilterVisitorDescriptorBase<T>"/></param>
+        IFilterConventionDescriptor Visitor(
+            IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase> visitor);
     }
 }

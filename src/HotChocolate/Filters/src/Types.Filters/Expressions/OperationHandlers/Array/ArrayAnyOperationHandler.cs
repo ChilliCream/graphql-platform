@@ -5,15 +5,13 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class ArrayAnyOperationHandler
-        : IExpressionOperationHandler
+    public static class ArrayOperationHandler
     {
-        public bool TryHandle(
+        public static Expression ArrayAny(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)] out Expression? expression)
+            IQueryableFilterVisitorContext context)
         {
             if (operation.Kind == FilterOperationKind.ArrayAny &&
                 type.IsInstanceOfType(value) &&
@@ -28,6 +26,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     propertType = baseType;
                 }
 
+                Expression expression;
                 if (parsedValue)
                 {
                     expression = FilterExpressionBuilder.Any(
@@ -41,15 +40,19 @@ namespace HotChocolate.Types.Filters.Expressions
                             propertType,
                             property));
                 }
+
                 if (context.InMemory)
                 {
                     expression =
                         FilterExpressionBuilder.NotNullAndAlso(property, expression);
                 }
-                return true;
+
+                return expression;
             }
-            expression = null;
-            return false;
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
     }
 }

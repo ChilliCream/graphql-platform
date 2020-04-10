@@ -4,10 +4,9 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class ObjectFieldHandler
-        : IExpressionFieldHandler
+    public static class ObjectFieldHandler
     {
-        public bool Enter(
+        public static bool Enter(
             FilterOperationField field,
             ObjectFieldNode node,
             IQueryableFilterVisitorContext context,
@@ -26,7 +25,7 @@ namespace HotChocolate.Types.Filters.Expressions
             return false;
         }
 
-        public void Leave(
+        public static void Leave(
             FilterOperationField field,
             ObjectFieldNode node,
             IQueryableFilterVisitorContext context)

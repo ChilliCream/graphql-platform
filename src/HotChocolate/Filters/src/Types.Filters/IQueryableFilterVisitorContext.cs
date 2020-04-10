@@ -6,10 +6,6 @@ namespace HotChocolate.Types.Filters
 {
     public interface IQueryableFilterVisitorContext
     {
-        IReadOnlyList<IExpressionOperationHandler> OperationHandlers { get; }
-
-        IReadOnlyList<IExpressionFieldHandler> FieldHandlers { get; }
-
         ITypeConversion TypeConverter { get; }
 
         bool InMemory { get; }
