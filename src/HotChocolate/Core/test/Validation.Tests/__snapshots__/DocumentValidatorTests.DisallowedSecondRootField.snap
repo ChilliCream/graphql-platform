@@ -15,7 +15,7 @@
     }
   },
   {
-    "Message": "The field `disallowedSecondRootField` does not exist on the type `Subscription`.",
+    "Message": "The field `disallowedSecondRootFieldNonExisting` does not exist on the type `Subscription`.",
     "Code": null,
     "Path": [],
     "Locations": [
@@ -27,8 +27,8 @@
     "Exception": null,
     "Extensions": {
       "type": "Subscription",
-      "field": "disallowedSecondRootField",
-      "responseName": "disallowedSecondRootField",
+      "field": "disallowedSecondRootFieldNonExisting",
+      "responseName": "disallowedSecondRootFieldNonExisting",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     }
   }

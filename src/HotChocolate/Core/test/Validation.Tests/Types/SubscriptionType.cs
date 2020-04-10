@@ -12,6 +12,14 @@ namespace HotChocolate.Validation.Types
             descriptor.Field("newMessage")
                 .Type<NonNullType<MessageType>>()
                 .Resolver(() => "foo");
+
+            descriptor.Field("disallowedSecondRootField")
+                .Type<NonNullType<BooleanType>>()
+                .Resolver(() => "foo");
+
+            descriptor.Field("disallowedThirdRootField")
+                .Type<NonNullType<BooleanType>>()
+                .Resolver(() => "foo");
         }
     }
 }

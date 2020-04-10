@@ -250,7 +250,7 @@ namespace HotChocolate.Validation
                         body
                         sender
                     }
-                    disallowedSecondRootField
+                    disallowedSecondRootFieldNonExisting
                 }
             ");
 
@@ -268,7 +268,7 @@ namespace HotChocolate.Validation
                     $"Subscription operation `sub` must " +
                     "have exactly one root field.", t.Message),
                 t => Assert.Equal(
-                    "The field `disallowedSecondRootField` does not exist " +
+                    "The field `disallowedSecondRootFieldNonExisting` does not exist " +
                     "on the type `Subscription`.", t.Message));
         }
 
