@@ -84,139 +84,6 @@ namespace GreenDonut
 
         #endregion
 
-        #region RequestBuffered
-
-        [Fact(DisplayName = "RequestBuffered: Should raised 3 times if 3 items were requested")]
-        public void RequestBuffered()
-        {
-            // arrange
-            var raiseCount = 0;
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            loader.RequestBuffered += (d, e) =>
-            {
-                Interlocked.Increment(ref raiseCount);
-            };
-
-            // act
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            // don't await in this specific case
-            loader.LoadAsync("Foo", "Bar", "Baz");
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-            // assert
-            Assert.Equal(3, raiseCount);
-        }
-
-        #endregion
-
-        #region BufferedRequests
-
-        [Fact(DisplayName = "BufferedRequests: Should return 0 if not items were requested")]
-        public void BufferedRequestsZero()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            // act
-            int result = loader.BufferedRequests;
-
-            // assert
-            Assert.Equal(0, result);
-        }
-
-        [Fact(DisplayName = "Clear: Should return 2 if two items were requested")]
-        public void BufferedRequestsTwo()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
-
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            // don't await in this specific case
-            loader.LoadAsync("Foo", "Bar");
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-            // act
-            int result = loader.BufferedRequests;
-
-            // assert
-            Assert.Equal(2, result);
-        }
-
-        #endregion
-
-        #region CachedValues
-
-        [Fact(DisplayName = "CachedValues: Should return 0 if caching is disabled")]
-        public void CachedValuesAlwaysZero()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>
-            {
-                Caching = false
-            };
-            var loader = new DataLoader<string, string>(options, fetch);
-
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            // don't await in this specific case
-            loader.LoadAsync("Foo");
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-            loader.Set("Foo", Task.FromResult("Bar"));
-
-            // act
-            int result = loader.CachedValues;
-
-            // assert
-            Assert.Equal(0, result);
-        }
-
-        [Fact(DisplayName = "CachedValues: Should return 0 if not items were requested")]
-        public void CachedValuesZero()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            // act
-            int result = loader.CachedValues;
-
-            // assert
-            Assert.Equal(0, result);
-        }
-
-        [Fact(DisplayName = "Clear: Should return 2 if two items were requested")]
-        public void CachedValuesTwo()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
-
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            // don't await in this specific case
-            loader.LoadAsync("Foo", "Bar");
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-            loader.Set("Baz", Task.FromResult("Qux"));
-
-            // act
-            int result = loader.CachedValues;
-
-            // assert
-            Assert.Equal(3, result);
-        }
-
-        #endregion
-
         #region Clear
 
         [Fact(DisplayName = "Clear: Should not throw any exception")]
@@ -241,7 +108,7 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
 
@@ -260,164 +127,7 @@ namespace GreenDonut
 
         #endregion
 
-        #region DispatchAsync
-
-        [Fact(DisplayName = "DispatchAsync: Should not throw any exception")]
-        public async Task DispatchAsyncNoException()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            // act
-            Func<Task> verify = () => loader.DispatchAsync();
-
-            // assert
-            Assert.Null(await Record.ExceptionAsync(verify)
-                .ConfigureAwait(false));
-        }
-
-        [Fact(DisplayName = "DispatchAsync: Should do nothing if batching is disabled")]
-        public async Task DispatchAsyncNoBatching()
-        {
-            // arrange
-            Result<string> expectedResult = "Bar";
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>(expectedResult);
-            var options = new DataLoaderOptions<string>
-            {
-                Batching = false
-            };
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            // this would block if batching would be enabled
-            var loadResult = await loader.LoadAsync("Foo").ConfigureAwait(false);
-
-            // act
-            await loader.DispatchAsync().ConfigureAwait(false);
-
-            // assert
-            Assert.Equal(expectedResult.Value, loadResult);
-        }
-
-        [Fact(DisplayName = "DispatchAsync: Should do a manual dispatch if auto dispatching is disabled")]
-        public async Task DispatchAsyncManual()
-        {
-            // arrange
-            Result<string> expectedResult = "Bar";
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>(expectedResult);
-            var options = new DataLoaderOptions<string>
-            {
-                AutoDispatching = false
-            };
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            Task<string> loadResult = loader.LoadAsync("Foo");
-
-            // act
-            await loader.DispatchAsync().ConfigureAwait(false);
-
-            // assert
-            Assert.Equal(expectedResult.Value, await loadResult.ConfigureAwait(false));
-        }
-
-        [Fact(DisplayName = "DispatchAsync: Should interrupt the 10 minutes delay if auto dispatching is enabled")]
-        public async Task DispatchAsyncAuto()
-        {
-            // arrange
-            Result<string> expectedResult = "Bar";
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>(expectedResult);
-            var options = new DataLoaderOptions<string>
-            {
-                BatchRequestDelay = TimeSpan.FromMinutes(10)
-            };
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            await Task.Delay(10);
-
-            Task<string> loadResult = loader.LoadAsync("Foo");
-
-            // act
-            await loader.DispatchAsync().ConfigureAwait(false);
-
-            // assert
-            Assert.Equal(expectedResult.Value, await loadResult.ConfigureAwait(false));
-        }
-
-        [Fact(DisplayName = "DispatchAsync: Should return an invalid operation exception due to 2 missing values")]
-        public async Task DispatchAsyncKeysValuesNotMatching()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>
-            {
-                BatchRequestDelay = TimeSpan.FromMinutes(10)
-            };
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            await Task.Delay(10);
-
-            Task<IReadOnlyList<string>> loadResult = loader.LoadAsync("Foo", "Bar");
-
-            await loader.DispatchAsync().ConfigureAwait(false);
-
-            // act
-            Func<Task> verify = () => loadResult;
-
-            // assert
-            await Assert.ThrowsAsync<InvalidOperationException>(verify).ConfigureAwait(false);
-        }
-
-        [Fact(DisplayName = "DispatchAsync: Should interrupt auto dispatching wait delay")]
-        public async Task DispatchAsyncInterruptDispatching()
-        {
-            // arrange
-            Result<string> expectedResult = "Bar";
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>(expectedResult);
-            var options = new DataLoaderOptions<string>
-            {
-                AutoDispatching = true,
-                BatchRequestDelay = TimeSpan.FromMinutes(1)
-            };
-            var loader = new DataLoader<string, string>(options, fetch);
-
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            // don't await in this specific case
-            loader.LoadAsync("Foo");
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-            // act
-            await loader.DispatchAsync().ConfigureAwait(false);
-
-            // assert
-            Assert.Equal(1, loader.CachedValues);
-        }
-
-        #endregion
-
         #region Dispose
-
-        [Fact(DisplayName = "Dispose: Should dispose and not throw any exception (auto dispatching enabled)")]
-        public void DisposeNoException()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>
-            {
-                AutoDispatching = true
-            };
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            // act
-            Action verify = () => loader.Dispose();
-
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
 
         [Fact(DisplayName = "Dispose: Should dispose and not throw any exception (batching & cache disabled)")]
         public void DisposeNoExceptionNobatchingAndCaching()
@@ -426,7 +136,7 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false,
+                Batch = false,
                 Caching = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
@@ -466,7 +176,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>("Bar");
             var options = new DataLoaderOptions<string>()
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var key = "Foo";
@@ -487,7 +197,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>(expectedResult);
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var key = "Foo";
@@ -508,7 +218,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var key = "Foo";
@@ -552,7 +262,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var keys = new string[0];
@@ -574,7 +284,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>("Bar");
             var options = new DataLoaderOptions<string>()
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var keys = new string[] { "Foo" };
@@ -597,7 +307,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>(expectedResult);
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var keys = new string[] { "Foo" };
@@ -643,7 +353,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var keys = new List<string>();
@@ -665,7 +375,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>("Bar");
             var options = new DataLoaderOptions<string>()
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var keys = new List<string> { "Foo" };
@@ -688,7 +398,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>(expectedResult);
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var keys = new List<string> { "Foo" };
@@ -748,7 +458,6 @@ namespace GreenDonut
                 v => Assert.Null(v),
                 v => Assert.Equal("Foo", v),
                 v => Assert.Null(v));
-            Assert.Equal(4, loader.CachedValues);
         }
 
         [Fact(DisplayName = "LoadAsync: Should result in a list of error results and cleaning up the cache because the key and value list count are not equal")]
@@ -794,7 +503,6 @@ namespace GreenDonut
                 .ThrowsAsync<InvalidOperationException>(verify)
                 .ConfigureAwait(false);
             Assert.Equal(expectedException.Message, actualException.Message);
-            Assert.Equal(0, loader.CachedValues);
         }
 
         [Fact(
@@ -822,7 +530,6 @@ namespace GreenDonut
                 .ThrowsAsync<Exception>(verify)
                 .ConfigureAwait(false);
             Assert.Equal(expectedException, actualException);
-            Assert.Equal(0, loader.CachedValues);
         }
 
         #endregion
@@ -869,7 +576,7 @@ namespace GreenDonut
             {
                 AutoDispatching = true,
                 Caching = caching,
-                Batching = batching,
+                Batch = batching,
                 MaxBatchSize = maxBatchSize
             };
             var dataLoader = new DataLoader<Guid, int>(options, fetch);
@@ -955,7 +662,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             var loader = new DataLoader<string, string>(options, fetch);
             var key = "Foo";
@@ -1107,7 +814,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>("Bar");
             var options = new DataLoaderOptions<string>()
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1130,7 +837,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>(expectedResult);
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1151,7 +858,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1197,7 +904,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1220,7 +927,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>("Bar");
             var options = new DataLoaderOptions<string>()
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1244,7 +951,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>(expectedResult);
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1292,7 +999,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1315,7 +1022,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>("Bar");
             var options = new DataLoaderOptions<string>()
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1339,7 +1046,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>(expectedResult);
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);
@@ -1453,7 +1160,7 @@ namespace GreenDonut
                 .CreateFetch<string, string>();
             var options = new DataLoaderOptions<string>
             {
-                Batching = false
+                Batch = false
             };
             IDataLoader loader = new DataLoader<string, string>(options,
                 fetch);

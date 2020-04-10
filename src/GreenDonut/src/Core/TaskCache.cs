@@ -9,7 +9,6 @@ namespace GreenDonut
         : ITaskCache
         , IDisposable
     {
-        private const int _cleanupDelay = 10;
         private readonly ConcurrentDictionary<object, CacheEntry> _cache =
             new ConcurrentDictionary<object, CacheEntry>();
         private bool _disposed;

@@ -1,4 +1,3 @@
-using System.IO;
 using System;
 using Snapshooter.Xunit;
 using Xunit;
@@ -25,9 +24,7 @@ namespace GreenDonut
             // act
             var options = new DataLoaderOptions<string>
             {
-                AutoDispatching = true,
-                Batching = false,
-                BatchRequestDelay = TimeSpan.FromSeconds(1),
+                Batch = false,
                 Cache = new TaskCache(1),
                 CacheKeyResolver = k => k,
                 CacheSize = 1,

@@ -15,32 +15,16 @@ namespace GreenDonut
         /// </summary>
         public DataLoaderOptions()
         {
-            AutoDispatching = false;
-            Batching = true;
-            BatchRequestDelay = Defaults.BatchRequestDelay;
+            Batch = true;
             CacheSize = Defaults.CacheSize;
             Caching = true;
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether auto dispatching is
-        /// enabled. The default value is <c>false</c>.
+        /// Gets or sets a value indicating whether requests should be sliced into smaller batches.
+        /// The default value is <c>true</c>.
         /// </summary>
-        public bool AutoDispatching { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether batching is enabled. The
-        /// default value is <c>true</c>.
-        /// </summary>
-        public bool Batching { get; set; }
-
-        /// <summary>
-        /// Gets or sets the time period to wait before trying to setup another
-        /// batch request. This property takes only effect if
-        /// <see cref="Batching"/> is set to <c>true</c>. The default value is
-        /// set to <c>50</c> milliseconds.
-        /// </summary>
-        public TimeSpan BatchRequestDelay { get; set; }
+        public bool Batch { get; set; }
 
         /// <summary>
         /// Gets or sets a cache instance to either share a cache instance

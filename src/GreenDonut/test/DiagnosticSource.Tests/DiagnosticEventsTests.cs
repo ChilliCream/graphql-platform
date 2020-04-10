@@ -29,9 +29,7 @@ namespace GreenDonut
                 // arrange
                 var batchOptions = new DataLoaderOptions<string>
                 {
-                    AutoDispatching = true,
-                    Batching = true,
-                    BatchRequestDelay = TimeSpan.FromMilliseconds(150),
+                    Batch = true,
                     Caching = true
                 };
                 var batchLoader = new DataLoader<string, string>(
@@ -43,8 +41,7 @@ namespace GreenDonut
                         throw new Exception("BatchError: Foo"));
                 var singleOptions = new DataLoaderOptions<string>
                 {
-                    AutoDispatching = true,
-                    Batching = false,
+                    Batch = false,
                     Caching = true
                 };
                 var singleLoader = new DataLoader<string, string>(
