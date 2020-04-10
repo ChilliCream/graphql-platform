@@ -1,6 +1,4 @@
-﻿using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -16,7 +14,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void FragmentDoesNotMatchType()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
@@ -36,7 +33,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceTypeDoesMatch()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -53,7 +49,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnionTypeDoesMatch()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -70,7 +65,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ObjectTypeDoesMatch()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -129,7 +123,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void OfTheSameObject()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -145,7 +138,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void OfTheSameObjectWithInlineFragment()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -160,7 +152,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ObjectIntoAnImplementedInterface()
         {
-            // arrange
             ExpectValid(@"
                 {
                     human{
@@ -169,6 +160,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment objectWithinInterface on Pet { ...dogFragment }
                 fragment dogFragment on Dog { barkVolume }
             ");
@@ -177,13 +169,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void ObjectIntoContainingUnion()
         {
-            // arrange
             ExpectValid(@"
                 {
                     catOrDog {
                         ...objectWithinUnion
                     }
                 }
+
                 fragment objectWithinUnion on CatOrDog { ...dogFragment }
                 fragment dogFragment on Dog { barkVolume }
             ");
@@ -192,13 +184,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnionIntoContainedObject()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
                         ...unionWithinObject
                     }
                 }
+
                 fragment unionWithinObject on Dog { ...catOrDogFragment }
                 fragment catOrDogFragment on CatOrDog { __typename }
             ");
@@ -207,7 +199,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnionIntoOverlappingInterface()
         {
-            // arrange
             ExpectValid(@"
                 {
                     human{
@@ -216,6 +207,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment unionWithinInterface on Pet { ...catOrDogFragment }
                 fragment catOrDogFragment on CatOrDog { __typename }
             ");
@@ -224,13 +216,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnionIntoOverlappingUnion()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dogOrHuman { 
                         ...unionWithinUnion 
                     }
                 }
+
                 fragment unionWithinUnion on DogOrHuman { ...catOrDogFragment }
                 fragment catOrDogFragment on CatOrDog { __typename }
             ");
@@ -239,13 +231,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoImplementedObject()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
                         ...interfaceWithinObject
                     }
                 }
+
                 fragment interfaceWithinObject on Dog { ...petFragment }
                 fragment petFragment on Pet { name }
             ");
@@ -254,15 +246,15 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoOverlappingInterface()
         {
-            // arrange
             ExpectValid(@"
                 {
                     human{
                         pets {
-                        ...interfaceWithinInterface
+                            ...interfaceWithinInterface
                         }
                     }
                 }
+
                 fragment interfaceWithinInterface on Pet { ...beingFragment }
                 fragment beingFragment on Being { name }
             ");
@@ -271,7 +263,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoOverlappingInterfaceInInlineFragment()
         {
-            // arrange
             ExpectValid(@"
                 {
                     human{
@@ -280,6 +271,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment interfaceWithinInterface on Pet { ... on Being { name } }
             ");
         }
@@ -287,13 +279,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoOverlappingUnion()
         {
-            // arrange
             ExpectValid(@"
                 {
                     catOrDog {
                         ...objectWithinUnion
                     }
                 }
+
                 fragment objectWithinUnion on CatOrDog { ...dogFragment }
                 fragment dogFragment on Dog { barkVolume }
             ");
@@ -302,7 +294,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DifferentObjectIntoObject()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human{
@@ -311,6 +302,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment invalidObjectWithinObject on Cat { ...dogFragment }
                 fragment dogFragment on Dog { barkVolume }    
             ");
@@ -319,7 +311,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DifferentObjectIntoObjectInInlineFragment()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human{
@@ -328,6 +319,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment invalidObjectWithinObjectAnon on Cat {
                     ... on Dog { barkVolume }
                 }
@@ -337,7 +329,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ObjectIntoNotImplementingInterface()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human{
@@ -346,6 +337,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment invalidObjectWithinInterface on Pet { ...humanFragment }
                 fragment humanFragment on Human { pets { name } }
             ");
@@ -354,7 +346,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ObjectIntoNotContainingUnion()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     catOrDog {
@@ -370,13 +361,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnionIntoNotContainedObject()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human {
                         ...invalidUnionWithinObject
                     }
                 }
+
                 fragment invalidUnionWithinObject on Human { ...catOrDogFragment }
                 fragment catOrDogFragment on CatOrDog { __typename }
             ");
@@ -385,7 +376,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnionIntoNonOverlappingInterface()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human{
@@ -394,6 +384,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment invalidUnionWithinInterface on Pet { ...humanOrAlienFragment }
                 fragment humanOrAlienFragment on HumanOrAlien { __typename }
             ");
@@ -402,13 +393,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnionIntoNonOverlappingUnion()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     catOrDog {
                         ...invalidUnionWithinUnion
                     }
                 }
+
                 fragment invalidUnionWithinUnion on CatOrDog { ...humanOrAlienFragment }
                 fragment humanOrAlienFragment on HumanOrAlien { __typename }
             ");
@@ -417,13 +408,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoNonImplementingObject()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     catOrDog {
                         ...invalidInterfaceWithinObject
                     }
                 }
+
                 fragment invalidInterfaceWithinObject on Cat { ...intelligentFragment }
                 fragment intelligentFragment on Intelligent { iq }
             ");
@@ -432,7 +423,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoNonOverlappingInterface()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human{
@@ -441,6 +431,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment invalidInterfaceWithinInterface on Pet {
                     ...intelligentFragment
                 }
@@ -451,7 +442,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoNonOverlappingInterfaceInInlineFragment()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human{
@@ -460,6 +450,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+
                 fragment invalidInterfaceWithinInterfaceAnon on Pet {
                     ...on Intelligent { iq }
                 }
@@ -469,13 +460,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceIntoNonOverlappingUnion()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     catOrDog {
                         ...invalidInterfaceWithinUnion
                     }
                 }
+
                 fragment invalidInterfaceWithinUnion on CatOrDog { ...petFragment }
                 fragment petFragment on HumanOrAlien { name }
             ");
