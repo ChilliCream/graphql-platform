@@ -61,7 +61,7 @@ namespace HotChocolate.Validation.Rules
                 type.NamedType() is IComplexOutputType ot &&
                 ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
             {
-                context.Count += context.Count += _options.ComplexityCalculation.Invoke(
+                context.Count += _options.ComplexityCalculation.Invoke(
                     of,
                     node,
                     of.Directives["cost"].FirstOrDefault()?.ToObject<CostDirective>(),
