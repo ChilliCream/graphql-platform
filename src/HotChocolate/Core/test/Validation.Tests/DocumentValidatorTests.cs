@@ -544,9 +544,8 @@ namespace HotChocolate.Validation
                     }
                 }
             ",
-            t => Assert.Equal(
-                "Field `name` is ambiguous.",
-                t.Message));
+            t =>
+                Assert.Equal("There can be only one input field named `name`.", t.Message));
         }
 
         [Fact]
