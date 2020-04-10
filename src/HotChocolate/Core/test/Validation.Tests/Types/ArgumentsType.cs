@@ -149,6 +149,11 @@ namespace HotChocolate.Validation.Types
                 .Argument("complexArg2", t => t.Type<ComplexInput3Type>())
                 .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
+
+            descriptor.Field("nonNullFieldWithDefault")
+                .Argument("opt1", t => t.Type<NonNullType<IntType>>().DefaultValue(0))
+                .Type<NonNullType<IntType>>()
+                .Resolver(() => null);
         }
     }
 }
