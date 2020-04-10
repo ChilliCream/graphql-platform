@@ -26,6 +26,24 @@ namespace HotChocolate.Validation.Types
             descriptor.Field("nonNullField")
                 .Type<NonNullType<BooleanType>>()
                 .DefaultValue(true);
+
+            descriptor.Field("f")
+                .Type<BooleanType>();
+
+            descriptor.Field("f1")
+                .Type<StringType>();
+
+            descriptor.Field("f2")
+                .Type<StringType>();
+
+            descriptor.Field("f3")
+                .Type<StringType>();
+
+            descriptor.Field("id")
+                .Type<IntType>();
+
+            descriptor.Field("deep")
+                .Type<ComplexInput3Type>();
         }
     }
 }

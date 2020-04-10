@@ -173,20 +173,7 @@ namespace HotChocolate.Validation
                 }
             ");
         }
-
-        [Fact]
-        public void IgnoresUnknownArguments()
-        {
-            ExpectErrors(@"
-                {
-                    dog {
-                        isHouseTrained(unknownArgument: true)
-                    }
-                }
-            ");
-        }
-
-        [Fact]
+        
         public void ArgOnOptionalArg()
         {
             ExpectValid(@"
