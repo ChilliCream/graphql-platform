@@ -57,7 +57,7 @@ namespace HotChocolate.Validation
                 }
 
                 fragment unionTypeDoesMatch on CatOrDog {
-                    name
+                    __typename
                 }
             ");
         }
