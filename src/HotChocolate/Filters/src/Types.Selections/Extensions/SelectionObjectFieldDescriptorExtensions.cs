@@ -89,7 +89,7 @@ namespace HotChocolate.Types
             ICompletionContext context)
         {
             string filterConventionArgumentName =
-                context.DescriptorContext.GetFilterNamingConvention().ArgumentName;
+                context.DescriptorContext.GetFilterConvention().GetArgumentName();
             string sortingConventionArgumentName =
                 context.DescriptorContext.GetSortingNamingConvention().ArgumentName;
             Type middlewareType = _middlewareDefinition.MakeGenericType(type);

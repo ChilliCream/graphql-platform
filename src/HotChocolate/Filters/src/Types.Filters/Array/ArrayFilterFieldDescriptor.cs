@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -15,20 +16,19 @@ namespace HotChocolate.Types.Filters
         public ArrayFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property,
-            Type type)
-            : base(context, property)
+            Type type,
+            IFilterConvention filtersConventions)
+            : base(FilterKind.Array, context, property, filtersConventions)
         {
             _type = type;
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.ArraySome,
-                FilterOperationKind.ArrayNone,
-                FilterOperationKind.ArrayAll,
-                FilterOperationKind.ArrayAny
-            };
         }
 
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
+        /// <inheritdoc/>
+        public new IArrayFilterFieldDescriptor Name(NameString value)
+        {
+            base.Name(value);
+            return this;
+        }
 
         /// <inheritdoc/>
         public new IArrayFilterFieldDescriptor BindFilters(
@@ -91,6 +91,7 @@ namespace HotChocolate.Types.Filters
         {
             return new FilterOperation(
                 _type,
+                Definition.Kind,
                 operationKind,
                 Definition.Property);
         }
@@ -121,22 +122,23 @@ namespace HotChocolate.Types.Filters
         private ArrayFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {
-            var operation = GetFilterOperation(operationKind);
-            var typeReference = GetTypeReference();
+            FilterOperation? operation = GetFilterOperation(operationKind);
+            ClrTypeReference? typeReference = GetTypeReference();
             return ArrayFilterOperationDescriptor.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
                 typeReference,
-                operation);
+                operation,
+                FilterConventions);
         }
 
         private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(
           FilterOperationKind operationKind)
         {
-            var operation = GetFilterOperation(operationKind);
+            FilterOperation? operation = GetFilterOperation(operationKind);
 
-            var typeReference = RewriteTypeToNullableType(
+            ITypeReference? typeReference = RewriteTypeToNullableType(
                 new ClrTypeReference(typeof(bool),
                     Definition.Type.Context,
                     true,
@@ -147,7 +149,8 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 typeReference,
-                operation);
+                operation,
+                FilterConventions);
         }
     }
 }

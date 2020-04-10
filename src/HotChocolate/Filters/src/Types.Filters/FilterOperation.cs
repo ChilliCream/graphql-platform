@@ -11,15 +11,19 @@ namespace HotChocolate.Types.Filters
 
         public FilterOperation(
             Type type,
+            FilterKind filterKind,
             FilterOperationKind kind,
             PropertyInfo property)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
+            FilterKind = filterKind;
             Kind = kind;
             Property = property ?? throw new ArgumentNullException(nameof(property));
         }
 
         public Type Type { get; }
+
+        public FilterKind FilterKind { get; }
 
         public FilterOperationKind Kind { get; }
 
@@ -43,7 +47,7 @@ namespace HotChocolate.Types.Filters
             }
 
             baseType = _arrayBaseType;
-            return _arrayBaseType != null;
+            return baseType != null;
         }
 
         public bool IsSimpleArrayType() => TryGetSimpleFilterBaseType(out _);

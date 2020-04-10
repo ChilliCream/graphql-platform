@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -11,17 +12,18 @@ namespace HotChocolate.Types.Filters
     {
         public BooleanFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property)
-            : base(context, property)
+            PropertyInfo property,
+            IFilterConvention filterConventions)
+            : base(FilterKind.Boolean, context, property, filterConventions)
         {
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.Equals,
-                FilterOperationKind.NotEquals,
-            };
         }
 
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
+        /// <inheritdoc/>
+        public new IBooleanFilterFieldDescriptor Name(NameString value)
+        {
+            base.Name(value);
+            return this;
+        }
 
         /// <inheritdoc/>
         public new IBooleanFilterFieldDescriptor BindFilters(
@@ -68,7 +70,6 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
-
         private BooleanFilterOperationDescriptor GetOrCreateOperation(
             FilterOperationKind operationKind)
         {
@@ -81,6 +82,7 @@ namespace HotChocolate.Types.Filters
         {
             var operation = new FilterOperation(
                 typeof(bool),
+                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -89,7 +91,8 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
-                operation);
+                operation,
+                FilterConventions);
         }
     }
 }

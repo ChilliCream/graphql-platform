@@ -81,7 +81,7 @@ namespace HotChocolate
         /// <param name="clrType">The resolved .net type.</param>
         /// <returns>
         /// <c>true</c>, if a .net type was found that was bound
-        /// the the specified schema type, <c>false</c> otherwise.
+        /// the specified schema type, <c>false</c> otherwise.
         /// </returns>
         bool TryGetClrType(NameString typeName, [NotNullWhen(true)]out Type clrType);
 

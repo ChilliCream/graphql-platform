@@ -1,10 +1,10 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
-    
     public class ObjectFilterOperationDescriptor<TObject>
         : ObjectFilterOperationDescriptor
         , IObjectFilterOperationDescriptor<TObject>
@@ -16,14 +16,10 @@ namespace HotChocolate.Types.Filters
             ObjectFilterFieldDescriptor<TObject> descriptor,
             NameString name,
             ITypeReference type,
-            FilterOperation operation)
-            : base(context, descriptor, name, type, operation)
+            FilterOperation operation,
+            IFilterConvention filterConventions)
+            : base(context, descriptor, name, type, operation, filterConventions)
         {
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-            Definition.Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Definition.Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
             _descriptor = descriptor
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
@@ -91,13 +87,17 @@ namespace HotChocolate.Types.Filters
         /// <param name="operation">
         /// The filter operation info.
         /// </param>
+        /// <param name="filterConventions">
+        /// The filter conventions
+        /// </param>
         public static ObjectFilterOperationDescriptor<TObject> New(
             IDescriptorContext context,
             ObjectFilterFieldDescriptor<TObject> descriptor,
             NameString name,
             ITypeReference type,
-            FilterOperation operation) =>
+            FilterOperation operation,
+            IFilterConvention filterConventions) =>
             new ObjectFilterOperationDescriptor<TObject>(
-                context, descriptor, name, type, operation);
+                context, descriptor, name, type, operation, filterConventions);
     }
 }

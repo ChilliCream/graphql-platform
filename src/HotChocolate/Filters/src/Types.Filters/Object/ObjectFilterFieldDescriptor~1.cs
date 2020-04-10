@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -12,9 +13,17 @@ namespace HotChocolate.Types.Filters
     {
         public ObjectFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property)
-            : base(context, property, typeof(TObject))
+            PropertyInfo property,
+            IFilterConvention filterConvention)
+            : base(context, property, typeof(TObject), filterConvention)
         {
+        }
+
+        /// <inheritdoc/>
+        public new IObjectFilterFieldDescriptor<TObject> Name(NameString value)
+        {
+            base.Name(value);
+            return this;
         }
 
         /// <inheritdoc/>
@@ -33,7 +42,6 @@ namespace HotChocolate.Types.Filters
         public new IObjectFilterFieldDescriptor<TObject> BindImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
-
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
@@ -43,6 +51,7 @@ namespace HotChocolate.Types.Filters
         {
             var operation = new FilterOperation(
                 typeof(TObject),
+                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -51,7 +60,8 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
-                operation);
+                operation,
+                FilterConventions);
         }
 
         private ObjectFilterOperationDescriptor<TObject> GetOrCreateOperation(
