@@ -72,7 +72,7 @@ namespace HotChocolate.Execution
             {
                 object defaultValue = null;
 
-                if (!variableDefinition.DefaultValue.IsNull())
+                if (variableDefinition.DefaultValue.HasNull())
                 {
                     defaultValue = variableType.NamedType().IsLeafType()
                         ? type.ParseLiteral(variableDefinition.DefaultValue)
@@ -183,6 +183,11 @@ namespace HotChocolate.Execution
                         .AddLocation(variableDefinition)
                         .Build());
                 }
+            }
+
+            if (variable.Type.TryDeserialize(value, out object obj))
+            {
+                return obj;
             }
 
             return DictionaryToObjectValueConverter.Default.Convert(
