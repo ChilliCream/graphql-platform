@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -174,7 +175,7 @@ namespace HotChocolate.Validation.Rules
             IDocumentValidatorContext context)
         {
             context.VisitedFragments.Remove(node.Name.Value);
-            return base.Leave(node,context);
+            return base.Leave(node, context);
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -237,32 +238,38 @@ namespace HotChocolate.Validation.Rules
             INamedType parentType,
             INamedType typeCondition)
         {
-            if (typeCondition.IsComplexType() &&
-                !IsCompatibleType(parentType, typeCondition))
+            if (!IsCompatibleType(context, parentType, typeCondition))
             {
                 context.Errors.Add(context.FragmentNotPossible(
                     node, typeCondition, parentType));
             }
         }
 
-        private static bool IsCompatibleType(INamedType parentType, INamedType typeCondition)
+        private static bool IsCompatibleType(
+            IDocumentValidatorContext context,
+            INamedType parentType,
+            INamedType typeCondition)
         {
             if (parentType.IsAssignableFrom(typeCondition))
             {
                 return true;
             }
-            else if (parentType.Kind == TypeKind.Object &&
-                typeCondition.Kind == TypeKind.Interface &&
-                parentType is ObjectType o &&
-                typeCondition is InterfaceType i &&
-                o.IsImplementing(i))
+
+            IReadOnlyCollection<ObjectType> types1 = context.Schema.GetPossibleTypes(parentType);
+            IReadOnlyCollection<ObjectType> types2 = context.Schema.GetPossibleTypes(typeCondition);
+
+            foreach (ObjectType a in types1)
             {
-                return true;
+                foreach (ObjectType b in types2)
+                {
+                    if (ReferenceEquals(a, b))
+                    {
+                        return true;
+                    }
+                }
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
     }
 }

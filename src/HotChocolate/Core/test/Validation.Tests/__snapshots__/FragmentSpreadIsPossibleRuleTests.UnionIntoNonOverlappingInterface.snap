@@ -8,15 +8,15 @@
     ],
     "Locations": [
       {
-        "Line": 13,
+        "Line": 11,
         "Column": 17
       }
     ],
     "Exception": null,
     "Extensions": {
-      "typeCondition": "Intelligent",
+      "typeCondition": "HumanOrAlien",
       "selectionSetType": "Pet",
-      "fragment": "intelligentFragment",
+      "fragment": "humanOrAlienFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     }
   }

@@ -635,15 +635,13 @@ namespace StrawberryShake.Generators
             try
             {
                 var serviceCollection = new ServiceCollection();
-                serviceCollection.AddQueryValidation();
-                serviceCollection.AddDefaultValidationRules();
-                serviceCollection.AddSingleton<IValidateQueryOptionsAccessor, ValidationOptions>();
-                IQueryValidator validator = serviceCollection.BuildServiceProvider()
-                    .GetService<IQueryValidator>();
+                serviceCollection.AddValidation();
+                IDocumentValidator validator = serviceCollection.BuildServiceProvider()
+                    .GetService<IDocumentValidatorFactory>().CreateValidator();
 
                 foreach (DocumentInfo documentInfo in _queries.Values)
                 {
-                    QueryValidationResult validationResult =
+                    DocumentValidatorResult validationResult =
                         validator.Validate(schema, documentInfo.Document);
 
                     if (validationResult.HasErrors)
