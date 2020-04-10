@@ -138,7 +138,7 @@ namespace HotChocolate.Validation
                     "`{0}` returns {1} value. Selections on scalars " +
                     "or enums are never allowed, because they are the leaf " +
                     "nodes of any GraphQL query.",
-                    node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "en enum")
+                    node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "an enum")
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("declaringType", declaringType.Name)
@@ -380,7 +380,7 @@ namespace HotChocolate.Validation
             ObjectFieldNode field)
         {
             return ErrorBuilder.New()
-                .SetMessage("Field `{0}` is ambiguous.", field.Name.Value)
+                .SetMessage("There can be only one input field named `{0}`.", field.Name.Value)
                 .AddLocation(field)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", field.Name.Value)
