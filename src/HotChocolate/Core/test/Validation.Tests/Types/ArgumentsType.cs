@@ -144,6 +144,10 @@ namespace HotChocolate.Validation.Types
             descriptor.Field("complexArgField")
                 .Argument("complexArg", t => t.Type<ComplexInput3Type>())
                 .Type<NonNullType<StringType>>()
+                .Argument("complexArg1", t => t.Type<ComplexInput3Type>())
+                .Type<NonNullType<StringType>>()
+                .Argument("complexArg2", t => t.Type<ComplexInput3Type>())
+                .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
 
             descriptor.Field("nonNullFieldWithDefault")
