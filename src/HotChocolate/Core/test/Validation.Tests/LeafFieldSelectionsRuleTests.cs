@@ -36,7 +36,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ScalarSelectionsNotAllowedOnInt()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
@@ -86,7 +85,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DirectQueryOnUnionWithoutSubFields()
         {
-            // arrange
             ExpectErrors(@"
                 query directQueryOnUnionWithoutSubFields {
                     catOrDog
@@ -102,7 +100,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void InterfaceTypeMissingSelection()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human { pets }
@@ -118,7 +115,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ScalarSelectionNotAllowedOnBoolean()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
@@ -138,7 +134,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ScalarSelectionNotAllowedOnEnum()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     catOrDog {
@@ -160,7 +155,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ScalarSelectionNotAllowedWithArgs()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
@@ -178,7 +172,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ScalarSelectionNotAllowedWithDirectives()
         {
-            // arrange
             ExpectErrors(@"
                 { 
                     dog {
@@ -196,7 +189,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ScalarSelectionNotAllowedWithDirectivesAndArgs()
         {
-            // arrange
             ExpectErrors(@"
                 { 
                     dog {
