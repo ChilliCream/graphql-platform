@@ -12,6 +12,7 @@ namespace HotChocolate.Validation.Types
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field(t => t.DoesKnowCommand(default))
                 .Argument("catCommand", a => a.Type<NonNullType<EnumType<CatCommand>>>());
+            descriptor.Field("furColor").Type<FurColor>().Resolver(() => null);
         }
     }
 
