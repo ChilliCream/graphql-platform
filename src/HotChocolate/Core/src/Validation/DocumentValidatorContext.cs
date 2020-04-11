@@ -85,6 +85,8 @@ namespace HotChocolate.Validation
 
         public IList<IOutputField> OutputFields { get; } = new List<IOutputField>();
 
+        public IList<FieldNode> Fields { get; } = new List<FieldNode>();
+
         public IList<IInputField> InputFields { get; } = new List<IInputField>();
 
         public ICollection<IError> Errors { get; } = new List<IError>();
@@ -101,6 +103,8 @@ namespace HotChocolate.Validation
         public int Count { get; set; }
 
         public int Max { get; set; }
+
+        public IDictionary<string, object> ContextData { get; } = new Dictionary<string, object>();
 
         public IList<FieldInfo> RentFieldInfoList()
         {
@@ -143,11 +147,13 @@ namespace HotChocolate.Validation
             Types.Clear();
             Directives.Clear();
             OutputFields.Clear();
+            Fields.Clear();
             InputFields.Clear();
             Errors.Clear();
             UnexpectedErrorsDetected = false;
             Count = 0;
             Max = 0;
+            ContextData.Clear();
         }
     }
 }
