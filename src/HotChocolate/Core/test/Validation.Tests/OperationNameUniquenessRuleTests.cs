@@ -102,9 +102,11 @@ namespace HotChocolate.Validation
                 query Foo {
                     anyArg
                 }
+                
                 mutation Bar {
                     field
                 }
+                
                 subscription Baz {
                     newMessage {
                         bdoy
@@ -120,6 +122,7 @@ namespace HotChocolate.Validation
                 query Foo {
                     ...Foo
                 }
+                
                 fragment Foo on Query {
                     anyArg
                 }
@@ -133,6 +136,7 @@ namespace HotChocolate.Validation
                 query Foo {
                     anyArg
                 }
+                
                 query Foo {
                     anyArg
                 }
@@ -146,6 +150,7 @@ namespace HotChocolate.Validation
                 query Foo {
                     anyArg
                 }
+                
                 mutation Foo {
                     fieldB
                 }
@@ -159,6 +164,7 @@ namespace HotChocolate.Validation
                 query Foo {
                     anyArg
                 }
+                
                 subscription Foo {
                     newMessage {
                         bdoy
