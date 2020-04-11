@@ -467,7 +467,7 @@ namespace HotChocolate.Execution
             // assert
             result.MatchSnapshot();
         }
-
+ 
         public async Task Valid_InputObject_Provided_As_Variable()
         {
             ISchema schema = SchemaBuilder.New()
@@ -624,7 +624,7 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public async Task Variable_In_Object_Structure_On_1st_Level()
         {
             ISchema schema = SchemaBuilder.New()
