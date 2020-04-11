@@ -6,5 +6,7 @@
         {
             return value is null || value is NullValueNode;
         }
+
+        public static bool HasNull(this IValueNode? value) => !IsNull(value);
     }
 }
