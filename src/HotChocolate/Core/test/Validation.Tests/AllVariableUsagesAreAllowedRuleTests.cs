@@ -23,9 +23,9 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "The variable `intArg` is not compatible with the " +
-                    "type of the current location.",
-                    t.Message));
+                "The variable `intArg` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
@@ -40,9 +40,9 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "The variable `booleanListArg` is not compatible with the " +
-                    "type of the current location.",
-                    t.Message));
+                "The variable `booleanListArg` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
@@ -57,9 +57,9 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "The variable `booleanArg` is not compatible with the " +
-                    "type of the current location.",
-                    t.Message));
+                "The variable `booleanArg` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
@@ -100,9 +100,9 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "The variable `nullableBoolean` is not compatible with the " +
-                    "type of the current location.",
-                    t.Message));
+                "The variable `nullableBoolean` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
@@ -117,9 +117,9 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "The variable `booleanList` is not compatible with the " +
-                    "type of the current location.",
-                    t.Message));
+                "The variable `booleanList` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
@@ -166,6 +166,7 @@ namespace HotChocolate.Validation
                 fragment booleanArgFrag on Arguments {
                     booleanArgField(booleanArg: $booleanArg)
                 }
+                
                 query Query($booleanArg: Boolean)
                 {
                     arguments {
@@ -195,6 +196,7 @@ namespace HotChocolate.Validation
                 fragment booleanArgFrag on Arguments {
                     booleanArgField(booleanArg: $nonNullBooleanArg)
                 }
+                
                 query Query($nonNullBooleanArg: Boolean!)
                 {
                     arguments {
@@ -297,7 +299,7 @@ namespace HotChocolate.Validation
         public void IntToNullableInt()
         {
             ExpectErrors(@"
-              query Query($intArg: Int) {
+                query Query($intArg: Int) {
                     arguments {
                         nonNullIntArgField(intArg: $intArg)
                     }
@@ -312,9 +314,10 @@ namespace HotChocolate.Validation
                 fragment nonNullIntArgFieldFrag on Arguments {
                     nonNullIntArgField(intArg: $intArg)
                 }
+                
                 query Query($intArg: Int) {
                     arguments {
-                    ...nonNullIntArgFieldFrag
+                        ...nonNullIntArgFieldFrag
                     }
                 }
             ");
@@ -327,12 +330,14 @@ namespace HotChocolate.Validation
                 fragment outerFrag on Arguments {
                     ...nonNullIntArgFieldFrag
                 }
+                
                 fragment nonNullIntArgFieldFrag on Arguments {
                     nonNullIntArgField(intArg: $intArg)
                 }
+                
                 query Query($intArg: Int) {
                     arguments {
-                    ...outerFrag
+                        ...outerFrag
                     }
                 }
             ");
