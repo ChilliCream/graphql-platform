@@ -17,7 +17,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void UniqueFragments()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -41,7 +40,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DuplicateFragments()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
@@ -60,8 +58,8 @@ namespace HotChocolate.Validation
                 }
             ",
              t => Assert.Equal(
-                 "There are multiple fragments with the name `fragmentOne`.",
-                 t.Message));
+                "There are multiple fragments with the name `fragmentOne`.",
+                t.Message));
         }
 
         [Fact]

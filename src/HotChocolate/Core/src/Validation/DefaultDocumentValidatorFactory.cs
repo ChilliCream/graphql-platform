@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Validation.Options;
+using HotChocolate.Validation.Properties;
 
 namespace HotChocolate.Validation
 {
@@ -22,7 +23,7 @@ namespace HotChocolate.Validation
             if (string.IsNullOrEmpty(schemaName))
             {
                 throw new ArgumentException(
-                    "The schema name is mandatory in order to create a validator.",
+                    Resources.DefaultDocumentValidatorFactory_Schema_Name_Is_Mandatory,
                     nameof(schemaName));
             }
 

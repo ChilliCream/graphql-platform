@@ -2,6 +2,7 @@ using System;
 using HotChocolate;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
+using HotChocolate.Validation.Properties;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -15,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
             if (string.IsNullOrEmpty(schemaName))
             {
                 throw new ArgumentException(
-                    "The schema name is mandatory in order to add validation rules.",
+                    Resources.ServiceCollectionExtensions_Schema_Name_Is_Mandatory,
                     nameof(schemaName));
             }
 
