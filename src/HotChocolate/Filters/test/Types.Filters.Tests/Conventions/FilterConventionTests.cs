@@ -268,5 +268,6 @@ namespace HotChocolate.Types.Filters
         {
             public string Nested { get; set; }
         }
+
     }
 }

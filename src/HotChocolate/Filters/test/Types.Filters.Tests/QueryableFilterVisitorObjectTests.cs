@@ -28,6 +28,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -61,6 +62,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -98,6 +100,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -135,20 +138,18 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Recursive),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<Recursive, bool> func = filterContext.CreateFilter<Recursive>().Compile();
-
 
             var a = new Recursive { Nested = new Recursive { Nested = new Recursive { Bar = "a" } } };
             Assert.True(func(a));
 
             var b = new Recursive { Nested = new Recursive { Nested = new Recursive { Bar = "b" } } };
             Assert.False(func(b));
-
         }
-
 
         [Fact]
         public void Create_ObjectStringEqualNull_Expression()
@@ -174,6 +175,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -191,13 +193,13 @@ namespace HotChocolate.Types.Filters
 
             var d = new EvenDeeper { Foo = new Foo { FooNested = new FooNested { Bar = "a" } } };
             Assert.True(func(d));
-
         }
 
         /**
-         * As multiple hanlders for a single property can exists, it makes sense to test mutliple porperty filterContexting too
-         * Just to see if the null checks are wrapped around the whole object and not just around the one of the expressions.
-         * With the current visitor implementation this cannot be the case. Anyway, as code lifes is good to check twice. 
+         * As multiple hanlders for a single property can exists, it makes sense to test mutliple
+         * porperty filterContexting too. Just to see if the null checks are wrapped around the
+         * whole object and not just around the one of the expressions. With the current visitor
+         * implementation this cannot be the case. Anyway, as code lifes is good to check twice.
          * */
         [Fact]
         public void Create_ObjectStringEqualNullWithMultipleFilters_Expression()
@@ -227,6 +229,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -244,7 +247,6 @@ namespace HotChocolate.Types.Filters
 
             var d = new EvenDeeper { Foo = new Foo { FooNested = new FooNested { Bar = "a" } } };
             Assert.True(func(d));
-
         }
 
         public class EvenDeeper
@@ -265,7 +267,6 @@ namespace HotChocolate.Types.Filters
             public Recursive Nested { get; set; }
             public string Bar { get; set; }
         }
-
 
         public class FooFilterType
             : FilterInputType<Foo>

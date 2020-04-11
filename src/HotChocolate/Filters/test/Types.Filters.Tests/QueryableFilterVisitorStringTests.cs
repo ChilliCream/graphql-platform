@@ -22,6 +22,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -49,6 +50,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -80,6 +82,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -107,6 +110,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -138,6 +142,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -165,6 +170,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -192,6 +198,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -219,6 +226,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -246,6 +254,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -273,6 +282,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -300,6 +310,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);

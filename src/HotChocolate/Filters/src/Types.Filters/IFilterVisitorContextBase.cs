@@ -8,6 +8,6 @@ namespace HotChocolate.Types.Filters
     {
         Stack<IType> Types { get; }
 
-        Stack<IInputField> Operations { get; } 
+        Stack<IInputField> Operations { get; }
     }
 }

@@ -9,7 +9,6 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterVisitorContextComparableTests
         : TypeTestBase
     {
-
         [Fact]
         public void Create_ShortEqual_Expression()
         {
@@ -22,7 +21,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -46,7 +49,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -71,7 +78,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -98,7 +109,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -126,7 +141,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -153,7 +172,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -182,7 +205,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -209,7 +236,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -237,7 +268,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -264,7 +299,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -296,7 +335,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -322,9 +365,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo),
-                TypeConversion.Default,
-                true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                                TypeConversion.Default,
+                                                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
@@ -348,7 +393,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -375,7 +424,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -403,7 +456,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -433,7 +490,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -451,7 +512,6 @@ namespace HotChocolate.Types.Filters
             Assert.True(func(d));
         }
 
-
         [Fact]
         public void Create_NullableShortGreaterThanOrEquals_Expression()
         {
@@ -464,7 +524,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -494,7 +558,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -526,7 +594,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -556,7 +628,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -587,7 +663,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -617,7 +697,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -652,7 +736,11 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
@@ -680,7 +768,12 @@ namespace HotChocolate.Types.Filters
             FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var context = new QueryableFilterVisitorContext(fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, context);
             Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 

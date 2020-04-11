@@ -159,7 +159,7 @@ namespace HotChocolate.Types.Filters.Conventions
         {
         }
 
-        protected FilterConventionDefinition CreateDefinition()
+        private FilterConventionDefinition CreateDefinition()
         {
             var descriptor = FilterConventionDescriptor.New();
             descriptor.UseDefault();
@@ -167,7 +167,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return descriptor.CreateDefinition();
         }
 
-        private FilterConventionDefinition GetOrCreateConfiguration()
+        protected FilterConventionDefinition GetOrCreateConfiguration()
         {
             if (_definition == null)
             {
