@@ -185,7 +185,8 @@ namespace HotChocolate.Execution
                 }
             }
 
-            if (variable.Type.TryDeserialize(value, out object obj))
+            if (!(value is IReadOnlyDictionary<string, object>) &&
+                variable.Type.TryDeserialize(value, out object obj))
             {
                 return obj;
             }
