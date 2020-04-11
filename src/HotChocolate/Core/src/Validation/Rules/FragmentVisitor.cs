@@ -159,7 +159,7 @@ namespace HotChocolate.Validation.Rules
                 }
                 else
                 {
-                    context.Errors.Add(context.FragmentOnlyCompositType(node, type.NamedType()));
+                    context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
                     return Skip;
                 }
             }
@@ -201,7 +201,7 @@ namespace HotChocolate.Validation.Rules
                 }
                 else
                 {
-                    context.Errors.Add(context.FragmentOnlyCompositType(node, type.NamedType()));
+                    context.Errors.Add(context.FragmentOnlyCompositeType(node, type.NamedType()));
                     return Skip;
                 }
             }
