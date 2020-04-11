@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -180,14 +178,14 @@ namespace HotChocolate.Validation
                         body
                         sender
                     }
-                    disallowedSecondRootField
+                    disallowedSecondRootFieldNonExisting
                 }
             ",
             t => Assert.Equal(
                 $"Subscription operations must have exactly one root field.",
                 t.Message),
             t => Assert.Equal(
-                "The field `disallowedSecondRootField` does not exist " +
+                "The field `disallowedSecondRootFieldNonExisting` does not exist " +
                 "on the type `Subscription`.", t.Message));
         }
 
@@ -544,9 +542,8 @@ namespace HotChocolate.Validation
                     }
                 }
             ",
-            t => Assert.Equal(
-                "Field `name` is ambiguous.",
-                t.Message));
+            t =>
+                Assert.Equal("There can be only one input field named `name`.", t.Message));
         }
 
         [Fact]
@@ -610,7 +607,7 @@ namespace HotChocolate.Validation
                 t =>
                 {
                     Assert.Equal(
-                        "The GraphQL document has an operation complexity of 3 " +
+                        "The GraphQL document has an operation complexity of 2 " +
                         "which exceeds the max allowed operation complexity of 1.",
                         t.Message);
                 });
@@ -677,19 +674,6 @@ namespace HotChocolate.Validation
                 .BuildServiceProvider()
                 .GetRequiredService<IDocumentValidatorFactory>()
                 .CreateValidator();
-        }
-
-        private static IQueryValidator CreateValidator(
-            IQueryExecutionOptionsAccessor options)
-        {
-            IServiceCollection services = new ServiceCollection()
-                .AddOptions(options)
-                .AddQueryValidation()
-                .AddDefaultValidationRules();
-
-            return services
-                .BuildServiceProvider()
-                .GetRequiredService<IQueryValidator>();
         }
     }
 }

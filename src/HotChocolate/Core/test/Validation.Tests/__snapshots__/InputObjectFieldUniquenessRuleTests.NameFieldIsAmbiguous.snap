@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "Field `name` is ambiguous.",
+    "Message": "There can be only one input field named `name`.",
     "Code": null,
     "Path": [
       "findDog"

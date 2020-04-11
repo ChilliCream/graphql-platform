@@ -56,9 +56,9 @@ namespace HotChocolate.Validation
             Assert.Throws<ArgumentNullException>(a);
         }
 
-        public void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
+        protected void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
 
-        public void ExpectValid(ISchema schema, string sourceText)
+        protected void ExpectValid(ISchema schema, string sourceText)
         {
             // arrange
             IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
@@ -73,10 +73,10 @@ namespace HotChocolate.Validation
             Assert.Empty(context.Errors);
         }
 
-        public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
+        protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
             ExpectErrors(null, sourceText, elementInspectors);
 
-        public void ExpectErrors(
+        protected void ExpectErrors(
             ISchema schema,
             string sourceText,
             params Action<IError>[] elementInspectors)
