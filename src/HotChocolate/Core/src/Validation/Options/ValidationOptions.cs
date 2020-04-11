@@ -18,7 +18,7 @@ namespace HotChocolate.Validation.Options
         public IList<IDocumentValidatorRule> Rules { get; } =
             new List<IDocumentValidatorRule>();
 
-        public int DefaultComplexity { get; set; }
+        public int DefaultComplexity { get; set; } = 1;
 
         public int? MaxAllowedComplexity { get; set; }
 

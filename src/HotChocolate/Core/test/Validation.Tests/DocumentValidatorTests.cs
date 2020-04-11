@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -609,7 +607,7 @@ namespace HotChocolate.Validation
                 t =>
                 {
                     Assert.Equal(
-                        "The GraphQL document has an operation complexity of 3 " +
+                        "The GraphQL document has an operation complexity of 2 " +
                         "which exceeds the max allowed operation complexity of 1.",
                         t.Message);
                 });
@@ -676,19 +674,6 @@ namespace HotChocolate.Validation
                 .BuildServiceProvider()
                 .GetRequiredService<IDocumentValidatorFactory>()
                 .CreateValidator();
-        }
-
-        private static IQueryValidator CreateValidator(
-            IQueryExecutionOptionsAccessor options)
-        {
-            IServiceCollection services = new ServiceCollection()
-                .AddOptions(options)
-                .AddQueryValidation()
-                .AddDefaultValidationRules();
-
-            return services
-                .BuildServiceProvider()
-                .GetRequiredService<IQueryValidator>();
         }
     }
 }
