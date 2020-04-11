@@ -4,19 +4,19 @@
     "Code": null,
     "Path": [
       "arguments",
-      "booleanArgField"
+      "nonNullIntArgField"
     ],
     "Locations": [
       {
-        "Line": 4,
-        "Column": 53
+        "Line": 3,
+        "Column": 48
       }
     ],
     "Exception": null,
     "Extensions": {
       "variable": "intArg",
       "variableType": "Int",
-      "locationType": "Boolean",
+      "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     }
   }
