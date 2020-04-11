@@ -83,7 +83,6 @@ namespace HotChocolate.Validation
                 c.RegisterDirective("repeatable",
                      DirectiveLocation.Field | DirectiveLocation.FragmentDefinition,
                      x => x.Repeatable());
-
             });
         }
     }
