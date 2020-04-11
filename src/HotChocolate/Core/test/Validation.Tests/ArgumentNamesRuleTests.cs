@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -86,7 +87,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ArgumentOrderDoesNotMatter()
         {
-            // arrange
             ExpectValid(@"
                 query {
                     arguments {
@@ -101,6 +101,114 @@ namespace HotChocolate.Validation
 
                 fragment multipleArgsReverseOrder on Arguments {
                     multipleReqs(y: 1, x: 2)
+                }
+            ");
+        }
+
+        [Fact]
+        public void ArgsAreKnowDeeply()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                        doesKnowCommand(dogCommand: SIT)
+                    }
+                    human {
+                        pets {
+                            ... on Dog {
+                                doesKnowCommand(dogCommand: SIT)
+                            }
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void DirectiveArgsAreKnown()
+        {
+            ExpectValid(@"
+                {
+                    dog @skip(if: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void DirectiveWithoutArgsIsValid()
+        {
+            ExpectValid(@"
+                {
+                    dog @complex
+                }
+            ");
+        }
+
+        [Fact]
+        public void DirectiveWithWrongArgsIsInvalid()
+        {
+            ExpectErrors(@"
+                {
+                    dog @complex(if:false)
+                }
+            ");
+        }
+
+        [Fact]
+        public void MisspelledDirectiveArgsAreReported()
+        {
+            ExpectErrors(@"
+                {
+                    dog @skip(iff: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void MisspelledFieldArgsAreReported()
+        {
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... invalidArgName
+                    }
+                }
+                fragment invalidArgName on Dog {
+                    doesKnowCommand(DogCommand: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void UnknownArgsAmongstKnowArgs()
+        {
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... oneGoodArgOneInvalidArg
+                    }
+                }
+                fragment oneGoodArgOneInvalidArg on Dog {
+                    doesKnowCommand(whoKnows: 1, dogCommand: SIT, unknown: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void UnknownArgsDeeply()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        doesKnowCommand(unknown: true)
+                    }
+                    human {
+                    pet {
+                        ... on Dog {
+                                doesKnowCommand(unknown: true)
+                            }
+                        }
+                    }
                 }
             ");
         }
@@ -248,6 +356,5 @@ namespace HotChocolate.Validation
                 }
             ");
         }
-
     }
 }

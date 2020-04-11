@@ -1,0 +1,32 @@
+﻿[
+  {
+    "Message": "The following variables were not declared: a.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+    }
+  },
+  {
+    "Message": "The following variables were not declared: b.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 6,
+        "Column": 17
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+    }
+  }
+]
