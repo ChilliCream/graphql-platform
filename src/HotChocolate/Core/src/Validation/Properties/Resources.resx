@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
+	<!--
 		Microsoft ResX Schema
 
 		Version 1.3
 
-		The primary goals of this format is to allow a simple XML format 
-		that is mostly human readable. The generation and parsing of the 
-		various data types are done through the TypeConverter classes 
+		The primary goals of this format is to allow a simple XML format
+		that is mostly human readable. The generation and parsing of the
+		various data types are done through the TypeConverter classes
 		associated with the data types.
 
 		Example:
@@ -26,39 +26,39 @@
 			[base64 mime encoded string representing a byte array form of the .NET Framework object]
 		</data>
 
-		There are any number of "resheader" rows that contain simple 
+		There are any number of "resheader" rows that contain simple
 		name/value pairs.
 
-		Each data row contains a name, and value. The row also contains a 
-		type or mimetype. Type corresponds to a .NET class that support 
-		text/value conversion through the TypeConverter architecture. 
-		Classes that don't support this are serialized and stored with the 
+		Each data row contains a name, and value. The row also contains a
+		type or mimetype. Type corresponds to a .NET class that support
+		text/value conversion through the TypeConverter architecture.
+		Classes that don't support this are serialized and stored with the
 		mimetype set.
 
-		The mimetype is used for serialized objects, and tells the 
-		ResXResourceReader how to depersist the object. This is currently not 
+		The mimetype is used for serialized objects, and tells the
+		ResXResourceReader how to depersist the object. This is currently not
 		extensible. For a given mimetype the value must be set accordingly:
 
-		Note - application/x-microsoft.net.object.binary.base64 is the format 
-		that the ResXResourceWriter will generate, however the reader can 
+		Note - application/x-microsoft.net.object.binary.base64 is the format
+		that the ResXResourceWriter will generate, however the reader can
 		read any of the formats listed below.
 
 		mimetype: application/x-microsoft.net.object.binary.base64
-		value   : The object must be serialized with 
+		value   : The object must be serialized with
 			: System.Serialization.Formatters.Binary.BinaryFormatter
 			: and then encoded with base64 encoding.
 
 		mimetype: application/x-microsoft.net.object.soap.base64
-		value   : The object must be serialized with 
+		value   : The object must be serialized with
 			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
 			: and then encoded with base64 encoding.
 
 		mimetype: application/x-microsoft.net.object.bytearray.base64
-		value   : The object must be serialized into a byte array 
+		value   : The object must be serialized into a byte array
 			: using a System.ComponentModel.TypeConverter
 			: and then encoded with base64 encoding.
 	-->
-	
+
 	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
 		<xsd:element name="root" msdata:IsDataSet="true">
 			<xsd:complexType>
@@ -98,4 +98,109 @@
 	<resheader name="writer">
 		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
 	</resheader>
+  <data name="ServiceCollectionExtensions_Schema_Name_Is_Mandatory" xml:space="preserve">
+    <value>The schema name is mandatory in order to add validation rules.</value>
+  </data>
+  <data name="DefaultDocumentValidatorFactory_Schema_Name_Is_Mandatory" xml:space="preserve">
+    <value>The schema name is mandatory in order to create a validator.</value>
+  </data>
+  <data name="DocumentValidatorContext_Context_Invalid_State" xml:space="preserve">
+    <value>The context has an invalid state and is missing the schema.</value>
+  </data>
+  <data name="ErrorHelper_VariableIsNotCompatible" xml:space="preserve">
+    <value>The variable `{0}` is not compatible with the type of the current location.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveNotValidInLocation" xml:space="preserve">
+    <value>The specified directive is not valid the current location.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveNotSupported" xml:space="preserve">
+    <value>The specified directive `{0}` is not supported by the current schema.</value>
+  </data>
+  <data name="ErrorHelper_TypeSystemDefinitionNotAllowed" xml:space="preserve">
+    <value>A document containing TypeSystemDefinition is invalid for execution.</value>
+  </data>
+  <data name="ErrorHelper_UnionFieldError" xml:space="preserve">
+    <value>A union type cannot declare a field directly. Use inline fragments or fragments instead.</value>
+  </data>
+  <data name="ErrorHelper_FieldDoesNotExist" xml:space="preserve">
+    <value>The field `{0}` does not exist on the type `{1}`.</value>
+  </data>
+  <data name="ErrorHelper_LeafFieldsCannotHaveSelections" xml:space="preserve">
+    <value>`{0}` returns {1} value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentValueIsNotCompatible" xml:space="preserve">
+    <value>The specified argument value does not match the argument type.</value>
+  </data>
+  <data name="ErrorHelper_FieldValueIsNotCompatible" xml:space="preserve">
+    <value>The specified value type of field `{0}` does not match the field type.</value>
+  </data>
+  <data name="ErrorHelper_VariableDefaultValueIsNotCompatible" xml:space="preserve">
+    <value>The specified value type of variable `{0}` does not match the variable type.</value>
+  </data>
+  <data name="ErrorHelper_NoSelectionOnCompositeField" xml:space="preserve">
+    <value>`{0}` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.</value>
+  </data>
+  <data name="ErrorHelper_FieldIsRequiredButNull" xml:space="preserve">
+    <value>`{0}` is a required field and cannot be null.</value>
+  </data>
+  <data name="ErrorHelper_FieldsAreNotMergable" xml:space="preserve">
+    <value>Encountered fields for the same object that cannot be merged.</value>
+  </data>
+  <data name="ErrorHelper_FragmentNameNotUnique" xml:space="preserve">
+    <value>There are multiple fragments with the name `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_FragmentNotUsed" xml:space="preserve">
+    <value>The specified fragment `{0}` is not used within the current document.</value>
+  </data>
+  <data name="ErrorHelper_FragmentCycleDetected" xml:space="preserve">
+    <value>The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.</value>
+  </data>
+  <data name="ErrorHelper_FragmentDoesNotExist" xml:space="preserve">
+    <value>The specified fragment `{0}` does not exist.</value>
+  </data>
+  <data name="ErrorHelper_FragmentNotPossible" xml:space="preserve">
+    <value>The parent type does not match the type condition on the fragment.</value>
+  </data>
+  <data name="ErrorHelper_FragmentTypeConditionUnknown" xml:space="preserve">
+    <value>Unknown type `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_FragmentOnlyCompositeType" xml:space="preserve">
+    <value>Fragments can only be declared on unions, interfaces, and objects.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldAmbiguous" xml:space="preserve">
+    <value>There can be only one input field named `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDoesNotExist" xml:space="preserve">
+    <value>The specified input object field `{0}` does not exist.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldRequired" xml:space="preserve">
+    <value>`{0}` is a required field and cannot be null.</value>
+  </data>
+  <data name="ErrorHelper_OperationNameNotUnique" xml:space="preserve">
+    <value>The operation name `{0}` is not unique.</value>
+  </data>
+  <data name="ErrorHelper_OperationAnonymousMoreThanOne" xml:space="preserve">
+    <value>GraphQL allows a short‐hand form for defining query operations when only that one operation exists in the document.</value>
+  </data>
+  <data name="ErrorHelper_VariableNotInputType" xml:space="preserve">
+    <value>The type of variable `{0}` is not an input type.</value>
+  </data>
+  <data name="ErrorHelper_VariableNameNotUnique" xml:space="preserve">
+    <value>A document containing operations that define more than one variable with the same name is invalid for execution.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentNotUnique" xml:space="preserve">
+    <value>More than one argument with the same name in an argument set is ambiguous and invalid.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentRequired" xml:space="preserve">
+    <value>The argument `{0}` is required.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDoesNotExist" xml:space="preserve">
+    <value>The argument `{0}` does not exist.</value>
+  </data>
+  <data name="ErrorHelper_SubscriptionSingleRootField" xml:space="preserve">
+    <value>Subscription operations must have exactly one root field.</value>
+  </data>
+  <data name="ErrorHelper_MaxOperationComplexity" xml:space="preserve">
+    <value>The GraphQL document has an operation complexity of {0} which exceeds the max allowed operation complexity of {1}.</value>
+  </data>
 </root>

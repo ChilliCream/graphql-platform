@@ -38,9 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            builder.Services.Configure<ValidationOptionsModifiers>(
-                builder.Name,
-                modifier => configure(modifier));
+            builder.Services.Configure(builder.Name, configure);
 
             return builder;
         }
@@ -53,10 +51,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="configureClient">
-        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
+        /// A delegate that is used to configure the <see cref="ValidationOptions"/>.
         /// </param>
         /// <returns>
-        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
+        /// An <see cref="IValidationBuilder"/> that can be used to configure
+        /// the GraphQL request validation.
         /// </returns>
         /// <remarks>
         /// The <see cref="IServiceProvider"/> provided to <paramref name="configureClient"/>
