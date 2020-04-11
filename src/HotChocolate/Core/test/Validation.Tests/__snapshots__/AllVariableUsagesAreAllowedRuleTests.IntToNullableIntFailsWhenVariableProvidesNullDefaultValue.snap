@@ -1,22 +1,22 @@
 ﻿[
   {
-    "Message": "The variable `booleanArg` is not compatible with the type of the current location.",
+    "Message": "The variable `intVar` is not compatible with the type of the current location.",
     "Code": null,
     "Path": [
       "arguments",
-      "nonNullBooleanArgField"
+      "nonNullIntArgField"
     ],
     "Locations": [
       {
         "Line": 4,
-        "Column": 67
+        "Column": 52
       }
     ],
     "Exception": null,
     "Extensions": {
-      "variable": "booleanArg",
-      "variableType": "Boolean",
-      "locationType": "Boolean!",
+      "variable": "intVar",
+      "variableType": "Int",
+      "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     }
   }
