@@ -8,7 +8,7 @@ using StrawberryShake.Http;
 using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Transport;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishClientResultParser
@@ -34,7 +34,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         }
 
-        private global::StrawberryShake.Tools.SchemaRegistry.IPublishClientPayload ParsePublishClientPublishClient(
+        private global::StrawberryShake.IPublishClientPayload ParsePublishClientPublishClient(
             JsonElement parent,
             string field)
         {

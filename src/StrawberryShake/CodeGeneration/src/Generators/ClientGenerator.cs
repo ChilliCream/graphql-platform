@@ -41,6 +41,7 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo(ScalarNames.Date, typeof(DateTime), typeof(string)),
                 new LeafTypeInfo(ScalarNames.DateTime, typeof(DateTimeOffset), typeof(string)),
                 new LeafTypeInfo(ScalarNames.Byte, typeof(byte) , typeof(byte)),
+                new LeafTypeInfo(ScalarNames.ByteArray, typeof(byte[]) , typeof(string)),
                 new LeafTypeInfo(ScalarNames.Short, typeof(short)),
                 new LeafTypeInfo(ScalarNames.Long, typeof(long)),
                 new LeafTypeInfo(ScalarNames.Decimal, typeof(decimal), typeof(decimal)),
@@ -313,7 +314,7 @@ namespace StrawberryShake.Generators
             }
 
             IDocumentHashProvider hashProvider = _hashProvider
-                ?? new MD5DocumentHashProvider();
+                ?? new MD5DocumentHashProvider(HashFormat.Hex);
             _namespace = _namespace ?? "StrawberryShake.Client";
 
             // create schema
@@ -386,7 +387,7 @@ namespace StrawberryShake.Generators
             }
 
             IDocumentHashProvider hashProvider = _hashProvider
-                ?? new MD5DocumentHashProvider();
+                ?? new MD5DocumentHashProvider(HashFormat.Hex);
             _namespace = _namespace ?? "StrawberryShake.Client";
 
             // create schema
@@ -415,7 +416,6 @@ namespace StrawberryShake.Generators
 
             File.WriteAllText(fileName, JsonSerializer.Serialize(persistedQueries));
         }
-
 
         private DocumentNode MergeSchema()
         {
@@ -635,15 +635,13 @@ namespace StrawberryShake.Generators
             try
             {
                 var serviceCollection = new ServiceCollection();
-                serviceCollection.AddQueryValidation();
-                serviceCollection.AddDefaultValidationRules();
-                serviceCollection.AddSingleton<IValidateQueryOptionsAccessor, ValidationOptions>();
-                IQueryValidator validator = serviceCollection.BuildServiceProvider()
-                    .GetService<IQueryValidator>();
+                serviceCollection.AddValidation();
+                IDocumentValidator validator = serviceCollection.BuildServiceProvider()
+                    .GetService<IDocumentValidatorFactory>().CreateValidator();
 
                 foreach (DocumentInfo documentInfo in _queries.Values)
                 {
-                    QueryValidationResult validationResult =
+                    DocumentValidatorResult validationResult =
                         validator.Validate(schema, documentInfo.Document);
 
                     if (validationResult.HasErrors)

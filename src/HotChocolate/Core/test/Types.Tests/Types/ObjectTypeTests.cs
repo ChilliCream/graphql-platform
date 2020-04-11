@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Relay;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -108,7 +109,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntArgumentIsInferedAsNonNullType()
+        public void IntArgumentIsinferredAsNonNullType()
         {
             // arrange
             // act
@@ -546,7 +547,7 @@ namespace HotChocolate.Types
                 }
 
                 type C implements A & B {
-                    a(a: String!): String
+                    a(a: [String]): String
                 }";
 
             // act
@@ -580,7 +581,7 @@ namespace HotChocolate.Types
                 }
 
                 type C implements A & B {
-                    a(a: String): String!
+                    a(a: String): Int
                 }";
 
             // act
@@ -1186,7 +1187,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces.Values.First());
+                fooType.Interfaces[0]);
         }
 
         [Fact]
@@ -1625,6 +1626,64 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
+        {
+            SchemaBuilder.New()
+                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddType<SomeTypeExtensionWithInterface>()
+                .Use(next => context => Task.CompletedTask)
+                .EnableRelaySupport()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Interfaces_From_Type_Extensions_Are_Merged()
+        {
+            SchemaBuilder.New()
+                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddDocumentFromString("extend type Some implements Node { id: ID! }")
+                .Use(next => context => Task.CompletedTask)
+                .EnableRelaySupport()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Nested_Lists_With_Sdl_First()
+        {
+            SchemaBuilder.New()
+                .AddDocumentFromString("type Query { some: [[Some]] } type Some { foo: String }")
+                .Use(next => context => Task.CompletedTask)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Nested_Lists_With_Code_First()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithNestedList>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Nested_Lists_With_Code_First()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithNestedList>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ fooMatrix { baz } }")
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1784,6 +1843,26 @@ namespace HotChocolate.Types
             public string Field2(
                 [DefaultValue(null)]string a,
                 [DefaultValue("abc")]string b) => null;
+        }
+
+        [ExtendObjectType(Name = "Some")]
+        public class SomeTypeExtensionWithInterface
+            : INode
+        {
+            [GraphQLType(typeof(NonNullType<IdType>))]
+            public string Id { get; }
+        }
+
+        public class QueryWithNestedList
+        {
+            public List<List<FooIgnore>> FooMatrix =>
+                new List<List<FooIgnore>>
+                {
+                    new List<FooIgnore>
+                    {
+                        new FooIgnore()
+                    }
+                };
         }
     }
 }

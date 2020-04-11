@@ -16,7 +16,7 @@ interface SEOProperties {
   title: string;
 }
 
-const SEO: FunctionComponent<SEOProperties> = ({
+export const SEO: FunctionComponent<SEOProperties> = ({
   description,
   lang,
   meta,
@@ -68,7 +68,7 @@ const SEO: FunctionComponent<SEOProperties> = ({
         },
         {
           name: `twitter:creator`,
-          content: site.siteMetadata.author,
+          content: `@${site.siteMetadata.author}`,
         },
         {
           name: `twitter:title`,
@@ -89,5 +89,3 @@ SEO.defaultProps = {
   meta: [],
   description: ``,
 };
-
-export default SEO;

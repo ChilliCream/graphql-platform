@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Types;
 
@@ -9,7 +8,7 @@ namespace HotChocolate
     internal sealed class SchemaTypes
     {
         private readonly Dictionary<NameString, INamedType> _types;
-        private readonly Dictionary<NameString, ImmutableList<ObjectType>> _possibleTypes;
+        private readonly Dictionary<NameString, List<ObjectType>> _possibleTypes;
 
         public SchemaTypes(SchemaTypesDefinition definition)
         {
@@ -79,24 +78,30 @@ namespace HotChocolate
 
         public bool TryGetPossibleTypes(
             string abstractTypeName,
-            out ImmutableList<ObjectType> types)
+            out IReadOnlyList<ObjectType> types)
         {
-            return _possibleTypes.TryGetValue(abstractTypeName, out types);
+            if (_possibleTypes.TryGetValue(abstractTypeName, out List<ObjectType> pt))
+            {
+                types = pt;
+                return true;
+            }
+
+            types = null;
+            return false;
         }
 
-        private static Dictionary<NameString, ImmutableList<ObjectType>> CreatePossibleTypeLookup(
+        private static Dictionary<NameString, List<ObjectType>> CreatePossibleTypeLookup(
             IReadOnlyCollection<INamedType> types)
         {
-            var possibleTypes =
-                new Dictionary<NameString, List<ObjectType>>();
+            var possibleTypes = new Dictionary<NameString, List<ObjectType>>();
 
             foreach (ObjectType objectType in types.OfType<ObjectType>())
             {
-                foreach (InterfaceType interfaceType in
-                    objectType.Interfaces.Values)
+                possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
+
+                foreach (InterfaceType interfaceType in objectType.Interfaces)
                 {
-                    if (!possibleTypes.TryGetValue(
-                        interfaceType.Name, out List<ObjectType> pt))
+                    if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType> pt))
                     {
                         pt = new List<ObjectType>();
                         possibleTypes[interfaceType.Name] = pt;
@@ -121,8 +126,7 @@ namespace HotChocolate
                 }
             }
 
-            return possibleTypes.ToDictionary(
-                t => t.Key, t => t.Value.ToImmutableList());
+            return possibleTypes;
         }
     }
 }

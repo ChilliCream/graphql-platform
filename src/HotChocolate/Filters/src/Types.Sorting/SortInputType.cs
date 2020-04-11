@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Sorting
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        public Type EntityType { get; private set; }
+        public Type EntityType { get; private set; } = typeof(object);
 
         #region Configuration
 
@@ -59,9 +59,11 @@ namespace HotChocolate.Types.Sorting
         {
             base.OnCompleteType(context, definition);
 
-            EntityType = definition is SortInputTypeDefinition ft
-                ? ft.EntityType
-                : typeof(object);
+            if (definition is SortInputTypeDefinition ft &&
+                ft.EntityType is { })
+            {
+                EntityType = ft.EntityType;
+            }
         }
 
         protected override void OnCompleteFields(

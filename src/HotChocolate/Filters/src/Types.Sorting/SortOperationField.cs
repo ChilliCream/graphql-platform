@@ -9,6 +9,6 @@ namespace HotChocolate.Types.Sorting
             Operation = definition.Operation;
         }
 
-        public SortOperation Operation { get; }
+        public SortOperation? Operation { get; }
     }
 }

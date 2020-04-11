@@ -1,6 +1,9 @@
 using System;
 using System.Buffers.Text;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
@@ -87,6 +90,8 @@ namespace HotChocolate.Language
         }
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="FloatValueNode"/>
@@ -215,17 +220,25 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Returns a <see cref="string"/> that represents the current
-        /// <see cref="FloatValueNode"/>.
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
         /// </summary>
         /// <returns>
-        /// A <see cref="string"/> that represents the current
-        /// <see cref="FloatValueNode"/>.
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
         /// </returns>
-        public override string? ToString()
-        {
-            return Value;
-        }
+        public override string ToString() => SyntaxPrinter.Print(this, true);
+
+        /// <summary>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </summary>
+        /// <param name="indented">
+        /// A value that indicates whether the GraphQL output should be formatted,
+        /// which includes indenting nested GraphQL tokens, adding
+        /// new lines, and adding white space between property names and values.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+        /// </returns>
+        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
         public float ToSingle()
         {

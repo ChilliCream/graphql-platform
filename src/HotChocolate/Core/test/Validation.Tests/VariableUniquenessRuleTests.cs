@@ -1,13 +1,14 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class VariableUniquenessRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public VariableUniquenessRuleTests()
-            : base(new VariableUniquenessRule())
+            : base(builder => builder.AddVariableRules())
         {
         }
 
@@ -15,21 +16,22 @@ namespace HotChocolate.Validation
         public void OperationWithTwoVariablesThatHaveTheSameName()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Single(context.Errors);
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "A document containing operations that " +
                     "define more than one variable with the same " +
@@ -40,24 +42,53 @@ namespace HotChocolate.Validation
         public void NoOperationHasVariablesThatShareTheSameName()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
-                    field @skip(if: $foo) {
-                        subfieldA
+                    dog @skip(if: $foo) {
+                        isHouseTrained
                     }
-                    field @skip(if: $bar) {
-                        subfieldB
+                    dog @skip(if: $bar) {
+                        isHouseTrained
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
+        [Fact]
+        public void TwoOperationsThatShareVariableName()
+        {
+            // arrange
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query A($atOtherHomes: Boolean) {
+                  ...HouseTrainedFragment
+                }
+
+                query B($atOtherHomes: Boolean) {
+                  ...HouseTrainedFragment
+                }
+
+                fragment HouseTrainedFragment on Query {
+                  dog {
+                    isHouseTrained(atOtherHomes: $atOtherHomes)
+                  }
+                }
+            ");
+            context.Prepare(query);
+
+            // act
+            Rule.Validate(context, query);
+
+            // assert
+            Assert.Empty(context.Errors);
+        }
     }
 }

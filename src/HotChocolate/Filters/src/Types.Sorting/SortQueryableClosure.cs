@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -20,11 +19,13 @@ namespace HotChocolate.Types.Sorting
         public ParameterExpression Parameter { get; }
 
         private Stack<Expression> Instance { get; }
+
         private Stack<PropertyInfo> Property { get; }
 
         public SortOperationInvocation CreateSortOperation(SortOperationKind kind)
         {
-            return new SortOperationInvocation(kind, Parameter, Instance.Peek());
+            return new SortOperationInvocation(
+                kind, Parameter, Instance.Peek(), Property.Peek().PropertyType);
         }
 
         public SortOperationInvocation CreateInMemorySortOperation(
@@ -44,7 +45,8 @@ namespace HotChocolate.Types.Sorting
                             enumerator.Current, nextExpression, defaultOfType);
                 }
             }
-            return new SortOperationInvocation(kind, Parameter, nextExpression);
+            return new SortOperationInvocation(
+                kind, Parameter, nextExpression, Property.Peek().PropertyType);
         }
 
         public void EnqueueProperty(PropertyInfo property)

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Delegation
@@ -42,6 +44,8 @@ namespace HotChocolate.Stitching.Delegation
         public string Value => Scope.Value + ":" + Name.Value;
 
         object IValueNode.Value => Value;
+
+        public IEnumerable<ISyntaxNode> GetNodes() => Enumerable.Empty<ISyntaxNode>();
 
         /// <summary>
         /// Determines whether the specified <see cref="ScopedVariableNode"/>
@@ -159,6 +163,11 @@ namespace HotChocolate.Stitching.Delegation
         public override string ToString()
         {
             return Value;
+        }
+
+        public string ToString(bool indented)
+        {
+            throw new NotSupportedException();
         }
 
         public VariableNode ToVariableNode()

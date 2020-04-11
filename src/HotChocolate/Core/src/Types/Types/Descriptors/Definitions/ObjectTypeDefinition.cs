@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class ObjectTypeDefinition
         : TypeDefinitionBase<ObjectTypeDefinitionNode>
+        , IComplexOutputTypeDefinition
     {
         public override Type ClrType
         {
@@ -20,6 +20,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public Type FieldBindingType { get; set; }
 
+        public IList<Type> KnownClrTypes { get; } = new List<Type>();
+
         public IsOfType IsOfType { get; set; }
 
         public IList<ITypeReference> Interfaces { get; } =
@@ -28,8 +30,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration>
-            GetConfigurations()
+        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
         {
             var configs = new List<ILazyTypeConfiguration>();
 

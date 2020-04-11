@@ -33,7 +33,8 @@ namespace HotChocolate.AspNetCore.Voyager
         /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
-            string queryUrl = BuildUrl(context.Request, _queryPath);
+            string queryUrl = _options.GraphQLEndpoint?.AbsoluteUri
+                ?? BuildUrl(context.Request, _queryPath);
 
             context.Response.ContentType = "application/javascript";
 

@@ -14,7 +14,7 @@ namespace StrawberryShake.Generators.Utilities
             {
                 if (current is ObjectType cot)
                 {
-                    return cot.Interfaces.ContainsKey(it.Name);
+                    return cot.IsImplementing(it);
                 }
 
                 if (current is InterfaceType cit)

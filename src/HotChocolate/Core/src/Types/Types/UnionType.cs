@@ -38,11 +38,24 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
+        public override bool IsAssignableFrom(INamedType namedType)
+        {
+            switch (namedType.Kind)
+            {
+                case TypeKind.Union:
+                    return ReferenceEquals(namedType, this);
+
+                case TypeKind.Object:
+                    return _typeMap.ContainsKey(((ObjectType)namedType).Name);
+
+                default:
+                    return false;
+            }
+        }
+
         public ObjectType ResolveType(
             IResolverContext context, object resolverResult) =>
             _resolveAbstractType(context, resolverResult);
-
-        #region Initialization
 
         protected override UnionTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -155,7 +168,5 @@ namespace HotChocolate.Types
                 _resolveAbstractType = resolveAbstractType;
             }
         }
-
-        #endregion
     }
 }

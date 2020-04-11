@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -9,8 +9,9 @@ namespace HotChocolate.Language
             Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<NamedTypeNode> interfaces,
             IReadOnlyList<FieldDefinitionNode> fields)
-            : base(location, name, directives, fields)
+            : base(location, name, directives, interfaces, fields)
         {
         }
     }

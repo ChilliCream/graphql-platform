@@ -1,28 +1,22 @@
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL`,
-    description: `...`,
-    author: `@Chilli_Cream`,
+    description: `We're building the ultimate GraphQL platform`,
+    author: `Chilli_Cream`,
+    baseUrl: `https://chillicream.com`,
+    repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
         name: `Platform`,
-        link: `/`,
+        link: `/platform`,
       },
       {
         name: `Docs`,
-        link: `/`,
-      },
-      {
-        name: `Resources`,
-        link: `/`,
-      },
-      {
-        name: `Contact Us`,
-        link: `/`,
+        link: `/docs/hotchocolate`,
       },
       {
         name: `Blog`,
-        link: `/`,
+        link: `/blog`,
       },
       {
         name: `Shop`,
@@ -35,11 +29,31 @@ module.exports = {
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
-  pathPrefix: "/hotchocolate",
+  pathPrefix: "/hotchocolate", // todo: must be removed before we go online
   plugins: [
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
+    {
+      resolve: `gatsby-plugin-react-redux`,
+      options: {
+        pathToCreateStoreModule: `./src/state`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `blog`,
+        path: `${__dirname}/src/blog`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `docs`,
+        path: `${__dirname}/src/docs`,
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
@@ -53,6 +67,35 @@ module.exports = {
         rule: {
           include: /images\/.*\.svg/,
         },
+      },
+    },
+    {
+      resolve: `gatsby-plugin-disqus`,
+      options: {
+        shortname: `chillicream`,
+      },
+    },
+    `gatsby-transformer-json`,
+    {
+      resolve: `gatsby-transformer-remark`,
+      options: {
+        plugins: [
+          `gatsby-remark-autolink-headers`,
+          `gatsby-remark-reading-time`,
+          `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-prismjs`,
+            options: {
+              showLineNumbers: false,
+            },
+          },
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              maxWidth: 800,
+            },
+          },
+        ],
       },
     },
     `gatsby-transformer-sharp`,
@@ -78,14 +121,10 @@ module.exports = {
       },
     },
     {
-      resolve: `gatsby-plugin-gdpr-cookies`,
+      resolve: `gatsby-plugin-google-analytics`,
       options: {
-        googleAnalytics: {
-          trackingId: "UA-72800164-1",
-          cookieName: "chillicream-gdpr-google-analytics",
-          anonymize: true,
-        },
-        environments: ["production", "development"],
+        trackingId: "UA-72800164-1",
+        anonymize: true,
       },
     },
     // this (optional) plugin enables Progressive Web App + Offline functionality

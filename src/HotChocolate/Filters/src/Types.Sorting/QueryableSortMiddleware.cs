@@ -33,7 +33,8 @@ namespace HotChocolate.Types.Sorting
                 return;
             }
 
-            IQueryable<T> source = null;
+            IQueryable<T>? source = null;
+            PageableData<T>? p = null;
 
             if (context.Result is IQueryable<T> q)
             {
@@ -44,32 +45,25 @@ namespace HotChocolate.Types.Sorting
                 source = e.AsQueryable();
             }
 
-            if (context.Result is PageableData<T> p)
+            if (context.Result is PageableData<T> pb)
             {
-                source = p.Source;
-            }
-            else
-            {
-                p = null;
+                source = pb.Source;
+                p = pb;
             }
 
-            if (source != null
-                && context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot
-                && iot is ISortInputType fit)
+            if (source != null &&
+                context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
+                iot is ISortInputType fit &&
+                fit.EntityType is { })
             {
-                QueryableSortVisitor visitor;
-                if (source is EnumerableQuery)
-                {
-                    visitor = new QueryableSortVisitorInMemory(iot, fit.EntityType);
-                }
-                else
-                {
-                    visitor = new QueryableSortVisitor(iot, fit.EntityType);
-                }
+                var visitorCtx = new QueryableSortVisitorContext(
+                    iot,
+                    fit.EntityType,
+                    source is EnumerableQuery);
 
-                sortArgument.Accept(visitor);
+                QueryableSortVisitor.Default.Visit(sortArgument, visitorCtx);
 
-                source = visitor.Sort(source);
+                source = visitorCtx.Sort(source);
                 context.Result = p is null
                     ? (object)source
                     : new PageableData<T>(source, p.Properties);

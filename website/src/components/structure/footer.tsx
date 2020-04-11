@@ -2,6 +2,7 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetFooterDataQuery } from "../../../graphql-types";
+import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
 import GithubIconSvg from "../../images/github.svg";
@@ -42,20 +43,30 @@ export const Footer: FunctionComponent = () => {
             <LogoText />
           </Logo>
           <Description>
-            We at ChilliCream build the next great GraphQL platform.
-            <br /> Most of our code is open-source and stays forever
-            open-source.
-            <br /> You can be part of it by helping us today.
+            We at ChilliCream build the ultimate GraphQL platform.
+            <br />
+            Most of our code is open-source and remains forever open-source.
+            <br />
+            You can be part of it by helping us starting today.
           </Description>
           <Connect>
             <ConnectLink to={tools!.github!}>
-              <GithubIcon /> to work with us on the platform
+              <IconContainer>
+                <GithubIcon />
+              </IconContainer>{" "}
+              to work with us on the platform
             </ConnectLink>
             <ConnectLink to={tools!.slack!}>
-              <SlackIcon /> to get in touch with us
+              <IconContainer>
+                <SlackIcon />
+              </IconContainer>{" "}
+              to get in touch with us
             </ConnectLink>
             <ConnectLink to={tools!.twitter!}>
-              <TwitterIcon /> to stay up-to-date
+              <IconContainer>
+                <TwitterIcon />
+              </IconContainer>{" "}
+              to stay up-to-date
             </ConnectLink>
           </Connect>
         </About>
@@ -87,8 +98,9 @@ const Container = styled.footer<{ url: string }>`
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 200px 25px 60px;
+  padding: 200px 20px 60px;
   min-height: 300px;
+  background-color: #fff;
   background-image: url("${props => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
@@ -137,7 +149,7 @@ const LogoText = styled(LogoTextSvg)`
 `;
 
 const Description = styled.p`
-  font-size: 1.25em;
+  font-size: 0.833em;
   line-height: 1.5em;
   margin-bottom: 10px;
 `;
@@ -151,21 +163,24 @@ const Connect = styled.div`
 const ConnectLink = styled(Link)`
   flex: 0 0 auto;
   margin: 5px 0;
-  font-size: 1.25em;
+  font-size: 0.833em;
   text-decoration: none;
   color: #666;
   transition: color 0.2s ease-in-out;
 
-  > svg {
+  > ${IconContainer} {
     margin-right: 10px;
     vertical-align: middle;
-    transition: fill 0.2s ease-in-out;
+
+    > svg {
+      transition: fill 0.2s ease-in-out;
+    }
   }
 
   :hover {
     color: #000;
 
-    > svg {
+    > ${IconContainer} > svg {
       fill: #000;
     }
   }
@@ -207,7 +222,8 @@ const NavLink = styled(Link)`
   flex: 0 0 auto;
   margin: 4px 0;
   font-family: "Roboto", sans-serif;
-  font-size: 1.25em;
+  font-size: 0.833em;
+  line-height: 1.5em;
   color: #666;
   text-decoration: none;
   transition: color 0.2s ease-in-out;
@@ -222,6 +238,7 @@ const Location = styled.div`
   flex: 3 1 auto;
   flex-direction: column;
   padding: 0 10px;
+  line-height: 1.5em;
 
   @media only screen and (min-width: 768px) {
     display: flex;
@@ -229,9 +246,10 @@ const Location = styled.div`
 `;
 
 const Title = styled.h3`
-  margin: 15px 0 15px;
-  font-size: 1.5em;
+  margin: 15px 0 0;
+  font-size: 1em;
   font-weight: bold;
+  color: #666;
 `;
 
 const Copyright = styled.div`

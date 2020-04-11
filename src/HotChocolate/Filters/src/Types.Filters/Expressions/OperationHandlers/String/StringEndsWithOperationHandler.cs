@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -8,8 +9,8 @@ namespace HotChocolate.Types.Filters.Expressions
         protected override bool TryCreateExpression(
             FilterOperation operation,
             Expression property,
-            object parsedValue, out
-            Expression expression)
+            object parsedValue,
+            [NotNullWhen(true)] out Expression? expression)
         {
             switch (operation.Kind)
             {
@@ -21,8 +22,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 case FilterOperationKind.NotEndsWith:
                     expression = FilterExpressionBuilder.Not(
                         FilterExpressionBuilder.EndsWith(
-                            property, parsedValue)
-                    );
+                            property, parsedValue));
                     return true;
 
                 default:

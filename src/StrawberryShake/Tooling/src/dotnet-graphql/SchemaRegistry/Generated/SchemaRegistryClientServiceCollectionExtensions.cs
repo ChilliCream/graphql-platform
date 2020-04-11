@@ -12,7 +12,7 @@ using StrawberryShake.Http.Subscriptions;
 using StrawberryShake.Serializers;
 using StrawberryShake.Transport;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class SchemaRegistryClientServiceCollectionExtensions
@@ -32,7 +32,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
             serviceCollection.AddSingleton<IOperationExecutorFactory>(sp =>
                 new HttpOperationExecutorFactory(
                     _clientName,
-                    sp.GetRequiredService<System.Net.Http.IHttpClientFactory>().CreateClient,
+                    sp.GetRequiredService<IHttpClientFactory>().CreateClient,
                     sp.GetRequiredService<IClientOptions>().GetOperationPipeline<IHttpOperationContext>(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetOperationFormatter(_clientName),
                     sp.GetRequiredService<IClientOptions>().GetResultParsers(_clientName)));

@@ -63,8 +63,8 @@ namespace HotChocolate.Types
 
         private static IObjectFieldDescriptor UseFiltering(
             IObjectFieldDescriptor descriptor,
-            Type filterType,
-            ITypeSystemMember filterTypeInstance = null)
+            Type? filterType,
+            ITypeSystemMember? filterTypeInstance = null)
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
@@ -74,9 +74,9 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
-                    Type argumentType = filterType;
+                    Type? argumentType = filterType;
 
-                    if (filterType == null)
+                    if (argumentType == null)
                     {
                         if (!TypeInspector.Default.TryCreate(
                             definition.ResultType,

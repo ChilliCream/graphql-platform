@@ -22,16 +22,16 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { FooNested = new FooNested { Bar = "a" } };
@@ -55,16 +55,16 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { FooNested = new FooNested { Bar = "a" } };
@@ -92,16 +92,16 @@ namespace HotChocolate.Types.Filters
             )
             );
 
-            var fooType = CreateType(new EvenDeeperFilterType());
+            EvenDeeperFilterType fooType = CreateType(new EvenDeeperFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
 
             // assert
             var a = new EvenDeeper { Foo = new Foo { FooNested = new FooNested { Bar = "a" } } };
@@ -129,16 +129,16 @@ namespace HotChocolate.Types.Filters
             )
             );
 
-            var fooType = CreateType(new FilterInputType<Recursive>());
+            FilterInputType<Recursive> fooType = CreateType(new FilterInputType<Recursive>());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Recursive),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Recursive, bool> func = filter.CreateFilter<Recursive>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Recursive, bool> func = filterContext.CreateFilter<Recursive>().Compile();
 
 
             var a = new Recursive { Nested = new Recursive { Nested = new Recursive { Bar = "a" } } };
@@ -168,16 +168,16 @@ namespace HotChocolate.Types.Filters
             )
             );
 
-            var fooType = CreateType(new EvenDeeperFilterType());
+            EvenDeeperFilterType fooType = CreateType(new EvenDeeperFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
 
             // assert
             var a = new EvenDeeper { Foo = null };
@@ -195,7 +195,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /**
-         * As multiple hanlders for a single property can exists, it makes sense to test mutliple porperty filtering too
+         * As multiple hanlders for a single property can exists, it makes sense to test mutliple porperty filterContexting too
          * Just to see if the null checks are wrapped around the whole object and not just around the one of the expressions.
          * With the current visitor implementation this cannot be the case. Anyway, as code lifes is good to check twice. 
          * */
@@ -221,16 +221,16 @@ namespace HotChocolate.Types.Filters
             )
             );
 
-            var fooType = CreateType(new EvenDeeperFilterType());
+            EvenDeeperFilterType fooType = CreateType(new EvenDeeperFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<EvenDeeper, bool> func = filter.CreateFilter<EvenDeeper>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
 
             // assert
             var a = new EvenDeeper { Foo = null };

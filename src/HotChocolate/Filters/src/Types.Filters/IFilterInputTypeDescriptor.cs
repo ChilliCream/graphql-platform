@@ -123,7 +123,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="ignore"></param>
         IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct>>> property,
-            RequireStruct<TStruct> ignore = null)
+            RequireStruct<TStruct>? ignore = null)
             where TStruct : struct;
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="ignore"></param>
         IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct?>>> property,
-            RequireStruct<TStruct> ignore = null)
+            RequireStruct<TStruct>? ignore = null)
             where TStruct : struct;
 
         /// <summary>

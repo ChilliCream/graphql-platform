@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types
 {
@@ -8,6 +9,8 @@ namespace HotChocolate.Types
     {
         T this[string fieldName] { get; }
 
+        T this[int index] { get; }
+
         bool ContainsField(NameString fieldName);
     }
 
@@ -16,7 +19,7 @@ namespace HotChocolate.Types
         public static bool TryGetField<T>(
             this IFieldCollection<T> collection,
             NameString fieldName,
-            out T field)
+            [NotNullWhen(true)]out T field)
             where T : IField
         {
             if (collection.ContainsField(fieldName))

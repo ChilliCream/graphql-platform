@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             Expression property,
             Func<object> parseValue,
-            out Expression expression)
+            [NotNullWhen(true)] out Expression? expression)
         {
             switch (operation.Kind)
             {

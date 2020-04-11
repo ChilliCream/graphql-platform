@@ -1,13 +1,13 @@
-﻿using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class AllVariableUsagesAreAllowedRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public AllVariableUsagesAreAllowedRuleTests()
-            : base(new AllVariableUsagesAreAllowedRule())
+            : base(builder => builder.AddVariableRules())
         {
         }
 
@@ -15,168 +15,435 @@ namespace HotChocolate.Validation
         public void IntCannotGoIntoBoolean()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query intCannotGoIntoBoolean($intArg: Int) {
                     arguments {
                         booleanArgField(booleanArg: $intArg)
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The variable `intArg` type is not " +
-                    "compatible with the type of the " +
-                    "argument `booleanArg`." +
-                    "\r\nExpected type: `Boolean`.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "The variable `intArg` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
         public void BooleanListCannotGoIntoBoolean()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query booleanListCannotGoIntoBoolean($booleanListArg: [Boolean]) {
                     arguments {
                         booleanArgField(booleanArg: $booleanListArg)
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The variable `booleanListArg` type is not " +
-                    "compatible with the type of the " +
-                    "argument `booleanArg`." +
-                    "\r\nExpected type: `Boolean`.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "The variable `booleanListArg` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
         public void BooleanArgQuery()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query booleanArgQuery($booleanArg: Boolean) {
                     arguments {
                         nonNullBooleanArgField(nonNullBooleanArg: $booleanArg)
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The variable `booleanArg` type is not " +
-                    "compatible with the type of the " +
-                    "argument `nonNullBooleanArg`." +
-                    "\r\nExpected type: `Boolean`.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "The variable `booleanArg` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
         public void NonNullListToList()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query nonNullListToList($nonNullBooleanList: [Boolean]!) {
                     arguments {
                         booleanListArgField(booleanListArg: $nonNullBooleanList)
                     }
                 }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void BooleanVariableAsListElement()
+        {
+            // arrange
+            ExpectValid(@"
+                query nonNullListToList($b: Boolean) {
+                    arguments {
+                        booleanListArgField(booleanListArg: [$b])
+                    }
+                }
+            ");
+        }
 
-            // assert
-            Assert.False(result.HasErrors);
+        [Fact]
+        public void NullableBooleanVariableAsListElement()
+        {
+            // arrange
+            ExpectErrors(@"
+                query nonNullBooleanListArgField($nullableBoolean: Boolean) {
+                    arguments {
+                        nonNullBooleanListArgField(booleanListArg: [$nullableBoolean])
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "The variable `nullableBoolean` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
         public void ListToNonNullList()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query listToNonNullList($booleanList: [Boolean]) {
                     arguments {
                         nonNullBooleanListField(nonNullBooleanListArg: $booleanList)
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The variable `booleanList` type is not " +
-                    "compatible with the type of the " +
-                    "argument `nonNullBooleanListArg`." +
-                    "\r\nExpected type: `Boolean`.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "The variable `booleanList` is not compatible with the " +
+                "type of the current location.",
+                t.Message));
         }
 
         [Fact]
         public void BooleanArgQueryWithDefault1()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean) {
                     arguments {
                         optionalNonNullBooleanArgField(optionalBooleanArg: $booleanArg)
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void BooleanArgQueryWithDefault2()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean = true) {
                     arguments {
                         nonNullBooleanArgField(nonNullBooleanArg: $booleanArg)
                     }
                 }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void BooleanToBoolean()
+        {
+            ExpectValid(@"
+                query Query($booleanArg: Boolean)
+                {
+                    arguments {
+                        booleanArgField(booleanArg: $booleanArg)
+                    }
+                }
+            ");
+        }
 
-            // assert
-            Assert.False(result.HasErrors);
+        [Fact]
+        public void BooleanToBooleanWithinFragment()
+        {
+            ExpectValid(@"
+                fragment booleanArgFrag on Arguments {
+                    booleanArgField(booleanArg: $booleanArg)
+                }
+                
+                query Query($booleanArg: Boolean)
+                {
+                    arguments {
+                    ...booleanArgFrag
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NonNullableBooleanToBoolean()
+        {
+            ExpectValid(@"
+                query Query($nonNullBooleanArg: Boolean!)
+                {
+                    arguments {
+                        booleanArgField(booleanArg: $nonNullBooleanArg)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NonNullableBooleanToBooleanWithinFragment()
+        {
+            ExpectValid(@"
+                fragment booleanArgFrag on Arguments {
+                    booleanArgField(booleanArg: $nonNullBooleanArg)
+                }
+                
+                query Query($nonNullBooleanArg: Boolean!)
+                {
+                    arguments {
+                        ...booleanArgFrag
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void StringArrayToStringArray()
+        {
+            ExpectValid(@"
+                query Query($stringListVar: [String])
+                {
+                    arguments {
+                        stringListArgField(stringListArg: $stringListVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void ElemenIsNonNullableStringArrayToStringArray()
+        {
+            ExpectValid(@"
+                query Query($stringListVar: [String!])
+                {
+                    arguments {
+                        stringListArgField(stringListArg: $stringListVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void StringToStringInItemPosition()
+        {
+            ExpectValid(@"
+                query Query($stringVar: String)
+                {
+                    arguments {
+                        stringListArgField(stringListArg: [$stringVar])
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NonNullableStringToStringInItemPosition()
+        {
+            ExpectValid(@"
+                query Query($stringVar: String!)
+                {
+                    arguments {
+                        stringListArgField(stringListArg: [$stringVar])
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void ComplexInputToComplexInput()
+        {
+            ExpectValid(@"
+                query Query($complexVar: ComplexInput3TypeInput)
+                {
+                    arguments {
+                        complexArgField(complexArg: $complexVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void ComplexInputToComplexInputInFieldPosition()
+        {
+            ExpectValid(@"
+                query Query($boolVar: Boolean = false)
+                {
+                    arguments {
+                        complexArgField(complexArg: {requiredField: $boolVar})
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NullableBooleanToBooleanInDirective()
+        {
+            ExpectValid(@"
+                query Query($boolVar: Boolean!)
+                {
+                    dog @include(if: $boolVar)
+                }
+            ");
+        }
+
+        [Fact]
+        public void IntToNullableInt()
+        {
+            ExpectErrors(@"
+                query Query($intArg: Int) {
+                    arguments {
+                        nonNullIntArgField(intArg: $intArg)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void IntNullableToIntWithinFragment()
+        {
+            ExpectErrors(@"
+                fragment nonNullIntArgFieldFrag on Arguments {
+                    nonNullIntArgField(intArg: $intArg)
+                }
+                
+                query Query($intArg: Int) {
+                    arguments {
+                        ...nonNullIntArgFieldFrag
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void IntNullableToIntWithinNestedFragment()
+        {
+            ExpectErrors(@"
+                fragment outerFrag on Arguments {
+                    ...nonNullIntArgFieldFrag
+                }
+                
+                fragment nonNullIntArgFieldFrag on Arguments {
+                    nonNullIntArgField(intArg: $intArg)
+                }
+                
+                query Query($intArg: Int) {
+                    arguments {
+                        ...outerFrag
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void StringOverBoolean()
+        {
+            ExpectErrors(@"
+                query Query($stringVar: String) {
+                    arguments {
+                        booleanArgField(booleanArg: $stringVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void StringToStringArray()
+        {
+            ExpectErrors(@"
+                query Query($stringVar: String) {
+                    arguments {
+                        stringListArgField(stringListArg: $stringVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void BooleanToBooleanInDirective()
+        {
+            ExpectErrors(@"
+                query Query($boolVar: Boolean) {
+                    dog @include(if: $boolVar)
+                }
+            ");
+        }
+
+        [Fact]
+        public void StringToNullableBooleanInDirective()
+        {
+            ExpectErrors(@"
+                query Query($stringVar: String) {
+                    dog @include(if: $stringVar)
+                }
+            ");
+        }
+
+        [Fact]
+        public void StringToElementIsNullableString()
+        {
+            ExpectErrors(@"
+                query Query($stringListVar: [String])
+                {
+                    arguments {
+                        stringListNonNullArgField(stringListNonNullArg: $stringListVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void IntToNullableIntFailsWhenVariableProvidesNullDefaultValue()
+        {
+            ExpectErrors(@"
+                query Query($intVar: Int = null) {
+                    arguments {
+                        nonNullIntArgField(intArg: $intVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void IntToNullableIntWhenVariableProvidesNonNullDefaultValue()
+        {
+            ExpectValid(@"
+                query Query($intVar: Int = 1) {
+                    arguments {
+                        nonNullIntArgField(intArg: $intVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void IntToNullableIntWhenOptionalArgumentProvidesDefaultValue()
+        {
+            ExpectValid(@"
+                query Query($intVar: Int) {
+                    arguments {
+                        nonNullFieldWithDefault(nonNullIntArg: $intVar)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void BooleanToNullableBooleanInDirectiveWithDefaultValueWithOption()
+        {
+            ExpectValid(@"
+                query Query($boolVar: Boolean = false) {
+                    dog @include(if: $boolVar)
+                }
+            ");
         }
     }
 }

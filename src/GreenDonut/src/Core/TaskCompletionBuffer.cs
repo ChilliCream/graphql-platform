@@ -5,5 +5,6 @@ namespace GreenDonut
 {
     internal class TaskCompletionBuffer<TKey, TValue>
         : ConcurrentDictionary<TKey, TaskCompletionSource<TValue>>
+            where TKey : notnull
     { }
 }

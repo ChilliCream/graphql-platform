@@ -1,8 +1,11 @@
-﻿namespace HotChocolate.Language
+﻿using System;
+
+namespace HotChocolate.Language
 {
     /// <summary>
     /// Represents a GraphQL source.
     /// </summary>
+    [Obsolete("Use the Utf8GraphQLParser.")]
     public interface ISource
     {
         /// <summary>

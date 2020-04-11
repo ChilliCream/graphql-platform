@@ -1,13 +1,16 @@
-﻿using HotChocolate.Language;
+﻿using System.Linq;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FieldMustBeDefinedRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FieldMustBeDefinedRuleTests()
-            : base(new FieldMustBeDefinedRule())
+            : base(builder => builder.AddFieldRules())
         {
         }
 
@@ -15,8 +18,15 @@ namespace HotChocolate.Validation
         public void FieldIsNotDefinedOnTypeInFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query {
+                    dog {
+                        ... fieldNotDefined
+                        ... aliasedLyingFieldTargetNotDefined
+                    }
+                }
+
                 fragment fieldNotDefined on Dog {
                     meowVolume
                 }
@@ -25,83 +35,105 @@ namespace HotChocolate.Validation
                     barkVolume: kawVolume
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The field `meowVolume` does not exist " +
                     "on the type `Dog`.", t.Message),
                 t => Assert.Equal(
                     "The field `kawVolume` does not exist " +
                     "on the type `Dog`.", t.Message));
+            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void InterfaceFieldSelectionOnPet()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query {
+                    dog {
+                        ... interfaceFieldSelection
+                    }
+                }
+
                 fragment interfaceFieldSelection on Pet {
                     name
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void DefinedOnImplementorsButNotInterfaceOnPet()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query {
+                    dog {
+                        ... definedOnImplementorsButNotInterface
+                    }
+                }
+
                 fragment definedOnImplementorsButNotInterface on Pet {
                     nickname
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The field `nickname` does not exist " +
                     "on the type `Pet`.", t.Message));
+            context.Errors.First().MatchSnapshot();
         }
 
         [Fact]
         public void InDirectFieldSelectionOnUnion()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
-            fragment inDirectFieldSelectionOnUnion on CatOrDog {
-                __typename
-                ... on Pet {
-                    name
+                query {
+                    dog {
+                        ... inDirectFieldSelectionOnUnion
+                    }
                 }
-                ... on Dog {
-                    barkVolume
+
+                fragment inDirectFieldSelectionOnUnion on CatOrDog {
+                    __typename
+                    ... on Pet {
+                        name
+                    }
+                    ... on Dog {
+                        barkVolume
+                    }
                 }
-            }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
 
@@ -109,78 +141,105 @@ namespace HotChocolate.Validation
         public void DirectFieldSelectionOnUnion()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query {
+                    catOrDog {
+                        ... directFieldSelectionOnUnion
+                    }
+                }
+
                 fragment directFieldSelectionOnUnion on CatOrDog {
                     name
                     barkVolume
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "A union type cannot declare a field directly. " +
-                    "Use inline fragments or fragments instead", t.Message));
+                    "Use inline fragments or fragments instead.", t.Message));
+            context.Errors.First().MatchSnapshot();
         }
-
 
         [Fact]
         public void IntrospectionFieldsOnInterface()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query {
+                    dog {
+                        ... interfaceFieldSelection
+                    }
+                }
+
                 fragment interfaceFieldSelection on Pet {
                     __typename
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void IntrospectionFieldsOnUnion()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
-                fragment interfaceFieldSelection on CatOrDog {
+                query {
+                    dog {
+                        ... unionFieldSelection
+                    }
+                }
+
+                fragment unionFieldSelection on CatOrDog {
                     __typename
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void IntrospectionFieldsOnObject()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
+                query {
+                    catOrDog {
+                        ... unionFieldSelection
+                    }
+                }
+
                 fragment interfaceFieldSelection on Cat {
                     __typename
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
     }
 }

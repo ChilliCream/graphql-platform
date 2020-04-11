@@ -42,12 +42,10 @@ namespace HotChocolate.AspNetCore
                     HasQueryParameter(context);
         }
 
-        protected override async Task ExecuteRequestAsync(
-            HttpContext context,
-            IServiceProvider services)
+        protected override async Task ExecuteRequestAsync(HttpHelper httpHelper)
         {
             var builder = QueryRequestBuilder.New();
-            IQueryCollection requestQuery = context.Request.Query;
+            IQueryCollection requestQuery = httpHelper.Context.Request.Query;
 
             builder
                 .SetQuery(requestQuery[_queryIdentifier])
@@ -65,23 +63,14 @@ namespace HotChocolate.AspNetCore
 
             IReadOnlyQueryRequest request =
                 await BuildRequestAsync(
-                    context,
-                    services,
+                    httpHelper.Context,
+                    httpHelper.Services,
                     builder)
                     .ConfigureAwait(false);
 
-            IExecutionResult result = await _queryExecutor
-                .ExecuteAsync(request, context.GetCancellationToken())
-                .ConfigureAwait(false);
-
-            SetResponseHeaders(
-                context.Response,
-                _resultSerializer.ContentType);
-
-            await _resultSerializer.SerializeAsync(
-                result,
-                context.Response.Body,
-                context.GetCancellationToken())
+            httpHelper.StatusCode = OK;
+            httpHelper.Result = await _queryExecutor
+                .ExecuteAsync(request, httpHelper.Context.RequestAborted)
                 .ConfigureAwait(false);
         }
 

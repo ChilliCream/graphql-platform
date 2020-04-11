@@ -59,6 +59,10 @@ The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ 
 
 The following example shows the pure code-first approach.
 
+> Make sure to add the following usings to your code in order to get access to the extension methods used in the examples:
+> using HotChocolate;
+> using HotChocolate.Execution;
+
 ```csharp
 public class Program
 {

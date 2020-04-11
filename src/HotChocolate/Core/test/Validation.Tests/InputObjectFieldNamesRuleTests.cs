@@ -1,79 +1,53 @@
-﻿using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class InputObjectFieldNamesRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public InputObjectFieldNamesRuleTests()
-            : base(new InputObjectFieldNamesRule())
+            : base(builder => builder.AddValueRules())
         {
         }
 
         [Fact]
         public void AllInputObjectFieldsExist()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     findDog(complex: { name: ""Fido"" })
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
-
 
         [Fact]
         public void InvalidInputObjectFieldsExist()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The specified input object field " +
-                    "`favoriteCookieFlavor` does not exist.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "The specified input object field " +
+                "`favoriteCookieFlavor` does not exist.",
+                t.Message));
         }
 
         [Fact]
         public void InvalidNestedInputObjectFieldsExist()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     findDog(complex: { child: { favoriteCookieFlavor: ""Bacon"" } })
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The specified input object field " +
-                    "`favoriteCookieFlavor` does not exist.",
-                    t.Message));
+            ",
+            t => Assert.Equal(
+                "The specified input object field " +
+                "`favoriteCookieFlavor` does not exist.",
+                t.Message));
         }
     }
 }

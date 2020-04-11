@@ -55,7 +55,7 @@ namespace HotChocolate.Execution
         /// Gets or sets the query validation results.
         /// </summary>
         /// <returns></returns>
-        QueryValidationResult ValidationResult { get; set; }
+        DocumentValidatorResult ValidationResult { get; set; }
 
         /// <summary>
         /// Gets or sets the query execution result.

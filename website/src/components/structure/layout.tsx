@@ -3,22 +3,24 @@ import styled from "styled-components";
 import { GlobalStyle } from "../misc/global-style";
 import { Footer } from "./footer";
 import { Header } from "./header";
+import { CookieConsent } from "../misc/cookie-consent";
 
-const Layout: FunctionComponent = ({ children }) => {
+export const Layout: FunctionComponent = ({ children }) => {
   return (
     <>
       <GlobalStyle />
       <Header />
-      <Content id="content">{children}</Content>
+      <Content>{children}</Content>
       <Footer />
+      <CookieConsent />
     </>
   );
 };
 
-export default Layout;
-
 const Content = styled.main`
   display: flex;
-  flex-direction: main;
+  flex-direction: column;
+  align-items: center;
   padding-top: 60px;
+  background-color: #fff;
 `;

@@ -1,22 +1,23 @@
-﻿using HotChocolate.Language;
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FragmentNameUniquenessRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FragmentNameUniquenessRuleTests()
-            : base(new FragmentNameUniquenessRule())
+            : base(builder => builder.AddFragmentRules())
         {
         }
 
         [Fact]
         public void UniqueFragments()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         ...fragmentOne
@@ -34,20 +35,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void DuplicateFragments()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         ...fragmentOne
@@ -63,17 +56,135 @@ namespace HotChocolate.Validation
                         name
                     }
                 }
+            ",
+             t => Assert.Equal(
+                "There are multiple fragments with the name `fragmentOne`.",
+                t.Message));
+        }
+
+        [Fact]
+        public void OneFragment()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    ...fragA
+                }
+                
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void ManyFragments()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    ...fragA
+                    ...fragB
+                    ...fragC
+                }
+                
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
+                
+                fragment fragB on Query {
+                    dog {
+                        name
+                    }
+                }
+                
+                fragment fragC on Query {
+                    anyArg
+                }
+            ");
+        }
 
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "There are multiple fragments with the name `fragmentOne`.",
-                    t.Message));
+        [Fact]
+        public void InlineFragmentsAreAlwaysUnique()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    ...on Query {
+                        arguments { 
+                            idArgField
+                        }
+                    }
+                    ...on Query {
+                        dog {
+                            name
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentAndOperationNamedTheSame()
+        {
+            // arrange
+            ExpectValid(@"
+                query Foo {
+                    ...Foo
+                }
+                
+                fragment Foo on Query {
+                    dog {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentsNamedTheSame()
+        {
+            // arrange
+            ExpectErrors(@"
+                {
+                    ...fragA
+                }
+                
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
+                
+                fragment fragA on Query {
+                    dog {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentsNamedTheSameWithoutBeingReferenced()
+        {
+            // arrange
+            ExpectErrors(@"
+                fragment fragA on Query {
+                    arguments { 
+                        idArgField
+                    }
+                }
+                
+                fragment fragA on Query {
+                    dog {
+                        name
+                    }
+                }
+            ");
         }
     }
 }

@@ -37,15 +37,12 @@ namespace HotChocolate.Types.Filters
                 return;
             }
 
-            IQueryable<T> source = null;
-
-            if (context.Result is PageableData<T> p)
+            IQueryable<T>? source = null;
+            PageableData<T>? p = null;
+            if (context.Result is PageableData<T> pd)
             {
-                source = p.Source;
-            }
-            else
-            {
-                p = null;
+                source = pd.Source;
+                p = pd;
             }
 
             if (context.Result is IQueryable<T> q)
@@ -57,23 +54,16 @@ namespace HotChocolate.Types.Filters
                 source = e.AsQueryable();
             }
 
-            if (source != null
-                && context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot
-                && iot is IFilterInputType fit)
+            if (source != null &&
+                context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
+                iot is IFilterInputType fit)
             {
 
-                if (source is EnumerableQuery)
-                {
-                    var visitor = new QueryableFilterVisitor(iot, fit.EntityType, _converter, true);
-                    filter.Accept(visitor);
-                    source = source.Where(visitor.CreateFilter<T>());
-                }
-                else
-                {
-                    var visitor = new QueryableFilterVisitor(iot, fit.EntityType, _converter, false);
-                    filter.Accept(visitor);
-                    source = source.Where(visitor.CreateFilter<T>());
-                }
+                var visitorContext = new QueryableFilterVisitorContext(
+                    iot, fit.EntityType, _converter, source is EnumerableQuery);
+                QueryableFilterVisitor.Default.Visit(filter, visitorContext);
+
+                source = source.Where(visitorContext.CreateFilter<T>());
 
                 context.Result = p is null
                     ? (object)source

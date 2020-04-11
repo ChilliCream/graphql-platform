@@ -1,10 +1,12 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Configuration;
-using HotChocolate.Utilities;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -18,10 +20,9 @@ namespace HotChocolate.Types
         , ILeafType
         , IHasDirectives
     {
-        private static readonly ITypeConversion _converter =
-            TypeConversion.Default;
-        private readonly Dictionary<string, object> _contextData =
-            new Dictionary<string, object>();
+        private readonly ITypeConversion _converter = TypeConversion.Default;
+        private readonly ExtensionData _contextData = new ExtensionData();
+
 
         /// <summary>
         /// Initializes a new instance of the
@@ -32,7 +33,11 @@ namespace HotChocolate.Types
         {
             Name = name.EnsureNotEmpty(nameof(name));
             Bind = bind;
+
+            Directives = default!;
         }
+
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode { get; }
 
         /// <summary>
         /// Gets the type kind.
@@ -46,10 +51,13 @@ namespace HotChocolate.Types
         /// </summary>
         public abstract Type ClrType { get; }
 
-        public override IReadOnlyDictionary<string, object> ContextData =>
-            _contextData;
+        public override IReadOnlyDictionary<string, object?> ContextData => _contextData;
 
         public IDirectiveCollection Directives { get; private set; }
+
+        public ISyntaxNode? SyntaxNode => null;
+
+        public bool IsAssignableFrom(INamedType type) => ReferenceEquals(type, this);
 
         /// <summary>
         /// Defines if the specified <paramref name="literal" />
@@ -155,8 +163,7 @@ namespace HotChocolate.Types
         /// <returns>
         /// <c>true</c> if the value was correctly serialized; otherwise, <c>false</c>.
         /// </returns>
-        public abstract bool TrySerialize(
-            object value, out object serialized);
+        public abstract bool TrySerialize(object value, out object serialized);
 
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
@@ -195,61 +202,53 @@ namespace HotChocolate.Types
         /// <returns>
         /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
         /// </returns>
-        public abstract bool TryDeserialize(
-            object serialized, out object value);
+        public abstract bool TryDeserialize(object serialized, out object value);
 
         internal sealed override void Initialize(IInitializationContext context)
         {
-            context.Interceptor.OnBeforeRegisterDependencies(
-                context, null, _contextData);
+            context.Interceptor.OnBeforeRegisterDependencies(context, null, _contextData);
             OnRegisterDependencies(context, _contextData);
-            context.Interceptor.OnAfterRegisterDependencies(
-                context, null, _contextData);
-
+            context.Interceptor.OnAfterRegisterDependencies(context, null, _contextData);
             base.Initialize(context);
         }
 
         protected virtual void OnRegisterDependencies(
             IInitializationContext context,
-            IDictionary<string, object> contextData)
+            IDictionary<string, object?> contextData)
         {
         }
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
-            context.Interceptor.OnBeforeCompleteName(
-                context, null, _contextData);
+            context.Interceptor.OnBeforeCompleteName(context, null, _contextData);
             OnCompleteName(context, _contextData);
             base.CompleteName(context);
-            context.Interceptor.OnAfterCompleteName(
-                context, null, _contextData);
+            context.Interceptor.OnAfterCompleteName(context, null, _contextData);
         }
 
         protected virtual void OnCompleteName(
             ICompletionContext context,
-            IDictionary<string, object> contextData)
+            IDictionary<string, object?> contextData)
         {
         }
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
-            context.Interceptor.OnBeforeCompleteType(
-                context, null, _contextData);
+            context.Interceptor.OnBeforeCompleteType(context, null, _contextData);
             OnCompleteType(context, _contextData);
             base.CompleteType(context);
-            context.Interceptor.OnAfterCompleteType(
-                context, null, _contextData);
+            context.Interceptor.OnAfterCompleteType(context, null, _contextData);
         }
 
         protected virtual void OnCompleteType(
             ICompletionContext context,
-            IDictionary<string, object> contextData)
+            IDictionary<string, object?> contextData)
         {
             Directives = DirectiveCollection.CreateAndComplete(
                 context, this, Array.Empty<DirectiveDefinition>());
         }
 
-        protected static bool TryConvertSerialized<T>(
+        protected bool TryConvertSerialized<T>(
             object serialized,
             ValueKind expectedKind,
             out T value)
@@ -262,7 +261,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            value = default;
+            value = default!;
             return false;
         }
     }

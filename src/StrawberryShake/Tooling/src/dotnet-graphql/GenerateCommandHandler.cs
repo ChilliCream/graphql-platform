@@ -55,7 +55,8 @@ namespace StrawberryShake.Tools
                WellKnownDirectories.Generated,
                WellKnownFiles.Hash);
 
-            if (await SkipCompileAsync(path, hashFile, documents, context.Force))
+            if (await SkipCompileAsync(hashFile, documents, context.Force)
+                .ConfigureAwait(false))
             {
                 return true;
             }
@@ -79,20 +80,20 @@ namespace StrawberryShake.Tools
                 return false;
             }
 
-            await generator.BuildAsync();
-            await Task.Run(() => File.WriteAllText(hashFile, CreateHash(documents)));
+            await generator.BuildAsync().ConfigureAwait(false);
+            await Task.Run(() => File.WriteAllText(hashFile, CreateHash(documents)))
+                .ConfigureAwait(false);
 
             if (context.PersistedQueryFile is { } fileName)
             {
                 FileSystem.EnsureDirectoryExists(FileSystem.GetDirectoryName(fileName));
-                await generator.ExportPersistedQueriesAsync(fileName);
+                await generator.ExportPersistedQueriesAsync(fileName).ConfigureAwait(false);
             }
 
             return true;
         }
 
         private async Task<bool> SkipCompileAsync(
-            string path,
             string hashFile,
             IReadOnlyList<DocumentInfo> documents,
             bool force)
@@ -103,7 +104,8 @@ namespace StrawberryShake.Tools
             }
 
             string newHash = CreateHash(documents);
-            string currentHash = await Task.Run(() => File.ReadAllText(hashFile));
+            string currentHash = await Task.Run(() => File.ReadAllText(hashFile))
+                .ConfigureAwait(false);
 
             return string.Equals(newHash, currentHash, StringComparison.Ordinal);
         }

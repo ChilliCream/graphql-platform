@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
 {
@@ -27,6 +26,8 @@ namespace HotChocolate.Types
         }
 
         public T this[string fieldName] => _fieldsLookup[fieldName];
+
+        public T this[int index] => _fields[index];
 
         public int Count => _fields.Count;
 
@@ -54,5 +55,8 @@ namespace HotChocolate.Types
         {
             return GetEnumerator();
         }
+
+        public static FieldCollection<T> Empty { get; } =
+            new FieldCollection<T>(Enumerable.Empty<T>());
     }
 }

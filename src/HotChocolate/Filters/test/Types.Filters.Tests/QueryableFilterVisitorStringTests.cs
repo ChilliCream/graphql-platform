@@ -19,13 +19,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -46,13 +46,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -77,13 +77,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -104,13 +104,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -135,13 +135,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -162,13 +162,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "testatest" };
@@ -189,13 +189,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "testatest" };
@@ -216,13 +216,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };
@@ -243,13 +243,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };
@@ -270,13 +270,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };
@@ -297,13 +297,13 @@ namespace HotChocolate.Types.Filters
             FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };

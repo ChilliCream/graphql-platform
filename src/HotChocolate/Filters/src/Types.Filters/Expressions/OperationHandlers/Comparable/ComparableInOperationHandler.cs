@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
@@ -13,21 +13,18 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            Expression instance,
-            ITypeConversion converter,
-            bool inMemory,
-            out Expression expression)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)] out Expression? expression)
         {
             if (operation.Type == typeof(IComparable)
                 && type.IsInstanceOfType(value))
             {
-                Expression property = instance;
+                Expression property = context.GetInstance();
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    property = Expression.Property(instance, operation.Property);
+                    property = Expression.Property(context.GetInstance(), operation.Property);
                 }
-
 
                 switch (operation.Kind)
                 {
@@ -43,8 +40,7 @@ namespace HotChocolate.Types.Filters.Expressions
                             FilterExpressionBuilder.In(
                                 property,
                                 operation.Property.PropertyType,
-                                ParseValue())
-                        );
+                                ParseValue()));
                         return true;
                 }
             }
@@ -62,7 +58,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     Type listType = typeof(List<>).MakeGenericType(
                         operation.Property.PropertyType);
 
-                    parsedValue = converter.Convert(
+                    parsedValue = context.TypeConverter.Convert(
                         typeof(object),
                         listType,
                         parsedValue);

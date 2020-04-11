@@ -15,9 +15,24 @@ namespace HotChocolate.Types.Sorting
             // arrange
 
             // act
-            Func<QueryableSortVisitor> createVisitor
-                = () => new QueryableSortVisitor(
-                    null, typeof(Foo));
+            Func<QueryableSortVisitorContext> createVisitor
+                = () => new QueryableSortVisitorContext(
+                    null, typeof(Foo), false);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(createVisitor);
+        }
+
+        [Fact]
+        public void Ctor_SourceTypeNull_ShouldThrowArgumentNullException()
+        {
+            // arrange
+            FooSortType sortType = CreateType(new FooSortType());
+
+            // act
+            Func<QueryableSortVisitorContext> createVisitor
+                = () => new QueryableSortVisitorContext(
+                    sortType, null, false);
 
             // assert
             Assert.Throws<ArgumentNullException>(createVisitor);
@@ -46,10 +61,9 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
-            value.Accept(filter);
-            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            QueryableSortVisitor.Default.Visit(value, context);
+            ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -82,10 +96,9 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var filter = new QueryableSortVisitorInMemory(
-                sortType, typeof(Foo));
-            value.Accept(filter);
-            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), true);
+            QueryableSortVisitor.Default.Visit(value, context);
+            ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -118,10 +131,9 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var filter = new QueryableSortVisitorInMemory(
-                sortType, typeof(Foo));
-            value.Accept(filter);
-            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), true);
+            QueryableSortVisitor.Default.Visit(value, context);
+            ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -154,10 +166,9 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
-            value.Accept(filter);
-            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            QueryableSortVisitor.Default.Visit(value, context);
+            ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -190,10 +201,9 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
-            value.Accept(filter);
-            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
+            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            QueryableSortVisitor.Default.Visit(value, context);
+            ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -219,10 +229,9 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var filter = new QueryableSortVisitor(
-                sortType, typeof(Foo));
-            value.Accept(filter);
-            IQueryable<Foo> aFiltered = filter.Sort(a);
+            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            QueryableSortVisitor.Default.Visit(value, context);
+            IQueryable<Foo> aFiltered = context.Sort(a);
 
             // assert
             Assert.Same(a, aFiltered);
@@ -248,7 +257,7 @@ namespace HotChocolate.Types.Sorting
             public Bar Bar { get; set; }
         }
 
-        #nullable enable
+#nullable enable
         public class Bar
         {
             public string? Baz { get; set; }

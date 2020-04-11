@@ -1,6 +1,6 @@
 namespace HotChocolate.Language
 {
-    public enum FloatFormat : byte
+    public enum FloatFormat
     {
         FixedPoint = 0,
         Exponential = 1

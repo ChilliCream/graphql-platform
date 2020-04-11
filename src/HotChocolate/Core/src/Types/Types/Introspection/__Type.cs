@@ -93,11 +93,11 @@ namespace HotChocolate.Types.Introspection
             return null;
         }
 
-        private IEnumerable<InterfaceType> GetInterfaces(IType type)
+        private IEnumerable<IInterfaceType> GetInterfaces(IType type)
         {
-            if (type is ObjectType ot)
+            if (type is IComplexOutputType complexType)
             {
-                return ot.Interfaces.Values;
+                return complexType.Interfaces;
             }
             return null;
         }

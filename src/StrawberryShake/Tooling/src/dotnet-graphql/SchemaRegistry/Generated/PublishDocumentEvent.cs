@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Tools.SchemaRegistry
+namespace StrawberryShake
 {
     [System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PublishDocumentEvent
@@ -11,7 +11,7 @@ namespace StrawberryShake.Tools.SchemaRegistry
     {
         public PublishDocumentEvent(
             bool isCompleted, 
-            global::StrawberryShake.Tools.SchemaRegistry.IIssue? issue)
+            global::StrawberryShake.IIssue? issue)
         {
             IsCompleted = isCompleted;
             Issue = issue;
@@ -19,6 +19,6 @@ namespace StrawberryShake.Tools.SchemaRegistry
 
         public bool IsCompleted { get; }
 
-        public global::StrawberryShake.Tools.SchemaRegistry.IIssue? Issue { get; }
+        public global::StrawberryShake.IIssue? Issue { get; }
     }
 }

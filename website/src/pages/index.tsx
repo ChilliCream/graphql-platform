@@ -3,9 +3,11 @@ import React, { FunctionComponent } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetStartpageDataQuery } from "../../graphql-types";
-import BananaCakepop from "../components/images/banana-cakepop";
-import SEO from "../components/misc/seo";
-import Layout from "../components/structure/layout";
+import { BananaCakepop } from "../components/images/banana-cakepop";
+import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
+import { Link } from "../components/misc/link";
+import { SEO } from "../components/misc/seo";
+import { Layout } from "../components/structure/layout";
 
 const IndexPage: FunctionComponent = () => {
   const data = useStaticQuery<GetStartpageDataQuery>(graphql`
@@ -31,9 +33,22 @@ const IndexPage: FunctionComponent = () => {
           arrowLeftUrl={data.arrowLeft!.publicURL!}
           arrowRightUrl={data.arrowRight!.publicURL!}
           autoPlay
+          infiniteLoop
+          swipeable
           showStatus={false}
           showThumbs={false}
         >
+          <Slide>
+            <Link to="/blog/2020/03/18/entity-framework">
+              <EFMeetsGraphQL />
+              <SlideContent>
+                <SlideTitle>Entity Frameworks meets GraphQL</SlideTitle>
+                <SlideDescription>
+                  Get started with Hot Chocolate and Entity Framework
+                </SlideDescription>
+              </SlideContent>
+            </Link>
+          </Slide>
           <Slide>
             <BananaCakepop />
             <SlideContent>
@@ -54,12 +69,13 @@ export default IndexPage;
 
 const Intro = styled.section<{ url: string }>`
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 25px;
-  background-image: url("${props => props.url}");
+  width: 100%;
+  background-image: url("${(props) => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
   background-position-y: 100%;
@@ -77,6 +93,12 @@ const Slideshow = styled(Carousel)<{
 }>`
   flex: 0 0 auto;
   width: 100%;
+
+  ul,
+  li {
+    margin: 0;
+    padding: 0;
+  }
 
   > .carousel {
     position: relative;
@@ -104,12 +126,12 @@ const Slideshow = styled(Carousel)<{
 
       &.control-next {
         right: 0;
-        background-image: url("${props => props.arrowRightUrl}");
+        background-image: url("${(props) => props.arrowRightUrl}");
       }
 
       &.control-prev {
         left: 0;
-        background-image: url("${props => props.arrowLeftUrl}");
+        background-image: url("${(props) => props.arrowLeftUrl}");
       }
 
       @media only screen and (min-width: 992px) {
@@ -127,6 +149,7 @@ const Slideshow = styled(Carousel)<{
       display: flex;
       flex-direction: row;
       justify-content: center;
+      margin-top: 20px;
       list-style: none;
 
       > .dot {
@@ -161,6 +184,9 @@ const Slideshow = styled(Carousel)<{
 
       > .slide {
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         min-width: 100%;
       }
     }
@@ -169,7 +195,13 @@ const Slideshow = styled(Carousel)<{
 
 const Slide = styled.div`
   margin: 0 auto;
-  width: 80%;
+  width: 100%;
+
+  .gatsby-image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   @media only screen and (min-width: 992px) {
     width: 800px;
@@ -183,7 +215,6 @@ const Slide = styled.div`
 const SlideContent = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 20px;
 
   @media only screen and (min-width: 768px) {
     position: absolute;
@@ -193,6 +224,7 @@ const SlideContent = styled.div`
     display: flex;
     flex-direction: column;
     border-radius: 5px;
+    padding: 20px;
     background-color: rgba(0, 0, 0, 0.6);
   }
 
@@ -209,32 +241,35 @@ const SlideContent = styled.div`
 
 const SlideTitle = styled.h2`
   flex: 0 0 auto;
-  margin-bottom: 10px;
-  font-size: 2em;
+  margin-top: 10px;
+  font-size: 1em;
   text-align: center;
 
   @media only screen and (min-width: 768px) {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.667em;
     text-align: initial;
     color: #fff;
   }
 `;
 
 const SlideDescription = styled.p`
+  display: none;
   flex: 0 0 auto;
-  font-size: 1.5em;
-  line-height: 1.417em;
-  text-align: center;
+  margin-bottom: 0;
+  font-size: 1.111em;
+  color: #fff;
 
   @media only screen and (min-width: 768px) {
-    text-align: initial;
-    color: #fff;
+    display: initial;
   }
 `;
 
 const Title = styled.h1`
   flex: 0 0 auto;
-  margin-bottom: 10px;
-  font-size: 3em;
+  margin-bottom: 20px;
+  font-size: 2.222em;
   text-align: center;
   color: #fff;
 

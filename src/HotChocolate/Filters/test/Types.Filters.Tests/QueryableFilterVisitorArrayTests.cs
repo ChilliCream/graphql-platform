@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorArrayTests
+    public class QueryableFilterVisitorContextArrayTests
         : TypeTestBase
     {
         [Fact]
@@ -23,15 +23,15 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooSimpleFilterType());
+            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(FooSimple),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
 
             // assert
@@ -52,15 +52,15 @@ namespace HotChocolate.Types.Filters
                         )
             );
 
-            var fooType = CreateType(new FooSimpleFilterType());
+            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(FooSimple),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
 
             // assert
@@ -88,15 +88,15 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooSimpleFilterType());
+            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(FooSimple),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
 
             // assert
@@ -124,15 +124,15 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -172,15 +172,15 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -234,15 +234,15 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -294,15 +294,15 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -373,15 +373,15 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
@@ -412,15 +412,15 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested_any",
                     new BooleanValueNode(false)));
 
-            var fooType = CreateType(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
                 TypeConversion.Default,
                 true);
-            value.Accept(filter);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert

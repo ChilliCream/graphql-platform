@@ -822,8 +822,7 @@ namespace MarshmallowPie.Repositories.Mongo
             await repository.SetPublishedSchemaAsync(initial);
 
             // assert
-            PublishedSchema retrieved =
-                await publishedSchemas.AsQueryable().SingleOrDefaultAsync();
+            PublishedSchema retrieved = await publishedSchemas.AsQueryable().SingleOrDefaultAsync();
             Assert.NotNull(retrieved);
             Assert.Equal(initial.Id, retrieved.Id);
             Assert.Equal(initial.EnvironmentId, retrieved.EnvironmentId);

@@ -1,7 +1,7 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
@@ -12,22 +12,18 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            Expression instance,
-            ITypeConversion converter,
-            bool inMemory,
-            out Expression expression)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)] out Expression? expression)
         {
             if (operation.Type == typeof(IComparable)
                 && type.IsInstanceOfType(value))
             {
-
-                Expression property = instance;
+                Expression property = context.GetInstance();
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    property = Expression.Property(instance, operation.Property);
+                    property = Expression.Property(context.GetInstance(), operation.Property);
                 }
-
 
                 return TryCreateExpression(
                     operation,
@@ -46,7 +42,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 if (!operation.Property.PropertyType.IsInstanceOfType(parsedValue))
                 {
-                    parsedValue = converter.Convert(
+                    parsedValue = context.TypeConverter.Convert(
                         typeof(object),
                         operation.Property.PropertyType,
                         parsedValue);
@@ -60,6 +56,6 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             Expression property,
             Func<object> parseValue,
-            out Expression expression);
+            [NotNullWhen(true)] out Expression? expression);
     }
 }
