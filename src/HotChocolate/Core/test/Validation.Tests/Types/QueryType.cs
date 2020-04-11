@@ -32,6 +32,9 @@ namespace HotChocolate.Validation.Types
 
             descriptor.Field(t => t.GetCatOrDog())
                 .Type<CatOrDogType>();
+
+            descriptor.Field(t => t.GetDogOrHuman())
+                .Type<DogOrHumanType>();
         }
     }
 }

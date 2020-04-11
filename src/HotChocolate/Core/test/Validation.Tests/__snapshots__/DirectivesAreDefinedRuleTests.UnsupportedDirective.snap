@@ -1,18 +1,20 @@
-﻿{
-  "Message": "The specified directive `foo` is not supported by the current schema.",
-  "Code": null,
-  "Path": [
-    "dog",
-    "name"
-  ],
-  "Locations": [
-    {
-      "Line": 4,
-      "Column": 30
+﻿[
+  {
+    "Message": "The specified directive `foo` is not supported by the current schema.",
+    "Code": null,
+    "Path": [
+      "dog",
+      "name"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 30
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
     }
-  ],
-  "Exception": null,
-  "Extensions": {
-    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
   }
-}
+]
