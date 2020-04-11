@@ -140,7 +140,6 @@ namespace HotChocolate.Validation.Types
                 .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
 
-            // "nonNullenumArgField(intArg: DogCommand!): String!
             descriptor.Field("complexArgField")
                 .Argument("complexArg", t => t.Type<ComplexInput3Type>())
                 .Type<NonNullType<StringType>>()
@@ -153,6 +152,23 @@ namespace HotChocolate.Validation.Types
             descriptor.Field("nonNullFieldWithDefault")
                 .Argument("opt1", t => t.Type<NonNullType<IntType>>().DefaultValue(0))
                 .Type<NonNullType<IntType>>()
+                .Resolver(() => null);
+
+            descriptor.Field("nonNullFieldWithDefault")
+                .Argument("nonNullIntArg", t => t.Type<NonNullType<IntType>>().DefaultValue(0))
+                .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            descriptor.Field("nonNullField")
+                .Argument("nonNullIntArg", t => t.Type<NonNullType<IntType>>())
+                .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            descriptor.Field("stringListNonNullArgField")
+                .Argument(
+                    "stringListNonNullArg",
+                    t => t.Type<NonNullType<ListType<StringType>>>())
+                .Type<NonNullType<StringType>>()
                 .Resolver(() => null);
         }
     }
