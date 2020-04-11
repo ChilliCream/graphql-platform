@@ -79,7 +79,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.Utf8"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.Visitors", "Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj", "{86DB12AA-05FE-4348-B2AE-79A8A1A6874D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language.Tests", "Language\test\Language.Tests\Language.Tests.csproj", "{46A5E847-B1C3-49E4-8E32-A64C4189484B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.Tests", "Language\test\Language.Tests\HotChocolate.Language.Tests.csproj", "{46A5E847-B1C3-49E4-8E32-A64C4189484B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Filters.Mongo.Tests", "Filters\test\Types.Filters.Mongo.Tests\HotChocolate.Types.Filters.Mongo.Tests.csproj", "{A85619A2-A9F2-47A5-B109-3EA51C8EEC4B}"
 EndProject

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Validation.Properties;
 
 namespace HotChocolate.Validation
 {
@@ -17,7 +18,7 @@ namespace HotChocolate.Validation
 
         private ISchema? _schema;
         private IOutputType? _nonNullString;
-        private bool unexpectedErrorsDetected;
+        private bool _unexpectedErrorsDetected;
 
         public ISchema Schema
         {
@@ -27,7 +28,7 @@ namespace HotChocolate.Validation
                 {
                     // TODO : resources
                     throw new InvalidOperationException(
-                        "The context has an invalid state and is missing the schema.");
+                        Resources.DocumentValidatorContext_Context_Invalid_State);
                 }
                 return _schema;
             }
@@ -46,7 +47,7 @@ namespace HotChocolate.Validation
                 {
                     // TODO : resources
                     throw new InvalidOperationException(
-                        "The context has an invalid state and is missing the schema.");
+                        Resources.DocumentValidatorContext_Context_Invalid_State);
                 }
                 return _nonNullString;
             }
@@ -93,10 +94,10 @@ namespace HotChocolate.Validation
 
         public bool UnexpectedErrorsDetected
         {
-            get => unexpectedErrorsDetected;
+            get => _unexpectedErrorsDetected;
             set
             {
-                unexpectedErrorsDetected = value;
+                _unexpectedErrorsDetected = value;
             }
         }
 
