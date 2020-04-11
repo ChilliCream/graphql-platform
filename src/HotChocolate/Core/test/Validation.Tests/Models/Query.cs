@@ -39,12 +39,12 @@ namespace HotChocolate.Validation
             return null;
         }
 
-        public string[] GetStringList()
+        public object GetDogOrHuman()
         {
             return null;
         }
 
-        public object GetDogOrHuman()
+        public string[] GetStringList()
         {
             return null;
         }
