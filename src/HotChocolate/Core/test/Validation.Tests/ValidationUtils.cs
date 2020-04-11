@@ -58,6 +58,7 @@ namespace HotChocolate.Validation
                 c.RegisterType<HumanOrAlienType>();
                 c.RegisterType<HumanType>();
                 c.RegisterType<PetType>();
+                c.RegisterType<BeingType>();
                 c.RegisterType<ArgumentsType>();
                 c.RegisterSubscriptionType<SubscriptionType>();
                 c.RegisterType<ComplexInputType>();
