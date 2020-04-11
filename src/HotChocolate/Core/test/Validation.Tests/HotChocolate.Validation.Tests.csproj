@@ -23,10 +23,5 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="__snapshots__\__mismatch__\" />
-  </ItemGroup>
-
+  </ItemGroup> 
 </Project>
