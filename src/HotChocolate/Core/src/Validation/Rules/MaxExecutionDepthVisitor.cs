@@ -1,12 +1,10 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
 using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Validation.Rules
 {
-    internal sealed class MaxExecutionDepthVisitor : TypeDocumentValidatorVisitor
+    internal sealed class MaxExecutionDepthVisitor : DocumentValidatorVisitor
     {
         private readonly IMaxExecutionDepthOptionsAccessor _options;
 
@@ -44,35 +42,21 @@ namespace HotChocolate.Validation.Rules
             FieldNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Count < context.OutputFields.Count + 1)
+            context.Fields.Push(node);
+
+            if (context.Count < context.Fields.Count)
             {
-                context.Count += context.OutputFields.Count + 1;
+                context.Count = context.Fields.Count;
             }
 
-            if (IntrospectionFields.TypeName.Equals(node.Name.Value))
-            {
-                return Skip;
-            }
-
-            if (context.Types.TryPeek(out IType type) &&
-                type.NamedType() is IComplexOutputType ot &&
-                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
-            {
-                context.OutputFields.Push(of);
-                context.Types.Push(of.Type);
-                return Continue;
-            }
-
-            context.UnexpectedErrorsDetected = true;
-            return Skip;
+            return Continue;
         }
 
         protected override ISyntaxVisitorAction Leave(
             FieldNode node,
             IDocumentValidatorContext context)
         {
-            context.Types.Pop();
-            context.OutputFields.Pop();
+            context.Fields.Pop();
             return Continue;
         }
     }
