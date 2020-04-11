@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types; 
+using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 using System;
@@ -41,8 +41,8 @@ namespace HotChocolate.Validation
             this ISchemaConfiguration context,
             string name,
             DirectiveLocation location,
-            Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure) => 
-            context.RegisterDirective(new DirectiveType(x => 
+            Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure) =>
+            context.RegisterDirective(new DirectiveType(x =>
                 configure(x.Name(name).Location(location))));
 
         public static Schema CreateSchema()
