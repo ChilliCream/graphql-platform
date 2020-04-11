@@ -6,9 +6,8 @@ namespace HotChocolate.Types.Filters.Conventions
 {
     public abstract class FilterVisitorDefinitionBase
     {
-        public FilterConventionDefinition? Convention { get; set; }
-
         public abstract Task ApplyFilter<T>(
+            IFilterConvention convention,
             FieldDelegate next,
             ITypeConversion converter,
             IMiddlewareContext context);

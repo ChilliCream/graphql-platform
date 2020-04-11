@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
@@ -175,8 +174,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             IQueryableFilterVisitorContext context)
         {
-            if (operation.Type == typeof(IComparable)
-               && type.IsInstanceOfType(value))
+            if (operation.Type == typeof(string) && type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
                 var parsedValue = type.ParseLiteral(value);
@@ -198,7 +196,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             IQueryableFilterVisitorContext context)
         {
-            if (operation.Type == typeof(IComparable)
+            if (operation.Type == typeof(string)
                && type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);

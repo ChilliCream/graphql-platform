@@ -4,6 +4,10 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         public static IFilterExpressionVisitorDescriptor UseExpressionVisitor(
             this IFilterConventionDescriptor descriptor)
-                => FilterExpressionVisitorDescriptor.New(descriptor);
+        {
+            var desc = FilterExpressionVisitorDescriptor.New(descriptor);
+            descriptor.Visitor(desc);
+            return desc;
+        }
     }
 }

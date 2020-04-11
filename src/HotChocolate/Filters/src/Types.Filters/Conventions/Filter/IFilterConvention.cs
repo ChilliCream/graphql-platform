@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -88,5 +89,9 @@ namespace HotChocolate.Types.Filters.Conventions
             FieldDelegate next,
             ITypeConversion converter,
             IMiddlewareContext context);
+
+        bool TryGetVisitorDefinition<T>(
+            [NotNullWhen(true)]out T? definition)
+            where T : FilterVisitorDefinitionBase;
     }
 }

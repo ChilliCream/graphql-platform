@@ -1,15 +1,12 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterConventionDescriptor
         : IFilterConventionDescriptor
     {
-        private IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase>? _visitorDescriptor = null;
+        private IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase>? _visitorDescriptor
+            = null;
 
         protected FilterConventionDescriptor()
         {
@@ -124,11 +121,7 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
             }
 
-            if (_visitorDescriptor != null)
-            {
-                _visitorDescriptor.Convention(Definition);
-                Definition.VisitorDefinition = _visitorDescriptor.CreateDefinition();
-            }
+            Definition.VisitorDefinition = _visitorDescriptor?.CreateDefinition();
 
             return Definition;
         }

@@ -62,7 +62,8 @@ namespace HotChocolate.Types.Filters.Conventions
         {
             if (GetOrCreateConfiguration().VisitorDefinition is { } definition)
             {
-                await definition.ApplyFilter<T>(next, converter, context).ConfigureAwait(false);
+                await definition.ApplyFilter<T>(this, next, converter, context)
+                    .ConfigureAwait(false);
             }
             else
             {
@@ -180,6 +181,18 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
             }
             return _definition;
+        }
+
+        public bool TryGetVisitorDefinition<T>(
+            [NotNullWhen(true)]out T? definition)
+            where T : FilterVisitorDefinitionBase
+        {
+            definition = null;
+            if (GetOrCreateConfiguration().VisitorDefinition is T definitionOfT)
+            {
+                definition = definitionOfT;
+            }
+            return definition != null;
         }
 
         public readonly static IFilterConvention Default = new FilterConvention();

@@ -60,6 +60,8 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
                 operationHandler[definition.FilterKind] = definition.OperationHandlers;
             }
+            Definition.FieldHandler = fieldHandler;
+            Definition.OperationHandler = operationHandler;
             return Definition;
         }
 

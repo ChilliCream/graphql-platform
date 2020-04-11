@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
@@ -31,13 +30,16 @@ namespace HotChocolate.Types.Filters.Conventions
             >.Empty;
 
         public override async Task ApplyFilter<T>(
+            IFilterConvention filterConvention,
             FieldDelegate next,
             ITypeConversion converter,
             IMiddlewareContext context)
         {
             await next(context).ConfigureAwait(false);
 
-            IValueNode filter = context.Argument<IValueNode>(Convention!.ArgumentName);
+            string argumentName = filterConvention!.GetArgumentName();
+
+            IValueNode filter = context.Argument<IValueNode>(argumentName);
 
             if (filter is null || filter is NullValueNode)
             {
@@ -62,7 +64,7 @@ namespace HotChocolate.Types.Filters.Conventions
             }
 
             if (source != null &&
-                context.Field.Arguments[Convention!.ArgumentName].Type is InputObjectType iot &&
+                context.Field.Arguments[argumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit)
             {
                 var visitorContext = new QueryableFilterVisitorContext(

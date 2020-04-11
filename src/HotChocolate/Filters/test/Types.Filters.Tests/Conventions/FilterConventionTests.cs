@@ -259,8 +259,11 @@ namespace HotChocolate.Types.Filters
         public class Foo
         {
             public short Comparable { get; set; }
+
             public IEnumerable<short> ComparableEnumerable { get; set; }
+
             public bool Bool { get; set; }
+
             public FooBar Object { get; set; }
         }
 
@@ -268,6 +271,5 @@ namespace HotChocolate.Types.Filters
         {
             public string Nested { get; set; }
         }
-
     }
 }
