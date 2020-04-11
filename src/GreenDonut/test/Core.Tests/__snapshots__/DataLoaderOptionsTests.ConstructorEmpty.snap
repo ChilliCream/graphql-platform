@@ -1,7 +1,5 @@
 ﻿{
-  "AutoDispatching": false,
-  "Batching": true,
-  "BatchRequestDelay": "00:00:00.0500000",
+  "Batch": true,
   "Cache": null,
   "CacheKeyResolver": null,
   "CacheSize": 1000,

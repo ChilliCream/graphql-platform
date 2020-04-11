@@ -33,7 +33,7 @@ namespace GreenDonut
         private readonly CacheKeyResolverDelegate<TKey> _cacheKeyResolver;
         private readonly int _maxBatchSize;
         private ITaskCache _cache;
-        private Batch<TKey, TValue> _currentBatch;
+        private Batch<TKey, TValue>? _currentBatch;
         private bool _disposed;
         private DataLoaderOptions<TKey> _options;
 
@@ -57,7 +57,6 @@ namespace GreenDonut
             _cacheKeyResolver = _options.CacheKeyResolver ?? ((TKey key) => key);
             _batchScheduler = batchScheduler;
             _maxBatchSize = _options.GetBatchSize();
-            _currentBatch = new Batch<TKey, TValue>();
         }
 
         #region Explicit Implementation of IDataLoader
@@ -171,9 +170,7 @@ namespace GreenDonut
             CancellationToken cancellationToken);
 
         /// <inheritdoc />
-        public Task<TValue> LoadAsync(
-            TKey key,
-            CancellationToken cancellationToken)
+        public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken)
         {
             if (key == null)
             {
@@ -353,11 +350,14 @@ namespace GreenDonut
 
         private Batch<TKey, TValue> GetCurrentBatch()
         {
-            if (_currentBatch.HasDispatched || _currentBatch.Size == _maxBatchSize)
+            if (_currentBatch == null ||
+                _currentBatch.HasDispatched ||
+                _currentBatch.Size == _maxBatchSize)
             {
                 var newBatch = new Batch<TKey, TValue>();
 
-                _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+                _batchScheduler.Schedule(() =>
+                    DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
                 _currentBatch = newBatch;
             }
 

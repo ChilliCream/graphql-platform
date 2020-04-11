@@ -7,39 +7,6 @@ namespace GreenDonut
 {
     public class DataLoaderExtensionsTests
     {
-        #region DispatchAsync
-
-        [Fact(DisplayName = "DispatchAsync: Should throw an argument null exception for dataLoader")]
-        public void DispatchAsyncDataLoaderNull()
-        {
-            // arrange
-            IDataLoader loader = null;
-
-            // act
-            Action verify = () => loader.DispatchAsync();
-
-            // assert
-            Assert.Throws<ArgumentNullException>("dataLoader", verify);
-        }
-
-        [Fact(DisplayName = "DispatchAsync: Should not throw any exception")]
-        public void DispatchAsyncNoException()
-        {
-            // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
-
-            // act
-            Action verify = () => loader.DispatchAsync();
-
-            // assert
-            Assert.Null(Record.Exception(verify));
-        }
-
-        #endregion
-
         #region Set
 
         [Fact(DisplayName = "Set: Should throw an argument null exception for dataLoader")]
@@ -61,10 +28,9 @@ namespace GreenDonut
         public void SetKeyNull()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             string key = null;
             var value = "Bar";
 
@@ -79,10 +45,9 @@ namespace GreenDonut
         public void SetNoException()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
             string value = null;
 
@@ -97,10 +62,9 @@ namespace GreenDonut
         public async Task SetNewCacheEntry()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
             var value = "Bar";
 
@@ -117,10 +81,9 @@ namespace GreenDonut
         public async Task SetTwice()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
             var first = "Bar";
             var second = "Baz";
@@ -159,8 +122,8 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
 
             // act
@@ -193,8 +156,8 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
 
             // act
             Action verify = () => loader.LoadAsync(new string[0]);
@@ -226,8 +189,8 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
-            var options = new DataLoaderOptions<string>();
-            var loader = new DataLoader<string, string>(options, fetch);
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
 
             // act
             Action verify = () => loader.LoadAsync(new List<string>());
@@ -260,10 +223,8 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
-            var options = new DataLoaderOptions<string>();
-            IDataLoader loader = new DataLoader<string, string>(
-                options,
-                fetch);
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
 
             // act
@@ -296,10 +257,8 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
-            var options = new DataLoaderOptions<string>();
-            IDataLoader loader = new DataLoader<string, string>(
-                options,
-                fetch);
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
 
             // act
             Action verify = () => loader.LoadAsync(new string[0]);
@@ -331,10 +290,8 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
-            var options = new DataLoaderOptions<string>();
-            IDataLoader loader = new DataLoader<string, string>(
-                options,
-                fetch);
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
 
             // act
             Action verify = () => loader.LoadAsync(new List<string>());
@@ -366,12 +323,9 @@ namespace GreenDonut
         public void IDataLoaderSetKeyNull()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            IDataLoader loader = new DataLoader<string, string>(
-                options,
-                fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             string key = null;
             var value = "Bar";
 
@@ -386,12 +340,9 @@ namespace GreenDonut
         public void IDataLoaderSetNoException()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            IDataLoader loader = new DataLoader<string, string>(
-                options,
-                fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
             object value = null;
 
@@ -406,12 +357,9 @@ namespace GreenDonut
         public async Task IDataLoaderSetNewCacheEntry()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            IDataLoader loader = new DataLoader<string, string>(
-                options,
-                fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
             var value = "Bar";
 
@@ -428,12 +376,9 @@ namespace GreenDonut
         public async Task IDataLoaderSetTwice()
         {
             // arrange
-            FetchDataDelegate<string, string> fetch = TestHelpers
-                .CreateFetch<string, string>();
-            var options = new DataLoaderOptions<string>();
-            IDataLoader loader = new DataLoader<string, string>(
-                options,
-                fetch);
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
             var key = "Foo";
             var first = "Bar";
             var second = "Baz";
