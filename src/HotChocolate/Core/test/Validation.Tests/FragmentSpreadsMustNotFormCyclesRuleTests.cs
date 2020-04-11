@@ -34,10 +34,10 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(t.Message,
-                    "The graph of fragment spreads must not form any " +
-                    "cycles including spreading itself. Otherwise an " +
-                    "operation could infinitely spread or infinitely " +
-                    "execute on cycles in the underlying data."));
+                "The graph of fragment spreads must not form any " +
+                "cycles including spreading itself. Otherwise an " +
+                "operation could infinitely spread or infinitely " +
+                "execute on cycles in the underlying data."));
         }
 
         [Fact]
@@ -71,16 +71,15 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(t.Message,
-                    "The graph of fragment spreads must not form any " +
-                    "cycles including spreading itself. Otherwise an " +
-                    "operation could infinitely spread or infinitely " +
-                    "execute on cycles in the underlying data."));
+                "The graph of fragment spreads must not form any " +
+                "cycles including spreading itself. Otherwise an " +
+                "operation could infinitely spread or infinitely " +
+                "execute on cycles in the underlying data."));
         }
 
         [Fact]
         public void InfiniteRecursion()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
@@ -103,16 +102,15 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(t.Message,
-                    "The graph of fragment spreads must not form any " +
-                    "cycles including spreading itself. Otherwise an " +
-                    "operation could infinitely spread or infinitely " +
-                    "execute on cycles in the underlying data."));
+                "The graph of fragment spreads must not form any " +
+                "cycles including spreading itself. Otherwise an " +
+                "operation could infinitely spread or infinitely " +
+                "execute on cycles in the underlying data."));
         }
 
         [Fact]
         public void QueryWithSideBySideFragSpreads()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -135,7 +133,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void SingleReferenceIsValid()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -151,7 +148,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void SpreadTwiceIsNotCircular()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -167,7 +163,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void SpreadTwiceIndirectlyIsNotCircular()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -184,7 +179,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DoubleSpreadWithinAbstractTypes()
         {
-            // arrange
             ExpectValid(@"
                 {
                     human {
@@ -198,6 +192,7 @@ namespace HotChocolate.Validation
                     ... on Dog { name }
                     ... on Cat { name }
                 }
+                
                 fragment spreadsInAnon on Pet {
                     ... on Dog { ...nameFragment }
                     ... on Cat { ...nameFragment }
@@ -208,13 +203,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void SpeardingRecursivelyWithinFieldFails()
         {
-            // arrange
             ExpectErrors(@" 
                 {
                     human { 
                         ...fragA 
                     }
                 }
+                
                 fragment fragA on Human { relatives { ...fragA } },
             ");
         }
@@ -222,22 +217,20 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoSpreadingItselfDirectly()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
                         ...fragA
                     }
                 }
+                
                 fragment fragA on Dog { ...fragA }
             ");
         }
 
-
         [Fact]
         public void NoSpreadingItselfDirectlyWithinInlineFragment()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human {
@@ -246,6 +239,7 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
+                
                 fragment fragA on Pet {
                     ... on Dog {
                     ...fragA
@@ -257,13 +251,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoSpreadingItselfIndirectly()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
                         ...fragA
                     }
                 }
+                
                 fragment fragA on Dog { ...fragB }
                 fragment fragB on Dog { ...fragA }
             ");
@@ -272,7 +266,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoSpreadingItselfIndirectlyWithinInlineFragment()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     human {
@@ -280,12 +273,14 @@ namespace HotChocolate.Validation
                             ...fragA
                         }
                     }
-                }      
+                }
+                
                 fragment fragA on Pet {
                     ... on Dog {
                         ...fragB
                     }
                 }
+                
                 fragment fragB on Pet {
                     ... on Dog {
                         ...fragA
@@ -297,13 +292,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoSpreadingItselfDeeply()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
                         ...fragA
                     }
-                }      
+                }
+                
                 fragment fragA on Dog { ...fragB }
                 fragment fragB on Dog { ...fragC }
                 fragment fragC on Dog { ...fragO }
@@ -318,13 +313,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoSpreadingItselfDeeplyTwoPaths()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
                         ...fragA
                     }
-                }      
+                }
+                
                 fragment fragA on Dog { ...fragB, ...fragC }
                 fragment fragB on Dog { ...fragA }
                 fragment fragC on Dog { ...fragA }
@@ -334,13 +329,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoSpreadingItselfDeeplyTwoPathsAltTraverseOrder()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
                         ...fragA
                     }
-                }      
+                }
+                
                 fragment fragA on Dog { ...fragC }
                 fragment fragB on Dog { ...fragC }
                 fragment fragC on Dog { ...fragA, ...fragB }
@@ -350,13 +345,13 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoSpreadingItselfDeeplyAndImmediately()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
                         ...fragA
                     }
-                }      
+                }
+                
                 fragment fragA on Dog { ...fragB }
                 fragment fragB on Dog { ...fragB, ...fragC }
                 fragment fragC on Dog { ...fragA, ...fragB }

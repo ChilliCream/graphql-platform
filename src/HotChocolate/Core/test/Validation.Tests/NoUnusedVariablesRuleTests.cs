@@ -1,29 +1,28 @@
-using HotChocolate.Language;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation
 {
-    public class NoUndefinedVariablesRuleTests
+    public class NoUnusedVariablesRuleTests
         : DocumentValidatorVisitorTestBase
     {
-        public NoUndefinedVariablesRuleTests()
+        public NoUnusedVariablesRuleTests()
             : base(services => services.AddVariableRules())
         {
         }
 
         [Fact]
-        public void AllVariablesDefined()
+        public void UsesAllVariables()
         {
             ExpectValid(@"
-                query Foo($a: String, $b: String, $c: String) {
+                query ($a: String, $b: String, $c: String) {
                     field(a: $a, b: $b, c: $c)
                 }
             ");
         }
 
         [Fact]
-        public void AllVariablesDeeplyDefined()
+        public void UsesAllVariablesDeeply()
         {
             ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
@@ -37,25 +36,25 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void AllVariablesDeeplyInInlineFragmentsDefined()
+        public void UsesAllVariablesDeeplyInInlineFragments()
         {
             ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
-                    ... on Query {
-                        field(a: $a) {
-                            field(b: $b) {
-                                ... on Query {
+                        ... on Query {
+                            field(a: $a) {
+                                field(b: $b) {
+                                    ... on Query {
                                         field(c: $c)
-                                    } 
+                                    }
                                 }
                             }
                         }
-                    }
+                }
             ");
         }
 
         [Fact]
-        public void AllVariablesInFragmentsDeeplyDefined()
+        public void UsesAllVariablesInFragments()
         {
             ExpectValid(@"
                 query Foo($a: String, $b: String, $c: String) {
@@ -78,53 +77,31 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void VariableWithinSingleFragmentDefinedInMultipleOperations()
+        public void VariableUsedByFragmentInMultipleOperations()
         {
             ExpectValid(@"
                 query Foo($a: String) {
-                    ...FragA
+                ...FragA
                 }
-                
-                query Bar($a: String) {
-                    ...FragA
-                }
-                
-                fragment FragA on Query {
-                    field(a: $a)
-                }
-            ");
-        }
-
-        [Fact]
-        public void VariableWithinFragmentsDefinedInOperations()
-        {
-            ExpectValid(@"
-                query Foo($a: String) {
-                    ...FragA
-                }
-                
                 query Bar($b: String) {
-                    ...FragB
+                 ...FragB
                 }
-                
                 fragment FragA on Query {
-                    field(a: $a)
+                  field(a: $a)
                 }
-                
                 fragment FragB on Query {
-                    field(b: $b)
+                  field(b: $b)
                 }
             ");
         }
 
         [Fact]
-        public void VariableWithinRecursiveFragmentDefined()
+        public void VariableUsedByRecursiveFragment()
         {
             ExpectValid(@"
                 query Foo($a: String) {
                     ...FragA
                 }
-                
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragA
@@ -134,153 +111,71 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void VariableNotDefined()
+        public void MultipleVariablesNotUsed()
         {
             ExpectErrors(@"
                 query Foo($a: String, $b: String, $c: String) {
-                    field(a: $a, b: $b, c: $c, d: $d)
+                    field(b: $b)
                 }
             ");
         }
 
         [Fact]
-        public void VariableNotDefinedByUnNamedQuery()
+        public void VariableNotUsedInFragments()
         {
             ExpectErrors(@"
                 query Foo($a: String, $b: String, $c: String) {
-                    field(a: $a, b: $b, c: $c, d: $d)
-                }
-            ");
-        }
-
-        [Fact]
-        public void MultipleVariablesNotDefined()
-        {
-            ExpectErrors(@"
-                query Foo($b: String) {
-                    field(a: $a, b: $b, c: $c)
-                }
-            ");
-        }
-
-        [Fact]
-        public void VariableInFragmentNotDefinedByUnNamedQuery()
-        {
-            ExpectErrors(@" 
-                {
                     ...FragA
                 }
-                
-                fragment FragA on Query {
-                    field(a: $a)
-                }
-            ");
-        }
-
-        [Fact]
-        public void VariableInFragmentNotDefinedByOperation()
-        {
-            ExpectErrors(@" 
-                query Foo($a: String, $b: String) {
-                    ...FragA
-                }
-                
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragB
                     }
                 }
-                
                 fragment FragB on Query {
                     field(b: $b) {
                     ...FragC
                     }
                 }
-                
                 fragment FragC on Query {
-                    field(c: $c)
+                    field
                 }
             ");
         }
 
         [Fact]
-        public void MultipleVariablesInFragmentsNotDefined()
+        public void MultipleVariablesNotUsedInFragments()
         {
-            ExpectErrors(@" 
-                query Foo($b: String) {
+            ExpectErrors(@"
+                query Foo($a: String, $b: String, $c: String) {
                     ...FragA
                 }
-                
                 fragment FragA on Query {
                     field(a: $a) {
                     ...FragB
                     }
                 }
-                
                 fragment FragB on Query {
                     field(b: $b) {
                     ...FragC
                     }
                 }
-                
                 fragment FragC on Query {
-                    field(c: $c)
+                    field
                 }
             ");
         }
 
         [Fact]
-        public void SingleVariableInFragmentNotDefinedByMultipleOperations()
+        public void VariableNotUsedByUnreferencedFragment()
         {
-            ExpectErrors(@" 
-                query Foo($a: String) {
-                    ...FragAB
-                }
-                
-                query Bar($a: String) {
-                    ...FragAB
-                }
-                
-                fragment FragAB on Query {
-                    field(a: $a, b: $b)
-                }
-            ");
-        }
-
-        [Fact]
-        public void VariablesInFragmentNotDefinedByMultipleOperations()
-        {
-            ExpectErrors(@" 
-                query Foo($b: String) {
-                    ...FragAB
-                }
-                
-                query Bar($a: String) {
-                    ...FragAB
-                }
-                
-                fragment FragAB on Query {
-                    field(a: $a, b: $b)
-                }
-            ");
-        }
-
-        [Fact]
-        public void VariableInFragmentUsedByOtherOperation()
-        {
-            ExpectErrors(@" 
+            ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragA
                 }
-                
-                query Bar($a: String) {
-                    ...FragB
-                }
-                
                 fragment FragA on Query {
                     field(a: $a)
                 }
-                
                 fragment FragB on Query {
                     field(b: $b)
                 }
@@ -288,25 +183,24 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void MultipleUndefinedVariablesProduceMultipleErrors()
+        public void VariableNotUsedByFragmentUsedByOtherOperation()
         {
-            ExpectErrors(@" 
+            ExpectErrors(@"
                 query Foo($b: String) {
                     ...FragA
                 }
-                
                 query Bar($a: String) {
                     ...FragB
                 }
-                
                 fragment FragA on Query {
                     field(a: $a)
                 }
-                
                 fragment FragB on Query {
                     field(b: $b)
                 }
             ");
         }
+
+
     }
 }
