@@ -1,0 +1,42 @@
+﻿[
+  {
+    "Message": "The argument `unknown` does not exist.",
+    "Code": null,
+    "Path": [
+      "dog"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 41
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "type": "Dog",
+      "field": "doesKnowCommand",
+      "argument": "unknown",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    }
+  },
+  {
+    "Message": "The argument `dogCommand` is required.",
+    "Code": null,
+    "Path": [
+      "dog"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 25
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "type": "Dog",
+      "field": "doesKnowCommand",
+      "argument": "dogCommand",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    }
+  }
+]
