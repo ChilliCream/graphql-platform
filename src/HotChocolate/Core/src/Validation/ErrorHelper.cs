@@ -1,6 +1,6 @@
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Validation.Properties;
 
 namespace HotChocolate.Validation
 {
@@ -39,12 +39,12 @@ namespace HotChocolate.Validation
             VariableNode variable,
             VariableDefinitionNode variableDefinition)
         {
-            string variableName = variableDefinition.Variable.Name.Value;
+            var variableName = variableDefinition.Variable.Name.Value;
 
             return ErrorBuilder.New()
                 .SetMessage(
-                    $"The variable `{variableName}` is not compatible " +
-                    "with the type of the current location.")
+                    Resources.ErrorHelper_VariableIsNotCompatible,
+                    variableName)
                 .AddLocation(variable)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("variable", variableName)
@@ -59,7 +59,7 @@ namespace HotChocolate.Validation
             DirectiveNode node)
         {
             return ErrorBuilder.New()
-                .SetMessage("The specified directive is not valid the current location.")
+                .SetMessage(Resources.ErrorHelper_DirectiveNotValidInLocation)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SpecifiedBy("sec-Directives-Are-In-Valid-Locations")
@@ -72,8 +72,8 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    $"The specified directive `{node.Name.Value}` " +
-                    "is not supported by the current schema.")
+                    Resources.ErrorHelper_DirectiveNotSupported,
+                    node.Name.Value)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SpecifiedBy("sec-Directives-Are-Defined")
@@ -85,9 +85,7 @@ namespace HotChocolate.Validation
             IDefinitionNode node)
         {
             return ErrorBuilder.New()
-                .SetMessage(
-                    "A document containing TypeSystemDefinition " +
-                    "is invalid for execution.")
+                .SetMessage(Resources.ErrorHelper_TypeSystemDefinitionNotAllowed)
                 .AddLocation(node)
                 .SpecifiedBy("sec-Executable-Definitions")
                 .Build();
@@ -99,9 +97,7 @@ namespace HotChocolate.Validation
             UnionType type)
         {
             return ErrorBuilder.New()
-                .SetMessage(
-                    "A union type cannot declare a field directly. " +
-                    "Use inline fragments or fragments instead")
+                .SetMessage(Resources.ErrorHelper_UnionFieldError)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("type", type.Name)
@@ -116,7 +112,7 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The field `{0}` does not exist on the type `{1}`.",
+                    Resources.ErrorHelper_FieldDoesNotExist,
                     node.Name.Value, outputType.Name)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
@@ -135,9 +131,7 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "`{0}` returns {1} value. Selections on scalars " +
-                    "or enums are never allowed, because they are the leaf " +
-                    "nodes of any GraphQL query.",
+                    Resources.ErrorHelper_LeafFieldsCannotHaveSelections,
                     node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "an enum")
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
@@ -156,9 +150,7 @@ namespace HotChocolate.Validation
             IValueNode valueNode)
         {
             return ErrorBuilder.New()
-                .SetMessage(
-                    "The specified argument value " +
-                    "does not match the argument type.")
+                .SetMessage(Resources.ErrorHelper_ArgumentValueIsNotCompatible)
                 .AddLocation(valueNode)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("argument", node.Name.Value)
@@ -176,9 +168,8 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The specified value type of field " +
-                    $"`{field.Name.Value}` " +
-                    "does not match the field type.")
+                    Resources.ErrorHelper_FieldValueIsNotCompatible,
+                    field.Name.Value)
                 .AddLocation(valueNode)
                 .SetExtension("fieldName", field.Name.Value)
                 .SetExtension("fieldType", field.Type.Print())
@@ -196,9 +187,8 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The specified value type of variable " +
-                    $"`{node.Variable.Name.Value}` " +
-                    "does not match the variable type.")
+                    Resources.ErrorHelper_VariableDefaultValueIsNotCompatible,
+                    node.Variable.Name.Value)
                 .AddLocation(valueNode)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("variable", node.Variable.Name.Value)
@@ -216,9 +206,7 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "`{0}` is an object, interface or union type " +
-                    "field. Leaf selections on objects, interfaces, and " +
-                    "unions without subfields are disallowed.",
+                    Resources.ErrorHelper_NoSelectionOnCompositeField,
                     node.Name.Value)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
@@ -236,7 +224,7 @@ namespace HotChocolate.Validation
             string fieldName)
         {
             return ErrorBuilder.New()
-                .SetMessage("`{0}` is a required field and cannot be null.", fieldName)
+                .SetMessage(Resources.ErrorHelper_FieldIsRequiredButNull, fieldName)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", fieldName)
@@ -250,7 +238,7 @@ namespace HotChocolate.Validation
             FieldInfo fieldB)
         {
             return ErrorBuilder.New()
-                .SetMessage("Encountered fields for the same object that cannot be merged.")
+                .SetMessage(Resources.ErrorHelper_FieldsAreNotMergable)
                 .AddLocation(fieldA.Field)
                 .AddLocation(fieldB.Field)
                 .SetExtension("declaringTypeA", fieldA.DeclaringType.NamedType().Name)
@@ -271,8 +259,8 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "There are multiple fragments with the name " +
-                    $"`{fragmentDefinition.Name.Value}`.")
+                    Resources.ErrorHelper_FragmentNameNotUnique,
+                    fragmentDefinition.Name.Value)
                 .AddLocation(fragmentDefinition)
                 .SetExtension("fragment", fragmentDefinition.Name.Value)
                 .SpecifiedBy("sec-Fragment-Name-Uniqueness")
@@ -285,8 +273,8 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    $"The specified fragment `{fragmentDefinition.Name.Value}` " +
-                    "is not used within the current document.")
+                    Resources.ErrorHelper_FragmentNotUsed,
+                    fragmentDefinition.Name.Value)
                 .AddLocation(fragmentDefinition)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("fragment", fragmentDefinition.Name.Value)
@@ -299,11 +287,7 @@ namespace HotChocolate.Validation
             FragmentSpreadNode fragmentSpread)
         {
             return ErrorBuilder.New()
-                .SetMessage(
-                    "The graph of fragment spreads must not form any " +
-                    "cycles including spreading itself. Otherwise an " +
-                    "operation could infinitely spread or infinitely " +
-                    "execute on cycles in the underlying data.")
+                .SetMessage(Resources.ErrorHelper_FragmentCycleDetected)
                 .AddLocation(fragmentSpread)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("fragment", fragmentSpread.Name.Value)
@@ -317,7 +301,7 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The specified fragment `{0}` does not exist.",
+                    Resources.ErrorHelper_FragmentDoesNotExist,
                     fragmentSpread.Name.Value)
                 .AddLocation(fragmentSpread)
                 .SetPath(context.CreateErrorPath())
@@ -333,7 +317,7 @@ namespace HotChocolate.Validation
             INamedType parentType)
         {
             return ErrorBuilder.New()
-                .SetMessage("The parent type does not match the type condition on the fragment.")
+                .SetMessage(Resources.ErrorHelper_FragmentNotPossible)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("typeCondition", typeCondition.Visualize())
@@ -349,7 +333,9 @@ namespace HotChocolate.Validation
             NamedTypeNode typeCondition)
         {
             return ErrorBuilder.New()
-                .SetMessage("Unknown type `{0}`.", typeCondition.Name.Value)
+                .SetMessage(
+                    Resources.ErrorHelper_FragmentTypeConditionUnknown,
+                    typeCondition.Name.Value)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("typeCondition", typeCondition.Name.Value)
@@ -358,15 +344,13 @@ namespace HotChocolate.Validation
                 .Build();
         }
 
-        public static IError FragmentOnlyCompositType(
+        public static IError FragmentOnlyCompositeType(
             this IDocumentValidatorContext context,
             ISyntaxNode node,
             INamedType type)
         {
             return ErrorBuilder.New()
-                .SetMessage(
-                    "Fragments can only be declared on unions, interfaces, " +
-                    "and objects.")
+                .SetMessage(Resources.ErrorHelper_FragmentOnlyCompositeType)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("typeCondition", type.Visualize())
@@ -380,7 +364,7 @@ namespace HotChocolate.Validation
             ObjectFieldNode field)
         {
             return ErrorBuilder.New()
-                .SetMessage("There can be only one input field named `{0}`.", field.Name.Value)
+                .SetMessage(Resources.ErrorHelper_InputFieldAmbiguous, field.Name.Value)
                 .AddLocation(field)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", field.Name.Value)
@@ -394,8 +378,8 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The specified input object field " +
-                    $"`{field.Name.Value}` does not exist.")
+                    Resources.ErrorHelper_InputFieldDoesNotExist,
+                    field.Name.Value)
                 .AddLocation(field)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", field.Name.Value)
@@ -409,7 +393,7 @@ namespace HotChocolate.Validation
             string fieldName)
         {
             return ErrorBuilder.New()
-                .SetMessage("`{0}` is a required field and cannot be null.", fieldName)
+                .SetMessage(Resources.ErrorHelper_InputFieldRequired, fieldName)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("field", fieldName)
@@ -424,7 +408,7 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The operation name `{0}` is not unique.",
+                    Resources.ErrorHelper_OperationNameNotUnique,
                     operationName)
                 .AddLocation(operation)
                 .SetExtension("operation", operationName)
@@ -438,10 +422,7 @@ namespace HotChocolate.Validation
             int operations)
         {
             return ErrorBuilder.New()
-                .SetMessage(
-                    "GraphQL allows a short‐hand form for defining query " +
-                    "operations when only that one operation exists in the " +
-                    "document.")
+                .SetMessage(Resources.ErrorHelper_OperationAnonymousMoreThanOne)
                 .AddLocation(operation)
                 .SetExtension("operations", operations)
                 .SpecifiedBy("sec-Lone-Anonymous-Operation")
@@ -454,7 +435,7 @@ namespace HotChocolate.Validation
             string variableName)
         {
             return ErrorBuilder.New()
-                .SetMessage("The type of variable `{0}` is not an input type.", variableName)
+                .SetMessage(Resources.ErrorHelper_VariableNotInputType, variableName)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("variable", variableName)
@@ -469,10 +450,7 @@ namespace HotChocolate.Validation
             string variableName)
         {
             return ErrorBuilder.New()
-                .SetMessage(
-                    "A document containing operations that " +
-                    "define more than one variable with the same " +
-                    "name is invalid for execution.")
+                .SetMessage(Resources.ErrorHelper_VariableNameNotUnique)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("variable", variableName)
@@ -488,9 +466,7 @@ namespace HotChocolate.Validation
             DirectiveType? directive = null)
         {
             IErrorBuilder builder = ErrorBuilder.New()
-                .SetMessage(
-                    "More than one argument with the same name in an argument " +
-                    "set is ambiguous and invalid.")
+                .SetMessage(Resources.ErrorHelper_ArgumentNotUnique)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath());
 
@@ -520,7 +496,7 @@ namespace HotChocolate.Validation
             DirectiveType? directive = null)
         {
             IErrorBuilder builder = ErrorBuilder.New()
-                .SetMessage("The argument `{0}` is required.", argumentName)
+                .SetMessage(Resources.ErrorHelper_ArgumentRequired, argumentName)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath());
 
@@ -549,7 +525,7 @@ namespace HotChocolate.Validation
             DirectiveType? directive = null)
         {
             IErrorBuilder builder = ErrorBuilder.New()
-                .SetMessage("The argument `{0}` does not exist.", node.Name.Value)
+                .SetMessage(Resources.ErrorHelper_ArgumentDoesNotExist, node.Name.Value)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath());
 
@@ -576,7 +552,7 @@ namespace HotChocolate.Validation
             OperationDefinitionNode operation)
         {
             return ErrorBuilder.New()
-                .SetMessage("Subscription operations must have exactly one root field.")
+                .SetMessage(Resources.ErrorHelper_SubscriptionSingleRootField)
                 .AddLocation(operation)
                 .SpecifiedBy("sec-Single-root-field")
                 .Build();
@@ -590,8 +566,7 @@ namespace HotChocolate.Validation
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The GraphQL document has an operation complexity of {0} " +
-                    "which exceeds the max allowed operation complexity of {1}.",
+                    Resources.ErrorHelper_MaxOperationComplexity,
                     detectedComplexity, allowedComplexity)
                 .AddLocation(operation)
                 .SetExtension("allowedComplexity", allowedComplexity)

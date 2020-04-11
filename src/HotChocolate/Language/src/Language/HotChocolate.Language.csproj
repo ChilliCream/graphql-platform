@@ -12,6 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AST\**" />
+    <EmbeddedResource Remove="AST\**" />
+    <None Remove="AST\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
@@ -35,10 +41,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>LangResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="AST\" />
   </ItemGroup>
 
 </Project>
