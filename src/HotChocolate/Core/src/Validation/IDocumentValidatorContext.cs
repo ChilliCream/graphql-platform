@@ -39,6 +39,8 @@ namespace HotChocolate.Validation
 
         IList<IOutputField> OutputFields { get; }
 
+        IList<FieldNode> Fields { get; }
+
         IList<IInputField> InputFields { get; }
 
         ICollection<IError> Errors { get; }
@@ -48,6 +50,8 @@ namespace HotChocolate.Validation
         int Max { get; set; }
 
         bool UnexpectedErrorsDetected { get; set; }
+
+        IDictionary<string, object> ContextData { get; }
 
         IList<FieldInfo> RentFieldInfoList();
     }
