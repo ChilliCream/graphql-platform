@@ -2,9 +2,7 @@
   {
     "Message": "The following variables were not declared: d.",
     "Code": null,
-    "Path": [
-      "field"
-    ],
+    "Path": [],
     "Locations": [
       {
         "Line": 2,
