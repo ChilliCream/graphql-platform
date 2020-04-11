@@ -76,23 +76,5 @@ namespace HotChocolate.Validation
 
             return DefaultAction;
         }
-
-        private static IEnumerable<ISyntaxNode> GetFragmentSpreadChildren(
-            FragmentSpreadNode fragmentSpread,
-            IDocumentValidatorContext context)
-        {
-            foreach (ISyntaxNode child in fragmentSpread.GetNodes())
-            {
-                yield return child;
-            }
-
-            if (context.Fragments.TryGetValue(
-                fragmentSpread.Name.Value,
-                out FragmentDefinitionNode? fragment) &&
-                !context.Path.Contains(fragment))
-            {
-                yield return fragment;
-            }
-        }
     }
 }
