@@ -17,7 +17,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void SupportedDirective()
         {
-            // arrange
             ExpectValid(@"
                 {
                     dog {
@@ -30,7 +29,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void UnsupportedDirective()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog {
@@ -39,29 +37,27 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "The specified directive `foo` " +
-                    "is not supported by the current schema.",
-                    t.Message));
+                "The specified directive `foo` " +
+                "is not supported by the current schema.",
+                t.Message));
         }
 
         [Fact]
         public void SkipDirectiveIsInTheWrongPlace()
         {
-            // arrange
             ExpectErrors(@"
                 query @skip(if: $foo) {
                     field
                 }
             ",
             t => Assert.Equal(
-                    "The specified directive is not valid the " +
-                    "current location.", t.Message));
+                "The specified directive is not valid the " +
+                "current location.", t.Message));
         }
 
         [Fact]
         public void SkipDirectiveIsInTheRightPlace()
         {
-            // arrange
             ExpectValid(@"
                 query a {
                     field @skip(if: $foo)
@@ -78,14 +74,13 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
-                    "Only one of each directive is allowed per location.",
-                    t.Message));
+                "Only one of each directive is allowed per location.",
+                t.Message));
         }
 
         [Fact]
         public void SkipOnTwoDifferentFields()
         {
-            // arrange
             ExpectValid(@"
                 query ($foo: Boolean = true, $bar: Boolean = false) {
                     field @skip(if: $foo) {
@@ -101,7 +96,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithNoDirectives()
         {
-            // arrange
             ExpectValid(@"
                 query Foo {
                     name
@@ -116,7 +110,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithKnownDirectives()
         {
-            // arrange
             ExpectValid(@"
                  {
                     dog @include(if: true) {
@@ -128,10 +121,10 @@ namespace HotChocolate.Validation
                 }
             ");
         }
+
         [Fact]
         public void WithUnknownDirectives()
         {
-            // arrange
             ExpectErrors(@"
                  {
                     dog @unknown(directive: ""value"") {
@@ -144,7 +137,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithManyUnknownDirectives()
         {
-            // arrange
             ExpectErrors(@"
                 {
                     dog @unknown(directive: ""value"") {
@@ -163,7 +155,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithWellPlacedDirectives()
         {
-            // arrange
             ExpectValid(@"
                 query ($var: Boolean) @onQuery {
                     name @include(if: $var)
@@ -174,12 +165,15 @@ namespace HotChocolate.Validation
                     skippedField
                     }
                 }
+                
                 mutation @onMutation {
                     someField
                 }
+                
                 subscription @onSubscription {
                     someField
                 }
+                
                 fragment Frag on SomeType @onFragmentDefinition {
                     someField
                 }
@@ -189,7 +183,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithWellPlacedVariableDefinitionDirective()
         {
-            // arrange
             ExpectValid(@"
                 query Foo($var: Boolean @onVariableDefinition) {
                     name
@@ -200,37 +193,36 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithMisplacedDirectiveOnQuery()
         {
-            // arrange
             ExpectErrors(@"
                 query Foo($var: Boolean) @include(if: true) {
                     name   
                 } 
             ");
         }
+
         [Fact]
         public void WithMisplacedDirectivesOnField()
         {
-            // arrange
             ExpectErrors(@"
                  query Foo($var: Boolean)  {
                     name @onQuery   
                 } 
             ");
         }
+
         [Fact]
         public void WithMisplacedDirectivesOnFieldRepeatedly()
         {
-            // arrange
             ExpectErrors(@"
                  query Foo($var: Boolean)  {
                     name @onQuery @include(if: $var) 
                 } 
             ");
         }
+
         [Fact]
         public void WithMisplacedDirectivesOnMutation()
         {
-            // arrange
             ExpectErrors(@" 
                 mutation Bar @onQuery {
                     someField
@@ -241,7 +233,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithMisplacedDirectivesOnSubscription()
         {
-            // arrange
             ExpectErrors(@" 
                 subscription Bar @onQuery {
                     someField
@@ -252,7 +243,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithMisplacedDirectivesOnVariableDefinition()
         {
-            // arrange
             ExpectErrors(@"
                 query Foo($var: Boolean @onQuery(if: true))  {
                     name  
@@ -263,7 +253,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithMisplacedDirectivesOnFragemnt()
         {
-            // arrange
             ExpectErrors(@"
                  query Foo($var: Boolean)  { 
                     ...Frag @onQuery
@@ -277,7 +266,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void WithMisplacedVariableDefinitionDirective()
         {
-            // arrange
             ExpectErrors(@"
                 query Foo($var: Boolean @onField) {
                     name
@@ -288,7 +276,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void NoDirectives()
         {
-            // arrange
             ExpectValid(@"  
                 {
                     ...Test
@@ -302,7 +289,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void UniqueDirectivesInDifferentLocations()
         {
-            // arrange
             ExpectValid(@"  
                 {
                     ...Test
@@ -316,7 +302,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void UniqueDirectivesInSameLocations()
         {
-            // arrange
             ExpectValid(@"  
                 {
                     ...Test
@@ -330,7 +315,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void SameDirectivesInDifferentLocations()
         {
-            // arrange
             ExpectValid(@"  
                 {
                     ...Test
@@ -344,7 +328,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void SameDirectivesInSimilarLocations()
         {
-            // arrange
             ExpectValid(@"  
                 {
                     ...Test
@@ -359,7 +342,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void RepeatableDirectivesInSameLocation()
         {
-            // arrange
             ExpectValid(@"  
                 {
                     ...Test
@@ -373,7 +355,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DuplicateDirectivesInOneLocation()
         {
-            // arrange
             ExpectErrors(@"  
                 {
                     ...Test
@@ -387,7 +368,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void ManyDuplicateDirectivesInOneLocation()
         {
-            // arrange
             ExpectErrors(@"  
                 {
                     ...Test
@@ -401,7 +381,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DifferentDuplicateDirectivesInOneLocation()
         {
-            // arrange
             ExpectErrors(@"  
                 {
                     ...Test
@@ -415,7 +394,6 @@ namespace HotChocolate.Validation
         [Fact]
         public void DuplicateDirectivesInManyLocations()
         {
-            // arrange
             ExpectErrors(@"  
                 {
                     ...Test
