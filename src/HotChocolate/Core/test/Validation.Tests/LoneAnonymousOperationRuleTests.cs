@@ -68,5 +68,67 @@ namespace HotChocolate.Validation
                 "operations when only that one operation exists in the " +
                 "document.", t.Message));
         }
+
+        [Fact]
+        public void MultipleNamedOperations()
+        {
+            ExpectValid(@"
+                query Foo { 
+                    dog {
+                        name
+                    }
+                }
+                query Bar { 
+                    dog {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void AnonymousOperationWithFragment()
+        {
+            ExpectValid(@"
+                {
+                    ...Foo
+                }
+                fragment Foo on Query { 
+                    dog {
+                        name
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void AnonymoutOperationWithAMutation()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        name
+                    }
+                } 
+                mutation Foo {
+                    fieldB
+                }
+            ");
+        }
+
+        [Fact]
+        public void AnonymoutOperationWithASubscription()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        name
+                    }
+                } 
+                subscription Foo {
+                    newMessage
+                }
+            ");
+        }
     }
 }
