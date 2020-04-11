@@ -163,7 +163,7 @@ namespace HotChocolate.Validation
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "A union type cannot declare a field directly. " +
-                    "Use inline fragments or fragments instead", t.Message));
+                    "Use inline fragments or fragments instead.", t.Message));
             context.Errors.First().MatchSnapshot();
         }
 

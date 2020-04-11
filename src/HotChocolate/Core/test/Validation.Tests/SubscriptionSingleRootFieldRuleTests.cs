@@ -25,6 +25,19 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void SubscriptionWithOneRootFieldAnonymous()
+        {
+            ExpectValid(@"
+                subscription {
+                    newMessage {
+                        body
+                        sender
+                    }
+                }
+            ");
+        }
+
+        [Fact]
         public void SubscriptionWithDirectiveThatContainsOneRootField()
         {
             // arrange
@@ -52,6 +65,41 @@ namespace HotChocolate.Validation
                         sender
                     }
                     disallowedSecondRootField
+                }
+            ",
+            t => Assert.Equal(
+                $"Subscription operations must " +
+                "have exactly one root field.", t.Message));
+        }
+
+        [Fact]
+        public void DisallowedSecondRootFieldAnonymous()
+        {
+            ExpectErrors(@"
+                subscription sub {
+                    newMessage {
+                        body
+                        sender
+                    }
+                    disallowedSecondRootField
+                }
+            ",
+            t => Assert.Equal(
+                $"Subscription operations must " +
+                "have exactly one root field.", t.Message));
+        }
+
+        [Fact]
+        public void FailsWithManyMoreThanOneRootField()
+        {
+            ExpectErrors(@"
+                subscription sub {
+                    newMessage {
+                        body
+                        sender
+                    }
+                    disallowedSecondRootField
+                    disallowedThirdRootField
                 }
             ",
             t => Assert.Equal(

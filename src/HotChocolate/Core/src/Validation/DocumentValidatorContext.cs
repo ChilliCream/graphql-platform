@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Validation.Properties;
 
 namespace HotChocolate.Validation
 {
@@ -17,7 +18,7 @@ namespace HotChocolate.Validation
 
         private ISchema? _schema;
         private IOutputType? _nonNullString;
-        private bool unexpectedErrorsDetected;
+        private bool _unexpectedErrorsDetected;
 
         public ISchema Schema
         {
@@ -27,7 +28,7 @@ namespace HotChocolate.Validation
                 {
                     // TODO : resources
                     throw new InvalidOperationException(
-                        "The context has an invalid state and is missing the schema.");
+                        Resources.DocumentValidatorContext_Context_Invalid_State);
                 }
                 return _schema;
             }
@@ -46,7 +47,7 @@ namespace HotChocolate.Validation
                 {
                     // TODO : resources
                     throw new InvalidOperationException(
-                        "The context has an invalid state and is missing the schema.");
+                        Resources.DocumentValidatorContext_Context_Invalid_State);
                 }
                 return _nonNullString;
             }
@@ -85,22 +86,26 @@ namespace HotChocolate.Validation
 
         public IList<IOutputField> OutputFields { get; } = new List<IOutputField>();
 
+        public IList<FieldNode> Fields { get; } = new List<FieldNode>();
+
         public IList<IInputField> InputFields { get; } = new List<IInputField>();
 
         public ICollection<IError> Errors { get; } = new List<IError>();
 
         public bool UnexpectedErrorsDetected
         {
-            get => unexpectedErrorsDetected;
+            get => _unexpectedErrorsDetected;
             set
             {
-                unexpectedErrorsDetected = value;
+                _unexpectedErrorsDetected = value;
             }
         }
 
         public int Count { get; set; }
 
         public int Max { get; set; }
+
+        public IDictionary<string, object> ContextData { get; } = new Dictionary<string, object>();
 
         public IList<FieldInfo> RentFieldInfoList()
         {
@@ -143,11 +148,13 @@ namespace HotChocolate.Validation
             Types.Clear();
             Directives.Clear();
             OutputFields.Clear();
+            Fields.Clear();
             InputFields.Clear();
             Errors.Clear();
             UnexpectedErrorsDetected = false;
             Count = 0;
             Max = 0;
+            ContextData.Clear();
         }
     }
 }

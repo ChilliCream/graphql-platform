@@ -1,25 +1,24 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
-using Snapshooter;
-using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Validation.TestHelper;
 
 namespace HotChocolate.Validation
 {
     public class MaxComplexityRuleTests
     {
-        [InlineData(10, false)]
-        [InlineData(9, false)]
-        [InlineData(8, true)]
+        [InlineData(11)]
+        [InlineData(10)]
+        [InlineData(9)]
         [Theory]
-        public void MaxComplexityReached(
-            int maxAllowedComplexity,
-            bool hasErrors)
+        public void MaxComplexity_Not_Reached(int maxAllowedComplexity)
         {
             // arrange
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(maxAllowedComplexity),
+                @"
                 {
                     foo {
                         ... on Foo {
@@ -37,33 +36,16 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            ISchema schema = CreateSchema();
-
-            var rule = new MaxComplexityRule(new QueryExecutionOptions
-            {
-                MaxOperationComplexity = maxAllowedComplexity
-            }, null);
-
-            // act
-            QueryValidationResult result = rule.Validate(schema, query);
-
-            // assert
-            Assert.Equal(hasErrors, result.HasErrors);
-            result.MatchSnapshot(
-                SnapshotNameExtension.Create(maxAllowedComplexity));
         }
 
-        [InlineData(19, false)]
-        [InlineData(18, false)]
-        [InlineData(17, true)]
-        [Theory]
-        public void MaxComplexityReachedWithCustomCalculateDelegate(
-            int maxAllowedComplexity,
-            bool hasErrors)
+        [Fact]
+        public void MaxComplexity_Reached_8()
         {
             // arrange
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(8),
+                @"
                 {
                     foo {
                         ... on Foo {
@@ -81,34 +63,128 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            ISchema schema = CreateSchema();
-
-            var rule = new MaxComplexityRule(new QueryExecutionOptions
-            {
-                MaxOperationComplexity = maxAllowedComplexity
-            }, c => c.Cost.Complexity * 2);
-
-            // act
-            QueryValidationResult result = rule.Validate(schema, query);
-
-            // assert
-            Assert.Equal(hasErrors, result.HasErrors);
-            result.MatchSnapshot(
-                "MaxComplexityReachedWithCustomCalculateDelegate_" +
-                maxAllowedComplexity);
         }
 
-        [InlineData(17, false)]
-        [InlineData(16, false)]
-        [InlineData(15, true)]
+        [InlineData(19)]
+        [InlineData(18)]
         [Theory]
-        public void MaxComplexityReachedWithUnions(
-            int maxAllowedComplexity,
-            bool hasErrors)
+        public void MaxComplexity_Not_Reached_With_CustomCalculateDelegate(int maxAllowedComplexity)
         {
             // arrange
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(maxAllowedComplexity)
+                    .SetComplexityCalculation(
+                        (field, selection, cost, fieldDepth, nodeDepth, getVariable, options) =>
+                        {
+                            if (cost is null)
+                            {
+                                return 2;
+                            }
+                            return cost.Complexity * 2;
+                        }),
+                @"
+                {
+                    foo {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void MaxComplexity_Reached_With_CustomCalculateDelegate_17()
+        {
+            // arrange
+            ExpectErrors(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(17)
+                    .SetComplexityCalculation(
+                        (field, selection, cost, fieldDepth, nodeDepth, getVariable, options) =>
+                        {
+                            if (cost is null)
+                            {
+                                return 2;
+                            }
+                            return cost.Complexity * 2;
+                        }),
+                @"
+                {
+                    foo {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void MaxComplexity_Reached_With_CustomCalculateDelegate_16()
+        {
+            // arrange
+            ExpectErrors(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(16)
+                    .SetComplexityCalculation(
+                        (field, selection, cost, fieldDepth, nodeDepth, getVariable, options) =>
+                        {
+                            if (cost is null)
+                            {
+                                return 2;
+                            }
+                            return cost.Complexity * 2;
+                        }),
+                @"
+                {
+                    foo {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ");
+        }
+
+        [InlineData(17)]
+        [InlineData(16)]
+        [Theory]
+        public void MaxComplexity_Not_Reached_WithUnions(int maxAllowedComplexity)
+        {
+            // arrange
+            ExpectValid(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(maxAllowedComplexity),
+                @"
                 {
                     bazOrBar {
                         ... on Foo {
@@ -133,33 +209,17 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            ISchema schema = CreateSchema();
-
-            var rule = new MaxComplexityRule(new QueryExecutionOptions
-            {
-                MaxOperationComplexity = maxAllowedComplexity
-            }, null);
-
-            // act
-            QueryValidationResult result = rule.Validate(schema, query);
-
-            // assert
-            Assert.Equal(hasErrors, result.HasErrors);
-            result.MatchSnapshot("MaxComplexityReachedWithUnions" + maxAllowedComplexity);
         }
 
-        [InlineData(24, false)]
-        [InlineData(23, false)]
-        [InlineData(22, true)]
-        [Theory]
-        public void MaxComplexityReachedTwoOperations(
-            int maxAllowedComplexity,
-            bool hasErrors)
+        [Fact]
+        public void MaxComplexity_Reached_WithUnions_15()
         {
             // arrange
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
-                query a {
+            ExpectErrors(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(15),
+                @"
+                {
                     bazOrBar {
                         ... on Foo {
                             ... on Foo {
@@ -177,59 +237,46 @@ namespace HotChocolate.Validation
                             baz {
                                 foo {
                                     field
-                                }
-                            }
-                        }
-                    }
-                }
-
-                query b {
-                    bazOrBar {
-                        ... on Foo {
-                            ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        ... on Bar {
-                            baz {
-                                foo {
-                                    field
-                                    ... on Bar {
-                                        baz {
-                                            foo {
-                                                field
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
                     }
                 }
             ");
+        }
 
-            ISchema schema = CreateSchema();
-
-            var rule = new MaxComplexityRule(new QueryExecutionOptions
-            {
-                MaxOperationComplexity = maxAllowedComplexity
-            }, null);
-
-            // act
-            QueryValidationResult result = rule.Validate(schema, query);
-
-            // assert
-            Assert.Equal(hasErrors, result.HasErrors);
-            result.MatchSnapshot(
-                "MaxComplexityReachedTwoOperations_" +
-                maxAllowedComplexity);
+        [Fact]
+        public void MaxComplexity_Reached_WithUnions_14()
+        {
+            // arrange
+            ExpectErrors(
+                CreateSchema(),
+                b => b.AddMaxComplexityRule(15),
+                @"
+                {
+                    bazOrBar {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ... on Bar {
+                            baz {
+                                foo {
+                                    field
+                                }
+                            }
+                        }
+                    }
+                }
+            ");
         }
 
         private ISchema CreateSchema()

@@ -291,7 +291,9 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.Use<MaxComplexityMiddleware>();
+            // TODO : fix complexity middleware.
+            // return builder.Use<MaxComplexityMiddleware>();
+            return builder;
         }
 
 

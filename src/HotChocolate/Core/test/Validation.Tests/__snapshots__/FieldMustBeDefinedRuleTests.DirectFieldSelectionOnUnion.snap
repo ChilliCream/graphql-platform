@@ -1,5 +1,5 @@
 ﻿{
-  "Message": "A union type cannot declare a field directly. Use inline fragments or fragments instead",
+  "Message": "A union type cannot declare a field directly. Use inline fragments or fragments instead.",
   "Code": null,
   "Path": [
     "catOrDog"

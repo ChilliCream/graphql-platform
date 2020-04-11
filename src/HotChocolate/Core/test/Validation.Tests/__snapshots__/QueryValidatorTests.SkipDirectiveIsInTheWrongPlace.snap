@@ -1,26 +1,6 @@
 ﻿[
   {
     "Exception": null,
-    "message": "The field `field` does not exist on the type `Query`.",
-    "locations": [
-      {
-        "Line": 3,
-        "Column": 21
-      }
-    ]
-  },
-  {
-    "Exception": null,
-    "message": "The following variables were not declared: foo.",
-    "locations": [
-      {
-        "Line": 2,
-        "Column": 17
-      }
-    ]
-  },
-  {
-    "Exception": null,
     "message": "The specified directive is not valid the current location.",
     "locations": [
       {
