@@ -12,7 +12,14 @@ namespace GreenDonut
         private readonly FetchDataDelegate<TKey, TValue> _fetch;
 
         public DataLoader(IBatchScheduler batchScheduler, FetchDataDelegate<TKey, TValue> fetch)
-            : base(batchScheduler, null)
+            : this(batchScheduler, fetch, null)
+        { }
+
+        public DataLoader(
+            IBatchScheduler batchScheduler,
+            FetchDataDelegate<TKey, TValue> fetch,
+            DataLoaderOptions<TKey>? options)
+                : base(batchScheduler, options)
         {
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }

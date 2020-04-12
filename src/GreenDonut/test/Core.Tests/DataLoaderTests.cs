@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -24,13 +23,18 @@ namespace GreenDonut
             Assert.Null(Record.Exception(verify));
         }
 
-        [Fact(DisplayName = "Clear: Should remove all entries from the cache", Skip ="kk")]
-        public async Task ClearAllEntries()
+        [Fact(DisplayName = "Clear: Should remove all entries from the cache")]
+        public void ClearAllEntries()
         {
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+            var cache = new TaskCache(10);
+            var options = new DataLoaderOptions<string>
+            {
+                Cache = cache
+            };
+            var loader = new DataLoader<string, string>(batchScheduler, fetch, options);
 
             loader.Set("Foo", Task.FromResult("Bar"));
             loader.Set("Bar", Task.FromResult("Baz"));
@@ -39,9 +43,7 @@ namespace GreenDonut
             loader.Clear();
 
             // assert
-            Func<Task> verify = () => loader.LoadAsync("Foo", "Bar");
-
-            await Assert.ThrowsAsync<InvalidOperationException>(verify).ConfigureAwait(false);
+            Assert.Equal(0, cache.Usage);
         }
 
         #endregion
@@ -65,88 +67,87 @@ namespace GreenDonut
 
         #endregion
 
-        // #region LoadAsync(string key)
+        #region LoadAsync(string key)
 
-        // [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for key")]
-        // public async Task LoadSingleKeyNull()
-        // {
-        //     // arrange
-        //     FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
-        //     var options = new DataLoaderOptions<string>();
-        //     var loader = new DataLoader<string, string>(options, fetch);
-        //     string key = null;
+        [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for key")]
+        public async Task LoadSingleKeyNull()
+        {
+            // arrange
+            FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+            string key = null;
 
-        //     // act
-        //     Func<Task<string>> verify = () => loader.LoadAsync(key);
+            // act
+            Func<Task<string>> verify = () => loader.LoadAsync(key);
 
-        //     // assert
-        //     await Assert.ThrowsAsync<ArgumentNullException>("key", verify).ConfigureAwait(false);
-        // }
+            // assert
+            await Assert.ThrowsAsync<ArgumentNullException>("key", verify).ConfigureAwait(false);
+        }
 
-        // [Fact(DisplayName = "LoadAsync: Should not throw any exception")]
-        // public async Task LoadSingleNoException()
-        // {
-        //     // arrange
-        //     FetchDataDelegate<string, string> fetch = TestHelpers
-        //         .CreateFetch<string, string>("Bar");
-        //     var options = new DataLoaderOptions<string>()
-        //     {
-        //         Batch = false
-        //     };
-        //     var loader = new DataLoader<string, string>(options, fetch);
-        //     var key = "Foo";
+        [Fact(DisplayName = "LoadAsync: Should not throw any exception")]
+        public async Task LoadSingleNoException()
+        {
+            // arrange
+            FetchDataDelegate<string, string> fetch = TestHelpers
+                .CreateFetch<string, string>("Bar");
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+            var key = "Foo";
 
-        //     // act
-        //     Func<Task<string>> verify = () => loader.LoadAsync(key);
+            // act
+            Func<Task<string>> verify = () => loader.LoadAsync(key);
+            batchScheduler.Dispatch();
 
-        //     // assert
-        //     Assert.Null(await Record.ExceptionAsync(verify).ConfigureAwait(false));
-        // }
+            // assert
+            var task = Record.ExceptionAsync(verify);
 
-        // [Fact(DisplayName = "LoadAsync: Should return one result")]
-        // public async Task LoadSingleResult()
-        // {
-        //     // arrange
-        //     Result<string> expectedResult = "Bar";
-        //     FetchDataDelegate<string, string> fetch = TestHelpers
-        //         .CreateFetch<string, string>(expectedResult);
-        //     var options = new DataLoaderOptions<string>
-        //     {
-        //         Batch = false
-        //     };
-        //     var loader = new DataLoader<string, string>(options, fetch);
-        //     var key = "Foo";
+            batchScheduler.Dispatch();
+            Assert.Null(await task.ConfigureAwait(false));
+        }
 
-        //     // act
-        //     var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
+        [Fact(DisplayName = "LoadAsync: Should return one result")]
+        public async Task LoadSingleResult()
+        {
+            // arrange
+            Result<string> expectedResult = "Bar";
+            FetchDataDelegate<string, string> fetch = TestHelpers
+                .CreateFetch<string, string>(expectedResult);
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+            var key = "Foo";
 
-        //     // assert
-        //     Assert.Equal(expectedResult.Value, loadResult);
-        // }
+            // act
+            var promise = loader.LoadAsync(key);
+            batchScheduler.Dispatch();
 
-        // [Fact(DisplayName = "LoadAsync: Should return one error")]
-        // public async Task LoadSingleErrorResult()
-        // {
-        //     // arrange
-        //     Result<string> expectedResult = "Bar";
-        //     FetchDataDelegate<string, string> fetch = TestHelpers
-        //         .CreateFetch<string, string>();
-        //     var options = new DataLoaderOptions<string>
-        //     {
-        //         Batch = false
-        //     };
-        //     var loader = new DataLoader<string, string>(options, fetch);
-        //     var key = "Foo";
+            // assert
+            Assert.Equal(expectedResult.Value, await promise.ConfigureAwait(false));
+        }
 
-        //     // act
-        //     Func<Task> verify = () => loader.LoadAsync(key);
+        [Fact(DisplayName = "LoadAsync: Should return one error")]
+        public async Task LoadSingleErrorResult()
+        {
+            // arrange
+            Result<string> expectedResult = "Bar";
+            FetchDataDelegate<string, string> fetch = TestHelpers
+                .CreateFetch<string, string>();
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+            var key = "Foo";
 
-        //     // assert
-        //     await Assert.ThrowsAsync<InvalidOperationException>(verify)
-        //         .ConfigureAwait(false);
-        // }
+            // act
+            Func<Task> verify = () => loader.LoadAsync(key);
 
-        // #endregion
+            // assert
+            var task = Assert.ThrowsAsync<InvalidOperationException>(verify);
+
+            batchScheduler.Dispatch();
+
+            await task.ConfigureAwait(false);
+        }
+
+        #endregion
 
         // #region LoadAsync(params string[] keys)
 
