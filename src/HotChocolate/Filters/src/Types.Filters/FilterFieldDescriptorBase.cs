@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Filters
             IFilterConvention filterConventions)
             : base(context)
         {
-            FilterConventions = filterConventions;
+            FilterConvention = filterConventions;
 
             Definition.Kind = filterKind;
             Definition.Property = property
@@ -33,13 +33,13 @@ namespace HotChocolate.Types.Filters
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
 
-            AllowedOperations = FilterConventions.GetAllowedOperations(Definition);
+            AllowedOperations = FilterConvention.GetAllowedOperations(Definition);
         }
 
         internal protected sealed override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
-        protected readonly IFilterConvention FilterConventions;
+        protected readonly IFilterConvention FilterConvention;
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
@@ -280,9 +280,9 @@ namespace HotChocolate.Types.Filters
         {
             if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
             {
-                Definition.Name = FilterConventions.GetArrayFilterPropertyName();
+                Definition.Name = FilterConvention.GetArrayFilterPropertyName();
             }
-            return FilterConventions.CreateFieldName(Definition, kind);
+            return FilterConvention.CreateFieldName(Definition, kind);
         }
 
         protected virtual ITypeReference RewriteType(

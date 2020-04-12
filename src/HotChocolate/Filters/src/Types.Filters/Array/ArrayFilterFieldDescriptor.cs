@@ -130,7 +130,7 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 typeReference,
                 operation,
-                FilterConventions);
+                FilterConvention);
         }
 
         private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(
@@ -150,7 +150,7 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 typeReference,
                 operation,
-                FilterConventions);
+                FilterConvention);
         }
     }
 }

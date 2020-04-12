@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Filters
                     true,
                     true),
                 operation,
-                FilterConventions);
+                FilterConvention);
         }
 
         private ObjectFilterOperationDescriptor GetOrCreateOperation(

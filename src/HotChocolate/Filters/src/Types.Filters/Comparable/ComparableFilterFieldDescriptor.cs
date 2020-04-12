@@ -225,7 +225,7 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
                 operation,
-                FilterConventions);
+                FilterConvention);
         }
     }
 }

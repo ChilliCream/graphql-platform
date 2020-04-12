@@ -145,7 +145,7 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 typeReference,
                 operation,
-                FilterConventions);
+                FilterConvention);
         }
     }
 }
