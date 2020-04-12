@@ -12,7 +12,8 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             IQueryableFilterVisitorContext context)
         {
-            if (operation.Type == typeof(string) && type.IsInstanceOfType(value))
+            if (operation.Type == typeof(string) &&
+                type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
                 var parsedValue = type.ParseLiteral(value);
@@ -35,7 +36,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IQueryableFilterVisitorContext context)
         {
             if (operation.Type == typeof(string)
-               && type.IsInstanceOfType(value))
+                && type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
                 var parsedValue = type.ParseLiteral(value);

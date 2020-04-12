@@ -14,8 +14,8 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             IQueryableFilterVisitorContext context)
         {
-            if (operation.Type == typeof(IComparable)
-               && type.IsInstanceOfType(value))
+            if (operation.Type == typeof(IComparable) &&
+                type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
                 var parsedValue = ParseValue(operation, type, value, context);
@@ -34,8 +34,8 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             IQueryableFilterVisitorContext context)
         {
-            if (operation.Type == typeof(IComparable)
-               && type.IsInstanceOfType(value))
+            if (operation.Type == typeof(IComparable) &&
+                type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
                 var parsedValue = ParseValue(operation, type, value, context);
