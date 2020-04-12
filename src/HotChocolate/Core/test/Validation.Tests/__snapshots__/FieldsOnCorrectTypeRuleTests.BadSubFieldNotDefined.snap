@@ -1,0 +1,23 @@
+﻿[
+  {
+    "Message": "The field `unknown_field` does not exist on the type `Pet`.",
+    "Code": null,
+    "Path": [
+      "human",
+      "pets"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 25
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "type": "Pet",
+      "field": "unknown_field",
+      "responseName": "unknown_field",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  }
+]
