@@ -69,9 +69,9 @@ namespace HotChocolate.Types.Filters.Conventions
             {
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
-                    .SetMessage("No visitor definiton found for this FilterConvention")
-                    .SetCode(ErrorCodes.Filtering.NoOperationNameFound)
-                    .Build());
+                        .SetMessage("No visitor definiton found for this FilterConvention")
+                        .SetCode(ErrorCodes.Filtering.NoOperationNameFound)
+                        .Build());
             }
         }
 

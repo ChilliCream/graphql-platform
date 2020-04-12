@@ -146,8 +146,6 @@ namespace HotChocolate.Types.Filters.Conventions
             return false;
         }
 
-
-
         private static bool IsComparable(Type type)
         {
             if (typeof(IComparable).IsAssignableFrom(type))
@@ -155,9 +153,9 @@ namespace HotChocolate.Types.Filters.Conventions
                 return true;
             }
 
-            if (type.IsValueType
-                && type.IsGenericType
-                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (type.IsValueType &&
+                type.IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 return typeof(IComparable).IsAssignableFrom(
                     System.Nullable.GetUnderlyingType(type));

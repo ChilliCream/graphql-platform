@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Filters.Conventions
             = new Dictionary<FilterOperationKind, CreateFieldName>();
 
         public IDictionary<FilterOperationKind, string> DefaultOperationDescriptions { get; }
-             = new Dictionary<FilterOperationKind, string>();
+            = new Dictionary<FilterOperationKind, string>();
 
         public NameString ArgumentName { get; set; }
 

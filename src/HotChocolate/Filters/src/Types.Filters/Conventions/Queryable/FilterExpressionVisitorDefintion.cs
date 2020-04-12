@@ -18,16 +18,11 @@ namespace HotChocolate.Types.Filters.Conventions
         } = ImmutableDictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>
             .Empty;
 
-        public IReadOnlyDictionary<
-                FilterKind,
-                IReadOnlyDictionary<FilterOperationKind, FilterOperationHandler>
-            > OperationHandler
+        public IReadOnlyDictionary<(FilterKind, FilterOperationKind), FilterOperationHandler>
+            OperationHandler
         {
             get; set;
-        } = ImmutableDictionary<
-                FilterKind,
-                IReadOnlyDictionary<FilterOperationKind, FilterOperationHandler>
-            >.Empty;
+        } = ImmutableDictionary<(FilterKind, FilterOperationKind), FilterOperationHandler>.Empty;
 
         public override async Task ApplyFilter<T>(
             IFilterConvention filterConvention,

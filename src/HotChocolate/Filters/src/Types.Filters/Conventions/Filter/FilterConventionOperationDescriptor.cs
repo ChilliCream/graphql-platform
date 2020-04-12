@@ -4,8 +4,8 @@ using System.Text;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public class FilterConventionOperationDescriptor : FilterConventionOperationDescriptorBase,
-        IFilterConventionOperationDescriptor
+    public class FilterConventionOperationDescriptor
+        : FilterConventionOperationDescriptorBase, IFilterConventionOperationDescriptor
     {
         private readonly FilterConventionTypeDescriptor _descriptor;
 

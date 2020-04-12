@@ -2,7 +2,7 @@ using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public interface IFilterExpressionTypeDescriptor
+    public interface IFilterExpressionTypeDescriptor : IFluent
     {
         /// <summary>
         /// Specifies the configuration of a <see cref="FilterOperationKind"/> for current

@@ -48,8 +48,8 @@ namespace HotChocolate.Types.Filters.Conventions
         {
             var fieldHandler
                 = new Dictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>();
-            var operationHandler = new Dictionary<FilterKind,
-                IReadOnlyDictionary<FilterOperationKind, FilterOperationHandler>>();
+            var operationHandler
+                = new Dictionary<(FilterKind, FilterOperationKind), FilterOperationHandler>();
 
             foreach (FilterExpressionTypeDescriptor typeDescriptor in _types.Values)
             {
@@ -58,7 +58,11 @@ namespace HotChocolate.Types.Filters.Conventions
                 {
                     fieldHandler[definition.FilterKind] = (definition.Enter, definition.Leave);
                 }
-                operationHandler[definition.FilterKind] = definition.OperationHandlers;
+                foreach ((FilterOperationKind operationKind, FilterOperationHandler handler) in
+                    definition.OperationHandlers)
+                {
+                    operationHandler[(definition.FilterKind, operationKind)] = handler;
+                }
             }
             Definition.FieldHandler = fieldHandler;
             Definition.OperationHandler = operationHandler;

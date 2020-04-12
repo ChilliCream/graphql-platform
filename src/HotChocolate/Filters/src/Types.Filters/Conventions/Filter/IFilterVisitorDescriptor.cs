@@ -10,7 +10,7 @@ using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public interface IFilterVisitorDescriptor
+    public interface IFilterVisitorDescriptor : IFluent
     {
     }
 }
