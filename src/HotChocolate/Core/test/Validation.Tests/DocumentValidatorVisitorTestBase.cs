@@ -1,24 +1,34 @@
 using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.Validation.Options;
+using System.Linq;
 
 namespace HotChocolate.Validation
 {
     public abstract class DocumentValidatorVisitorTestBase
     {
-        public DocumentValidatorVisitorTestBase(Action<IServiceCollection> configure)
+        public DocumentValidatorVisitorTestBase(Action<IValidationBuilder> configure)
         {
             var serviceCollection = new ServiceCollection();
-            configure(serviceCollection);
+
+            IValidationBuilder builder = serviceCollection
+                .AddValidation()
+                .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()));
+            configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            Rule = services.GetRequiredService<IDocumentValidatorRule>();
+            Rule = services.GetRequiredService<IValidationConfiguration>()
+                .GetRules("Default").First();
+            StarWars = SchemaBuilder.New().AddStarWarsTypes().Create();
         }
 
         protected IDocumentValidatorRule Rule { get; }
+
+        protected ISchema StarWars { get; }
 
         [Fact]
         public void ContextIsNull()
@@ -46,10 +56,12 @@ namespace HotChocolate.Validation
             Assert.Throws<ArgumentNullException>(a);
         }
 
-        public void ExpectValid(string sourceText)
+        protected void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
+
+        protected void ExpectValid(ISchema schema, string sourceText)
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 
@@ -57,13 +69,20 @@ namespace HotChocolate.Validation
             Rule.Validate(context, query);
 
             // assert
+            Assert.False(context.UnexpectedErrorsDetected);
             Assert.Empty(context.Errors);
         }
 
-        public void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors)
+        protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
+            ExpectErrors(null, sourceText, elementInspectors);
+
+        protected void ExpectErrors(
+            ISchema schema,
+            string sourceText,
+            params Action<IError>[] elementInspectors)
         {
             // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 

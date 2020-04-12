@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -8,17 +7,21 @@ namespace HotChocolate.Validation
     public class DocumentValidatorVisitor
         : SyntaxWalker<IDocumentValidatorContext>
     {
-        protected DocumentValidatorVisitor()
-            : base(Continue)
+        protected DocumentValidatorVisitor(SyntaxVisitorOptions options = default)
+            : base(Continue, options)
         {
         }
 
         protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IDocumentValidatorContext context)
+            IDocumentValidatorContext context,
+            ISyntaxVisitorAction action)
         {
-            context.Path.Push(node);
+            if (action.IsContinue())
+            {
+                context.Path.Push(node);
+            }
             return context;
         }
 
@@ -27,19 +30,11 @@ namespace HotChocolate.Validation
             ISyntaxNode? parent,
             IDocumentValidatorContext context)
         {
-            context.Path.Pop();
-            return context;
-        }
-
-        protected override IDocumentValidatorContext OnAfterLeave(
-            ISyntaxNode node,
-            ISyntaxNode? parent,
-            IDocumentValidatorContext context)
-        {
-            if (node.Kind == NodeKind.FragmentDefinition)
+            if (node.Kind == NodeKind.OperationDefinition)
             {
-                context.VisitedFragments.Remove(((FragmentDefinitionNode)node).Name.Value);
+                context.VisitedFragments.Clear();
             }
+            context.Path.Pop();
             return context;
         }
 
@@ -80,24 +75,6 @@ namespace HotChocolate.Validation
             }
 
             return DefaultAction;
-        }
-
-        private static IEnumerable<ISyntaxNode> GetFragmentSpreadChildren(
-            FragmentSpreadNode fragmentSpread,
-            IDocumentValidatorContext context)
-        {
-            foreach (ISyntaxNode child in fragmentSpread.GetNodes())
-            {
-                yield return child;
-            }
-
-            if (context.Fragments.TryGetValue(
-                fragmentSpread.Name.Value,
-                out FragmentDefinitionNode? fragment) &&
-                !context.Path.Contains(fragment))
-            {
-                yield return fragment;
-            }
         }
     }
 }

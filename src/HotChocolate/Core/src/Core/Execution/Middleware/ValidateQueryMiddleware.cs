@@ -6,37 +6,40 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
+using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.Execution
 {
     internal sealed class ValidateQueryMiddleware
     {
         private readonly QueryDelegate _next;
-        private readonly IQueryValidator _validator;
-        private readonly Cache<QueryValidationResult> _validatorCache;
+        private readonly IDocumentValidator _validator;
+        private readonly Cache<DocumentValidatorResult> _validatorCache;
         private readonly QueryExecutionDiagnostics _diagnostics;
 
         public ValidateQueryMiddleware(
             QueryDelegate next,
-            IQueryValidator validator,
-            Cache<QueryValidationResult> validatorCache,
+            IDocumentValidatorFactory validatorFactory,
+            Cache<DocumentValidatorResult> validatorCache,
             QueryExecutionDiagnostics diagnostics)
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _validator = validator ??
-                throw new ArgumentNullException(nameof(validator));
+            if (validatorFactory == null)
+            {
+                throw new ArgumentNullException(nameof(validatorFactory));
+            }
+
+            _next = next ??  throw new ArgumentNullException(nameof(next));
+            _validator = validatorFactory.CreateValidator();
             _validatorCache = validatorCache ??
-                new Cache<QueryValidationResult>(Defaults.CacheSize);
-            _diagnostics = diagnostics ??
-                throw new ArgumentNullException(nameof(diagnostics));
+                new Cache<DocumentValidatorResult>(Defaults.CacheSize);
+            _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
             if (context.Document == null)
             {
-                context.Result = QueryResultBuilder.CreateError(
+                context.Result = CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.ValidateQueryMiddleware_NoDocument)
                         .SetCode(ErrorCodes.Execution.Incomplete)
@@ -67,12 +70,9 @@ namespace HotChocolate.Execution
                     await _next(context).ConfigureAwait(false);
                 }
             }
-
         }
 
-        private QueryValidationResult Validate(
-            ISchema schema,
-            DocumentNode document)
+        private DocumentValidatorResult Validate(ISchema schema, DocumentNode document)
         {
             return _validator.Validate(schema, document);
         }

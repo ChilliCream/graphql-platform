@@ -1,7 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Validation
 {
@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public FragmentSpreadTypeExistenceRuleTests()
-            : base(services => services.AddFragmentsAreValidRule())
+            : base(builder => builder.AddFragmentRules())
         {
         }
 

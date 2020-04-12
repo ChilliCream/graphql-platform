@@ -1,214 +1,195 @@
 ﻿using ChilliCream.Testing;
-using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FieldSelectionMergingRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FieldSelectionMergingRuleTests()
-            : base(new FieldSelectionMergingRule())
+            : base(builder => builder.AddFieldRules())
         {
         }
 
         [Fact]
         public void MergeIdenticalFields()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    dog {
+                        ... mergeIdenticalFields
+                    }
+                }
+
                 fragment mergeIdenticalFields on Dog {
                     name
                     name
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void MergeIdenticalAliasesAndFields()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    dog {
+                        ... mergeIdenticalAliasesAndFields
+                    }
+                }
+
                 fragment mergeIdenticalAliasesAndFields on Dog {
                     otherName: name
                     otherName: name
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void ConflictingBecauseAlias()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                {
+                    dog {
+                        ... conflictingBecauseAlias
+                    }
+                }
+
                 fragment conflictingBecauseAlias on Dog {
                     name: nickname
                     name
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        "The query has non-mergable fields.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
         }
 
         [Fact]
         public void MergeIdenticalFieldsWithIdenticalArgs()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    dog {
+                        ... mergeIdenticalFieldsWithIdenticalArgs
+                    }
+                }
+
                 fragment mergeIdenticalFieldsWithIdenticalArgs on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand(dogCommand: SIT)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void MergeIdenticalFieldsWithIdenticalValues()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    dog {
+                        ... mergeIdenticalFieldsWithIdenticalValues
+                    }
+                }
+
                 fragment mergeIdenticalFieldsWithIdenticalValues on Dog {
                     doesKnowCommand(dogCommand: $dogCommand)
                     doesKnowCommand(dogCommand: $dogCommand)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void ConflictingArgsOnValues()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                {
+                    dog {
+                        ... conflictingArgsOnValues
+                    }
+                }
+
                 fragment conflictingArgsOnValues on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand(dogCommand: HEEL)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        "The query has non-mergable fields.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
         }
 
         [Fact]
         public void ConflictingArgsValueAndVar()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query($dogCommand: DogCommand!) {
+                    dog {
+                        ... conflictingArgsValueAndVar
+                    }
+                }
+
                 fragment conflictingArgsValueAndVar on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand(dogCommand: $dogCommand)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        "The query has non-mergable fields.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
         }
 
         [Fact]
         public void ConflictingArgsWithVars()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query($varOne: DogCommand! $varTwo: DogCommand!) {
+                    dog {
+                        ... conflictingArgsWithVars
+                    }
+                }
+
                 fragment conflictingArgsWithVars on Dog {
                     doesKnowCommand(dogCommand: $varOne)
                     doesKnowCommand(dogCommand: $varTwo)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        "The query has non-mergable fields.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
         }
 
         [Fact]
         public void DifferingArgs()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                {
+                    dog {
+                        ... differingArgs
+                    }
+                }
+
                 fragment differingArgs on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        "The query has non-mergable fields.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
         }
 
         [Fact]
         public void SafeDifferingFields()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    catOrDog {
+                        ... safeDifferingFields
+                    }
+                }
+
                 fragment safeDifferingFields on Pet {
                     ... on Dog {
                         volume: barkVolume
@@ -218,20 +199,18 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void SafeDifferingArgs()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    dog {
+                        ... safeDifferingArgs
+                    }
+                }
+
                 fragment safeDifferingArgs on Pet {
                     ... on Dog {
                         doesKnowCommand(dogCommand: SIT)
@@ -241,20 +220,18 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void ConflictingDifferingResponses()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                {
+                    dog {
+                        ... conflictingDifferingResponses
+                    }
+                }
+
                 fragment conflictingDifferingResponses on Pet {
                     ... on Dog {
                         someValue: nickname
@@ -263,41 +240,33 @@ namespace HotChocolate.Validation
                         someValue: meowVolume
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        "The query has non-mergable fields.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
         }
 
         [Fact]
         public void ShortHandQueryWithNoDuplicateFields()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(
-                "{ __type (type: \"Foo\") " +
-                "{ name fields { name type { name } } } }");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
+            ExpectValid(
+                @"{
+                    __type (type: ""Foo"") {
+                        name
+                        fields {
+                            name
+                            type {
+                                name
+                            }
+                        }
+                    }
+                }");
         }
 
         [Fact]
         public void ShortHandQueryWithDuplicateFieldInSecondLevelFragment()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         doesKnowCommand(dogCommand: DOWN)
@@ -312,21 +281,18 @@ namespace HotChocolate.Validation
                 fragment FooLevel2 on Dog {
                     doesKnowCommand(dogCommand: HEEL)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
         }
+
 
         [Fact]
         public void ShortHandQueryWithDupMergableFieldInSecondLevelFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         doesKnowCommand(dogCommand: DOWN)
@@ -342,84 +308,58 @@ namespace HotChocolate.Validation
                     doesKnowCommand(dogCommand: DOWN)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void TypeNameFieldOnInterfaceIsMergable()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    dog {
+                        ... interfaceFieldSelection
+                    }
+                }
+
                 fragment interfaceFieldSelection on Pet {
                     __typename
                     __typename
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void TypeNameFieldOnUnionIsMergable()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                {
+                    catOrDog {
+                        ... interfaceFieldSelection
+                    }
+                }
+
                 fragment interfaceFieldSelection on CatOrDog {
                     __typename
                     __typename
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void TypeNameFieldOnObjectIsMergable()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 fragment interfaceFieldSelection on Cat {
                     __typename
                     __typename
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void InvalidFieldsShouldNotRaiseValidationError()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(
-                FileResource.Open("InvalidIntrospectionQuery.graphql"));
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
+            ExpectValid(FileResource.Open("InvalidIntrospectionQuery.graphql"));
         }
     }
 }

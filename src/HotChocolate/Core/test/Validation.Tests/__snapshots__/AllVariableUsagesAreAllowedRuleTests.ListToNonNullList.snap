@@ -1,21 +1,23 @@
-﻿{
-  "Message": "The variable `booleanList` is not compatible with the type of the current location.",
-  "Code": null,
-  "Path": [
-    "arguments",
-    "nonNullBooleanListField"
-  ],
-  "Locations": [
-    {
-      "Line": 4,
-      "Column": 72
+﻿[
+  {
+    "Message": "The variable `booleanList` is not compatible with the type of the current location.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "nonNullBooleanListField"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 72
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "variable": "booleanList",
+      "variableType": "[Boolean]",
+      "locationType": "[Boolean]!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     }
-  ],
-  "Exception": null,
-  "Extensions": {
-    "variable": "booleanList",
-    "variableType": "[Boolean]",
-    "locationType": "[Boolean]!",
-    "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
   }
-}
+]

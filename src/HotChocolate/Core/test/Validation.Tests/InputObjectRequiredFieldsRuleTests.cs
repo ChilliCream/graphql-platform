@@ -8,7 +8,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public InputObjectRequiredFieldsRuleTests()
-            : base(services => services.AddInputObjectsAreValidRule())
+            : base(builder => builder.AddValueRules())
         {
         }
 
@@ -71,6 +71,21 @@ namespace HotChocolate.Validation
             t => Assert.Equal(
                 "`name` is a required field and cannot be null.",
                 t.Message));
+        }
+
+        [Fact]
+        public void BadNullToNonNullField()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {
+                            requiredField: true,
+                            nonNullField: null,
+                        })
+                    }
+                }
+            ");
         }
     }
 }

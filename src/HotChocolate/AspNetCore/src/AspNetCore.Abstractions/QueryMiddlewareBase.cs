@@ -4,15 +4,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Server;
 using HotChocolate.Language;
+using HotChocolate.Server;
+using static HotChocolate.Execution.QueryResultBuilder;
+using System.Threading;
 
 namespace HotChocolate.AspNetCore
 {
     public abstract class QueryMiddlewareBase
     {
-        private const int _badRequest = 400;
-        private const int _ok = 200;
+        protected const int BadRequest = 400;
+        protected const int OK = 200;
 
         private readonly Func<HttpContext, bool> _isPathValid;
         private readonly IQueryResultSerializer _serializer;
@@ -58,18 +60,11 @@ namespace HotChocolate.AspNetCore
         {
             if (_isPathValid(context) && CanHandleRequest(context))
             {
+                var httpHelper = new HttpHelper(context, _serializer);
+
                 try
                 {
-                    await HandleRequestAsync(context)
-                        .ConfigureAwait(false);
-                }
-                catch (ArgumentException)
-                {
-                    context.Response.StatusCode = _badRequest;
-                }
-                catch (NotSupportedException)
-                {
-                    context.Response.StatusCode = _badRequest;
+                    await HandleRequestAsync(httpHelper).ConfigureAwait(false);
                 }
                 catch (SyntaxException ex)
                 {
@@ -78,22 +73,28 @@ namespace HotChocolate.AspNetCore
                         .AddLocation(ex.Line, ex.Column)
                         .SetCode(ErrorCodes.Execution.SyntaxError)
                         .Build();
-                    ErrorHandler.Handle(error);
 
-                    var errorResult = QueryResultBuilder.CreateError(error);
-
-                    SetResponseHeaders(context.Response, _serializer.ContentType);
-                    await _serializer.SerializeAsync(errorResult, context.Response.Body)
-                        .ConfigureAwait(false);
+                    httpHelper.StatusCode = OK;
+                    httpHelper.Result = CreateError(ErrorHandler.Handle(error));
                 }
                 catch (QueryException ex)
                 {
-                    var errorResult = QueryResultBuilder.CreateError(
-                        ErrorHandler.Handle(ex.Errors));
-                    SetResponseHeaders(context.Response, _serializer.ContentType);
-                    await _serializer.SerializeAsync(errorResult, context.Response.Body)
-                        .ConfigureAwait(false);
+                    httpHelper.StatusCode = OK;
+                    httpHelper.Result = CreateError(ErrorHandler.Handle(ex.Errors));
                 }
+                catch (Exception ex)
+                {
+                    IError error = ErrorHandler.Handle(
+                        ErrorBuilder.New()
+                            .SetMessage(ex.Message)
+                            .SetException(ex)
+                            .Build());
+
+                    httpHelper.StatusCode = BadRequest;
+                    httpHelper.Result = CreateError(error);
+                }
+
+                await httpHelper.WriteAsync().ConfigureAwait(false);
             }
             else if (Next != null)
             {
@@ -111,12 +112,12 @@ namespace HotChocolate.AspNetCore
         /// </returns>
         protected abstract bool CanHandleRequest(HttpContext context);
 
-        private async Task HandleRequestAsync(HttpContext context)
+        private async Task HandleRequestAsync(HttpHelper httpHelper)
         {
-            await ExecuteRequestAsync(context, context.RequestServices).ConfigureAwait(false);
+            await ExecuteRequestAsync(httpHelper).ConfigureAwait(false);
         }
 
-        protected abstract Task ExecuteRequestAsync(HttpContext context, IServiceProvider services);
+        protected abstract Task ExecuteRequestAsync(HttpHelper httpHelper);
 
         protected async Task<IReadOnlyQueryRequest> BuildRequestAsync(
             HttpContext context,
@@ -149,11 +150,56 @@ namespace HotChocolate.AspNetCore
 
             return builder.Create();
         }
+    }
 
-        protected static void SetResponseHeaders(HttpResponse response, string contentType)
+    public class HttpHelper
+    {
+        public HttpHelper(HttpContext context, IQueryResultSerializer serializer)
         {
-            response.ContentType = contentType ?? ContentType.Json;
-            response.StatusCode = _ok;
+            Context = context;
+            Serializer = serializer;
+        }
+
+        public HttpContext Context { get; }
+
+        public IServiceProvider Services => Context.RequestServices;
+
+        public IQueryResultSerializer Serializer { get; }
+
+        public IResponseStreamSerializer? StreamSerializer { get; set; }
+
+        public int StatusCode { get; set; } = 200;
+
+        public IExecutionResult? Result { get; set; }
+
+        public async Task WriteAsync()
+        {
+            if (Result is IReadOnlyQueryResult result)
+            {
+                SetResponseHeaders(Serializer.ContentType, StatusCode);
+                await Serializer.SerializeAsync(
+                    result, Context.Response.Body, Context.RequestAborted);
+            }
+            else if (Result is IResponseStream stream && StreamSerializer is { })
+            {
+                SetResponseHeaders(StreamSerializer.ContentType, StatusCode);
+                await StreamSerializer.SerializeAsync(
+                    stream, Context.Response.Body, Context.RequestAborted);
+            }
+            else
+            {
+                SetResponseHeaders(Serializer.ContentType, StatusCode);
+                await Serializer.SerializeAsync(
+                    CreateError(ErrorBuilder.New().SetMessage("Unexpected Error").Build()),
+                    Context.Response.Body,
+                    Context.RequestAborted);
+            }
+        }
+
+        private void SetResponseHeaders(string contentType, int statusCode)
+        {
+            Context.Response.ContentType = contentType;
+            Context.Response.StatusCode = statusCode;
         }
     }
 }

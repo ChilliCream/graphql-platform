@@ -7,7 +7,7 @@ namespace HotChocolate.Language
     {
         public static T Pop<T>(this IList<T> list)
         {
-            int lastIndex = list.Count - 1;
+            var lastIndex = list.Count - 1;
             T p = list[lastIndex];
             list.RemoveAt(lastIndex);
             return p;
@@ -17,7 +17,7 @@ namespace HotChocolate.Language
         {
             if (list.Count > 0)
             {
-                int lastIndex = list.Count - 1;
+                var lastIndex = list.Count - 1;
                 item = list[lastIndex]!;
                 list.RemoveAt(lastIndex);
                 return true;
@@ -31,7 +31,7 @@ namespace HotChocolate.Language
 
         public static T Peek<T>(this IList<T> list)
         {
-            int lastIndex = list.Count - 1;
+            var lastIndex = list.Count - 1;
             return list[lastIndex];
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Language
         {
             if (list.Count > 0)
             {
-                int lastIndex = list.Count - 1;
+                var lastIndex = list.Count - 1;
                 item = list[lastIndex]!;
                 return true;
             }
@@ -52,7 +52,7 @@ namespace HotChocolate.Language
         {
             if (list.Count > 0)
             {
-                int lastIndex = list.Count - 1;
+                var lastIndex = list.Count - 1;
                 return list[lastIndex];
             }
             return defaultValue;

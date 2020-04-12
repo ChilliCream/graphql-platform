@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -10,7 +10,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public FieldMustBeDefinedRuleTests()
-            : base(services => services.AddFieldMustBeDefinedRule())
+            : base(builder => builder.AddFieldRules())
         {
         }
 
@@ -163,7 +163,7 @@ namespace HotChocolate.Validation
             Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "A union type cannot declare a field directly. " +
-                    "Use inline fragments or fragments instead", t.Message));
+                    "Use inline fragments or fragments instead.", t.Message));
             context.Errors.First().MatchSnapshot();
         }
 

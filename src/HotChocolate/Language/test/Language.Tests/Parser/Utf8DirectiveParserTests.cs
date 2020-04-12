@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Text;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -59,6 +60,24 @@ namespace HotChocolate.Language
                 t => Assert.Equal("a", t.Name.Value),
                 t => Assert.Equal("b", t.Name.Value),
                 t => Assert.Equal("c", t.Name.Value));
+        }
+
+        [Fact]
+        public void ParseQueryDirective()
+        {
+            // arrange
+            var text = @"
+                query ($var: Boolean) @onQuery {
+                    field
+                }
+            ";
+
+            // act
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                Encoding.UTF8.GetBytes(text));
+
+            // assert
+            document.MatchSnapshot();
         }
     }
 }

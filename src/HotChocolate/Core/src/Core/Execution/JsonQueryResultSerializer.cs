@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
         {
             using var buffer = new ArrayWriter();
 
-            using var writer = new Utf8JsonWriter(buffer);
+            using var writer = new Utf8JsonWriter(buffer, _options);
             WriteResult(writer, result);
             writer.Flush();
 
@@ -265,6 +265,10 @@ namespace HotChocolate.Execution
 
                 case IList list:
                     WriteList(writer, list);
+                    break;
+
+                case IError error:
+                    WriteError(writer, error);
                     break;
 
                 case string s:

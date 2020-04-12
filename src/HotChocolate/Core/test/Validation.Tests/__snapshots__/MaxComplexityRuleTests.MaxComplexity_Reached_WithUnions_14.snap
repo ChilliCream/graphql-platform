@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Message": "The GraphQL document has an operation complexity of 16 which exceeds the max allowed operation complexity of 15.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "allowedComplexity": 15,
+      "detectedComplexity": 16
+    }
+  }
+]
