@@ -17,11 +17,21 @@ namespace GreenDonut
 
         public int Size => _items.Count;
 
-        public void Add(TKey key, TaskCompletionSource<TValue> value)
+        public TaskCompletionSource<TValue> CreateOrGet(TKey key)
         {
             ThrowIfDispatched();
 
-            _items.Add(key, value);
+            if (_items.ContainsKey(key))
+            {
+                return _items[key];
+            }
+
+            var promise = new TaskCompletionSource<TValue>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _items.Add(key, promise);
+
+            return promise;
         }
 
         public TaskCompletionSource<TValue> Get(TKey key)

@@ -208,7 +208,7 @@ namespace GreenDonut
         {
             // arrange
             IDataLoader loader = null;
-            var key = "Foo";
+            object key = "Foo";
 
             // act
             Action verify = () => loader.LoadAsync(key);
@@ -224,8 +224,8 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
+            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
+            object key = "Foo";
 
             // act
             Action verify = () => loader.LoadAsync(key);
@@ -245,7 +245,7 @@ namespace GreenDonut
             IDataLoader loader = null;
 
             // act
-            Action verify = () => loader.LoadAsync(new string[0]);
+            Action verify = () => loader.LoadAsync(new object[0]);
 
             // assert
             Assert.Throws<ArgumentNullException>("dataLoader", verify);
@@ -258,10 +258,10 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
 
             // act
-            Action verify = () => loader.LoadAsync(new string[0]);
+            Action verify = () => loader.LoadAsync(new object[0]);
 
             // assert
             Assert.Null(Record.Exception(verify));
@@ -278,7 +278,7 @@ namespace GreenDonut
             IDataLoader loader = null;
 
             // act
-            Action verify = () => loader.LoadAsync(new List<string>());
+            Action verify = () => loader.LoadAsync(new List<object>());
 
             // assert
             Assert.Throws<ArgumentNullException>("dataLoader", verify);
@@ -291,10 +291,10 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = TestHelpers
                 .CreateFetch<string, string>("Bar");
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
+            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
 
             // act
-            Action verify = () => loader.LoadAsync(new List<string>());
+            Action verify = () => loader.LoadAsync(new List<object>());
 
             // assert
             Assert.Null(Record.Exception(verify));
@@ -309,8 +309,8 @@ namespace GreenDonut
         {
             // arrange
             IDataLoader loader = null;
-            string key = "Foo";
-            var value = "Bar";
+            object key = "Foo";
+            object value = "Bar";
 
             // act
             Action verify = () => loader.Set(key, value);
@@ -325,9 +325,9 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            string key = null;
-            var value = "Bar";
+            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
+            object key = null;
+            object value = "Bar";
 
             // act
             Action verify = () => loader.Set(key, value);
@@ -342,8 +342,8 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
+            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
+            object key = "Foo";
             object value = null;
 
             // act
@@ -359,9 +359,9 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
-            var value = "Bar";
+            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
+            object key = "Foo";
+            object value = "Bar";
 
             // act
             loader.Set(key, value);
@@ -378,10 +378,10 @@ namespace GreenDonut
             // arrange
             FetchDataDelegate<string, string> fetch = TestHelpers.CreateFetch<string, string>();
             var batchScheduler = new ManualBatchScheduler();
-            var loader = new DataLoader<string, string>(batchScheduler, fetch);
-            var key = "Foo";
-            var first = "Bar";
-            var second = "Baz";
+            IDataLoader loader = new DataLoader<string, string>(batchScheduler, fetch);
+            object key = "Foo";
+            object first = "Bar";
+            object second = "Baz";
 
             // act
             loader.Set(key, first);

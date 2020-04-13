@@ -191,10 +191,7 @@ namespace GreenDonut
                     return cachedTask;
                 }
 
-                var promise = new TaskCompletionSource<TValue>(
-                    TaskCreationOptions.RunContinuationsAsynchronously);
-
-                batch.Add(key, promise);
+                TaskCompletionSource<TValue> promise = batch.CreateOrGet(key);
 
                 if (_options.Caching)
                 {
