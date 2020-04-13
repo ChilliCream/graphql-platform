@@ -45,17 +45,6 @@ namespace HotChocolate.Types
                 case TypeKind.Union:
                     return ReferenceEquals(namedType, this);
 
-                case TypeKind.Interface:
-                    var interfaceType = (InterfaceType)namedType;
-                    foreach (ObjectType type in _typeMap.Values)
-                    {
-                        if (type.IsImplementing(interfaceType))
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-
                 case TypeKind.Object:
                     return _typeMap.ContainsKey(((ObjectType)namedType).Name);
 

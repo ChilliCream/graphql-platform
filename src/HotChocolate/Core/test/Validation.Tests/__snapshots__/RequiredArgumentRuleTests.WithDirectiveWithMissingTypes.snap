@@ -1,0 +1,41 @@
+﻿[
+  {
+    "Message": "The argument `if` is required.",
+    "Code": null,
+    "Path": [
+      "dog"
+    ],
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 25
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "directive": "include",
+      "argument": "if",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    }
+  },
+  {
+    "Message": "The argument `if` is required.",
+    "Code": null,
+    "Path": [
+      "dog",
+      "name"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 30
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "directive": "skip",
+      "argument": "if",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    }
+  }
+]

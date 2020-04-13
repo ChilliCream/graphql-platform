@@ -97,6 +97,8 @@ namespace HotChocolate
 
             foreach (ObjectType objectType in types.OfType<ObjectType>())
             {
+                possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
+
                 foreach (InterfaceType interfaceType in objectType.Interfaces)
                 {
                     if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType> pt))
@@ -124,7 +126,7 @@ namespace HotChocolate
                 }
             }
 
-            return possibleTypes.ToDictionary(t => t.Key, t => t.Value);
+            return possibleTypes;
         }
     }
 }
