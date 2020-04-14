@@ -8,13 +8,6 @@ namespace HotChocolate.Execution.Utilities
 {
     public class VariableCoercionHelper
     {
-        private readonly ITypeConversion _typeConverter;
-
-        public VariableCoercionHelper(ITypeConversion typeConverter)
-        {
-            _typeConverter = typeConverter;
-        }
-
         public void CoerceVariableValues(
             ISchema schema,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
