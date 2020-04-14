@@ -24,6 +24,7 @@ namespace HotChocolate.Types.Sorting.Conventions
             {
                 throw new ArgumentException(nameof(argumentName));
             }
+
             Definition.ArgumentName = argumentName;
             return this;
         }
@@ -34,6 +35,7 @@ namespace HotChocolate.Types.Sorting.Conventions
             {
                 throw new ArgumentException(nameof(valueName));
             }
+
             Definition.AscendingName = valueName;
             return this;
         }
@@ -44,6 +46,7 @@ namespace HotChocolate.Types.Sorting.Conventions
             {
                 throw new ArgumentException(nameof(valueName));
             }
+
             Definition.DescendingName = valueName;
             return this;
         }
@@ -88,7 +91,8 @@ namespace HotChocolate.Types.Sorting.Conventions
         }
 
         public ISortingConventionDescriptor AddImplicitSorting(
-            TryCreateImplicitSorting factory, int? position = null)
+            TryCreateImplicitSorting factory,
+            int? position = null)
         {
             if (factory == null)
             {
@@ -109,6 +113,5 @@ namespace HotChocolate.Types.Sorting.Conventions
         }
 
         public static SortingConventionDescriptor New() => new SortingConventionDescriptor();
-
     }
 }

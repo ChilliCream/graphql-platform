@@ -207,6 +207,7 @@ namespace HotChocolate.Types.Sorting
             {
                 type = nullableType;
             }
+
             IEnumerator<TryCreateImplicitSorting> enumerator
                     = _convention.GetImplicitFactories().GetEnumerator();
 

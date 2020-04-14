@@ -1,22 +1,24 @@
+using HotChocolate.Types.Sorting.Conventions;
+
 namespace HotChocolate.Types
 {
     public class SelectionMiddlewareContext
     {
         private SelectionMiddlewareContext(
             string filterArgumentName,
-            string sortingArgumentName)
+            ISortingConvention sortingConvention)
         {
             FilterArgumentName = filterArgumentName;
-            SortingArgumentName = sortingArgumentName;
+            SortingConvention = sortingConvention;
         }
 
         public string FilterArgumentName { get; }
 
-        public string SortingArgumentName { get; }
+        public ISortingConvention SortingConvention { get; }
 
         public static SelectionMiddlewareContext Create(
             string filterArgumentName,
-            string sortingArgumentName) =>
-                new SelectionMiddlewareContext(filterArgumentName, sortingArgumentName);
+            ISortingConvention sortingConvention) =>
+                new SelectionMiddlewareContext(filterArgumentName, sortingConvention);
     }
 }
