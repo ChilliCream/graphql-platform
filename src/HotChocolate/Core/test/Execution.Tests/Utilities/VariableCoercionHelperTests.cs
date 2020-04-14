@@ -10,6 +10,106 @@ namespace HotChocolate.Execution.Utilities
     public class VariableCoercionHelperTests
     {
         [Fact]
+        public void VariableCoercionHelper_Schema_Is_Null()
+        {
+            // arrange
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("abc"),
+                    new NamedTypeNode("String"),
+                    new StringValueNode("def"),
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var variableValues = new Dictionary<string, object>();
+            var coercedValues = new Dictionary<string, VariableValue>();
+
+            var helper = new VariableCoercionHelper();
+
+            // act
+            Action action = () => helper.CoerceVariableValues(
+                null, variableDefinitions, variableValues, coercedValues);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void VariableCoercionHelper_VariableDefinitions_Is_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+            var variableValues = new Dictionary<string, object>();
+            var coercedValues = new Dictionary<string, VariableValue>();
+            var helper = new VariableCoercionHelper();
+
+            // act
+            Action action = () => helper.CoerceVariableValues(
+                schema, null, variableValues, coercedValues);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void VariableCoercionHelper_VariableValues_Is_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("abc"),
+                    new NamedTypeNode("String"),
+                    new StringValueNode("def"),
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var coercedValues = new Dictionary<string, VariableValue>();
+
+            var helper = new VariableCoercionHelper();
+
+            // act
+            Action action = () => helper.CoerceVariableValues(
+                schema, variableDefinitions, null, coercedValues);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void VariableCoercionHelper_CoercedValues_Is_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("abc"),
+                    new NamedTypeNode("String"),
+                    new StringValueNode("def"),
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var variableValues = new Dictionary<string, object>();
+
+            var helper = new VariableCoercionHelper();
+
+            // act
+            Action action = () => helper.CoerceVariableValues(
+                schema, variableDefinitions, variableValues, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void Coerce_Nullable_String_Variable_With_Default_Where_Value_Is_Not_Provided()
         {
             // arrange

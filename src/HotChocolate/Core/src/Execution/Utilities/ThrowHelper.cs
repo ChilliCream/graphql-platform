@@ -8,15 +8,30 @@ namespace HotChocolate.Execution.Utilities
         public static GraphQLException VariableIsNotAnInputType(
             VariableDefinitionNode variableDefinition)
         {
-            // throw helper
-            return new GraphQLException("Variable is not an input type.");
+            return new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "Variable `{0}` is not an input type.",
+                        variableDefinition.Variable.Name.Value)
+                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetExtension("variable", variableDefinition.Variable.Name.Value)
+                    .SetExtension("type", variableDefinition.Type.ToString())
+                    .AddLocation(variableDefinition)
+                    .Build());
         }
 
         public static GraphQLException NonNullVariableIsNull(
             VariableDefinitionNode variableDefinition)
         {
-            // throw helper
-            return new GraphQLException("");
+            return new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "Variable `{0}` is required.",
+                        variableDefinition.Variable.Name.Value)
+                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetExtension("variable", variableDefinition.Variable.Name.Value)
+                    .AddLocation(variableDefinition)
+                    .Build());
         }
 
         public static GraphQLException VariableValueInvalidType(
@@ -28,7 +43,7 @@ namespace HotChocolate.Execution.Utilities
                     "Variable `{0}` got invalid value.",
                     variableDefinition.Variable.Name.Value)
                 .SetCode(ErrorCodes.Execution.InvalidType)
-                .SetExtension("variable_name", variableDefinition.Variable.Name.Value)
+                .SetExtension("variable", variableDefinition.Variable.Name.Value)
                 .SetException(exception)
                 .AddLocation(variableDefinition)
                 .Build());
