@@ -1,5 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Sorting.Conventions;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -16,10 +17,10 @@ namespace HotChocolate.Types.Sorting
         protected override EnumTypeDefinition CreateDefinition(IInitializationContext context)
         {
             EnumTypeDefinition definition = base.CreateDefinition(context);
-            ISortingNamingConvention convention =
-                context.DescriptorContext.GetSortingNamingConvention();
+            ISortingConvention? convention =
+                context.DescriptorContext.GetSortingConvention();
 
-            definition.Name = convention.GetSortingOperationKindTypeName(
+            definition.Name = convention.GetOperationKindTypeName(
                 context.DescriptorContext, definition.ClrType);
 
             foreach (EnumValueDefinition value in definition.Values)
@@ -32,15 +33,15 @@ namespace HotChocolate.Types.Sorting
 
         private void ConfigureEnumValue(
             EnumValueDefinition definition,
-            ISortingNamingConvention convention)
+            ISortingConvention convention)
         {
             switch (definition.Value)
             {
                 case SortOperationKind.Asc:
-                    definition.Name = convention.SortKindAscName;
+                    definition.Name = convention.GetAscendingName();
                     break;
                 case SortOperationKind.Desc:
-                    definition.Name = convention.SortKindDescName;
+                    definition.Name = convention.GetDescendingName();
                     break;
             }
         }

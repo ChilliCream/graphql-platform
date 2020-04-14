@@ -1,32 +1,32 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using HotChocolate.Types.Sorting.Expressions;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting.Conventions
 {
-    public class QueryableSortMiddleware<T>
+    public class SortingExpressionVisitorDefinition
+        : SortingVisitorDefinitionBase
     {
-        private readonly SortMiddlewareContext _contextData;
-        private readonly FieldDelegate _next;
+        public SortOperationFactory OperationFactory { get; set; }
+            = CreateSortOperationDefault.CreateSortOperation;
 
-        public QueryableSortMiddleware(
+        public SortCompiler Compiler { get; set; }
+            = SortCompilerDefault.Compile;
+
+        public async override Task ApplSorting<T>(
+            ISortingConvention convention,
             FieldDelegate next,
-            SortMiddlewareContext contextData)
+            ITypeConversion converter,
+            IMiddlewareContext context)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _contextData = contextData
-                 ?? throw new ArgumentNullException(nameof(contextData));
-        }
+            await next(context).ConfigureAwait(false);
 
-        public async Task InvokeAsync(IMiddlewareContext context)
-        {
-            await _next(context).ConfigureAwait(false);
-
-            IValueNode sortArgument = context.Argument<IValueNode>(_contextData.ArgumentName);
+            IValueNode sortArgument = context.Argument<IValueNode>(convention.GetArgumentName());
 
             if (sortArgument is null || sortArgument is NullValueNode)
             {
@@ -52,14 +52,15 @@ namespace HotChocolate.Types.Sorting
             }
 
             if (source != null &&
-                context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
+                context.Field.Arguments[convention.GetArgumentName()].Type is InputObjectType iot &&
                 iot is ISortInputType fit &&
                 fit.EntityType is { })
             {
                 var visitorCtx = new QueryableSortVisitorContext(
                     iot,
                     fit.EntityType,
-                    source is EnumerableQuery);
+                    source is EnumerableQuery,
+                    this);
 
                 QueryableSortVisitor.Default.Visit(sortArgument, visitorCtx);
 

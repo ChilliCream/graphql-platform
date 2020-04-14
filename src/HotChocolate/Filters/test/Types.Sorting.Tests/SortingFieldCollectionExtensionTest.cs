@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Sorting.Conventions;
 using HotChocolate.Types.Sorting.Extensions;
 using HotChocolate.Utilities;
 using Xunit;
@@ -27,7 +28,10 @@ namespace HotChocolate.Types.Sorting
         {
             //arrange
             Func<SortOperationDescriptor> factory =
-                () => SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
+                () => SortOperationDescriptor.CreateOperation(
+                    _propertyInfo,
+                    _descriptorContext,
+                    SortingConvention.Default);
 
             //act
             //assert
@@ -44,7 +48,10 @@ namespace HotChocolate.Types.Sorting
         {
             //arrange
             Func<SortOperationDescriptor> factory =
-                () => SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
+                () => SortOperationDescriptor.CreateOperation(
+                    _propertyInfo,
+                    _descriptorContext,
+                    SortingConvention.Default);
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
 
             //act
@@ -77,7 +84,10 @@ namespace HotChocolate.Types.Sorting
             //arrange 
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
             var descriptor =
-                SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
+                SortOperationDescriptor.CreateOperation(
+                    _propertyInfo,
+                    _descriptorContext,
+                    SortingConvention.Default);
             Func<SortOperationDescriptor> valueFactory = () => descriptor;
 
             //act
@@ -96,9 +106,15 @@ namespace HotChocolate.Types.Sorting
             //arrange 
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
             var descriptorShouldNotBeRemoved =
-                SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
+                SortOperationDescriptor.CreateOperation(
+                    _propertyInfo,
+                    _descriptorContext,
+                    SortingConvention.Default);
             var newDescriptorShouldNotHaveAnyEffect =
-                SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
+                SortOperationDescriptor.CreateOperation(
+                    _propertyInfo,
+                    _descriptorContext,
+                    SortingConvention.Default);
             Func<SortOperationDescriptor> valueFactory = () => newDescriptorShouldNotHaveAnyEffect;
 
             list.Add(descriptorShouldNotBeRemoved);
@@ -120,9 +136,15 @@ namespace HotChocolate.Types.Sorting
             //arrange 
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
             var descriptorToRemove =
-                IgnoredSortingFieldDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
+                IgnoredSortingFieldDescriptor.CreateOperation(
+                    _propertyInfo,
+                    _descriptorContext,
+                    SortingConvention.Default);
             var descriptorToAdd =
-                SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
+                SortOperationDescriptor.CreateOperation(
+                    _propertyInfo,
+                    _descriptorContext,
+                    SortingConvention.Default);
             Func<SortOperationDescriptor> valueFactory = () => descriptorToAdd;
 
             list.Add(descriptorToRemove);

@@ -1,17 +1,19 @@
+using HotChocolate.Types.Sorting.Conventions;
+
 namespace HotChocolate.Types.Sorting
 {
     public class SortMiddlewareContext
     {
-        public SortMiddlewareContext(string argumentName)
+        public SortMiddlewareContext(ISortingConvention convetion)
         {
-            ArgumentName = argumentName;
+            Convention = convetion;
         }
 
-        public string ArgumentName { get; }
+        public ISortingConvention Convention { get; }
 
-        public static SortMiddlewareContext Create(string argumentName)
+        public static SortMiddlewareContext Create(ISortingConvention convention)
         {
-            return new SortMiddlewareContext(argumentName);
+            return new SortMiddlewareContext(convention);
         }
     }
 }

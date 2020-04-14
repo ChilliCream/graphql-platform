@@ -5,13 +5,14 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Sorting;
+using HotChocolate.Types.Sorting.Conventions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     public static class SortObjectFieldDescriptorExtensions
     {
-        private static readonly Type _middlewareDefinition = typeof(QueryableSortMiddleware<>);
+        private static readonly Type _middlewareDefinition = typeof(SortMiddleware<>);
 
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor)
@@ -92,9 +93,9 @@ namespace HotChocolate.Types
                             .Definition(argumentDefinition)
                             .Configure((context, definition) =>
                                 {
-                                    ISortingNamingConvention convention =
-                                        context.DescriptorContext.GetSortingNamingConvention();
-                                    definition.Name = convention.ArgumentName;
+                                    ISortingConvention convention =
+                                        context.DescriptorContext.GetSortingConvention();
+                                    definition.Name = convention.GetArgumentName();
                                 })
                            .On(ApplyConfigurationOn.Completion)
                            .Build();
@@ -164,8 +165,8 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            ISortingNamingConvention convention =
-                context.DescriptorContext.GetSortingNamingConvention();
+            ISortingConvention convention =
+                context.DescriptorContext.GetSortingConvention();
 
             ISortInputType type = context.GetType<ISortInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
@@ -173,7 +174,7 @@ namespace HotChocolate.Types
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(
                     middlewareType,
-                    SortMiddlewareContext.Create(convention.ArgumentName));
+                    SortMiddlewareContext.Create(convention));
 
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;

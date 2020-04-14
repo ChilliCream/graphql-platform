@@ -34,7 +34,8 @@ namespace HotChocolate.Types.Sorting
             SortInputTypeDescriptor<T> descriptor =
                 SortInputTypeDescriptor<T>.New(
                     context.DescriptorContext,
-                    typeof(T));
+                    typeof(T),
+                    context.DescriptorContext.GetSortingConvention());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -44,7 +45,6 @@ namespace HotChocolate.Types.Sorting
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
             SetTypeIdentity(typeof(SortInputType<>));
         }
 

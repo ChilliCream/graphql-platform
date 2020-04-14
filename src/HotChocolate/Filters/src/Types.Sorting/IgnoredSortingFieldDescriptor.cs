@@ -10,10 +10,10 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
-            SortOperation operation)
-            : base(context, name, type, operation)
+            SortOperation operation,
+            Conventions.ISortingConvention convention)
+            : base(context, name, type, operation, convention)
         {
-
             Definition.Ignore = true;
         }
 
@@ -21,13 +21,14 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
-            SortOperation operation) =>
-            new IgnoredSortingFieldDescriptor(context, name, type, operation);
-
+            SortOperation operation,
+            Conventions.ISortingConvention convention) =>
+            new IgnoredSortingFieldDescriptor(context, name, type, operation, convention);
 
         public static IgnoredSortingFieldDescriptor CreateOperation(
             PropertyInfo property,
-            IDescriptorContext context)
+            IDescriptorContext context,
+            Conventions.ISortingConvention convention)
         {
             var operation = new SortOperation(property);
             var typeReference = new ClrTypeReference(
@@ -40,7 +41,8 @@ namespace HotChocolate.Types.Sorting
                 context,
                 name,
                 typeReference,
-                operation
+                operation,
+                convention
             );
         }
     }

@@ -1,6 +1,7 @@
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Sorting.Conventions;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -8,13 +9,13 @@ namespace HotChocolate.Types.Sorting
         : SortOperationDescriptorBase
         , ISortOperationDescriptor
     {
-
         protected SortOperationDescriptor(
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
-            SortOperation operation)
-            : base(context, name, type, operation)
+            SortOperation operation,
+            ISortingConvention convention)
+            : base(context, name, type, operation, convention)
         {
         }
 
@@ -75,12 +76,14 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
-            SortOperation operation) =>
-            new SortOperationDescriptor(context, name, type, operation);
+            SortOperation operation,
+            ISortingConvention convention) =>
+            new SortOperationDescriptor(context, name, type, operation, convention);
 
         public static SortOperationDescriptor CreateOperation(
             PropertyInfo property,
-            IDescriptorContext context)
+            IDescriptorContext context,
+            ISortingConvention convention)
         {
             var operation = new SortOperation(property);
             var typeReference = new ClrTypeReference(
@@ -93,7 +96,8 @@ namespace HotChocolate.Types.Sorting
                 context,
                 name,
                 typeReference,
-                operation
+                operation,
+                convention
             );
         }
     }

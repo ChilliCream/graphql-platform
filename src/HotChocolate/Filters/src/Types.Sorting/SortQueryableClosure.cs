@@ -18,36 +18,9 @@ namespace HotChocolate.Types.Sorting
 
         public ParameterExpression Parameter { get; }
 
-        private Stack<Expression> Instance { get; }
+        public Stack<Expression> Instance { get; }
 
-        private Stack<PropertyInfo> Property { get; }
-
-        public SortOperationInvocation CreateSortOperation(SortOperationKind kind)
-        {
-            return new SortOperationInvocation(
-                kind, Parameter, Instance.Peek(), Property.Peek().PropertyType);
-        }
-
-        public SortOperationInvocation CreateInMemorySortOperation(
-            SortOperationKind kind)
-        {
-            Expression nextExpression = Instance.Peek();
-            if (Property.Count > 0)
-            {
-                DefaultExpression defaultOfType =
-                    Expression.Default(Property.Peek().PropertyType);
-                Stack<Expression>.Enumerator enumerator = Instance.GetEnumerator();
-                enumerator.MoveNext();
-                while (enumerator.MoveNext())
-                {
-                    nextExpression =
-                        SortExpressionBuilder.IfNullThenDefault(
-                            enumerator.Current, nextExpression, defaultOfType);
-                }
-            }
-            return new SortOperationInvocation(
-                kind, Parameter, nextExpression, Property.Peek().PropertyType);
-        }
+        public Stack<PropertyInfo> Property { get; }
 
         public void EnqueueProperty(PropertyInfo property)
         {

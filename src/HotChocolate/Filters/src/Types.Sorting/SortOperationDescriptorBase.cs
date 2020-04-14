@@ -1,7 +1,6 @@
 using System;
-using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Sorting.Conventions;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -12,7 +11,8 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
-            SortOperation operation)
+            SortOperation operation,
+            ISortingConvention convention)
             : base(context)
         {
             Definition.Name = name.EnsureNotEmpty(nameof(name));
@@ -20,10 +20,14 @@ namespace HotChocolate.Types.Sorting
                 ?? throw new ArgumentNullException(nameof(type));
             Definition.Operation = operation
                 ?? throw new ArgumentNullException(nameof(operation));
+            Convention = convention ??
+                throw new ArgumentNullException(nameof(convention));
         }
 
         internal protected override SortOperationDefintion Definition { get; } =
             new SortOperationDefintion();
+
+        protected ISortingConvention Convention { get; }
 
         protected void Name(NameString value)
         {
