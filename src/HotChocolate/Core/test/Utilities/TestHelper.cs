@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;
+using HotChocolate.Subscriptions;
 using Xunit;
 
 namespace HotChocolate.Tests
@@ -12,6 +13,13 @@ namespace HotChocolate.Tests
         public static Task<IExecutionResult> ExpectValid(string query)
         {
             return ExpectValid(new TestConfiguration(), query);
+        }
+
+        public static Task<IExecutionResult> ExpectValid(
+            string query,
+            Action<IQueryRequestBuilder> modifyRequest)
+        {
+            return ExpectValid(new TestConfiguration { ModifyRequest = modifyRequest }, query);
         }
 
         public static Task<IExecutionResult> ExpectValid(ISchema schema, string query)
@@ -24,17 +32,25 @@ namespace HotChocolate.Tests
             string query)
         {
             // arrange
-            configuration = new TestConfiguration();
+            configuration ??= new TestConfiguration();
             configuration.Schema ??= SchemaBuilder.New().AddStarWarsTypes().Create();
             configuration.Executor ??= configuration.Schema.MakeExecutable();
-            configuration.Service ??=
-                new ServiceCollection().AddStarWarsRepositories().BuildServiceProvider();
+            configuration.Service ??= new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddInMemorySubscriptionProvider()
+                .BuildServiceProvider();
 
-            IReadOnlyQueryRequest request =
+            IQueryRequestBuilder builder =
                 QueryRequestBuilder.New()
                     .SetQuery(query)
-                    .SetServices(configuration.Service)
-                    .Create();
+                    .SetServices(configuration.Service);
+
+            if (configuration.ModifyRequest is { })
+            {
+                configuration.ModifyRequest(builder);
+            }
+
+            IReadOnlyQueryRequest request = builder.Create();
 
             // act
             IExecutionResult result = await configuration.Executor.ExecuteAsync(request, default);
@@ -52,6 +68,17 @@ namespace HotChocolate.Tests
         }
 
         public static Task ExpectError(
+            string query,
+            Action<IQueryRequestBuilder> modifyRequest,
+            params Action<IError>[] elementInspectors)
+        {
+            return ExpectError(
+                new TestConfiguration { ModifyRequest = modifyRequest },
+                query,
+                elementInspectors);
+        }
+
+        public static Task ExpectError(
             ISchema schema,
             string query,
             params Action<IError>[] elementInspectors)
@@ -65,17 +92,23 @@ namespace HotChocolate.Tests
             params Action<IError>[] elementInspectors)
         {
             // arrange
-            configuration = new TestConfiguration();
+            configuration ??= new TestConfiguration();
             configuration.Schema ??= SchemaBuilder.New().AddStarWarsTypes().Create();
             configuration.Executor ??= configuration.Schema.MakeExecutable();
             configuration.Service ??=
                 new ServiceCollection().AddStarWarsRepositories().BuildServiceProvider();
 
-            IReadOnlyQueryRequest request =
+            IQueryRequestBuilder builder =
                 QueryRequestBuilder.New()
                     .SetQuery(query)
-                    .SetServices(configuration.Service)
-                    .Create();
+                    .SetServices(configuration.Service);
+
+            if (configuration.ModifyRequest is { })
+            {
+                configuration.ModifyRequest(builder);
+            }
+
+            IReadOnlyQueryRequest request = builder.Create();
 
             // act
             IExecutionResult result = await configuration.Executor.ExecuteAsync(request, default);

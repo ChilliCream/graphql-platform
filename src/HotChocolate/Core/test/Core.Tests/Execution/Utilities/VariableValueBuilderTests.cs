@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.StarWars.Models;
+using HotChocolate.Tests;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution
 {
@@ -82,7 +85,7 @@ namespace HotChocolate.Execution
             Assert.Throws<QueryException>(action).Errors.MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public void Coerce_Variable_Value_Int_To_Float()
         {
             // arrange
@@ -476,7 +479,7 @@ namespace HotChocolate.Execution
 
             // act
             var resolver = new VariableValueBuilder(schema, operation);
-            VariableValueCollection coercedVariableValues = 
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -636,6 +639,24 @@ namespace HotChocolate.Execution
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task EnsureThatClrTypesCanBeUsedAsVariable()
+        {
+            await ExpectValid(
+                @"
+                    mutation($review: ReviewInput!) {
+                        createReview(episode: NEWHOPE review: $review) {
+                            stars
+                            commentary
+                        }
+                    }
+                ",
+                request => request.SetVariableValue(
+                    "review",
+                    new Review { Commentary = "foo", Stars = 1 }))
+                .MatchSnapshotAsync();
         }
 
         private Schema CreateSchema()
