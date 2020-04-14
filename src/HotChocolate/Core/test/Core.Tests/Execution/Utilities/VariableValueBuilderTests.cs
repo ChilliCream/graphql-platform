@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Tests;
 using HotChocolate.Types;

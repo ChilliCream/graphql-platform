@@ -1,11 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>HotChocolate.Execution</PackageId>
     <AssemblyName>HotChocolate.Execution</AssemblyName>
     <RootNamespace>HotChocolate.Execution</RootNamespace>
     <Description></Description>
   </PropertyGroup>
+
+  <ItemGroup>
+
+    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
