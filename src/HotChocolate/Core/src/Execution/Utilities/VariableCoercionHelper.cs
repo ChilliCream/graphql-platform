@@ -14,10 +14,30 @@ namespace HotChocolate.Execution.Utilities
             IReadOnlyDictionary<string, object?> values,
             IDictionary<string, VariableValue> coercedValues)
         {
-            for (int i = 0; i < variableDefinitions.Count; i++)
+            if (schema is null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (variableDefinitions is null)
+            {
+                throw new ArgumentNullException(nameof(variableDefinitions));
+            }
+
+            if (values is null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
+            if (coercedValues is null)
+            {
+                throw new ArgumentNullException(nameof(coercedValues));
+            }
+
+            for (var i = 0; i < variableDefinitions.Count; i++)
             {
                 VariableDefinitionNode variableDefinition = variableDefinitions[i];
-                string variableName = variableDefinition.Variable.Name.Value;
+                var variableName = variableDefinition.Variable.Name.Value;
                 IInputType variableType = AssertInputType(schema, variableDefinition);
 
                 if (!values.TryGetValue(variableName, out object? value) &&
@@ -33,7 +53,7 @@ namespace HotChocolate.Execution.Utilities
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
                     coercedValues[variableName] = new VariableValue(
-                        variableType, value, NullValueNode.Default);
+                        variableType, null, NullValueNode.Default);
                 }
                 else
                 {
