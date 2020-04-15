@@ -48,29 +48,17 @@ namespace HotChocolate.Types.Sorting.Conventions
         public NameString GetOperationKindTypeName(
             IDescriptorContext context,
             Type entityType)
-        {
-            GetSortingTypeName? factory = GetOrCreateConfiguration().OperationKindTypeNameFactory;
-
-            return factory == null ? (NameString)"" : factory(context, entityType);
-        }
+                => GetOrCreateConfiguration().OperationKindTypeNameFactory(context, entityType);
 
         public NameString GetTypeName(
             IDescriptorContext context,
             Type entityType)
-        {
-            GetSortingTypeName? factory = GetOrCreateConfiguration().TypeNameFactory;
-
-            return factory == null ? (NameString)"" : factory(context, entityType);
-        }
+                => GetOrCreateConfiguration().TypeNameFactory(context, entityType);
 
         public string GetDescription(
             IDescriptorContext context,
             Type entityType)
-        {
-            GetSortingDescription? factory = GetOrCreateConfiguration().DescriptionFactory;
-
-            return factory == null ? "" : factory(context, entityType);
-        }
+                => GetOrCreateConfiguration().DescriptionFactory(context, entityType);
 
         public NameString GetAscendingName()
             => GetOrCreateConfiguration().AscendingName;

@@ -1,6 +1,3 @@
-using System;
-using HotChocolate.Types.Descriptors;
-
 namespace HotChocolate.Types.Sorting.Conventions
 {
     public static class SortingConventionDescriptorExtensions
@@ -9,15 +6,9 @@ namespace HotChocolate.Types.Sorting.Conventions
             this ISortingConventionDescriptor descriptor)
                 => descriptor.AscendingName("ASC")
                     .DescendingName("DESC")
-                    .TypeName(
-                        (IDescriptorContext context, Type entityType) =>
-                            context.Naming.GetTypeName(entityType, TypeKind.Object) + "Sort")
-                    .OperationKindTypeName(
-                        (IDescriptorContext context, Type entityType) =>
-                            context.Naming.GetTypeName(entityType, TypeKind.Enum))
-                    .Description(
-                        (IDescriptorContext context, Type entityType) =>
-                            context.Naming.GetTypeDescription(entityType, TypeKind.Object))
+                    .TypeName(SortingConventionDefaults.TypeName)
+                    .OperationKindTypeName(SortingConventionDefaults.OperationKindTypeName)
+                    .Description(SortingConventionDefaults.Description)
                     .UseImplicitSorting()
                     .UseSnakeCase()
                     .UseExpressionVisitor()

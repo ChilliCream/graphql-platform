@@ -11,11 +11,14 @@ namespace HotChocolate.Types.Sorting.Conventions
 
         public NameString DescendingName { get; set; }
 
-        public GetSortingTypeName? TypeNameFactory { get; set; }
+        public GetSortingTypeName TypeNameFactory { get; set; }
+            = SortingConventionDefaults.TypeName;
 
-        public GetSortingDescription? DescriptionFactory { get; set; }
+        public GetSortingDescription DescriptionFactory { get; set; }
+            = SortingConventionDefaults.Description;
 
-        public GetSortingTypeName? OperationKindTypeNameFactory { get; set; }
+        public GetSortingTypeName OperationKindTypeNameFactory { get; set; }
+            = SortingConventionDefaults.OperationKindTypeName;
 
         public SortingVisitorDefinitionBase? VisitorDefinition { get; set; }
 
