@@ -15,7 +15,7 @@ namespace HotChocolate.Types
     {
         private const string _whereArgumentNamePlaceholder = "placeholder";
         private static readonly Type _middlewareDefinition =
-            typeof(QueryableFilterMiddleware<>);
+            typeof(FilterMiddleware<>);
 
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor)

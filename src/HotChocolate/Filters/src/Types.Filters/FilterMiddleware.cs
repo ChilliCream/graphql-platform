@@ -1,21 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterMiddleware<T>
+    public class FilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
         private readonly ITypeConversion _converter;
         private readonly FilterMiddlewareContext _contextData;
 
-        public QueryableFilterMiddleware(
+        public FilterMiddleware(
             FieldDelegate next,
             FilterMiddlewareContext contextData,
             ITypeConversion converter)
