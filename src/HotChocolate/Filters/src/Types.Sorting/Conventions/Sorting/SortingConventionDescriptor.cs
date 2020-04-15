@@ -112,6 +112,14 @@ namespace HotChocolate.Types.Sorting.Conventions
 
         public SortingConventionDefinition CreateDefinition()
         {
+            if (_visitorDescriptor == null)
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                    .SetMessage("No visitor was defined for SortConvention")
+                    .Build());
+            }
+
             Definition.ImplicitSortingFactories = _implicitSorting.ToArray();
             Definition.VisitorDefinition = _visitorDescriptor?.CreateDefinition();
             return Definition;
