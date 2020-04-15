@@ -11,8 +11,8 @@ namespace HotChocolate.Execution.Instrumentation
     internal class ApolloTracingDiagnosticObserver
         : IDiagnosticObserver
     {
-        private static readonly AsyncLocal<ApolloTracingResultBuilder>
-            _builder = new AsyncLocal<ApolloTracingResultBuilder>();
+        private static readonly AsyncLocal<ApolloTracingResultBuilder> _builder =
+            new AsyncLocal<ApolloTracingResultBuilder>();
         private const string _extensionKey = "tracing";
         private const string _startTimestampKey = "startTimestamp";
 
@@ -28,8 +28,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             get
             {
-                return _builder.Value ??
-                    (_builder.Value = new ApolloTracingResultBuilder());
+                return _builder.Value ??= new ApolloTracingResultBuilder();
             }
         }
 
