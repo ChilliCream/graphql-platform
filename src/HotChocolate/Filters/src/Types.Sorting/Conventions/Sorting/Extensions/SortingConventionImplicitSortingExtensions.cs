@@ -23,16 +23,16 @@ namespace HotChocolate.Types.Sorting.Conventions
             ISortingConvention convention,
             [NotNullWhen(true)] out SortOperationDefintion? definition)
         {
+            definition = null;
+
             if (typeof(IComparable).IsAssignableFrom(type))
             {
                 definition = SortOperationDescriptor
                     .CreateOperation(property, context, convention)
                     .CreateDefinition();
-                return true;
             }
 
-            definition = null;
-            return false;
+            return definition != null;
         }
 
         public static bool TryCreateObject(
@@ -42,16 +42,16 @@ namespace HotChocolate.Types.Sorting.Conventions
             ISortingConvention convention,
             [NotNullWhen(true)] out SortOperationDefintion? definition)
         {
+            definition = null;
+
             if (type.IsClass && !DotNetTypeInfoFactory.IsListType(type))
             {
                 definition = SortObjectOperationDescriptor
                     .CreateOperation(property, context, convention)
                     .CreateDefinition();
-                return true;
             }
 
-            definition = null;
-            return false;
+            return definition != null;
         }
     }
 }
