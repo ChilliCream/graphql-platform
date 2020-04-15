@@ -30,8 +30,8 @@ namespace HotChocolate.Types.Filters
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
-            Definition.Name = _convention.GetFilterTypeName(context, entityType);
-            Definition.Description = _convention.GetFilterTypeDescription(context, entityType);
+            Definition.Name = _convention.GetTypeName(context, entityType);
+            Definition.Description = _convention.GetTypeDescription(context, entityType);
             Definition.Fields.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
         }
@@ -148,7 +148,7 @@ namespace HotChocolate.Types.Filters
             }
 
             IEnumerator<TryCreateImplicitFilter> enumerator
-                = _convention.GetImplicitFilterFactories().GetEnumerator();
+                = _convention.GetImplicitFactories().GetEnumerator();
 
             while (enumerator.MoveNext()
                 && !enumerator.Current(Context, type, property, _convention, out definition))

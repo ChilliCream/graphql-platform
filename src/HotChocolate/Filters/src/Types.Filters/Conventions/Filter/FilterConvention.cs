@@ -133,7 +133,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return description ?? "";
         }
 
-        public string GetFilterTypeDescription(IDescriptorContext context, Type entityType)
+        public string GetTypeDescription(IDescriptorContext context, Type entityType)
         {
             GetFilterTypeDescription? factory
                 = GetOrCreateConfiguration().FilterTypeDescriptionFactory;
@@ -145,12 +145,12 @@ namespace HotChocolate.Types.Filters.Conventions
             return factory(context, entityType);
         }
 
-        public virtual NameString GetFilterTypeName(IDescriptorContext context, Type entityType)
+        public virtual NameString GetTypeName(IDescriptorContext context, Type entityType)
         {
             return GetOrCreateConfiguration().FilterTypeNameFactory(context, entityType);
         }
 
-        public IReadOnlyList<TryCreateImplicitFilter> GetImplicitFilterFactories()
+        public IReadOnlyList<TryCreateImplicitFilter> GetImplicitFactories()
         {
             return GetOrCreateConfiguration().ImplicitFilters;
         }

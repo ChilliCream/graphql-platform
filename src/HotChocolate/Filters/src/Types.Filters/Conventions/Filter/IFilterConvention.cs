@@ -66,7 +66,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <param name="context">The descriptor context of the schema creation</param>
         /// <param name="entityType">The type <c>{T}</c> of the <see cref="FilterInputType{T}"/>
         /// </param>
-        NameString GetFilterTypeName(IDescriptorContext context, Type entityType);
+        NameString GetTypeName(IDescriptorContext context, Type entityType);
 
         /// <summary>
         /// Get a the description for a <see cref="FilterInputType{T}"/>
@@ -75,7 +75,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <param name="context">The descriptor context of the schema creation</param>
         /// <param name="entityType">The type <c>{T}</c> of the <see cref="FilterInputType{T}"/>
         /// </param>
-        string GetFilterTypeDescription(IDescriptorContext context, Type entityType);
+        string GetTypeDescription(IDescriptorContext context, Type entityType);
 
         /// <summary>
         /// Gets a list of all possible <see cref="TryCreateImplicitFilter"/>. This can be used to
@@ -84,7 +84,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <see cref="IFilterConventionTypeDescriptor.TryCreateImplicitFilter"/>
         /// </summary>
         /// <returns></returns>
-        IReadOnlyList<TryCreateImplicitFilter> GetImplicitFilterFactories();
+        IReadOnlyList<TryCreateImplicitFilter> GetImplicitFactories();
 
         Task ApplyFilter<T>(
             FieldDelegate next,
