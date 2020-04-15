@@ -18,6 +18,7 @@ namespace HotChocolate.Types.Sorting
         , ISortInputTypeDescriptor<T>
     {
         private readonly ISortingConvention _convention;
+
         protected SortInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType,

@@ -81,7 +81,8 @@ namespace HotChocolate.Types.Sorting
             ITypeReference type,
             SortOperation operation,
             ISortingConvention convention) =>
-            new SortObjectOperationDescriptor<TObject>(context, name, type, operation, convention);
+                new SortObjectOperationDescriptor<TObject>(
+                    context, name, type, operation, convention);
 
         public new static SortObjectOperationDescriptor<TObject> CreateOperation(
             PropertyInfo property,

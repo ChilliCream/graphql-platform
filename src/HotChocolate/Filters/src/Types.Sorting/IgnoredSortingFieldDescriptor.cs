@@ -1,5 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Sorting.Conventions;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -11,7 +12,7 @@ namespace HotChocolate.Types.Sorting
             NameString name,
             ITypeReference type,
             SortOperation operation,
-            Conventions.ISortingConvention convention)
+            ISortingConvention convention)
             : base(context, name, type, operation, convention)
         {
             Definition.Ignore = true;
@@ -22,13 +23,13 @@ namespace HotChocolate.Types.Sorting
             NameString name,
             ITypeReference type,
             SortOperation operation,
-            Conventions.ISortingConvention convention) =>
-            new IgnoredSortingFieldDescriptor(context, name, type, operation, convention);
+            ISortingConvention convention) =>
+                new IgnoredSortingFieldDescriptor(context, name, type, operation, convention);
 
         public static IgnoredSortingFieldDescriptor CreateOperation(
             PropertyInfo property,
             IDescriptorContext context,
-            Conventions.ISortingConvention convention)
+            ISortingConvention convention)
         {
             var operation = new SortOperation(property);
             var typeReference = new ClrTypeReference(
