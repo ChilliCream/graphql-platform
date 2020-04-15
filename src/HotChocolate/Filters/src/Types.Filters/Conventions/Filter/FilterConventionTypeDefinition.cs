@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Collections.Immutable;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -10,15 +10,17 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public FilterKind FilterKind { get; set; }
 
-        public TryCreateImplicitFilter? TryCreateFilter { get; set; }
+        public IReadOnlyCollection<FilterOperationKind> AllowedOperations { get; set; }
+            = Array.Empty<FilterOperationKind>();
 
-        public ISet<FilterOperationKind> AllowedOperations { get; set; }
-            = new HashSet<FilterOperationKind>();
+        public IReadOnlyDictionary<FilterOperationKind, CreateFieldName> OperationNames
+        {
+            get; set;
+        } = ImmutableDictionary<FilterOperationKind, CreateFieldName>.Empty;
 
-        public IDictionary<FilterOperationKind, CreateFieldName> OperationNames { get; set; }
-            = new Dictionary<FilterOperationKind, CreateFieldName>();
-
-        public IDictionary<FilterOperationKind, string> OperationDescriptions { get; set; }
-            = new Dictionary<FilterOperationKind, string>();
+        public IReadOnlyDictionary<FilterOperationKind, string> OperationDescriptions
+        {
+            get; set;
+        } = ImmutableDictionary<FilterOperationKind, string>.Empty;
     }
 }

@@ -11,11 +11,17 @@ namespace HotChocolate.Types.Filters.Conventions
             Type entityType) =>
                 context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter";
 
+        public static string FilterTypeDescription(
+            IDescriptorContext context,
+            Type entityType) =>
+                context.Naming.GetTypeDescription(entityType, TypeKind.Object);
+
         public static IFilterConventionDescriptor UseDefault(
             this IFilterConventionDescriptor descriptor)
                 => descriptor.ArgumentName("where")
                         .ElementName("element")
-                        .FilterTypeName(FilterTypeName)
+                        .TypeName(FilterTypeName)
+                        .Description(FilterTypeDescription)
                         .Type(FilterKind.Array)
                             .Operation(FilterOperationKind.ArrayAll).And()
                             .Operation(FilterOperationKind.ArrayAny).And()

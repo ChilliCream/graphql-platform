@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace HotChocolate.Types.Filters.Conventions
 {
     public interface IFilterConventionTypeDescriptor : IFluent
@@ -18,14 +14,6 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <param name="kind">The <see cref="FilterOperationKind"/> to ignore</param>
         /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
         IFilterConventionTypeDescriptor Ignore(FilterOperationKind kind, bool ignore = true);
-
-        /// <summary>
-        /// Specifies a delegate of type <see cref="TryCreateImplicitFilter"/>. This delegate is
-        /// invoked when ever filters are implicitly bound. <seealso cref="BindingBehavior"/>
-        /// </summary>
-        /// <param name="factory">The factory to create implicit filters</param>
-        IFilterConventionTypeDescriptor TryCreateImplicitFilter(
-            TryCreateImplicitFilter factory);
 
         /// <summary>
         /// Specifies the configuration of a <see cref="FilterOperationKind"/> for current

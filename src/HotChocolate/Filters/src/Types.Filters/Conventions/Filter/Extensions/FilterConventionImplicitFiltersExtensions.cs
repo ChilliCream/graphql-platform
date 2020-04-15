@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Text;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
@@ -13,24 +11,12 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         public static IFilterConventionDescriptor UseImplicitFilters(
             this IFilterConventionDescriptor descriptor)
-        {
-            return descriptor
-                .Type(FilterKind.String)
-                    .TryCreateImplicitFilter(TryCreateStringFilter)
-                    .And()
-                .Type(FilterKind.Boolean)
-                    .TryCreateImplicitFilter(TryCreateBooleanFilter)
-                    .And()
-                .Type(FilterKind.Comparable)
-                    .TryCreateImplicitFilter(TryCreateComparableFilter)
-                    .And()
-                .Type(FilterKind.Array)
-                    .TryCreateImplicitFilter(TryCreateArrayFilter)
-                    .And()
-                .Type(FilterKind.Object)
-                    .TryCreateImplicitFilter(TryCreateObjectFilter)
-                    .And();
-        }
+                => descriptor
+                    .AddImplicitFilter(TryCreateStringFilter)
+                    .AddImplicitFilter(TryCreateBooleanFilter)
+                    .AddImplicitFilter(TryCreateComparableFilter)
+                    .AddImplicitFilter(TryCreateArrayFilter)
+                    .AddImplicitFilter(TryCreateObjectFilter);
 
         private static bool TryCreateStringFilter(
             IDescriptorContext context,
@@ -56,7 +42,7 @@ namespace HotChocolate.Types.Filters.Conventions
             PropertyInfo property,
             IFilterConvention filterConventions,
             [NotNullWhen(true)] out FilterFieldDefintion? definition)
-        { 
+        {
             if (type == typeof(bool))
             {
                 var field = new BooleanFilterFieldDescriptor(

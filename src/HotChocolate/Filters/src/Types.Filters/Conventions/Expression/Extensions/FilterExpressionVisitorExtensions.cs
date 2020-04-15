@@ -1,6 +1,3 @@
-using System;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters.Conventions

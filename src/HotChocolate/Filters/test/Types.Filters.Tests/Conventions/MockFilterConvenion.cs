@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Types.Filters.Conventions;
-using HotChocolate.Utilities;
-using Xunit;
 
 namespace HotChocolate.Types.Filters
 {

@@ -56,11 +56,12 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <see cref="IFilterConventionTypeDescriptor.Operation(FilterOperationKind)"/>
         /// </summary>
         /// <param name="definition"></param>
-        ISet<FilterOperationKind> GetAllowedOperations(FilterFieldDefintion definition);
+        IReadOnlyCollection<FilterOperationKind> GetAllowedOperations(
+            FilterFieldDefintion definition);
 
         /// <summary>
         /// Get a <see cref="NameString">GraphQL Name</see> for a <see cref="FilterInputType{T}"/>
-        /// Can be configured over <see cref="IFilterConventionDescriptor.FilterTypeName"/>
+        /// Can be configured over <see cref="IFilterConventionDescriptor.TypeName"/>
         /// </summary>
         /// <param name="context">The descriptor context of the schema creation</param>
         /// <param name="entityType">The type <c>{T}</c> of the <see cref="FilterInputType{T}"/>
@@ -69,7 +70,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         /// <summary>
         /// Get a the description for a <see cref="FilterInputType{T}"/>
-        /// Can be configured over <see cref="IFilterConventionDescriptor.FilterTypeDescription"/>
+        /// Can be configured over <see cref="IFilterConventionDescriptor.Description"/>
         /// </summary>
         /// <param name="context">The descriptor context of the schema creation</param>
         /// <param name="entityType">The type <c>{T}</c> of the <see cref="FilterInputType{T}"/>
@@ -83,7 +84,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <see cref="IFilterConventionTypeDescriptor.TryCreateImplicitFilter"/>
         /// </summary>
         /// <returns></returns>
-        IEnumerable<TryCreateImplicitFilter> GetImplicitFilterFactories();
+        IReadOnlyList<TryCreateImplicitFilter> GetImplicitFilterFactories();
 
         Task ApplyFilter<T>(
             FieldDelegate next,

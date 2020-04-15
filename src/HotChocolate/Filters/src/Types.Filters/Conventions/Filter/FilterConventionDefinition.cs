@@ -1,37 +1,45 @@
 using System.Collections.Generic;
-using HotChocolate.Types.Descriptors.Definitions;
+using System.Collections.Immutable;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterConventionDefinition
     {
-        public IList<TryCreateImplicitFilter> ImplicitFilters { get; }
+        public IReadOnlyList<TryCreateImplicitFilter> ImplicitFilters { get; set; }
             = new List<TryCreateImplicitFilter>();
 
-        public IDictionary<FilterKind, ISet<FilterOperationKind>> AllowedOperations { get; }
-            = new Dictionary<FilterKind, ISet<FilterOperationKind>>();
+        public IReadOnlyDictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>
+            AllowedOperations
+        {
+            get; set;
+        }
+            = ImmutableDictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>.Empty;
 
-        public IDictionary<FilterKind, FilterConventionTypeDefinition> TypeDefinitions { get; }
-            = new Dictionary<FilterKind, FilterConventionTypeDefinition>();
+        public IReadOnlyDictionary<FilterKind, FilterConventionTypeDefinition> TypeDefinitions
+        {
+            get; set;
+        } = ImmutableDictionary<FilterKind, FilterConventionTypeDefinition>.Empty;
 
-        public IDictionary<FilterOperationKind, CreateFieldName> DefaultOperationNames { get; }
-            = new Dictionary<FilterOperationKind, CreateFieldName>();
+        public IReadOnlyDictionary<FilterOperationKind, CreateFieldName> DefaultOperationNames
+        {
+            get; set;
+        } = ImmutableDictionary<FilterOperationKind, CreateFieldName>.Empty;
 
-        public IDictionary<FilterOperationKind, string> DefaultOperationDescriptions { get; }
-            = new Dictionary<FilterOperationKind, string>();
+        public IReadOnlyDictionary<FilterOperationKind, string> DefaultOperationDescriptions
+        {
+            get; set;
+        } = ImmutableDictionary<FilterOperationKind, string>.Empty;
 
         public NameString ArgumentName { get; set; }
 
         public NameString ElementName { get; set; }
 
-        public FilterVisitorDefinitionBase? VisitorDefinition
-        {
-            get; set;
-        }
+        public FilterVisitorDefinitionBase? VisitorDefinition { get; set; }
 
         public GetFilterTypeName FilterTypeNameFactory { get; set; }
             = FilterConventionExtensions.FilterTypeName;
 
-        public GetFilterTypeDescription? FilterTypeDescriptionFactory { get; set; }
+        public GetFilterTypeDescription FilterTypeDescriptionFactory { get; set; }
+            = FilterConventionExtensions.FilterTypeDescription;
     }
 }

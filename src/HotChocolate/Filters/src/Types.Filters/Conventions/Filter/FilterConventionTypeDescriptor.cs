@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -35,7 +34,9 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public IFilterConventionTypeDescriptor Ignore(FilterOperationKind kind, bool ignore = true)
+        public IFilterConventionTypeDescriptor Ignore(
+            FilterOperationKind kind,
+            bool ignore = true)
         {
             _operations.GetOrAdd(
                     kind,
@@ -50,18 +51,16 @@ namespace HotChocolate.Types.Filters.Conventions
         {
             return _operations.GetOrAdd(
                 kind,
-                (FilterOperationKind kind) => FilterConventionOperationDescriptor.New(this, kind));
-        }
-
-        public IFilterConventionTypeDescriptor TryCreateImplicitFilter(
-            TryCreateImplicitFilter factory)
-        {
-            Definition.TryCreateFilter = factory;
-            return this;
+                (FilterOperationKind kind) =>
+                    FilterConventionOperationDescriptor.New(this, kind));
         }
 
         public FilterConventionTypeDefinition CreateDefinition()
         {
+            var operationDescriptions = new Dictionary<FilterOperationKind, string>();
+            var operationsNames = new Dictionary<FilterOperationKind, CreateFieldName>();
+            var allowedOperations = new HashSet<FilterOperationKind>();
+
             foreach (FilterConventionOperationDescriptor descriptor in _operations.Values)
             {
                 FilterConventionOperationDefinition definition = descriptor.CreateDefinition();
@@ -69,18 +68,20 @@ namespace HotChocolate.Types.Filters.Conventions
                 {
                     if (definition.Description != null)
                     {
-                        Definition.OperationDescriptions[definition.OperationKind]
-                        = definition.Description;
+                        operationDescriptions[definition.OperationKind] = definition.Description;
                     }
 
                     if (definition.Name != null)
                     {
-                        Definition.OperationNames[definition.OperationKind]
-                            = definition.Name;
+                        operationsNames[definition.OperationKind] = definition.Name;
                     }
-                    Definition.AllowedOperations.Add(definition.OperationKind);
+                    allowedOperations.Add(definition.OperationKind);
                 }
             }
+
+            Definition.AllowedOperations = allowedOperations;
+            Definition.OperationDescriptions = operationDescriptions;
+            Definition.OperationNames = operationsNames;
             return Definition;
         }
 

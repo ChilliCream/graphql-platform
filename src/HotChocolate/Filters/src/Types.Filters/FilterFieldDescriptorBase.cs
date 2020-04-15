@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Filters
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
 
-        protected ISet<FilterOperationKind> AllowedOperations { get; }
+        protected IReadOnlyCollection<FilterOperationKind> AllowedOperations { get; }
 
         protected virtual ISet<FilterOperationKind> ListOperations { get; } =
             new HashSet<FilterOperationKind>

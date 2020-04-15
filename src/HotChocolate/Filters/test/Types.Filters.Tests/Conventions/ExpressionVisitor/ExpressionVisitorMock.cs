@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
-using HotChocolate.Utilities;
-using Xunit;
-using HotChocolate.Types.Filters.Conventions;
 using System.Linq.Expressions;
+using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Filters.Conventions;
 
 #nullable enable
 namespace HotChocolate.Types.Filters

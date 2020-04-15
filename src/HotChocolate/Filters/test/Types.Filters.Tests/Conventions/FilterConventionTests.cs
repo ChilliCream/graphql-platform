@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Conventions;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -124,7 +122,7 @@ namespace HotChocolate.Types.Filters
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(
-                            x => x.FilterTypeName(
+                            x => x.TypeName(
                                 (x, type) => x.Naming.GetTypeName(type) + "Test"))));
 
             // assert
@@ -140,7 +138,7 @@ namespace HotChocolate.Types.Filters
                 x => x.AddType<FilterInputType<Foo>>()
                     .AddConvention<IFilterConvention>(
                         new FilterConvention(
-                            x => x.FilterTypeDescription(
+                            x => x.Description(
                                 (x, type) => x.Naming.GetTypeName(type) + "Test"))));
 
             // assert
@@ -249,7 +247,7 @@ namespace HotChocolate.Types.Filters
                 base.Configure(descriptor);
                 descriptor.ArgumentName("test")
                     .ElementName("TESTelement")
-                    .FilterTypeName(
+                    .TypeName(
                         (IDescriptorContext context, Type entityType) =>
                             context.Naming.GetTypeName(entityType, TypeKind.Object)
                                 + "FilterTest");

@@ -21,8 +21,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <paramref name="name"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </exception>
-        IFilterConventionDescriptor ElementName(
-                NameString name);
+        IFilterConventionDescriptor ElementName(NameString name);
 
         /// <summary>
         /// Specifies a delegate that returns the graphql type name of a
@@ -32,8 +31,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <exception cref="ArgumentNullException">
         /// <paramref name="factory"/> is <c>null</c>
         /// </exception>
-        IFilterConventionDescriptor FilterTypeName(
-            GetFilterTypeName factory);
+        IFilterConventionDescriptor TypeName(GetFilterTypeName factory);
 
         /// <summary>
         /// Specifies a delegate that returns the graphql description of a
@@ -43,8 +41,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <exception cref="ArgumentNullException">
         /// <paramref name="factory"/> is <c>null</c>
         /// </exception>
-        IFilterConventionDescriptor FilterTypeDescription(
-            GetFilterTypeDescription factory);
+        IFilterConventionDescriptor Description(GetFilterTypeDescription factory);
 
         /// <summary>
         /// Specifies the configuration of a <see cref="FilterKind"/> with a
@@ -71,6 +68,18 @@ namespace HotChocolate.Types.Filters.Conventions
         /// </summary>
         /// <param name="kind">The <see cref="FilterOperationKind"/> to configure</param> 
         IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind);
+
+        /// <summary>
+        /// Specifies a delegate of type <see cref="TryCreateImplicitFilter"/>. This delegate is
+        /// invoked when ever filters are implicitly bound. <seealso cref="BindingBehavior"/>
+        /// </summary>
+        /// <param name="factory">The factory to create implicit filters</param>
+        /// <param name="position" default="null">
+        /// At this position the factory is inserted. Default is at the end.
+        /// </param>
+        IFilterConventionDescriptor AddImplicitFilter(
+            TryCreateImplicitFilter factory,
+            int? position = null);
 
         /// <summary>
         /// Configures the visitor that is used to process the filters

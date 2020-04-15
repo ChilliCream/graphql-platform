@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -58,10 +57,10 @@ namespace HotChocolate.Types.Filters.Conventions
                 {
                     fieldHandler[definition.FilterKind] = (definition.Enter, definition.Leave);
                 }
-                foreach ((FilterOperationKind operationKind, FilterOperationHandler handler) in
+                foreach (KeyValuePair<FilterOperationKind, FilterOperationHandler> handlerPair in
                     definition.OperationHandlers)
                 {
-                    operationHandler[(definition.FilterKind, operationKind)] = handler;
+                    operationHandler[(definition.FilterKind, handlerPair.Key)] = handlerPair.Value;
                 }
             }
             Definition.FieldHandler = fieldHandler;

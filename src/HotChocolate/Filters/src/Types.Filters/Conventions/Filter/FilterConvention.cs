@@ -70,19 +70,19 @@ namespace HotChocolate.Types.Filters.Conventions
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage("No visitor definiton found for this FilterConvention")
-                        .SetCode(ErrorCodes.Filtering.NoOperationNameFound)
                         .Build());
             }
         }
 
-        public ISet<FilterOperationKind> GetAllowedOperations(FilterFieldDefintion definition)
+        public IReadOnlyCollection<FilterOperationKind> GetAllowedOperations(
+            FilterFieldDefintion definition)
         {
             if (GetOrCreateConfiguration().TypeDefinitions.TryGetValue(
                     definition.Kind, out FilterConventionTypeDefinition? typeDefinition))
             {
                 return typeDefinition.AllowedOperations;
             }
-            return new HashSet<FilterOperationKind>();
+            return Array.Empty<FilterOperationKind>();
         }
 
         public NameString CreateFieldName(
@@ -150,7 +150,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return GetOrCreateConfiguration().FilterTypeNameFactory(context, entityType);
         }
 
-        public IEnumerable<TryCreateImplicitFilter> GetImplicitFilterFactories()
+        public IReadOnlyList<TryCreateImplicitFilter> GetImplicitFilterFactories()
         {
             return GetOrCreateConfiguration().ImplicitFilters;
         }
