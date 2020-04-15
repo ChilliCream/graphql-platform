@@ -1,0 +1,2 @@
+﻿SELECT "d"."Id", "d"."Bar", "d"."Baz", "d"."Qux"
+FROM "Data" AS "d"

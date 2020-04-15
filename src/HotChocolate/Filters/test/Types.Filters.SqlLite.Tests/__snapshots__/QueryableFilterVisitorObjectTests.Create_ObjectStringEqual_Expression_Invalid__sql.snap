@@ -1,0 +1,4 @@
+﻿SELECT "d"."Id", "d"."FooNestedId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNested" AS "f" ON "d"."FooNestedId" = "f"."Id"
+WHERE "f"."Bar" = 'a'
