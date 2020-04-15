@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Utilities
                     value = defaultValue.Kind == NodeKind.NullValue ? null : defaultValue;
                 }
 
-                if (value is null)
+                if (value is null || value is NullValueNode)
                 {
                     if (variableType.IsNonNullType())
                     {

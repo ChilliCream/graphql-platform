@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -38,15 +39,28 @@ namespace HotChocolate.Execution.Utilities
             VariableDefinitionNode variableDefinition,
             Exception? exception = null)
         {
-            return new GraphQLException(ErrorBuilder.New()
+            IErrorBuilder errorBuilder = ErrorBuilder.New()
                 .SetMessage(
-                    "Variable `{0}` got invalid value.",
+                    "Variable `{0}` got an invalid value.",
                     variableDefinition.Variable.Name.Value)
                 .SetCode(ErrorCodes.Execution.InvalidType)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
-                .SetException(exception)
-                .AddLocation(variableDefinition)
-                .Build());
+                .AddLocation(variableDefinition);
+
+            switch (exception)
+            {
+                case ScalarSerializationException ex:
+                    errorBuilder.SetExtension("scalarError", ex.Message);
+                    break;
+                case InputObjectSerializationException ex:
+                    errorBuilder.SetExtension("inputObjectError", ex.Message);
+                    break;
+                default:
+                    errorBuilder.SetException(exception);
+                    break;
+            }
+
+            return new GraphQLException(errorBuilder.Build());
         }
     }
 }
