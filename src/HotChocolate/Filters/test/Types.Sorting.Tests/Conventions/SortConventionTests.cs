@@ -1,7 +1,9 @@
 using System;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Sorting.Conventions;
+using HotChocolate.Types.Sorting.Expressions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -92,6 +94,80 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.True(hasBeenCalled, "Implicit Sorting should have been called!");
+        }
+
+        [Fact]
+        public void Convention_OverrideCompiler()
+        {
+            // arrange
+            var hasBeenCalled = false;
+            var convention = new SortingConvention(
+                x => x.UseExpressionVisitor()
+                        .UseDefault()
+                        .Compile((visitorDefinition, context, source) =>
+                        {
+                            hasBeenCalled = true;
+                            return SortCompilerDefault.Compile(visitorDefinition, context, source);
+                        }));
+
+            // act
+            ISchema schema = CreateSchemaWithRootSort(x =>
+                x.AddConvention<ISortingConvention>(convention)
+                .AddSortingType()
+            );
+
+            schema.MakeExecutable().ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{foo(order_by:{comparable:DESC}) {comparable}}")
+                .Create());
+
+            // assert
+            Assert.True(hasBeenCalled, "Compiler should have been called!");
+        }
+
+        [Fact]
+        public void Convention_OverrideCreateOperation()
+        {
+            // arrange
+            var hasBeenCalled = false;
+            var convention = new SortingConvention(
+                x => x.UseExpressionVisitor()
+                        .UseDefault()
+                        .CreateOperation((visitorDefinition, context, kind) =>
+                        {
+                            hasBeenCalled = true;
+                            return CreateSortOperationDefault.CreateSortOperation(
+                                visitorDefinition, context, kind);
+                        }));
+
+            // act
+            ISchema schema = CreateSchemaWithRootSort(x =>
+                x.AddConvention<ISortingConvention>(convention)
+            );
+
+            schema.MakeExecutable().ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{foo(order_by:{comparable:DESC}) {comparable}}")
+                .Create());
+
+            // assert
+            Assert.True(hasBeenCalled, "CreateSortOperation should have been called!");
+        }
+
+        public static ISchema CreateSchemaWithRootSort(
+            Action<ISchemaBuilder> configure)
+        {
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(c =>
+                    c.Name("Query")
+                        .Field("foo")
+                .Resolver(Array.Empty<Foo>())
+                .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
+                .UseSorting());
+
+            configure(builder);
+
+            return builder.Create();
         }
 
         private class CustomConvention
