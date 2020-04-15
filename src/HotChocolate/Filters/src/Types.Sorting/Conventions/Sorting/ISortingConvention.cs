@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Sorting.Conventions
         /// <summary>
         /// Get the argument name definined for
         /// <see cref="SortObjectFieldDescriptorExtensions.UseSorting(IObjectFieldDescriptor)"/>
-        /// Can be configured over <see 
+        /// Can be configured with <see 
         ///     cref="ISortingConventionDescriptor.ArgumentName(NameString)"/>
         /// </summary>
         NameString GetArgumentName();
@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Sorting.Conventions
 
         /// <summary>
         /// Get a <see cref="NameString">GraphQL Name</see> for a <see cref="SortingInputType{T}"/>
-        /// Can be configured over <see 
+        /// Can be configured with <see 
         ///     cref="ISortingConventionDescriptor.TypeName(GetSortingTypeName)"/>
         /// </summary>
         /// <param name="context">The descriptor context of the schema creation</param>
@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Sorting.Conventions
 
         /// <summary>
         /// Get a the description for a <see cref="SortingInputType{T}"/>
-        /// Can be configured over <see 
+        /// Can be configured with <see 
         ///     cref="ISortingConventionDescriptor.Description(GetSortingDescription)"/>
         /// </summary>
         /// <param name="context">The descriptor context of the schema creation</param>
@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Sorting.Conventions
         /// <summary>
         /// Get a <see cref="NameString">GraphQL Name</see> for an operation of a
         /// <see cref="SortingInputType{T}"/>
-        /// Can be configured over <see 
+        /// Can be configured with <see 
         ///     cref="ISortingConventionDescriptor.TypeName(GetSortingTypeName)"/>
         /// </summary>
         /// <param name="context">The descriptor context of the schema creation</param>
