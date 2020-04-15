@@ -78,6 +78,11 @@ namespace HotChocolate.Types.Sorting.Conventions
         public ISortingConventionDescriptor Visitor(
             ISortingVisitorDescriptorBase<SortingVisitorDefinitionBase> visitor)
         {
+            if (visitor is null)
+            {
+                throw new ArgumentNullException(nameof(visitor));
+            }
+
             _visitorDescriptor = visitor;
             return this;
         }
