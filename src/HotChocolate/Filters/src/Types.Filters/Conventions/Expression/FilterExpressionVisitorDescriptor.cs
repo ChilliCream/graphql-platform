@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return Definition;
         }
 
-        public IFilterExpressionTypeDescriptor Type(FilterKind kind)
+        public IFilterExpressionTypeDescriptor Kind(FilterKind kind)
             => _types.GetOrAdd(
                 kind,
                 _ => FilterExpressionTypeDescriptor.New(this, kind));

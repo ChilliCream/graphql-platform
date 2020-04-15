@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters
                     x => x.UseDefault()
                         .UseExpressionVisitor()
                         .UseDefault()
-                            .Type(kind)
+                            .Kind(kind)
                                 .Enter(helper.FilterFieldEnter)
                                 .Leave(helper.FilterFieldLeave))
                     .GetExpressionDefiniton();
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters
                     x => x.UseDefault()
                         .UseExpressionVisitor()
                         .UseDefault()
-                            .Type(kind)
+                            .Kind(kind)
                                 .Operation(operationKind)
                                     .Handler(helper.FilterOperationHandler))
                     .GetExpressionDefiniton();

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public class FilterExpressionTypeDescriptor : IFilterExpressionTypeDescriptor
+    public class FilterExpressionTypeDescriptor
+        : IFilterExpressionTypeDescriptor
     {
         private readonly FilterExpressionVisitorDescriptor _descriptor;
 

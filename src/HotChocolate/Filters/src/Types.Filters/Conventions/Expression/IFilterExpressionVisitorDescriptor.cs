@@ -4,6 +4,6 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         IFilterConventionDescriptor And();
 
-        IFilterExpressionTypeDescriptor Type(FilterKind kind);
+        IFilterExpressionTypeDescriptor Kind(FilterKind kind);
     }
 }
