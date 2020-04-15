@@ -76,7 +76,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets or sets the execution bound field middleware resolver.
         /// </summary>
-        Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver
-        { get; set; }
+        Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver { get; set; }
     }
 }
