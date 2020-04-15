@@ -42,52 +42,146 @@ namespace HotChocolate.Execution
     }
 
 
-    public interface IResultData : IDisposable
+    public interface IResultData
     {
         IResultData? Parent { get; }
     }
 
-    public interface IResultMap : IResultData, IReadOnlyList<ResultValue>
+    public interface IResultMap : IReadOnlyList<ResultValue>, IResultData
     {
-
     }
 
-    public class ResultMap : IResultMap
+    public interface IResultMapList : IReadOnlyList<IResultMap>, IResultData
     {
-        private readonly List<ResultValue> _values = new List<ResultValue>();
+    }
 
-        public ResultValue this[int index] { get => _values[index]; }
+    public interface IResultValuePool
+    {
+        ResultValue[] Rent(int capacity);
 
-        public IResultData? Parent => throw new NotImplementedException();
+        void Return(ResultValue[] buffer);
+    }
 
-        public int Count => throw new NotImplementedException();
+    public sealed class ResultMap : IResultMap
+    {
+        private readonly ResultValue[] _buffer;
+        private int _capacity;
+        private bool _needsDefrag = false;
 
-        public void Dispose()
+        public ResultMap(int capacity, ResultValue[] buffer)
         {
-            throw new NotImplementedException();
+            _capacity = capacity;
+            _buffer = buffer;
+        }
+
+        public IResultData? Parent { get; set; }
+
+        public ResultValue this[int index] { get => _buffer[index]; }
+
+        public int Count => _capacity;
+
+        public void SetValue(int index, string name, object value)
+        {
+            if (index >= _capacity)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            _buffer[index] = new ResultValue(name, value);
+        }
+
+        public void RemoveValue(int index)
+        {
+            _needsDefrag = true;
+            _buffer[index] = default;
+        }
+
+        public void Complete()
+        {
+            if (!_needsDefrag)
+            {
+                return;
+            }
+
+            int count = 0;
+
+            for (int i = 0; i < _capacity; i++)
+            {
+                bool moved = false;
+
+                if (_buffer[i].HasValue)
+                {
+                    count = i + 1;
+                }
+                else
+                {
+                    for (int j = i + 1; j < _capacity; j++)
+                    {
+                        if (_buffer[j].HasValue)
+                        {
+                            _buffer[i] = _buffer[j];
+                            moved = true;
+                            break;
+                        }
+                    }
+
+                    if (moved)
+                    {
+                        count = i + 1;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            _capacity = count;
         }
 
         public IEnumerator<ResultValue> GetEnumerator()
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < _capacity; i++)
+            {
+                ResultValue value = _buffer[i];
+
+                if (value.HasValue)
+                {
+                    yield return value;
+                }
+            }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    public sealed class ResultMapList
+        : List<IResultMap>
+        , IResultMapList
+    {
+        public IResultData? Parent { get; set; }
     }
 
     public readonly struct ResultValue : IEquatable<ResultValue?>
     {
-        internal ResultValue(string key, object value)
+        public ResultValue(string name, object value)
         {
-            Key = key;
+            Name = name;
             Value = value;
             HasValue = true;
         }
 
-        public string Key { get; }
+        public string Name { get; }
 
         public object Value { get; }
 
@@ -97,11 +191,11 @@ namespace HotChocolate.Execution
         {
             return obj is FieldValue value &&
                 HasValue == value.HasValue &&
-                Key == value.Key &&
+                Name == value.Key &&
                 Value == value.Value;
         }
 
-        public bool Equals(FieldValue? other)
+        public bool Equals(ResultValue? other)
         {
             if (other is null)
             {
@@ -118,23 +212,92 @@ namespace HotChocolate.Execution
                 return true;
             }
 
-            return Key == other.Value.Key &&
+            return Name == other.Value.Name &&
                    Value == other.Value.Value;
-        }
-
-        public bool Equals([AllowNull] ResultValue? other)
-        {
-            throw new NotImplementedException();
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                int hash = (Key?.GetHashCode() ?? 0) * 3;
+                int hash = (Name?.GetHashCode() ?? 0) * 3;
                 hash = hash ^ ((Value?.GetHashCode() ?? 0) * 7);
                 return hash;
             }
+        }
+    }
+
+    public interface IResult : IDisposable
+    {
+        IResultMap? Data { get; }
+    }
+
+    internal class Result : IResult
+    {
+        public IResultMap? Data { get; set; }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal sealed class ListBuffer<T>
+    {
+        private readonly List<T>[] _buffer = new List<T>[]
+        {
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+            new List<T>(),
+        };
+        private readonly int _max = 16;
+        private int _index = 0;
+
+
+        public IList<T> Pop()
+        {
+            if (TryPop(out IList<T>? list))
+            {
+                return list;
+            }
+            throw new InvalidOperationException("Buffer is used up.");
+        }
+
+        public bool TryPop([NotNullWhen(true)] out IList<T>? list)
+        {
+            if (_index < _max)
+            {
+                list = _buffer[_index++];
+                return true;
+            }
+
+            list = null;
+            return false;
+        }
+
+        public void Reset()
+        {
+            if (_index > 0)
+            {
+                for (int i = 0; i < _index; i++)
+                {
+                    _buffer[i].Clear();
+                }
+            }
+            _index = 0;
         }
     }
 }
