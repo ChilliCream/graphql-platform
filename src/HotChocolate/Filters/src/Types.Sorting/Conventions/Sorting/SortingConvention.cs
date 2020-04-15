@@ -118,7 +118,7 @@ namespace HotChocolate.Types.Sorting.Conventions
         {
             if (GetOrCreateConfiguration().VisitorDefinition is { } definition)
             {
-                await definition.ApplSorting<T>(this, next, converter, context)
+                await definition.ApplySorting<T>(this, next, converter, context)
                     .ConfigureAwait(false);
             }
             else
@@ -128,6 +128,18 @@ namespace HotChocolate.Types.Sorting.Conventions
                         .SetMessage("No visitor definiton found for this SortingConvention")
                         .Build());
             }
+        }
+
+        public bool TryGetVisitorDefinition<T>(
+            [NotNullWhen(true)]out T? definition)
+            where T : SortingVisitorDefinitionBase
+        {
+            definition = null;
+            if (GetOrCreateConfiguration().VisitorDefinition is T definitionOfT)
+            {
+                definition = definitionOfT;
+            }
+            return definition != null;
         }
 
         public readonly static ISortingConvention Default = new SortingConvention();

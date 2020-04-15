@@ -91,13 +91,16 @@ namespace HotChocolate.Types
         {
             string filterConventionArgumentName =
                 context.DescriptorContext.GetFilterNamingConvention().ArgumentName;
+
             ISortingConvention sortingConvention =
                 context.DescriptorContext.GetSortingConvention();
+
             Type middlewareType = _middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType,
                     SelectionMiddlewareContext.Create(
                         filterConventionArgumentName, sortingConvention));
+
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

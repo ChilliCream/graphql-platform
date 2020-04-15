@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Sorting.Conventions
         public SortCompiler Compiler { get; set; }
             = SortCompilerDefault.Compile;
 
-        public async override Task ApplSorting<T>(
+        public async override Task ApplySorting<T>(
             ISortingConvention convention,
             FieldDelegate next,
             ITypeConversion converter,

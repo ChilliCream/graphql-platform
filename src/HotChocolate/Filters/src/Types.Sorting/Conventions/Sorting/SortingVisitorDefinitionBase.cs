@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Sorting.Conventions
 {
     public abstract class SortingVisitorDefinitionBase
     {
-        public abstract Task ApplSorting<T>(
+        public abstract Task ApplySorting<T>(
             ISortingConvention convention,
             FieldDelegate next,
             ITypeConversion converter,

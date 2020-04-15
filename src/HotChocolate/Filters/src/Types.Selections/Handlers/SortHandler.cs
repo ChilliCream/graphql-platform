@@ -17,10 +17,14 @@ namespace HotChocolate.Types.Selections.Handlers
             string argumentName = convention.GetArgumentName();
             if (context.TryGetValueNode(argumentName, out IValueNode? sortArgument) &&
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
-                iot is ISortInputType fit)
+                iot is ISortInputType fit &&
+                convention.TryGetVisitorDefinition(
+                    out SortingExpressionVisitorDefinition? defintion))
             {
+
                 var visitorContext = new QueryableSortVisitorContext(
-                    iot, fit.EntityType, false, convention);
+                    iot, fit.EntityType, false, defintion);
+
                 QueryableSortVisitor.Default.Visit(sortArgument, visitorContext);
 
                 return visitorContext.Compile(expression);

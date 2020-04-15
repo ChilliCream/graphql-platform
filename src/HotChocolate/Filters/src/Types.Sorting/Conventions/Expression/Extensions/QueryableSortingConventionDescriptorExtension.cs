@@ -1,4 +1,3 @@
-
 namespace HotChocolate.Types.Sorting.Conventions
 {
     public static class QueryableSortingConventionDescriptorExtension

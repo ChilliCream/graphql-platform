@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters;
 
