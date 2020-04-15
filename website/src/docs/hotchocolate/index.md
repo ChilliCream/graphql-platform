@@ -6,7 +6,7 @@ _Hot Chocolate_ is an open-source _GraphQL_ server that is compliant with the ne
 
 _Hot Chocolate_ takes the complexity away from building a fully fledged GraphQL server and lets you focus on delivering the next big thing.
 
-diagram
+![Platform](../../images/platform.png)
 
 You can use _Hot Chocolate Server_ as:
 
