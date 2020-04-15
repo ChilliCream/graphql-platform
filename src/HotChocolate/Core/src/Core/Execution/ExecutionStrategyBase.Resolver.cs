@@ -18,13 +18,17 @@ namespace HotChocolate.Execution
             await ExecuteMiddlewareAsync(resolverContext, errorHandler)
                 .ConfigureAwait(false);
 
-            if (resolverContext.Result is IError singleError)
+            switch (resolverContext.Result)
             {
-                resolverContext.ResolverError(singleError);
-            }
-            else if (resolverContext.Result is IEnumerable<IError> errors)
-            {
-                resolverContext.ResolverError(errors);
+                case IError singleError:
+                    resolverContext.ResolverError(singleError);
+                    break;
+                case IEnumerable<IError> errors:
+                    resolverContext.ResolverError(errors);
+                    break;
+                case IExecutionResult executionResult when executionResult.Errors != null:
+                    resolverContext.ResolverError(executionResult.Errors);
+                    break;
             }
 
             resolverContext.EndResolveField(activity);
@@ -45,7 +49,7 @@ namespace HotChocolate.Execution
                 {
                     resolverContext.Result =
                         await Task.Run(() =>
-                        { 
+                        {
                             var items = new List<object>();
                             foreach (object o in q)
                             {
