@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public class FilterExpressionVisitorDefintion : FilterVisitorDefinitionBase
+    public class FilterExpressionVisitorDefinition : FilterVisitorDefinitionBase
     {
         public IReadOnlyDictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>
             FieldHandler

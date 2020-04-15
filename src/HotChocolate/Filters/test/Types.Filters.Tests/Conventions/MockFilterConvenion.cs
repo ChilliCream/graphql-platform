@@ -20,10 +20,10 @@ namespace HotChocolate.Types.Filters
             return GetOrCreateConfiguration();
         }
 
-        public FilterExpressionVisitorDefintion GetExpressionDefiniton()
+        public FilterExpressionVisitorDefinition GetExpressionDefiniton()
         {
             return GetOrCreateConfiguration().VisitorDefinition
-                as FilterExpressionVisitorDefintion;
+                as FilterExpressionVisitorDefinition;
         }
 
         public new static readonly MockFilterConvention Default

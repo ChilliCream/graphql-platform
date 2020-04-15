@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters
         public QueryableFilterVisitorContext(
             InputObjectType initialType,
             Type source,
-            FilterExpressionVisitorDefintion defintion,
+            FilterExpressionVisitorDefinition defintion,
             ITypeConversion typeConverter,
             bool inMemory)
             : base(initialType)
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Filters
             Closures.Push(new QueryableClosure(source, "r", inMemory));
         }
 
-        protected FilterExpressionVisitorDefintion Defintion { get; }
+        protected FilterExpressionVisitorDefinition Defintion { get; }
 
         public ITypeConversion TypeConverter { get; }
 

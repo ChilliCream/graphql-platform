@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Selections.Handlers
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit &&
                 convention is Filter
-                convention.TryGetVisitorDefinition(out FilterExpressionVisitorDefintion? defintion))
+                convention.TryGetVisitorDefinition(out FilterExpressionVisitorDefinition? defintion))
             {
                 var visitorContext = new QueryableFilterVisitorContext(
                     iot,

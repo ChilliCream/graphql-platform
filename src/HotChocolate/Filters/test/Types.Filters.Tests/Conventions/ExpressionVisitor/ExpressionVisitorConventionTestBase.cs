@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Filters
                 ExpressionVisitorMock.Create(enter)
                     .Setup(leave);
 
-            FilterExpressionVisitorDefintion convention =
+            FilterExpressionVisitorDefinition convention =
                 new MockFilterConvention(
                     x => x.UseDefault()
                         .UseExpressionVisitor()
@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Filters
 
             var helper = ExpressionVisitorMock.Create(handler);
 
-            FilterExpressionVisitorDefintion convention =
+            FilterExpressionVisitorDefinition convention =
                 new MockFilterConvention(
                     x => x.UseDefault()
                         .UseExpressionVisitor()

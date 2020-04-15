@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Filters.Conventions
             IQueryableFilterVisitorContext context);
 
     public class FilterExpressionVisitorDescriptor :
-        FilterVisitorDescriptorBase<FilterExpressionVisitorDefintion>,
+        FilterVisitorDescriptorBase<FilterExpressionVisitorDefinition>,
         IFilterExpressionVisitorDescriptor
     {
         private readonly ConcurrentDictionary<FilterKind, FilterExpressionTypeDescriptor> _types
@@ -38,12 +38,12 @@ namespace HotChocolate.Types.Filters.Conventions
             _convention = convention;
         }
 
-        protected override FilterExpressionVisitorDefintion Definition { get; }
-            = new FilterExpressionVisitorDefintion();
+        protected override FilterExpressionVisitorDefinition Definition { get; }
+            = new FilterExpressionVisitorDefinition();
 
         public IFilterConventionDescriptor And() => _convention;
 
-        public override FilterExpressionVisitorDefintion CreateDefinition()
+        public override FilterExpressionVisitorDefinition CreateDefinition()
         {
             var fieldHandler
                 = new Dictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>();
