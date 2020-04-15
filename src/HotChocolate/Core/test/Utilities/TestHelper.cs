@@ -29,6 +29,20 @@ namespace HotChocolate.Tests
             return ExpectValid(new TestConfiguration { CreateSchema = createSchema }, query);
         }
 
+        public static Task<IExecutionResult> ExpectValid(
+            Action<ISchemaBuilder> createSchema,
+            string query,
+            Action<IQueryRequestBuilder> modifyRequest)
+        {
+            return ExpectValid(
+                new TestConfiguration
+                {
+                    CreateSchema = createSchema,
+                    ModifyRequest = modifyRequest
+                },
+                query);
+        }
+
         public static async Task<IExecutionResult> ExpectValid(
             TestConfiguration? configuration,
             string query)
