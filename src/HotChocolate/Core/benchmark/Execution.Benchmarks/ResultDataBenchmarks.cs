@@ -7,6 +7,8 @@ namespace HotChocolate.Execution.Benchmarks
     [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
     public class ResultDataBenchmarks
     {
+        private readonly ResultMap _resultMap = new ResultMap();
+
         [Params(1, 8, 16, 50, 100, 200)]
         public int Size { get; set; }
 
@@ -24,18 +26,31 @@ namespace HotChocolate.Execution.Benchmarks
         }
 
         [Benchmark]
-        public ResultMap Create_And_Fill_ResultMap()
+        public ResultValue[] Create_And_Fill_ArrayPool()
         {
             ResultValue[] buffer = ArrayPool<ResultValue>.Shared.Rent(Size);
-            var resultMap = new ResultMap(Size, buffer);
 
             for (int i = 0; i < Size; i++)
             {
-                resultMap.SetValue(i, i.ToString(), i);
+                buffer[i] = new ResultValue(i.ToString(), i);
             }
 
             ArrayPool<ResultValue>.Shared.Return(buffer);
-            return resultMap;
+            return buffer;
+        }
+
+        [Benchmark]
+        public ResultMap Create_And_Fill_ResultMap()
+        {
+            _resultMap.EnsureCapacity(Size);
+
+            for (int i = 0; i < Size; i++)
+            {
+                _resultMap.SetValue(i, i.ToString(), i);
+            }
+
+            _resultMap.Clear();
+            return _resultMap;
         }
     }
 }
