@@ -650,16 +650,6 @@ namespace HotChocolate.Types.Filters
             public int Id { get; set; }
 
             public short BarShort { get; set; }
-
-            public int BarInt { get; set; }
-
-            public long BarLong { get; set; }
-
-            public float BarFloat { get; set; }
-
-            public double BarDouble { get; set; }
-
-            public decimal BarDecimal { get; set; }
         }
 
         public class FooNullable
@@ -667,17 +657,6 @@ namespace HotChocolate.Types.Filters
             [Key]
             public int Id { get; set; }
 
-            public short? BarShort { get; set; }
-        }
-
-        public class EntityWithTypeAttribute
-        {
-            [GraphQLType(typeof(IntType))]
-            public short? BarShort { get; set; }
-        }
-
-        public class Entity
-        {
             public short? BarShort { get; set; }
         }
     }
