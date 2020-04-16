@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\src\Validation\HotChocolate.Validation.csproj" />
+    <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\test\StarWars\HotChocolate.StarWars.csproj" />
   </ItemGroup>
 

@@ -47,9 +47,7 @@ namespace HotChocolate.Execution
         }
 
         // TODO : simplify
-        private T CoerceArgumentValue<T>(
-            string name,
-            ArgumentValue argumentValue)
+        private T CoerceArgumentValue<T>(string name, ArgumentValue argumentValue)
         {
             object value = argumentValue.Value;
 
@@ -87,9 +85,7 @@ namespace HotChocolate.Execution
                 return resolved;
             }
 
-            if (TryConvertValue(
-                argumentValue.Type.ClrType,
-                value, out resolved))
+            if (TryConvertValue(value.GetType(), value, out resolved))
             {
                 return resolved;
             }
@@ -117,14 +113,9 @@ namespace HotChocolate.Execution
             throw new QueryException(error);
         }
 
-        private bool TryConvertValue<T>(
-            Type type,
-            object value,
-            out T converted)
+        private bool TryConvertValue<T>(Type type, object value, out T converted)
         {
-            if (Converter.TryConvert(
-                type, typeof(T),
-                value, out object c))
+            if (Converter.TryConvert(type, typeof(T), value, out object c))
             {
                 converted = (T)c;
                 return true;

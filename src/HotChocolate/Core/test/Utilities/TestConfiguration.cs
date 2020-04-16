@@ -5,8 +5,8 @@ namespace HotChocolate.Tests
 {
     public class TestConfiguration
     {
-        public ISchema? Schema { get; set; }
-        public IQueryExecutor? Executor { get; set; }
+        public Action<ISchemaBuilder>? CreateSchema { get; set; }
+        public Func<ISchema, IQueryExecutor>? CreateExecutor { get; set; }
         public IServiceProvider? Service { get; set; }
         public Action<IQueryRequestBuilder>? ModifyRequest { get; set; }
     }
