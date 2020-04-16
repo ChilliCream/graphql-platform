@@ -1,5 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
@@ -643,6 +650,53 @@ namespace HotChocolate.Types.Filters
                 "barEnum",
                 x => Assert.Null(x["barEnum"]));
         }
+
+
+        [Fact]
+        public void Create_EnumIn_WithPaging()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("barEnum_in",
+                new ListValueNode(new[]
+                {
+                    new EnumValueNode(TestEnum.Qux),
+                    new EnumValueNode(TestEnum.Baz)
+                }))
+            );
+
+            var a = new Foo { BarEnum = TestEnum.Qux };
+
+            IServiceCollection serviceCollection;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (serviceCollection, resolver) = Provider.CreateResolver(Items(a));
+            serviceCollection.AddSingleton<MatchSqlHelper>();
+            ServiceProvider sp = serviceCollection.BuildServiceProvider();
+
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(sp)
+                .AddQueryType(
+                    d => d.Field("foos")
+                        .Resolver(resolver)
+                        .UsePaging<ObjectType<Foo>>()
+                        .UseFiltering())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: " + value.ToString() + ") {  totalCount } }");
+
+            // assert
+            var queryResult = (IReadOnlyQueryResult)result;
+
+            Assert.Equal(0, (queryResult.Errors?.Count ?? 0));
+
+
+            result.MatchSnapshot();
+        }
+
 
         public enum TestEnum
         {

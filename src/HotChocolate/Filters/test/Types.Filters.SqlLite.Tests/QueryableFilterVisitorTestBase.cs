@@ -12,11 +12,11 @@ namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorTestBase
     {
-        private readonly SqlServerProvider _provider;
+        protected readonly SqlServerProvider Provider;
 
         public QueryableFilterVisitorTestBase(SqlServerProvider provider)
         {
-            _provider = provider;
+            Provider = provider;
         }
 
         public void Expect<T>(
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Filters
             var suffix = testId != null ? "_" + testId : "";
             IServiceCollection serviceCollection;
             Func<IResolverContext, IEnumerable<T>> resolver;
-            (serviceCollection, resolver) = _provider.CreateResolver(values);
+            (serviceCollection, resolver) = Provider.CreateResolver(values);
             serviceCollection.AddSingleton<MatchSqlHelper>();
             ServiceProvider sp = serviceCollection.BuildServiceProvider();
 
