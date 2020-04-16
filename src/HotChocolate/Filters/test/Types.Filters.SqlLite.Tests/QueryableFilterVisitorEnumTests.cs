@@ -655,21 +655,13 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void Create_EnumIn_WithPaging()
         {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("barEnum_in",
-                new ListValueNode(new[]
-                {
-                    new EnumValueNode(TestEnum.Qux),
-                    new EnumValueNode(TestEnum.Baz)
-                }))
-            );
+            // arrange 
 
-            var a = new Foo { BarEnum = TestEnum.Qux };
+            Foo[] item = Items(new Foo { BarEnum = TestEnum.Qux });
 
             IServiceCollection serviceCollection;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (serviceCollection, resolver) = Provider.CreateResolver(Items(a));
+            (serviceCollection, resolver) = Provider.CreateResolver(item);
             serviceCollection.AddSingleton<MatchSqlHelper>();
             ServiceProvider sp = serviceCollection.BuildServiceProvider();
 
@@ -686,7 +678,7 @@ namespace HotChocolate.Types.Filters
 
             // act
             IExecutionResult result = executor.Execute(
-                "{ foos(where: " + value.ToString() + ") {  totalCount } }");
+                "{ foos(where: { barEnum_in: [QUX, BAZ]) {  totalCount } }");
 
             // assert
             var queryResult = (IReadOnlyQueryResult)result;
