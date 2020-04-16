@@ -19,13 +19,17 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar: \"a\" }",
                 Items(new Foo { Bar = "a" }),
+                "bar",
                 x => Assert.Equal("a", x["bar"]));
         }
 
         [Fact]
         public void Create_StringEqual_Expression_Invalid()
         {
-            Expect("{ bar: \"a\" }", Items(new Foo { Bar = "b" }));
+            Expect(
+                "{ bar: \"a\" }",
+                Items(new Foo { Bar = "b" }),
+                "bar");
         }
 
         [Fact]
@@ -34,6 +38,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_not: \"a\" }",
                 Items(new Foo { Bar = "b" }),
+                "bar",
                 x => Assert.Equal("b", x["bar"]));
         }
 
@@ -42,7 +47,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_not: \"a\" }",
-                Items(new Foo { Bar = "a" }));
+                Items(new Foo { Bar = "a" }),
+                "bar");
         }
 
         [Fact]
@@ -50,7 +56,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_in: [\"a\", \"c\"]}",
-                Items(new Foo { Bar = "b" }));
+                Items(new Foo { Bar = "b" }),
+                "bar");
         }
 
         [Fact]
@@ -59,6 +66,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_in: [\"a\", \"c\"]}",
                 Items(new Foo { Bar = "a" }),
+                "bar",
                 x => Assert.Equal("a", x["bar"]));
         }
 
@@ -68,7 +76,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_not_in: [\"a\", \"c\"]}",
-                Items(new Foo { Bar = "a" }));
+                Items(new Foo { Bar = "a" }),
+                "bar");
         }
 
         [Fact]
@@ -77,6 +86,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_not_in: [\"a\", \"c\"]}",
                 Items(new Foo { Bar = "b" }),
+                "bar",
                 x => Assert.Equal("b", x["bar"]));
         }
 
@@ -86,7 +96,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_in: \"a\"}",
-                Items(new Foo { Bar = "b" }));
+                Items(new Foo { Bar = "b" }),
+                "bar");
         }
 
         [Fact]
@@ -95,6 +106,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_in: \"a\"}",
                 Items(new Foo { Bar = "a" }),
+                "bar",
                 x => Assert.Equal("a", x["bar"]));
         }
 
@@ -104,7 +116,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_not_in: \"a\"}",
-                Items(new Foo { Bar = "a" }));
+                Items(new Foo { Bar = "a" }),
+                "bar");
         }
 
         [Fact]
@@ -113,6 +126,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_not_in: \"a\"}",
                 Items(new Foo { Bar = "b" }),
+                "bar",
                 x => Assert.Equal("b", x["bar"]));
         }
 
@@ -121,7 +135,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_contains: \"a\"}",
-                Items(new Foo { Bar = "testbtest" }));
+                Items(new Foo { Bar = "testbtest" }),
+                "bar");
         }
 
         [Fact]
@@ -130,6 +145,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_contains: \"a\"}",
                 Items(new Foo { Bar = "testatest" }),
+                "bar",
                 x => Assert.Equal("testatest", x["bar"]));
         }
 
@@ -139,7 +155,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_not_contains: \"b\"}",
-                Items(new Foo { Bar = "testbtest" }));
+                Items(new Foo { Bar = "testbtest" }),
+                "bar");
         }
 
         [Fact]
@@ -148,6 +165,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_not_contains: \"c\"}",
                 Items(new Foo { Bar = "testatest" }),
+                "bar",
                 x => Assert.Equal("testatest", x["bar"]));
         }
 
@@ -157,7 +175,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_starts_with: \"a\"}",
-                Items(new Foo { Bar = "ba" }));
+                Items(new Foo { Bar = "ba" }),
+                "bar");
         }
 
         [Fact]
@@ -166,6 +185,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_starts_with: \"a\"}",
                 Items(new Foo { Bar = "ab" }),
+                "bar",
                 x => Assert.Equal("ab", x["bar"]));
         }
 
@@ -175,7 +195,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_not_starts_with: \"a\"}",
-                Items(new Foo { Bar = "ab" }));
+                Items(new Foo { Bar = "ab" }),
+                "bar");
         }
 
         [Fact]
@@ -184,6 +205,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_not_starts_with: \"a\"}",
                 Items(new Foo { Bar = "ba" }),
+                "bar",
                 x => Assert.Equal("ba", x["bar"]));
         }
 
@@ -192,7 +214,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_ends_with: \"a\"}",
-                Items(new Foo { Bar = "ab" }));
+                Items(new Foo { Bar = "ab" }),
+                "bar");
         }
 
         [Fact]
@@ -201,6 +224,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_ends_with: \"a\"}",
                 Items(new Foo { Bar = "ba" }),
+                "bar",
                 x => Assert.Equal("ba", x["bar"]));
         }
 
@@ -210,7 +234,8 @@ namespace HotChocolate.Types.Filters
         {
             Expect(
                 "{ bar_not_ends_with: \"a\"}",
-                Items(new Foo { Bar = "ba" }));
+                Items(new Foo { Bar = "ba" }),
+                "bar");
         }
 
         [Fact]
@@ -219,6 +244,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 "{ bar_not_ends_with: \"a\"}",
                 Items(new Foo { Bar = "ab" }),
+                "bar",
                 x => Assert.Equal("ab", x["bar"]));
         }
 

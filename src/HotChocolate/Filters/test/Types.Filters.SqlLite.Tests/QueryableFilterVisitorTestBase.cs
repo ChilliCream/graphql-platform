@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -21,11 +22,32 @@ namespace HotChocolate.Types.Filters
         public void Expect<T>(
             string where,
             T[] values,
+            string fields,
+            params Action<IReadOnlyDictionary<string, object>>[] elementInspectors)
+            where T : class
+                => Expect(null, where, values, fields, elementInspectors);
+
+        public void Expect<T>(
+                string testId,
+                string where,
+                T[] values,
+                string fields,
+                params Action<IReadOnlyDictionary<string, object>>[] elementInspectors)
+                where T : class
+                => Expect(testId, "sql", where, values, fields, elementInspectors);
+
+        public void Expect<T>(
+            string testId,
+            string sqlNameExtension,
+            string where,
+            T[] values,
+            string fields,
             params Action<IReadOnlyDictionary<string, object>>[] elementInspectors)
             where T : class
         {
             // arrange  
             // act 
+            var suffix = testId != null ? "_" + testId : "";
             IServiceCollection serviceCollection;
             Func<IResolverContext, IEnumerable<T>> resolver;
             (serviceCollection, resolver) = _provider.CreateResolver(values);
@@ -45,7 +67,7 @@ namespace HotChocolate.Types.Filters
 
             // act
             IExecutionResult result = executor.Execute(
-                "{ foos(where: " + where + ") { id } }");
+                "{ foos(where: " + where + ") { " + fields + " } }");
 
             // assert
             var queryResult = (IReadOnlyQueryResult)result;
@@ -58,12 +80,13 @@ namespace HotChocolate.Types.Filters
 
             Assert.True(results.All(x => x is IReadOnlyDictionary<string, object>));
 
+            sp.GetService<MatchSqlHelper>().AssertSnapshot(sqlNameExtension);
+
             Assert.Collection(
                 results.OfType<IReadOnlyDictionary<string, object>>(),
                 elementInspectors);
 
-            sp.GetService<MatchSqlHelper>().AssertSnapshot();
-            result.MatchSnapshot();
+            result.MatchSnapshot(new SnapshotNameExtension(suffix));
         }
 
         public T[] Items<T>(params T[] items) => items;

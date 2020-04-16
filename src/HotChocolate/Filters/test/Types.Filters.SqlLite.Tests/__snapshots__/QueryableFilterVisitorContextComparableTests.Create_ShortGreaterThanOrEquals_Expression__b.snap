@@ -1,0 +1,12 @@
+﻿{
+  "Data": {
+    "foos": [
+      {
+        "barShort": 12
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

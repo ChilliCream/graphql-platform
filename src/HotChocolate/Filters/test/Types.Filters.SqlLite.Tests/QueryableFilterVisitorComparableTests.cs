@@ -1,14 +1,17 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContextComparableTests
-        : TypeTestBase
+        : QueryableFilterVisitorTestBase, IClassFixture<SqlServerProvider>
     {
+
+        public QueryableFilterVisitorContextComparableTests(SqlServerProvider provider)
+            : base(provider)
+        {
+        }
 
         [Fact]
         public void Create_ShortEqual_Expression()
@@ -18,20 +21,16 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 12 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 13 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
         }
 
         [Fact]
@@ -42,20 +41,16 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 13 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
         }
 
 
@@ -67,23 +62,19 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_gt",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new Foo { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new Foo { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
         }
 
         [Fact]
@@ -94,23 +85,23 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_gt",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new Foo { BarShort = 13 };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
         }
 
 
@@ -122,23 +113,23 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_gte",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new Foo { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new Foo { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
         }
 
         [Fact]
@@ -149,23 +140,19 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_gte",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new Foo { BarShort = 13 };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
         }
 
 
@@ -178,23 +165,19 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_lt",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new Foo { BarShort = 13 };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
         }
 
         [Fact]
@@ -205,23 +188,23 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_lt",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new Foo { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new Foo { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
         }
 
 
@@ -233,23 +216,23 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_lte",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new Foo { BarShort = 13 };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
         }
 
         [Fact]
@@ -260,23 +243,19 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_lte",
                     new IntValueNode(12)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new Foo { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new Foo { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
         }
 
         [Fact]
@@ -292,20 +271,16 @@ namespace HotChocolate.Types.Filters
                 }))
             );
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 13 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
         }
 
         [Fact]
@@ -318,22 +293,16 @@ namespace HotChocolate.Types.Filters
                 ))
             );
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo { BarShort = 12 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var b = new Foo { BarShort = 13 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
         }
 
         [Fact]
@@ -344,23 +313,20 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 12 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 13 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = null };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
         }
 
         [Fact]
@@ -371,23 +337,24 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 13 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = null };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Null(x["barShort"]));
         }
 
 
@@ -399,26 +366,23 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_gt",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
             var d = new FooNullable { BarShort = null };
-            Assert.False(func(d));
+            Expect("d", value.ToString(), Items(d), "barShort");
         }
 
         [Fact]
@@ -429,26 +393,24 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_gt",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.False(func(c));
-
-            var d = new FooNullable { BarShort = null };
-            Assert.True(func(d));
+            Expect("c", value.ToString(), Items(c), "barShort");
         }
 
 
@@ -460,26 +422,27 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_gte",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
             var d = new FooNullable { BarShort = null };
-            Assert.False(func(d));
+            Expect("d", value.ToString(), Items(d), "barShort");
         }
 
         [Fact]
@@ -490,26 +453,21 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_gte",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
 
-            var d = new FooNullable { BarShort = null };
-            Assert.True(func(d));
         }
 
 
@@ -522,26 +480,23 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_lt",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
 
             var d = new FooNullable { BarShort = null };
-            Assert.False(func(d));
+            Expect("d", value.ToString(), Items(d), "barShort");
         }
 
         [Fact]
@@ -552,26 +507,25 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_lt",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
-            var d = new FooNullable { BarShort = null };
-            Assert.True(func(d));
         }
 
 
@@ -583,26 +537,27 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_lte",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(11, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.True(func(b));
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
 
             var d = new FooNullable { BarShort = null };
-            Assert.False(func(d));
+            Expect("d", value.ToString(), Items(d), "barShort");
         }
 
         [Fact]
@@ -613,26 +568,21 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("barShort_not_lte",
                     new IntValueNode(12)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "barShort");
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = 13 };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
-            var d = new FooNullable { BarShort = null };
-            Assert.True(func(d));
         }
 
         [Fact]
@@ -648,23 +598,20 @@ namespace HotChocolate.Types.Filters
                 }))
             );
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 13 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(13, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = null };
-            Assert.False(func(c));
+            Expect("c", value.ToString(), Items(c), "barShort");
         }
 
         [Fact]
@@ -677,85 +624,50 @@ namespace HotChocolate.Types.Filters
                 ))
             );
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var context = new QueryableFilterVisitorContext(fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
-
             // assert
             var a = new FooNullable { BarShort = 12 };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "barShort",
+                x => Assert.Equal(12, (short)x["barShort"]));
 
             var b = new FooNullable { BarShort = 13 };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "barShort");
 
             var c = new FooNullable { BarShort = null };
-            Assert.True(func(c));
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "barShort",
+                x => Assert.Null(x["barShort"]));
         }
 
-        [Fact]
-        public void Overwrite_Comparable_Filter_Type_With_Attribute()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Overwrite_Comparable_Filter_Type_With_Descriptor()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(new FilterInputType<Entity>(d =>
-                d.Filter(t => t.BarShort).Type<IntType>()));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
 
         public class Foo
         {
+            [Key]
+            public int Id { get; set; }
+
             public short BarShort { get; set; }
+
             public int BarInt { get; set; }
+
             public long BarLong { get; set; }
+
             public float BarFloat { get; set; }
+
             public double BarDouble { get; set; }
+
             public decimal BarDecimal { get; set; }
         }
 
         public class FooNullable
         {
+            [Key]
+            public int Id { get; set; }
+
             public short? BarShort { get; set; }
-        }
-
-        public class FooFilterType
-            : FilterInputType<Foo>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Filter(x => x.BarShort);
-                descriptor.Filter(x => x.BarInt);
-                descriptor.Filter(x => x.BarLong);
-                descriptor.Filter(x => x.BarFloat);
-                descriptor.Filter(x => x.BarDouble);
-                descriptor.Filter(x => x.BarDecimal);
-            }
-        }
-
-        public class FooNullableFilterType
-            : FilterInputType<FooNullable>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<FooNullable> descriptor)
-            {
-                descriptor.Filter(x => x.BarShort);
-            }
         }
 
         public class EntityWithTypeAttribute

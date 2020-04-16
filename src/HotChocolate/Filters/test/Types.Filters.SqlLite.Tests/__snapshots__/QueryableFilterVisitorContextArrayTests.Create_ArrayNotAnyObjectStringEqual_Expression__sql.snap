@@ -1,0 +1,6 @@
+﻿SELECT "d"."Id"
+FROM "Data" AS "d"
+WHERE NOT (EXISTS (
+    SELECT 1
+    FROM "FooNested" AS "f"
+    WHERE "d"."Id" = "f"."FooId"))

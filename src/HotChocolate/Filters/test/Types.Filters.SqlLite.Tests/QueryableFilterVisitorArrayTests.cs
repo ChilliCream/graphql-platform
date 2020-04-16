@@ -1,113 +1,17 @@
-using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContextArrayTests
-        : TypeTestBase
+        : QueryableFilterVisitorTestBase, IClassFixture<SqlServerProvider>
     {
-        [Fact]
-        public void Create_ArraySomeStringEqual_Expression()
+
+        public QueryableFilterVisitorContextArrayTests(SqlServerProvider provider)
+            : base(provider)
         {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar_some",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("element",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
-
-            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(FooSimple),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
-
-            // assert
-            var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
-            Assert.True(func(a));
-
-            var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
-            Assert.False(func(b));
-        }
-
-        [Fact]
-        public void Create_ArrayAnyStringEqual_Expression()
-        {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar_any",
-                            new BooleanValueNode(true)
-                        )
-            );
-
-            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(FooSimple),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
-
-            // assert
-            var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
-            Assert.True(func(a));
-
-            var b = new FooSimple { Bar = new string[0] };
-            Assert.False(func(b));
-
-            var c = new FooSimple { Bar = null };
-            Assert.False(func(c));
-        }
-
-        [Fact]
-        public void Create_ArraySomeStringEqualWithNull_Expression()
-        {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("bar_some",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("element",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
-
-            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(FooSimple),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
-
-            // assert
-            var a = new FooSimple { Bar = new[] { "c", null, "a" } };
-            Assert.True(func(a));
-
-            var b = new FooSimple { Bar = new[] { "c", null, "b" } };
-            Assert.False(func(b));
-
-            var c = new FooSimple { Bar = null };
-            Assert.False(func(c));
         }
 
         [Fact]
@@ -124,40 +28,34 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    null,
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=1, Bar = "a" }
                 }
             };
-            Assert.True(func(a));
+
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
 
             var b = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    null,
-                    new FooNested { Bar = "b" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=2, Bar = "b" }
                 }
             };
-            Assert.False(func(b));
+
+            Expect("b", value.ToString(), Items(b), "fooNested {id}");
         }
+
         [Fact]
         public void Create_ArraySomeObjectStringEqual_Expression()
         {
@@ -172,52 +70,51 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=1, Bar = "a" }
                 }
             };
-            Assert.True(func(a));
+
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
 
             var b = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=2, Bar = "b" }
                 }
             };
-            Assert.False(func(b));
+
+            Expect("b", value.ToString(), Items(b), "fooNested {id}");
 
             var c = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    null,
-                    new FooNested { Bar = null },
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=10, Bar = null },
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=1, Bar = "a" }
                 }
             };
-            Assert.True(func(c));
+
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
         }
 
         [Fact]
@@ -234,50 +131,49 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=1, Bar = "a" }
                 }
             };
-            Assert.False(func(a));
+            Expect("a", value.ToString(), Items(a), "fooNested {id}");
 
             var b = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=2, Bar = "b" }
                 }
             };
-            Assert.True(func(b));
+
+            Expect("b",
+                value.ToString(),
+                Items(b),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
+
             var c = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    null,
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = null },
-                    new FooNested { Bar = "b" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=10, Bar = null },
+                    new FooNested { Id=2, Bar = "b" }
                 }
             };
-            Assert.True(func(c));
+
+            Expect("c",
+                value.ToString(),
+                Items(c),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
         }
 
         [Fact]
@@ -294,73 +190,70 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=1, Bar = "a" },
+                    new FooNested { Id=2, Bar = "a" },
+                    new FooNested { Id=3, Bar = "a" }
                 }
             };
-            Assert.True(func(a));
+
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
 
             var b = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=2, Bar = "a" },
+                    new FooNested { Id=1, Bar = "a" }
                 }
             };
-            Assert.False(func(b));
+
+            Expect("b", value.ToString(), Items(b), "fooNested {id}");
 
             var c = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "a" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
+                    new FooNested { Id=1, Bar = "a" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=2, Bar = "b" }
                 }
             };
-            Assert.False(func(c));
+
+            Expect("c", value.ToString(), Items(c), "fooNested {id}");
 
             var d = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=2, Bar = "b" }
                 }
             };
-            Assert.False(func(d));
+
+            Expect("d", value.ToString(), Items(d), "fooNested {id}");
 
             var e = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    null,
-                    new FooNested { Bar = null },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "b" }
+                    new FooNested { Id=10, Bar = null },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=2, Bar = "b" }
                 }
             };
-            Assert.False(func(e));
+
+            Expect("e", value.ToString(), Items(e), "fooNested {id}");
         }
 
         [Fact]
@@ -373,35 +266,36 @@ namespace HotChocolate.Types.Filters
                 )
             );
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=1, Bar = "a" }
                 }
             };
-            Assert.True(func(a));
 
-            var b = new Foo { FooNested = new FooNested[] { } };
-            Assert.False(func(b));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
+
+            var b = new Foo { FooNested = new List<FooNested>() { } };
+
+            Expect("b", value.ToString(), Items(b), "fooNested {id}");
             var c = new Foo { FooNested = null };
-            Assert.False(func(c));
-            var d = new Foo { FooNested = new FooNested[] { null } };
-            Assert.True(func(d));
+
+            Expect("c", value.ToString(), Items(c), "fooNested {id}");
+
+            var d = new Foo { FooNested = new List<FooNested>() { } };
+
+            Expect("d",
+                value.ToString(),
+                Items(d),
+                "fooNested {id}");
         }
 
         [Fact]
@@ -412,70 +306,52 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested_any",
                     new BooleanValueNode(false)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                TypeConversion.Default,
-                true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
-
             // assert
             var a = new Foo
             {
-                FooNested = new[]
+                FooNested = new List<FooNested>()
                 {
-                    new FooNested { Bar = "c" },
-                    new FooNested { Bar = "d" },
-                    new FooNested { Bar = "a" }
+                    new FooNested { Id=3, Bar = "c" },
+                    new FooNested { Id=4, Bar = "d" },
+                    new FooNested { Id=1, Bar = "a" }
                 }
             };
-            Assert.False(func(a));
 
-            var b = new Foo { FooNested = new FooNested[] { } };
-            Assert.True(func(b));
+            Expect("a", value.ToString(), Items(a), "fooNested {id}");
+
+            var b = new Foo { FooNested = new List<FooNested>() { } };
+
+            Expect(
+                "b",
+                value.ToString(),
+                Items(b),
+                "fooNested {id}",
+                x => Assert.NotNull(x["fooNested"]));
+
             var c = new Foo { FooNested = null };
-            Assert.False(func(c));
 
-            var d = new Foo { FooNested = new FooNested[] { null } };
-            Assert.False(func(d));
+            Expect(
+                "c",
+                value.ToString(),
+                Items(c),
+                "fooNested {id}",
+                x => Assert.Null(x["fooNested"]));
         }
         public class Foo
         {
-            public IEnumerable<FooNested> FooNested { get; set; }
-        }
+            [Key]
+            public int Id { get; set; }
 
-        public class FooSimple
-        {
-            public IEnumerable<string> Bar { get; set; }
+            public List<FooNested> FooNested { get; set; }
         }
 
         public class FooNested
         {
+            [Key]
+            public int Id { get; set; }
+
             public string Bar { get; set; }
         }
 
-        public class FooFilterType
-            : FilterInputType<Foo>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.List(t => t.FooNested).BindImplicitly();
-            }
-        }
-
-        public class FooSimpleFilterType
-            : FilterInputType<FooSimple>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<FooSimple> descriptor)
-            {
-                descriptor.List(t => t.Bar).BindImplicitly();
-            }
-        }
     }
 }

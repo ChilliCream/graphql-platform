@@ -27,6 +27,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 value.ToString(),
                 Items(new Foo { FooNested = new FooNested { Bar = "a" } }),
+                "id",
                 x => Assert.NotNull(x));
         }
 
@@ -43,7 +44,8 @@ namespace HotChocolate.Types.Filters
             // act 
             Expect(
                 value.ToString(),
-                Items(new Foo { FooNested = new FooNested { Bar = "b" } }));
+                Items(new Foo { FooNested = new FooNested { Bar = "b" } }),
+                "id");
         }
 
         [Fact]
@@ -60,6 +62,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 value.ToString(),
                 Items(new Foo { FooNested = new FooNested { Bar = "a" } }),
+                "id",
                 x => Assert.NotNull(x));
 
         }
@@ -77,7 +80,8 @@ namespace HotChocolate.Types.Filters
             // act 
             Expect(
                 value.ToString(),
-                Items(new Foo { FooNested = null }));
+                Items(new Foo { FooNested = null }),
+                "id");
         }
 
 
@@ -100,6 +104,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 value.ToString(),
                 Items(item),
+                "id",
                 x => Assert.NotNull(x));
         }
 
@@ -120,7 +125,8 @@ namespace HotChocolate.Types.Filters
             // act 
             Expect(
                 value.ToString(),
-                Items(item));
+                Items(item),
+                "id");
         }
 
         [Fact]
@@ -141,6 +147,7 @@ namespace HotChocolate.Types.Filters
             Expect(
                 value.ToString(),
                 Items(item),
+                "id",
                 x => Assert.NotNull(x));
         }
 
@@ -149,12 +156,13 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("foo",
+                new ObjectFieldNode("nested",
                     new ObjectValueNode(
-                    new ObjectFieldNode("fooNested",
+                    new ObjectFieldNode("nested",
                         new ObjectValueNode(
                             new ObjectFieldNode("bar",
                                 new StringValueNode("a")))))));
+
             var item =
                 new Recursive { Nested = new Recursive { Nested = new Recursive { Bar = "b" } } };
 
@@ -162,7 +170,8 @@ namespace HotChocolate.Types.Filters
             // act 
             Expect(
                 value.ToString(),
-                Items(item));
+                Items(item),
+                "id");
         }
 
         [Fact]
@@ -182,7 +191,8 @@ namespace HotChocolate.Types.Filters
             // act 
             Expect(
                 value.ToString(),
-                Items(item));
+                Items(item),
+                "id");
         }
 
         [Fact]
@@ -202,7 +212,8 @@ namespace HotChocolate.Types.Filters
             // act 
             Expect(
                 value.ToString(),
-                Items(item));
+                Items(item),
+                "id");
         }
 
 
@@ -224,7 +235,8 @@ namespace HotChocolate.Types.Filters
             // act 
             Expect(
                 value.ToString(),
-                Items(item));
+                Items(item),
+                "id");
         }
 
         public class EvenDeeper

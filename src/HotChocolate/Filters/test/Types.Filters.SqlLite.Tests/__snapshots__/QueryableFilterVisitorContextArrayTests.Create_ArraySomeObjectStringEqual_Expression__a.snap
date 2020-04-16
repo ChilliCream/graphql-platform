@@ -1,0 +1,22 @@
+﻿{
+  "Data": {
+    "foos": [
+      {
+        "fooNested": [
+          {
+            "id": 3
+          },
+          {
+            "id": 4
+          },
+          {
+            "id": 1
+          }
+        ]
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

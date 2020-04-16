@@ -1,13 +1,18 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContextBooleanTests
-        : TypeTestBase
+        : QueryableFilterVisitorTestBase, IClassFixture<SqlServerProvider>
     {
+
+        public QueryableFilterVisitorContextBooleanTests(SqlServerProvider provider)
+            : base(provider)
+        {
+        }
+
         [Fact]
         public void Create_BooleanEqual_Expression()
         {
@@ -16,20 +21,17 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(true)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = true };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "bar",
+                x => Assert.Equal(true, x["bar"]));
 
             var b = new Foo { Bar = false };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "bar");
         }
 
         [Fact]
@@ -40,20 +42,17 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(false)));
 
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = false };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "bar",
+                x => Assert.Equal(false, x["bar"]));
 
             var b = new Foo { Bar = true };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "bar");
         }
 
         [Fact]
@@ -64,23 +63,17 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(true)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
-
             // assert
             var a = new FooNullable { Bar = true };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "bar",
+                x => Assert.Equal(true, x["bar"]));
 
             var b = new FooNullable { Bar = false };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "bar");
 
-            var c = new FooNullable { Bar = null };
-            Assert.False(func(c));
         }
 
         [Fact]
@@ -91,55 +84,33 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(false)));
 
-            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
-
             // assert
             var a = new FooNullable { Bar = false };
-            Assert.True(func(a));
+            Expect("a",
+                value.ToString(),
+                Items(a),
+                "bar",
+                x => Assert.Equal(false, x["bar"]));
 
             var b = new FooNullable { Bar = true };
-            Assert.False(func(b));
+            Expect("b", value.ToString(), Items(b), "bar");
 
-            var c = new FooNullable { Bar = null };
-            Assert.False(func(c));
         }
 
         public class Foo
         {
+            [Key]
+            public int Id { get; set; }
+
             public bool Bar { get; set; }
         }
 
         public class FooNullable
         {
+            [Key]
+            public int Id { get; set; }
+
             public bool? Bar { get; set; }
-        }
-
-        public class FooFilterType
-            : FilterInputType<Foo>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
-            }
-        }
-
-        public class FooNullableFilterType
-            : FilterInputType<FooNullable>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<FooNullable> descriptor)
-            {
-                descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
-            }
         }
     }
 }

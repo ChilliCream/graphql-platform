@@ -6,11 +6,13 @@ namespace HotChocolate.Types.Filters
 {
     public static class MatchSqlHelperExtensions
     {
-        public static void AssertSnapshot(this MatchSqlHelper sqlHelper)
+        public static void AssertSnapshot(
+            this MatchSqlHelper sqlHelper,
+            string sqlNameExtension = "sql")
         {
             Assert.NotNull(sqlHelper);
             Assert.NotNull(sqlHelper.Sql);
-            sqlHelper.Sql.MatchSnapshot(new SnapshotNameExtension("_sql"));
+            sqlHelper.Sql.MatchSnapshot(new SnapshotNameExtension("_" + sqlNameExtension));
         }
     }
 
