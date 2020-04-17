@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             object parsedValue = type.ParseLiteral(value);
 
-            if (parsedValue == null)
+            if (!operation.IsNullable && parsedValue == null)
             {
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(operation, type, value, context));
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             object parsedValue = type.ParseLiteral(value);
 
-            if (parsedValue == null)
+            if (!operation.IsNullable && parsedValue == null)
             {
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(operation, type, value, context));

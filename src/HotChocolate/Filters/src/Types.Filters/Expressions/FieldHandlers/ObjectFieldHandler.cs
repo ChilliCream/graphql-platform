@@ -14,8 +14,22 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             if (node.Value.IsNull())
             {
-                context.ReportError(
-                    ErrorHelper.CreateNonNullError(field, node, context));
+                if (field.Operation.IsNullable)
+                {
+                    MemberExpression nestedProperty = Expression.Property(
+                        context.GetInstance(),
+                        field.Operation.Property);
+
+                    Expression expression
+                        = FilterExpressionBuilder.Equals(nestedProperty, null!);
+
+                    context.GetLevel().Enqueue(expression);
+                }
+                else
+                {
+                    context.ReportError(
+                        ErrorHelper.CreateNonNullError(field, node, context));
+                }
 
                 action = SyntaxVisitor.Skip;
                 return true;
@@ -26,6 +40,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 MemberExpression nestedProperty = Expression.Property(
                     context.GetInstance(),
                     field.Operation.Property);
+
                 context.PushInstance(nestedProperty);
                 action = SyntaxVisitor.Continue;
                 return true;

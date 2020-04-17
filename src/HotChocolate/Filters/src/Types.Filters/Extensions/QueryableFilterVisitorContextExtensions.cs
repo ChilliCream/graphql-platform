@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -16,6 +17,16 @@ namespace HotChocolate.Types.Filters
             this IQueryableFilterVisitorContext context,
             Type type)
                 => context.AddClosure(type, "_s" + context.Closures.Count, context.InMemory);
+
+        public static QueryableClosure AddIsNullClosure(
+            this IQueryableFilterVisitorContext context,
+            Type type)
+        {
+            QueryableClosure closure
+                = context.AddClosure(type, "_s" + context.Closures.Count, false);
+            context.GetLevel().Enqueue(FilterExpressionBuilder.Equals(closure.Parameter, null));
+            return closure;
+        }
 
         public static QueryableClosure AddClosure(
             this IQueryableFilterVisitorContext context,

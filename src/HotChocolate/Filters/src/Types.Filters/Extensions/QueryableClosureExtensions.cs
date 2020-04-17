@@ -16,14 +16,10 @@ namespace HotChocolate.Types.Filters
                 return false;
             }
 
-            if (closure.InMemory)
-            {
-                expression = Expression.Lambda(
-                    closure.GetExpressionBodyWithNullCheck(),
-                    closure.Parameter);
+            expression = closure.InMemory ?
+                Expression.Lambda(closure.GetExpressionBodyWithNullCheck(), closure.Parameter) :
+                Expression.Lambda(closure.Level.Peek().Peek(), closure.Parameter);
 
-            }
-            expression = Expression.Lambda(closure.Level.Peek().Peek(), closure.Parameter);
             return true;
         }
 
@@ -37,12 +33,10 @@ namespace HotChocolate.Types.Filters
                 return false;
             }
 
-            if (closure.InMemory)
-            {
-                expression = Expression.Lambda<T>(
-                    closure.GetExpressionBodyWithNullCheck(), closure.Parameter);
-            }
-            expression = Expression.Lambda<T>(closure.Level.Peek().Peek(), closure.Parameter);
+            expression = closure.InMemory ?
+                Expression.Lambda<T>(closure.GetExpressionBodyWithNullCheck(), closure.Parameter) :
+                Expression.Lambda<T>(closure.Level.Peek().Peek(), closure.Parameter);
+
             return true;
         }
 

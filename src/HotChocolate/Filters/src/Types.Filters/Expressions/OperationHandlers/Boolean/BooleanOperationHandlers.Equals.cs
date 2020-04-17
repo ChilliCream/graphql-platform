@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 }
 
                 result = FilterExpressionBuilder.NotEquals(property, parsedValue);
-                return false;
+                return true;
             }
             else
             {

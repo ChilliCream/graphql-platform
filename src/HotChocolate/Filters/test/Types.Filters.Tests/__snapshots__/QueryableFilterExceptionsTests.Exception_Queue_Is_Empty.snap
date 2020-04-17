@@ -1,6 +1,8 @@
 ﻿{
   "Data": {
-    "foos": []
+    "foos": [
+      null
+    ]
   },
   "Errors": null,
   "Extensions": null,

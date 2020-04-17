@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 || field.Operation.Kind == FilterOperationKind.ArrayNone
                 || field.Operation.Kind == FilterOperationKind.ArrayAll)
             {
-                if (node.Value.IsNull())
+                if (!field.Operation.IsNullable && node.Value.IsNull())
                 {
                     context.ReportError(
                         ErrorHelper.CreateNonNullError(field, node, context));
@@ -34,8 +34,16 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 Type closureType = GetTypeFor(field.Operation);
 
-                context.AddClosure(closureType);
-                action = SyntaxVisitor.Continue;
+                if (node.Value.IsNull())
+                {
+                    context.AddIsNullClosure(closureType);
+                    action = SyntaxVisitor.SkipAndLeave;
+                }
+                else
+                {
+                    context.AddClosure(closureType);
+                    action = SyntaxVisitor.Continue;
+                }
                 return true;
             }
             action = SyntaxVisitor.SkipAndLeave;

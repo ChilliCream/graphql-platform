@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -19,6 +20,12 @@ namespace HotChocolate.Types.Filters
             FilterKind = filterKind;
             Kind = kind;
             Property = property ?? throw new ArgumentNullException(nameof(property));
+
+            if (Property.DeclaringType != null)
+            {
+                IsNullable = new NullableHelper(
+                    Property.DeclaringType).GetPropertyInfo(Property).IsNullable;
+            }
         }
 
         public Type Type { get; }
@@ -28,6 +35,8 @@ namespace HotChocolate.Types.Filters
         public FilterOperationKind Kind { get; }
 
         public PropertyInfo Property { get; }
+
+        public bool IsNullable { get; }
 
         public bool TryGetSimpleFilterBaseType(
             [NotNullWhen(true)]out Type? baseType)

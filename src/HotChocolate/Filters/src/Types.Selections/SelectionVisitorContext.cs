@@ -65,7 +65,8 @@ namespace HotChocolate.Types.Selections
         {
             foreach (IError error in errors)
             {
-                _context.ReportError(error.WithPath(_context.Path));
+                SelectionContext.Errors.Add(
+                    error.WithPath(_context.Path));
             }
         }
     }

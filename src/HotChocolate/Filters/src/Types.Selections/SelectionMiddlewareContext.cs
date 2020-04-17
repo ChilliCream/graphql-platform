@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types
@@ -15,6 +16,9 @@ namespace HotChocolate.Types
         public IFilterConvention FilterConvention { get; }
 
         public string SortingArgumentName { get; }
+
+        public IList<IError> Errors { get; } =
+            new List<IError>();
 
         public static SelectionMiddlewareContext Create(
             IFilterConvention fiterConvention,

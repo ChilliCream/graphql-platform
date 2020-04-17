@@ -78,10 +78,13 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
                 else
                 {
-                    context.Result = Array.Empty<T>();
-                    foreach (IError error in visitorContext.Errors)
+                    if (visitorContext.Errors.Count > 0)
                     {
-                        context.ReportError(error.WithPath(context.Path));
+                        context.Result = Array.Empty<T>();
+                        foreach (IError error in visitorContext.Errors)
+                        {
+                            context.ReportError(error.WithPath(context.Path));
+                        }
                     }
                 }
             }
