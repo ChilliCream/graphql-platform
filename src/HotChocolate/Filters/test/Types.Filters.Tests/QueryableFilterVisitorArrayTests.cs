@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -100,7 +100,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", null, "a" } };
@@ -137,7 +137,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -186,7 +186,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -249,7 +249,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -310,7 +310,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -390,7 +390,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -430,7 +430,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo

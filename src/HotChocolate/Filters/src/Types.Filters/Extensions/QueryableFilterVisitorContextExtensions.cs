@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
     public static class QueryableFilterVisitorContextExtensions
     {
+        public static void ReportError(
+            this IQueryableFilterVisitorContext context,
+            IError error)
+                => context.Errors.Add(error);
+
         public static QueryableClosure AddClosure(
             this IQueryableFilterVisitorContext context,
             Type type)
@@ -54,12 +60,14 @@ namespace HotChocolate.Types.Filters
             this IQueryableFilterVisitorContext context)
                 => context.Closures.Pop();
 
-        public static Expression<Func<TSource, bool>> CreateFilter<TSource>(
-            this IQueryableFilterVisitorContext context)
-                => context.GetClosure().CreateLambda<Func<TSource, bool>>();
+        public static bool TryCreateLambda<TSource>(
+            this IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression<Func<TSource, bool>>? expression)
+                => context.GetClosure().TryCreateLambda(out expression);
 
-        public static Expression CreateFilter(
-            this IQueryableFilterVisitorContext context)
-                => context.GetClosure().CreateLambda();
+        public static bool TryCreateLambda(
+            this IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out LambdaExpression? expression)
+                => context.GetClosure().TryCreateLambda(out expression);
     }
 }

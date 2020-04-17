@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
@@ -6,19 +7,31 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public static partial class StringOperationHandlers
     {
-        public static Expression StartsWith(
+        public static bool StartsWith(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression? result)
         {
+            object parsedValue = type.ParseLiteral(value);
+
+            if (parsedValue == null)
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(operation, type, value, context));
+
+                result = null;
+                return false;
+            }
+
             if (operation.Type == typeof(string) &&
                 type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
-                var parsedValue = type.ParseLiteral(value);
 
-                return FilterExpressionBuilder.StartsWith(property, parsedValue);
+                result = FilterExpressionBuilder.StartsWith(property, parsedValue);
+                return true;
             }
             else
             {
@@ -26,20 +39,33 @@ namespace HotChocolate.Types.Filters.Expressions
             }
         }
 
-        public static Expression NotStartsWith(
+        public static bool NotStartsWith(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression? result)
         {
+            object parsedValue = type.ParseLiteral(value);
+
+            if (parsedValue == null)
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(operation, type, value, context));
+
+                result = null;
+                return false;
+            }
+
             if (operation.Type == typeof(string) &&
                 type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
-                var parsedValue = type.ParseLiteral(value);
 
-                return FilterExpressionBuilder.Not(
+                result = FilterExpressionBuilder.Not(
                     FilterExpressionBuilder.StartsWith(property, parsedValue));
+
+                return true;
             }
             else
             {

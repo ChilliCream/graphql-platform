@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public interface IQueryableFilterVisitorContext
+        : IFilterVisitorContextBase
     {
         ITypeConversion TypeConverter { get; }
 

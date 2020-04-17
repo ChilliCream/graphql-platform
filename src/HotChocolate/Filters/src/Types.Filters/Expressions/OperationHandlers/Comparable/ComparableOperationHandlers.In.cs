@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
@@ -8,22 +7,35 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public static partial class ComparableOperationHandlers
     {
-        public static Expression In(
+        public static bool In(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression? result)
         {
+            object parsedValue = type.ParseLiteral(value);
+
+            if (parsedValue == null)
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(operation, type, value, context));
+
+                result = null;
+                return false;
+            }
+
             if (operation.Type == typeof(IComparable) &&
                 type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
-                var parsedValue = ParseValue(operation, type, value, context);
+                parsedValue = ParseValue(parsedValue, operation, type, context);
 
-                return FilterExpressionBuilder.In(
+                result = FilterExpressionBuilder.In(
                             property,
                             operation.Property.PropertyType,
                             parsedValue);
+                return true;
             }
             else
             {
@@ -31,23 +43,36 @@ namespace HotChocolate.Types.Filters.Expressions
             }
         }
 
-        public static Expression NotIn(
+        public static bool NotIn(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression? result)
         {
+            object parsedValue = type.ParseLiteral(value);
+
+            if (parsedValue == null)
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(operation, type, value, context));
+
+                result = null;
+                return false;
+            }
+
             if (operation.Type == typeof(IComparable) &&
                 type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
-                var parsedValue = ParseValue(operation, type, value, context);
+                parsedValue = ParseValue(parsedValue, operation, type, context);
 
-                return FilterExpressionBuilder.Not(
+                result = FilterExpressionBuilder.Not(
                     FilterExpressionBuilder.In(
                         property,
                         operation.Property.PropertyType,
                         parsedValue));
+                return true;
             }
             else
             {

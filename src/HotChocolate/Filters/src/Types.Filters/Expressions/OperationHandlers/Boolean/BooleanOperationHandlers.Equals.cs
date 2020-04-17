@@ -7,13 +7,27 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public static class BooleanOperationHandlers
     {
-        public static Expression Equals(
+        public static bool Equals(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression? result)
         {
-            if (operation.Type == typeof(bool) && type.IsInstanceOfType(value))
+            object parsedValue = type.ParseLiteral(value);
+
+            if (parsedValue == null)
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(operation, type, value, context));
+
+                result = null;
+                return false;
+            }
+
+            if (operation.Type == typeof(bool) &&
+                type.IsInstanceOfType(value) &&
+                parsedValue is bool)
             {
                 Expression property = context.GetInstance();
 
@@ -22,9 +36,8 @@ namespace HotChocolate.Types.Filters.Expressions
                     property = Expression.Property(context.GetInstance(), operation.Property);
                 }
 
-                object parserValue = type.ParseLiteral(value);
-
-                return FilterExpressionBuilder.Equals(property, parserValue);
+                result = FilterExpressionBuilder.Equals(property, parsedValue);
+                return true;
             }
             else
             {
@@ -32,13 +45,28 @@ namespace HotChocolate.Types.Filters.Expressions
             }
         }
 
-        public static Expression NotEquals(
+        public static bool NotEquals(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IQueryableFilterVisitorContext context,
+
+            [NotNullWhen(true)]out Expression? result)
         {
-            if (operation.Type == typeof(bool) && type.IsInstanceOfType(value))
+            object parsedValue = type.ParseLiteral(value);
+
+            if (parsedValue == null)
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(operation, type, value, context));
+
+                result = null;
+                return false;
+            }
+
+            if (operation.Type == typeof(bool) &&
+                type.IsInstanceOfType(value) &&
+                parsedValue is bool)
             {
                 Expression property = context.GetInstance();
 
@@ -47,9 +75,8 @@ namespace HotChocolate.Types.Filters.Expressions
                     property = Expression.Property(context.GetInstance(), operation.Property);
                 }
 
-                object parserValue = type.ParseLiteral(value);
-
-                return FilterExpressionBuilder.NotEquals(property, parserValue);
+                result = FilterExpressionBuilder.NotEquals(property, parsedValue);
+                return false;
             }
             else
             {

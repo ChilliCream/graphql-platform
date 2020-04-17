@@ -17,6 +17,15 @@ namespace HotChocolate.Types.Filters.Expressions
                 || field.Operation.Kind == FilterOperationKind.ArrayNone
                 || field.Operation.Kind == FilterOperationKind.ArrayAll)
             {
+                if (node.Value.IsNull())
+                {
+                    context.ReportError(
+                        ErrorHelper.CreateNonNullError(field, node, context));
+
+                    action = SyntaxVisitor.Skip;
+                    return true;
+                }
+
                 MemberExpression nestedProperty = Expression.Property(
                     context.GetInstance(),
                     field.Operation.Property);
@@ -43,48 +52,51 @@ namespace HotChocolate.Types.Filters.Expressions
                 || field.Operation.Kind == FilterOperationKind.ArrayAll)
             {
                 QueryableClosure nestedClosure = context.PopClosure();
-                LambdaExpression lambda = nestedClosure.CreateLambda();
-                Type closureType = GetTypeFor(field.Operation);
 
-                Expression expression;
-                switch (field.Operation.Kind)
+                if (nestedClosure.TryCreateLambda(out LambdaExpression? lambda))
                 {
-                    case FilterOperationKind.ArraySome:
-                        expression = FilterExpressionBuilder.Any(
-                          closureType,
-                          context.GetInstance(),
-                          lambda
-                        );
-                        break;
+                    Type closureType = GetTypeFor(field.Operation);
 
-                    case FilterOperationKind.ArrayNone:
-                        expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.Any(
-                                closureType,
-                                context.GetInstance(),
-                                lambda
-                            )
-                        );
-                        break;
+                    Expression expression;
+                    switch (field.Operation.Kind)
+                    {
+                        case FilterOperationKind.ArraySome:
+                            expression = FilterExpressionBuilder.Any(
+                              closureType,
+                              context.GetInstance(),
+                              lambda
+                            );
+                            break;
 
-                    case FilterOperationKind.ArrayAll:
-                        expression = FilterExpressionBuilder.All(
-                          closureType,
-                          context.GetInstance(),
-                          lambda
-                        );
-                        break;
+                        case FilterOperationKind.ArrayNone:
+                            expression = FilterExpressionBuilder.Not(
+                                FilterExpressionBuilder.Any(
+                                    closureType,
+                                    context.GetInstance(),
+                                    lambda
+                                )
+                            );
+                            break;
 
-                    default:
-                        throw new NotSupportedException();
+                        case FilterOperationKind.ArrayAll:
+                            expression = FilterExpressionBuilder.All(
+                              closureType,
+                              context.GetInstance(),
+                              lambda
+                            );
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    if (context.InMemory)
+                    {
+                        expression = FilterExpressionBuilder.NotNullAndAlso(
+                            context.GetInstance(), expression);
+                    }
+                    context.GetLevel().Enqueue(expression);
                 }
-
-                if (context.InMemory)
-                {
-                    expression = FilterExpressionBuilder.NotNullAndAlso(
-                        context.GetInstance(), expression);
-                }
-                context.GetLevel().Enqueue(expression);
                 context.PopInstance();
             }
         }

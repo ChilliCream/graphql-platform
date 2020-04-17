@@ -1,16 +1,18 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public delegate Expression FilterOperationHandler(
+    public delegate bool FilterOperationHandler(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context);
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression? result);
 
     public delegate bool FilterFieldEnter(
             FilterOperationField field,

@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<T, bool> func = filter.CreateFilter<T>().Compile();
+            Func<T, bool> func = filter.CreateOrAssert<T>().Compile();
 
             // assert
             Assert.Equal(1, helper.CallCount(enter));
@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<T, bool> func = filter.CreateFilter<T>().Compile();
+            Func<T, bool> func = filter.CreateOrAssert<T>().Compile();
 
             // assert
             Assert.Equal(1, helper.CallCount(handler));

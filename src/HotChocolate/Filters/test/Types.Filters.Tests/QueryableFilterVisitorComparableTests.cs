@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 12 };
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 13 };
@@ -84,7 +84,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -115,7 +115,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -147,7 +147,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -178,7 +178,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -211,7 +211,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -242,7 +242,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -274,7 +274,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -305,7 +305,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 11 };
@@ -341,7 +341,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 13 };
@@ -371,7 +371,7 @@ namespace HotChocolate.Types.Filters
                                 TypeConversion.Default,
                                                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = context.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { BarShort = 12 };
@@ -399,7 +399,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 12 };
@@ -430,7 +430,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 13 };
@@ -462,7 +462,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -496,7 +496,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -530,7 +530,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -564,7 +564,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -600,7 +600,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -634,7 +634,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -669,7 +669,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -703,7 +703,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 11 };
@@ -742,7 +742,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 13 };
@@ -775,7 +775,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, context);
-            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = context.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { BarShort = 12 };
