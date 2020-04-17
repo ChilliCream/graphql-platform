@@ -1,6 +1,4 @@
-using System;
 using System.Linq.Expressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {

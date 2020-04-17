@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -66,11 +68,22 @@ namespace HotChocolate.Types.Filters.Conventions
                     iot, fit.EntityType, this, converter, source is EnumerableQuery);
                 QueryableFilterVisitor.Default.Visit(filter, visitorContext);
 
-                source = source.Where(visitorContext.CreateFilter<T>());
+                if (visitorContext.TryCreateLambda<T>(out Expression<Func<T, bool>>? where))
+                {
+                    source = source.Where(where);
 
-                context.Result = p is null
-                    ? (object)source
-                    : new PageableData<T>(source, p.Properties);
+                    context.Result = p is null
+                        ? (object)source
+                        : new PageableData<T>(source, p.Properties);
+                }
+                else
+                {
+                    context.Result = Array.Empty<T>();
+                    foreach (IError error in visitorContext.Errors)
+                    {
+                        context.ReportError(error.WithPath(context.Path));
+                    }
+                }
             }
         }
     }

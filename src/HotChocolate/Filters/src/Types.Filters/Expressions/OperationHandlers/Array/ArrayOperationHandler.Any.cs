@@ -7,18 +7,31 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public static class ArrayOperationHandler
     {
-        public static Expression ArrayAny(
+        public static bool ArrayAny(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IQueryableFilterVisitorContext context,
+            [NotNullWhen(true)]out Expression? result)
         {
+            object parsedValue = type.ParseLiteral(value);
+
+            if (parsedValue == null)
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(operation, type, value, context));
+
+                result = null;
+                return false;
+            }
+
             if (operation.Kind == FilterOperationKind.ArrayAny &&
                 type.IsInstanceOfType(value) &&
-                type.ParseLiteral(value) is bool parsedValue)
+                parsedValue is bool parsedBool)
             {
                 MemberExpression property =
                     Expression.Property(context.GetInstance(), operation.Property);
+
                 Type propertType = operation.Type;
 
                 if (operation.TryGetSimpleFilterBaseType(out Type? baseType))
@@ -27,7 +40,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 }
 
                 Expression expression;
-                if (parsedValue)
+                if (parsedBool)
                 {
                     expression = FilterExpressionBuilder.Any(
                         propertType,
@@ -47,7 +60,8 @@ namespace HotChocolate.Types.Filters.Expressions
                         FilterExpressionBuilder.NotNullAndAlso(property, expression);
                 }
 
-                return expression;
+                result = expression;
+                return true;
             }
             else
             {

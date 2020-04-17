@@ -48,11 +48,12 @@ namespace HotChocolate.Types.Filters
         public int CallCount(FilterFieldLeave _)
             => fieldLeaveCallCounter;
 
-        public Expression FilterOperationHandler(
+        public bool FilterOperationHandler(
                 FilterOperation operation,
                 IInputType type,
                 IValueNode value,
-                IQueryableFilterVisitorContext context)
+                IQueryableFilterVisitorContext context,
+                out Expression? result)
         {
             if (filterOperationHandler == null)
             {
@@ -60,7 +61,7 @@ namespace HotChocolate.Types.Filters
             }
 
             filterOperationCallCounter++;
-            return filterOperationHandler(operation, type, value, context);
+            return filterOperationHandler(operation, type, value, context, out result);
         }
 
         public bool FilterFieldEnter(

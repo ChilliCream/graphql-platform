@@ -12,6 +12,15 @@ namespace HotChocolate.Types.Filters.Expressions
             IQueryableFilterVisitorContext context,
             out ISyntaxVisitorAction action)
         {
+            if (node.Value.IsNull())
+            {
+                context.ReportError(
+                    ErrorHelper.CreateNonNullError(field, node, context));
+
+                action = SyntaxVisitor.Skip;
+                return true;
+            }
+
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 MemberExpression nestedProperty = Expression.Property(

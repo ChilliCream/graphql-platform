@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { FooNested = new FooNested { Bar = "a" } };
@@ -66,7 +66,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { FooNested = new FooNested { Bar = "a" } };
@@ -104,7 +104,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
-            Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
+            Func<EvenDeeper, bool> func = filterContext.CreateOrAssert<EvenDeeper>().Compile();
 
             // assert
             var a = new EvenDeeper { Foo = new Foo { FooNested = new FooNested { Bar = "a" } } };
@@ -142,7 +142,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
-            Func<Recursive, bool> func = filterContext.CreateFilter<Recursive>().Compile();
+            Func<Recursive, bool> func = filterContext.CreateOrAssert<Recursive>().Compile();
 
             var a = new Recursive { Nested = new Recursive { Nested = new Recursive { Bar = "a" } } };
             Assert.True(func(a));
@@ -179,7 +179,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
-            Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
+            Func<EvenDeeper, bool> func = filterContext.CreateOrAssert<EvenDeeper>().Compile();
 
             // assert
             var a = new EvenDeeper { Foo = null };
@@ -233,7 +233,7 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
-            Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
+            Func<EvenDeeper, bool> func = filterContext.CreateOrAssert<EvenDeeper>().Compile();
 
             // assert
             var a = new EvenDeeper { Foo = null };

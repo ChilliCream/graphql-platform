@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
@@ -22,12 +20,11 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         private static object ParseValue(
+            object parsedValue,
             FilterOperation operation,
             IInputType type,
-            IValueNode value,
             IQueryableFilterVisitorContext context)
         {
-            var parsedValue = type.ParseLiteral(value);
             if (type.IsListType())
             {
                 Type elementType = type.ElementType().ToClrType();

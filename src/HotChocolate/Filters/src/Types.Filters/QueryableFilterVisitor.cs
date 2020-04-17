@@ -68,10 +68,11 @@ namespace HotChocolate.Types.Filters
                 if (context.TryGetOperation(
                     field.Operation.FilterKind,
                     field.Operation.Kind,
-                    out FilterOperationHandler? handler))
+                    out FilterOperationHandler? handler) &&
+                    handler(field.Operation, field.Type,
+                        node.Value, context, out Expression? expression))
                 {
-                    context.GetLevel()
-                        .Enqueue(handler(field.Operation, field.Type, node.Value, context));
+                    context.GetLevel().Enqueue(expression);
                 }
                 return SkipAndLeave;
             }
