@@ -51,6 +51,11 @@ namespace HotChocolate.Execution
         {
             object value = argumentValue.Value;
 
+            if (value is T a)
+            {
+                return a;
+            }
+
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
                 IValueNode literal = (argumentValue.Literal == null)
@@ -90,13 +95,22 @@ namespace HotChocolate.Execution
                 return resolved;
             }
 
-            if (typeof(T).IsClass
-                && (value is IReadOnlyDictionary<string, object>
-                || value is IReadOnlyList<object>))
+            if (value is IReadOnlyDictionary<string, object>
+                || value is IReadOnlyList<object>)
             {
-                var dictToObjConverter =
-                    new DictionaryToObjectConverter(Converter);
-                return (T)dictToObjConverter.Convert(value, typeof(T));
+                var dictToObjConverter = new DictionaryToObjectConverter(Converter);
+                if (typeof(T).IsInterface)
+                {
+                    object o = dictToObjConverter.Convert(value, argumentValue.Type.ClrType);
+                    if (o is T c)
+                    {
+                        return c;
+                    }
+                }
+                else
+                {
+                    return (T)dictToObjConverter.Convert(value, typeof(T));
+                }
             }
 
             IError error = ErrorBuilder.New()
