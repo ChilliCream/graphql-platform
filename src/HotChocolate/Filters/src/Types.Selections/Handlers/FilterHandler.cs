@@ -18,9 +18,9 @@ namespace HotChocolate.Types.Selections.Handlers
             NameString argumentName = convention.GetArgumentName();
             if (context.TryGetValueNode(argumentName, out IValueNode? filter) &&
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
-                iot is IFilterInputType fit &&
-                convention is Filter
-                convention.TryGetVisitorDefinition(out FilterExpressionVisitorDefinition? defintion))
+                iot is IFilterInputType fit && 
+                convention.TryGetVisitorDefinition(
+                    out FilterExpressionVisitorDefinition? defintion))
             {
                 var visitorContext = new QueryableFilterVisitorContext(
                     iot,
@@ -30,10 +30,6 @@ namespace HotChocolate.Types.Selections.Handlers
                     false);
 
                 QueryableFilterVisitor.Default.Visit(filter, visitorContext);
-
-
-                QueryableFilterVisitorContext visitorContext = Visit(
-                    filter, iot, fit.EntityType, converter, source is EnumerableQuery);
 
                 return Expression.Call(
                     typeof(Enumerable),
