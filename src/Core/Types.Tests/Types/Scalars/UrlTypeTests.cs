@@ -116,7 +116,7 @@ namespace HotChocolate.Types
             object serializedValue = urlType.Serialize(uri);
 
             // assert
-            Assert.Equal(uri, Assert.IsType<Uri>(serializedValue));
+            Assert.Equal(uri.ToString(), Assert.IsType<string>(serializedValue));
         }
 
         [Fact]
