@@ -60,7 +60,7 @@ namespace HotChocolate.Types.Filters
                             field,
                             node,
                             context,
-                            out ISyntaxVisitorAction action))
+                            out ISyntaxVisitorAction? action))
                 {
                     return action;
                 }

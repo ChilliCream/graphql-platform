@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperationField field,
             ObjectFieldNode node,
             IQueryableFilterVisitorContext context,
-            out ISyntaxVisitorAction action)
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             if (node.Value.IsNull())
             {
@@ -45,7 +46,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 action = SyntaxVisitor.Continue;
                 return true;
             }
-            action = SyntaxVisitor.SkipAndLeave;
+            action = null;
             return false;
         }
 

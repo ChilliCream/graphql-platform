@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Filters.Conventions
             FilterOperationField field,
             ObjectFieldNode node,
             IQueryableFilterVisitorContext context,
-            out ISyntaxVisitorAction action);
+            [NotNullWhen(true)]out ISyntaxVisitorAction? action);
 
     public delegate void FilterFieldLeave(
             FilterOperationField field,
