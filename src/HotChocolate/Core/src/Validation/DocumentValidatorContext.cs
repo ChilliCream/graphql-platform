@@ -123,6 +123,8 @@ namespace HotChocolate.Validation
 
         public void Clear()
         {
+            ClearBuffers();
+
             _schema = null;
             _nonNullString = null;
             Path.Clear();
