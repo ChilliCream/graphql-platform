@@ -154,13 +154,14 @@ namespace HotChocolate.Validation
         {
             if (_buffers.Count > 1)
             {
-                for (int i = 1; i < _buffers.Count; i++)
+                FieldInfoListBuffer buffer = _buffers.Pop();
+                buffer.Reset();
+
+                for (int i = 0; i < _buffers.Count; i++)
                 {
                     _fieldInfoPool.Return(_buffers[i]);
                 }
 
-                FieldInfoListBuffer buffer = _buffers[0];
-                buffer.Reset();
                 _buffers.Clear();
                 _buffers.Add(buffer);
             }
