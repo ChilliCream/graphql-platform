@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public sealed class ResultMap : IResultMap
+    public sealed class ResultMap : IResultMap, IReadOnlyDictionary<string, object?>
     {
         private static readonly ResultValue[] _empty = new ResultValue[0];
         private ResultValue[] _buffer;
