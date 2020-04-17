@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Serialization
 {
     public sealed class JsonQueryResultSerializer
         : IQueryResultSerializer
@@ -81,15 +81,15 @@ namespace HotChocolate.Execution
 
         private static void WriteData(
             Utf8JsonWriter writer,
-            IReadOnlyDictionary<string, object> data)
+            IReadOnlyDictionary<string, object?>? data)
         {
             if (data is { } && data.Count > 0)
             {
                 writer.WritePropertyName(_data);
 
-                if (data is FieldData fieldData)
+                if (data is IResultMap resultMap)
                 {
-                    WriteFieldData(writer, fieldData);
+                    WriteResultMap(writer, resultMap);
                 }
                 else
                 {
@@ -98,7 +98,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError> errors)
+        private static void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
         {
             if (errors is { } && errors.Count > 0)
             {
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution
 
         private static void WriteExtensions(
             Utf8JsonWriter writer,
-            IReadOnlyDictionary<string, object> dict)
+            IReadOnlyDictionary<string, object?>? dict)
         {
             if (dict is { } && dict.Count > 0)
             {
@@ -201,11 +201,11 @@ namespace HotChocolate.Execution
 
         private static void WriteDictionary(
             Utf8JsonWriter writer,
-            IReadOnlyDictionary<string, object> dict)
+            IReadOnlyDictionary<string, object?> dict)
         {
             writer.WriteStartObject();
 
-            foreach (KeyValuePair<string, object> item in dict)
+            foreach (KeyValuePair<string, object?> item in dict)
             {
                 writer.WritePropertyName(item.Key);
                 WriteFieldValue(writer, item.Value);
@@ -214,16 +214,17 @@ namespace HotChocolate.Execution
             writer.WriteEndObject();
         }
 
-        private static void WriteFieldData(
+        private static void WriteResultMap(
             Utf8JsonWriter writer,
-            FieldData fieldData)
+            IResultMap resultMap)
         {
             writer.WriteStartObject();
 
-            foreach (FieldValue item in fieldData)
+            for(int i = 0; i < resultMap.Count; i++)
             {
-                writer.WritePropertyName(item.Key);
-                WriteFieldValue(writer, item.Value);
+                ResultValue value = resultMap[i];
+                writer.WritePropertyName(value.Name);
+                WriteFieldValue(writer, value.Value);
             }
 
             writer.WriteEndObject();
@@ -243,9 +244,23 @@ namespace HotChocolate.Execution
             writer.WriteEndArray();
         }
 
+        private static void WriteResultMapList(
+            Utf8JsonWriter writer,
+            IResultMapList list)
+        {
+            writer.WriteStartArray();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                WriteResultMap(writer, list[i]);
+            }
+
+            writer.WriteEndArray();
+        }
+
         private static void WriteFieldValue(
             Utf8JsonWriter writer,
-            object value)
+            object? value)
         {
             if (value is null)
             {
@@ -255,11 +270,15 @@ namespace HotChocolate.Execution
 
             switch (value)
             {
-                case FieldData fieldData:
-                    WriteFieldData(writer, fieldData);
+                case IResultMap resultMap:
+                    WriteResultMap(writer, resultMap);
                     break;
 
-                case IReadOnlyDictionary<string, object> dict:
+                case IResultMapList resultMapList:
+                    WriteResultMapList(writer, resultMapList);
+                    break;
+
+                case IReadOnlyDictionary<string, object?> dict:
                     WriteDictionary(writer, dict);
                     break;
 

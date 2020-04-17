@@ -5,4 +5,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("HotChocolate.Core")]
 [assembly: InternalsVisibleTo("HotChocolate.Types")]
 [assembly: InternalsVisibleTo("HotChocolate.Stitching")]
+[assembly: InternalsVisibleTo("HotChocolate.Execution")]
 [assembly: InternalsVisibleTo("HotChocolate.Utilities.Tests")]
