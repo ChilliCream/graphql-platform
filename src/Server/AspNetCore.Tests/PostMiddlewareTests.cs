@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -897,6 +898,38 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task JsonSerializer_Handles_Serialization_Correctly()
+        {
+            // arrange
+            TestServer server = ServerFactory.Create(
+                services =>
+                {
+                    services.AddScoped<ScopedService>();
+                    services.AddGraphQL(
+                        SchemaBuilder.New()
+                            .AddQueryType<Query>());
+                },
+                app =>
+                    app.UseGraphQL());
+
+            var request =
+                @"
+                    {
+                        validUri
+                    }
+                ";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
         public class ScopedService
         {
             public int Count { get; private set; }
@@ -905,6 +938,11 @@ namespace HotChocolate.AspNetCore
             {
                 Count += 1;
             }
+        }
+
+        public class Query
+        {
+            public Uri ValidUri() => new Uri("https://github.com/ChilliCream/hotchocolate");
         }
     }
 }

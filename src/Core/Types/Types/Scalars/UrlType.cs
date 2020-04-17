@@ -84,7 +84,7 @@ namespace HotChocolate.Types
 
             if (value is Uri uri)
             {
-                return uri;
+                return uri.ToString();
             }
 
             throw new ScalarSerializationException(

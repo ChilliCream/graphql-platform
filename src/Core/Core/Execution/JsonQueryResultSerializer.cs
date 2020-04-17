@@ -128,7 +128,7 @@ namespace HotChocolate.Execution
 
                 writer.WriteStartArray();
 
-                for (int i = 0; i < locations.Count; i++)
+                for (var i = 0; i < locations.Count; i++)
                 {
                     WriteLocation(writer, locations[i]);
                 }
@@ -153,7 +153,7 @@ namespace HotChocolate.Execution
 
                 writer.WriteStartArray();
 
-                for (int i = 0; i < path.Count; i++)
+                for (var i = 0; i < path.Count; i++)
                 {
                     switch (path[i])
                     {
@@ -212,7 +212,7 @@ namespace HotChocolate.Execution
         {
             writer.WriteStartArray();
 
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 WriteFieldValue(writer, list[i]);
             }
@@ -220,9 +220,7 @@ namespace HotChocolate.Execution
             writer.WriteEndArray();
         }
 
-        private static void WriteFieldValue(
-            Utf8JsonWriter writer,
-            object value)
+        private static void WriteFieldValue(Utf8JsonWriter writer,  object value)
         {
             if (value is null)
             {
@@ -292,10 +290,13 @@ namespace HotChocolate.Execution
                     writer.WriteStringValue(n.Value);
                     break;
 
+                case Uri u:
+                    writer.WriteStringValue(u.ToString());
+                    break;
+
                 default:
-                    throw new NotSupportedException(
-                        $"The specified type `{value.GetType().FullName}` " +
-                        "is not supported by the result serializer.");
+                    writer.WriteStringValue(value.ToString());
+                    break;
             }
         }
     }
