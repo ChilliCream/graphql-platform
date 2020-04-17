@@ -14,8 +14,7 @@ namespace HotChocolate.Execution
 
         public Activator(IServiceProvider services)
         {
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
+            _services = services ?? throw new ArgumentNullException(nameof(services));
             _serviceFactory = new ServiceFactory { Services = _services };
         }
 
