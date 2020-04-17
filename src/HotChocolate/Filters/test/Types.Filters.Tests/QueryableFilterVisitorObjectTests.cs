@@ -195,6 +195,43 @@ namespace HotChocolate.Types.Filters
             Assert.True(func(d));
         }
 
+        [Fact]
+        public void Create_ObjectNull_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("foo",
+                    new ObjectValueNode(
+                    new ObjectFieldNode("fooNested",
+                        NullValueNode.Default
+                    )
+                )
+            )
+            );
+
+            EvenDeeperFilterType fooType = CreateType(new EvenDeeperFilterType());
+
+            // act
+            var filterContext = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(EvenDeeper),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<EvenDeeper, bool> func = filterContext.CreateOrAssert<EvenDeeper>().Compile();
+
+            // assert
+            var a = new EvenDeeper { Foo = null };
+            Assert.False(func(a));
+
+            var b = new EvenDeeper { Foo = new Foo { FooNested = null } };
+            Assert.True(func(b));
+
+            var c = new EvenDeeper { Foo = new Foo { FooNested = new FooNested { Bar = null } } };
+            Assert.False(func(c));
+        }
+
         /**
          * As multiple hanlders for a single property can exists, it makes sense to test mutliple
          * porperty filterContexting too. Just to see if the null checks are wrapped around the
