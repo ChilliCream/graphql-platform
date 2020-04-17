@@ -123,15 +123,6 @@ namespace HotChocolate.Validation
 
         public void Clear()
         {
-            if (_buffers.Count > 1)
-            {
-                for (int i = 1; i < _buffers.Count; i++)
-                {
-                    _fieldInfoPool.Return(_buffers[i]);
-                }
-            }
-
-            _buffers[0].Reset();
             _schema = null;
             _nonNullString = null;
             Path.Clear();
@@ -155,6 +146,26 @@ namespace HotChocolate.Validation
             Count = 0;
             Max = 0;
             ContextData.Clear();
+        }
+
+        private void ClearBuffers()
+        {
+            if (_buffers.Count > 1)
+            {
+                for (int i = 1; i < _buffers.Count; i++)
+                {
+                    _fieldInfoPool.Return(_buffers[i]);
+                }
+
+                FieldInfoListBuffer buffer = _buffers[0];
+                buffer.Reset();
+                _buffers.Clear();
+                _buffers.Add(buffer);
+            }
+            else
+            {
+                _buffers[0].Reset();
+            }
         }
     }
 }
