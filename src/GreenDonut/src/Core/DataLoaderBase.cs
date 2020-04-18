@@ -41,7 +41,20 @@ namespace GreenDonut
         /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
         /// </summary>
         /// <param name="batchScheduler">
-        /// A scheduler to tell the <c>DataLoader</c> when to disptach buffered batches.
+        /// A scheduler to tell the <c>DataLoader</c> when to dispatch buffered batches.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// Throws if <paramref name="options"/> is <c>null</c>.
+        /// </exception>
+        protected DataLoaderBase(IBatchScheduler batchScheduler)
+            : this(batchScheduler, null)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
+        /// </summary>
+        /// <param name="batchScheduler">
+        /// A scheduler to tell the <c>DataLoader</c> when to dispatch buffered batches.
         /// </param>
         /// <param name="options">
         /// An options object to configure the behavior of this particular
