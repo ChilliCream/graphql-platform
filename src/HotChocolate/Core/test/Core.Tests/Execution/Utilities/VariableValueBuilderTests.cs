@@ -681,6 +681,26 @@ namespace HotChocolate.Execution
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Ensure_That_Mixed_Inputs_Can_Be_Forced_On_Backing_Type_Interface()
+        {
+            await ExpectValid(
+                builder => builder.AddQueryType(d => d
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<SomeInputType>())
+                    .Resolver(ctx => ctx.Argument<ISomeInput>("bar").Property)
+                    .Type<StringType>()),
+                @"
+                    query($bar: SomeInput!) {
+                        foo(bar: $bar)
+                    }
+                ",
+                request => request.SetVariableValue(
+                    "bar",
+                    new SomeInput { Property = "foo" }))
+                .MatchSnapshotAsync();
+        }
+
         private Schema CreateSchema()
         {
             return Schema.Create(
@@ -765,7 +785,12 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class SomeInput
+        public interface ISomeInput
+        {
+            string Property { get; set; }
+        }
+
+        public class SomeInput : ISomeInput
         {
             public string Property { get; set; }
         }
