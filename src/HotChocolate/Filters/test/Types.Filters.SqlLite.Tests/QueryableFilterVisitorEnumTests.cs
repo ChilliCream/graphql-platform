@@ -678,7 +678,7 @@ namespace HotChocolate.Types.Filters
 
             // act
             IExecutionResult result = executor.Execute(
-                "{ foos(where: { barEnum_in: [QUX, BAZ]) {  totalCount } }");
+                "{ foos(where: { barEnum_in: [QUX, BAZ]}) {  totalCount } }");
 
             // assert
             var queryResult = (IReadOnlyQueryResult)result;
