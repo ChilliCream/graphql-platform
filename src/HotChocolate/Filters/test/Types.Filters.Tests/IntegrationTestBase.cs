@@ -2,10 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
@@ -59,8 +55,6 @@ namespace HotChocolate.Types.Filters
             Assert.Collection(
                 results.OfType<IReadOnlyDictionary<string, object>>(),
                 elementInspectors);
-
-            result.MatchSnapshot(new SnapshotNameExtension(suffix));
         }
 
         public T[] Items<T>(params T[] items) => items;
