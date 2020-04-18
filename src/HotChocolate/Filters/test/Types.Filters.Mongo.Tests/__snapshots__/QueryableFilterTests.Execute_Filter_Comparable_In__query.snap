@@ -1,0 +1,1 @@
+﻿aggregate([{ "$match" : { "Baz" : { "$in" : [NumberLong(1), NumberLong(0)] } } }])

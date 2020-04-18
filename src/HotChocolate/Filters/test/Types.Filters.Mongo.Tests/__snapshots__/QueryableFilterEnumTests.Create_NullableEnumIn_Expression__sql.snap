@@ -1,0 +1,1 @@
+﻿aggregate([{ "$match" : { "BarEnum" : { "$in" : [2, 3] } } }])

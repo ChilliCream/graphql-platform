@@ -1,0 +1,1 @@
+﻿aggregate([{ "$match" : { "$nor" : [{ "$and" : [{ "Bar" : { "$ne" : null } }, { "Bar" : /a$/s }] }] } }])

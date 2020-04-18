@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.10.3" />
     <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
   </ItemGroup>
 

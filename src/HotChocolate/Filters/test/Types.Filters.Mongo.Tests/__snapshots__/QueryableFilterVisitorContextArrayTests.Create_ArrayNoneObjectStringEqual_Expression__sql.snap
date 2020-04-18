@@ -1,0 +1,1 @@
+﻿aggregate([{ "$match" : { "FooNested" : { "$not" : { "$elemMatch" : { "Bar" : "a" } } } } }])

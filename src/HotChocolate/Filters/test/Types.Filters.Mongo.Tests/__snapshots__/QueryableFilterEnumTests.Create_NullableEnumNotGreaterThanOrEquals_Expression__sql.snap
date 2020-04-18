@@ -1,0 +1,1 @@
+﻿aggregate([{ "$match" : { "BarEnum" : { "$not" : { "$gte" : 1 } } } }])

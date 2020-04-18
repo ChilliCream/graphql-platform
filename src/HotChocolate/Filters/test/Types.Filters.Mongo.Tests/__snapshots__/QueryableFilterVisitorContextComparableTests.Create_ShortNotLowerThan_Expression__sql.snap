@@ -1,0 +1,1 @@
+﻿aggregate([{ "$match" : { "BarShort" : { "$not" : { "$lt" : 12 } } } }])

@@ -1,0 +1,1 @@
+﻿aggregate([{ "$match" : { "FooNested" : { "$ne" : null, "$not" : { "$size" : 0 } } } }])
