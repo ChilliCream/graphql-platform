@@ -3,12 +3,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal static class AstUtilities
+    public static class AstUtilities
     {
-        public static bool TryGetTypeFromAst<T>(
-            this ISchema schema,
-            ITypeNode typeNode,
-            out T type)
+        public static bool TryGetTypeFromAst<T>(this ISchema schema, ITypeNode typeNode, out T type)
             where T : IType
         {
             if (TryGetTypeFromAst(schema, typeNode, out IType internalType)
@@ -22,10 +19,7 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        private static bool TryGetTypeFromAst(
-            ISchema schema,
-            ITypeNode typeNode,
-            out IType type)
+        private static bool TryGetTypeFromAst(ISchema schema, ITypeNode typeNode, out IType type)
         {
             if (typeNode.Kind == NodeKind.NonNullType
                 && TryGetTypeFromAst(schema,

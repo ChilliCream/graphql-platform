@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -41,7 +42,21 @@ namespace HotChocolate.Types.Selections
             {
                 var visitor = new SelectionVisitor(context, _converter, _context);
                 visitor.Accept(context.Field);
-                context.Result = source.Select(visitor.Project<T>());
+                if (visitor.TryProject<T>(out Expression<Func<T, T>>? projection))
+                {
+                    context.Result = source.Select(projection);
+                }
+                else
+                {
+                    if (_context.Errors.Count > 0)
+                    {
+                        context.Result = Array.Empty<T>();
+                        foreach (IError error in _context.Errors)
+                        {
+                            context.ReportError(error.WithPath(context.Path));
+                        }
+                    }
+                }
             }
         }
     }

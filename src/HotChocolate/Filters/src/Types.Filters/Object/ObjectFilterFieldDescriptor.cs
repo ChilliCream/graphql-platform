@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -15,17 +16,19 @@ namespace HotChocolate.Types.Filters
         public ObjectFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property,
-            Type type)
-            : base(context, property)
+            Type type,
+            IFilterConvention filterConventions)
+            : base(FilterKind.Object, context, property, filterConventions)
         {
             _type = type;
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.Object
-            };
         }
 
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
+        /// <inheritdoc/>
+        public new IObjectFilterFieldDescriptor Name(NameString value)
+        {
+            base.Name(value);
+            return this;
+        }
 
         /// <inheritdoc/>
         public new IObjectFilterFieldDescriptor BindFilters(
@@ -53,6 +56,7 @@ namespace HotChocolate.Types.Filters
         {
             var operation = new FilterOperation(
                 _type,
+                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -65,7 +69,8 @@ namespace HotChocolate.Types.Filters
                     Definition.Type.Context,
                     true,
                     true),
-                operation);
+                operation,
+                FilterConvention);
         }
 
         private ObjectFilterOperationDescriptor GetOrCreateOperation(
@@ -82,6 +87,5 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
-
     }
 }

@@ -29,10 +29,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(FooSimple),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -58,10 +59,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(FooSimple),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
@@ -94,10 +96,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(FooSimple),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
 
             // assert
             var a = new FooSimple { Bar = new[] { "c", null, "a" } };
@@ -130,10 +133,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -178,10 +182,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -240,10 +245,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -300,10 +306,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -379,10 +386,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -418,10 +426,11 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo
@@ -443,6 +452,93 @@ namespace HotChocolate.Types.Filters
             var d = new Foo { FooNested = new FooNested[] { null } };
             Assert.False(func(d));
         }
+
+
+        [Fact]
+        public void Create_ArraySomeStringEqual_Expression_Null()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_some",
+                            NullValueNode.Default));
+
+            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(FooSimple),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
+
+            // assert
+            var a = new FooSimple { Bar = new[] { "c", null, "a" } };
+            Assert.True(func(a));
+
+            var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+            Assert.False(func(b));
+        }
+
+        [Fact]
+        public void Create_ArrayNoneStringEqual_Expression_Null()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_none",
+                            NullValueNode.Default));
+
+            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(FooSimple),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
+
+            // assert
+            var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
+            Assert.True(func(a));
+
+            var b = new FooSimple { Bar = new[] { "c", null, "b" } };
+            Assert.False(func(b));
+        }
+
+        [Fact]
+        public void Create_ArrayAllStringEqual_Expression_Null()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_all",
+                            NullValueNode.Default));
+
+            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(FooSimple),
+                MockFilterConvention.Default.GetExpressionDefiniton(),
+                TypeConversion.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
+            Func<FooSimple, bool> func = filter.CreateOrAssert<FooSimple>().Compile();
+
+            // assert
+            var a = new FooSimple { Bar = new string[] { null, null, null } };
+            Assert.True(func(a));
+
+            var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+            Assert.False(func(b));
+
+        }
+
         public class Foo
         {
             public IEnumerable<FooNested> FooNested { get; set; }

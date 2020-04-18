@@ -26,11 +26,22 @@ namespace HotChocolate.Types.Filters.Expressions
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
         private static Expression NullableSafeConstantExpression(
-            object value, Type type)
+            object? value, Type type)
+                => NullableSafeConstantExpression(value, type, out _);
+
+        private static Expression NullableSafeConstantExpression(
+            object? value, Type type, out Type nonNullType)
         {
-            return Nullable.GetUnderlyingType(type) == null
-                ? (Expression)Expression.Constant(value)
-                : Expression.Convert(Expression.Constant(value), type);
+            Expression expression = Expression.Constant(value);
+            nonNullType = type;
+
+            if (Nullable.GetUnderlyingType(type) is Type underlyingType)
+            {
+                nonNullType = underlyingType;
+                expression = Expression.Convert(expression, type);
+            }
+
+            return expression;
         }
 
         private static readonly MethodInfo _anyMethod =
@@ -58,7 +69,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
         public static Expression Equals(
             Expression property,
-            object value)
+            object? value)
         {
             return Expression.Equal(
                 property,
@@ -91,36 +102,58 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.GreaterThan(
-                property,
-                NullableSafeConstantExpression(value, property.Type));
+            (Expression left, Expression right)
+                = GetComparableValueWithConversions(property, value);
+
+            return Expression.GreaterThan(left, right);
         }
 
         public static Expression GreaterThanOrEqual(
             Expression property,
             object value)
         {
-            return Expression.GreaterThanOrEqual(
-                property,
-                NullableSafeConstantExpression(value, property.Type));
+            (Expression left, Expression right)
+                = GetComparableValueWithConversions(property, value);
+
+            return Expression.GreaterThanOrEqual(left, right);
         }
 
         public static Expression LowerThan(
             Expression property,
             object value)
         {
-            return Expression.LessThan(
-                property,
-                NullableSafeConstantExpression(value, property.Type));
+            (Expression left, Expression right)
+                = GetComparableValueWithConversions(property, value);
+
+            return Expression.LessThan(left, right);
         }
 
         public static Expression LowerThanOrEqual(
             Expression property,
             object value)
         {
-            return Expression.LessThanOrEqual(
-                property,
-                NullableSafeConstantExpression(value, property.Type));
+            (Expression left, Expression right)
+                = GetComparableValueWithConversions(property, value);
+
+            return Expression.LessThanOrEqual(left, right);
+        }
+
+        private static (Expression left, Expression right) GetComparableValueWithConversions(
+            Expression property,
+            object value)
+        {
+            Expression left = property;
+            Expression right = NullableSafeConstantExpression(
+                value, property.Type, out Type nonNullType);
+
+            if (nonNullType.IsEnum &&
+                Enum.GetUnderlyingType(nonNullType) is Type enumType)
+            {
+                left = Expression.Convert(left, enumType);
+                right = Expression.Convert(right, enumType);
+            }
+
+            return (left, right);
         }
 
         public static Expression StartsWith(
@@ -155,9 +188,19 @@ namespace HotChocolate.Types.Filters.Expressions
             return Expression.NotEqual(expression, _null);
         }
 
+        public static Expression IsNull(Expression expression)
+        {
+            return Expression.Equal(expression, _null);
+        }
+
         public static Expression NotNullAndAlso(Expression property, Expression condition)
         {
             return Expression.AndAlso(NotNull(property), condition);
+        }
+
+        public static Expression IsNullOrElse(Expression property, Expression condition)
+        {
+            return Expression.OrElse(IsNull(property), condition);
         }
 
         public static Expression Any(

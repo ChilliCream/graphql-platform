@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters;
+using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Selections.Handlers
 {
@@ -14,22 +14,38 @@ namespace HotChocolate.Types.Selections.Handlers
             IFieldSelection selection,
             Expression expression)
         {
-            var argumentName = context.SelectionContext.FilterArgumentName;
+            IFilterConvention convention = context.SelectionContext.FilterConvention;
+            NameString argumentName = convention.GetArgumentName();
             if (context.TryGetValueNode(argumentName, out IValueNode? filter) &&
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
-                iot is IFilterInputType fit)
+                iot is IFilterInputType fit &&
+                convention.TryGetVisitorDefinition(
+                    out FilterExpressionVisitorDefinition? defintion))
             {
                 var visitorContext = new QueryableFilterVisitorContext(
-                    iot, fit.EntityType, context.Conversion, false);
+                    iot,
+                    fit.EntityType,
+                    defintion,
+                    context.Conversion,
+                    false);
 
                 QueryableFilterVisitor.Default.Visit(filter, visitorContext);
 
-                return Expression.Call(
-                    typeof(Enumerable),
-                    "Where",
-                    new[] { fit.EntityType },
-                    expression,
-                    visitorContext.CreateFilter());
+                if (visitorContext.TryCreateLambda(
+                    out LambdaExpression? filterExpression))
+                {
+                    return Expression.Call(
+                        typeof(Enumerable),
+                        nameof(Enumerable.Where),
+                        new[] { fit.EntityType },
+                        expression,
+                        filterExpression
+                        );
+                }
+                else
+                {
+                    context.ReportErrors(visitorContext.Errors);
+                }
             }
 
             return expression;

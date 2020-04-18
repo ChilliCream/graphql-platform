@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
@@ -40,9 +41,19 @@ namespace HotChocolate.Types.Selections
             VisitSelections(type, selectionSet);
         }
 
-        public Expression<Func<T, T>> Project<T>()
+        public bool TryProject<T>(
+            [NotNullWhen(true)]out Expression<Func<T, T>>? projection)
         {
-            return (Expression<Func<T, T>>)Closures.Peek().CreateMemberInitLambda();
+            if (_selectionMiddlewareContext.Errors.Count == 0)
+            {
+                projection = (Expression<Func<T, T>>)Closures.Peek().CreateMemberInitLambda();
+                return true;
+            }
+            else
+            {
+                projection = null;
+                return false;
+            }
         }
 
         protected override void LeaveLeaf(IFieldSelection selection)

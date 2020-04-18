@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -659,6 +661,46 @@ namespace HotChocolate.Execution
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Ensure_That_Mixed_Inputs_Can_Be_Forced_On_Backing_Type()
+        {
+            await ExpectValid(
+                builder => builder.AddQueryType(d => d
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<SomeInputType>())
+                    .Resolver(ctx => ctx.Argument<SomeInput>("bar").Property)
+                    .Type<StringType>()),
+                @"
+                    query($bar: SomeInput!) {
+                        foo(bar: $bar)
+                    }
+                ",
+                request => request.SetVariableValue(
+                    "bar",
+                    new SomeInput { Property = "foo" }))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_That_Mixed_Inputs_Can_Be_Forced_On_Backing_Type_Interface()
+        {
+            await ExpectValid(
+                builder => builder.AddQueryType(d => d
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<SomeInputType>())
+                    .Resolver(ctx => ctx.Argument<ISomeInput>("bar").Property)
+                    .Type<StringType>()),
+                @"
+                    query($bar: SomeInput!) {
+                        foo(bar: $bar)
+                    }
+                ",
+                request => request.SetVariableValue(
+                    "bar",
+                    new SomeInput { Property = "foo" }))
+                .MatchSnapshotAsync();
+        }
+
         private Schema CreateSchema()
         {
             return Schema.Create(
@@ -732,6 +774,25 @@ namespace HotChocolate.Execution
             public string Foo { get; set; }
             public string Bar { get; set; }
             public string[] Quox { get; set; }
+        }
+
+        public class SomeInputType : InputObjectType<SomeInput>
+        {
+            protected override void Configure(IInputObjectTypeDescriptor<SomeInput> descriptor)
+            {
+                descriptor.Field(t => t.Property);
+                descriptor.Field("other").Type<StringType>();
+            }
+        }
+
+        public interface ISomeInput
+        {
+            string Property { get; set; }
+        }
+
+        public class SomeInput : ISomeInput
+        {
+            public string Property { get; set; }
         }
     }
 }

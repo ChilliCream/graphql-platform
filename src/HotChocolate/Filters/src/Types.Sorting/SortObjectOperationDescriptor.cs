@@ -9,7 +9,6 @@ namespace HotChocolate.Types.Sorting
         : SortOperationDescriptorBase
         , ISortObjectOperationDescriptor
     {
-
         protected SortObjectOperationDescriptor(
             IDescriptorContext context,
             NameString name,

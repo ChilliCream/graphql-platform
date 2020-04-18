@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
@@ -14,7 +15,7 @@ namespace HotChocolate.Types
     {
         private const string _whereArgumentNamePlaceholder = "placeholder";
         private static readonly Type _middlewareDefinition =
-            typeof(QueryableFilterMiddleware<>);
+            typeof(FilterMiddleware<>);
 
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor)
@@ -67,7 +68,7 @@ namespace HotChocolate.Types
             ITypeSystemMember? filterTypeInstance = null)
         {
             FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+                _ => _ => Task.CompletedTask;
 
             descriptor
                 .Use(placeholder)
@@ -138,25 +139,15 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            IFilterNamingConvention convention =
-                context.DescriptorContext.GetFilterNamingConvention();
+            IFilterConvention convention =
+                context.DescriptorContext.GetFilterConvention();
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType,
-                    FilterMiddlewareContext.Create(convention.ArgumentName));
-            int index = definition.MiddlewareComponents.IndexOf(placeholder);
+                    FilterMiddlewareContext.Create(convention));
+            var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
-        }
-
-        private static IObjectFieldDescriptor AddFilterArguments(
-            this IObjectFieldDescriptor descriptor,
-            Type filterType)
-        {
-            return descriptor.Argument(_whereArgumentNamePlaceholder, a =>
-                a.Extend().OnBeforeCreate(d =>
-                    d.ConfigureArgumentName().Type = new ClrTypeReference(
-                        filterType, TypeContext.Input)));
         }
 
         public static IObjectFieldDescriptor AddFilterArguments<TFilter>(
@@ -191,9 +182,9 @@ namespace HotChocolate.Types
                     .Definition(definition)
                     .Configure((context, definition) =>
                     {
-                        IFilterNamingConvention convention =
-                            context.DescriptorContext.GetFilterNamingConvention();
-                        definition.Name = convention.ArgumentName;
+                        IFilterConvention convention =
+                            context.DescriptorContext.GetFilterConvention();
+                        definition.Name = convention.GetArgumentName();
                     })
                    .On(ApplyConfigurationOn.Completion)
                    .Build();

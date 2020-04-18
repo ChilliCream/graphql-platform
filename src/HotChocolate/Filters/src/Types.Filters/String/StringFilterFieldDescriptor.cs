@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -11,29 +12,18 @@ namespace HotChocolate.Types.Filters
     {
         public StringFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property)
-            : base(context, property)
+            PropertyInfo property,
+            IFilterConvention filterConventions)
+            : base(FilterKind.String, context, property, filterConventions)
         {
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.Equals,
-                FilterOperationKind.NotEquals,
-
-                FilterOperationKind.Contains,
-                FilterOperationKind.NotContains,
-
-                FilterOperationKind.StartsWith,
-                FilterOperationKind.NotStartsWith,
-
-                FilterOperationKind.EndsWith,
-                FilterOperationKind.NotEndsWith,
-
-                FilterOperationKind.In,
-                FilterOperationKind.NotIn
-            };
         }
 
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
+        /// <inheritdoc/>
+        public new IStringFilterFieldDescriptor Name(NameString value)
+        {
+            base.Name(value);
+            return this;
+        }
 
         /// <inheritdoc/>
         public new IStringFilterFieldDescriptor BindFilters(
@@ -164,6 +154,7 @@ namespace HotChocolate.Types.Filters
         {
             var operation = new FilterOperation(
                 typeof(string),
+                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -172,7 +163,8 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
-                operation);
+                operation,
+                FilterConvention);
         }
     }
 }
