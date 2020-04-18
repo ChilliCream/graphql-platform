@@ -32,6 +32,12 @@ namespace HotChocolate.Types.Filters.Expressions
                 parsedValue = ParseValue(parsedValue, operation, type, context);
 
                 result = FilterExpressionBuilder.GreaterThan(property, parsedValue);
+
+                if (operation.IsNullable && context.InMemory)
+                {
+                    result = FilterExpressionBuilder.NotNullAndAlso(property, result);
+                }
+
                 return true;
             }
             else
@@ -66,6 +72,12 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 result = FilterExpressionBuilder.Not(
                     FilterExpressionBuilder.GreaterThan(property, parsedValue));
+
+                if (operation.IsNullable && context.InMemory)
+                {
+                    result = FilterExpressionBuilder.NotNullAndAlso(property, result);
+                }
+
                 return true;
             }
             else

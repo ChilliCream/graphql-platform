@@ -30,7 +30,6 @@ namespace HotChocolate.Types.Filters
             Assert.Throws<ArgumentNullException>(action);
         }
 
-
         [Fact]
         public void Create_Should_Throw_IfTypeConversionIsNull()
         {
