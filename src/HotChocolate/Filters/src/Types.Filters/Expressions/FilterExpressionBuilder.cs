@@ -188,9 +188,19 @@ namespace HotChocolate.Types.Filters.Expressions
             return Expression.NotEqual(expression, _null);
         }
 
+        public static Expression IsNull(Expression expression)
+        {
+            return Expression.Equal(expression, _null);
+        }
+
         public static Expression NotNullAndAlso(Expression property, Expression condition)
         {
             return Expression.AndAlso(NotNull(property), condition);
+        }
+
+        public static Expression IsNullOrElse(Expression property, Expression condition)
+        {
+            return Expression.OrElse(IsNull(property), condition);
         }
 
         public static Expression Any(

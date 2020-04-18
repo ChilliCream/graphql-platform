@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 if (operation.IsNullable && context.InMemory)
                 {
-                    result = FilterExpressionBuilder.NotNullAndAlso(property, result);
+                    result = FilterExpressionBuilder.IsNullOrElse(property, result);
                 }
                 return true;
             }
