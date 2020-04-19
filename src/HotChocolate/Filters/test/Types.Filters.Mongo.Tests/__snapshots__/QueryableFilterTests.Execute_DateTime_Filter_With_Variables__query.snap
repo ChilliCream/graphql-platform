@@ -1,1 +1,0 @@
-﻿aggregate([{ "$match" : { "Foo" : { "$gte" : ISODate("2019-05-31T22:00:00Z") } } }])

@@ -505,8 +505,7 @@ namespace HotChocolate.Types.Filters
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
 
-            // assert
-            sp.GetService<MatchSqlHelper>().AssertSnapshot();
+            // assert 
             var queryResult = (IReadOnlyQueryResult)result;
 
             Assert.Equal(0, (queryResult.Errors?.Count ?? 0));
@@ -550,8 +549,7 @@ namespace HotChocolate.Types.Filters
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
 
-            // assert
-            sp.GetService<MatchSqlHelper>().AssertSnapshot();
+            // assert 
             var queryResult = (IReadOnlyQueryResult)result;
 
             Assert.Equal(0, (queryResult.Errors?.Count ?? 0));
