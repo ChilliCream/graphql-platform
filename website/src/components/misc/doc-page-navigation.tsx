@@ -289,6 +289,7 @@ const NavigationList = styled.ol`
   flex-direction: column;
   margin: 0;
   padding: 0 20px 20px;
+  list-style-type: none;
 `;
 
 const NavigationItem = styled.li`
@@ -296,7 +297,7 @@ const NavigationItem = styled.li`
   margin: 5px 0;
   padding: 0;
   min-height: 20px;
-  list-style-type: none;
+  line-height: initial;
 `;
 
 const NavigationGroupToggle = styled.div`
