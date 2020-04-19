@@ -3,7 +3,7 @@ module.exports = {
     title: `ChilliCream GraphQL`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
-    baseUrl: `https://chillicream.com`,
+    siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
@@ -127,8 +127,25 @@ module.exports = {
         anonymize: true,
       },
     },
+    `gatsby-plugin-sitemap`,
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,
   ],
 };
+
+function getNodes(results) {
+  if (`nodes` in results) {
+    return { allPages: results.nodes, originalType: `nodes` }
+  }
+
+  if (`edges` in results) {
+    return {
+      allPages: results && results.edges && results.edges.map(edge => edge.node),
+      originalType: `edges`,
+    }
+  }
+  throw new Error(
+    `[gatsby-plugin-sitemap]: Plugin is unsure how to handle the results of your query, you'll need to write custom page filter and serilizer in your gatsby conig`
+  )
+}
