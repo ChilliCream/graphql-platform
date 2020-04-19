@@ -1,3 +1,5 @@
-﻿SELECT "d"."Id", "d"."Bar"
+﻿.param set @__p_0 'a'
+
+SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NULL OR NOT ("d"."Bar" LIKE 'a%')
+WHERE "d"."Bar" IS NULL OR ((@__p_0 <> '') AND ((NOT ("d"."Bar" LIKE "d"."Bar" || '%') OR (substr("d"."Bar", 1, length(@__p_0)) <> @__p_0)) AND (@__p_0 <> '')))

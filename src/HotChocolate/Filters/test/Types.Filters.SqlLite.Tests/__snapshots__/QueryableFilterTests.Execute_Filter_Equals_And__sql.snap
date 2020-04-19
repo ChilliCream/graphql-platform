@@ -1,3 +1,6 @@
-﻿SELECT "d"."Id", "d"."Bar", "d"."Baz", "d"."Qux"
+﻿.param set @__p_0 'aa'
+.param set @__p_1 'ba'
+
+SELECT "d"."Id", "d"."Bar", "d"."Baz", "d"."Qux"
 FROM "Data" AS "d"
-WHERE ("d"."Bar" = 'aa') AND ("d"."Bar" = 'ba')
+WHERE ("d"."Bar" = @__p_0) AND ("d"."Bar" = @__p_1)

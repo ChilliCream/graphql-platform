@@ -1,3 +1,5 @@
-﻿SELECT "d"."Id", "d"."Bar"
+﻿.param set @__p_0 1
+
+SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" = 1
+WHERE "d"."Bar" = @__p_0

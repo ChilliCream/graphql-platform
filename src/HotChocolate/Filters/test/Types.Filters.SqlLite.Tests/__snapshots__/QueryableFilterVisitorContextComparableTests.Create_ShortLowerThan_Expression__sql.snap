@@ -1,3 +1,5 @@
-﻿SELECT "d"."Id", "d"."BarShort"
+﻿.param set @__p_0 12
+
+SELECT "d"."Id", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" < 12
+WHERE "d"."BarShort" < @__p_0

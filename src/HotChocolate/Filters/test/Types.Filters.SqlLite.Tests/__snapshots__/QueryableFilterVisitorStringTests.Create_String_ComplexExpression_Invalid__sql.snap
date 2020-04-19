@@ -1,0 +1,12 @@
+﻿.param set @__p_0 'a'
+.param set @__p_1 'a'
+.param set @__p_4 'a'
+.param set @__p_5 'c'
+.param set @__p_6 'a'
+.param set @__p_7 'a'
+.param set @__p_8 'a'
+.param set @__p_9 'a'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE ((((((((("d"."Bar" = @__p_0) AND (("d"."Bar" <> @__p_1) OR "d"."Bar" IS NULL)) AND "d"."Bar" IN ('a', 'c')) AND ("d"."Bar" NOT IN ('a', 'c') OR "d"."Bar" IS NULL)) AND ("d"."Bar" IS NOT NULL AND ((@__p_4 = '') OR (instr("d"."Bar", @__p_4) > 0)))) AND NOT ((@__p_5 = '') OR (instr("d"."Bar", @__p_5) > 0))) AND ((@__p_6 = '') OR ((("d"."Bar" LIKE "d"."Bar" || '%') AND (substr("d"."Bar", 1, length(@__p_6)) = @__p_6)) OR (@__p_6 = '')))) AND ((@__p_7 <> '') AND ((NOT ("d"."Bar" LIKE "d"."Bar" || '%') OR (substr("d"."Bar", 1, length(@__p_7)) <> @__p_7)) AND (@__p_7 <> '')))) AND ((@__p_8 = '') OR ((substr("d"."Bar", -length(@__p_8)) = @__p_8) OR (@__p_8 = '')))) AND ((@__p_9 <> '') AND ((substr("d"."Bar", -length(@__p_9)) <> @__p_9) AND (@__p_9 <> '')))

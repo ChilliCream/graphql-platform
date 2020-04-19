@@ -1,3 +1,5 @@
-﻿SELECT "d"."Id", "d"."Bar"
+﻿.param set @__p_0 'c'
+
+SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IS NULL OR NOT (('c' = '') OR (instr("d"."Bar", 'c') > 0))
+WHERE "d"."Bar" IS NULL OR NOT ((@__p_0 = '') OR (instr("d"."Bar", @__p_0) > 0))

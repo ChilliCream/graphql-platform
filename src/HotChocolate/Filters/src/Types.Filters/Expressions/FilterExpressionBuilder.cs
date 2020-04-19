@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -25,25 +26,6 @@ namespace HotChocolate.Types.Filters.Expressions
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
-        private static Expression NullableSafeConstantExpression(
-            object? value, Type type)
-                => NullableSafeConstantExpression(value, type, out _);
-
-        private static Expression NullableSafeConstantExpression(
-            object? value, Type type, out Type nonNullType)
-        {
-            Expression expression = Expression.Constant(value);
-            nonNullType = type;
-
-            if (Nullable.GetUnderlyingType(type) is Type underlyingType)
-            {
-                nonNullType = underlyingType;
-                expression = Expression.Convert(expression, type);
-            }
-
-            return expression;
-        }
-
         private static readonly MethodInfo _anyMethod =
             typeof(Enumerable)
                 .GetMethods()
@@ -59,6 +41,12 @@ namespace HotChocolate.Types.Filters.Expressions
                 .GetMethods()
                 .Single(x => x.Name == nameof(Enumerable.All) && x.GetParameters().Length == 2);
 
+        private static readonly MethodInfo _createAndConvert =
+            typeof(FilterExpressionBuilder)
+                .GetMethod(
+                    nameof(FilterExpressionBuilder.CreateAndConvertParameter),
+                    BindingFlags.NonPublic | BindingFlags.Static)!;
+
         private static readonly ConstantExpression _null =
             Expression.Constant(null, typeof(object));
 
@@ -73,7 +61,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             return Expression.Equal(
                 property,
-                NullableSafeConstantExpression(value, property.Type));
+                CreateParameter(value, property.Type));
         }
 
         public static Expression NotEquals(
@@ -82,7 +70,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             return Expression.NotEqual(
                 property,
-                NullableSafeConstantExpression(value, property.Type));
+                CreateParameter(value, property.Type));
         }
 
         public static Expression In(
@@ -90,11 +78,13 @@ namespace HotChocolate.Types.Filters.Expressions
             Type genericType,
             object parsedValue)
         {
+            Type type = typeof(List<>).MakeGenericType(property.Type);
+
             return Expression.Call(
                 typeof(Enumerable),
                 nameof(Enumerable.Contains),
                 new Type[] { genericType },
-                Expression.Constant(parsedValue),
+                CreateParameter(parsedValue, type),
                 property);
         }
 
@@ -142,15 +132,22 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            Expression left = property;
-            Expression right = NullableSafeConstantExpression(
-                value, property.Type, out Type nonNullType);
+            Expression left;
+            Expression right;
+            Type nonNullType = Nullable.GetUnderlyingType(property.Type) is Type underlyingType
+                ? underlyingType
+                : property.Type;
 
             if (nonNullType.IsEnum &&
                 Enum.GetUnderlyingType(nonNullType) is Type enumType)
             {
-                left = Expression.Convert(left, enumType);
-                right = Expression.Convert(right, enumType);
+                left = Expression.Convert(property, enumType);
+                right = CreateParameter(value, enumType);
+            }
+            else
+            {
+                left = property;
+                right = CreateParameter(value, property.Type);
             }
 
             return (left, right);
@@ -161,8 +158,8 @@ namespace HotChocolate.Types.Filters.Expressions
             object value)
         {
             return Expression.AndAlso(
-                Expression.NotEqual(property, Expression.Constant(null)),
-                Expression.Call(property, _startsWith, Expression.Constant(value)));
+                Expression.NotEqual(property, _null),
+                Expression.Call(property, _startsWith, CreateParameter(value, property.Type)));
         }
 
         public static Expression EndsWith(
@@ -170,8 +167,8 @@ namespace HotChocolate.Types.Filters.Expressions
             object value)
         {
             return Expression.AndAlso(
-                Expression.NotEqual(property, Expression.Constant(null)),
-                Expression.Call(property, _endsWith, Expression.Constant(value)));
+                Expression.NotEqual(property, _null),
+                Expression.Call(property, _endsWith, CreateParameter(value, property.Type)));
         }
 
         public static Expression Contains(
@@ -179,8 +176,8 @@ namespace HotChocolate.Types.Filters.Expressions
             object value)
         {
             return Expression.AndAlso(
-                Expression.NotEqual(property, Expression.Constant(null)),
-                Expression.Call(property, _contains, Expression.Constant(value)));
+                Expression.NotEqual(property, _null),
+                Expression.Call(property, _contains, CreateParameter(value, property.Type)));
         }
 
         public static Expression NotNull(Expression expression)
@@ -201,6 +198,18 @@ namespace HotChocolate.Types.Filters.Expressions
         public static Expression IsNullOrElse(Expression property, Expression condition)
         {
             return Expression.OrElse(IsNull(property), condition);
+        }
+
+        private static Expression CreateAndConvertParameter<T>(object value)
+        {
+            Expression<Func<T>> lambda = () => (T)value;
+            return lambda.Body;
+        }
+
+        private static Expression CreateParameter(object? value, Type type)
+        {
+            return (Expression)_createAndConvert
+                .MakeGenericMethod(type).Invoke(null, new[] { value })!;
         }
 
         public static Expression Any(
@@ -249,11 +258,11 @@ namespace HotChocolate.Types.Filters.Expressions
             return Expression.OrElse(
                 Expression.Equal(
                     property,
-                    Expression.Constant(null)),
+                    _null),
                 Expression.Not(Expression.Call(
                     property,
                     _contains,
-                    Expression.Constant(value))));
+                    CreateParameter(value, property.Type))));
         }
     }
 }

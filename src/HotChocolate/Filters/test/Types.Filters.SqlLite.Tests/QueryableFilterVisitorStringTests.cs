@@ -248,6 +248,25 @@ namespace HotChocolate.Types.Filters
                 x => Assert.Equal("ab", x["bar"]));
         }
 
+        [Fact]
+        public void Create_String_ComplexExpression_Invalid()
+        {
+            Expect(
+                @"{ bar: ""a""  
+                    bar_not: ""a""  
+                    bar_in: [""a"", ""c""] 
+                    bar_not_in: [""a"", ""c""]  
+                    bar_contains: ""a"" 
+                    bar_not_contains: ""c"" 
+                    bar_starts_with: ""a"" 
+                    bar_not_starts_with: ""a"" 
+                    bar_ends_with: ""a"" 
+                    bar_not_ends_with: ""a""
+                    }",
+                Items(new Foo { Bar = "ab" }),
+                "bar");
+        }
+
         public class Foo
         {
             [Key]

@@ -1,3 +1,5 @@
-﻿SELECT "d"."Id", "d"."Foo"
+﻿.param set @__p_0 '2019-05-31 22:00:00'
+
+SELECT "d"."Id", "d"."Foo"
 FROM "Data" AS "d"
-WHERE "d"."Foo" >= '2019-05-31 22:00:00'
+WHERE "d"."Foo" >= @__p_0

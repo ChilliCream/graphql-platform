@@ -1,3 +1,5 @@
-﻿SELECT "d"."Id", "d"."BarEnum"
+﻿.param set @__p_0 1
+
+SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <= 1
+WHERE "d"."BarEnum" <= @__p_0

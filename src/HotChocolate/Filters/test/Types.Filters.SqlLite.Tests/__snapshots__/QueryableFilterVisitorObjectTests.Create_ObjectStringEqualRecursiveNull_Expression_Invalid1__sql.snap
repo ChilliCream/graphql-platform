@@ -1,5 +1,7 @@
-﻿SELECT "d"."Id", "d"."FooId"
+﻿.param set @__p_0 'a'
+
+SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 LEFT JOIN "FooNested" AS "f0" ON "f"."FooNestedId" = "f0"."Id"
-WHERE "f0"."Bar" = 'a'
+WHERE "f0"."Bar" = @__p_0
