@@ -190,6 +190,7 @@ const Navigation = styled.nav`
   display: none;
   flex: 0 0 250px;
   flex-direction: column;
+  z-index: 1;
 
   * {
     user-select: none;
@@ -204,6 +205,7 @@ const FixedContainer = styled.div`
   position: fixed;
   padding: 25px 0 250px;
   width: 250px;
+  overflow: initial;
 `;
 
 const ProductSwitcher = styled.div``;
