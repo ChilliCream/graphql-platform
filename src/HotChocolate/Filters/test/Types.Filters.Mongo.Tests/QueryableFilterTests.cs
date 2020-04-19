@@ -507,7 +507,6 @@ namespace HotChocolate.Types.Filters
 
             // assert
             sp.GetService<MatchSqlHelper>().AssertSnapshot();
-            result.MatchSnapshot();
         }
 
         [Fact]
@@ -546,7 +545,6 @@ namespace HotChocolate.Types.Filters
 
             // assert
             sp.GetService<MatchSqlHelper>().AssertSnapshot();
-            result.MatchSnapshot();
         }
 
         public class FooDateTime
