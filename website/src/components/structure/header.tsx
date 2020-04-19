@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
+import { Search } from "../misc/search";
 
 import BarsIconSvg from "../../images/bars.svg";
 import GithubIconSvg from "../../images/github.svg";
@@ -74,9 +75,7 @@ export const Header: FunctionComponent = () => {
           </Nav>
         </Navigation>
         <Group>
-          <Search>
-            <SearchField placeholder="Search ..." />
-          </Search>
+          <Search />
           <Tools>
             <ToolLink to={tools!.slack!}>
               <IconContainer>
@@ -282,28 +281,6 @@ const Group = styled.div`
   @media only screen and (min-width: 992px) {
     flex: 0 0 auto;
   }
-`;
-
-const Search = styled.div`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: row;
-  align-items: center;
-
-  @media only screen and (min-width: 992px) {
-    display: flex;
-    flex: 0 0 auto;
-  }
-`;
-
-const SearchField = styled.input`
-  border: 0;
-  border-radius: 4px;
-  padding: 10px 15px;
-  width: 100%;
-  font-family: "Roboto", sans-serif;
-  font-size: 0.833em;
-  background-color: #fff;
 `;
 
 const Tools = styled.div`
