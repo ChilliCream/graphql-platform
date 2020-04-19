@@ -507,6 +507,13 @@ namespace HotChocolate.Types.Filters
 
             // assert
             sp.GetService<MatchSqlHelper>().AssertSnapshot();
+            var queryResult = (IReadOnlyQueryResult)result;
+
+            Assert.Equal(0, (queryResult.Errors?.Count ?? 0));
+
+            var results = queryResult.Data["foo"] as List<object>;
+
+            Assert.NotNull(results);
         }
 
         [Fact]
@@ -545,6 +552,13 @@ namespace HotChocolate.Types.Filters
 
             // assert
             sp.GetService<MatchSqlHelper>().AssertSnapshot();
+            var queryResult = (IReadOnlyQueryResult)result;
+
+            Assert.Equal(0, (queryResult.Errors?.Count ?? 0));
+
+            var results = queryResult.Data["foo"] as List<object>;
+
+            Assert.NotNull(results);
         }
 
         public class FooDateTime
