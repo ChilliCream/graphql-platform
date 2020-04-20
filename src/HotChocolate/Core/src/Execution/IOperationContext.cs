@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public interface IExecutionContext
+    internal interface IOperationContext
     {
         /// <summary>
         /// Gets the schema on which the query is being executed.

@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
-    public interface IQueryContext : IHasContextData
+    public interface IRequestContext : IHasContextData
     {
         /// <summary>
         /// Gets the GraphQL schema on which the query is executed.

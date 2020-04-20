@@ -1,39 +1,39 @@
 ﻿using System;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Utilities
 {
     internal static class ClassMiddlewareFactory
     {
-        internal static QueryMiddleware Create<TMiddleware>()
+        internal static RequestMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
             return next =>
             {
-                MiddlewareFactory<TMiddleware, QueryDelegate> factory =
-                    MiddlewareActivator.CompileFactory<TMiddleware, QueryDelegate>();
+                MiddlewareFactory<TMiddleware, RequestDelegate> factory =
+                    MiddlewareActivator.CompileFactory<TMiddleware, RequestDelegate>();
 
                 return CreateDelegate((s, n) => factory(s, n), next);
             };
         }
 
-        internal static QueryMiddleware Create<TMiddleware>(
-            Func<IServiceProvider, QueryDelegate, TMiddleware> factory)
+        internal static RequestMiddleware Create<TMiddleware>(
+            Func<IServiceProvider, RequestDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
             return next => CreateDelegate(factory, next);
         }
 
-        internal static QueryDelegate CreateDelegate<TMiddleware>(
-            Func<IServiceProvider, QueryDelegate, TMiddleware> factory,
-            QueryDelegate next)
+        internal static RequestDelegate CreateDelegate<TMiddleware>(
+            Func<IServiceProvider, RequestDelegate, TMiddleware> factory,
+            RequestDelegate next)
             where TMiddleware : class
         {
             object sync = new object();
-            TMiddleware middleware = null;
+            TMiddleware? middleware = null;
 
-            ClassQueryDelegate<TMiddleware, IQueryContext> compiled =
-                MiddlewareActivator.CompileMiddleware<TMiddleware, IQueryContext>();
+            ClassQueryDelegate<TMiddleware, IRequestContext> compiled =
+                MiddlewareActivator.CompileMiddleware<TMiddleware, IRequestContext>();
 
             return context =>
             {

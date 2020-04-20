@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Configuration
+namespace HotChocolate.Execution.Options
 {
     public enum TracingPreference
     {
