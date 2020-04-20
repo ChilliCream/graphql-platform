@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Utilities
 {
     public class ClassMiddlewareFactoryTests
     {
-        [Fact]
+        // [Fact]
         public void Create_Middleware_From_Class_That_Implements_IRequestMiddleware()
         {
             RequestMiddleware middleware =
