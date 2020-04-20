@@ -324,7 +324,7 @@ namespace StrawberryShake.Client
                 .AddValueSerializer(() => new EpisodeValueSerializer())
                 .AddResultParser(serializers => new GetEpisodeResultParser(serializers))
                 .AddOperationFormatter(serializers => new JsonOperationFormatter(serializers))
-                .AddHttpOperationPipeline(builder => builder.UseHttpDefaultPipeline());
+                .AddHttpOperationPipeline(b => b.UseHttpDefaultPipeline());
 
             serviceCollection.TryAddSingleton<IOperationExecutorPool, OperationExecutorPool>();
             return builder;

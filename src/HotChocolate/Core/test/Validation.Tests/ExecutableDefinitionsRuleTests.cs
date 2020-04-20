@@ -1,22 +1,23 @@
-﻿using HotChocolate.Language;
+﻿using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class ExecutableDefinitionsRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public ExecutableDefinitionsRuleTests()
-            : base(new ExecutableDefinitionsRule())
+            : base(builder => builder.AddDocumentRules())
         {
         }
 
         [Fact]
         public void QueryWithTypeSystemDefinitions()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query getDogName {
                     dog {
                         name
@@ -27,15 +28,8 @@ namespace HotChocolate.Validation
                 extend type Dog {
                     color: String
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
+            ",
+            t => Assert.Equal(
                     "A document containing TypeSystemDefinition " +
                     "is invalid for execution.", t.Message));
         }
@@ -43,9 +37,7 @@ namespace HotChocolate.Validation
         [Fact]
         public void QueryWithoutTypeSystemDefinitions()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query getDogName {
                     dog {
                         name
@@ -53,13 +45,68 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void GoodExecuableDefinitionsWithOnlyOperation()
+        {
+            ExpectValid(@"
+                 query Foo {
+                    dog {
+                        name
+                    }
+                }
+            ");
+        }
 
-            // assert
-            Assert.False(result.HasErrors);
-            Assert.Empty(result.Errors);
+        [Fact]
+        public void GoodExecuableDefinitionsWithOperationAndFragment()
+        {
+            ExpectValid(@"
+                query Foo {
+                    dog {
+                        name
+                        ...Frag
+                    }
+                }
+                fragment Frag on Dog {
+                    name
+                }
+            ");
+        }
+
+        [Fact]
+        public void GoodExecuableDefinitionsWithTypeDefinitions()
+        {
+            ExpectErrors(@"
+                query Foo {
+                    dog {
+                        name
+                    }
+                }
+                type Cow {
+                    name: String
+                }
+                extend type Dog {
+                    color: String
+                }
+            ");
+        }
+
+        [Fact]
+        public void GoodExecuableDefinitionsWithSchemaDefinitions()
+        {
+            ExpectErrors(@"
+                schema {
+                    query: Query
+                }
+
+                type Query {
+                    test: String
+                }
+
+                extend schema @directive
+            ");
         }
     }
 }

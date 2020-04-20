@@ -109,7 +109,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntArgumentIsInferedAsNonNullType()
+        public void IntArgumentIsinferredAsNonNullType()
         {
             // arrange
             // act
@@ -547,7 +547,7 @@ namespace HotChocolate.Types
                 }
 
                 type C implements A & B {
-                    a(a: String!): String
+                    a(a: [String]): String
                 }";
 
             // act
@@ -581,7 +581,7 @@ namespace HotChocolate.Types
                 }
 
                 type C implements A & B {
-                    a(a: String): String!
+                    a(a: String): Int
                 }";
 
             // act
@@ -1652,6 +1652,38 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Nested_Lists_With_Sdl_First()
+        {
+            SchemaBuilder.New()
+                .AddDocumentFromString("type Query { some: [[Some]] } type Some { foo: String }")
+                .Use(next => context => Task.CompletedTask)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Nested_Lists_With_Code_First()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithNestedList>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Nested_Lists_With_Code_First()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithNestedList>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ fooMatrix { baz } }")
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1819,6 +1851,18 @@ namespace HotChocolate.Types
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
             public string Id { get; }
+        }
+
+        public class QueryWithNestedList
+        {
+            public List<List<FooIgnore>> FooMatrix =>
+                new List<List<FooIgnore>>
+                {
+                    new List<FooIgnore>
+                    {
+                        new FooIgnore()
+                    }
+                };
         }
     }
 }

@@ -2,6 +2,9 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using System.Collections.Generic;
+using HotChocolate.Language;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -10,10 +13,10 @@ namespace HotChocolate.Types
         , IHasDirectives
         , IHasClrType
         where TType : IType
-        where TDefinition : FieldDefinitionBase
+        where TDefinition : FieldDefinitionBase, IHasSyntaxNode
     {
-        private TDefinition _definition;
-        private Dictionary<string, object> _contextData;
+        private readonly ISyntaxNode? _syntaxNode;
+        private TDefinition? _definition;
 
         protected FieldBase(TDefinition definition)
         {
@@ -23,15 +26,25 @@ namespace HotChocolate.Types
             }
 
             _definition = definition;
+            _syntaxNode = definition.SyntaxNode;
+
             Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
             Description = definition.Description;
+
+            DeclaringType = default!;
+            Type = default!;
+            ContextData = default!;
+            Directives = default!;
+            ClrType = default!;
         }
+
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
 
         public ITypeSystemObject DeclaringType { get; private set; }
 
         public NameString Name { get; }
 
-        public string Description { get; }
+        public string? Description { get; }
 
         public TType Type { get; private set; }
 
@@ -39,15 +52,13 @@ namespace HotChocolate.Types
 
         public virtual Type ClrType { get; private set; }
 
-        public IReadOnlyDictionary<string, object> ContextData =>
-            _contextData;
+        public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
 
         internal void CompleteField(ICompletionContext context)
         {
-            OnCompleteField(context, _definition);
+            OnCompleteField(context, _definition!);
 
-            _contextData = new Dictionary<string, object>(
-                _definition.ContextData);
+            ContextData = _definition!.ContextData;
             _definition = null;
         }
 
@@ -56,13 +67,10 @@ namespace HotChocolate.Types
             TDefinition definition)
         {
             DeclaringType = context.Type;
-            Type = context.GetType<TType>(_definition.Type);
-            ClrType = Type is IHasClrType hasClrType
-                ? hasClrType.ClrType
-                : typeof(object);
+            Type = context.GetType<TType>(definition.Type);
+            ClrType = Type is IHasClrType hasClrType ? hasClrType.ClrType : typeof(object);
 
-            var directives = new DirectiveCollection(
-                this, _definition.Directives);
+            var directives = new DirectiveCollection(this, definition.Directives);
             directives.CompleteCollection(context);
             Directives = directives;
         }

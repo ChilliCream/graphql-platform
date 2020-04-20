@@ -28,8 +28,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(directiveDefinitions));
             }
 
-            _source = source
-                ?? throw new ArgumentNullException(nameof(source));
+            _source = source ?? throw new ArgumentNullException(nameof(source));
             _definitions = directiveDefinitions.ToList();
             _location = DirectiveHelper.InferDirectiveLocation(source);
         }

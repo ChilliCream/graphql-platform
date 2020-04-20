@@ -1,22 +1,20 @@
-﻿using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class SubscriptionSingleRootFieldRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public SubscriptionSingleRootFieldRuleTests()
-            : base(new SubscriptionSingleRootFieldRule())
+            : base(builder => builder.AddOperationRules())
         {
         }
 
         [Fact]
         public void SubscriptionWithOneRootField()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 subscription sub {
                     newMessage {
                         body
@@ -24,20 +22,26 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
+        [Fact]
+        public void SubscriptionWithOneRootFieldAnonymous()
+        {
+            ExpectValid(@"
+                subscription {
+                    newMessage {
+                        body
+                        sender
+                    }
+                }
+            ");
         }
 
         [Fact]
         public void SubscriptionWithDirectiveThatContainsOneRootField()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 subscription sub {
                     ...newMessageFields
                 }
@@ -49,20 +53,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void DisallowedSecondRootField()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 subscription sub {
                     newMessage {
                         body
@@ -70,25 +66,51 @@ namespace HotChocolate.Validation
                     }
                     disallowedSecondRootField
                 }
-            ");
+            ",
+            t => Assert.Equal(
+                $"Subscription operations must " +
+                "have exactly one root field.", t.Message));
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void DisallowedSecondRootFieldAnonymous()
+        {
+            ExpectErrors(@"
+                subscription sub {
+                    newMessage {
+                        body
+                        sender
+                    }
+                    disallowedSecondRootField
+                }
+            ",
+            t => Assert.Equal(
+                $"Subscription operations must " +
+                "have exactly one root field.", t.Message));
+        }
 
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"Subscription operation `sub` must " +
-                    "have exactly one root field.", t.Message));
+        [Fact]
+        public void FailsWithManyMoreThanOneRootField()
+        {
+            ExpectErrors(@"
+                subscription sub {
+                    newMessage {
+                        body
+                        sender
+                    }
+                    disallowedSecondRootField
+                    disallowedThirdRootField
+                }
+            ",
+            t => Assert.Equal(
+                $"Subscription operations must " +
+                "have exactly one root field.", t.Message));
         }
 
         [Fact]
         public void DisallowedSecondRootFieldWithinDirective()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 subscription sub {
                     ...multipleSubscriptions
                 }
@@ -100,25 +122,16 @@ namespace HotChocolate.Validation
                     }
                     disallowedSecondRootField
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"Subscription operation `sub` must " +
-                    "have exactly one root field.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"Subscription operations must " +
+                "have exactly one root field.", t.Message));
         }
 
         [Fact]
         public void DisallowedIntrospectionField()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 subscription sub {
                     newMessage {
                         body
@@ -126,17 +139,10 @@ namespace HotChocolate.Validation
                     }
                     __typename
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"Subscription operation `sub` must " +
-                    "have exactly one root field.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"Subscription operations must " +
+                "have exactly one root field.", t.Message));
         }
     }
 }

@@ -1,28 +1,43 @@
-using HotChocolate.Validation.Rules;
-using Microsoft.Extensions.DependencyInjection;
+using System;
+using HotChocolate;
+using HotChocolate.Validation;
+using HotChocolate.Validation.Options;
+using HotChocolate.Validation.Properties;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate.Validation
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ValidationServiceCollectionExtensions
+    public static class HotChocolateValidationServiceCollectionExtensions
     {
-        public static IServiceCollection AddValidation(this IServiceCollection services)
+        public static IValidationBuilder AddValidation(
+            this IServiceCollection services,
+            string schemaName = WellKnownSchema.Default)
         {
+            if (string.IsNullOrEmpty(schemaName))
+            {
+                throw new ArgumentException(
+                    Resources.ServiceCollectionExtensions_Schema_Name_Is_Mandatory,
+                    nameof(schemaName));
+            }
+
+            services.AddOptions();
+            services.TryAddSingleton<IValidationConfiguration, ValidationConfiguration>();
             services.TryAddSingleton(sp => new DocumentValidatorContextPool(8));
-            services.TryAddSingleton<IDocumentValidator, DocumentValidator>();
-            services.AddAllVariablesUsedRule();
-            return services;
-        }
+            services.TryAddSingleton<IDocumentValidatorFactory, DefaultDocumentValidatorFactory>();
 
-        public static IServiceCollection AddAllVariablesUsedRule(this IServiceCollection services)
-        {
-            return services.AddValidationRule<AllVariablesUsedVisitor>();
-        }
+            var builder = new DefaultValidationBuilder(schemaName, services);
 
-        public static IServiceCollection AddValidationRule<T>(this IServiceCollection services)
-            where T : DocumentValidatorVisitor, new()
-        {
-            return services.AddSingleton<IDocumentValidatorRule, DocumentValidatorRule<T>>();
+            builder
+                .AddDocumentRules()
+                .AddOperationRules()
+                .AddFieldRules()
+                .AddArgumentRules()
+                .AddFragmentRules()
+                .AddValueRules()
+                .AddDirectiveRules()
+                .AddVariableRules();
+
+            return builder;
         }
     }
 }

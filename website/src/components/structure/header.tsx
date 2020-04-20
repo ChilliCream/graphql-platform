@@ -109,7 +109,7 @@ const Container = styled.header`
   width: 100vw;
   height: 60px;
   background-color: #f40010;
-  box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
 `;
 
 const ContainerWrapper = styled.header`
@@ -182,7 +182,7 @@ const Navigation = styled.nav<{ topNavOpen: boolean }>`
     z-index: 30;
     flex-direction: column;
     background-color: #f40010;
-    box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.25);
+    box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   }
 
   @media only screen and (min-width: 992px) {

@@ -7,6 +7,15 @@ namespace HotChocolate.Types
 {
     public static class TypeExtensions
     {
+        public static int Depth(this IType type)
+        {
+            if (type is INamedType)
+            {
+                return 1;
+            }
+            return Depth(type.InnerType()) + 1;
+        }
+
         public static bool IsNullableType(this IType type) => !IsNonNullType(type);
 
         public static bool IsNonNullType(this IType type)
@@ -151,6 +160,23 @@ namespace HotChocolate.Types
             }
 
             return type.IsUnionType() || type.IsInterfaceType();
+        }
+
+        public static bool IsNamedType(this IType type)
+        {
+            switch (type.Kind)
+            {
+                case TypeKind.Directive:
+                case TypeKind.Enum:
+                case TypeKind.InputObject:
+                case TypeKind.Interface:
+                case TypeKind.Object:
+                case TypeKind.Scalar:
+                case TypeKind.Union:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public static bool IsType<T>(this IType type)
@@ -436,6 +462,28 @@ namespace HotChocolate.Types
             if (typeNode is NamedTypeNode)
             {
                 return namedType;
+            }
+
+            throw new NotSupportedException(
+                TypeResources.TypeExtensions_KindIsNotSupported);
+        }
+
+        public static IType Rewrite(this IType original, INamedType newNamedType)
+        {
+            if (original is NonNullType nnt
+                && Rewrite(nnt.Type, newNamedType) is INullableType nullableType)
+            {
+                return new NonNullType(nullableType);
+            }
+
+            if (original is ListType lt)
+            {
+                return new ListType(Rewrite(lt.ElementType, newNamedType));
+            }
+
+            if (original is INamedType)
+            {
+                return newNamedType;
             }
 
             throw new NotSupportedException(

@@ -1,6 +1,6 @@
 ﻿using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class SubscriptionType
         : ObjectType
@@ -11,6 +11,14 @@ namespace HotChocolate.Validation
 
             descriptor.Field("newMessage")
                 .Type<NonNullType<MessageType>>()
+                .Resolver(() => "foo");
+
+            descriptor.Field("disallowedSecondRootField")
+                .Type<NonNullType<BooleanType>>()
+                .Resolver(() => "foo");
+
+            descriptor.Field("disallowedThirdRootField")
+                .Type<NonNullType<BooleanType>>()
                 .Resolver(() => "foo");
         }
     }

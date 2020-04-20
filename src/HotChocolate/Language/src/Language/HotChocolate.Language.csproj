@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -11,6 +10,12 @@
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL parser and lexer. Also included are syntax visitor and syntax rewriter base classes.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="AST\**" />
+    <EmbeddedResource Remove="AST\**" />
+    <None Remove="AST\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
@@ -36,10 +41,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>LangResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="AST\" />
   </ItemGroup>
 
 </Project>

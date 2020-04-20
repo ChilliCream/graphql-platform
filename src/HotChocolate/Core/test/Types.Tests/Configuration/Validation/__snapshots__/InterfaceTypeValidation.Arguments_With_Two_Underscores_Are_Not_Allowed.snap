@@ -1,0 +1,20 @@
+﻿{
+  "message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "__bar",
+    "field": "foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "Argument names starting with `__` are reserved for  the GraphQL specification.",
+  "type": "FooInterface",
+  "extensions": {
+    "argument": "__bar",
+    "field": "foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
+  }
+}
+

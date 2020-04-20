@@ -1,14 +1,14 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
-using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Execution
 {
@@ -122,11 +122,21 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options)
         {
+            IValidationBuilder validation = builder.Services.AddValidation();
+
+            if (options.MaxExecutionDepth.HasValue)
+            {
+                validation.AddMaxExecutionDepthRule(options.MaxExecutionDepth.Value);
+            }
+
+            if (options.MaxOperationComplexity.HasValue)
+            {
+                validation.AddMaxComplexityRule(options.MaxOperationComplexity.Value);
+            }
+
             return builder
                 .AddOptions(options)
                 .AddErrorHandler()
-                .AddQueryValidation()
-                .AddDefaultValidationRules()
                 .AddQueryCache(options.QueryCacheSize)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
@@ -281,7 +291,9 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.Use<MaxComplexityMiddleware>();
+            // TODO : fix complexity middleware.
+            // return builder.Use<MaxComplexityMiddleware>();
+            return builder;
         }
 
 

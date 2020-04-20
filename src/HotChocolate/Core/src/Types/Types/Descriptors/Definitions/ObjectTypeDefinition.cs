@@ -6,6 +6,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class ObjectTypeDefinition
         : TypeDefinitionBase<ObjectTypeDefinitionNode>
+        , IComplexOutputTypeDefinition
     {
         public override Type ClrType
         {

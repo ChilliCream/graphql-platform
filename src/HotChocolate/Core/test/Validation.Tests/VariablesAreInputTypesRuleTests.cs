@@ -1,13 +1,14 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class VariablesAreInputTypesRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public VariablesAreInputTypesRuleTests()
-            : base(new VariablesAreInputTypesRule())
+            : base(builder => builder.AddVariableRules())
         {
         }
 
@@ -15,11 +16,11 @@ namespace HotChocolate.Validation
         public void QueriesWithValidVariableTypes()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query takesBoolean($atOtherHomes: Boolean) {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }
 
@@ -33,20 +34,19 @@ namespace HotChocolate.Validation
                     booleanList(booleanListArg: $booleans)
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
 
         [Fact]
         public void QueriesWithInvalidVariableTypes()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query takesCat($cat: Cat) {
                     # ...
                 }
@@ -63,25 +63,6 @@ namespace HotChocolate.Validation
                     # ...
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The type of variable `cat` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `dog` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `pets` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `catOrDog` is not an input type.",
-                    t.Message));
         }
     }
 }

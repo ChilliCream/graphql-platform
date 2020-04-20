@@ -64,6 +64,16 @@ namespace HotChocolate.Types
 
         public bool IsInstanceOfType(IValueNode literal)
         {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
             if (literal is EnumValueNode ev)
             {
                 return _nameToValues.ContainsKey(ev.Value);

@@ -1,6 +1,6 @@
 ﻿using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation.Types
 {
     public class PetType
         : InterfaceType
@@ -8,6 +8,7 @@ namespace HotChocolate.Validation
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {
             descriptor.Name("Pet");
+            descriptor.Interface<BeingType>();
             descriptor.Field("name").Type<NonNullType<StringType>>();
         }
     }
