@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace HotChocolate.Execution.Configuration
+namespace HotChocolate.Execution.Options
 {
     /// <summary>
     /// Represents the entirety of settings to configure the behavior of the

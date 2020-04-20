@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Execution
 {
     internal class RequestContext
-        : IRequestContext
+        : IRawRequestContext
     {
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
             return _factory(field, selection);
         }
 
-        public IRequestContext Clone()
+        public IRawRequestContext Clone()
         {
             IServiceScope serviceScope = ServiceScope.ServiceProvider.CreateScope();
 
