@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
                 { "abc", "123" }
             };
 
-            var requestContext = new Mock<IRequestContext>();
+            var requestContext = new Mock<IRawRequestContext>();
             requestContext.Setup(t => t.ContextData).Returns(contextData);
             requestContext.Setup(t => t.ServiceScope).Returns(serviceScope);
 

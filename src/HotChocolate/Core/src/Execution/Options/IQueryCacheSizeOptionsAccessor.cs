@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Execution.Configuration
+﻿namespace HotChocolate.Execution.Options
 {
     /// <summary>
     /// Represents a dedicated options accessor to read the configured query
