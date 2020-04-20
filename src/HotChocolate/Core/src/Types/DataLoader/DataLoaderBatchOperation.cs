@@ -1,8 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+
 using GreenDonut;
+
 using HotChocolate.Execution;
 
 namespace HotChocolate.DataLoader
@@ -22,14 +25,21 @@ namespace HotChocolate.DataLoader
 
         public async Task InvokeAsync(CancellationToken cancellationToken)
         {
-            foreach (IDataLoader dataLoader in GetTouchedDataLoaders())
+            var executionBlock = new ActionBlock<IDataLoader>(async dataLoader =>
             {
                 if (dataLoader.BufferedRequests > 0)
                 {
                     await dataLoader.DispatchAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
-            }
+            },
+            new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = DataflowBlockOptions.Unbounded });
+
+            foreach (IDataLoader dataLoader in GetTouchedDataLoaders())
+                executionBlock.Post(dataLoader);
+
+            executionBlock.Complete();
+            await executionBlock.Completion.ConfigureAwait(false);
         }
 
         private void RequestBuffered(IDataLoader sender, EventArgs eventArgs)
