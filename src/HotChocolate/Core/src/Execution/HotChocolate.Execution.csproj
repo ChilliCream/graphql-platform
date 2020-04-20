@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
   </ItemGroup>
 
   <ItemGroup>

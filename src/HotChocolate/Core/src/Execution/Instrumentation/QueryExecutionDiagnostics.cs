@@ -16,9 +16,7 @@ namespace HotChocolate.Execution.Instrumentation
             DiagnosticListener observable,
             IEnumerable<IDiagnosticObserver> observers)
         {
-            _source = observable ??
-                throw new ArgumentNullException(nameof(observable));
-
+            _source = observable ?? throw new ArgumentNullException(nameof(observable));
             Subscribe(observable, observers, _handled);
         }
 
@@ -55,7 +53,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public Activity BeginQuery(IQueryContext context)
+        public Activity? BeginQuery(IRequestContext context)
         {
             var payload = new
             {
@@ -74,7 +72,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public Activity BeginParsing(IQueryContext context)
+        public Activity? BeginParsing(IRequestContext context)
         {
             var payload = new
             {
@@ -93,7 +91,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public Activity BeginValidation(IQueryContext context)
+        public Activity? BeginValidation(IRequestContext context)
         {
             var payload = new
             {
@@ -112,7 +110,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public Activity BeginOperation(IQueryContext context)
+        public Activity? BeginOperation(IRequestContext context)
         {
             var payload = new
             {
@@ -131,8 +129,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public Activity BeginResolveField(
-            IResolverContext context)
+        public Activity? BeginResolveField(IResolverContext context)
         {
             var payload = new
             {
@@ -153,7 +150,7 @@ namespace HotChocolate.Execution.Instrumentation
 
 
 
-        public void EndQuery(Activity activity, IQueryContext context)
+        public void EndQuery(Activity activity, IRequestContext context)
         {
             if (activity != null)
             {
@@ -170,9 +167,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void EndValidation(
-            Activity activity,
-            IQueryContext context)
+        public void EndValidation(Activity? activity, IRequestContext context)
         {
             if (activity != null)
             {
@@ -189,7 +184,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void EndParsing(Activity activity, IQueryContext context)
+        public void EndParsing(Activity? activity, IRequestContext context)
         {
             if (activity != null)
             {
@@ -205,7 +200,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void EndOperation(Activity activity, IQueryContext context)
+        public void EndOperation(Activity? activity, IRequestContext context)
         {
             if (activity != null)
             {
@@ -222,10 +217,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void EndResolveField(
-            Activity activity,
-            IResolverContext context,
-            object result)
+        public void EndResolveField(Activity? activity, IResolverContext context, object result)
         {
             if (activity != null)
             {
@@ -242,7 +234,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void QueryError(IQueryContext context)
+        public void QueryError(IRequestContext context)
         {
             var payload = new
             {
@@ -256,9 +248,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void ResolverError(
-            IResolverContext context,
-            IEnumerable<IError> errors)
+        public void ResolverError(IResolverContext context, IEnumerable<IError> errors)
         {
             var payload = new
             {
@@ -272,12 +262,12 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void ValidationError(IQueryContext context)
+        public void ValidationError(IRequestContext context, IEnumerable<IError> errors)
         {
             var payload = new
             {
                 context,
-                errors = context.ValidationResult.Errors
+                errors = errors
             };
 
             if (_source.IsEnabled(DiagnosticNames.ValidationError, payload))
