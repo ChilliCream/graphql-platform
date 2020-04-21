@@ -5,7 +5,7 @@
       name
       __typename
     }
-    complexArg(arg: { value: $deep, deeper: { deeper: { value: $deeper } } })
+    complexArg(arg: { value: $deep, deeper: { value: "CONSTANT", deeper: { value: $deeper } } })
     id
     __typename
   }
