@@ -1,11 +1,26 @@
-query customer_query($customerId: ID!, $deep: String!, $deeper: String!) {
+query customer_query(
+  $customerId: ID!
+  $deep: String!
+  $deeper: String!
+  $deeperArray: String
+  $complex: ComplexInputType
+  $deeperInArray: String
+) {
   customer(id: $customerId) {
     name
     consultant {
       name
     }
     complexArg(
-      arg: { value: $deep, deeper: { value: "CONSTANT", deeper: { value: $deeper } } }
+      arg: {
+        value: $deep
+        deeperArray: ["CONSTANT_IN_ARRAY", $deeperInArray]
+        deeper: { value: "CONSTANT", deeper: { value: $deeper } }
+        deeperArray: [
+          { value: "CONSTANT_ARRAY", deeper: { value: $deeperArray } }
+          $complex
+        ]
+      }
     )
     contracts {
       id

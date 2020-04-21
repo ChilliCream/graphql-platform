@@ -41,6 +41,9 @@ namespace HotChocolate.Language
                 case ObjectValueNode objectValue:
                     return RewriteObjectValue(objectValue, context);
 
+                case ListValueNode listValue:
+                    return RewriteListValue(listValue, context);
+
                 case VariableNode variable:
                     return RewriteVariable(variable, context);
 

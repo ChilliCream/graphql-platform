@@ -9,6 +9,5 @@ namespace HotChocolate.Stitching.Schemas.Customers
         public string[] ValueArray { get; set; }
 
         public ComplexInput[] DeeperArray { get; set; }
-
     }
 }
