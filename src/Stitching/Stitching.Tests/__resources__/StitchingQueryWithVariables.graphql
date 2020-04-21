@@ -1,9 +1,10 @@
-query customer_query($customerId: ID!) {
+query customer_query($customerId: ID!, $deep: String!, $deeper: String!) {
   customer(id: $customerId) {
     name
     consultant {
       name
     }
+    complexArg(arg: { value: $deep, deeper: { deeper: { value: $deeper } } })
     contracts {
       id
       ... on LifeInsuranceContract {

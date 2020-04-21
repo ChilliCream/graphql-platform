@@ -263,7 +263,6 @@ namespace HotChocolate.Stitching.Utilities
                 && inputType.Fields.TryGetField(current.Name.Value,
                 out InputField inputField))
             {
-
                 Context cloned = context.Clone();
                 cloned.InputField = inputField;
                 cloned.InputType = inputField.Type;
@@ -276,9 +275,10 @@ namespace HotChocolate.Stitching.Utilities
                         new NameNode(sourceDirective.Name));
                 }
 
+                Rewrite(node.Value, context);
+
                 return base.RewriteObjectField(current, cloned);
             }
-
             return base.RewriteObjectField(current, context);
         }
 

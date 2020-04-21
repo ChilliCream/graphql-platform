@@ -1,10 +1,11 @@
-query fetch($customerId: ID!) {
+﻿query fetch($customerId: ID!, $deep: String!) {
   customer(id: $customerId) {
     name
     consultant {
       name
       __typename
     }
+    complexArg(arg: { value: $deep, deeper: { deeper: { value: $deeper } } })
     id
     __typename
   }

@@ -19,6 +19,7 @@ type Query {
 type Customer {
   id: ID!
   name: String!
+  complexArg(arg:ComplexInputType): String
   consultant: Consultant
   contracts: [Contract!]
     @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
@@ -46,3 +47,8 @@ type SomeOtherContract implements Contract {
 }
 
 union CustomerOrConsultant = Customer | Consultant
+
+input ComplexInputType {
+  value: String
+  deeper: ComplexInputType
+}
