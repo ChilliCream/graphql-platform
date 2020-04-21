@@ -73,7 +73,9 @@ union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "custom
 
 input ComplexInputType @source(name: "ComplexInputType", schema: "customer") {
   deeper: ComplexInputType
+  deeperArray: [ComplexInputType]
   value: String
+  valueArray: [String]
 }
 
 input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer") {
