@@ -17,6 +17,7 @@ type Mutation {
 }
 
 type Customer @source(name: "Customer", schema: "customer") {
+  complexArg(arg: ComplexInputType): String
   consultant(customer: CustomerInput): Consultant
   id: ID!
   kind: CustomerKind!
@@ -37,6 +38,11 @@ union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "custom
 
 input SayInput @source(name: "SayInput", schema: "customer") {
   words: [String]
+}
+
+input ComplexInputType @source(name: "ComplexInputType", schema: "customer") {
+  deeper: ComplexInputType
+  value: String
 }
 
 "A connection to a list of items."

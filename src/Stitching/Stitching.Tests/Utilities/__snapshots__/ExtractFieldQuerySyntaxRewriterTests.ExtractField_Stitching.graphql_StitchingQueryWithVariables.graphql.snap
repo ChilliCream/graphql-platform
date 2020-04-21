@@ -1,4 +1,4 @@
-﻿query fetch($customerId: ID!, $deep: String!) {
+﻿query fetch($customerId: ID!, $deep: String!, $deeper: String!) {
   customer(id: $customerId) {
     name
     consultant {
