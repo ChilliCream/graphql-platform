@@ -8,7 +8,7 @@ type Customer {
   id: ID!
   name: String!
   consultant: Consultant
-  complexArg(arg:ComplexInputType): String
+  complexArg(arg: ComplexInputType): String
 }
 
 type Consultant {
@@ -16,9 +16,11 @@ type Consultant {
   name: String!
 }
 
-union CustomerOrConsultant = Customer | Consultant 
+union CustomerOrConsultant = Customer | Consultant
 
 input ComplexInputType {
-  value: String
   deeper: ComplexInputType
+  deeperArray: [ComplexInputType]
+  value: String
+  valueArray: [String]
 }

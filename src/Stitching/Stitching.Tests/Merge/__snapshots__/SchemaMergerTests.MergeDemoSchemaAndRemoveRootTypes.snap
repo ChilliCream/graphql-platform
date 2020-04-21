@@ -27,6 +27,8 @@ type Consultant @source(name: "Consultant", schema: "B") {
 union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "B") = Customer | Consultant
 
 input ComplexInputType @source(name: "ComplexInputType", schema: "B") {
-  value: String
   deeper: ComplexInputType
+  deeperArray: [ComplexInputType]
+  value: String
+  valueArray: [String]
 }

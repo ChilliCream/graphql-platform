@@ -49,6 +49,8 @@ type SomeOtherContract implements Contract {
 union CustomerOrConsultant = Customer | Consultant
 
 input ComplexInputType {
-  value: String
   deeper: ComplexInputType
+  deeperArray: [ComplexInputType]
+  value: String
+  valueArray: [String]
 }
