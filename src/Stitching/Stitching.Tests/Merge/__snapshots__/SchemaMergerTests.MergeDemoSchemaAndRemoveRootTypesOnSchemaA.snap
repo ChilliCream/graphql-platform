@@ -1,4 +1,4 @@
-type Query {
+﻿type Query {
   customer(id: ID!): Customer @delegate(schema: "B")
   consultant(id: ID!): Consultant @delegate(schema: "B")
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "B")
@@ -22,6 +22,7 @@ type Customer @source(name: "Customer", schema: "B") {
   id: ID!
   name: String!
   consultant: Consultant
+  complexArg(arg: ComplexInputType): String
 }
 
 type Consultant @source(name: "Consultant", schema: "B") {
@@ -30,3 +31,10 @@ type Consultant @source(name: "Consultant", schema: "B") {
 }
 
 union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "B") = Customer | Consultant
+
+input ComplexInputType @source(name: "ComplexInputType", schema: "B") {
+  deeper: ComplexInputType
+  deeperArray: [ComplexInputType]
+  value: String
+  valueArray: [String]
+}

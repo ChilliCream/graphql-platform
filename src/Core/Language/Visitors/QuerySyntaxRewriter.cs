@@ -38,6 +38,18 @@ namespace HotChocolate.Language
                 case InlineFragmentNode inline:
                     return RewriteInlineFragment(inline, context);
 
+                case ObjectValueNode objectValue:
+                    return RewriteObjectValue(objectValue, context);
+
+                case ListValueNode listValue:
+                    return RewriteListValue(listValue, context);
+
+                case VariableNode variable:
+                    return RewriteVariable(variable, context);
+
+                case IValueNode _:
+                    return node;
+
                 default:
                     throw new NotSupportedException(
                         LangResources.QuerySyntaxRewriter_NotSupported);
@@ -208,7 +220,6 @@ namespace HotChocolate.Language
             current = Rewrite(current, current.Directives, context,
                 (p, c) => RewriteMany(p, c, RewriteDirective),
                 current.WithDirectives);
-
 
             if (current.SelectionSet != null)
             {
