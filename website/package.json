@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@types/react-redux": "^7.1.7",
-    "gatsby": "^2.19.7",
+    "gatsby": "^2.20.29",
     "gatsby-image": "^2.2.39",
     "gatsby-plugin-disqus": "^1.1.4",
     "gatsby-plugin-google-analytics": "^2.1.38",
