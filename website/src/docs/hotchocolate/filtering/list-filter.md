@@ -1,9 +1,9 @@
 ### List Filter
 
-In this example, we look at the filter configuration of List filter.
+In this example, we look at the filter configuration of a list filter.
 
-List filters are generated for all nested IEnumerables. The array filter addresses scalars and object values different.
-In case of a scalar, an object type is generated to address the different operations of this scalar. If a list of strings is filtered, an object type is created to address all string operations.
+List filters are generated for all nested IEnumerables. The array filter addresses scalars and object values differently.
+In the case of a scalar, an object type is generated to address the different operations of this scalar. If a list of strings is filtered, an object type is created to address all string operations.
 In case the list contains a complex object, an object filter for this object is generated.
 
 A list filter is generated for all properties that implement IEnumerable.

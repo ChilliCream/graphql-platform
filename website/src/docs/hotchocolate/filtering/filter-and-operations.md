@@ -1,15 +1,15 @@
 # Filter & Operations Kinds
 
-Filtering can be broken down into different kinds of filter that have different operations.
-The filter kind is bound to the type. A string is fundamentally something different then an array or an object.
-Each fitler kind has different operations that can be applied to it. There are operations that are unique to a filter but there are also operations that are shared across multiple filters.
+Filtering can be broken down into different kinds of filters that then have different operations.
+The filter kind is bound to the type. A string is fundamentally something different than an array or an object.
+Each filter kind has different operations that can be applied to it. Some operations are unique to a filter and some operations are shared across multiple filters.
 e.g. A string filter has string specific operations like `Contains` or `EndsWith` but still shares the operations `Equals` and `NotEquals` with the boolean filter.
 
 ## Filter Kinds
 
 Hot Chocolate knows following filter kinds
 
-| Kind       | Operartions                                                                                                                                                          |
+| Kind       | Operations                                                                                                                                                          |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | String     | Equals, In, EndsWith, StartsWith, Contains, NotEquals, NotIn, NotEndsWith, NotStartsWith, NotContains                                                                |
 | Bool       | Equals, NotEquals                                                                                                                                                    |
@@ -21,7 +21,7 @@ Hot Chocolate knows following filter kinds
 
 Hot Chocolate knows following operation kinds
 
-| Kind                   | Operartions                                                                                           |
+| Kind                   | Operations                                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------------------- |
 | Equals                 | Compares the equality of input value and property value                                               |
 | NotEquals              | negation of Equals                                                                                    |

@@ -1,6 +1,7 @@
 # Naming Conventions
 
-_Hot Chococlate_ already provides two naming schemas for filters.
+_Hot Chococlate_ already provides two naming scheme for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of <<LINk FILTER CONVENTIONS>>
+
 
 ### Snake Case
 
