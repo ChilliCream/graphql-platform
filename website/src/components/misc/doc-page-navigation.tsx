@@ -307,7 +307,7 @@ const NavigationGroupToggle = styled.div`
 
 const NavigationGroupContent = styled.div`
   > ${NavigationList} {
-    padding: 5px 0;
+    padding: 5px 10px;
   }
 `;
 
