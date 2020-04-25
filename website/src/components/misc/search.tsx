@@ -99,7 +99,6 @@ function useClickOutside(
 }
 
 interface SearchBoxProperties extends SearchBoxProvided {
-  value: string;
   onFocus: (event: FocusEvent<HTMLInputElement>) => void;
 }
 
@@ -127,6 +126,14 @@ const Stats = connectStateResults(comp =>
     comp.searchResults && comp.searchResults.nbHits > 0 &&
       `${comp.searchResults.nbHits} result${comp.searchResults.nbHits > 1 ? `s` : ``}` as any);
 
+const DocHit = (clickHandler: () => void) => ({ hit }: HitComponentProperties) => (
+  <div>
+    <Link to={hit.url} onClick={clickHandler}>
+      <Snippet attribute="content" hit={hit} tagName="mark" />
+    </Link>
+  </div>
+);
+
 const Container = styled.div`
   display: flex;
   flex: 1 1 auto;
@@ -153,14 +160,6 @@ const SearchField = styled.input`
 interface HitComponentProperties {
   hit: any;
 }
-
-export const DocHit = (clickHandler: () => void) => ({ hit }: HitComponentProperties) => (
-  <div>
-    <Link to={hit.url} onClick={clickHandler}>
-      <Snippet attribute="content" hit={hit} tagName="mark" />
-    </Link>
-  </div>
-);
 
 const HitsWrapper = styled.div<{ show: boolean }>`
   position: fixed;
