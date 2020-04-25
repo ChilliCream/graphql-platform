@@ -63,7 +63,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
           !subItems && path === "index" ? basePath : basePath + "/" + path;
 
         return (
-          <NavigationItem key={itemPath}>
+          <NavigationItem key={itemPath + (subItems ? "/parent" : "")}>
             {subItems ? (
               <NavigationGroup
                 expanded={expandedPaths.indexOf(itemPath) !== -1}
