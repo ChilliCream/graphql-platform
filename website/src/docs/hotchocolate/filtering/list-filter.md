@@ -1,7 +1,6 @@
 ---
 title: Filtering - List filter
 ---
-## List Filter
 
 In this example, we look at the filter configuration of a list filter.
 
