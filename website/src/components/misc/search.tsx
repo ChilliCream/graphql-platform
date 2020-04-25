@@ -23,7 +23,13 @@ import { State } from "../../state";
 import { changeSearchQuery } from "../../state/common";
 import { Link } from "./link";
 
-export const Search: FunctionComponent = () => {
+import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
+
+interface SearchProperties {
+  siteUrl: string;
+}
+
+export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
   const ref = createRef<HTMLDivElement>();
   const initialQuery = useStore<State>().getState().common.searchQuery;
   const query = useSelector<State, string>(
@@ -59,13 +65,13 @@ export const Search: FunctionComponent = () => {
               <Stats />
             </ResultHeader>
             <Results>
-              <Hits hitComponent={DocHit(() => setFocus(false))} />
+              <Hits hitComponent={DocHit(siteUrl, () => setFocus(false))} />
             </Results>
           </Index>
           <PoweredBy>
-            Powered by{` `}
+            Powered by
             <Link to="https://algolia.com" onClick={() => setFocus(false)}>
-              Algolia
+              <AlgoliaLogoSvg />
             </Link>
           </PoweredBy>
         </HitsWrapper>
@@ -126,13 +132,18 @@ const Stats = connectStateResults(comp =>
     comp.searchResults && comp.searchResults.nbHits > 0 &&
       `${comp.searchResults.nbHits} result${comp.searchResults.nbHits > 1 ? `s` : ``}` as any);
 
-const DocHit = (clickHandler: () => void) => ({ hit }: HitComponentProperties) => (
-  <div>
-    <Link to={hit.url} onClick={clickHandler}>
+const DocHit = (
+  siteUrl: string,
+  clickHandler: () => void
+) => ({ hit }: HitComponentProperties) => {
+  const slug = (hit.url as string).replace(siteUrl, "");
+
+  return (
+    <Link to={slug} onClick={clickHandler}>
       <Snippet attribute="content" hit={hit} tagName="mark" />
     </Link>
-  </div>
-);
+  );
+};
 
 const Container = styled.div`
   display: flex;
@@ -176,14 +187,26 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
 
   > * + * {
-    border-top: 2px solid ${props => props.theme.darkGray};
-    padding-top: 10px !important;
+    margin-top: 5px;
+    border-top: 1px solid #aaa;
+  }
+
+  li {
+    margin: 0;
+    padding: 10px 0;
+    line-height: 1.667em;
+
+    > a {
+      color: #f40010;
+
+      &:hover {
+        color: #667;
+      }
+    }
   }
 
   li + li {
-    margin-top: 5px;
-    border-top: 1px solid ${props => props.theme.lightGray};
-    padding-top: 5px;
+    border-top: 1px solid #aaa;
   }
 
   * {
@@ -192,11 +215,14 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   }
 
   ul {
+    margin: 0;
     list-style: none;
   }
 
   mark {
-    background: black;
+    display: inline-block;
+    padding: 3px 2px;
+    background: #f40010;
     color: white;
   }
 
@@ -212,9 +238,20 @@ const HitsWrapper = styled.div<{ show: boolean }>`
 const ResultHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.3em;
+  margin: 10px 0;
 `;
 
 const PoweredBy = styled.div`
-  font-size: 0.833em;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 10px;
+  font-size: 0.688em;
+  line-height: 1.667em;
+
+  svg {
+    margin-left: 10px;
+    width: 70px;
+    height: auto;
+  }
 `;

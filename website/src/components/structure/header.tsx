@@ -20,6 +20,7 @@ export const Header: FunctionComponent = () => {
     query getHeaderData {
       site {
         siteMetadata {
+          siteUrl
           topnav {
             name
             link
@@ -33,7 +34,7 @@ export const Header: FunctionComponent = () => {
       }
     }
   `);
-  const { topnav, tools } = data.site!.siteMetadata!;
+  const { siteUrl, topnav, tools } = data.site!.siteMetadata!;
 
   const handleHamburgerOpenClick = () => {
     setTopNavOpen(true);
@@ -75,7 +76,7 @@ export const Header: FunctionComponent = () => {
           </Nav>
         </Navigation>
         <Group>
-          <Search />
+          <Search siteUrl={siteUrl!} />
           <Tools>
             <ToolLink to={tools!.slack!}>
               <IconContainer>
