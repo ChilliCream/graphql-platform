@@ -23,6 +23,12 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 .Type<StringType>()
                 .Resolver(ctx => string.Join(", ",
                     ctx.Argument<SayInput>("input").Words));
+
+            descriptor.Field("complexArg")
+                .Argument("arg", a =>
+                    a.Type<ComplexInputType>())
+                .Type<StringType>()
+                .Resolver("");
         }
     }
 }

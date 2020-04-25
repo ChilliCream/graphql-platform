@@ -1,4 +1,4 @@
-﻿type Query {
+type Query {
   consultant(id: ID!): Consultant @delegate(schema: "customer")
   customer(id: ID!): Customer @delegate(schema: "customer")
   customerByKind(kind: CustomerKind!): Customer @delegate(schema: "customer")
@@ -26,8 +26,9 @@ type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "custo
   customer: Customer
 }
 
-type Customer @source(name: "Customer", schema: "customer") {
+type Customer @source(name: "Customer", schema: "customer") { 
   consultant(customer: CustomerInput): Consultant
+  complexArg(arg: ComplexInputType): String
   id: ID!
   kind: CustomerKind!
   name: String!
@@ -69,6 +70,13 @@ type PageInfo @source(name: "PageInfo", schema: "customer") {
 }
 
 union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "customer") = Customer | Consultant
+
+input ComplexInputType @source(name: "ComplexInputType", schema: "customer") {
+  deeper: ComplexInputType
+  deeperArray: [ComplexInputType]
+  value: String
+  valueArray: [String]
+}
 
 input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer") {
   consultantId: String
