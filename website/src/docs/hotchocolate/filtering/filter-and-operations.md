@@ -1,7 +1,6 @@
 ---
 title: Filtering - Filter & Operation Kinds
 ---
-## Filter & Operations Kinds
 
 Filtering can be broken down into different kinds of filters that then have different operations.
 The filter kind is bound to the type. A string is fundamentally something different than an array or an object.
