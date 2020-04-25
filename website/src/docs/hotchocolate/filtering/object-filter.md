@@ -2,8 +2,6 @@
 title: Filtering - Object Filter
 ---
 
-## Object Filter
-
 In this example, we look at the filter configuration of an object filter.
 
 An object filter is generated for all nested objects. The object filter can also be used to filter over database relations.
