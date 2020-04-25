@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    public interface IRequestContext
+    public interface IRawRequestContext
     {
         IRequestServiceScope ServiceScope { get; }
 
@@ -18,6 +18,6 @@ namespace HotChocolate.Execution
 
         QueryExecutionDiagnostics Diagnostics { get; }
 
-        IRequestContext Clone();
+        IRawRequestContext Clone();
     }
 }
