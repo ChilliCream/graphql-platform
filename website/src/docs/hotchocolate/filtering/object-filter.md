@@ -1,4 +1,8 @@
-### Object Filter
+---
+title: Filtering - Object Filter
+---
+
+## Object Filter
 
 In this example, we look at the filter configuration of an object filter.
 
@@ -69,7 +73,7 @@ input AddressFilter {
 }
 ```
 
-## ObjectOperationDescriptor
+### ObjectOperationDescriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of comparable filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`

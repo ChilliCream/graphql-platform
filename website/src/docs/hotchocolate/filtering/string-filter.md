@@ -1,4 +1,7 @@
-### String Filter
+---
+title: Filtering - String Filter
+---
+## String Filter
 
 In this example, we look at the filter configuration of a String filter.
 As an example we will use the following model:

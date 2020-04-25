@@ -1,11 +1,14 @@
-# Filter & Operations Kinds
+---
+title: Filtering - Filter & Operation Kinds
+---
+## Filter & Operations Kinds
 
 Filtering can be broken down into different kinds of filters that then have different operations.
 The filter kind is bound to the type. A string is fundamentally something different than an array or an object.
 Each filter kind has different operations that can be applied to it. Some operations are unique to a filter and some operations are shared across multiple filters.
 e.g. A string filter has string specific operations like `Contains` or `EndsWith` but still shares the operations `Equals` and `NotEquals` with the boolean filter.
 
-## Filter Kinds
+### Filter Kinds
 
 Hot Chocolate knows following filter kinds
 
@@ -17,7 +20,7 @@ Hot Chocolate knows following filter kinds
 | Array      | Some, Any, All, None                                                                                                                                                 |
 | Comparable | Equals, In, GreaterThan, GreaterThanOrEqual, LowerThan, LowerThanOrEqual, NotEquals, NotIn, NotGreaterThan, NotGreaterThanOrEqual, NotLowerThan, NotLowerThanOrEqual |
 
-## Operations Kinds
+### Operations Kinds
 
 Hot Chocolate knows following operation kinds
 

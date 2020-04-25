@@ -919,7 +919,6 @@ export type FileFieldsEnum =
   'childMarkdownRemark___frontmatter___featuredImage___id' |
   'childMarkdownRemark___frontmatter___featuredImage___children' |
   'childMarkdownRemark___frontmatter___featuredImage___childrenDocsJson' |
-  'childMarkdownRemark___frontmatter___id' |
   'childMarkdownRemark___excerpt' |
   'childMarkdownRemark___rawMarkdownBody' |
   'childMarkdownRemark___fileAbsolutePath' |
@@ -1811,7 +1810,6 @@ export type MarkdownRemarkFieldsEnum =
   'frontmatter___featuredImage___childrenDocsJson___title' |
   'frontmatter___featuredImage___childrenDocsJson___description' |
   'frontmatter___featuredImage___childrenDocsJson___items' |
-  'frontmatter___id' |
   'excerpt' |
   'rawMarkdownBody' |
   'fileAbsolutePath' |
@@ -1964,7 +1962,6 @@ export type MarkdownRemarkFrontmatter = {
   authorUrl?: Maybe<Scalars['String']>;
   authorImageUrl?: Maybe<Scalars['String']>;
   featuredImage?: Maybe<File>;
-  id?: Maybe<Scalars['String']>;
 };
 
 
@@ -1984,7 +1981,6 @@ export type MarkdownRemarkFrontmatterFilterInput = {
   authorUrl?: Maybe<StringQueryOperatorInput>;
   authorImageUrl?: Maybe<StringQueryOperatorInput>;
   featuredImage?: Maybe<FileFilterInput>;
-  id?: Maybe<StringQueryOperatorInput>;
 };
 
 export type MarkdownRemarkGroupConnection = {

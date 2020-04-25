@@ -1,4 +1,8 @@
-### Comparable Filter
+---
+title: Filtering - Comparable Filter
+---
+
+## Comparable Filter
 
 In this example, we look at the filter configuration of a comparable filter.
 
@@ -51,7 +55,7 @@ input UserFilter {
 }
 ```
 
-## ComparableOperationDescriptor
+### ComparableOperationDescriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of comparable filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`

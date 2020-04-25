@@ -1,6 +1,5 @@
 ---
-id: filters
-title: Filtering
+title: Filtering - Getting Started
 ---
 
 **What are filters?**

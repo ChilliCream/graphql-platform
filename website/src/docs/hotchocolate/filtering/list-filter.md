@@ -1,4 +1,7 @@
-### List Filter
+---
+title: Filtering - List filter
+---
+## List Filter
 
 In this example, we look at the filter configuration of a list filter.
 
@@ -98,7 +101,7 @@ input ISingleFilterOfStringFilter {
 }
 ```
 
-## ArrayOperationDescriptor
+### ArrayOperationDescriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of array filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`

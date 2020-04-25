@@ -1,6 +1,10 @@
-### Boolean Filter
+---
+title: Filtering - Boolean Filter
+---
 
-In this example, we look at the filter configuration of Boolean filter.
+## Boolean Filter
+
+In this example, we look at the filter configuration of a Boolean filter.
 As an example, we will use the following model:
 
 ```csharp
@@ -37,7 +41,7 @@ input UserFilter {
 }
 ```
 
-## BooleanOperationDescriptor
+### BooleanOperationDescriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of Boolean filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`

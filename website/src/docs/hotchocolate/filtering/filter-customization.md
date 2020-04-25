@@ -1,4 +1,8 @@
-# Customizing Filter
+---
+title: Filtering - Customizing Filter
+---
+
+## Customizing Filter
 
 Hot Chocolate provides different APIs to customize filtering. You can write custom filter input types, customize the inference behavior of .NET Objects, customize the generated expression, or create a custom visitor and attach your exotic database.
 
