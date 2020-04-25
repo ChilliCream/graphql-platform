@@ -51,5 +51,14 @@
 <url> <loc>https://chillicream.com/hotchocolate/docs/marshmellowpie</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/strawberryshake</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/api-reference</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/bool-filter</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/comparable-filter</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/filter-and-operations</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/filter-customization</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/filter-naming-convention</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/getting-started</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/list-filter</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/object-filter</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/filtering/string-filter</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 </urlset>
