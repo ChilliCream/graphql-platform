@@ -6,7 +6,7 @@ import React, {
   RefObject,
   useCallback,
   useEffect,
-  useState
+  useState,
 } from "react";
 import { SearchBoxProvided } from "react-instantsearch-core";
 import {
@@ -32,9 +32,7 @@ interface SearchProperties {
 export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
   const ref = createRef<HTMLDivElement>();
   const initialQuery = useStore<State>().getState().common.searchQuery;
-  const query = useSelector<State, string>(
-    state => state.common.searchQuery
-  );
+  const query = useSelector<State, string>((state) => state.common.searchQuery);
   const dispatch = useDispatch();
   const [focus, setFocus] = useState(false);
   const searchClient = algoliasearch(
@@ -56,9 +54,7 @@ export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
         indexName="chillicream"
         onSearchStateChange={({ query }) => handleChangeQuery(query)}
       >
-        <SearchBox
-          onFocus={() => setFocus(true)}
-        />
+        <SearchBox onFocus={() => setFocus(true)} />
         <HitsWrapper show={query.length > 0 && focus}>
           <Index indexName="chillicream">
             <ResultHeader>
@@ -85,57 +81,61 @@ type EventName = keyof DocumentEventMap;
 function useClickOutside(
   ref: RefObject<HTMLDivElement>,
   handler: () => void,
-  events?: EventName[]) {
-    const eventNames = events || ["mousedown", "touchstart"];
+  events?: EventName[]
+) {
+  const eventNames = events || ["mousedown", "touchstart"];
 
-    const detectClickOutside = (event: DocumentEventMap[EventName]) =>
-      !ref.current!.contains(event.target as Node) && handler();
+  const detectClickOutside = (event: DocumentEventMap[EventName]) =>
+    !ref.current!.contains(event.target as Node) && handler();
 
-    useEffect(() => {
+  useEffect(() => {
+    for (const eventName of eventNames) {
+      document.addEventListener(eventName, detectClickOutside);
+    }
+
+    return () => {
       for (const eventName of eventNames) {
-        document.addEventListener(eventName, detectClickOutside)
+        document.removeEventListener(eventName, detectClickOutside);
       }
-
-      return () => {
-        for (const eventName of eventNames) {
-          document.removeEventListener(eventName, detectClickOutside)
-        }
-      }
-    }, [detectClickOutside]);
+    };
+  }, [detectClickOutside]);
 }
 
 interface SearchBoxProperties extends SearchBoxProvided {
   onFocus: (event: FocusEvent<HTMLInputElement>) => void;
 }
 
-const SearchBox = connectSearchBox<SearchBoxProperties>(({
-  currentRefinement,
-  onFocus,
-  refine
-}) => (
-  <SearchField
-    type="text"
-    value={currentRefinement}
-    placeholder="Search..."
-    aria-label="Search"
-    onChange={e => refine(e.target.value)}
-    onFocus={onFocus}
-  />
-));
+const SearchBox = connectSearchBox<SearchBoxProperties>(
+  ({ currentRefinement, onFocus, refine }) => (
+    <SearchField
+      type="text"
+      value={currentRefinement}
+      placeholder="Search..."
+      aria-label="Search"
+      onChange={(e) => refine(e.target.value)}
+      onFocus={onFocus}
+    />
+  )
+);
 
-const Results = connectStateResults(comp =>
-    comp.searchResults && comp.searchResults.nbHits > 0
-      ? comp.children as any
-      : `No results for '${comp.searchState.query}'` as any);
+const Results = connectStateResults((comp) =>
+  comp.searchResults && comp.searchResults.nbHits > 0
+    ? (comp.children as any)
+    : (`No results for '${comp.searchState.query}'` as any)
+);
 
-const Stats = connectStateResults(comp =>
-    comp.searchResults && comp.searchResults.nbHits > 0 &&
-      `${comp.searchResults.nbHits} result${comp.searchResults.nbHits > 1 ? `s` : ``}` as any);
+const Stats = connectStateResults(
+  (comp) =>
+    comp.searchResults &&
+    comp.searchResults.nbHits > 0 &&
+    (`${comp.searchResults.nbHits} result${
+      comp.searchResults.nbHits > 1 ? `s` : ``
+    }` as any)
+);
 
-const DocHit = (
-  siteUrl: string,
-  clickHandler: () => void
-) => ({ hit }: HitComponentProperties) => {
+const DocHit = (siteUrl: string, clickHandler: () => void) => ({
+  hit,
+}: HitComponentProperties) => {
   const slug = (hit.url as string).replace(siteUrl, "");
 
   return (
@@ -178,7 +178,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   right: 0;
   left: 0;
   z-index: 1;
-  display: ${props => (props.show ? `grid` : `none`)};
+  display: ${(props) => (props.show ? `grid` : `none`)};
   padding: 15px 20px;
   max-height: 80vh;
   overflow: scroll;

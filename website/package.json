@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "algoliasearch": "^4.2.0",
-    "gatsby": "^2.19.7",
+    "gatsby": "^2.20.35",
     "gatsby-image": "^2.3.5",
     "gatsby-plugin-disqus": "^1.1.4",
     "gatsby-plugin-google-analytics": "^2.2.5",
@@ -43,8 +43,8 @@
     "gatsby-remark-prismjs": "^3.3.34",
     "gatsby-remark-reading-time": "^1.1.0",
     "gatsby-source-filesystem": "^2.1.46",
-    "gatsby-transformer-json": "^2.3.1",
-    "gatsby-transformer-remark": "^2.6.58",
+    "gatsby-transformer-json": "^2.3.4",
+    "gatsby-transformer-remark": "^2.7.5",
     "gatsby-transformer-sharp": "^2.3.13",
     "prismjs": "^1.19.0",
     "react": "^16.13.0",
@@ -67,8 +67,15 @@
     "@types/styled-components": "^5.0.1",
     "babel-plugin-styled-components": "^1.10.7",
     "gh-pages": "^2.2.0",
+    "husky": "^4.2.5",
     "prettier": "^2.0.2",
+    "pretty-quick": "^2.0.1",
     "typescript": "^3.8.3",
     "typescript-styled-plugin": "^0.15.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   }
 }
