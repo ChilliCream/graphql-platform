@@ -2,8 +2,6 @@
 title: Filtering - Boolean Filter
 ---
 
-## Boolean Filter
-
 In this example, we look at the filter configuration of a Boolean filter.
 As an example, we will use the following model:
 
