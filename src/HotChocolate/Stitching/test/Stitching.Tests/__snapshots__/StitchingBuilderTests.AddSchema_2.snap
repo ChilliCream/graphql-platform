@@ -1,4 +1,4 @@
-type Query {
+﻿type Query {
   consultant(id: ID!): Consultant @delegate(schema: "customer")
   customer(id: ID!): Customer @delegate(schema: "customer")
   customerByKind(kind: CustomerKind!): Customer @delegate(schema: "customer")
@@ -26,7 +26,7 @@ type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "custo
   customer: Customer
 }
 
-type Customer @source(name: "Customer", schema: "customer") { 
+type Customer @source(name: "Customer", schema: "customer") {
   complexArg(arg: ComplexInputType): String
   consultant(customer: CustomerInput): Consultant
   id: ID!

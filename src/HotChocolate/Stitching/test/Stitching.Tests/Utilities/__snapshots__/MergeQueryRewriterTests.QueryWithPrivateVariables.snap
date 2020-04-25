@@ -12,7 +12,7 @@
     consultant {
       name
     }
-    complexArg(arg: { value: $deep, deeperArray: [ "CONSTANT_IN_ARRAY", $deeperInArray ], deeper: { value: "CONSTANT", deeper: { value: $deeper } }, deeperArray: [ { value: "CONSTANT_ARRAY", deeper: { value: $deeperArray } }, $complex ] })
+    complexArg(arg: { value: $_b_deep, deeper: { value: "CONSTANT", deeper: { value: $_b_deeper, deeperArray: [ { value: "CONSTANT_ARRAY", deeper: { value: $_b_deeperInArray } } ] } }, deeperArray: [ { value: "CONSTANT_ARRAY", deeper: { value: $_b_deeperArray } }, $_b_complex ] })
     contracts {
       id
       ... on LifeInsuranceContract {

@@ -1,11 +1,11 @@
-﻿query fetch($customerId: ID!, $deep: String!, $deeperInArray: String, $deeper: String!, $deeperArray: String, $complex: ComplexInputType) {
+﻿query fetch($customerId: ID!, $deep: String!, $deeper: String!, $deeperInArray: String, $deeperArray: String, $complex: ComplexInputType) {
   customer(id: $customerId) {
     name
     consultant {
       name
       __typename
     }
-    complexArg(arg: { value: $deep, deeperArray: [ "CONSTANT_IN_ARRAY", $deeperInArray ], deeper: { value: "CONSTANT", deeper: { value: $deeper } }, deeperArray: [ { value: "CONSTANT_ARRAY", deeper: { value: $deeperArray } }, $complex ] })
+    complexArg(arg: { value: $deep, deeper: { value: "CONSTANT", deeper: { value: $deeper, deeperArray: [ { value: "CONSTANT_ARRAY", deeper: { value: $deeperInArray } } ] } }, deeperArray: [ { value: "CONSTANT_ARRAY", deeper: { value: $deeperArray } }, $complex ] })
     id
     __typename
   }
