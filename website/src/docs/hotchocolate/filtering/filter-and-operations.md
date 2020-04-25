@@ -11,7 +11,7 @@ e.g. A string filter has string specific operations like `Contains` or `EndsWith
 
 Hot Chocolate knows following filter kinds
 
-| Kind       | Operations                                                                                                                                                          |
+| Kind       | Operations                                                                                                                                                           |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | String     | Equals, In, EndsWith, StartsWith, Contains, NotEquals, NotIn, NotEndsWith, NotStartsWith, NotContains                                                                |
 | Bool       | Equals, NotEquals                                                                                                                                                    |
@@ -23,7 +23,7 @@ Hot Chocolate knows following filter kinds
 
 Hot Chocolate knows following operation kinds
 
-| Kind                   | Operations                                                                                           |
+| Kind                   | Operations                                                                                            |
 | ---------------------- | ----------------------------------------------------------------------------------------------------- |
 | Equals                 | Compares the equality of input value and property value                                               |
 | NotEquals              | negation of Equals                                                                                    |
