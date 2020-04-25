@@ -65,7 +65,7 @@ module.exports = {
       resolve: `gatsby-plugin-react-svg`,
       options: {
         rule: {
-          include: /images\/.*\.svg/,
+          include: /images/,
         },
       },
     },
@@ -87,6 +87,7 @@ module.exports = {
             resolve: `gatsby-remark-prismjs`,
             options: {
               showLineNumbers: false,
+              inlineCodeMarker: `±`,
             },
           },
           {
