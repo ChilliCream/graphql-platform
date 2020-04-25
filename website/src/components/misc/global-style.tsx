@@ -114,20 +114,21 @@ export const GlobalStyle = createGlobalStyle`
 
   ul {
     margin: 0 0 1.188em 1.188em;
-    list-style-position: inside;
+    list-style-position: outside;
     list-style-image: none;
     list-style-type: disc;
   }
 
   ol {
     margin: 0 0 1.188em 1.188em;
-    list-style-position: inside;
+    list-style-position: outside;
     list-style-image: none;
     list-style-type: decimal;
   }
 
   li {
     margin-bottom: calc(1.188em / 2);
+    line-height: 1.667em;
   }
 
   li > ol {
