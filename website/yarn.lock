@@ -6858,10 +6858,10 @@ gatsby-plugin-disqus@^1.1.4:
     babel-preset-gatsby-package "^0.1.2"
     cross-env "^5.2.0"
 
-gatsby-plugin-google-analytics@^2.1.38:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/gatsby-plugin-google-analytics/-/gatsby-plugin-google-analytics-2.2.4.tgz#d03ae7b8088240f283a82d5ac5f843ee636a0f32"
-  integrity sha512-PupngEov6tod6AOybZMq4Iaaeo6MmzgwBcWljMWLetO5ugPV5rAkTSLJsaINk8wzImQsIDNMBg2GIaU94g1vJw==
+gatsby-plugin-google-analytics@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/gatsby-plugin-google-analytics/-/gatsby-plugin-google-analytics-2.2.5.tgz#4f9f00e2be9178430306c2214b5964c413689c98"
+  integrity sha512-pB03ICMXMcCSf8Qq/h0Pd0J3JpSpBPp78JJv8rDDfD3Ly6+SWuREBdkrq1d3CpwJ3ANGiaH3aGtN7ztlwmoXsw==
   dependencies:
     "@babel/runtime" "^7.8.7"
     minimatch "3.0.4"
