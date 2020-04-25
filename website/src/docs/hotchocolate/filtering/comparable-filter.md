@@ -2,8 +2,6 @@
 title: Filtering - Comparable Filter
 ---
 
-## Comparable Filter
-
 In this example, we look at the filter configuration of a comparable filter.
 
 A comparable filter is generated for all values that implement IComparable except string and boolean.
