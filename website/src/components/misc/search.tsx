@@ -164,12 +164,11 @@ interface HitComponentProperties {
 const HitsWrapper = styled.div<{ show: boolean }>`
   position: fixed;
   top: 60px;
-  z-index: 2;
+  right: 0;
+  left: 0;
+  z-index: 1;
   display: ${props => (props.show ? `grid` : `none`)};
-  border-radius: 4px;
-  padding: 10px 15px;
-  width: 80vw;
-  max-width: 400px;
+  padding: 15px 20px;
   max-height: 80vh;
   overflow: scroll;
   -webkit-overflow-scrolling: touch;
@@ -199,6 +198,14 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   mark {
     background: black;
     color: white;
+  }
+
+  @media only screen and (min-width: 600px) {
+    right: initial;
+    left: initial;
+    border-radius: 4px;
+    padding: 10px 15px;
+    width: 400px;
   }
 `;
 
