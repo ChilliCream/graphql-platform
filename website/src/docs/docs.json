@@ -91,7 +91,7 @@
   {
     "path": "marshmellowpie",
     "title": "Marshmellow Pie",
-    "description": "Configure a GraphQL registry to keep track on any GraphQL server and client.",
+    "description": "Configure a GraphQL registry to keep track of any GraphQL server and client.",
     "items": [
       {
         "path": "index",
