@@ -148,7 +148,6 @@ export type DirectoryEdge = {
   node: Directory;
   previous?: Maybe<Directory>;
 };
-
 export type DirectoryFieldsEnum =
   | "sourceInstanceName"
   | "absolutePath"
@@ -302,8 +301,6 @@ export type DirectoryFilterInput = {
   ctime?: Maybe<DateQueryOperatorInput>;
   birthtime?: Maybe<DateQueryOperatorInput>;
   birthtimeMs?: Maybe<FloatQueryOperatorInput>;
-  blksize?: Maybe<IntQueryOperatorInput>;
-  blocks?: Maybe<IntQueryOperatorInput>;
   id?: Maybe<StringQueryOperatorInput>;
   parent?: Maybe<NodeFilterInput>;
   children?: Maybe<NodeFilterListInput>;
@@ -1037,8 +1034,6 @@ export type FileFilterInput = {
   ctime?: Maybe<DateQueryOperatorInput>;
   birthtime?: Maybe<DateQueryOperatorInput>;
   birthtimeMs?: Maybe<FloatQueryOperatorInput>;
-  blksize?: Maybe<IntQueryOperatorInput>;
-  blocks?: Maybe<IntQueryOperatorInput>;
   publicURL?: Maybe<StringQueryOperatorInput>;
   childImageSharp?: Maybe<ImageSharpFilterInput>;
   id?: Maybe<StringQueryOperatorInput>;
@@ -2062,8 +2057,6 @@ export type QueryFileArgs = {
   ctime?: Maybe<DateQueryOperatorInput>;
   birthtime?: Maybe<DateQueryOperatorInput>;
   birthtimeMs?: Maybe<FloatQueryOperatorInput>;
-  blksize?: Maybe<IntQueryOperatorInput>;
-  blocks?: Maybe<IntQueryOperatorInput>;
   publicURL?: Maybe<StringQueryOperatorInput>;
   childImageSharp?: Maybe<ImageSharpFilterInput>;
   id?: Maybe<StringQueryOperatorInput>;
@@ -2113,8 +2106,6 @@ export type QueryDirectoryArgs = {
   ctime?: Maybe<DateQueryOperatorInput>;
   birthtime?: Maybe<DateQueryOperatorInput>;
   birthtimeMs?: Maybe<FloatQueryOperatorInput>;
-  blksize?: Maybe<IntQueryOperatorInput>;
-  blocks?: Maybe<IntQueryOperatorInput>;
   id?: Maybe<StringQueryOperatorInput>;
   parent?: Maybe<NodeFilterInput>;
   children?: Maybe<NodeFilterListInput>;
@@ -2469,6 +2460,7 @@ export type SiteEdge = {
   node: Site;
   previous?: Maybe<Site>;
 };
+
 
 export type SiteFieldsEnum =
   | "buildTime"
@@ -3151,12 +3143,24 @@ export type SitePluginPackageJsonPeerDependenciesFilterListInput = {
 
 export type SitePluginPluginOptions = {
   plugins?: Maybe<Array<Maybe<SitePluginPluginOptionsPlugins>>>;
-  pathToCreateStoreModule?: Maybe<Scalars["String"]>;
-  name?: Maybe<Scalars["String"]>;
-  path?: Maybe<Scalars["String"]>;
-  shortname?: Maybe<Scalars["String"]>;
-  showLineNumbers?: Maybe<Scalars["Boolean"]>;
-  maxWidth?: Maybe<Scalars["Int"]>;
+  pathToCreateStoreModule?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  path?: Maybe<Scalars['String']>;
+  shortname?: Maybe<Scalars['String']>;
+  showLineNumbers?: Maybe<Scalars['Boolean']>;
+  inlineCodeMarker?: Maybe<Scalars['String']>;
+  maxWidth?: Maybe<Scalars['Int']>;
+  pathPrefix?: Maybe<Scalars['String']>;
+  wrapperStyle?: Maybe<Scalars['String']>;
+  backgroundColor?: Maybe<Scalars['String']>;
+  linkImagesToOriginal?: Maybe<Scalars['Boolean']>;
+  showCaptions?: Maybe<Scalars['Boolean']>;
+  markdownCaptions?: Maybe<Scalars['Boolean']>;
+  withWebp?: Maybe<Scalars['Boolean']>;
+  tracedSVG?: Maybe<Scalars['Boolean']>;
+  loading?: Maybe<Scalars['String']>;
+  disableBgImageOnAlpha?: Maybe<Scalars['Boolean']>;
+  disableBgImage?: Maybe<Scalars['Boolean']>;
   google?: Maybe<SitePluginPluginOptionsGoogle>;
   short_name?: Maybe<Scalars["String"]>;
   start_url?: Maybe<Scalars["String"]>;
@@ -3176,7 +3180,19 @@ export type SitePluginPluginOptionsFilterInput = {
   path?: Maybe<StringQueryOperatorInput>;
   shortname?: Maybe<StringQueryOperatorInput>;
   showLineNumbers?: Maybe<BooleanQueryOperatorInput>;
+  inlineCodeMarker?: Maybe<StringQueryOperatorInput>;
   maxWidth?: Maybe<IntQueryOperatorInput>;
+  pathPrefix?: Maybe<StringQueryOperatorInput>;
+  wrapperStyle?: Maybe<StringQueryOperatorInput>;
+  backgroundColor?: Maybe<StringQueryOperatorInput>;
+  linkImagesToOriginal?: Maybe<BooleanQueryOperatorInput>;
+  showCaptions?: Maybe<BooleanQueryOperatorInput>;
+  markdownCaptions?: Maybe<BooleanQueryOperatorInput>;
+  withWebp?: Maybe<BooleanQueryOperatorInput>;
+  tracedSVG?: Maybe<BooleanQueryOperatorInput>;
+  loading?: Maybe<StringQueryOperatorInput>;
+  disableBgImageOnAlpha?: Maybe<BooleanQueryOperatorInput>;
+  disableBgImage?: Maybe<BooleanQueryOperatorInput>;
   google?: Maybe<SitePluginPluginOptionsGoogleFilterInput>;
   short_name?: Maybe<StringQueryOperatorInput>;
   start_url?: Maybe<StringQueryOperatorInput>;
@@ -3226,13 +3242,37 @@ export type SitePluginPluginOptionsPluginsFilterListInput = {
 };
 
 export type SitePluginPluginOptionsPluginsPluginOptions = {
-  showLineNumbers?: Maybe<Scalars["Boolean"]>;
-  maxWidth?: Maybe<Scalars["Int"]>;
+  showLineNumbers?: Maybe<Scalars['Boolean']>;
+  inlineCodeMarker?: Maybe<Scalars['String']>;
+  maxWidth?: Maybe<Scalars['Int']>;
+  pathPrefix?: Maybe<Scalars['String']>;
+  wrapperStyle?: Maybe<Scalars['String']>;
+  backgroundColor?: Maybe<Scalars['String']>;
+  linkImagesToOriginal?: Maybe<Scalars['Boolean']>;
+  showCaptions?: Maybe<Scalars['Boolean']>;
+  markdownCaptions?: Maybe<Scalars['Boolean']>;
+  withWebp?: Maybe<Scalars['Boolean']>;
+  tracedSVG?: Maybe<Scalars['Boolean']>;
+  loading?: Maybe<Scalars['String']>;
+  disableBgImageOnAlpha?: Maybe<Scalars['Boolean']>;
+  disableBgImage?: Maybe<Scalars['Boolean']>;
 };
 
 export type SitePluginPluginOptionsPluginsPluginOptionsFilterInput = {
   showLineNumbers?: Maybe<BooleanQueryOperatorInput>;
+  inlineCodeMarker?: Maybe<StringQueryOperatorInput>;
   maxWidth?: Maybe<IntQueryOperatorInput>;
+  pathPrefix?: Maybe<StringQueryOperatorInput>;
+  wrapperStyle?: Maybe<StringQueryOperatorInput>;
+  backgroundColor?: Maybe<StringQueryOperatorInput>;
+  linkImagesToOriginal?: Maybe<BooleanQueryOperatorInput>;
+  showCaptions?: Maybe<BooleanQueryOperatorInput>;
+  markdownCaptions?: Maybe<BooleanQueryOperatorInput>;
+  withWebp?: Maybe<BooleanQueryOperatorInput>;
+  tracedSVG?: Maybe<BooleanQueryOperatorInput>;
+  loading?: Maybe<StringQueryOperatorInput>;
+  disableBgImageOnAlpha?: Maybe<BooleanQueryOperatorInput>;
+  disableBgImage?: Maybe<BooleanQueryOperatorInput>;
 };
 
 export type SitePluginSortInput = {
