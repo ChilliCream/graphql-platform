@@ -3,7 +3,7 @@ module.exports = {
     title: `ChilliCream GraphQL`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
-    baseUrl: `https://chillicream.com`,
+    siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
@@ -127,6 +127,7 @@ module.exports = {
         anonymize: true,
       },
     },
+    `gatsby-plugin-sitemap`,
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,
