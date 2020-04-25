@@ -27,8 +27,8 @@ type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "custo
 }
 
 type Customer @source(name: "Customer", schema: "customer") { 
-  consultant(customer: CustomerInput): Consultant
   complexArg(arg: ComplexInputType): String
+  consultant(customer: CustomerInput): Consultant
   id: ID!
   kind: CustomerKind!
   name: String!

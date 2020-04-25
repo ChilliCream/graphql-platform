@@ -19,8 +19,8 @@ type Query {
 type Customer {
   id: ID!
   name: String!  
-  consultant: Consultant
   complexArg(arg:ComplexInputType): String
+  consultant: Consultant
   contracts: [Contract!]
     @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
   contractIds: [ID!]
