@@ -79,27 +79,9 @@ namespace HotChocolate.Properties
                 valueType.FullName);
         }
 
-        public static string String_Argument_NullOrEmpty(string parameterName)
-        {
-
-            if (string.IsNullOrEmpty(parameterName))
-            {
-                throw new ArgumentException(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.String_Argument_NullOrEmpty,
-                    nameof(parameterName)),
-                    nameof(parameterName));
-            }
-
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                TypeResources.String_Argument_NullOrEmpty,
-                parameterName);
-        }
-
         public static string Type_Name_IsNotValid(string typeName)
         {
-            string name = typeName ?? "null";
+            var name = typeName ?? "null";
             return $"`{name}` is not a valid " +
                 "GraphQL type name.";
         }

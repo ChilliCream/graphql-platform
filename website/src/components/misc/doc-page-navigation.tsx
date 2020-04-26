@@ -64,7 +64,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
           !subItems && path === "index" ? basePath : basePath + "/" + path;
 
         return (
-          <NavigationItem key={itemPath}>
+          <NavigationItem key={itemPath + (subItems ? "/parent" : "")}>
             {subItems ? (
               <NavigationGroup
                 expanded={expandedPaths.indexOf(itemPath) !== -1}
@@ -220,6 +220,7 @@ const Navigation = styled.nav`
   display: none;
   flex: 0 0 250px;
   flex-direction: column;
+  z-index: 1;
 
   * {
     user-select: none;
@@ -234,6 +235,7 @@ const FixedContainer = styled.div`
   position: fixed;
   padding: 25px 0 250px;
   width: 250px;
+  overflow: initial;
 `;
 
 const ProductSwitcher = styled.div``;
@@ -317,6 +319,7 @@ const NavigationList = styled.ol`
   flex-direction: column;
   margin: 0;
   padding: 0 20px 20px;
+  list-style-type: none;
 `;
 
 const NavigationItem = styled.li`
@@ -324,7 +327,7 @@ const NavigationItem = styled.li`
   margin: 5px 0;
   padding: 0;
   min-height: 20px;
-  list-style-type: none;
+  line-height: initial;
 `;
 
 const NavigationGroupToggle = styled.div`
@@ -337,7 +340,7 @@ const NavigationGroupToggle = styled.div`
 
 const NavigationGroupContent = styled.div`
   > ${NavigationList} {
-    padding: 5px 0;
+    padding: 5px 10px;
   }
 `;
 

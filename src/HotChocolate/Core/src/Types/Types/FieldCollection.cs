@@ -27,6 +27,8 @@ namespace HotChocolate.Types
 
         public T this[string fieldName] => _fieldsLookup[fieldName];
 
+        public T this[int index] => _fields[index];
+
         public int Count => _fields.Count;
 
         public bool IsEmpty { get; }
@@ -53,5 +55,8 @@ namespace HotChocolate.Types
         {
             return GetEnumerator();
         }
+
+        public static FieldCollection<T> Empty { get; } =
+            new FieldCollection<T>(Enumerable.Empty<T>());
     }
 }

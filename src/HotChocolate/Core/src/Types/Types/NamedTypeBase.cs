@@ -2,6 +2,7 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 
 #nullable enable
 
@@ -13,10 +14,13 @@ namespace HotChocolate.Types
         , IHasDirectives
         , IHasClrType
         , IHasTypeIdentity
-        where TDefinition : DefinitionBase, IHasDirectiveDefinition
+        where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode
     {
         private IDirectiveCollection? _directives;
         private Type? _clrType;
+        private ISyntaxNode? _syntaxNode;
+
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
 
         public abstract TypeKind Kind { get; }
 
@@ -46,6 +50,9 @@ namespace HotChocolate.Types
 
         public Type? TypeIdentity { get; private set; }
 
+        public virtual bool IsAssignableFrom(INamedType type) =>
+            ReferenceEquals(type, this);
+
         protected override void OnRegisterDependencies(
             IInitializationContext context,
             TDefinition definition)
@@ -66,8 +73,9 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            var directives = new DirectiveCollection(
-                this, definition.Directives);
+            _syntaxNode = definition.SyntaxNode;
+
+            var directives = new DirectiveCollection(this, definition.Directives);
             directives.CompleteCollection(context);
             _directives = directives;
         }

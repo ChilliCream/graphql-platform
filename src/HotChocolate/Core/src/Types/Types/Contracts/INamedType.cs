@@ -4,6 +4,8 @@
         : INullableType
         , IHasName
         , IHasDescription
+        , IHasSyntaxNode
     {
+        bool IsAssignableFrom(INamedType type);
     }
 }

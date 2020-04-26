@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
         {
             using var buffer = new ArrayWriter();
 
-            using var writer = new Utf8JsonWriter(buffer);
+            using var writer = new Utf8JsonWriter(buffer, _options);
             WriteResult(writer, result);
             writer.Flush();
 
@@ -267,6 +267,10 @@ namespace HotChocolate.Execution
                     WriteList(writer, list);
                     break;
 
+                case IError error:
+                    WriteError(writer, error);
+                    break;
+
                 case string s:
                     writer.WriteStringValue(s);
                     break;
@@ -319,10 +323,13 @@ namespace HotChocolate.Execution
                     writer.WriteStringValue(n.Value);
                     break;
 
+                case Uri u:
+                    writer.WriteStringValue(u.ToString());
+                    break;
+
                 default:
-                    throw new NotSupportedException(
-                        $"The specified type `{value.GetType().FullName}` " +
-                        "is not supported by the result serializer.");
+                    writer.WriteStringValue(value.ToString());
+                    break;
             }
         }
     }

@@ -101,7 +101,7 @@ const Container = styled.footer<{ url: string }>`
   padding: 200px 20px 60px;
   min-height: 300px;
   background-color: #fff;
-  background-image: url("${props => props.url}");
+  background-image: url("${(props) => props.url}");
   background-attachment: scroll;
   background-position-x: 50%;
   background-position-y: 0%;

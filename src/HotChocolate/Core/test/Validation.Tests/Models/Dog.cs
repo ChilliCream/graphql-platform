@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Validation
+namespace HotChocolate.Validation
 {
     public class Dog
         : IPet
@@ -8,6 +8,8 @@
         public string Nickname { get; set; }
 
         public int? BarkVolume { get; set; }
+        
+        public bool Barks { get; set; }
 
         public bool DoesKnowCommand(DogCommand dogCommand)
         {

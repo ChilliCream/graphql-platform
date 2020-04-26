@@ -8,13 +8,14 @@ namespace HotChocolate.Configuration.Validation
     internal class InterfaceHasAtLeastOneImplementationRule
         : ISchemaValidationRule
     {
-        public IEnumerable<ISchemaError> Validate(
+        public void Validate(
             IReadOnlyList<ITypeSystemObject> typeSystemObjects,
-            IReadOnlySchemaOptions options)
+            IReadOnlySchemaOptions options,
+            ICollection<ISchemaError> errors)
         {
             if (!options.StrictValidation)
             {
-                yield break;
+                return;
             }
 
             var interfaceTypes = new HashSet<InterfaceType>(
@@ -38,7 +39,7 @@ namespace HotChocolate.Configuration.Validation
             foreach (InterfaceType interfaceType in interfaceTypes.Where(fieldTypes.Contains))
             {
                 // TODO : resources
-                yield return SchemaErrorBuilder.New()
+                errors.Add(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(
                         CultureInfo.InvariantCulture,
                         "There is no object type implementing interface `{0}`.",
@@ -46,7 +47,7 @@ namespace HotChocolate.Configuration.Validation
                     .SetCode(ErrorCodes.Schema.InterfaceNotImplemented)
                     .SetTypeSystemObject(interfaceType)
                     .AddSyntaxNode(interfaceType.SyntaxNode)
-                    .Build();
+                    .Build());
             }
         }
     }

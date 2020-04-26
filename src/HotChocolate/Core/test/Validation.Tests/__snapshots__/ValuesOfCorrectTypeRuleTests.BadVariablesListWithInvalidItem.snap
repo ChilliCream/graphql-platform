@@ -1,0 +1,20 @@
+﻿[
+  {
+    "Message": "The specified value type of variable `a` does not match the variable type.",
+    "Code": null,
+    "Path": [],
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 50
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "variable": "a",
+      "variableType": "[String]",
+      "locationType": "String",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]

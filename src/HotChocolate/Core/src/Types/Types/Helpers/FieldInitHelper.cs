@@ -46,7 +46,7 @@ namespace HotChocolate.Types
             IReadOnlyCollection<FieldBase<TFieldType, TFieldDef>> fields)
             where TTypeDef : DefinitionBase, IHasSyntaxNode
             where TFieldType : IType
-            where TFieldDef : FieldDefinitionBase
+            where TFieldDef : FieldDefinitionBase, IHasSyntaxNode
 
         {
             if (context.Type is IType type && fields.Count == 0)

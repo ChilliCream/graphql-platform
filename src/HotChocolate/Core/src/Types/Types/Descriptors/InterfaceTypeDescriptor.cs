@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -90,6 +92,56 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = value;
             return this;
         }
+
+        public IInterfaceTypeDescriptor Interface<TInterface>()
+            where TInterface : InterfaceType
+        {
+            if (typeof(TInterface) == typeof(InterfaceType))
+            {
+                throw new ArgumentException(
+                    TypeResources.InterfaceTypeDescriptor_InterfaceBaseClass);
+            }
+
+            Definition.Interfaces.Add(typeof(TInterface).GetOutputType());
+            return this;
+        }
+
+        public IInterfaceTypeDescriptor Interface<TInterface>(
+            TInterface type)
+            where TInterface : InterfaceType
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            Definition.Interfaces.Add(new SchemaTypeReference(type));
+            return this;
+        }
+
+        public IInterfaceTypeDescriptor Interface(
+            NamedTypeNode namedType)
+        {
+            if (namedType == null)
+            {
+                throw new ArgumentNullException(nameof(namedType));
+            }
+
+            Definition.Interfaces.Add(new SyntaxTypeReference(
+                namedType, TypeContext.Output));
+            return this;
+        }
+
+        public IInterfaceTypeDescriptor Implements<T>()
+            where T : InterfaceType =>
+            Interface<T>();
+
+        public IInterfaceTypeDescriptor Implements<T>(T type)
+            where T : InterfaceType =>
+            Interface(type);
+
+        public IInterfaceTypeDescriptor Implements(NamedTypeNode type) =>
+            Interface(type);
 
         public IInterfaceFieldDescriptor Field(NameString name)
         {

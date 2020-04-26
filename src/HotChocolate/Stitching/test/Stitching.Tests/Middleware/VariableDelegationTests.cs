@@ -119,5 +119,53 @@ namespace HotChocolate.Stitching
         }
 
 
+        [Fact]
+        public async Task ObjectFieldVariableIsCorrectlyPassed()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            var connections = new Dictionary<string, HttpClient>();
+            serviceCollection.AddSingleton(CreateRemoteSchemas(connections));
+
+            serviceCollection.AddStitchedSchema(builder => builder
+                .AddSchemaFromHttp("contract")
+                .AddSchemaFromHttp("customer"));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result = null;
+
+            using (IServiceScope scope = services.CreateScope())
+            {
+                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                    .SetQuery(@"
+                    mutation createCustomer($name: String!) {
+                        createCustomer(input: { name: $name })
+                        {
+                            customer {
+                                name
+                                kind
+                            }
+                        }
+                    }")
+                    .SetServices(scope.ServiceProvider)
+                    .SetVariableValue("name", "someName")
+                    .Create();
+
+                result = await executor.ExecuteAsync(request);
+                Console.WriteLine(result);
+            }
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension("result"));
+            executor.Schema.ToString().MatchSnapshot(
+                new SnapshotNameExtension("schema"));
+        }
     }
 }

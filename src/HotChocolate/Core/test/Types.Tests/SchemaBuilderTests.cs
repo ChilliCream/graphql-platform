@@ -943,10 +943,7 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            Assert.Equal(
-                "The name `MyFoo` was already registered by another type. " +
-                "- Type: MyFoo",
-                Assert.Throws<SchemaException>(action).Message);
+            Assert.Throws<SchemaException>(action).Message.MatchSnapshot();
         }
 
         [Fact]
@@ -981,10 +978,7 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            Assert.Equal(
-                "Unable to resolve type reference `Output: Bar`. " +
-                "- Type: Query",
-                Assert.Throws<SchemaException>(action).Message);
+            Assert.Throws<SchemaException>(action).Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1004,9 +998,7 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            Assert.Equal(
-                "There is no object type implementing interface `Bar`. - Type: Bar",
-                Assert.Throws<SchemaException>(action).Message);
+            Assert.Throws<SchemaException>(action).Message.MatchSnapshot();
         }
 
         [Fact]

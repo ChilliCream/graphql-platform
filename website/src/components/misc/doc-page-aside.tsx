@@ -97,6 +97,7 @@ const CommunityItem = styled.li`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
+  line-height: initial;
 `;
 
 const CommunityLink = styled(Link)`

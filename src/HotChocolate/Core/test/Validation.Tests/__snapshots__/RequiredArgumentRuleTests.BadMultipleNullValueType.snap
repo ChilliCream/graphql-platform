@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Message": "The argument `y` is required.",
+    "Code": null,
+    "Path": [
+      "arguments"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 45
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "type": "Arguments",
+      "field": "multipleReqs",
+      "argument": "y",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    }
+  }
+]

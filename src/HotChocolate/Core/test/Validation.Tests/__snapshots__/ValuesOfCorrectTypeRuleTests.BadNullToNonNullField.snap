@@ -1,0 +1,23 @@
+﻿[
+  {
+    "Message": "The specified value type of field `nonNullField` does not match the field type.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "complexArgField"
+    ],
+    "Locations": [
+      {
+        "Line": 6,
+        "Column": 43
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "fieldName": "nonNullField",
+      "fieldType": "Boolean!",
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    }
+  }
+]

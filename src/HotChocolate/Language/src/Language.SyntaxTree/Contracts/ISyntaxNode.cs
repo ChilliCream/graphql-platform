@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -8,7 +9,11 @@ namespace HotChocolate.Language
 
         Location? Location { get; }
 
+        //int NodeCount { get; }
+
         IEnumerable<ISyntaxNode> GetNodes();
+
+        // void CopyTo(Span<ISyntaxNode> nodes);
 
         string ToString(bool indented);
     }

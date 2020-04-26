@@ -1,14 +1,15 @@
-using System.Threading;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Language;
 using HotChocolate.Server;
-using HotChocolate.Execution.Batching;
-using Microsoft.AspNetCore.Http;
+using static HotChocolate.Execution.QueryResultBuilder;
 
 namespace HotChocolate.AspNetCore
 {
@@ -58,145 +59,92 @@ namespace HotChocolate.AspNetCore
                 StringComparison.Ordinal);
         }
 
-        protected override async Task ExecuteRequestAsync(
-            HttpContext context,
-            IServiceProvider services)
+        protected override async Task ExecuteRequestAsync(HttpHelper httpHelper)
         {
             IReadOnlyList<GraphQLRequest> batch =
-                await ReadRequestAsync(context)
+                await ReadRequestAsync(httpHelper.Context)
                     .ConfigureAwait(false);
 
             if (batch.Count == 0)
             {
-                // TODO : resources
-                var result = QueryResultBuilder.CreateError(
-                    ErrorHandler.Handle(
-                        ErrorBuilder.New()
-                            .SetMessage("The GraphQL batch request has no elements.")
-                            .SetCode(ErrorCodes.Server.RequestInvalid)
-                            .Build()));
-
-                await _resultSerializer.SerializeAsync(
-                    result, context.Response.Body)
-                    .ConfigureAwait(false);
+                IError error = ErrorHandler.Handle(ErrorHelper.RequestHasNoElements());
+                httpHelper.Result = CreateError(error);
             }
             else if (batch.Count == 1)
             {
-                string operations = context.Request.Query[_batchOperations];
+                string operations = httpHelper.Context.Request.Query[_batchOperations];
 
                 if (operations == null)
                 {
-                    await ExecuteQueryAsync(context, services, batch[0])
-                        .ConfigureAwait(false);
+                    await ExecuteQueryAsync(httpHelper, batch[0]).ConfigureAwait(false);
                 }
-                else if (TryParseOperations(operations,
-                    out IReadOnlyList<string> operationNames))
+                else if (TryParseOperations(operations, out IReadOnlyList<string>? operationNames))
                 {
                     await ExecuteOperationBatchAsync(
-                        context, services, batch[0], operationNames)
+                        httpHelper, batch[0], operationNames)
                         .ConfigureAwait(false);
                 }
                 else
                 {
-                    // TODO : resources
-                    var result = QueryResultBuilder.CreateError(
-                        ErrorHandler.Handle(
-                            ErrorBuilder.New()
-                                .SetMessage("Invalid GraphQL Request.")
-                                .SetCode(ErrorCodes.Server.RequestInvalid)
-                                .Build()));
-
-                    SetResponseHeaders(
-                        context.Response,
-                        _resultSerializer.ContentType);
-
-                    await _resultSerializer.SerializeAsync(
-                        result, context.Response.Body)
-                        .ConfigureAwait(false);
+                    IError error = ErrorHandler.Handle(ErrorHelper.InvalidRequest());
+                    httpHelper.StatusCode = BadRequest;
+                    httpHelper.Result = CreateError(error);
                 }
             }
             else
             {
-                await ExecuteQueryBatchAsync(context, services, batch)
-                    .ConfigureAwait(false);
+                await ExecuteQueryBatchAsync(httpHelper, batch).ConfigureAwait(false);
             }
         }
 
-        private async Task ExecuteQueryAsync(
-            HttpContext context,
-            IServiceProvider services,
-            GraphQLRequest request)
+        private async Task ExecuteQueryAsync(HttpHelper httpHelper, GraphQLRequest request)
         {
             IReadOnlyQueryRequest queryRequest =
                 await BuildRequestAsync(
-                    context,
-                    services,
+                    httpHelper.Context,
+                    httpHelper.Services,
                     QueryRequestBuilder.From(request))
                     .ConfigureAwait(false);
 
-            IExecutionResult result = await _queryExecutor
-                .ExecuteAsync(queryRequest, context.GetCancellationToken())
-                .ConfigureAwait(false);
-
-            SetResponseHeaders(
-                context.Response,
-                _resultSerializer.ContentType);
-
-            await _resultSerializer.SerializeAsync(
-                result,
-                context.Response.Body,
-                context.GetCancellationToken())
+            httpHelper.StatusCode = OK;
+            httpHelper.Result = await _queryExecutor
+                .ExecuteAsync(queryRequest, httpHelper.Context.RequestAborted)
                 .ConfigureAwait(false);
         }
 
 
         private async Task ExecuteOperationBatchAsync(
-            HttpContext context,
-            IServiceProvider services,
+            HttpHelper httpHelper,
             GraphQLRequest request,
             IReadOnlyList<string> operationNames)
         {
             IReadOnlyList<IReadOnlyQueryRequest> requestBatch =
                 await BuildBatchRequestAsync(
-                    context, services, request, operationNames)
+                    httpHelper.Context, httpHelper.Services, request, operationNames)
                     .ConfigureAwait(false);
 
-            IResponseStream responseStream = await _batchExecutor
-                .ExecuteAsync(requestBatch, context.GetCancellationToken())
-                .ConfigureAwait(false);
-
-            SetResponseHeaders(
-                context.Response,
-                _streamSerializer.ContentType);
-
-            await _streamSerializer.SerializeAsync(
-                responseStream,
-                context.Response.Body,
-                context.GetCancellationToken())
+            httpHelper.StatusCode = OK;
+            httpHelper.StreamSerializer = _streamSerializer;
+            httpHelper.Result = await _batchExecutor
+                .ExecuteAsync(requestBatch, httpHelper.Context.RequestAborted)
                 .ConfigureAwait(false);
         }
 
         private async Task ExecuteQueryBatchAsync(
-            HttpContext context,
-            IServiceProvider services,
+            HttpHelper httpHelper,
             IReadOnlyList<GraphQLRequest> batch)
         {
             IReadOnlyList<IReadOnlyQueryRequest> requestBatch =
-                await BuildBatchRequestAsync(context, services, batch)
+                await BuildBatchRequestAsync(
+                    httpHelper.Context,
+                    httpHelper.Services,
+                    batch)
                     .ConfigureAwait(false);
 
-            SetResponseHeaders(
-                context.Response,
-                _streamSerializer.ContentType);
-
-            IResponseStream responseStream = await _batchExecutor
-                .ExecuteAsync(requestBatch, context.GetCancellationToken())
-                .ConfigureAwait(false);
-
-            await _streamSerializer.SerializeAsync(
-                responseStream,
-                context.Response.Body,
-                context.GetCancellationToken())
+            httpHelper.StatusCode = OK;
+            httpHelper.StreamSerializer = _streamSerializer;
+            httpHelper.Result = await _batchExecutor
+                .ExecuteAsync(requestBatch, httpHelper.Context.RequestAborted)
                 .ConfigureAwait(false);
         }
 
@@ -246,34 +194,33 @@ namespace HotChocolate.AspNetCore
         protected async Task<IReadOnlyList<GraphQLRequest>> ReadRequestAsync(
             HttpContext context)
         {
-            using (Stream stream = context.Request.Body)
+            Stream stream = context.Request.Body;
+            IReadOnlyList<GraphQLRequest>? batch = null;
+
+            switch (ParseContentType(context.Request.ContentType))
             {
-                IReadOnlyList<GraphQLRequest> batch = null;
+                case AllowedContentType.Json:
+                    batch = await _requestHelper
+                        .ReadJsonRequestAsync(
+                            stream,
+                            context.GetCancellationToken())
+                        .ConfigureAwait(false);
+                    break;
 
-                switch (ParseContentType(context.Request.ContentType))
-                {
-                    case AllowedContentType.Json:
-                        batch = await _requestHelper
-                            .ReadJsonRequestAsync(
-                                stream,
-                                context.GetCancellationToken())
-                            .ConfigureAwait(false);
-                        break;
+                case AllowedContentType.GraphQL:
+                    batch = await _requestHelper
+                        .ReadGraphQLQueryAsync(
+                            stream,
+                            context.GetCancellationToken())
+                        .ConfigureAwait(false);
+                    break;
 
-                    case AllowedContentType.GraphQL:
-                        batch = await _requestHelper
-                            .ReadGraphQLQueryAsync(
-                                stream,
-                                context.GetCancellationToken())
-                            .ConfigureAwait(false);
-                        break;
+                default:
+                    throw new NotSupportedException();
 
-                    default:
-                        throw new NotSupportedException();
-                }
-
-                return batch;
             }
+
+            return batch;
         }
 
         private static AllowedContentType ParseContentType(string s)
@@ -304,10 +251,9 @@ namespace HotChocolate.AspNetCore
 
         private static bool TryParseOperations(
             string operationNameString,
-            out IReadOnlyList<string> operationNames)
+            [NotNullWhen(true)]out IReadOnlyList<string>? operationNames)
         {
-            var reader = new Utf8GraphQLReader(
-                Encoding.UTF8.GetBytes(operationNameString));
+            var reader = new Utf8GraphQLReader(Encoding.UTF8.GetBytes(operationNameString));
             reader.Read();
 
             if (reader.Kind != TokenKind.LeftBracket)
@@ -339,5 +285,20 @@ namespace HotChocolate.AspNetCore
             GraphQL,
             Json
         }
+    }
+
+    internal static class ErrorHelper
+    {
+        public static IError InvalidRequest() =>
+            ErrorBuilder.New()
+                .SetMessage("Invalid GraphQL Request.")
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build();
+
+        public static IError RequestHasNoElements() =>
+            ErrorBuilder.New()
+                .SetMessage("The GraphQL batch request has no elements.")
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build();
     }
 }

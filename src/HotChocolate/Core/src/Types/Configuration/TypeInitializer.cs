@@ -31,11 +31,8 @@ namespace HotChocolate.Configuration
             new Dictionary<ITypeReference, ITypeReference>();
         private readonly Dictionary<FieldReference, RegisteredResolver> _resolvers =
             new Dictionary<FieldReference, RegisteredResolver>();
-        private readonly List<FieldMiddleware> _globalComps =
-            new List<FieldMiddleware>();
-        private readonly List<ISchemaError> _errors =
-            new List<ISchemaError>();
-
+        private readonly List<FieldMiddleware> _globalComps = new List<FieldMiddleware>();
+        private readonly List<ISchemaError> _errors = new List<ISchemaError>();
         private readonly IServiceProvider _services;
         private readonly IDescriptorContext _descriptorContext;
         private readonly List<ITypeReference> _initialTypes;

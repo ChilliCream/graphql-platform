@@ -55,7 +55,7 @@ namespace HotChocolate.Execution
         /// Gets or sets the query validation results.
         /// </summary>
         /// <returns></returns>
-        QueryValidationResult ValidationResult { get; set; }
+        DocumentValidatorResult ValidationResult { get; set; }
 
         /// <summary>
         /// Gets or sets the query execution result.
@@ -76,7 +76,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets or sets the execution bound field middleware resolver.
         /// </summary>
-        Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver
-        { get; set; }
+        Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver { get; set; }
     }
 }

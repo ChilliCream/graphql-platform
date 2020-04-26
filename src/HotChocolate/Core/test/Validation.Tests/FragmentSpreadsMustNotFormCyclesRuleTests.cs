@@ -1,22 +1,22 @@
-﻿using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
 using Xunit;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FragmentSpreadsMustNotFormCyclesRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FragmentSpreadsMustNotFormCyclesRuleTests()
-            : base(new FragmentSpreadsMustNotFormCyclesRule())
+            : base(builder => builder.AddFragmentRules())
         {
         }
 
         [Fact]
         public void FragmentCycle1()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         ...nameFragment
@@ -32,27 +32,18 @@ namespace HotChocolate.Validation
                     barkVolume
                     ...nameFragment
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The graph of fragment spreads must not form any " +
-                    "cycles including spreading itself. Otherwise an " +
-                    "operation could infinitely spread or infinitely " +
-                    "execute on cycles in the underlying data."));
+            ",
+            t => Assert.Equal(t.Message,
+                "The graph of fragment spreads must not form any " +
+                "cycles including spreading itself. Otherwise an " +
+                "operation could infinitely spread or infinitely " +
+                "execute on cycles in the underlying data."));
         }
 
         [Fact]
         public void FragmentCycle2()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         ...nameFragment
@@ -78,27 +69,18 @@ namespace HotChocolate.Validation
                     barkVolume
                     ...nameFragment
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The graph of fragment spreads must not form any " +
-                    "cycles including spreading itself. Otherwise an " +
-                    "operation could infinitely spread or infinitely " +
-                    "execute on cycles in the underlying data."));
+            ",
+            t => Assert.Equal(t.Message,
+                "The graph of fragment spreads must not form any " +
+                "cycles including spreading itself. Otherwise an " +
+                "operation could infinitely spread or infinitely " +
+                "execute on cycles in the underlying data."));
         }
 
         [Fact]
         public void InfiniteRecursion()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         ...dogFragment
@@ -118,27 +100,18 @@ namespace HotChocolate.Validation
                         ...dogFragment
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The graph of fragment spreads must not form any " +
-                    "cycles including spreading itself. Otherwise an " +
-                    "operation could infinitely spread or infinitely " +
-                    "execute on cycles in the underlying data."));
+            ",
+            t => Assert.Equal(t.Message,
+                "The graph of fragment spreads must not form any " +
+                "cycles including spreading itself. Otherwise an " +
+                "operation could infinitely spread or infinitely " +
+                "execute on cycles in the underlying data."));
         }
 
         [Fact]
         public void QueryWithSideBySideFragSpreads()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         ...dogFragment
@@ -155,12 +128,234 @@ namespace HotChocolate.Validation
                     name
                 }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void SingleReferenceIsValid()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
 
-            // assert
-            Assert.False(result.HasErrors);
+                fragment fragA on Dog { ...fragB }
+                fragment fragB on Dog { name }
+            ");
+        }
+
+        [Fact]
+        public void SpreadTwiceIsNotCircular()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+
+                fragment fragA on Dog { ...fragB, ...fragB }
+                fragment fragB on Dog { name }
+            ");
+        }
+
+        [Fact]
+        public void SpreadTwiceIndirectlyIsNotCircular()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+                      
+                fragment fragA on Dog { ...fragB, ...fragC }
+                fragment fragB on Dog { ...fragC }
+                fragment fragC on Dog { name }
+            ");
+        }
+
+        [Fact]
+        public void DoubleSpreadWithinAbstractTypes()
+        {
+            ExpectValid(@"
+                {
+                    human {
+                        pets {
+                            ...spreadsInAnon
+                        }
+                    }
+                }
+                      
+                fragment nameFragment on Pet {
+                    ... on Dog { name }
+                    ... on Cat { name }
+                }
+                
+                fragment spreadsInAnon on Pet {
+                    ... on Dog { ...nameFragment }
+                    ... on Cat { ...nameFragment }
+                }
+            ");
+        }
+
+        [Fact]
+        public void SpeardingRecursivelyWithinFieldFails()
+        {
+            ExpectErrors(@" 
+                {
+                    human { 
+                        ...fragA 
+                    }
+                }
+                
+                fragment fragA on Human { relatives { ...fragA } },
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfDirectly()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+                
+                fragment fragA on Dog { ...fragA }
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfDirectlyWithinInlineFragment()
+        {
+            ExpectErrors(@"
+                {
+                    human {
+                        pets {
+                            ...fragA
+                        }
+                    }
+                }
+                
+                fragment fragA on Pet {
+                    ... on Dog {
+                    ...fragA
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfIndirectly()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+                
+                fragment fragA on Dog { ...fragB }
+                fragment fragB on Dog { ...fragA }
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfIndirectlyWithinInlineFragment()
+        {
+            ExpectErrors(@"
+                {
+                    human {
+                        pets {
+                            ...fragA
+                        }
+                    }
+                }
+                
+                fragment fragA on Pet {
+                    ... on Dog {
+                        ...fragB
+                    }
+                }
+                
+                fragment fragB on Pet {
+                    ... on Dog {
+                        ...fragA
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfDeeply()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+                
+                fragment fragA on Dog { ...fragB }
+                fragment fragB on Dog { ...fragC }
+                fragment fragC on Dog { ...fragO }
+                fragment fragX on Dog { ...fragY }
+                fragment fragY on Dog { ...fragZ }
+                fragment fragZ on Dog { ...fragO }
+                fragment fragO on Dog { ...fragP }
+                fragment fragP on Dog { ...fragA, ...fragX }
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfDeeplyTwoPaths()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+                
+                fragment fragA on Dog { ...fragB, ...fragC }
+                fragment fragB on Dog { ...fragA }
+                fragment fragC on Dog { ...fragA }
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfDeeplyTwoPathsAltTraverseOrder()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+                
+                fragment fragA on Dog { ...fragC }
+                fragment fragB on Dog { ...fragC }
+                fragment fragC on Dog { ...fragA, ...fragB }
+            ");
+        }
+
+        [Fact]
+        public void NoSpreadingItselfDeeplyAndImmediately()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        ...fragA
+                    }
+                }
+                
+                fragment fragA on Dog { ...fragB }
+                fragment fragB on Dog { ...fragB, ...fragC }
+                fragment fragC on Dog { ...fragA, ...fragB }
+            ");
         }
     }
 }
