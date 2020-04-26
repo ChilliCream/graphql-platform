@@ -139,7 +139,6 @@ public class QueryType
 
 # Sorting
 
-
 Like with filter support you can add sorting support to your database queries.
 
 ```csharp
@@ -1463,24 +1462,5 @@ To configure you have to use the following delegate:
 | _definition_        | `out FilterFieldDefintion?` | The generated definition for the property. Return null if the current factory cannot handle the property. |
 
 If you just want to build your extension for implicit bindings, you can just out a custom `FilterFieldDefinition`.
-Usually, you also want to provide fluent extension points.
+It makes sense to encapsulate that logic in a FilterFieldDescriptor though. This descriptor can the
 
-```csharp
-private static bool TryCreateStringFilter(
-    IDescriptorContext context,
-    Type type,
-    PropertyInfo property,
-    IFilterConvention filterConventions,
-    [NotNullWhen(true)] out FilterFieldDefintion? definition)
-{
-    if (type == typeof())
-    {
-        var field = new StringFilterFieldDescriptor(context, property, filterConventions);
-        definition = field.CreateDefinition();
-        return true;
-    }
-
-    definition = null;
-    return false;
-}
-```
