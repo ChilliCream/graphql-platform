@@ -6,10 +6,13 @@ import { ArticleComments } from "../misc/article-comments";
 import {
   Article,
   ArticleContent,
+  ArticleHeader,
   ArticleTitle,
   ArticleWrapper,
 } from "../misc/article-elements";
+import { ArticleTableOfContent } from "../misc/article-table-of-content";
 import { DocPageAside } from "../misc/doc-page-aside";
+import { DocPageCommunity } from "../misc/doc-page-community";
 import { DocPageLegacy } from "../misc/doc-page-legacy";
 import { DocPageNavigation } from "../misc/doc-page-navigation";
 
@@ -30,16 +33,25 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
 
   return (
     <Container>
-      <DocPageNavigation data={data} selectedProduct={selectedProduct} />
+      <DocPageNavigation
+        data={data}
+        selectedPath={path}
+        selectedProduct={selectedProduct}
+      />
       <ArticleWrapper>
         <Article>
           <DocPageLegacy />
-          <ArticleTitle>{title}</ArticleTitle>
+          <ArticleHeader>
+            <ArticleTitle>{title}</ArticleTitle>
+          </ArticleHeader>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
         <ArticleComments data={data} path={path} title={title} />
       </ArticleWrapper>
-      <DocPageAside data={data} originPath={originPath} />
+      <DocPageAside>
+        <DocPageCommunity data={data} originPath={originPath} />
+        <ArticleTableOfContent data={data.file!.childMarkdownRemark!} />
+      </DocPageAside>
     </Container>
   );
 };
@@ -58,10 +70,11 @@ export const DocPageGraphQLFragment = graphql`
           title
         }
         html
+        ...ArticleTableOfContent
       }
     }
     ...ArticleComments
-    ...DocPageAside
+    ...DocPageCommunity
     ...DocPageNavigation
   }
 `;

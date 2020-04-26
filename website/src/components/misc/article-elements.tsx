@@ -19,16 +19,19 @@ export const Article = styled.article`
   }
 `;
 
-export const ArticleTitle = styled.h1`
+export const ArticleHeader = styled.header`
   margin-top: 20px;
   margin-right: 20px;
   margin-left: 20px;
-  font-size: 2em;
 
   @media only screen and (min-width: 800px) {
     margin-right: 50px;
     margin-left: 50px;
   }
+`;
+
+export const ArticleTitle = styled.h1`
+  font-size: 2em;
 `;
 
 export const ArticleContent = styled.div`

@@ -8,7 +8,7 @@ With _Hot Chocolate_ filters, you can expose complex filter objects through your
 
 The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
 
-## Overview
+# Overview
 
 Filters by default work on `IQueryable` but you can also easily customize them to use other interfaces.
 
