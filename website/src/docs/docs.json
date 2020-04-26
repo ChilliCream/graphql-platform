@@ -17,50 +17,12 @@
         "title": "API Reference",
         "items": [
           {
+            "path": "filtering",
+            "title": "Filtering"
+          },
+          {
             "path": "index",
             "title": "Whatever"
-          }
-        ]
-      },
-      {
-        "path": "filtering",
-        "title": "Filtering",
-        "items": [
-          {
-            "path": "getting-started",
-            "title": "Getting Started"
-          },
-          {
-            "path": "filter-and-operations",
-            "title": "Filters & Operations"
-          },
-          {
-            "path": "string-filter",
-            "title": "- String Filter"
-          },
-          {
-            "path": "bool-filter",
-            "title": "- Boolean Filter"
-          },
-          {
-            "path": "comparable-filter",
-            "title": "- Comparable Filter"
-          },
-          {
-            "path": "object-filter",
-            "title": "- Object Filter"
-          },
-          {
-            "path": "list-filter",
-            "title": "- List Filter"
-          },
-          {
-            "path": "filter-customization",
-            "title": "Customization"
-          },
-          {
-            "path": "filter-naming-convention",
-            "title": "Naming Convention"
           }
         ]
       }
