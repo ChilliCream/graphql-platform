@@ -13,6 +13,7 @@ import { State } from "../../state";
 import { toggleNavigationGroup } from "../../state/common";
 import { IconContainer } from "./icon-container";
 import { Link } from "./link";
+import { useStickyElement } from "./useStickyElement";
 
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
@@ -27,6 +28,10 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   data,
   selectedProduct,
 }) => {
+  const { containerRef, elementRef } = useStickyElement<
+    HTMLElement,
+    HTMLDivElement
+  >();
   const expandedPaths = useSelector<State, string[]>(
     (state) => state.common.expandedPaths
   );
@@ -99,8 +104,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   }, [handleCloseClick]);
 
   return (
-    <Navigation>
-      <FixedContainer>
+    <Navigation ref={containerRef}>
+      <FixedContainer ref={elementRef}>
         <ProductSwitcher>
           <ProductSwitcherButton
             onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
@@ -187,6 +192,7 @@ interface Item {
 }
 
 const Navigation = styled.nav`
+  position: relative;
   display: none;
   flex: 0 0 250px;
   flex-direction: column;
@@ -203,7 +209,7 @@ const Navigation = styled.nav`
 
 const FixedContainer = styled.div`
   position: fixed;
-  padding: 25px 0 250px;
+  padding: 25px 0 25px;
   width: 250px;
   overflow: initial;
 `;
