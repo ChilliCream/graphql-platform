@@ -74,27 +74,27 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   h1 {
-    font-size: 2em;
+    font-size: 1.750em;
   }
 
   h2 {
-    font-size: 1.667em;
+    font-size: 1.625em;
   }
 
   h3 {
-    font-size: 1.667em;
-  }
-
-  h4 {
     font-size: 1.5em;
   }
 
-  h5 {
+  h4 {
     font-size: 1.375em;
   }
 
-  h6 {
+  h5 {
     font-size: 1.25em;
+  }
+
+  h6 {
+    font-size: 1.125em;
   }
 
   hr {
@@ -199,7 +199,7 @@ export const GlobalStyle = createGlobalStyle`
     padding-left: 0.75em;
     border-left: 0.25em solid #f99;
   }
-  
+
   .mermaid {
     margin-bottom: 1.188em;
   }

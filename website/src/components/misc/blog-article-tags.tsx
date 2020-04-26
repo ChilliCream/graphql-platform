@@ -32,12 +32,8 @@ export const BlogArticleTagsGraphQLFragment = graphql`
 `;
 
 const Tags = styled.ul`
-  margin: 0 20px 20px;
+  margin: 0 0 20px;
   list-style-type: none;
-
-  @media only screen and (min-width: 800px) {
-    margin: 0 50px 20px;
-  }
 `;
 
 const Tag = styled.li`
