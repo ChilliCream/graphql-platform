@@ -10,7 +10,9 @@ import {
   ArticleTitle,
   ArticleWrapper,
 } from "../misc/article-elements";
+import { ArticleTableOfContent } from "../misc/article-table-of-content";
 import { DocPageAside } from "../misc/doc-page-aside";
+import { DocPageCommunity } from "../misc/doc-page-community";
 import { DocPageLegacy } from "../misc/doc-page-legacy";
 import { DocPageNavigation } from "../misc/doc-page-navigation";
 
@@ -42,7 +44,10 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         </Article>
         <ArticleComments data={data} path={path} title={title} />
       </ArticleWrapper>
-      <DocPageAside data={data} originPath={originPath} />
+      <DocPageAside>
+        <DocPageCommunity data={data} originPath={originPath} />
+        <ArticleTableOfContent data={data.file!.childMarkdownRemark!} />
+      </DocPageAside>
     </Container>
   );
 };
@@ -61,10 +66,11 @@ export const DocPageGraphQLFragment = graphql`
           title
         }
         html
+        ...ArticleTableOfContent
       }
     }
     ...ArticleComments
-    ...DocPageAside
+    ...DocPageCommunity
     ...DocPageNavigation
   }
 `;
