@@ -6,6 +6,7 @@ import { ArticleComments } from "../misc/article-comments";
 import {
   Article,
   ArticleContent,
+  ArticleHeader,
   ArticleTitle,
   ArticleWrapper,
 } from "../misc/article-elements";
@@ -34,7 +35,9 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       <ArticleWrapper>
         <Article>
           <DocPageLegacy />
-          <ArticleTitle>{title}</ArticleTitle>
+          <ArticleHeader>
+            <ArticleTitle>{title}</ArticleTitle>
+          </ArticleHeader>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
         <ArticleComments data={data} path={path} title={title} />
