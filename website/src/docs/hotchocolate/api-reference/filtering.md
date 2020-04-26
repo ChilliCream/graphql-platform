@@ -8,7 +8,7 @@ With _Hot Chocolate_ filters, you can expose complex filter objects through your
 
 The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
 
-## Overview
+# Overview
 
 Filters by default work on `IQueryable` but you can also easily customize them to use other interfaces.
 
@@ -96,7 +96,7 @@ public class Query
 
 > ⚠️ **Note:** Schema first does currently not support filtering!
 
-## Customizing Filters
+# Customizing Filters
 
 The filter objects can be customized and you can rename and remove operations from it or define operations explicitly.
 
@@ -137,7 +137,8 @@ public class QueryType
 }
 ```
 
-## Sorting
+# Sorting
+
 
 Like with filter support you can add sorting support to your database queries.
 
@@ -196,14 +197,14 @@ After the paging middleware has been executed and updated the result on the midd
 
 So, if we, for instance, applied paging as our last middleware the data set would have been sliced first and then filtered which in most cases is not what we actually want.
 
-## Filter & Operations Kinds
+# Filter & Operations Kinds
 
 Filtering can be broken down into different kinds of filters that then have different operations.
 The filter kind is bound to the type. A string is fundamentally something different than an array or an object.
 Each filter kind has different operations that can be applied to it. Some operations are unique to a filter and some operations are shared across multiple filters.
 e.g. A string filter has string specific operations like `Contains` or `EndsWith` but still shares the operations `Equals` and `NotEquals` with the boolean filter.
 
-### Filter Kinds
+## Filter Kinds
 
 Hot Chocolate knows following filter kinds
 
@@ -215,7 +216,7 @@ Hot Chocolate knows following filter kinds
 | Array      | Some, Any, All, None                                                                                                                                                 |
 | Comparable | Equals, In, GreaterThan, GreaterThanOrEqual, LowerThan, LowerThanOrEqual, NotEquals, NotIn, NotGreaterThan, NotGreaterThanOrEqual, NotLowerThan, NotLowerThanOrEqual |
 
-### Operations Kinds
+## Operations Kinds
 
 Hot Chocolate knows following operation kinds
 
@@ -283,7 +284,7 @@ input UserFilter {
 }
 ```
 
-### BooleanOperationDescriptor
+### Boolean Operation Descriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of Boolean filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`
@@ -355,7 +356,7 @@ input UserFilter {
 }
 ```
 
-### ComparableOperationDescriptor
+### Comparable Operation Descriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of comparable filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`
@@ -431,7 +432,7 @@ input UserFilter {
 }
 ```
 
-## StringOperationDescriptor
+### String Operation Descriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of string filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`
@@ -529,7 +530,7 @@ input AddressFilter {
 }
 ```
 
-### ObjectOperationDescriptor
+### Object Operation Descriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of comparable filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`
@@ -686,7 +687,7 @@ input ISingleFilterOfStringFilter {
 }
 ```
 
-### ArrayOperationDescriptor
+### Array Operation Descriptor
 
 The example above showed that configuring the operations is optional.
 If you want to have access to the actual field input types or allow only a subset of array filters for a given property, you can configure the operation over the `IFilterInputTypeDescriptor<User>`
@@ -712,11 +713,11 @@ public class UserFilterType : FilterInputType<User>
 }
 ```
 
-## Naming Conventions
+# Naming Conventions
 
 _Hot Chococlate_ already provides two naming schemes for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of <<LINk FILTER CONVENTIONS>>
 
-### Snake Case
+## Snake Case
 
 **Configuration**
 You can configure the Snake Case with the `UseSnakeCase` extension method convention on the `IFilterConventionDescriptor`
@@ -794,7 +795,7 @@ input ISingleFilterOfInt16Filter {
 }
 ```
 
-### Pascal Case
+## Pascal Case
 
 **Configuration**
 You can configure the Pascal Case with the `UsePascalCase` extension method convention on the `IFilterConventionDescriptor`
@@ -873,7 +874,7 @@ input ISingleFilterOfInt16Filter {
 
 ---
 
-## Customizing Filter
+# Customizing Filter
 
 Hot Chocolate provides different APIs to customize filtering. You can write custom filter input types, customize the inference behavior of .NET Objects, customize the generated expression, or create a custom visitor and attach your exotic database.
 
@@ -892,7 +893,7 @@ Hot Chocolate provides different APIs to customize filtering. You can write cust
 | _You want to create your own filter types with custom parameters and custom expressions? e.g. GeoJson?_                    | Filter&nbsp;Conventions         |
 | _You have a database client that does not support `IQueryable` and wants to generate filters for it?_                      | Custom&nbsp;Visitor             |
 
-## Custom&nbsp;FilterInputType
+# Custom&nbsp;FilterInputType
 
 Under the hood, filtering is based on top of normal _Hot Chocolate_ input types. You can easily customize them with a very familiar fluent interface. The filter input types follow the same `descriptor` scheme as you are used to from the normal filter input types. Just extend the base class `FilterInputType<T>` and override the descriptor method.
 
@@ -1054,7 +1055,7 @@ SchemaBuilder.New().AddConvention<CustomConvention>();
 
 <br/>
 
-##### Argument Name
+### Argument Name
 
 With the convention descriptor, you can easily change the argument name of the `FilterInputType`.
 
@@ -1072,7 +1073,7 @@ type Query {
 }
 ```
 
-##### Change Name of Scalar List Type Element
+### Change Name of Scalar List Type Element
 
 You can change the name of the element of the list type.
 
@@ -1103,7 +1104,7 @@ input ISingleFilterOfInt16Filter {
 }
 ```
 
-##### Configure Filter Type Name Globally
+### Configure Filter Type Name Globally
 
 To change the way filter types are named, you have to exchange the factory.
 
@@ -1130,7 +1131,7 @@ type Query {
 }
 ```
 
-##### Configure Filter Description Globally
+### Configure Filter Description Globally
 
 To change the way filter types are named, you have to exchange the factory.
 
@@ -1163,7 +1164,7 @@ input UserFilter {
 }
 ```
 
-##### Reset Configuration
+### Reset Configuration
 
 By default, all predefined values are configured. To start from scratch, you need to call `Reset()`first.
 
@@ -1215,7 +1216,7 @@ You can drill up with `And()`.
 
 In this section, we will focus mainly on the generation of the schema. If you are interested in changing how filters are translated to the database, you have to look here <<INSERT LINK HERE>>
 
-##### Configure Filter Operations
+#### Configure Filter Operations
 
 Operations can be configured in two ways.
 
@@ -1264,7 +1265,7 @@ input UserFilter {
 }
 ```
 
-###### Change the name of an operation
+##### Change the name of an operation
 
 To change the name of an operation you need to specify a delegate of the following type:
 
@@ -1322,7 +1323,7 @@ input UserFilter {
 }
 ```
 
-###### Change the description of an operation
+##### Change the description of an operation
 
 In the same way, you can configure names you can also configure the description of operations.
 You can either set the description for all operations of this kind or only for a specific one in combination with a filter kind.
@@ -1385,7 +1386,7 @@ input UserFilter {
 }
 ```
 
-###### Hide Operations
+##### Hide Operations
 
 _Hot Chocolate_ comes preconfigured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
 If your database provider does not support certain `IQueryable` methods you can just ignore the operation. Ignored operations do not generate filter input types.
@@ -1436,7 +1437,7 @@ input UserFilter {
 }
 ```
 
-###### Configure Implicit Filter
+##### Configure Implicit Filter
 
 The default binding behavior of _Hot Chocolate_ is implicit. Filter types are no exception.
 This first may seem like magic, but unfortunately, there is none. It is just code. With `AddImplicitFilter` you can add this pinch of magic to your extension too.
