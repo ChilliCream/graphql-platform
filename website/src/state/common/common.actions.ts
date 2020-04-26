@@ -1,5 +1,9 @@
 import { createAction } from "../state.helpers";
 
+export const changeSearchQuery = createAction<{ readonly query: string }>(
+  "[Common] Change search query"
+);
+
 export const hideCookieConsent = createAction(
   "[Common] Hide cookie consent message"
 );
