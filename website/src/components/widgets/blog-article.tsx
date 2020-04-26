@@ -7,6 +7,7 @@ import { ArticleComments } from "../misc/article-comments";
 import {
   Article,
   ArticleContent,
+  ArticleHeader,
   ArticleTitle,
   ArticleWrapper,
 } from "../misc/article-elements";
@@ -36,10 +37,12 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
       <BlogArticleSharebar data={data} tags={existingTags} />
       <ArticleWrapper>
         <Article>
-          {featuredImage && <Img fluid={featuredImage} />}
-          <ArticleTitle>{title}</ArticleTitle>
-          <BlogArticleMetadata data={markdownRemark!} />
-          <BlogArticleTags tags={existingTags} />
+          <ArticleHeader>
+            {featuredImage && <Img fluid={featuredImage} />}
+            <ArticleTitle>{title}</ArticleTitle>
+            <BlogArticleMetadata data={markdownRemark!} />
+            <BlogArticleTags tags={existingTags} />
+          </ArticleHeader>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
         <ArticleComments data={data} path={path} title={title} />

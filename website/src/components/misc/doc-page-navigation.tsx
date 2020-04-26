@@ -21,11 +21,13 @@ import ProductSwitcherIconSvg from "../../images/th-large.svg";
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
+  selectedPath: string;
   selectedProduct: string;
 }
 
 export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> = ({
   data,
+  selectedPath,
   selectedProduct,
 }) => {
   const { containerRef, elementRef } = useStickyElement<
@@ -68,7 +70,12 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
           !subItems && path === "index" ? basePath : basePath + "/" + path;
 
         return (
-          <NavigationItem key={itemPath + (subItems ? "/parent" : "")}>
+          <NavigationItem
+            key={itemPath + (subItems ? "/parent" : "")}
+            className={
+              !subItems && isActive(selectedPath, itemPath) ? "active" : ""
+            }
+          >
             {subItems ? (
               <NavigationGroup
                 expanded={expandedPaths.indexOf(itemPath) !== -1}
@@ -161,6 +168,10 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     </Navigation>
   );
 };
+
+function isActive(selectedPath: string, itemPath: string) {
+  return itemPath === selectedPath.substring(0, selectedPath.lastIndexOf("/"));
+}
 
 export const DocPageNavigationGraphQLFragment = graphql`
   fragment DocPageNavigation on Query {
@@ -304,6 +315,10 @@ const NavigationItem = styled.li`
   padding: 0;
   min-height: 20px;
   line-height: initial;
+
+  &.active > a {
+    font-weight: bold;
+  }
 `;
 
 const NavigationGroupToggle = styled.div`
