@@ -33,7 +33,11 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
 
   return (
     <Container>
-      <DocPageNavigation data={data} selectedProduct={selectedProduct} />
+      <DocPageNavigation
+        data={data}
+        selectedPath={path}
+        selectedProduct={selectedProduct}
+      />
       <ArticleWrapper>
         <Article>
           <DocPageLegacy />
