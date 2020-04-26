@@ -15,6 +15,7 @@ Hot Chocolate provides different APIs to customize filtering. You can write cust
 | _You want to change the name of the `where` argument?_                                                                     | Filter Conventions ArgumentName |
 | _You want to configure how the name and the description of filters are generated in general? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
 | _You want to configure what filters are allowed in general?_                                                               | Filter&nbsp;Conventions         |
+| \_Your database provider does not support certain operations of `IQueryable`                                               | Filter&nbsp;Conventions         |
 | _You want to change the naming of a particular filter type? e.g._ `foo_contains` _should be_ `foo_like`                    | Filter&nbsp;Conventions         |
 | _You want to customize the expression a filter is generating: e.g._ `_equals` _should not be case sensitive?_              | Expression&nbsp;Visitor&nbsp;   |
 | _You want to create your own filter types with custom parameters and custom expressions? e.g. GeoJson?_                    | Filter&nbsp;Conventions         |
@@ -160,8 +161,6 @@ SchemaBuilder.New().AddConvention<CustomConvention>();
 //
 SchemaBuilder.New().AddConvention(new FilterConvention(x => /*Config*/));
 ```
-
----
 
 ## Convention Descriptor Basics
 
@@ -316,6 +315,31 @@ The convention provides a familiar interface to the type configuration. It is re
 
 Filtering has two core components at its heart. First, you have the inference of filters based on .NET types. The second component is an interceptor that translates the filters to the desired output and applies it to the resolver pipeline. These two parts can (and have to) be configured completely independently. With this separation, it is possible to easily extend the behavior. The descriptor is designed to be extendable by extension methods.
 
+**It's fluent**
+
+Filter conventions are a completely fluent experience. You can write a whole configuration as a chain of method calls.
+This provides a very clean interface, but can, on the other hand, get messy quickly. We recommend using indentation to keep the configuration comprehensible.
+You can drill up with `And()`.
+
+```csharp
+
+ descriptor.Operation(FilterOperationKind.Equals).Description("has to be equal");
+ descriptor.Operation(FilterOperationKind.NotEquals).Description("has not to be equal");
+ descriptor.Type(FilterKind.Comparable).Operation(FilterOperationKind.NotEquals).Description("has to be comparable and not equal")
+
+
+ descriptor
+    .Operation(FilterOperationKind.Equals)
+        .Description("has to be equal")
+        .And()
+    .Operation(FilterOperationKind.NotEquals)
+        .Description("has not to be equal")
+        .And()
+    .Type(FilterKind.Comparable)
+        .Operation(FilterOperationKind.NotEquals)
+            .Description("has to be comparable and not equal")
+```
+
 ### Configuration of the type system
 
 In this section, we will focus mainly on the generation of the schema. If you are interested in changing how filters are translated to the database, you have to look here <<INSERT LINK HERE>>
@@ -369,7 +393,7 @@ input UserFilter {
 }
 ```
 
-**Change the name of an operation**
+###### Change the name of an operation
 
 To change the name of an operation you need to specify a delegate of the following type:
 
@@ -396,7 +420,7 @@ public delegate NameString CreateFieldName(
             .Name((def, kind) => def.Name + "_niente" )
 ```
 
-**after**
+**result**
 
 ```graphql{8,18}
 input UserFilter {
@@ -424,5 +448,167 @@ input UserFilter {
   name_starts_with: String
   AND: [UserFilter!]
   OR: [UserFilter!]
+}
+```
+
+###### Change the description of an operation
+
+In the same way, you can configure names you can also configure the description of operations.
+You can either set the description for all operations of this kind or only for a specific one in combination with a filter kind.
+
+**Configuration**
+
+```csharp
+ descriptor
+    .Operation(FilterOperationKind.Equals)
+        .Description("has to be equal")
+        .And()
+    .Operation(FilterOperationKind.NotEquals)
+        .Description("has not to be equal")
+        .And()
+    .Type(FilterKind.Comparable)
+        .Operation(FilterOperationKind.NotEquals)
+            .Description("has to be comparable and not equal")
+```
+
+**result**
+
+```graphql{2-4,11-14, 20-22,27-29}
+input UserFilter {
+  """
+  has to be equal
+  """
+  loggingCount: Int
+  loggingCount_gt: Int
+  loggingCount_gte: Int
+  loggingCount_in: [Int!]
+  loggingCount_lt: Int
+  loggingCount_lte: Int
+  """
+  has to be comparable and not equal
+  """
+  loggingCount_not: Int
+  loggingCount_not_gt: Int
+  loggingCount_not_gte: Int
+  loggingCount_not_in: [Int!]
+  loggingCount_not_lt: Int
+  loggingCount_not_lte: Int
+  """
+  has to be equal
+  """
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_in: [String]
+  """
+  has not to be equal
+  """
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: [String]
+  name_not_starts_with: String
+  name_starts_with: String
+  AND: [UserFilter!]
+  OR: [UserFilter!]
+}
+```
+
+###### Hide Operations
+
+_Hot Chocolate_ comes preconfigured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
+If your database provider does not support certain `IQueryable` methods you can just ignore the operation. Ignored operations do not generate filter input types.
+
+There are multiple ways to ignore an operation:
+
+**Configuration**
+
+```csharp
+ descriptor
+    .Ignore(FilterOperationKind.Equals)
+    .Operation(FilterOperationKind.NotEquals)
+        .Ignore()
+        .And()
+    .Type(FilterKind.Comparable)
+          .Operation(FilterOperationKind.GreaterThanOrEqual)
+          .Ignore();
+```
+
+**result**
+
+```graphql{2,4, 8,14,18}
+input UserFilter {
+  ↵
+  loggingCount_gt: Int
+  ↵
+  loggingCount_in: [Int!]
+  loggingCount_lt: Int
+  loggingCount_lte: Int
+  ↵
+  loggingCount_not_gt: Int
+  loggingCount_not_gte: Int
+  loggingCount_not_in: [Int!]
+  loggingCount_not_lt: Int
+  loggingCount_not_lte: Int
+  ↵
+  name_contains: String
+  name_ends_with: String
+  name_in: [String]
+  ↵
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: [String]
+  name_not_starts_with: String
+  name_starts_with: String
+  AND: [UserFilter!]
+  OR: [UserFilter!]
+}
+```
+
+###### Configure Implicit Filter
+
+The default binding behavior of _Hot Chocolate_ is implicit. Filter types are no exception.
+This first may seem like magic, but unfortunately, there is none. It is just code. With `AddImplicitFilter` you can add this pinch of magic to your extension too.
+The filters are created as the type is generated. For each property of a model, a list of factories is sequentially asked to create a definition. The first that can handle the property wins and creates a definition for the filter.
+
+To configure you have to use the following delegate:
+
+```csharp
+    public delegate bool TryCreateImplicitFilter(
+        IDescriptorContext context,
+        Type type,
+        PropertyInfo property,
+        IFilterConvention filterConventions,
+        [NotNullWhen(true)] out FilterFieldDefintion? definition);
+```
+
+| parameter           | type                        | description                                                                                               |
+| ------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| _context_           | `IDescriptorContext`        | The context of the type descriptor                                                                        |
+| _type_              | `Type`                      | The type of the property. `Nullable<T>` is already unwrapped (typeof(T))                                  |
+| _property_          | `PropertyInfo`              | The property                                                                                              |
+| _filterConventions_ | `IFilterConvention`         | The instance of the `IFilterContention`.                                                                  |
+| _definition_        | `out FilterFieldDefintion?` | The generated definition for the property. Return null if the current factory cannot handle the property. |
+
+If you just want to build your extension for implicit bindings, you can just out a custom `FilterFieldDefinition`.
+Usually, you also want to provide fluent extension points.
+
+```csharp
+private static bool TryCreateStringFilter(
+    IDescriptorContext context,
+    Type type,
+    PropertyInfo property,
+    IFilterConvention filterConventions,
+    [NotNullWhen(true)] out FilterFieldDefintion? definition)
+{
+    if (type == typeof())
+    {
+        var field = new StringFilterFieldDescriptor(context, property, filterConventions);
+        definition = field.CreateDefinition();
+        return true;
+    }
+
+    definition = null;
+    return false;
 }
 ```
