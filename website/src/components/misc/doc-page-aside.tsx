@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { DocPageAsideFragment } from "../../../graphql-types";
 import { IconContainer } from "./icon-container";
 import { Link } from "./link";
+import { useStickyElement } from "./useStickyElement";
 
 import GitHubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";
@@ -17,12 +18,16 @@ export const DocPageAside: FunctionComponent<DocPageAsideProperties> = ({
   data,
   originPath,
 }) => {
+  const { containerRef, elementRef } = useStickyElement<
+    HTMLElement,
+    HTMLDivElement
+  >();
   const metadata = data.site!.siteMetadata!;
   const docPath = `${metadata.repositoryUrl!}/blob/master/website/src/docs/${originPath}`;
 
   return (
-    <Aside>
-      <FixedContainer>
+    <Aside ref={containerRef}>
+      <FixedContainer ref={elementRef}>
         <Title>Help us improving our content</Title>
         <CommunityItems>
           <CommunityItem>
@@ -76,7 +81,7 @@ const Aside = styled.aside`
 
 const FixedContainer = styled.div`
   position: fixed;
-  padding: 25px 0 250px;
+  padding: 25px 0 25px;
   width: 250px;
 `;
 
