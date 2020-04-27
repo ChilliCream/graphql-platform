@@ -7,27 +7,26 @@ namespace HotChocolate.Types.Filters.Conventions
     public class FilterConventionDescriptor
         : IFilterConventionDescriptor
     {
-        private IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase>? _visitorDescriptor
-            = null;
+        private IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase>? _visitorDescriptor;
 
-        private List<TryCreateImplicitFilter> _implicitFilters
-            = new List<TryCreateImplicitFilter>();
+        private readonly List<TryCreateImplicitFilter> _implicitFilters =
+            new List<TryCreateImplicitFilter>();
 
         protected FilterConventionDescriptor()
         {
         }
 
-        internal protected FilterConventionDefinition Definition { get; private set; }
-            = new FilterConventionDefinition();
+        internal protected FilterConventionDefinition Definition { get; private set; } =
+            new FilterConventionDefinition();
 
         private readonly ConcurrentDictionary<FilterOperationKind,
-            FilterConventionDefaultOperationDescriptor> _defaultOperations
-                = new ConcurrentDictionary<FilterOperationKind,
+            FilterConventionDefaultOperationDescriptor> _defaultOperations =
+                new ConcurrentDictionary<FilterOperationKind,
                     FilterConventionDefaultOperationDescriptor>();
 
         private readonly ConcurrentDictionary<FilterKind,
-            FilterConventionTypeDescriptor> _configurations
-                = new ConcurrentDictionary<FilterKind, FilterConventionTypeDescriptor>();
+            FilterConventionTypeDescriptor> _configurations =
+                new ConcurrentDictionary<FilterKind, FilterConventionTypeDescriptor>();
 
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
