@@ -12,7 +12,6 @@ namespace HotChocolate
         : IEquatable<Optional<T>>
         , IOptional
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Optional{T}"/> struct.
         /// </summary>
@@ -32,12 +31,12 @@ namespace HotChocolate
         object? IOptional.Value => Value;
 
         /// <summary>
-        /// <c>true</c> if the optional has a value.
+        /// <c>true</c> if the optional was explicitly set.
         /// </summary>
         public bool HasValue { get; }
 
         /// <summary>
-        /// <c>true</c> if the optional has no value.
+        /// <c>true</c> if the optional was not explicitly set.
         /// </summary>
         public bool IsEmpty => !HasValue;
 
@@ -47,7 +46,7 @@ namespace HotChocolate
         /// <returns>The name string value</returns>
         public override string? ToString()
         {
-            return Value?.ToString();
+            return HasValue ? Value?.ToString() ?? "null" : "unspecified";
         }
 
         /// <summary>
