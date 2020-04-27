@@ -31,9 +31,9 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression property = GetProperty(operation, context);
 
                 result = FilterExpressionBuilder.In(
-                            property,
-                            operation.Property.PropertyType,
-                            parsedValue);
+                    property,
+                    operation.Property.PropertyType,
+                    parsedValue);
 
                 return true;
             }
@@ -61,8 +61,8 @@ namespace HotChocolate.Types.Filters.Expressions
                 return false;
             }
 
-            if (operation.Type == typeof(string)
-                && type.IsInstanceOfType(value))
+            if (operation.Type == typeof(string) &&
+                type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
 

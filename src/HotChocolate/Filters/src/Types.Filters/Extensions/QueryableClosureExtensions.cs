@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Filters
             [NotNullWhen(true)]out LambdaExpression? expression)
         {
             expression = null;
+
             if (closure.Level.Peek().Count == 0)
             {
                 return false;
@@ -28,6 +29,7 @@ namespace HotChocolate.Types.Filters
             [NotNullWhen(true)]out Expression<T>? expression)
         {
             expression = null;
+
             if (closure.Level.Peek().Count == 0)
             {
                 return false;
@@ -44,6 +46,4 @@ namespace HotChocolate.Types.Filters
             => FilterExpressionBuilder.NotNullAndAlso(
                 closure.Parameter, closure.Level.Peek().Peek());
     }
-
-
 }

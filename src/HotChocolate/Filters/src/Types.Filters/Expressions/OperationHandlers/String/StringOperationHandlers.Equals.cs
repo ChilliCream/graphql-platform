@@ -29,7 +29,6 @@ namespace HotChocolate.Types.Filters.Expressions
                 type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
-
                 result = FilterExpressionBuilder.Equals(property, parsedValue);
                 return true;
             }
@@ -61,7 +60,6 @@ namespace HotChocolate.Types.Filters.Expressions
                 type.IsInstanceOfType(value))
             {
                 Expression property = GetProperty(operation, context);
-
                 result = FilterExpressionBuilder.NotEquals(property, parsedValue);
                 return true;
             }
