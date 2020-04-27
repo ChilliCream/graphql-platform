@@ -5,7 +5,7 @@ using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
-    public class ArrayBooleanFilterOperationDescriptor 
+    public class ArrayBooleanFilterOperationDescriptor
         : BooleanFilterOperationDescriptorBase
         , IArrayBooleanFilterOperationDescriptor
     {

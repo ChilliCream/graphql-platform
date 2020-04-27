@@ -8,22 +8,22 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Types.Filters.Conventions
 {
     public delegate bool FilterOperationHandler(
-            FilterOperation operation,
-            IInputType type,
-            IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)]out Expression? result);
+        FilterOperation operation,
+        IInputType type,
+        IValueNode value,
+        IQueryableFilterVisitorContext context,
+        [NotNullWhen(true)]out Expression? result);
 
     public delegate bool FilterFieldEnter(
-            FilterOperationField field,
-            ObjectFieldNode node,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)]out ISyntaxVisitorAction? action);
+        FilterOperationField field,
+        ObjectFieldNode node,
+        IQueryableFilterVisitorContext context,
+        [NotNullWhen(true)]out ISyntaxVisitorAction? action);
 
     public delegate void FilterFieldLeave(
-            FilterOperationField field,
-            ObjectFieldNode node,
-            IQueryableFilterVisitorContext context);
+        FilterOperationField field,
+        ObjectFieldNode node,
+        IQueryableFilterVisitorContext context);
 
     public class FilterExpressionVisitorDescriptor :
         FilterVisitorDescriptorBase<FilterExpressionVisitorDefinition>,

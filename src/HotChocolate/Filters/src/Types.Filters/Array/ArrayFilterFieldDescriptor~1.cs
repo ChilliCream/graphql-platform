@@ -26,7 +26,6 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-
         /// <inheritdoc/>
         public new IArrayFilterFieldDescriptor<TArray> BindFilters(
             BindingBehavior bindingBehavior)
