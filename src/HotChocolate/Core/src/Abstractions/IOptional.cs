@@ -4,7 +4,7 @@ namespace HotChocolate
 {
     /// <summary>
     /// This interface represents a way to access optionals easier
-    /// without the need to now the actual value type.
+    /// without the need to know the actual value type.
     /// </summary>
     public interface IOptional
     {
