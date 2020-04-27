@@ -8,8 +8,8 @@ namespace HotChocolate.Types.Filters.Expressions
         public static IError CreateNonNullError(
             FilterOperationField field,
             ObjectFieldNode node,
-            IQueryableFilterVisitorContext context)
-                => CreateNonNullError(field.Operation, field.Type, node.Value, context);
+            IQueryableFilterVisitorContext context) =>
+                CreateNonNullError(field.Operation, field.Type, node.Value, context);
 
         public static IError CreateNonNullError(
             FilterOperation operation,
