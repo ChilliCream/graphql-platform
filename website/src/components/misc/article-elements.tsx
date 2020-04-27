@@ -19,15 +19,14 @@ export const Article = styled.article`
   }
 `;
 
+export const ArticleHeader = styled.header``;
+
 export const ArticleTitle = styled.h1`
-  margin-top: 20px;
-  margin-right: 20px;
-  margin-left: 20px;
+  margin: 20px 20px 10px;
   font-size: 2em;
 
   @media only screen and (min-width: 800px) {
-    margin-right: 50px;
-    margin-left: 50px;
+    margin: 20px 50px 10px;
   }
 `;
 
