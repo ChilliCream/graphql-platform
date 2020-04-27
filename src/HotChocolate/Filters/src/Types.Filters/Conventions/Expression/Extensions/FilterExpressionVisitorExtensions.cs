@@ -5,8 +5,8 @@ namespace HotChocolate.Types.Filters.Conventions
     public static class FilterExpressionVisitorExtensions
     {
         public static IFilterExpressionVisitorDescriptor UseDefault(
-            this IFilterExpressionVisitorDescriptor descriptor)
-                => descriptor
+            this IFilterExpressionVisitorDescriptor descriptor) =>
+                descriptor
                     .Kind(FilterKind.Array)
                         .Enter(ArrayFieldHandler.Enter)
                         .Leave(ArrayFieldHandler.Leave)
