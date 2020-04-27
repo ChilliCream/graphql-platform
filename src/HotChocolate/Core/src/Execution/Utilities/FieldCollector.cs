@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security;
+using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -27,18 +29,9 @@ namespace HotChocolate.Execution.Utilities
             SelectionSetNode selectionSet,
             Path path)
         {
-            var fields = new OrderedDictionary<string, FieldInfo>();
+            var fields = new OrderedDictionary<string, IPreparedSelection>();
             CollectFields(type, selectionSet, path, null, fields);
-
-            int i = 0;
-            var fieldSelections = new FieldSelection[fields.Count];
-            foreach (FieldInfo field in fields.Values)
-            {
-                int index = i++;
-                field.Middleware = _factory(field.Field, field.Selection);
-                fieldSelections[index] = new FieldSelection(field, index);
-            }
-            return fieldSelections;
+            return fields.Values.ToList();
         }
 
         private void CollectFields(
@@ -46,10 +39,12 @@ namespace HotChocolate.Execution.Utilities
             SelectionSetNode selectionSet,
             Path path,
             FieldVisibility? fieldVisibility,
-            IDictionary<string, FieldInfo> fields)
+            IDictionary<string, IPreparedSelection> fields)
         {
-            foreach (ISelectionNode selection in selectionSet.Selections)
+            for (var i = 0; i < selectionSet.Selections.Count; i++)
             {
+                ISelectionNode selection = selectionSet.Selections[i];
+
                 ResolveFields(
                     type,
                     selection,
@@ -64,7 +59,7 @@ namespace HotChocolate.Execution.Utilities
             ISelectionNode selection,
             Path path,
             FieldVisibility fieldVisibility,
-            IDictionary<string, FieldInfo> fields)
+            IDictionary<string, IPreparedSelection> fields)
         {
             if (selection is FieldNode fs)
             {
@@ -97,22 +92,22 @@ namespace HotChocolate.Execution.Utilities
 
         private void ResolveFieldSelection(
             ObjectType type,
-            FieldNode fieldSelection,
+            FieldNode selection,
             Path path,
-            FieldVisibility fieldVisibility,
-            IDictionary<string, FieldInfo> fields)
+            FieldVisibility visibility,
+            Dictionary<string, PreparedSelection> fields)
         {
-            NameString fieldName = fieldSelection.Name.Value;
-            NameString responseName = fieldSelection.Alias == null
-                    ? fieldSelection.Name.Value
-                    : fieldSelection.Alias.Value;
+            NameString fieldName = selection.Name.Value;
+            NameString responseName = selection.Alias == null
+                    ? selection.Name.Value
+                    : selection.Alias.Value;
 
             if (type.Fields.TryGetField(fieldName, out ObjectField field))
             {
-                if (fields.TryGetValue(responseName, out FieldInfo fieldInfo))
+                if (fields.TryGetValue(responseName, out PreparedSelection? preparedSelection))
                 {
-                    AddSelection(fieldInfo, fieldSelection);
-                    TryAddFieldVisibility(fieldInfo, fieldVisibility);
+                    preparedSelection.Selections.Add(selection);
+                    TryAddFieldVisibility(preparedSelection, visibility);
                 }
                 else
                 {
@@ -120,11 +115,11 @@ namespace HotChocolate.Execution.Utilities
                     {
                         Field = field,
                         ResponseName = responseName,
-                        Selection = fieldSelection,
+                        Selection = selection,
                         Path = path
                     };
 
-                    TryAddFieldVisibility(fieldInfo, fieldVisibility);
+                    TryAddFieldVisibility(fieldInfo, visibility);
                     CoerceArgumentValues(fieldInfo);
 
                     fields.Add(responseName, fieldInfo);
@@ -135,7 +130,7 @@ namespace HotChocolate.Execution.Utilities
                 throw new QueryException(ErrorBuilder.New()
                     .SetMessage(CoreResources.FieldCollector_FieldNotFound)
                     .SetPath(path)
-                    .AddLocation(fieldSelection)
+                    .AddLocation(selection)
                     .Build());
             }
         }
@@ -180,19 +175,24 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private static FieldVisibility ExtractVisibility(
+        private static FieldVisibility? ExtractVisibility(
             Language.IHasDirectives selection,
-            FieldVisibility? fieldVisibility)
+            FieldVisibility? visibility)
         {
-            IValueNode skip = selection.Directives.SkipValue();
-            IValueNode include = selection.Directives.IncludeValue();
+            if (selection.Directives.Count == 0)
+            {
+                return visibility;
+            }
+
+            IValueNode? skip = selection.Directives.SkipValue();
+            IValueNode? include = selection.Directives.IncludeValue();
 
             if (skip == null && include == null)
             {
-                return fieldVisibility;
+                return visibility;
             }
 
-            return new FieldVisibility(skip, include, fieldVisibility);
+            return new FieldVisibility(skip, include, visibility);
         }
 
         private static bool DoesTypeApply(
@@ -360,17 +360,6 @@ namespace HotChocolate.Execution.Utilities
             return true;
         }
 
-        private static void AddSelection(
-            FieldInfo fieldInfo,
-            FieldNode fieldSelection)
-        {
-            if (fieldInfo.Nodes == null)
-            {
-                fieldInfo.Nodes = new List<FieldNode>();
-            }
-            fieldInfo.Nodes.Add(fieldSelection);
-        }
-
         private static void TryAddFieldVisibility(
             FieldInfo fieldInfo,
             FieldVisibility fieldVisibility)
@@ -394,6 +383,81 @@ namespace HotChocolate.Execution.Utilities
                 ? (IInputType)argumentType.InnerType()
                 : argumentType;
             return type.ParseLiteral(value);
+        }
+    }
+
+    internal sealed class PreparedSelection
+        : IPreparedSelection
+    {
+        private List<FieldVisibility>? _visibilities;
+
+        public PreparedSelection(
+            ObjectType declaringType,
+            ObjectField field,
+            FieldNode selection,
+            int responseIndex,
+            string responseName,
+            FieldDelegate resolverPipeline,
+            IReadOnlyDictionary<NameString, PreparedArgument> arguments)
+        {
+            DeclaringType = declaringType;
+            Field = field;
+            Selection = selection;
+            ResponseIndex = responseIndex;
+            ResponseName = responseName;
+            ResolverPipeline = resolverPipeline;
+            Arguments = arguments;
+            Selections.Add(selection);
+        }
+
+        /// <inheritdoc />
+        public ObjectType DeclaringType { get; }
+
+        /// <inheritdoc />
+        public ObjectField Field { get; }
+
+        /// <inheritdoc />
+        public FieldNode Selection { get; }
+
+        /// <inheritdoc />
+        public List<FieldNode> Selections { get; } = new List<FieldNode>();
+
+        IReadOnlyList<FieldNode> IPreparedSelection.Selections => Selections;
+
+        /// <inheritdoc />
+        public int ResponseIndex { get; }
+
+        /// <inheritdoc />
+        public string ResponseName { get; }
+
+        /// <inheritdoc />
+        public FieldDelegate ResolverPipeline { get; set; }
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; }
+
+        /// <inheritdoc />
+        public bool IsVisible(IVariableValueCollection variables)
+        {
+            if (_visibilities is null)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < _visibilities.Count; i++)
+            {
+                if (!_visibilities[i].IsVisible(variables))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public void AddVariableVisibility(FieldVisibility variableVisibility)
+        {
+            (_visibilities ??= new List<FieldVisibility>()).Add(variableVisibility);
         }
     }
 }

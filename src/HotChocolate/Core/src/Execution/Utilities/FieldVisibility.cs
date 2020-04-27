@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using System;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -47,11 +48,41 @@ namespace HotChocolate.Execution.Utilities
             }
 
             // TODO: Resources
-            throw new QueryException(
+            throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("The skip/include if-argument value has to be a 'Boolean'.")
                     .AddLocation(value)
                     .Build());
+        }
+
+        public bool Equals(IValueNode? skip, IValueNode? include)
+        {
+            return EqualsInternal(skip, Skip) && EqualsInternal(include, Include);
+        }
+
+        public bool Equals(IValueNode? skip, IValueNode? include, FieldVisibility? parent)
+        {
+            if (ReferenceEquals(parent, Parent) || ReferenceEquals(parent, this))
+            {
+                return Equals(skip, include);
+            }
+            return false;
+        }
+
+        private static bool EqualsInternal(IValueNode? a, IValueNode? b)
+        {
+            if (a is BooleanValueNode ab && b is BooleanValueNode bb && ab.Value == bb.Value)
+            {
+                return true;
+            }
+
+            if (a is VariableNode av && b is VariableNode bv &&
+                string.Equals(av.Value, bv.Value, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Utilities
@@ -10,28 +8,15 @@ namespace HotChocolate.Execution.Utilities
     {
         public static IValueNode? SkipValue(this IReadOnlyList<DirectiveNode> directives)
         {
-
             DirectiveNode directive = directives.GetSkipDirective();
-
-            if (directive == null)
-            {
-                return null;
-            }
-
-            return GetIfArgumentValue(directive);
+            return directive == null ? null : GetIfArgumentValue(directive);
         }
 
         public static IValueNode IncludeValue(
             this IReadOnlyList<DirectiveNode> directives)
         {
             DirectiveNode directive = directives.GetIncludeDirective();
-
-            if (directive == null)
-            {
-                return null;
-            }
-
-            return GetIfArgumentValue(directive);
+            return directive == null ? null : GetIfArgumentValue(directive);
         }
 
         private static IValueNode GetIfArgumentValue(DirectiveNode directive)
@@ -70,7 +55,6 @@ namespace HotChocolate.Execution.Utilities
                     return directives[i];
                 }
             }
-
             return null;
         }
     }
