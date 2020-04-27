@@ -5,15 +5,14 @@ namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterConventionDefinition
     {
-        public IReadOnlyList<TryCreateImplicitFilter> ImplicitFilters { get; set; }
-            = new List<TryCreateImplicitFilter>();
+        public IReadOnlyList<TryCreateImplicitFilter> ImplicitFilters { get; set; } =
+            new List<TryCreateImplicitFilter>();
 
         public IReadOnlyDictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>
             AllowedOperations
         {
             get; set;
-        }
-            = ImmutableDictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>.Empty;
+        } = ImmutableDictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>.Empty;
 
         public IReadOnlyDictionary<FilterKind, FilterConventionTypeDefinition> TypeDefinitions
         {
@@ -36,10 +35,10 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public FilterVisitorDefinitionBase? VisitorDefinition { get; set; }
 
-        public GetFilterTypeName FilterTypeNameFactory { get; set; }
-            = FilterConventionExtensions.FilterTypeName;
+        public GetFilterTypeName FilterTypeNameFactory { get; set; } =
+            FilterConventionExtensions.FilterTypeName;
 
-        public GetFilterTypeDescription FilterTypeDescriptionFactory { get; set; }
-            = FilterConventionExtensions.FilterTypeDescription;
+        public GetFilterTypeDescription FilterTypeDescriptionFactory { get; set; } =
+            FilterConventionExtensions.FilterTypeDescription;
     }
 }
