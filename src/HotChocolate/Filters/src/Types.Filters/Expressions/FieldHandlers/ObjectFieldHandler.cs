@@ -21,8 +21,8 @@ namespace HotChocolate.Types.Filters.Expressions
                         context.GetInstance(),
                         field.Operation.Property);
 
-                    Expression expression
-                        = FilterExpressionBuilder.Equals(nestedProperty, null!);
+                    Expression expression =
+                        FilterExpressionBuilder.Equals(nestedProperty, null!);
 
                     context.GetLevel().Enqueue(expression);
                 }

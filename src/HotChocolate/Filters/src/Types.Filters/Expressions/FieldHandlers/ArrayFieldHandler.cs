@@ -71,10 +71,9 @@ namespace HotChocolate.Types.Filters.Expressions
                     {
                         case FilterOperationKind.ArraySome:
                             expression = FilterExpressionBuilder.Any(
-                              closureType,
-                              context.GetInstance(),
-                              lambda
-                            );
+                                closureType,
+                                context.GetInstance(),
+                                lambda);
                             break;
 
                         case FilterOperationKind.ArrayNone:
@@ -82,17 +81,14 @@ namespace HotChocolate.Types.Filters.Expressions
                                 FilterExpressionBuilder.Any(
                                     closureType,
                                     context.GetInstance(),
-                                    lambda
-                                )
-                            );
+                                    lambda));
                             break;
 
                         case FilterOperationKind.ArrayAll:
                             expression = FilterExpressionBuilder.All(
-                              closureType,
-                              context.GetInstance(),
-                              lambda
-                            );
+                                closureType,
+                                context.GetInstance(),
+                                lambda);
                             break;
 
                         default:

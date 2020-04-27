@@ -47,10 +47,10 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public override FilterExpressionVisitorDefinition CreateDefinition()
         {
-            var fieldHandler
-                = new Dictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>();
-            var operationHandler
-                = new Dictionary<(FilterKind, FilterOperationKind), FilterOperationHandler>();
+            var fieldHandler =
+                new Dictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>();
+            var operationHandler =
+                new Dictionary<(FilterKind, FilterOperationKind), FilterOperationHandler>();
 
             foreach (FilterExpressionTypeDescriptor typeDescriptor in _types.Values)
             {

@@ -107,23 +107,22 @@ namespace HotChocolate.Types.Filters.Conventions
 
             throw new SchemaException(
                 SchemaErrorBuilder.New()
-                .SetMessage(
-                    string.Format(
+                    .SetMessage(
                         FilterResources.FilterConvention_NoOperationNameFound,
                         kind,
-                        definition.Kind))
-                .SetCode(ErrorCodes.Filtering.NoOperationNameFound)
-                .Build());
+                        definition.Kind)
+                    .SetCode(ErrorCodes.Filtering.NoOperationNameFound)
+                    .Build());
         }
 
         public string GetOperationDescription(FilterOperation operation)
         {
             FilterConventionDefinition configuration = GetOrCreateConfiguration();
 
-            if (!(configuration.TypeDefinitions.TryGetValue(
-                    operation.FilterKind, out FilterConventionTypeDefinition? typeDefinition) &&
-                  typeDefinition.OperationDescriptions.TryGetValue(
-                    operation.Kind, out string? description)))
+            if (!configuration.TypeDefinitions.TryGetValue(
+                operation.FilterKind, out FilterConventionTypeDefinition? typeDefinition) ||
+                !typeDefinition.OperationDescriptions.TryGetValue(
+                operation.Kind, out string? description))
             {
                 configuration.DefaultOperationDescriptions.TryGetValue(
                     operation.Kind, out description);
