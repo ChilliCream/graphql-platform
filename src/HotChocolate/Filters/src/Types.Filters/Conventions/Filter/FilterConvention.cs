@@ -93,7 +93,7 @@ namespace HotChocolate.Types.Filters.Conventions
             if (configuration.TypeDefinitions.TryGetValue(
                     definition.Kind, out FilterConventionTypeDefinition? typeDefinition) &&
                 typeDefinition.OperationNames.TryGetValue(
-                            kind, out CreateFieldName? createFieldName)
+                    kind, out CreateFieldName? createFieldName)
                 )
             {
                 return createFieldName(definition, kind);
@@ -123,11 +123,10 @@ namespace HotChocolate.Types.Filters.Conventions
             if (!(configuration.TypeDefinitions.TryGetValue(
                     operation.FilterKind, out FilterConventionTypeDefinition? typeDefinition) &&
                   typeDefinition.OperationDescriptions.TryGetValue(
-                    operation.Kind, out string? description))
-                )
+                    operation.Kind, out string? description)))
             {
-                configuration.DefaultOperationDescriptions.TryGetValue(operation.Kind,
-                           out description);
+                configuration.DefaultOperationDescriptions.TryGetValue(
+                    operation.Kind, out description);
             }
 
             return description ?? "";
@@ -135,8 +134,8 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public string GetTypeDescription(IDescriptorContext context, Type entityType)
         {
-            GetFilterTypeDescription? factory
-                = GetOrCreateConfiguration().FilterTypeDescriptionFactory;
+            GetFilterTypeDescription? factory =
+                GetOrCreateConfiguration().FilterTypeDescriptionFactory;
 
             if (factory == null)
             {
