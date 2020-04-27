@@ -20,8 +20,8 @@ namespace HotChocolate.Types.Filters.Conventions
             new FilterConventionTypeDefinition();
 
         private readonly ConcurrentDictionary<FilterOperationKind,
-            FilterConventionOperationDescriptor> _operations
-            = new ConcurrentDictionary<FilterOperationKind, FilterConventionOperationDescriptor>();
+            FilterConventionOperationDescriptor> _operations =
+               new ConcurrentDictionary<FilterOperationKind, FilterConventionOperationDescriptor>();
 
         public IFilterConventionDescriptor And()
         {
@@ -38,10 +38,7 @@ namespace HotChocolate.Types.Filters.Conventions
             FilterOperationKind kind,
             bool ignore = true)
         {
-            _operations.GetOrAdd(
-                    kind,
-                    (FilterOperationKind kind) =>
-                        FilterConventionOperationDescriptor.New(this, kind))
+            _operations.GetOrAdd(kind, kind => FilterConventionOperationDescriptor.New(this, kind))
                 .Ignore(true);
 
             return this;
@@ -51,8 +48,7 @@ namespace HotChocolate.Types.Filters.Conventions
         {
             return _operations.GetOrAdd(
                 kind,
-                (FilterOperationKind kind) =>
-                    FilterConventionOperationDescriptor.New(this, kind));
+                kind => FilterConventionOperationDescriptor.New(this, kind));
         }
 
         public FilterConventionTypeDefinition CreateDefinition()
