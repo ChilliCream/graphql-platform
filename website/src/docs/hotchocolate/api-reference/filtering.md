@@ -1462,5 +1462,82 @@ To configure you have to use the following delegate:
 | _definition_        | `out FilterFieldDefintion?` | The generated definition for the property. Return null if the current factory cannot handle the property. |
 
 If you just want to build your extension for implicit bindings, you can just out a custom `FilterFieldDefinition`.
-It makes sense to encapsulate that logic in a FilterFieldDescriptor though. This descriptor can the
+It makes sense to encapsulate that logic in a FilterFieldDescriptor though. This descriptor can then also be used for fluent configuration.
 
+**Example**
+
+```csharp
+private static bool TryCreateStringFilter(
+    IDescriptorContext context,
+    Type type,
+    PropertyInfo property,
+    IFilterConvention filterConventions,
+    [NotNullWhen(true)] out FilterFieldDefintion? definition)
+{
+    if (type == typeof())
+    {
+        var field = new StringFilterFieldDescriptor(context, property, filterConventions);
+        definition = field.CreateDefinition();
+        return true;
+    }
+
+    definition = null;
+    return false;
+}
+```
+
+##### Creating a fluent filter extension
+
+_Hot Chocolate_ provides fluent interfaces for all of its APIs. If you want to create an extension that integrates seamlessly with _Hot Chocolate_ it makes sense to also provide fluent interfaces. It makes sense to briefly understand how `Type -> Descriptor -> Definition` work. You can read more about it here //TODO LINK
+
+Here a quick introduction:
+
+_Type_
+
+A type is a description of a GraphQL Type System Object. The type is built during schema creation and specifies how a GraphQL Type should look like. It contains, for example, the definition, fields, interfaces, and all life cycle methods. Type do only exist on startup, they do not exist on runtime.
+
+_Type Definition_
+
+Each type has a definition that describes the type. It contains, for example, the name, description, the CLR type and the field definitions. The field definitions describe the fields that are on the type.
+
+_Type Descriptor_
+
+A type descriptor is a fluent interface to describe the type over the definition. The type descriptor does not have access to the type itself. It operates solely on the definition.
+
+In the case of filtering, this works nearly the same. The `FilterInputType` is just an extension of the `InputObjectType`. It also has the same _Definition_. The `FilterInputType` stores `FilterOperationField` on this definition. These are extensions of the normal `InputField`'s and extend it by a `FilterOperationKind`.
+
+With a normal `InputTypeDescriptor` you declare a field by selecting a member. The filter descriptor works a little differently. You declare the `FilterKind` of a member by selecting it and then you declare the operations on this filter. These operations are the input field configuration.
+
+```csharp
+InputTypeDescriptor<User> inputDesc;
+inputDesc.Field(x => x.Name)
+            .Description("This is the name")
+
+
+FilterInputTypeDescriptor<User> inputDesc;
+inputDesc.Filter(x => x.Name).AllowEqual().Description("This is the name")
+```
+
+Let's look at an example. Imagine you want to define a custom set of filters for `DateTime`. Instead of all comparable operations, you only want to have _GreaterThanOrEquals_ and _LowerThanOrEquals_ and they should be named `from` and `to`
+
+```graphql
+{
+  bookings(
+    where: {
+      checkinTime: {
+        from: "2019-04-12T00:00:00.00Z"
+        to: "2020-04-12T00:00:00.00Z"
+      }
+    }
+  ) {
+    checkin
+  }
+}
+```
+
+```csharp
+public class Booking
+{
+    public DateTime CheckinTime { get; set;}
+}
+```
