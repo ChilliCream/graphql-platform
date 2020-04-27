@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Utilities
 
         FieldDelegate ResolverPipeline { get; }
 
-        object Arguments { get; }
+        IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; }
 
         bool IsVisible(IVariableValueCollection variables);
     }

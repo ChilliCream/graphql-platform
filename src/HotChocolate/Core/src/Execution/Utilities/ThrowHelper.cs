@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -61,6 +62,17 @@ namespace HotChocolate.Execution.Utilities
             }
 
             return new GraphQLException(errorBuilder.Build());
+        }
+
+        public static GraphQLException MissingIfArgument(DirectiveNode directive)
+        {
+            return new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        Resources.ThrowHelper_MissingDirectiveIfArgument,
+                        directive.Name.Value)
+                    .AddLocation(directive)
+                    .Build());
         }
     }
 }

@@ -4,6 +4,7 @@
 [assembly: InternalsVisibleTo("HotChocolate.Types")]
 [assembly: InternalsVisibleTo("HotChocolate.Validation")]
 [assembly: InternalsVisibleTo("HotChocolate.Stitching")]
+[assembly: InternalsVisibleTo("HotChocolate.Execution")]
 [assembly: InternalsVisibleTo("HotChocolate.Abstractions.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Core.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Types.Tests")]

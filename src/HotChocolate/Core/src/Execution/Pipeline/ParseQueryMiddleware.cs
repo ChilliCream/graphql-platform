@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Pipeline
             {
                 context.Result = QueryResultBuilder.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources.ParseQueryMiddleware_InComplete)
+                        .SetMessage("The parse query middleware expects a valid query request.")
                         .SetCode(ErrorCodes.Execution.Incomplete)
                         .Build());
             }
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution.Pipeline
             }
 
             throw new NotSupportedException(
-                CoreResources.ParseQuery_Middleware_QueryTypeNotSupported);
+                "The specified query type is not supported.");
         }
 
         private static bool IsContextIncomplete(IRequestContext context)
