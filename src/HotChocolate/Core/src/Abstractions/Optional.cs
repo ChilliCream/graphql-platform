@@ -134,15 +134,15 @@ namespace HotChocolate
         /// the given value.
         /// </summary>
         /// <param name="value">The value.</param>
-        public static implicit operator Optional<T>(T value)
-            => new Optional<T>(value);
+        public static implicit operator Optional<T>(T value) =>
+            new Optional<T>(value);
 
         /// <summary>
         /// Implicitly gets the optional value.
         /// </summary>
         /// <param name="name"></param>
         [return : MaybeNull]
-        public static implicit operator T(Optional<T> optional)
-            => optional.Value;
+        public static implicit operator T(Optional<T> optional) =>
+            optional.Value;
     }
 }
