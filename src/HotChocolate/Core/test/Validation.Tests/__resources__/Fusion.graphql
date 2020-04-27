@@ -1,0 +1,3170 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface Advisor @source(name: "Advisor", schema: "AdvisorClient") {
+  email: String
+  id: ID!
+  phoneNumber: String
+  pictureUrl: String
+}
+
+interface Contract @source(name: "Contract", schema: "ContractClient") {
+  active: Boolean!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  id: ID!
+  number: String!
+  productName: String!
+  totalBalance: Float!
+}
+
+interface Document @source(name: "Document", schema: "DocumentClient") {
+  contractId: String
+  contractNumber: String
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  isTaxRelevant: Boolean!
+}
+
+interface Error @source(name: "Error", schema: "PostInfoClient") @source(name: "Error", schema: "ProfileClient") @source(name: "Error", schema: "AccountClient") @source(name: "Error", schema: "FuseTicketingClient") @source(name: "Error", schema: "InboxClient") @source(name: "Error", schema: "PensionCertificateClient") {
+  code: String!
+}
+
+interface Investment @source(name: "Investment", schema: "ContractClient") {
+  investmentStrategy: InvestmentStrategy!
+  investmentTheme: InvestmentTheme
+}
+
+interface Location @source(name: "Location", schema: "PostInfoClient") {
+  id: ID!
+  name: String!
+  sanitizedName: String!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node @source(name: "Node", schema: "ContractClient") @source(name: "Node", schema: "PostInfoClient") @source(name: "Node", schema: "FuseTicketingClient") {
+  id: ID!
+}
+
+interface Paperless @source(name: "Paperless", schema: "ContractClient") {
+  paperlessEnabled: Boolean
+}
+
+interface Payload @source(name: "Payload", schema: "PostInfoClient") @source(name: "Payload", schema: "ProfileClient") @source(name: "Payload", schema: "AccountClient") @source(name: "Payload", schema: "FuseTicketingClient") {
+  errors: [Error!]
+}
+
+interface PensionFundContract @source(name: "PensionFundContract", schema: "ContractClient") {
+  contractNumber: String
+  foundation: String
+  id: ID!
+  insuranceType: String!
+  stakeHolder: String
+}
+
+interface PensionFundPolicy @source(name: "PensionFundPolicy", schema: "ContractClient") {
+  active: Boolean!
+  additionalLumpSumDeathBenefitMarried: Float!
+  additionalLumpSumDeathBenefitMarriedAccident: Float!
+  additionalLumpSumDeathBenefitNotMarried: Float!
+  additionalLumpSumDeathBenefitNotMarriedAccident: Float!
+  begin: DateTime!
+  benefits: PensionFundPolicyBenefits!
+  category: ContractCategory!
+  childrensBenefitIvPension: Float!
+  childrensBenefitIvPensionAccident: Float!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: Float!
+  contributionEmployee: Float!
+  contributionEmployer: Float!
+  contributionExonerationDelay: Int!
+  contributionTotal: Float!
+  conversionRateMandatory: Float!
+  conversionRateSupplementary: Float!
+  currency: String!
+  deathBenefit: Float!
+  degreeOfDisability: Float!
+  endDate: DateTime
+  "PolicyId"
+  id: ID!
+  insuranceGroup: String
+  interestRateMandatory: Float!
+  interestRateSupplementary: Float!
+  iVPension: Float!
+  iVPensionAccident: Float!
+  iVWaitingPeriod: Int!
+  levelOfEmployment: Float!
+  monthlyRetirementPension: Float!
+  number: String!
+  nvsPortalInsuredPersonId: String!
+  orphansBenefit: Float!
+  orphansBenefitAccident: Float!
+  paperlessEnabled: Boolean
+  pensionPlan: PensionPlan
+  policyId: String!
+  productName: String!
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  reportedSalary: Float!
+  retirementCapital: Float!
+  retirementPension: Float!
+  retirementSavings: Float!
+  sourceSystemName: String
+  startDateEmployment: DateTime
+  status: PensionFundPolicyStatus!
+  totalBalance: Float!
+  unmarriedPartnersPension: Float!
+  unmarriedPartnersPensionAccident: Float!
+  withdrawalCapital: Float!
+}
+
+interface ProjectedRetirement @source(name: "ProjectedRetirement", schema: "ContractClient") {
+  projectedAge: Int!
+  projectedDate: Date!
+  projectedSavings: Decimal!
+}
+
+interface RetirementDevelopment @source(name: "RetirementDevelopment", schema: "ContractClient") {
+  retirementCapital: Float!
+  retirementDate: DateTime!
+  retirementPension: Float!
+}
+
+interface ThreeA @source(name: "ThreeA", schema: "ContractClient") {
+  annualPremium: Float!
+  bvgMismatch: Boolean!
+  currency: String!
+  maximumAmount: Float
+}
+
+interface ThreeASimulation @source(name: "ThreeASimulation", schema: "ContractClient") {
+  annualPremiumSimulation: Float
+  currencySimulation: String
+  maximumAmountSimulation: Float
+  maximumAnnualSimulation: Float
+  minimumAmountSimulation: Float
+  paymentPossibleSimulation: Boolean!
+}
+
+type AcceptCurrentTermsOfServicePayload implements Payload @source(name: "AcceptCurrentTermsOfServicePayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  success: Boolean
+}
+
+type AccessToken @source(name: "AccessToken", schema: "AccountClient") {
+  validTo: DateTime!
+  value: String!
+}
+
+type AccountUser @source(name: "User", schema: "AccountClient") {
+  claims: [Claim!]!
+  firstName: String!
+  gender: AccountClient_Gender!
+  hasActivePassword: Boolean!
+  hasTosAccepted: Boolean!
+  id: ID!
+  lastName: String!
+  mfaOptions: [MfaOption!]!
+  mobileNumber: String!
+  providers: [Provider!]!
+  registrationState: RegistrationState!
+  totpStatus: TotpStatus
+  username: String!
+}
+
+type AddMfaOptionPayload implements Payload @source(name: "AddMfaOptionPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type AddPasswordPayload implements Payload @source(name: "AddPasswordPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type AddProviderPayload implements Payload @source(name: "AddProviderPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type Address @source(name: "Address", schema: "AdvisorClient") {
+  city: String!
+  country: String!
+  streetName: String!
+  streetNumber: String!
+  zipCode: String!
+}
+
+type AuthenticatePayload implements Payload @source(name: "AuthenticatePayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type AuthenticateProviderPayload implements Payload @source(name: "AuthenticateProviderPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type AuthenticateTokenPayload implements Payload @source(name: "AuthenticateTokenPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type BankingDocument implements Document @source(name: "BankingDocument", schema: "DocumentClient") {
+  businessUnit: String!
+  contractId: String
+  contractNumber: String
+  "Translated"
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  "Translated"
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  isTaxRelevant: Boolean!
+  planNr: String! @deprecated(reason: "Use contractId instead")
+}
+
+type BrokerCompany implements Advisor @source(name: "BrokerCompany", schema: "AdvisorClient") {
+  companyName: String! @deprecated(reason: "Use Name instead.")
+  email: String
+  id: ID!
+  name: BrokerCompanyName!
+  phoneNumber: String
+  pictureUrl: String
+  url: String
+}
+
+type BrokerCompanyName @source(name: "BrokerCompanyName", schema: "AdvisorClient") {
+  additionalName: String
+  displayName: String!
+  name: String!
+}
+
+type ChangeEmailPayload implements Payload @source(name: "ChangeEmailPayload", schema: "ProfileClient") {
+  errors: [Error!]
+  profile: Profile
+}
+
+type ChangeMobileNumberPayload implements Payload @source(name: "ChangeMobileNumberPayload", schema: "ProfileClient") {
+  errors: [Error!]
+  profile: Profile
+}
+
+type Claim @source(name: "Claim", schema: "AccountClient") {
+  type: String!
+  value: String!
+}
+
+type ContractFilterEntry @source(name: "ContractFilterEntry", schema: "DocumentClient") {
+  key: String!
+  label: String!
+}
+
+type ContractInfo @source(name: "ContractInfo", schema: "ProfileClient") {
+  documentServiceId: String
+  id: String
+  type: ContractType!
+}
+
+type ContractsOutline @source(name: "ContractsOutline", schema: "ContractClient") {
+  pensionFund: PensionFundOutline
+}
+
+type Country implements Node @source(name: "Country", schema: "PostInfoClient") {
+  countryName: String!
+  id: ID!
+  iso2: String!
+  iso3: String!
+  unId: Int!
+}
+
+type CreatePensionCertificatePayload @source(name: "CreatePensionCertificatePayload", schema: "PensionCertificateClient") {
+  errors: [Error!]
+  success: Boolean!
+}
+
+type CreateProfilePayload implements Payload @source(name: "CreateProfilePayload", schema: "ProfileClient") {
+  errors: [Error!]
+  profile: Profile
+}
+
+type CreateTicketPayload implements Payload @source(name: "CreateTicketPayload", schema: "FuseTicketingClient") {
+  errors: [Error!]
+  ticketReference: String
+  ticketUrl: String
+}
+
+type CreateUserPayload implements Payload @source(name: "CreateUserPayload", schema: "AccountClient") {
+  accessToken: AccessToken
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type CustomerContract @source(name: "CustomerContract", schema: "ContractClient") {
+  contracts(hiddenContracts: [String!] tag: [ContractTag]): [Contract!]!
+  "PortalCustomerId"
+  id: ID!
+  outline: ContractsOutline
+}
+
+type CustomerEnvelope @source(name: "CustomerEnvelope", schema: "DocumentClient") {
+  contractNumber: String
+  documents: [Document!]!
+  envelopeDate: DateTime!
+  envelopeId: String!
+  envelopeTitle: String
+  id: ID!
+}
+
+"A connection to a list of items."
+type CustomerEnvelopeConnection @source(name: "CustomerEnvelopeConnection", schema: "DocumentClient") {
+  contractFilterEntries: [ContractFilterEntry!]!
+  contractNumbers: [String!]! @deprecated(reason: "Use contractFilterEntries instead")
+  "Translated"
+  documentCategories: [TranslatedResourceOfDocumentCategoryType!]!
+  "A list of edges."
+  edges: [CustomerEnvelopeEdge!]
+  "A flattened list of the nodes."
+  nodes: [CustomerEnvelope!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type CustomerEnvelopeEdge @source(name: "CustomerEnvelopeEdge", schema: "DocumentClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: CustomerEnvelope!
+}
+
+type DeathAfterRetirement @source(name: "DeathAfterRetirement", schema: "ContractClient") {
+  orphanPension: Float
+  widowPension: Float
+}
+
+type DigisAddress @source(name: "DigisAddress", schema: "ContractClient") {
+  displayCity: String
+  displayStreet: String
+  postOfficeBox: String
+}
+
+type DigisContract implements Node & PensionFundContract @source(name: "DigisContract", schema: "ContractClient") {
+  contractNumber: String
+  foundation: String
+  id: ID!
+  "Translated"
+  insuranceType: String!
+  stakeHolder: String
+}
+
+type DigisCustomer @source(name: "DigisCustomer", schema: "ContractClient") {
+  ahvNumber: String
+  customerId: String
+  customerTypeId: Int!
+  dateOfBirth: DateTime!
+  degreeOfDisability: Decimal!
+  domicilAddress: DigisAddress
+  firstName: String
+  gender: String
+  governmentId: String
+  lastName: String
+  levelOfEmployment: Decimal!
+  nvsPortalInsuredPersonId: String
+  reportedSalary: Decimal!
+  sourceId: String
+  withdrawalCapital: Decimal!
+}
+
+type DigisPolicy implements Contract & PensionFundPolicy & Paperless & Node @source(name: "DigisPolicy", schema: "ContractClient") {
+  active: Boolean!
+  additionalLumpSumDeathBenefitMarried: Float!
+  additionalLumpSumDeathBenefitMarriedAccident: Float!
+  additionalLumpSumDeathBenefitNotMarried: Float!
+  additionalLumpSumDeathBenefitNotMarriedAccident: Float!
+  advisor: Advisor! @delegate(path: "nvsAdvisor(contractNumber:$fields:number)", schema: "AdvisorClient")
+  begin: DateTime!
+  benefits: PensionFundPolicyBenefits!
+  category: ContractCategory!
+  childrensBenefitIvPension: Float!
+  childrensBenefitIvPensionAccident: Float!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: Float!
+  contract: DigisContract!
+  contractId: String!
+  contributionEmployee: Float!
+  contributionEmployer: Float!
+  contributionExonerationDelay: Int!
+  contributionTotal: Float!
+  conversionRateMandatory: Float!
+  conversionRateSupplementary: Float!
+  currency: String!
+  customer: DigisCustomer!
+  deathAfterRetirement: DeathAfterRetirement
+  deathBenefit: Float!
+  degreeOfDisability: Float!
+  endDate: DateTime
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$fields:number)", schema: "DocumentClient")
+  "PolicyId"
+  id: ID!
+  insuranceGroup: String
+  interestRateMandatory: Float!
+  interestRateSupplementary: Float!
+  iVPension: Float!
+  iVPensionAccident: Float!
+  iVWaitingPeriod: Int!
+  levelOfEmployment: Float!
+  monthlyRetirementPension: Float!
+  number: String!
+  nvsPortalInsuredPersonId: String!
+  orphansBenefit: Float!
+  orphansBenefitAccident: Float!
+  paperlessEnabled: Boolean
+  pensionPlan: PensionPlan
+  policyId: String!
+  "Translated"
+  productName: String!
+  projectedRetirement: DigisProjectedRetirement
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  reportedSalary: Float!
+  retirementCapital: Float!
+  retirementDevelopment: [DigisRetirementDevelopment!]!
+  retirementPension: Float!
+  retirementSavings: Float!
+  sourceSystemName: String
+  startDateEmployment: DateTime
+  status: PensionFundPolicyStatus!
+  statusId: Int!
+  totalBalance: Float!
+  transactionId: Int!
+  transactions(after: String before: String first: PaginationAmount last: PaginationAmount order_by: DigisTransactionSort where: DigisPensionFundTransactionFilterInput): DigisTransactionConnection
+  unmarriedPartnersPension: Float!
+  unmarriedPartnersPensionAccident: Float!
+  withdrawalCapital: Float!
+}
+
+type DigisProjectedRetirement implements ProjectedRetirement @source(name: "DigisProjectedRetirement", schema: "ContractClient") {
+  isPossiblePrepensionDateInFuture: Boolean!
+  lastPossiblePurchaseDate: Date!
+  projectedAge: Int!
+  projectedDate: Date!
+  projectedPension: Decimal!
+  projectedSavings: Decimal!
+}
+
+type DigisRetirementDevelopment implements RetirementDevelopment @source(name: "DigisRetirementDevelopment", schema: "ContractClient") {
+  retirementAge: Int!
+  retirementCapital: Float!
+  retirementDate: DateTime!
+  retirementPension: Float!
+  transactions: [DigisTransaction!]!
+}
+
+type DigisTransaction @source(name: "DigisTransaction", schema: "ContractClient") {
+  amount: Float
+  bookingCode: String
+  bookingDate: DateTime!
+  "Translated"
+  bookingText: String!
+  capital: Decimal!
+  capitalSupplementary: Decimal!
+  id: ID!
+  pension: Decimal!
+}
+
+"A connection to a list of items."
+type DigisTransactionConnection @source(name: "DigisTransactionConnection", schema: "ContractClient") {
+  "A list of edges."
+  edges: [DigisTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [DigisTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type DigisTransactionEdge @source(name: "DigisTransactionEdge", schema: "ContractClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: DigisTransaction
+}
+
+type EvAccount implements Contract & Node @source(name: "EvAccount", schema: "ContractClient") {
+  accountBalance: Float!
+  accountCategory: EvAccountCategory!
+  accountdevelopments: [EvAccountDevelopment!]!
+  accounttransactions(after: String before: String filter: [FilterInfoInput] first: PaginationAmount last: PaginationAmount sortBy: String sortDirection: SortDirection): EvAccountTransactionConnection
+  "Translatable"
+  accountType: String
+  active: Boolean!
+  availableProducts: [EvAccountProduct!]!
+  category: ContractCategory!
+  connectedContracts: [EvContract!]!
+  contractId: String!
+  currency: String!
+  id: ID!
+  number: String!
+  partner: EvPartner!
+  productName: String!
+  referenceNumber: String
+  totalBalance: Float!
+}
+
+type EvAccountDevelopment @source(name: "EvAccountDevelopment", schema: "ContractClient") {
+  accountDevelopmentId: String!
+  accountValue: Float!
+  bookingDate: DateTime!
+  contractId: String
+  id: ID!
+  partnerId: String
+}
+
+type EvAccountProduct @source(name: "EvAccountProduct", schema: "ContractClient") {
+  contractId: String
+  "Translatable"
+  productId: String
+  "Translated"
+  productName: String
+}
+
+type EvAccountTransaction implements Node @source(name: "EvAccountTransaction", schema: "ContractClient") {
+  accountId: String
+  amount: Float!
+  bookingCode: Int
+  bookingDate: DateTime!
+  "Translated"
+  bookingText: String
+  clearingCode: String
+  contractId: String
+  currency: String!
+  currencyDate: DateTime!
+  "AccountTransactionId"
+  id: ID!
+  mainTransactionCode: String
+  partnerId: String
+  "Translatable"
+  productId: String
+  "Translated"
+  productName: String
+  subTransactionCode: String
+}
+
+"A connection to a list of items."
+type EvAccountTransactionConnection @source(name: "EvAccountTransactionConnection", schema: "ContractClient") {
+  "A list of edges."
+  edges: [EvAccountTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [EvAccountTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type EvAccountTransactionEdge @source(name: "EvAccountTransactionEdge", schema: "ContractClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: EvAccountTransaction
+}
+
+type EvBenefitUponSurvival @source(name: "EvBenefitUponSurvival", schema: "ContractClient") {
+  dueDate: DateTime
+  estimatedBonus: Float
+  estimatedFundAssets: Float
+  estimatedTotal: Float
+  fundPerformanceUsedForEstimation: Float
+  guaranteed: Float
+}
+
+type EvContract implements Contract & ThreeA & ThreeASimulation & Paperless & Node @source(name: "EvContract", schema: "ContractClient") {
+  accountContractId: String @deprecated(reason: "No longer required")
+  accountId: ID
+  active: Boolean!
+  advisor: Advisor! @delegate(path: "evContractAdvisor(contractId:$fields:contractId)", schema: "AdvisorClient")
+  annualPremium: Float!
+  annualPremiumSimulation: Float
+  begin: DateTime!
+  beneficiaryClause: String!
+  benefitUponSurvival: EvBenefitUponSurvival
+  bVGInsured: Boolean
+  bvgMismatch: Boolean!
+  category: ContractCategory!
+  contractEndDate: DateTime
+  contractId: String!
+  currency: String!
+  currencySimulation: String
+  customers: [EvCustomer!]!
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$fields:contractId)", schema: "DocumentClient")
+  hasAccount: Boolean!
+  hasMonetaryAsset: Boolean!
+  id: ID!
+  "Translatable"
+  insuranceType: String!
+  "Translated"
+  insuranceTypeName: String!
+  isThreeA: Boolean!
+  maximumAmount: Float
+  maximumAmountSimulation: Float
+  maximumAnnualSimulation: Float
+  minimumAmountSimulation: Float
+  number: String!
+  paperlessEnabled: Boolean
+  paymentPossibleSimulation: Boolean!
+  "Translatable"
+  pillar: String
+  portfolio: EvPortfolio
+  portfolioCode: String
+  portfolioName: String
+  premium: EvPremium
+  premiumInvoiceProcessing: Boolean!
+  premiuminvoices(after: String before: String first: PaginationAmount last: PaginationAmount order_by: EvPremiumInvoiceSort where: EvPremiumInvoiceFilter): EvPremiumInvoiceConnection
+  "Translatable"
+  productId: String
+  productName: String!
+  productNameCode: String
+  retirementStart: DateTime
+  sourceSystemName: String
+  surrenderValue: EvSurrenderValue
+  surrenderValueDocumentPartnerId: String!
+  tariffs: [EvTariff!]!
+  totalBalance: Float!
+  uniqueId: String
+}
+
+type EvCustomer @source(name: "EvCustomer", schema: "ContractClient") {
+  firstName: String!
+  gender: Gender!
+  "PartnerId"
+  id: ID!
+  lastName: String!
+  partnerId: String!
+}
+
+type EvDocument implements Document @source(name: "EvDocument", schema: "DocumentClient") {
+  contractId: String
+  contractNumber: String
+  "Translated"
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  "Translated"
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  invoiceNumber: String
+  isTaxRelevant: Boolean!
+  partnerNumber: String!
+}
+
+type EvPartner @source(name: "EvPartner", schema: "ContractClient") {
+  countryCode: String!
+  dateOfBirth: DateTime!
+  firstName: String!
+  gender: Gender!
+  id: ID!
+  lastName: String!
+  partnerId: String!
+}
+
+type EvPortfolio @source(name: "EvPortfolio", schema: "ContractClient") {
+  contractId: String!
+  currency: String!
+  id: ID!
+  portfolioCode: String
+  portfolioId: String!
+  portfolioValue: Float!
+  positions: [EvPortfolioPosition!]!
+}
+
+type EvPortfolioPosition @source(name: "EvPortfolioPosition", schema: "ContractClient") {
+  calculationDate: DateTime!
+  investmentCategory: InvestmentCategory!
+  "Translated"
+  investmentCategoryName: String!
+  investmentCategoryPercentage: Float!
+  investmentCurrencyPercentage: Float!
+  isin: String!
+  monetaryAssetName: String!
+  monetaryAssetTitleCurrency: String!
+  nominalValueOrQuantity: Float!
+  portfolioPositionId: String!
+  portfolioPositionValue: Float!
+  portfolioShare: Float!
+  position: Int!
+  valorNumber: Float!
+  valorPerformance: Float!
+}
+
+type EvPremium @source(name: "EvPremium", schema: "ContractClient") {
+  annual: Float
+  contractDissolveDate: DateTime
+  paidCalculationDate: DateTime
+  paymentFrequency: PaymentPeriodicity!
+  periodicityName: String!
+  proRata: Float
+  single: Float
+  totalPremiumForYear: Float
+}
+
+type EvPremiumInvoice @source(name: "EvPremiumInvoice", schema: "ContractClient") {
+  advisor: Advisor! @delegate(path: "swissLifeGeneralInfo", schema: "AdvisorClient") @deprecated(reason: "Never used.")
+  balance: Float
+  bill: Float
+  contractId: String!
+  currency: String!
+  documentNumber: String!
+  dueDate: DateTime
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, invoiceNumber:$fields:invoiceNumber)", schema: "DocumentClient")
+  "DocumentNumber"
+  id: ID!
+  invoiceNumber: String!
+  invoicePeriodEndDate: DateTime
+  invoicePeriodStartDate: DateTime
+  partnerId: Int!
+  premium: Float
+  settlementBlock: Boolean!
+  status: PremiumInvoiceStatus!
+  "Translated"
+  statusName: String
+}
+
+"A connection to a list of items."
+type EvPremiumInvoiceConnection @source(name: "EvPremiumInvoiceConnection", schema: "ContractClient") {
+  "A list of edges."
+  edges: [EvPremiumInvoiceEdge!]
+  "A flattened list of the nodes."
+  nodes: [EvPremiumInvoice!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type EvPremiumInvoiceEdge @source(name: "EvPremiumInvoiceEdge", schema: "ContractClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: EvPremiumInvoice!
+}
+
+type EvSurrenderValue @source(name: "EvSurrenderValue", schema: "ContractClient") {
+  existingLoan: Float
+  net: Float
+  validityDate: DateTime
+}
+
+type EvTariff @source(name: "EvTariff", schema: "ContractClient") {
+  firstName: String!
+  insuredPerson: String!
+  lastName: String!
+  partnerId: String!
+  tariffId: String!
+  "Translated"
+  tariffName: String!
+  tariffPremium: Float!
+  tariffSortOrder: Int!
+}
+
+type ExternalUser @source(name: "ExternalUser", schema: "AccountClient") {
+  email: String
+  firstname: String
+  lastname: String
+  providerName: String!
+  subjectId: String!
+}
+
+type FzContract implements Contract & Node & Paperless @source(name: "FzContract", schema: "ContractClient") {
+  accounts: [ThreeAStartFzAccount!]!
+  accounttransactions(after: String before: String filter: [FilterInfoInput] first: PaginationAmount last: PaginationAmount sortBy: String sortDirection: SortDirection): ThreeAStartFzTransactionConnection
+  active: Boolean!
+  advisor: Advisor! @delegate(path: "fzContractAdvisor(contractId:$fields:number)", schema: "AdvisorClient")
+  availableAccountTypes: [ThreeAStartFzAccountType]!
+  begin: DateTime!
+  category: ContractCategory!
+  closeCode: Int
+  commissionDiscount: Float
+  contractChangeDate: DateTime
+  contractdevelopments: [ThreeAStartFzDevelopment!]!
+  contractId: String!
+  contractProductNumber: String
+  currency: String!
+  customer: ThreeAStartFzCustomer!
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$scopedContextData:customerId)", schema: "DocumentClient")
+  "FzContractId"
+  id: ID!
+  investmentShare: Float
+  modelPortfolioNumber: String
+  number: String!
+  paperlessEnabled: Boolean
+  portfolio: ThreeAStartFzPortfolio!
+  "Translatable"
+  productId: String
+  productName: String!
+  sourceSystemName: String
+  totalBalance: Float!
+  uniqueId: String
+}
+
+type GeneralAgency implements Advisor @source(name: "GeneralAgency", schema: "AdvisorClient") {
+  address: Address @deprecated(reason: "Not used on Front")
+  agencyName: String!
+  email: String
+  id: ID!
+  phoneNumber: String
+  pictureUrl: String
+  url: String
+}
+
+type GenericError implements Error @source(name: "GenericError", schema: "PostInfoClient") @source(name: "GenericError", schema: "ProfileClient") @source(name: "GenericError", schema: "AccountClient") @source(name: "GenericError", schema: "FuseTicketingClient") @source(name: "GenericError", schema: "InboxClient") @source(name: "GenericError", schema: "PensionCertificateClient") {
+  code: String!
+}
+
+type HouseName implements Location @source(name: "HouseName", schema: "PostInfoClient") {
+  addressId: String!
+  id: ID!
+  name: String!
+  sanitizedName: String!
+}
+
+type HouseNumber @source(name: "HouseNumber", schema: "PostInfoClient") {
+  addressId: String!
+  id: ID!
+  number: String!
+}
+
+"A connection to a list of items."
+type HouseNumberConnection @source(name: "HouseNumberConnection", schema: "PostInfoClient") {
+  "A list of edges."
+  edges: [HouseNumberEdge!]
+  "A flattened list of the nodes."
+  nodes: [HouseNumber!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type HouseNumberEdge @source(name: "HouseNumberEdge", schema: "PostInfoClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: HouseNumber!
+}
+
+type InputError implements Error @source(name: "InputError", schema: "PostInfoClient") @source(name: "InputError", schema: "ProfileClient") @source(name: "InputError", schema: "AccountClient") @source(name: "InputError", schema: "FuseTicketingClient") @source(name: "InputError", schema: "InboxClient") {
+  code: String!
+  path: [String!]!
+}
+
+type KeyValuePairOfStringAndObject @source(name: "KeyValuePairOfStringAndObject", schema: "InboxClient") {
+  key: String!
+  value: String
+}
+
+type KeyValuePairOfStringAndString @source(name: "KeyValuePairOfStringAndString", schema: "FuseTicketingClient") {
+  key: String!
+  value: String!
+}
+
+type ListItemOfCivilStatus @source(name: "ListItemOfCivilStatus", schema: "ProfileClient") {
+  key: CivilStatus!
+  value: String!
+}
+
+type ListItemOfDenomination @source(name: "ListItemOfDenomination", schema: "ProfileClient") {
+  key: Denomination!
+  value: String!
+}
+
+"A connection to a list of items."
+type LocationConnection @source(name: "LocationConnection", schema: "PostInfoClient") {
+  "A list of edges."
+  edges: [LocationEdge!]
+  "A flattened list of the nodes."
+  nodes: [Location!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type LocationEdge @source(name: "LocationEdge", schema: "PostInfoClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Location!
+}
+
+type MfaOption @source(name: "MfaOption", schema: "AccountClient") {
+  destination: String!
+  id: ID!
+  isDefault: Boolean!
+  type: MfaType!
+}
+
+type Mortgage @source(name: "Mortgage", schema: "ContractClient") {
+  amount: Float!
+  "Translated"
+  customerPrivileges: [TranslatedResource!]!
+  endDate: Date
+  "Translatable"
+  interestMaturity: String
+  "Translated"
+  InterestMaturityLabel: String
+  interestRate: Float!
+  isActive: Boolean!
+  number: String!
+  "Translatable"
+  privileges: [String] @deprecated(reason: "Use customerPrivileges instead.")
+  startDate: Date
+  "Translated"
+  type: String
+  "Translatable"
+  typeCode: String!
+  yearlyInterest: Float!
+}
+
+type MortgageCollateral @source(name: "MortgageCollateral", schema: "ContractClient") {
+  company: String!
+  id: ID!
+  policy: Contract
+  policyNumber: String!
+}
+
+type MortgageContract implements Contract & Node @source(name: "MortgageContract", schema: "ContractClient") {
+  active: Boolean!
+  advisor: Advisor! @delegate(path: "mortgageAdvisor(mortgageNumber:$scopedContextData:mortgageNumber)", schema: "AdvisorClient")
+  amountTotal: Float!
+  begin: DateTime
+  category: ContractCategory!
+  collaterals: [MortgageCollateral]!
+  contractId: String!
+  contractNumber: String!
+  currency: String!
+  id: ID!
+  interests: [MortgageInterest]!
+  mortgages(order_by: MortgageSort): [Mortgage]!
+  number: String!
+  object: MortgageObject!
+  productName: String!
+  sourceSystemName: String
+  stakeholders: [MortgageStakeholder]!
+  totalBalance: Float!
+  uniqueId: String
+  yearlyInterestTotal: Float!
+}
+
+type MortgageInterest @source(name: "MortgageInterest", schema: "ContractClient") {
+  interest: Float!
+  "Translated"
+  maturity: String!
+  maturityCode: String!
+}
+
+type MortgageObject @source(name: "MortgageObject", schema: "ContractClient") {
+  city: String
+  countryCode: String
+  id: ID!
+  street: String
+  zipCode: String
+}
+
+type MortgageStakeholder @source(name: "MortgageStakeholder", schema: "ContractClient") {
+  firstname: String!
+  id: ID!
+  lastname: String!
+}
+
+type Mutation {
+  addHiddenContracts(contractIds: [ContractIdInput!]!): PortalSettings! @delegate(path: "addHiddenContracts(contractIds:$arguments:contractIds)", schema: "ProfileClient")
+  addProvider(input: AddProviderInput!): AddProviderPayload! @delegate(path: "addProvider(input:$arguments:input)", schema: "AccountClient")
+  createPensionCertificate(input: CreatePensionCertificateInput!): CreatePensionCertificatePayload! @delegate(path: "createPensionCertificate(input:$arguments:input)", schema: "PensionCertificateClient")
+  createSupportTicket(input: CreateTicketInput!): CreateTicketPayload! @delegate(path: "createSupportTicket(request:$arguments:input)", schema: "FuseTicketingClient")
+  evSurrenderValueDocument(request: SurrenderValueDocument!): RequestSurrenderValueDocumentInfo @delegate(path: "requestSurrenderValueDocument(request:$arguments:request)", schema: "ContractClient")
+  removeProvider(input: RemoveProviderInput!): RemoveProviderPayload! @delegate(path: "removeProvider(input:$arguments:input)", schema: "AccountClient")
+  requestDocumentDownload(id: ID!): String! @delegate(path: "requestDocumentDownload(id:$arguments:id)", schema: "DocumentClient")
+  requestEnvelopeDownload(fileFormat: FileFormat! id: ID!): String! @delegate(path: "requestEnvelopeDownload(id:$arguments:id, fileFormat:$arguments:fileFormat)", schema: "DocumentClient")
+  setDefaultMfaOption(input: SetDefaultMfaOptionInput!): SetDefaultMfaOptionPayload! @delegate(path: "setDefaultMfaOption(input:$arguments:input)", schema: "AccountClient")
+  setNotificationsDeleted(ids: [ID!]!): Boolean! @delegate(path: "setDeleted(ids:$arguments:ids)", schema: "InboxClient")
+  setNotificationSettings(notificationSettings: NotificationRequestInput!): NotificationSettings! @delegate(path: "setNotificationSettings(notificationSettings:$arguments:notificationSettings)", schema: "ProfileClient")
+  setNotificationsRead(ids: [ID!]! value: Boolean!): Boolean! @delegate(path: "setRead(ids:$arguments:ids, value:$arguments:value)", schema: "InboxClient")
+  setPaperless(request: [PaperlessInput!]!): [PaperlessResult!]! @delegate(path: "setPaperless(paperless:$arguments:request)", schema: "ContractClient")
+  setTaxData(taxData: TaxDataInput!): TaxData! @delegate(path: "setTaxData(taxData:$arguments:taxData)", schema: "ProfileClient")
+  triggerChangeAuthenticator: TriggerChangeAuthenticatorPayload! @delegate(path: "triggerChangeAuthenticator", schema: "AccountClient")
+  triggerChangeEmail(input: TriggerChangeEmailInput!): TriggerChangeEmailPayload! @delegate(path: "triggerChangeEmail(input:$arguments:input)", schema: "AccountClient")
+  triggerChangeMobileNumber(input: TriggerChangeMobileNumberInput!): TriggerChangeMobileNumberPayload! @delegate(path: "triggerChangeMobileNumber(input:$arguments:input)", schema: "AccountClient")
+  validateAddress(input: ValidateAddressInput!): ValidateAddressPayload! @delegate(path: "validateAddress(input:$arguments:input)", schema: "AccountClient")
+  validateChangeAuthenticator(input: ValidateChangeAuthenticatorInput!): ValidateChangeAuthenticatorPayload! @delegate(path: "validateChangeAuthenticator(input:$arguments:input)", schema: "AccountClient")
+  validateChangeEmail(input: ValidateChangeEmailInput!): ValidateChangeEmailPayload! @delegate(path: "validateChangeEmail(input:$arguments:input)", schema: "AccountClient")
+  validateChangeMobileNumber(input: ValidateChangeMobileNumberInput!): ValidateChangeMobileNumberPayload! @delegate(path: "validateChangeMobileNumber(input:$arguments:input)", schema: "AccountClient")
+}
+
+type NotImplementedContract implements Contract @source(name: "NotImplementedContract", schema: "ContractClient") {
+  active: Boolean!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  id: ID!
+  number: String!
+  nvsPortalInsuredPersonId: String
+  productName: String!
+  showDocumentLink: Boolean!
+  sourceSystemName: String
+  totalBalance: Float!
+  uniqueId: String
+}
+
+type Notification @source(name: "Notification", schema: "InboxClient") {
+  category: NotificationCategory!
+  "Translated"
+  categoryName: String!
+  created: DateTime!
+  data: [KeyValuePairOfStringAndObject]!
+  deleted: Boolean!
+  id: ID!
+  message: String!
+  notificationId: String!
+  read: Boolean!
+  title: String!
+  type: String!
+}
+
+"A connection to a list of items."
+type NotificationConnection @source(name: "NotificationConnection", schema: "InboxClient") {
+  "A list of edges."
+  edges: [NotificationEdge!]
+  "A flattened list of the nodes."
+  nodes: [Notification!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type NotificationEdge @source(name: "NotificationEdge", schema: "InboxClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Notification!
+}
+
+type NotificationSettings @source(name: "NotificationSettings", schema: "ProfileClient") {
+  emailNotificationEnabled: Boolean!
+  notificationEnabled: Boolean!
+  smsNotificationEnabled: Boolean!
+}
+
+type NvsDocument implements Document @source(name: "NvsDocument", schema: "DocumentClient") {
+  contractId: String
+  contractNumber: String
+  "Translated"
+  documentCategory: String!
+  documentCategoryCode: DocumentCategoryType!
+  documentDate: DateTime!
+  documentId: String!
+  documentTitle: String!
+  documentType: String!
+  documentTypeCode: String!
+  id: ID!
+  isTaxRelevant: Boolean!
+  processId: String
+}
+
+type Outline {
+  contract: ContractsOutline @delegate(path: "customerContract.outline", schema: "ContractClient")
+}
+
+"Information about pagination in a connection."
+type PageInfo @source(name: "PageInfo", schema: "ContractClient") @source(name: "PageInfo", schema: "DocumentClient") @source(name: "PageInfo", schema: "PostInfoClient") @source(name: "PageInfo", schema: "FuseTicketingClient") @source(name: "PageInfo", schema: "InboxClient") {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+}
+
+type PaperlessResult @source(name: "PaperlessResult", schema: "ContractClient") {
+  contract: Contract!
+  success: Boolean!
+}
+
+type PensionFundAddress @source(name: "PensionFundAddress", schema: "ContractClient") {
+  careOf: String
+  city: String
+  country: Country @delegate(path: "country(unId:$scopedContextData:countryIsoId)", schema: "PostInfoClient")
+  postOfficeBox: String
+  street: String
+  street2: String
+  zipCode: String
+}
+
+type PensionFundFzPolicy implements Contract @source(name: "PensionFundFzPolicy", schema: "ContractClient") {
+  active: Boolean!
+  advisor: Advisor! @delegate(path: "nvsAdvisor(contractNumber:$fields:number)", schema: "AdvisorClient")
+  ahvNumber: String
+  benefits: PensionFundFzPolicyBenefits!
+  birthDate: DateTime!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  displayName: String!
+  domicileAddress: PensionFundAddress
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$fields:number)", schema: "DocumentClient")
+  fimCustomerId: String!
+  firstName: String!
+  "PolicyId"
+  id: ID!
+  interestRate: Float!
+  lastName: String!
+  number: String!
+  planType: PensionFundFzPolicyPlanType!
+  "Translated"
+  productName: String!
+  retirementAge: Int!
+  retirementDate: DateTime!
+  startDate: DateTime!
+  status: PensionFundPolicyStatus!
+  totalBalance: Float!
+  transactions(after: String before: String first: PaginationAmount last: PaginationAmount order_by: PensionFundFzPolicyTransactionSort where: PensionFundFzPolicyTransactionFilter): PensionFundFzPolicyTransactionConnection
+  validFrom: DateTime!
+}
+
+type PensionFundFzPolicyBenefits @source(name: "PensionFundFzPolicyBenefits", schema: "ContractClient") {
+  cumulatedExceeds: Float!
+  deathBenefit: Float!
+  iVCapital: Float!
+  retirementSavings: Float!
+  retirementSavingsProjected: Float!
+  totalDeathBenefit: Float!
+  totalRetirementSavings: Float!
+}
+
+type PensionFundFzPolicyPlanType @source(name: "PensionFundFzPolicyPlanType", schema: "ContractClient") {
+  iV: Boolean!
+  planType: FzPolicyPlanType!
+  planTypeRaw: String!
+  relinquished: Boolean!
+  senior: Boolean!
+  tariffSpecification: Boolean!
+}
+
+type PensionFundFzPolicyTransaction @source(name: "PensionFundFzPolicyTransaction", schema: "ContractClient") {
+  amount: Float!
+  "Translated"
+  bookingCode: String
+  bookingDate: DateTime!
+  envelope(processId: String): CustomerEnvelope @delegate(path: "envelope(processId:$fields:processId)", schema: "DocumentClient")
+  id: ID!
+  processId: String
+  transactionId: String!
+}
+
+"A connection to a list of items."
+type PensionFundFzPolicyTransactionConnection @source(name: "PensionFundFzPolicyTransactionConnection", schema: "ContractClient") {
+  "A list of edges."
+  edges: [PensionFundFzPolicyTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [PensionFundFzPolicyTransaction!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type PensionFundFzPolicyTransactionEdge @source(name: "PensionFundFzPolicyTransactionEdge", schema: "ContractClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PensionFundFzPolicyTransaction!
+}
+
+type PensionFundOutline @source(name: "PensionFundOutline", schema: "ContractClient") {
+  purchaseOptions: PensionFundPurchaseOptions
+  "Use PensionFundPolicy.projectedRetirement.projectedDate instead"
+  retirementDate: DateTime @deprecated(reason: "Use PensionFundPolicy.projectedRetirement.projectedDate instead")
+}
+
+type PensionFundPolicyBenefits @source(name: "PensionFundPolicyBenefits", schema: "ContractClient") {
+  childrensBenefitIvPension: PeriodicalValuesOfDouble!
+  childrensBenefitIvPensionAccident: PeriodicalValuesOfDouble!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: PeriodicalValuesOfDouble!
+  "Contribution exoneration delay in months"
+  contributionExonerationDelay: Int!
+  iVPension: PeriodicalValuesOfDouble!
+  iVPensionAccident: PeriodicalValuesOfDouble!
+  iVWaitingPeriod: Int!
+  orphanPension: PeriodicalValuesOfDouble
+  orphanPensionPercent: Float!
+  orphansBenefit: PeriodicalValuesOfDouble!
+  orphansBenefitAccident: PeriodicalValuesOfDouble!
+  retirementPension: PeriodicalValuesOfDouble!
+  unmarriedPartnersPension: PeriodicalValuesOfDouble!
+  unmarriedPartnersPensionAccident: PeriodicalValuesOfDouble!
+  widowPension: PeriodicalValuesOfDouble
+  widowPensionPercent: Float!
+}
+
+type PensionFundPurchaseOptions @source(name: "PensionFundPurchaseOptions", schema: "ContractClient") {
+  maxRetirementCapital: Float!
+  pensionPlan: PensionPlan
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  retirementSavings: Float!
+}
+
+type PeriodicalValuesOfDouble @source(name: "PeriodicalValuesOfDouble", schema: "ContractClient") {
+  monthly: Float!
+  yearly: Float!
+}
+
+type PersonalData @source(name: "PersonalData", schema: "ProfileClient") {
+  birthDate: Date!
+  email: String!
+  firstName: String!
+  gender: ProfileClient_Gender!
+  homeAddress: ProfileClient_Address!
+  lastName: String!
+  mobileNumber: String!
+}
+
+type PortalSettings @source(name: "PortalSettings", schema: "ProfileClient") {
+  hiddenContracts: [ContractInfo!]!
+  language: String! @deprecated(reason: "This property is obsolete as of 04\/2020. Use languageCode instead.")
+  languageCode: LanguageCode!
+}
+
+type Profile @source(name: "Profile", schema: "ProfileClient") {
+  civilStatus: [ListItemOfCivilStatus]!
+  denominations: [ListItemOfDenomination]!
+  notificationSettings: NotificationSettings!
+  personalData: PersonalData!
+  portalCustomerId: Uuid
+  portalSettings: PortalSettings!
+  profileId: Uuid!
+  taxData: TaxData
+  userId: Uuid!
+}
+
+type ProfileClient_Address @source(name: "Address", schema: "ProfileClient") {
+  addressExtension: String
+  cityName: String!
+  countrycode: String!
+  streetName: String
+  streetNumber: String
+  zipCode: String!
+}
+
+type Provider @source(name: "Provider", schema: "AccountClient") {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  countries: [Country!]! @delegate(path: "countries", schema: "PostInfoClient")
+  houseNumber(after: String before: String first: PaginationAmount last: PaginationAmount streetId: String! where: HouseNumberFilter): HouseNumberConnection @delegate(path: "houseNumber(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, streetId:$arguments:streetId, where:$arguments:where)", schema: "PostInfoClient")
+  locations(after: String before: String first: PaginationAmount last: PaginationAmount where: ILocationFilter zipCityId: String!): LocationConnection @delegate(path: "locations(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, zipCityId:$arguments:zipCityId)", schema: "PostInfoClient")
+  me: User @authorize(apply: BEFORE_RESOLVER, policy: "ApiAccess", roles: [  ])
+  zipCities(after: String before: String first: PaginationAmount last: PaginationAmount where: ZipCityFilter): ZipCityConnection @delegate(path: "zipCities(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where)", schema: "PostInfoClient")
+}
+
+type RemoveProviderPayload implements Payload @source(name: "RemoveProviderPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type RequestSurrenderValueDocumentInfo @source(name: "RequestSurrenderValueDocumentInfo", schema: "ContractClient") {
+  jobId: Int!
+}
+
+type ResendEmailPayload implements Payload @source(name: "ResendEmailPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type ResendSmsPayload implements Payload @source(name: "ResendSmsPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type SanitizedAddress @source(name: "SanitizedAddress", schema: "PostInfoClient") {
+  addressExtension: String
+  addressId: String
+  city: String
+  country: Country
+  houseNameOrNumber: String
+  street: String
+  zip: String
+}
+
+type SaveAddressPayload implements Payload @source(name: "SaveAddressPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type SetDefaultMfaOptionPayload implements Payload @source(name: "SetDefaultMfaOptionPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type SetPasswordPayload implements Payload @source(name: "SetPasswordPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+}
+
+type SetPortalCustomerPayload implements Payload @source(name: "SetPortalCustomerPayload", schema: "ProfileClient") {
+  errors: [Error!]
+  profile: Profile
+}
+
+type Street implements Location @source(name: "Street", schema: "PostInfoClient") {
+  id: ID!
+  name: String!
+  sanitizedName: String!
+  streetId: String!
+}
+
+type StrongMfaOptions @source(name: "StrongMfaOptions", schema: "AccountClient") {
+  bewitToken: String!
+  mfaOptions: [MfaOption!]!
+}
+
+type SubmitContactFormPayload @source(name: "SubmitContactFormPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+}
+
+type SwissLifeAdvisor implements Advisor @source(name: "SwissLifeAdvisor", schema: "AdvisorClient") {
+  agency: GeneralAgency
+  email: String
+  firstName: String!
+  id: ID!
+  "Translated"
+  jobDescription: String
+  lastName: String!
+  phoneNumber: String
+  pictureUrl: String
+}
+
+type SwissLifeGeneralInfo implements Advisor @source(name: "SwissLifeGeneralInfo", schema: "AdvisorClient") {
+  email: String
+  id: ID!
+  name: String!
+  phoneNumber: String
+  phoneNumbers: [SwissLifePhoneNumber]!
+  pictureUrl: String
+}
+
+type SwissLifePhoneNumber @source(name: "SwissLifePhoneNumber", schema: "AdvisorClient") {
+  "Translated"
+  label: String!
+  phoneNumber: String!
+}
+
+type TaxData @source(name: "TaxData", schema: "ProfileClient") {
+  city: String!
+  civilStatus: CivilStatus!
+  "Translated"
+  civilStatusName: String!
+  denomination: Denomination!
+  "Translated"
+  denominationName: String!
+  numberOfChildren: Int!
+  taxableAssets: Float!
+  taxableIncome: Float!
+  taxableSwiss: Boolean!
+  zipCode: String!
+}
+
+type ThreeAStartContract implements Contract & Node & Paperless & ThreeA & ThreeASimulation @source(name: "ThreeAStartContract", schema: "ContractClient") {
+  accounts: [ThreeAStartFzAccount!]!
+  accounttransactions(after: String before: String filter: [FilterInfoInput] first: PaginationAmount last: PaginationAmount sortBy: String sortDirection: SortDirection): ThreeAStartFzTransactionConnection
+  active: Boolean!
+  advisor: Advisor! @delegate(path: "threeAContractAdvisor(contractId:$fields:number)", schema: "AdvisorClient")
+  annualPremium: Float!
+  annualPremiumSimulation: Float
+  availableAccountTypes: [ThreeAStartFzAccountType]!
+  begin: DateTime!
+  bvgMismatch: Boolean!
+  category: ContractCategory!
+  closeCode: Int
+  commissionDiscount: Float
+  contractChangeDate: DateTime
+  contractdevelopments: [ThreeAStartFzDevelopment!]!
+  contractId: String!
+  contractProductNumber: String
+  currency: String!
+  currencySimulation: String
+  customer: ThreeAStartFzCustomer!
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$scopedContextData:customerId)", schema: "DocumentClient")
+  "ThreeAStartContractId"
+  id: ID!
+  investmentShare: Float
+  maximumAmount: Float
+  maximumAmountSimulation: Float
+  maximumAnnualSimulation: Float
+  minimumAmountSimulation: Float
+  modelPortfolioNumber: String
+  number: String!
+  paperlessEnabled: Boolean
+  paymentPossibleSimulation: Boolean!
+  portfolio: ThreeAStartFzPortfolio!
+  "Translatable"
+  productId: String
+  productName: String!
+  sourceSystemName: String
+  totalBalance: Float!
+  uniqueId: String
+}
+
+type ThreeAStartFzAccount @source(name: "ThreeAStartFzAccount", schema: "ContractClient") {
+  accountType: ThreeAStartFzAccountType!
+  contractId: String!
+  currency: String!
+  currentBalanceAccountCurrency: Float!
+  endDate: DateTime
+  iBAN: String
+  "ThreeAStartFzAccountId"
+  id: ID!
+  offsetFlag: Int!
+  totalTransactionAccountCurrency: Float!
+}
+
+type ThreeAStartFzCustomer @source(name: "ThreeAStartFzCustomer", schema: "ContractClient") {
+  contractId: String
+  customerFirstName: String!
+  customerId: String!
+  customerLastName: String!
+  dateOfBirth: DateTime
+  endDate: DateTime
+  gender: Gender!
+  levelOfEmployment: ThreeAStartFzLevelOfEmployment!
+}
+
+type ThreeAStartFzDevelopment @source(name: "ThreeAStartFzDevelopment", schema: "ContractClient") {
+  amountInvestedValue: Float!
+  amountPaidOutValue: Float!
+  calculationDate: DateTime!
+  contractId: String!
+  currency: String!
+  entryAccountValue: Float!
+  "ThreeAStartFzDevelopmentId"
+  id: ID!
+  investmentAccountValue: Float!
+  portfolioValue: Float!
+  totalValue: Float!
+}
+
+type ThreeAStartFzPortfolio @source(name: "ThreeAStartFzPortfolio", schema: "ContractClient") {
+  calculationDate: DateTime!
+  contractId: String!
+  currency: String!
+  id: ID!
+  portfolioId: String!
+  portfolioValueInBalanceSheetCurrency: Float!
+  portfolioValueInPortfolioCurrency: Float!
+  positions: [ThreeAStartFzPortfolioPosition!]!
+}
+
+type ThreeAStartFzPortfolioPosition @source(name: "ThreeAStartFzPortfolioPosition", schema: "ContractClient") {
+  contractId: String!
+  currency: String!
+  id: ID!
+  isin: String!
+  monetaryAssetName: String!
+  monetaryAssetShortName: String!
+  nominalValueOrQuantity: Float!
+  portfolioId: String!
+  portfolioPositionId: String!
+  portfolioPositionValue: Float!
+  portfolioShare: Float
+  position: Int!
+  valorPerformance: Float!
+}
+
+type ThreeAStartFzTransaction @source(name: "ThreeAStartFzTransaction", schema: "ContractClient") {
+  accountBalance: Float!
+  accountTransactionAmount: Float!
+  accountType: ThreeAStartFzAccountType!
+  bookingDate: DateTime!
+  contractId: String!
+  currency: String!
+  iBAN: String
+  "ThreeAStartFzTransactionId"
+  id: ID!
+  marketPrice: Float!
+  narrativeText: String
+  securityNominal: Float!
+  transactionText: String
+  valueDate: DateTime!
+}
+
+"A connection to a list of items."
+type ThreeAStartFzTransactionConnection @source(name: "ThreeAStartFzTransactionConnection", schema: "ContractClient") {
+  "A list of edges."
+  edges: [ThreeAStartFzTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [ThreeAStartFzTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ThreeAStartFzTransactionEdge @source(name: "ThreeAStartFzTransactionEdge", schema: "ContractClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ThreeAStartFzTransaction
+}
+
+type TicketReference implements Node @source(name: "TicketReference", schema: "FuseTicketingClient") {
+  context: [KeyValuePairOfStringAndString!]
+  createdAt: DateTime!
+  email: String
+  errorMessage: String!
+  externalId: String!
+  firstName: String
+  gender: AccountClient_Gender
+  id: ID!
+  language: String!
+  lastModifiedAt: DateTime!
+  lastName: String
+  sentNotificationId: String!
+  state: TicketState!
+  "Translated"
+  stateTranslated: String
+  title: String!
+  url: String!
+  userId: Uuid
+}
+
+"A connection to a list of items."
+type TicketReferenceConnection @source(name: "TicketReferenceConnection", schema: "FuseTicketingClient") {
+  "A list of edges."
+  edges: [TicketReferenceEdge!]
+  "A flattened list of the nodes."
+  nodes: [TicketReference!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type TicketReferenceEdge @source(name: "TicketReferenceEdge", schema: "FuseTicketingClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: TicketReference!
+}
+
+type TosVersion @source(name: "TosVersion", schema: "AccountClient") {
+  contents(lang: String): [TosVersionContent!]!
+  createdAt: DateTime!
+  version: Int!
+}
+
+type TosVersionContent @source(name: "TosVersionContent", schema: "AccountClient") {
+  html: String!
+  language: String!
+  name: String!
+}
+
+type TotpStatus @source(name: "TotpStatus", schema: "AccountClient") {
+  authAppSecret: String
+  expiration: DateTime!
+  triggered: DateTime!
+}
+
+type TranslatedResource @source(name: "TranslatedResource", schema: "ContractClient") {
+  key: String!
+  label: String!
+}
+
+type TranslatedResourceOfDocumentCategoryType @source(name: "TranslatedResourceOfDocumentCategoryType", schema: "DocumentClient") {
+  key: DocumentCategoryType!
+  label: String!
+}
+
+type TriggerChangeAuthenticatorPayload implements Payload @source(name: "TriggerChangeAuthenticatorPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  receipt: TotpStatus
+}
+
+type TriggerChangeEmailPayload implements Payload @source(name: "TriggerChangeEmailPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  receipt: TotpStatus
+  username: String
+}
+
+type TriggerChangeMobileNumberPayload implements Payload @source(name: "TriggerChangeMobileNumberPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  mobileNumber: String
+  receipt: TotpStatus
+}
+
+type TriggerMfaForPasswordResetPayload implements Payload @source(name: "TriggerMfaForPasswordResetPayload", schema: "AccountClient") {
+  bewitToken: String
+  clientMutationId: String
+  errors: [Error!]
+  receipt: TotpStatus
+  triggeredOption: MfaOption
+}
+
+type TriggerMfaPayload implements Payload @source(name: "TriggerMfaPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  receipt: TotpStatus
+  triggeredOption: MfaOption
+}
+
+type TriggerPasswordResetPayload implements Payload @source(name: "TriggerPasswordResetPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+}
+
+type UpdateEmailPayload implements Payload @source(name: "UpdateEmailPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type UpdateMobileNumberPayload implements Payload @source(name: "UpdateMobileNumberPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type UpdatePasswordPayload implements Payload @source(name: "UpdatePasswordPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type UpdateUserPayload implements Payload @source(name: "UpdateUserPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type User implements Node {
+  advisors: [Advisor!] @delegate(path: "contractAdvisors(advisorRequests:$scopedContextData:advisorRequests)", schema: "AdvisorClient")
+  contract(id: ID!): Contract @delegate(path: "contract(id:$arguments:id)", schema: "ContractClient")
+  contracts(tag: [ContractTag]): [Contract!] @delegate(path: "customerContract.contracts(tag:$arguments:tag)", schema: "ContractClient")
+  envelopes(after: String before: String contractId: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$arguments:contractId)", schema: "DocumentClient")
+  hasActivePassword: Boolean! @delegate(path: "user.hasActivePassword", schema: "AccountClient")
+  id: ID! @delegate(path: "user.id", schema: "AccountClient")
+  mfaOptions: [MfaOption!]! @delegate(path: "user.mfaOptions", schema: "AccountClient")
+  notifications(after: String before: String first: PaginationAmount last: PaginationAmount order_by: NotificationSort where: NotificationFilter): NotificationConnection @delegate(path: "notifications(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by)", schema: "InboxClient")
+  outline: Outline @delegate(path: "customerContract.outline", schema: "ContractClient")
+  profile: Profile @delegate(path: "profile", schema: "ProfileClient")
+  providers: [Provider!]! @delegate(path: "user.providers", schema: "AccountClient")
+}
+
+type ValidateAddressPayload implements Payload @source(name: "ValidateAddressPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type ValidateAuthenticatorPayload implements Payload @source(name: "ValidateAuthenticatorPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type ValidateChangeAuthenticatorPayload implements Payload @source(name: "ValidateChangeAuthenticatorPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type ValidateChangeEmailPayload implements Payload @source(name: "ValidateChangeEmailPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type ValidateChangeMobileNumberPayload implements Payload @source(name: "ValidateChangeMobileNumberPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type ValidateEmailPayload implements Payload @source(name: "ValidateEmailPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type ValidateMfaForPasswordResetPayload implements Payload @source(name: "ValidateMfaForPasswordResetPayload", schema: "AccountClient") {
+  bewitToken: String
+  clientMutationId: String
+  errors: [Error!]
+  success: Boolean
+}
+
+type ValidateMfaPayload implements Payload @source(name: "ValidateMfaPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  success: Boolean
+}
+
+type ValidateMobileNumberPayload implements Payload @source(name: "ValidateMobileNumberPayload", schema: "AccountClient") {
+  clientMutationId: String
+  errors: [Error!]
+  user: AccountUser
+}
+
+type VerifyAddressPayload implements Payload @source(name: "VerifyAddressPayload", schema: "PostInfoClient") {
+  addressId: String
+  clientMutationId: String
+  errors: [Error!]
+  isValid: Boolean!
+  sanitizedAddress: SanitizedAddress
+}
+
+type VerifyIdentityPayload implements Payload @source(name: "VerifyIdentityPayload", schema: "PostInfoClient") {
+  addressVerified: Boolean!
+  clientMutationId: String
+  contractType: String
+  errors: [Error!]
+  isEligibleForVerification: Boolean!
+  provider: String
+  score: Float
+}
+
+type XPlanContract implements Node & PensionFundContract @source(name: "XPlanContract", schema: "ContractClient") {
+  beginDate: DateTime!
+  contractNumber: String
+  endDate: DateTime
+  foundation: String
+  id: ID!
+  "Translated"
+  insuranceType: String!
+  stakeHolder: String
+}
+
+type XPlanPolicy implements Contract & PensionFundPolicy & Paperless & Node @source(name: "XPlanPolicy", schema: "ContractClient") {
+  active: Boolean!
+  additionalLumpSumDeathBenefitMarried: Float!
+  additionalLumpSumDeathBenefitMarriedAccident: Float!
+  additionalLumpSumDeathBenefitNotMarried: Float!
+  additionalLumpSumDeathBenefitNotMarriedAccident: Float!
+  advisor: Advisor! @delegate(path: "nvsAdvisor(contractNumber:$fields:number)", schema: "AdvisorClient")
+  begin: DateTime!
+  benefits: PensionFundPolicyBenefits!
+  category: ContractCategory!
+  childrensBenefitIvPension: Float!
+  childrensBenefitIvPensionAccident: Float!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: Float!
+  contract: XPlanContract!
+  contractId: String!
+  contributionEmployee: Float!
+  contributionEmployer: Float!
+  contributionExonerationDelay: Int!
+  contributionTotal: Float!
+  conversionRateMandatory: Float!
+  conversionRateSupplementary: Float!
+  currency: String!
+  deathBenefit: Float!
+  degreeOfDisability: Float!
+  domicileAddress: PensionFundAddress
+  endDate: DateTime
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$fields:number)", schema: "DocumentClient")
+  "PolicyId"
+  id: ID!
+  insuranceGroup: String
+  interestRateMandatory: Float!
+  interestRateSupplementary: Float!
+  iVPension: Float!
+  iVPensionAccident: Float!
+  iVWaitingPeriod: Int!
+  levelOfEmployment: Float!
+  maxRetirementCapital: Float!
+  monthlyRetirementPension: Float!
+  number: String!
+  nvsPortalInsuredPersonId: String!
+  orphansBenefit: Float!
+  orphansBenefitAccident: Float!
+  paperlessEnabled: Boolean
+  pensionPlan: PensionPlan
+  policyId: String!
+  productName: String!
+  projectedRetirement: XPlanProjectedRetirement!
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  reportedSalary: Float!
+  retirementCapital: Float!
+  retirementDevelopment: [XPlanRetirementDevelopment!]!
+  retirementPension: Float!
+  retirementSavings: Float!
+  sourceSystemName: String
+  startDateEmployment: DateTime
+  status: PensionFundPolicyStatus!
+  totalBalance: Float!
+  transactions(after: String before: String first: PaginationAmount last: PaginationAmount order_by: XPlanTransactionSort where: XPlanPensionFundTransactionFilterInput): XPlanTransactionConnection
+  unmarriedPartnersPension: Float!
+  unmarriedPartnersPensionAccident: Float!
+  withdrawalCapital: Float!
+}
+
+type XPlanProjectedRetirement implements ProjectedRetirement @source(name: "XPlanProjectedRetirement", schema: "ContractClient") {
+  isPossiblePrepensionDateInFuture: Boolean!
+  lastPossiblePurchaseDate: Date!
+  projectedAge: Int!
+  projectedDate: Date!
+  projectedInterestRate: Float!
+  projectedSavings: Decimal!
+}
+
+type XPlanRetirementDevelopment @source(name: "XPlanRetirementDevelopment", schema: "ContractClient") {
+  retirementCapital: Float!
+  retirementCapitalSupplementary: Float!
+  retirementDate: DateTime!
+  retirementPension: Float!
+  source: String!
+  transactions: [XPlanTransaction!]!
+}
+
+type XPlanTransaction @source(name: "XPlanTransaction", schema: "ContractClient") {
+  amount: Float
+  bookingCode: String
+  bookingDate: DateTime!
+  "Translated"
+  bookingText: String!
+  bookingType: String
+  envelope(processId: String): CustomerEnvelope @delegate(path: "envelope(processId:$fields:processId)", schema: "DocumentClient")
+  id: ID!
+  processId: String
+  transactionId: String!
+}
+
+"A connection to a list of items."
+type XPlanTransactionConnection @source(name: "XPlanTransactionConnection", schema: "ContractClient") {
+  "A list of edges."
+  edges: [XPlanTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [XPlanTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type XPlanTransactionEdge @source(name: "XPlanTransactionEdge", schema: "ContractClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: XPlanTransaction
+}
+
+type ZipCity implements Node @source(name: "ZipCity", schema: "PostInfoClient") {
+  city: String!
+  id: ID!
+  zip: String!
+  zipCityId: String!
+}
+
+"A connection to a list of items."
+type ZipCityConnection @source(name: "ZipCityConnection", schema: "PostInfoClient") {
+  "A list of edges."
+  edges: [ZipCityEdge!]
+  "A flattened list of the nodes."
+  nodes: [ZipCity!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ZipCityEdge @source(name: "ZipCityEdge", schema: "PostInfoClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ZipCity!
+}
+
+type ZmaAccount @source(name: "ZmaAccount", schema: "ContractClient") {
+  accountId: String
+  accountType: ZmaAccountType!
+  accountTypeName: String!
+  calculationDate: DateTime!
+  contractId: String
+  currency: String!
+  currentBalanceAccountCurrency: Float!
+  iban: String!
+  id: ID!
+  standingOrders: [ZmaStandingOrder]!
+}
+
+type ZmaAccountTransaction implements Node @source(name: "ZmaAccountTransaction", schema: "ContractClient") {
+  accountBalance: Float!
+  accountTransactionAmount: Float!
+  accountType: ZmaAccountType!
+  accountTypeName: String!
+  bookingDate: DateTime!
+  contractId: String
+  currency: String!
+  iban: String
+  "AccountTransactionId"
+  id: ID!
+  marketPrice: Float!
+  narrativeText: String
+  securityNominal: Float!
+  transactionText: String
+  valueDate: DateTime!
+}
+
+"A connection to a list of items."
+type ZmaAccountTransactionConnection @source(name: "ZmaAccountTransactionConnection", schema: "ContractClient") {
+  "A list of edges."
+  edges: [ZmaAccountTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [ZmaAccountTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ZmaAccountTransactionEdge @source(name: "ZmaAccountTransactionEdge", schema: "ContractClient") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ZmaAccountTransaction
+}
+
+type ZmaContract implements Contract & Investment & Paperless & Node @source(name: "ZmaContract", schema: "ContractClient") {
+  accounts: [ZmaAccount]!
+  accounttransactions(after: String before: String filter: [FilterInfoInput] first: PaginationAmount last: PaginationAmount sortBy: String sortDirection: SortDirection): ZmaAccountTransactionConnection
+  active: Boolean!
+  advisor: Advisor! @delegate(path: "zmaContractAdvisor(contractId:$fields:number)", schema: "AdvisorClient")
+  begin: DateTime!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  customer: ZmaCustomer!
+  depositsFromContractStart: Float
+  envelopes(after: String before: String first: PaginationAmount last: PaginationAmount order_by: CustomerEnvelopeSort where: CustomerEnvelopeFilter): CustomerEnvelopeConnection @delegate(path: "envelopes(after:$arguments:after, before:$arguments:before, first:$arguments:first, last:$arguments:last, where:$arguments:where, order_by:$arguments:order_by, contractId:$scopedContextData:customerId)", schema: "DocumentClient")
+  id: ID!
+  investmentStrategy: InvestmentStrategy!
+  investmentTheme: InvestmentTheme
+  latestContractPerformanceYear: ZmaContractPerformance!
+  number: String!
+  paperlessEnabled: Boolean
+  payoutPeriodicity: PaymentPeriodicity!
+  payoutPeriodicPayment: Float
+  payoutStartMonth: DateTime
+  portfolio: ZmaPortfolio
+  portfolioName: String
+  powerOfAttorney: ZmaPowerOfAttorney
+  product: ZmaProduct!
+  productName: String!
+  sourceSystemName: String
+  totalBalance: Float!
+  uniqueId: String
+  youthAccountDateOfBirth: DateTime
+  youthAccountFirstName: String
+  youthAccountGender: Gender
+  youthAccountLastName: String
+}
+
+type ZmaContractPerformance @source(name: "ZmaContractPerformance", schema: "ContractClient") {
+  calculationType: ZmaContractPerformanceCalculation!
+  contractPerformanceId: String!
+  historicalPerformance: Float!
+  id: ID!
+  performanceDate: DateTime!
+  referenceCurrency: String!
+  zmaContractId: String
+}
+
+type ZmaCustomer @source(name: "ZmaCustomer", schema: "ContractClient") {
+  beneficiaryAccountNumber: String
+  customerId: String!
+  firstName: String!
+  id: ID!
+  lastName: String!
+}
+
+type ZmaPortfolio @source(name: "ZmaPortfolio", schema: "ContractClient") {
+  calculationDate: DateTime
+  contractId: String
+  currency: String!
+  history: [ZmaPortfolioHistory!]!
+  id: ID!
+  portfolioId: String!
+  portfolioValueInBalanceSheetCurrency: Float
+  portfolioValueInPortfolioCurrency: Float!
+  positions: [ZmaPortfolioPosition!]!
+}
+
+type ZmaPortfolioHistory @source(name: "ZmaPortfolioHistory", schema: "ContractClient") {
+  calculationDate: DateTime!
+  contractId: String
+  id: ID!
+  investmentValueInContractCurrency: Float
+  payoutValueInContractCurrency: Float
+  portfolioHistoryId: String!
+  portfolioId: String
+  portfolioValueInBalanceSheetCurrency: Float
+  portfolioValueInPortfolioCurrency: Float!
+}
+
+type ZmaPortfolioPosition @source(name: "ZmaPortfolioPosition", schema: "ContractClient") {
+  investmentCategory: InvestmentCategory!
+  "Translated"
+  investmentCategoryName: String!
+  investmentCategoryPercentage: Float!
+  investmentCurrencyPercentage: Float!
+  isin: String!
+  monetaryAssetName: String!
+  monetaryAssetTitleCurrency: String!
+  nominalValueOrQuantity: Float!
+  portfolioPositionId: String!
+  portfolioShare: Float!
+  position: Int!
+  valorPerformance: Float!
+  valuationReferenceCurrency: Float!
+}
+
+type ZmaPowerOfAttorney @source(name: "ZmaPowerOfAttorney", schema: "ContractClient") {
+  firstName: String!
+  id: ID!
+  lastName: String!
+  powerOfAttorneyId: String!
+}
+
+type ZmaProduct @source(name: "ZmaProduct", schema: "ContractClient") {
+  contractType: ZmaContractType!
+  id: ID!
+  investmentStrategy: String!
+  investmentTheme: String
+  productName: String!
+  productNumber: String!
+}
+
+type ZmaStandingOrder @source(name: "ZmaStandingOrder", schema: "ContractClient") {
+  amount: Float!
+  frequency: PaymentPeriodicity!
+  id: ID!
+  standingOrderId: String!
+}
+
+input AcceptCurrentTermsOfServiceInput @source(name: "AcceptCurrentTermsOfServiceInput", schema: "AccountClient") {
+  clientMutationId: String
+  userId: ID!
+}
+
+input AddMfaOptionInput @source(name: "AddMfaOptionInput", schema: "AccountClient") {
+  clientMutationId: String
+  destination: String!
+  isDefault: Boolean!
+  mfaType: MfaType!
+}
+
+input AddPasswordInput @source(name: "AddPasswordInput", schema: "AccountClient") {
+  clientMutationId: String
+  password: String!
+}
+
+input AddProviderInput @source(name: "AddProviderInput", schema: "AccountClient") {
+  clientMutationId: String
+  token: String!
+}
+
+input AdvisorRequestInput @source(name: "AdvisorRequestInput", schema: "AdvisorClient") {
+  sourceRelevantId: String!
+  sourceSystem: SourceSystem!
+}
+
+input AuthenticateInput @source(name: "AuthenticateInput", schema: "AccountClient") {
+  clientMutationId: String
+  password: String!
+  username: String!
+}
+
+input AuthenticateProviderInput @source(name: "AuthenticateProviderInput", schema: "AccountClient") {
+  clientMutationId: String
+  providerId: String!
+  providerName: String!
+}
+
+input AuthenticateTokenInput @source(name: "AuthenticateTokenInput", schema: "AccountClient") {
+  clientMutationId: String
+  oneTimeToken: String!
+  username: String!
+}
+
+input ChangeEmailInput @source(name: "ChangeEmailInput", schema: "ProfileClient") {
+  email: String!
+  userId: Uuid!
+}
+
+input ChangeMobileNumberInput @source(name: "ChangeMobileNumberInput", schema: "ProfileClient") {
+  mobileNumber: String!
+  userId: Uuid!
+}
+
+input ContractIdInput @source(name: "ContractIdInput", schema: "ProfileClient") {
+  id: ID!
+}
+
+input CountryFilter @source(name: "CountryFilter", schema: "PostInfoClient") {
+  AND: [CountryFilter!]
+  iso2: String
+  iso3: String
+  OR: [CountryFilter!]
+  unId: Int
+  unId_in: [Int!]
+}
+
+input CreatePensionCertificateInput @source(name: "CreatePensionCertificateInput", schema: "PensionCertificateClient") {
+  contractNr: String!
+  svn: String!
+}
+
+input CreateProfileInput @source(name: "CreateProfileInput", schema: "ProfileClient") {
+  birthDate: Date!
+  email: String!
+  firstName: String!
+  gender: ProfileClient_Gender!
+  homeAddress: SetHomeAddressInput!
+  language: String!
+  lastName: String!
+  mobileNumber: String!
+  userId: Uuid!
+}
+
+input CreateTicketInput @source(name: "CreateTicketInput", schema: "FuseTicketingClient") {
+  assignedTo: String
+  context: [KeyValuePairOfStringAndStringInput!]
+  description: String!
+  email: String
+  firstname: String
+  gender: AccountClient_Gender
+  language: String
+  lastname: String
+  phone: String
+  title: String!
+  userId: String
+}
+
+input CreateUserInput @source(name: "CreateUserInput", schema: "AccountClient") {
+  clientMutationId: String
+  dateOfBirth: DateTime!
+  email: String!
+  firstName: String!
+  gender: AccountClient_Gender!
+  lastName: String!
+  mobileNumber: String!
+  password: String
+  providerToken: String
+  recaptchaToken: String!
+}
+
+input CustomerEnvelopeFilter @source(name: "CustomerEnvelopeFilter", schema: "DocumentClient") {
+  AND: [CustomerEnvelopeFilter!]
+  documents_some: DocumentFilter
+  envelopeDate: DateTime
+  envelopeDate_gt: DateTime
+  envelopeDate_gte: DateTime
+  envelopeDate_in: [DateTime!]
+  envelopeDate_lt: DateTime
+  envelopeDate_lte: DateTime
+  envelopeDate_not: DateTime
+  envelopeDate_not_gt: DateTime
+  envelopeDate_not_gte: DateTime
+  envelopeDate_not_in: [DateTime!]
+  envelopeDate_not_lt: DateTime
+  envelopeDate_not_lte: DateTime
+  isTaxRelevant: Boolean
+  OR: [CustomerEnvelopeFilter!]
+}
+
+input CustomerEnvelopeSort @source(name: "CustomerEnvelopeSort", schema: "DocumentClient") {
+  envelopeDate: SortOperationKind
+}
+
+input DigisPensionFundTransactionFilterInput @source(name: "DigisPensionFundTransactionFilterInput", schema: "ContractClient") {
+  amount: Float
+  amount_gt: Float
+  amount_gte: Float
+  amount_in: [Float]
+  amount_lt: Float
+  amount_lte: Float
+  amount_not: Float
+  amount_not_gt: Float
+  amount_not_gte: Float
+  amount_not_in: [Float]
+  amount_not_lt: Float
+  amount_not_lte: Float
+  AND: [DigisPensionFundTransactionFilterInput!]
+  bookingDate: DateTime
+  bookingDate_gt: DateTime
+  bookingDate_gte: DateTime
+  bookingDate_in: [DateTime]
+  bookingDate_lt: DateTime
+  bookingDate_lte: DateTime
+  bookingDate_not: DateTime
+  bookingDate_not_gt: DateTime
+  bookingDate_not_gte: DateTime
+  bookingDate_not_in: [DateTime]
+  bookingDate_not_lt: DateTime
+  bookingDate_not_lte: DateTime
+  OR: [DigisPensionFundTransactionFilterInput!]
+}
+
+input DigisTransactionSort @source(name: "DigisTransactionSort", schema: "ContractClient") {
+  bookingDate: SortOperationKind
+}
+
+input DocumentFilter @source(name: "DocumentFilter", schema: "DocumentClient") {
+  AND: [DocumentFilter!]
+  contractId: String
+  contractId_contains: String
+  contractId_ends_with: String
+  contractId_in: [String]
+  contractId_not: String
+  contractId_not_contains: String
+  contractId_not_ends_with: String
+  contractId_not_in: [String]
+  contractId_not_starts_with: String
+  contractId_starts_with: String
+  contractNumber: String
+  contractNumber_contains: String
+  contractNumber_ends_with: String
+  contractNumber_in: [String]
+  contractNumber_not: String
+  contractNumber_not_contains: String
+  contractNumber_not_ends_with: String
+  contractNumber_not_in: [String]
+  contractNumber_not_starts_with: String
+  contractNumber_starts_with: String
+  documentCategoryType: DocumentCategoryType
+  documentCategoryType_gt: DocumentCategoryType
+  documentCategoryType_gte: DocumentCategoryType
+  documentCategoryType_in: [DocumentCategoryType!]
+  documentCategoryType_lt: DocumentCategoryType
+  documentCategoryType_lte: DocumentCategoryType
+  documentCategoryType_not: DocumentCategoryType
+  documentCategoryType_not_gt: DocumentCategoryType
+  documentCategoryType_not_gte: DocumentCategoryType
+  documentCategoryType_not_in: [DocumentCategoryType!]
+  documentCategoryType_not_lt: DocumentCategoryType
+  documentCategoryType_not_lte: DocumentCategoryType
+  documentDate: DateTime
+  documentDate_gt: DateTime
+  documentDate_gte: DateTime
+  documentDate_in: [DateTime!]
+  documentDate_lt: DateTime
+  documentDate_lte: DateTime
+  documentDate_not: DateTime
+  documentDate_not_gt: DateTime
+  documentDate_not_gte: DateTime
+  documentDate_not_in: [DateTime!]
+  documentDate_not_lt: DateTime
+  documentDate_not_lte: DateTime
+  documentId: String
+  documentId_contains: String
+  documentId_ends_with: String
+  documentId_in: [String]
+  documentId_not: String
+  documentId_not_contains: String
+  documentId_not_ends_with: String
+  documentId_not_in: [String]
+  documentId_not_starts_with: String
+  documentId_starts_with: String
+  documentTitle: String
+  documentTitle_contains: String
+  documentTitle_ends_with: String
+  documentTitle_in: [String]
+  documentTitle_not: String
+  documentTitle_not_contains: String
+  documentTitle_not_ends_with: String
+  documentTitle_not_in: [String]
+  documentTitle_not_starts_with: String
+  documentTitle_starts_with: String
+  documentType: String
+  documentType_contains: String
+  documentType_ends_with: String
+  documentType_in: [String]
+  documentType_not: String
+  documentType_not_contains: String
+  documentType_not_ends_with: String
+  documentType_not_in: [String]
+  documentType_not_starts_with: String
+  documentType_starts_with: String
+  envelopeId: String
+  envelopeId_contains: String
+  envelopeId_ends_with: String
+  envelopeId_in: [String]
+  envelopeId_not: String
+  envelopeId_not_contains: String
+  envelopeId_not_ends_with: String
+  envelopeId_not_in: [String]
+  envelopeId_not_starts_with: String
+  envelopeId_starts_with: String
+  envelopeOrder: Int
+  envelopeOrder_gt: Int
+  envelopeOrder_gte: Int
+  envelopeOrder_in: [Int!]
+  envelopeOrder_lt: Int
+  envelopeOrder_lte: Int
+  envelopeOrder_not: Int
+  envelopeOrder_not_gt: Int
+  envelopeOrder_not_gte: Int
+  envelopeOrder_not_in: [Int!]
+  envelopeOrder_not_lt: Int
+  envelopeOrder_not_lte: Int
+  filterId: String
+  filterId_contains: String
+  filterId_ends_with: String
+  filterId_in: [String]
+  filterId_not: String
+  filterId_not_contains: String
+  filterId_not_ends_with: String
+  filterId_not_in: [String]
+  filterId_not_starts_with: String
+  filterId_starts_with: String
+  hiddenFilterId: String
+  hiddenFilterId_contains: String
+  hiddenFilterId_ends_with: String
+  hiddenFilterId_in: [String]
+  hiddenFilterId_not: String
+  hiddenFilterId_not_contains: String
+  hiddenFilterId_not_ends_with: String
+  hiddenFilterId_not_in: [String]
+  hiddenFilterId_not_starts_with: String
+  hiddenFilterId_starts_with: String
+  isTaxRelevant: Boolean
+  isTaxRelevant_not: Boolean
+  OR: [DocumentFilter!]
+  portalCustomerId: String
+  portalCustomerId_contains: String
+  portalCustomerId_ends_with: String
+  portalCustomerId_in: [String]
+  portalCustomerId_not: String
+  portalCustomerId_not_contains: String
+  portalCustomerId_not_ends_with: String
+  portalCustomerId_not_in: [String]
+  portalCustomerId_not_starts_with: String
+  portalCustomerId_starts_with: String
+}
+
+input EvPremiumInvoiceFilter @source(name: "EvPremiumInvoiceFilter", schema: "ContractClient") {
+  AND: [EvPremiumInvoiceFilter!]
+  dueDate: Date
+  dueDate_gt: Date
+  dueDate_gte: Date
+  dueDate_in: [Date]
+  dueDate_lt: Date
+  dueDate_lte: Date
+  dueDate_not: Date
+  dueDate_not_gt: Date
+  dueDate_not_gte: Date
+  dueDate_not_in: [Date]
+  dueDate_not_lt: Date
+  dueDate_not_lte: Date
+  OR: [EvPremiumInvoiceFilter!]
+}
+
+input EvPremiumInvoiceSort @source(name: "EvPremiumInvoiceSort", schema: "ContractClient") {
+  dueDate: SortOperationKind
+}
+
+input FilterInfoInput @source(name: "FilterInfoInput", schema: "ContractClient") {
+  equality: FilterEqualityOperator!
+  field: String!
+  logical: FilterLogicalOperator
+  value: String
+}
+
+input HouseNumberFilter @source(name: "HouseNumberFilter", schema: "PostInfoClient") {
+  addressId: String
+  addressId_contains: String
+  addressId_ends_with: String
+  addressId_in: [String]
+  addressId_not: String
+  addressId_not_contains: String
+  addressId_not_ends_with: String
+  addressId_not_in: [String]
+  addressId_not_starts_with: String
+  addressId_starts_with: String
+  AND: [HouseNumberFilter!]
+  number: String
+  number_contains: String
+  number_ends_with: String
+  number_in: [String]
+  number_not: String
+  number_not_contains: String
+  number_not_ends_with: String
+  number_not_in: [String]
+  number_not_starts_with: String
+  number_starts_with: String
+  OR: [HouseNumberFilter!]
+}
+
+input ILocationFilter @source(name: "ILocationFilter", schema: "PostInfoClient") {
+  AND: [ILocationFilter!]
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_in: [String]
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: [String]
+  name_not_starts_with: String
+  name_starts_with: String
+  OR: [ILocationFilter!]
+  sanitizedName: String
+  sanitizedName_contains: String
+  sanitizedName_ends_with: String
+  sanitizedName_in: [String]
+  sanitizedName_not: String
+  sanitizedName_not_contains: String
+  sanitizedName_not_ends_with: String
+  sanitizedName_not_in: [String]
+  sanitizedName_not_starts_with: String
+  sanitizedName_starts_with: String
+}
+
+input IdentityInput @source(name: "IdentityInput", schema: "PostInfoClient") {
+  dateOfBirth: Date!
+  firstName: String!
+  lastName: String!
+  mobilePhone: String!
+}
+
+input KeyValuePairOfStringAndStringInput @source(name: "KeyValuePairOfStringAndStringInput", schema: "FuseTicketingClient") {
+  key: String!
+  value: String!
+}
+
+input MortgageSort @source(name: "MortgageSort", schema: "ContractClient") {
+  endDate: SortOperationKind
+  isActive: SortOperationKind
+  startDate: SortOperationKind
+}
+
+input NotificationFilter @source(name: "NotificationFilter", schema: "InboxClient") {
+  AND: [NotificationFilter!]
+  category: NotificationCategory
+  category_gt: NotificationCategory
+  category_gte: NotificationCategory
+  category_in: [NotificationCategory!]
+  category_lt: NotificationCategory
+  category_lte: NotificationCategory
+  category_not: NotificationCategory
+  category_not_gt: NotificationCategory
+  category_not_gte: NotificationCategory
+  category_not_in: [NotificationCategory!]
+  category_not_lt: NotificationCategory
+  category_not_lte: NotificationCategory
+  OR: [NotificationFilter!]
+  read: Boolean
+  read_not: Boolean
+}
+
+input NotificationRequestInput @source(name: "NotificationRequestInput", schema: "ProfileClient") {
+  emailNotificationEnabled: Boolean!
+  language: LanguageCode
+  smsNotificationEnabled: Boolean!
+}
+
+input NotificationSort @source(name: "NotificationSort", schema: "InboxClient") {
+  category: SortOperationKind
+  created: SortOperationKind
+}
+
+input PaperlessInput @source(name: "PaperlessInput", schema: "ContractClient") {
+  contractId: ID!
+  enable: Boolean!
+}
+
+input PensionFundFzPolicyTransactionFilter @source(name: "PensionFundFzPolicyTransactionFilter", schema: "ContractClient") {
+  AND: [PensionFundFzPolicyTransactionFilter!]
+  bookingDate: Date
+  bookingDate_gt: Date
+  bookingDate_gte: Date
+  bookingDate_in: [Date]
+  bookingDate_lt: Date
+  bookingDate_lte: Date
+  bookingDate_not: Date
+  bookingDate_not_gt: Date
+  bookingDate_not_gte: Date
+  bookingDate_not_in: [Date]
+  bookingDate_not_lt: Date
+  bookingDate_not_lte: Date
+  OR: [PensionFundFzPolicyTransactionFilter!]
+}
+
+input PensionFundFzPolicyTransactionSort @source(name: "PensionFundFzPolicyTransactionSort", schema: "ContractClient") {
+  bookingDate: SortOperationKind
+}
+
+input RemoveProviderInput @source(name: "RemoveProviderInput", schema: "AccountClient") {
+  clientMutationId: String
+  providerId: String!
+  providerName: String!
+}
+
+input SaveAddressInput @source(name: "SaveAddressInput", schema: "AccountClient") {
+  addressExtension: String
+  city: String!
+  clientMutationId: String
+  country: String!
+  street: String!
+  zip: String!
+}
+
+input SetDefaultMfaOptionInput @source(name: "SetDefaultMfaOptionInput", schema: "AccountClient") {
+  clientMutationId: String
+  optionId: ID!
+}
+
+input SetHomeAddressInput @source(name: "SetHomeAddressInput", schema: "ProfileClient") {
+  addressExtension: String
+  cityName: String!
+  countryCode: String!
+  streetName: String
+  streetNumber: String
+  zipCode: String!
+}
+
+input SetPasswordInput @source(name: "SetPasswordInput", schema: "AccountClient") {
+  clientMutationId: String
+  password: String
+}
+
+input SetPortalCustomerInput @source(name: "SetPortalCustomerInput", schema: "ProfileClient") {
+  portalCustomerId: Uuid
+  profileId: Uuid!
+}
+
+input SubmitContactFormInput @source(name: "SubmitContactFormInput", schema: "AccountClient") {
+  clientMutationId: String
+  email: String
+  firstName: String
+  gender: String
+  lastName: String
+  message: String!
+  phone: String
+  recaptchaToken: String!
+  title: String!
+}
+
+input SurrenderValueDocument @source(name: "SurrenderValueDocument", schema: "ContractClient") {
+  contractId: ID!
+  customerId: String
+  date: Date
+  partnerId: String!
+}
+
+input TaxDataInput @source(name: "TaxDataInput", schema: "ProfileClient") {
+  city: String!
+  civilStatus: CivilStatus!
+  denomination: Denomination!
+  numberOfChildren: Int!
+  taxableAssets: Float!
+  taxableIncome: Float!
+  taxableSwiss: Boolean!
+  zipCode: String!
+}
+
+input TicketReferenceFilter @source(name: "TicketReferenceFilter", schema: "FuseTicketingClient") {
+  AND: [TicketReferenceFilter!]
+  createdAt: DateTime
+  createdAt_gt: DateTime
+  createdAt_gte: DateTime
+  createdAt_in: [DateTime!]
+  createdAt_lt: DateTime
+  createdAt_lte: DateTime
+  createdAt_not: DateTime
+  createdAt_not_gt: DateTime
+  createdAt_not_gte: DateTime
+  createdAt_not_in: [DateTime!]
+  createdAt_not_lt: DateTime
+  createdAt_not_lte: DateTime
+  externalId: String
+  externalId_contains: String
+  externalId_ends_with: String
+  externalId_in: [String!]
+  externalId_not: String
+  externalId_not_contains: String
+  externalId_not_ends_with: String
+  externalId_not_in: [String!]
+  externalId_not_starts_with: String
+  externalId_starts_with: String
+  lastModifiedAt: DateTime
+  lastModifiedAt_gt: DateTime
+  lastModifiedAt_gte: DateTime
+  lastModifiedAt_in: [DateTime!]
+  lastModifiedAt_lt: DateTime
+  lastModifiedAt_lte: DateTime
+  lastModifiedAt_not: DateTime
+  lastModifiedAt_not_gt: DateTime
+  lastModifiedAt_not_gte: DateTime
+  lastModifiedAt_not_in: [DateTime!]
+  lastModifiedAt_not_lt: DateTime
+  lastModifiedAt_not_lte: DateTime
+  OR: [TicketReferenceFilter!]
+  state: TicketState
+  state_gt: TicketState
+  state_gte: TicketState
+  state_in: [TicketState!]
+  state_lt: TicketState
+  state_lte: TicketState
+  state_not: TicketState
+  state_not_gt: TicketState
+  state_not_gte: TicketState
+  state_not_in: [TicketState!]
+  state_not_lt: TicketState
+  state_not_lte: TicketState
+}
+
+input TicketReferenceSort @source(name: "TicketReferenceSort", schema: "FuseTicketingClient") {
+  createdAt: SortOperationKind
+}
+
+input TriggerChangeEmailInput @source(name: "TriggerChangeEmailInput", schema: "AccountClient") {
+  clientMutationId: String
+  newEmail: String!
+}
+
+input TriggerChangeMobileNumberInput @source(name: "TriggerChangeMobileNumberInput", schema: "AccountClient") {
+  clientMutationId: String
+  newMobileNumber: String!
+}
+
+input TriggerMfaForPasswordResetInput @source(name: "TriggerMfaForPasswordResetInput", schema: "AccountClient") {
+  clientMutationId: String
+  mfaOptionId: ID!
+}
+
+input TriggerMfaInput @source(name: "TriggerMfaInput", schema: "AccountClient") {
+  clientMutationId: String
+  mfaOptionId: ID!
+  userId: ID!
+}
+
+input TriggerPasswordResetInput @source(name: "TriggerPasswordResetInput", schema: "AccountClient") {
+  clientMutationId: String
+  recaptchaToken: String!
+  username: String!
+}
+
+input UpdateEmailInput @source(name: "UpdateEmailInput", schema: "AccountClient") {
+  clientMutationId: String
+  email: String!
+}
+
+input UpdateMobileNumberInput @source(name: "UpdateMobileNumberInput", schema: "AccountClient") {
+  clientMutationId: String
+  mobileNumber: String!
+}
+
+input UpdatePasswordInput @source(name: "UpdatePasswordInput", schema: "AccountClient") {
+  clientMutationId: String
+  currentPassword: String!
+  newPassword: String!
+}
+
+input UpdateUserInput @source(name: "UpdateUserInput", schema: "AccountClient") {
+  clientMutationId: String
+  email: String
+  mobileNumber: String
+}
+
+input ValidateAddressInput @source(name: "ValidateAddressInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+}
+
+input ValidateAuthenticatorInput @source(name: "ValidateAuthenticatorInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+  totpSecret: String!
+}
+
+input ValidateChangeAuthenticatorInput @source(name: "ValidateChangeAuthenticatorInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+}
+
+input ValidateChangeEmailInput @source(name: "ValidateChangeEmailInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+}
+
+input ValidateChangeMobileNumberInput @source(name: "ValidateChangeMobileNumberInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+}
+
+input ValidateEmailInput @source(name: "ValidateEmailInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+}
+
+input ValidateMfaForPasswordResetInput @source(name: "ValidateMfaForPasswordResetInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+  mfaOptionId: ID!
+}
+
+input ValidateMfaInput @source(name: "ValidateMfaInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+  mfaOptionId: ID!
+  userId: ID!
+}
+
+input ValidateMobileNumberInput @source(name: "ValidateMobileNumberInput", schema: "AccountClient") {
+  clientMutationId: String
+  code: String!
+}
+
+input VerifyAddressInput @source(name: "VerifyAddressInput", schema: "PostInfoClient") {
+  addressExtension: String
+  city: String!
+  clientMutationId: String
+  country: String!
+  street: String!
+  zip: String!
+}
+
+input VerifyIdentityInput @source(name: "VerifyIdentityInput", schema: "PostInfoClient") {
+  addressId: String!
+  clientMutationId: String
+  identity: IdentityInput!
+}
+
+input XPlanPensionFundTransactionFilterInput @source(name: "XPlanPensionFundTransactionFilterInput", schema: "ContractClient") {
+  amount: Float
+  amount_gt: Float
+  amount_gte: Float
+  amount_in: [Float]
+  amount_lt: Float
+  amount_lte: Float
+  amount_not: Float
+  amount_not_gt: Float
+  amount_not_gte: Float
+  amount_not_in: [Float]
+  amount_not_lt: Float
+  amount_not_lte: Float
+  AND: [XPlanPensionFundTransactionFilterInput!]
+  bookingDate: Date
+  bookingDate_gt: Date
+  bookingDate_gte: Date
+  bookingDate_in: [Date]
+  bookingDate_lt: Date
+  bookingDate_lte: Date
+  bookingDate_not: Date
+  bookingDate_not_gt: Date
+  bookingDate_not_gte: Date
+  bookingDate_not_in: [Date]
+  bookingDate_not_lt: Date
+  bookingDate_not_lte: Date
+  OR: [XPlanPensionFundTransactionFilterInput!]
+}
+
+input XPlanTransactionSort @source(name: "XPlanTransactionSort", schema: "ContractClient") {
+  bookingDate: SortOperationKind
+}
+
+input ZipCityFilter @source(name: "ZipCityFilter", schema: "PostInfoClient") {
+  AND: [ZipCityFilter!]
+  city: String
+  city_contains: String
+  city_ends_with: String
+  city_in: [String]
+  city_not: String
+  city_not_contains: String
+  city_not_ends_with: String
+  city_not_in: [String]
+  city_not_starts_with: String
+  city_starts_with: String
+  id: String
+  id_contains: String
+  id_ends_with: String
+  id_in: [String]
+  id_not: String
+  id_not_contains: String
+  id_not_ends_with: String
+  id_not_in: [String]
+  id_not_starts_with: String
+  id_starts_with: String
+  OR: [ZipCityFilter!]
+  zip: String
+  zip_contains: String
+  zip_ends_with: String
+  zip_in: [String]
+  zip_not: String
+  zip_not_contains: String
+  zip_not_ends_with: String
+  zip_not_in: [String]
+  zip_not_starts_with: String
+  zip_starts_with: String
+}
+
+enum AccountClient_Gender @source(name: "Gender", schema: "AccountClient") @source(name: "Gender", schema: "FuseTicketingClient") {
+  FEMALE
+  MALE
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+enum CivilStatus @source(name: "CivilStatus", schema: "ProfileClient") {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  UNMARRIED
+  REGISTEREDPARTNERSHIP
+  DISSOLVEDPARTNERSHIP
+}
+
+enum ContractCategory @source(name: "ContractCategory", schema: "ContractClient") {
+  UNDEFINED
+  PENSIONFUND
+  FZ
+  PERSONALPENSION
+  MORTGAGE
+  FZP
+}
+
+enum ContractTag @source(name: "ContractTag", schema: "ContractClient") {
+  THREEA
+  PENSIONFUND
+  PAPERLESS
+}
+
+enum ContractType @source(name: "ContractType", schema: "ProfileClient") {
+  ZMACONTRACT
+  XPLANPOLICY
+  EVCONTRACT
+  EVACCOUNT
+  FZCONTRACT
+  THREEASTARTCONTRACT
+  PENSIONFUNDFZPOLICY
+  MORTGAGECONTRACT
+}
+
+enum Denomination @source(name: "Denomination", schema: "ProfileClient") {
+  ROMANCATHOLIC
+  OLDCATHOLIC
+  PROTESTANT
+  OTHERORNONE
+}
+
+enum DocumentCategoryType @source(name: "DocumentCategoryType", schema: "DocumentClient") {
+  WERTDOKUMENTE
+  INKASSODOKUMENTE
+  KORRESPONDENZDOKUMENTE
+  LEISTUNGSDOKUMENTE
+  OFFERTDOKUMENTE
+  PERSONENDOKUMENTE
+  REPORT
+  SONSTIGE
+  STEUERDOKUMENTE
+  VERTRAGSANPASSUNGEN
+  VERTRAGSDOKUMENTE
+}
+
+enum EvAccountCategory @source(name: "EvAccountCategory", schema: "ContractClient") {
+  UNKNOWN
+  HOLDING
+  PREMIUM
+}
+
+enum FileFormat @source(name: "FileFormat", schema: "DocumentClient") {
+  PDF
+  ZIP
+}
+
+enum FilterEqualityOperator @source(name: "FilterEqualityOperator", schema: "ContractClient") {
+  EQUALS
+  NOTEQUALS
+  GREATERTHANOREQUALS
+  SMALLERTHANOREQUALS
+  GREATERTHAN
+  SMALLERTHAN
+}
+
+enum FilterLogicalOperator @source(name: "FilterLogicalOperator", schema: "ContractClient") {
+  AND
+  OR
+}
+
+enum FzPolicyPlanType @source(name: "FzPolicyPlanType", schema: "ContractClient") {
+  YEARLONG
+  PERENNIALLY
+}
+
+enum Gender @source(name: "Gender", schema: "ContractClient") {
+  UNKNOWN
+  FEMALE
+  MALE
+}
+
+enum InvestmentCategory @source(name: "InvestmentCategory", schema: "ContractClient") {
+  MONEYMARKETFUNDS
+  GUARANTEEFUND
+  CAPITALPROTECTEDFUND
+  CAPITALPROTECTEDNOTE
+  BONDFUND
+  PENSIONFUND
+  REALESTATEFUND
+  CONVERTIBLEBONDS
+  STRATEGYFUNDBALANCEDFUND
+  EQUITYFUND
+  FUNDOFFUNDS
+  SPECIALFUND
+  RAWMATERIALSGOLD
+  HEDGEFUND
+  CERTIFICATE
+}
+
+enum InvestmentStrategy @source(name: "InvestmentStrategy", schema: "ContractClient") {
+  INCOME
+  BALANCED
+  GROWTH
+  EQUITY
+  CERTIFICATE
+}
+
+enum InvestmentTheme @source(name: "InvestmentTheme", schema: "ContractClient") {
+  GLOBAL
+  SWISSNESS
+  TRENDS
+  DIVIDEND
+  SWISSLIFE
+  SUSTAINABILITY
+}
+
+enum LanguageCode @source(name: "LanguageCode", schema: "ProfileClient") {
+  DE
+  FR
+  IT
+  EN
+}
+
+enum MfaType @source(name: "MfaType", schema: "AccountClient") {
+  SMS
+  EMAIL
+  AUTHAPP
+}
+
+enum NotificationCategory @source(name: "NotificationCategory", schema: "InboxClient") {
+  CONFIRMATIONORDER
+  CONFIGURATIONCHANGED
+  MESSAGE
+  PORTFOLIOCHANGES
+}
+
+enum PaymentPeriodicity @source(name: "PaymentPeriodicity", schema: "ContractClient") {
+  SINGLE
+  ANNUALY
+  SEMIANNUALY
+  QUARTERLY
+  MONTHLY
+}
+
+enum PensionFundPolicyStatus @source(name: "PensionFundPolicyStatus", schema: "ContractClient") {
+  ACTIVE
+  INACTIVE
+  INACTIVEPAID
+  REVERSAL
+  PENSION
+}
+
+enum PensionPlan @source(name: "PensionPlan", schema: "ContractClient") {
+  EMPLOYEE
+  SENIOR
+  IV
+  RETIREMENT
+}
+
+enum PremiumInvoiceStatus @source(name: "PremiumInvoiceStatus", schema: "ContractClient") {
+  PENDING
+  PAYED
+}
+
+enum ProfileClient_Gender @source(name: "Gender", schema: "ProfileClient") {
+  FEMALE
+  MALE
+  OTHER
+}
+
+enum RegistrationState @source(name: "RegistrationState", schema: "AccountClient") {
+  NEW
+  VALIDATEEMAIL
+  VALIDATEMOBILENUMBER
+  ADDRESSPENDING
+  VALIDATEADDRESS
+  COMPLETED
+}
+
+enum SortDirection @source(name: "SortDirection", schema: "ContractClient") {
+  ASCENDING
+  DESCENDING
+}
+
+enum SortOperationKind @source(name: "SortOperationKind", schema: "ContractClient") @source(name: "SortOperationKind", schema: "DocumentClient") @source(name: "SortOperationKind", schema: "FuseTicketingClient") @source(name: "SortOperationKind", schema: "InboxClient") {
+  ASC
+  DESC
+}
+
+enum SourceSystem @source(name: "SourceSystem", schema: "AdvisorClient") {
+  HSSAG
+  DIGIS
+  NVS
+  NVS_FZP
+  EV
+  LPZZMA
+  LPZFZ
+  LPZ
+}
+
+enum ThreeAStartFzAccountType @source(name: "ThreeAStartFzAccountType", schema: "ContractClient") {
+  INVESTMENT3ANEW
+  INVESTMENTFZMIGRATION
+  INVESTMENT3AMIGRATION
+  INVESTMENTFZNEW
+  ANLAGE3ANEW
+  ANLAGEFZMIGRATION
+  ANLAGE3AMIGRATION
+  ANLAGEFZNEW
+}
+
+enum ThreeAStartFzLevelOfEmployment @source(name: "ThreeAStartFzLevelOfEmployment", schema: "ContractClient") {
+  UNKNOWN
+  EMPLOYEE
+  SELFEMPLOYED
+}
+
+enum TicketState @source(name: "TicketState", schema: "FuseTicketingClient") {
+  NEW
+  COMMITTED
+  DONE
+}
+
+enum TranslatableLanguage @source(name: "TranslatableLanguage", schema: "ContractClient") @source(name: "TranslatableLanguage", schema: "AdvisorClient") @source(name: "TranslatableLanguage", schema: "DocumentClient") @source(name: "TranslatableLanguage", schema: "ProfileClient") @source(name: "TranslatableLanguage", schema: "FuseTicketingClient") @source(name: "TranslatableLanguage", schema: "InboxClient") {
+  NOTSET
+  DE
+  FR
+  IT
+  EN
+}
+
+enum ZmaAccountType @source(name: "ZmaAccountType", schema: "ContractClient") {
+  UNKNOWN
+  INVESTMENT
+  ENTRY
+}
+
+enum ZmaContractPerformanceCalculation @source(name: "ZmaContractPerformanceCalculation", schema: "ContractClient") {
+  MONTH
+  YEAR
+}
+
+enum ZmaContractType @source(name: "ZmaContractType", schema: "ContractClient") {
+  UNDEFINED
+  NONWITHDRAWALPLAN
+  WITHDRAWALPLAN
+}
+
+directive @authorize("Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!]) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+
+directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
+
+"The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
+directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
+
+"Annotates the original name of a type."
+directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID."
+scalar ID
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types."
+scalar Name
+
+scalar PaginationAmount
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
+
+scalar Uuid

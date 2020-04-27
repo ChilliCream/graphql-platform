@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Validation
 {
@@ -620,6 +621,114 @@ namespace HotChocolate.Validation
                 SchemaBuilder.New().AddStarWarsTypes().Create(),
                 null,
                 FileResource.Open("StarWars_Request.graphql"));
+        }
+
+        [Fact]
+        public void TestMe()
+        {
+            ExpectValid(
+                SchemaBuilder.New()
+                    .AddDocumentFromString(FileResource.Open("Fusion.graphql"))
+                    .Use(next => context => Task.CompletedTask)
+                    .Create(),
+                null,
+                @"query evContractsPageQuery($contractId: ID!){
+    me{
+        threeA: contracts(tag: [THREEA]){
+            __typename...taDepositCard_dataid
+        }contract(id: $contractId){
+            __typename...evContractsHeader_data...evContractsSummaryCard_data...evContractsSurrenderValueCard_data...evContractsBenefitsUponSurvivalCard_data...evContractsPremiumOverviewCard_data...evCurrentPremiumInvoicesCard_data...onEvContract{
+                contractIdisThreeAbenefitUponSurvival{
+                    estimatedTotal
+                }envelopes(first: 3,
+                order_by: {
+                    envelopeDate: DESC
+                }){
+                    ...envelopesCard_data
+                }premiumInvoiceProcessingadvisor{
+                    __typename...advisorBanner_dataid
+                }
+            }id
+        }id
+    }
+}fragment  advisorBanner_dataonAdvisor{
+    __typenameidphoneNumberemailpictureUrl...onBrokerCompany{
+        companyName
+    }...onGeneralAgency{
+        urlagencyName
+    }...onSwissLifeAdvisor{
+        firstNamelastNamejobDescription
+    }...onSwissLifeGeneralInfo{
+        namephoneNumbers{
+            phoneNumberlabel
+        }
+    }
+}fragment  envelopesCard_dataonCustomerEnvelopeConnection{
+    edges{
+        node{
+            idcontractNumberenvelopeIdenvelopeDateenvelopeTitledocuments{
+                __typenameidcontractNumberdocumentIddocumentTypedocumentCategorydocumentDateisTaxRelevant
+            }
+        }
+    }
+}fragment evContractsBenefitsUponSurvivalCard_dataonEvContract{
+    benefitUponSurvival{
+        dueDateestimatedTotalestimatedBonusestimatedFundAssetsguaranteedfundPerformanceUsedForEstimation
+    }surrenderValue{
+        existingLoan
+    }currency
+}fragment evContractsHeader_dataonEvContract{
+    numberproductName
+}fragment evContractsOrderDocumentDialog_dataonEvContract{
+    insuranceTypeidsurrenderValueDocumentPartnerId...evContractsOrderDocumentStepOrder_data
+}fragment evContractsOrderDocumentStepOrder_dataonEvContract{
+    currencyinsuranceTypesurrenderValue{
+        netvalidityDate
+    }
+}fragment evContractsPremiumOverviewCard_dataonEvContract{
+    ...evPremiumPaymentInfo_datapremium{
+        proRatasingle
+    }accountIdhasAccountid
+}fragment evContractsSummaryCard_dataonEvContract{
+    idbeginpillar_translate: pillar@translateinsuranceTypeNameretirementStartcustomers{
+        partnerIdfirstNamelastNamegenderid
+    }contractEndDate
+}fragment evContractsSurrenderValueCard_dataonEvContract{
+    idcurrencyinsuranceTypehasMonetaryAssetsurrenderValue{
+        netexistingLoanvalidityDate
+    }...evContractsOrderDocumentDialog_data
+}fragment evCurrentPremiumInvoicesCard_dataonEvContract{
+    idpremiuminvoices(first: 3,
+    order_by: {
+        dueDate: DESC
+    }){
+        edges{
+            node{
+                idbalancebillcontractIdcurrencydocumentNumberdueDateinvoiceNumberinvoicePeriodEndDateinvoicePeriodStartDatepremiumstatusstatusNamesettlementBlockenvelopes{
+                    edges{
+                        node{
+                            idcontractNumberenvelopeIdenvelopeDateenvelopeTitledocuments{
+                                __typenameidcontractNumberdocumentIddocumentTypedocumentDatedocumentCategoryisTaxRelevant
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}fragment evPremiumPaymentInfo_dataonEvContract{
+    currencypremium{
+        paidCalculationDateannualpaymentFrequencyperiodicityNameproRatasingle
+    }
+}fragment taDepositBusinessonContract{
+    productNameactive...onThreeA{
+        maximumAmountannualPremiumcurrency
+    }
+}fragment taDepositCard_dataonContract{
+    numbercategoryproductNameactive...onThreeA{
+        maximumAmountannualPremiumcurrencybvgMismatch
+    }...taDepositBusiness
+}");
         }
 
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
