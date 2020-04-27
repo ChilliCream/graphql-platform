@@ -66,7 +66,9 @@ namespace HotChocolate.Language
                         else
                         {
                             throw new Utf8EncodingException(
-                                LangResources.Utf8Helper_InvalidEscapeChar);
+                                string.Format(
+                                    LangResources.Utf8Helper_InvalidEscapeChar,
+                                    (char)code));
                         }
                     }
                     else
@@ -76,8 +78,7 @@ namespace HotChocolate.Language
                 } while (readPosition < eofPosition);
             }
 
-            int length = unescapedString.Length - writePosition;
-            if (length > 0)
+            if (unescapedString.Length - writePosition > 0)
             {
                 unescapedString = unescapedString.Slice(0, writePosition);
             }
