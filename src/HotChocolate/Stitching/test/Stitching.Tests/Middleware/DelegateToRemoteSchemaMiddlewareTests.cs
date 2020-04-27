@@ -63,6 +63,8 @@ namespace HotChocolate.Stitching
                 .SetQuery(FileResource.Open(
                     "StitchingQueryWithVariables.graphql"))
                 .SetVariableValue("customerId", "Q3VzdG9tZXIKZDE=")
+                .SetVariableValue("deep", "deep")
+                .SetVariableValue("deeper", "deeper")
                 .Create();
 
             // act

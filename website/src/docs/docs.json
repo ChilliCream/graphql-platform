@@ -4,12 +4,27 @@
     "title": "Hot Chocolate",
     "description": "Configure a GraphQL server to fetch data from multiple data sources.",
     "items": [
-      { "path": "index", "title": "Introduction" },
-      { "path": "getting-started", "title": "Getting Started" },
+      {
+        "path": "index",
+        "title": "Introduction"
+      },
+      {
+        "path": "getting-started",
+        "title": "Getting Started"
+      },
       {
         "path": "api-reference",
         "title": "API Reference",
-        "items": [{ "path": "index", "title": "Whatever" }]
+        "items": [
+          {
+            "path": "filtering",
+            "title": "Filtering"
+          },
+          {
+            "path": "index",
+            "title": "Whatever"
+          }
+        ]
       }
     ]
   },
@@ -17,24 +32,44 @@
     "path": "bananacakepop",
     "title": "Banana Cake Pop",
     "description": "Use this GUI to get deep insights from any GraphQL endpoint.",
-    "items": [{ "path": "index", "title": "Introduction" }]
+    "items": [
+      {
+        "path": "index",
+        "title": "Introduction"
+      }
+    ]
   },
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
     "description": "Configure a GraphQL client in .Net to fetch data from multiple GraphQL endpoints.",
-    "items": [{ "path": "index", "title": "Introduction" }]
+    "items": [
+      {
+        "path": "index",
+        "title": "Introduction"
+      }
+    ]
   },
   {
     "path": "marshmellowpie",
     "title": "Marshmellow Pie",
-    "description": "Configure a GraphQL registry to keep track on any GraphQL server and client.",
-    "items": [{ "path": "index", "title": "Introduction" }]
+    "description": "Configure a GraphQL registry to keep track of any GraphQL server and client.",
+    "items": [
+      {
+        "path": "index",
+        "title": "Introduction"
+      }
+    ]
   },
   {
     "path": "greendonut",
     "title": "Green Donut",
     "description": "Configure data loaders and caching for GraphQL endpoints.",
-    "items": [{ "path": "index", "title": "Introduction" }]
+    "items": [
+      {
+        "path": "index",
+        "title": "Introduction"
+      }
+    ]
   }
 ]
