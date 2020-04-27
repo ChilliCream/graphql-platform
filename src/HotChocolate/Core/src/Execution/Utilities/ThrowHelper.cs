@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public static class ThrowHelper
+    internal static class ThrowHelper
     {
         public static GraphQLException VariableIsNotAnInputType(
             VariableDefinitionNode variableDefinition)
@@ -73,6 +73,23 @@ namespace HotChocolate.Execution.Utilities
                         directive.Name.Value)
                     .AddLocation(directive)
                     .Build());
+        }
+    }
+
+    internal static class ErrorHelper
+    {
+        public static IError ArgumentNonNullError(string responseName, ArgumentNode argument, Path path, )
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.ArgumentValueBuilder_NonNull,
+                    argument.Name,
+                    TypeVisualizer.Visualize(report.Type))
+                .AddLocation(fieldInfo.Selection)
+                .SetExtension(_argumentProperty, report.Path.ToCollection())
+                .SetPath(fieldInfo.Path.AppendOrCreate(fieldInfo.ResponseName))
+                .Build();
         }
     }
 }

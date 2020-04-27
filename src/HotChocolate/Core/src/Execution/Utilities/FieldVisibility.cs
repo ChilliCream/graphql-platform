@@ -60,11 +60,18 @@ namespace HotChocolate.Execution.Utilities
             return EqualsInternal(skip, Skip) && EqualsInternal(include, Include);
         }
 
-        public bool Equals(IValueNode? skip, IValueNode? include, FieldVisibility? parent)
+        public bool Equals(FieldVisibility visibility)
         {
-            if (ReferenceEquals(parent, Parent) || ReferenceEquals(parent, this))
+            if (Equals(visibility.Skip, visibility.Include))
             {
-                return Equals(skip, include);
+                if (Parent is null)
+                {
+                    return visibility.Parent is null;
+                }
+                else
+                {
+                    return visibility.Parent is { } ? Parent.Equals(visibility.Parent) : false;
+                }
             }
             return false;
         }
