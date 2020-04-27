@@ -45,7 +45,7 @@
     "gatsby-source-filesystem": "^2.1.46",
     "gatsby-transformer-json": "^2.3.4",
     "gatsby-transformer-remark": "^2.7.5",
-    "gatsby-transformer-sharp": "^2.3.13",
+    "gatsby-transformer-sharp": "^2.4.7",
     "prismjs": "^1.19.0",
     "react": "^16.13.0",
     "react-cookie": "^4.0.3",
