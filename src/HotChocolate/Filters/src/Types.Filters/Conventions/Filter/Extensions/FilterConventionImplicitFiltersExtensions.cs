@@ -10,8 +10,8 @@ namespace HotChocolate.Types.Filters.Conventions
     public static class FilterConventionImplicitFiltersExtensions
     {
         public static IFilterConventionDescriptor UseImplicitFilters(
-            this IFilterConventionDescriptor descriptor)
-                => descriptor
+            this IFilterConventionDescriptor descriptor) =>
+                descriptor
                     .AddImplicitFilter(TryCreateStringFilter)
                     .AddImplicitFilter(TryCreateBooleanFilter)
                     .AddImplicitFilter(TryCreateComparableFilter)
