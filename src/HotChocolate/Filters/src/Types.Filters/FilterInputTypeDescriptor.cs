@@ -27,8 +27,8 @@ namespace HotChocolate.Types.Filters
             : base(context)
         {
             _convention = convention;
-            Definition.EntityType = entityType
-                ?? throw new ArgumentNullException(nameof(entityType));
+            Definition.EntityType = entityType ??
+                throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
             Definition.Name = _convention.GetTypeName(context, entityType);
             Definition.Description = _convention.GetTypeDescription(context, entityType);
@@ -141,14 +141,14 @@ namespace HotChocolate.Types.Filters
             definition = null;
             Type type = property.PropertyType;
 
-            if (type.IsGenericType
-                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
+            if (type.IsGenericType &&
+                System.Nullable.GetUnderlyingType(type) is Type nullableType)
             {
                 type = nullableType;
             }
 
-            IEnumerator<TryCreateImplicitFilter> enumerator
-                = _convention.GetImplicitFactories().GetEnumerator();
+            IEnumerator<TryCreateImplicitFilter> enumerator =
+                _convention.GetImplicitFactories().GetEnumerator();
 
             while (enumerator.MoveNext()
                 && !enumerator.Current(Context, type, property, _convention, out definition))

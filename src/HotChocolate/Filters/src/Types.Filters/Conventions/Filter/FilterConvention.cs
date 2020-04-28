@@ -91,10 +91,9 @@ namespace HotChocolate.Types.Filters.Conventions
             FilterConventionDefinition configuration = GetOrCreateConfiguration();
 
             if (configuration.TypeDefinitions.TryGetValue(
-                    definition.Kind, out FilterConventionTypeDefinition? typeDefinition) &&
-                typeDefinition.OperationNames.TryGetValue(
-                    kind, out CreateFieldName? createFieldName)
-                )
+                definition.Kind, out FilterConventionTypeDefinition? typeDefinition) &&
+                typeDefinition.OperationNames.TryGetValue(kind,
+                out CreateFieldName? createFieldName))
             {
                 return createFieldName(definition, kind);
             }
