@@ -1518,7 +1518,7 @@ FilterInputTypeDescriptor<User> inputDesc;
 inputDesc.Filter(x => x.Name).AllowEqual().Description("This is the name")
 ```
 
-Let's look at an example. Imagine you want to define a custom set of filters for `DateTime`. Instead of all comparable operations, you only want to have _GreaterThanOrEquals_ and _LowerThanOrEquals_ and they should be named `from` and `to`
+Let's look at an example. Imagine you want to define a custom set of filters for `TimeStamp`. Instead of all comparable operations, you only want to have _GreaterThanOrEquals_ and _LowerThanOrEquals_ and they should be named `from` and `to`
 
 ```graphql
 {
@@ -1541,3 +1541,6 @@ public class Booking
     public DateTime CheckinTime { get; set;}
 }
 ```
+
+**The Field Descriptor**
+The first part of your extension consists of a `FilterFieldDescriptor`. With this descriptor, you describe the field and what operations that this field can be filtered by. There is a base class you can use that makes integration easier: `FilterFieldDescriptorBase`. In our example we want the field to be a `FilterFieldDescriptor` that describes a `TimeStamp`.
