@@ -6,13 +6,13 @@ namespace HotChocolate.Execution.Utilities
 {
     internal static class ArgumentNonNullValidator
     {
-        public static Report Validate(IInputField field, IValueNode? value, Path path)
+        public static ValidationResult Validate(IInputField field, IValueNode? value, Path path)
         {
             if (value.IsNull())
             {
                 if (field.Type.IsNonNullType() && field.DefaultValue.IsNull())
                 {
-                    return new Report(field.Type, path);
+                    return new ValidationResult(field.Type, path);
                 }
                 return default;
             }
@@ -20,17 +20,17 @@ namespace HotChocolate.Execution.Utilities
             return ValidateInnerType(field.Type, value, path);
         }
 
-        private static Report Validate(IType type, IValueNode? value, Path path)
+        private static ValidationResult Validate(IType type, IValueNode? value, Path path)
         {
             if (value.IsNull())
             {
-                return type.IsNonNullType() ? new Report(type, path) : default;
+                return type.IsNonNullType() ? new ValidationResult(type, path) : default;
             }
 
             return ValidateInnerType(type, value, path);
         }
 
-        private static Report ValidateInnerType(IType type, IValueNode? value, Path path)
+        private static ValidationResult ValidateInnerType(IType type, IValueNode? value, Path path)
         {
             IType innerType = type.IsNonNullType() ? type.InnerType() : type;
 
@@ -46,8 +46,7 @@ namespace HotChocolate.Execution.Utilities
                 }
             }
 
-            if (innerType is InputObjectType inputType
-                && value is ObjectValueNode ov)
+            if (innerType is InputObjectType inputType && value is ObjectValueNode ov)
             {
                 return ValidateObject(inputType, ov, path);
             }
@@ -55,7 +54,7 @@ namespace HotChocolate.Execution.Utilities
             return default;
         }
 
-        private static Report ValidateObject(InputObjectType type, ObjectValueNode value, Path path)
+        private static ValidationResult ValidateObject(InputObjectType type, ObjectValueNode value, Path path)
         {
             var fields = new Dictionary<NameString, IValueNode>();
 
@@ -69,7 +68,7 @@ namespace HotChocolate.Execution.Utilities
             {
                 fields.TryGetValue(field.Name, out IValueNode? fieldValue);
 
-                Report report = Validate(
+                ValidationResult report = Validate(
                     field,
                     fieldValue,
                     path.Append(field.Name));
@@ -83,14 +82,14 @@ namespace HotChocolate.Execution.Utilities
             return default;
         }
 
-        private static Report ValidateList(ListType type, ListValueNode list, Path path)
+        private static ValidationResult ValidateList(ListType type, ListValueNode list, Path path)
         {
             IType elementType = type.ElementType();
             int i = 0;
 
             foreach (IValueNode element in list.Items)
             {
-                Report error = Validate(elementType, element, path.Append(i++));
+                ValidationResult error = Validate(elementType, element, path.Append(i++));
                 if (error.HasErrors)
                 {
                     return error;
@@ -100,9 +99,9 @@ namespace HotChocolate.Execution.Utilities
             return default;
         }
 
-        internal readonly ref struct Report
+        internal readonly ref struct ValidationResult
         {
-            internal Report(IType type, Path path)
+            internal ValidationResult(IType type, Path path)
             {
                 Type = type;
                 Path = path;
