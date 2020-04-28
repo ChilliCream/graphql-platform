@@ -1,8 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Security;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -13,8 +12,13 @@ namespace HotChocolate.Execution.Utilities
     {
         private const string _argumentProperty = "argument";
 
+        private static readonly IReadOnlyDictionary<string, PreparedArgument> _emptyArguments =
+            new Dictionary<string, PreparedArgument>();
+
         private readonly FragmentCollection _fragments;
         private readonly ITypeConversion _converter;
+
+
 
         public FieldCollector(FragmentCollection fragments, ITypeConversion converter)
         {
@@ -115,10 +119,14 @@ namespace HotChocolate.Execution.Utilities
                 }
                 else
                 {
-                    CoerceArgumentValues(fieldInfo);
-
                     preparedSelection = new PreparedSelection(
-                        type, field, selection, fields.Count, responseName, null, null);
+                        type,
+                        field,
+                        selection,
+                        fields.Count,
+                        responseName,
+                        null,
+                        CoerceArgumentValues(field, selection, responseName));
 
                     if (visibility is { })
                     {
@@ -219,128 +227,101 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private void CoerceArgumentValues(FieldInfo fieldInfo)
+        private IReadOnlyDictionary<string, PreparedArgument> CoerceArgumentValues(
+            ObjectField field,
+            FieldNode selection,
+            string responseName)
         {
-            var argumentValues = fieldInfo.Selection.Arguments
-                .Where(t => t.Value != null)
-                .ToDictionary(t => t.Name.Value, t => t.Value);
-
-            foreach (Argument argument in fieldInfo.Field.Arguments)
+            if (selection.Arguments.Count == 0)
             {
-                try
+                return _emptyArguments;
+            }
+
+            var arguments = new Dictionary<string, PreparedArgument>();
+
+            for (var i = 0; i < selection.Arguments.Count; i++)
+            {
+                ArgumentNode argumentValue = selection.Arguments[i];
+                if (field.Arguments.TryGetField(argumentValue.Name.Value, out Argument? argument))
                 {
-                    CoerceArgumentValue(
-                        fieldInfo,
-                        argument,
-                        argumentValues);
-                }
-                catch (ScalarSerializationException ex)
-                {
-                    fieldInfo.Arguments[argument.Name] =
-                        new ArgumentValue(
+                    arguments[argument.Name] =
+                        CreateArgumentValue(
+                            responseName,
                             argument,
-                            ErrorBuilder.New()
-                                .SetMessage(ex.Message)
-                                .AddLocation(fieldInfo.Selection)
-                                .SetExtension(_argumentProperty, argument.Name)
-                                .SetPath(fieldInfo.Path.AppendOrCreate(fieldInfo.ResponseName))
-                                .Build());
+                            argumentValue);
                 }
             }
+
+            return arguments;
         }
 
-        private void CoerceArgumentValue(
-            FieldInfo fieldInfo,
-            IInputField argument,
-            IDictionary<string, IValueNode> argumentValues)
+        private PreparedArgument CreateArgumentValue(
+            string responseName,
+            Argument argument,
+            ArgumentNode argumentValue)
         {
-            IValueNode defaultValueLiteral = argument.DefaultValue ?? NullValueNode.Default;
-
-            if (argumentValues.TryGetValue(argument.Name, out IValueNode? literal))
-            {
-                if (literal is VariableNode variable)
-                {
-                    if (fieldInfo.VarArguments == null)
-                    {
-                        fieldInfo.VarArguments = new Dictionary<NameString, ArgumentVariableValue>();
-                    }
-
-                    object defaultValue = argument.Type.IsLeafType()
-                        ? ParseLiteral(argument.Type, defaultValueLiteral)
-                        : defaultValueLiteral;
-                    defaultValue = CoerceArgumentValue(argument, defaultValue);
-
-                    fieldInfo.VarArguments[argument.Name] =
-                        new ArgumentVariableValue(
-                            argument,
-                            variable.Name.Value,
-                            defaultValue,
-                            _coerceArgumentValue);
-                }
-                else
-                {
-                    CreateArgumentValue(fieldInfo, argument, literal);
-                }
-            }
-            else
-            {
-                CreateArgumentValue(fieldInfo, argument, defaultValueLiteral);
-            }
-        }
-
-        private void CreateArgumentValue(
-            FieldInfo fieldInfo,
-            IInputField argument,
-            IValueNode literal)
-        {
-
             ArgumentNonNullValidator.ValidationResult validationResult =
-                ArgumentNonNullValidator.Validate(argument, literal, Path.New(argument.Name));
+                ArgumentNonNullValidator.Validate(
+                    argument, argumentValue.Value, Path.New(argument.Name));
 
             if (validationResult.HasErrors)
             {
-                IError error = ErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.ArgumentValueBuilder_NonNull,
-                        argument.Name,
-                        TypeVisualizer.Visualize(validationResult.Type)))
-                    .AddLocation(fieldInfo.Selection)
-                    .SetExtension(_argumentProperty, validationResult.Path.ToCollection())
-                    .SetPath(fieldInfo.Path.AppendOrCreate(
-                        fieldInfo.ResponseName))
-                    .Build();
+                return new PreparedArgument(
+                    argument,
+                    ErrorHelper.ArgumentNonNullError(
+                        argumentValue,
+                        responseName,
+                        validationResult));
+            }
 
-                fieldInfo.Arguments[argument.Name] = new ArgumentValue(argument, error);
-            }
-            else if (argument.Type.IsLeafType() && IsLeafLiteral(literal))
+            if (argument.Type.IsLeafType() && CanBeCompiled(argumentValue.Value))
             {
-                object coerced = CoerceArgumentValue(argument, ParseLiteral(argument.Type, literal));
-                fieldInfo.Arguments[argument.Name] = new ArgumentValue(argument, literal.GetValueKind(), coerced);
+                try
+                {
+                    return new PreparedArgument(
+                        argument,
+                        argumentValue.Value.GetValueKind(),
+                        true,
+                        ParseLiteral(argument.Type, argumentValue.Value),
+                        argumentValue.Value);
+                }
+                catch (ScalarSerializationException ex)
+                {
+                    return new PreparedArgument(
+                        argument,
+                        ErrorHelper.ArgumentValueIsInvalid(
+                            argumentValue,
+                            responseName,
+                            ex));
+                }
             }
-            else
-            {
-                object coerced = CoerceArgumentValue(argument, literal);
-                fieldInfo.Arguments[argument.Name] = new ArgumentValue(argument, literal.GetValueKind(), coerced);
-            }
+
+            return new PreparedArgument(
+                argument,
+                argumentValue.Value.GetValueKind(),
+                false,
+                null,
+                argumentValue.Value);
         }
 
-        private bool IsLeafLiteral(IValueNode value)
+        private bool CanBeCompiled(IValueNode valueLiteral)
         {
-            if (value is ObjectValueNode)
+            switch (valueLiteral.Kind)
             {
-                return false;
-            }
+                case NodeKind.Variable:
+                case NodeKind.ObjectValue:
+                    return false;
 
-            if (value is ListValueNode list)
-            {
-                for (int i = 0; i < list.Items.Count; i++)
-                {
-                    if (!IsLeafLiteral(list.Items[i]))
+                case NodeKind.ListValue:
+                    ListValueNode list = (ListValueNode)valueLiteral;
+                    for (var i = 0; i < list.Items.Count; i++)
                     {
-                        return false;
+                        if (!CanBeCompiled(list.Items[i]))
+                        {
+                            return false;
+                        }
                     }
-                }
+                    break;
             }
 
             return true;

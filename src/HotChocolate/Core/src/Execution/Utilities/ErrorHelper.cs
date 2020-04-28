@@ -6,9 +6,8 @@ namespace HotChocolate.Execution.Utilities
     internal static class ErrorHelper
     {
         public static IError ArgumentNonNullError(
-            string responseName,
             ArgumentNode argument,
-            Path path,
+            string responseName,
             ArgumentNonNullValidator.ValidationResult validationResult)
         {
             return ErrorBuilder.New()
@@ -16,9 +15,20 @@ namespace HotChocolate.Execution.Utilities
                     "Detected a non-null violation in argument `{0}`.",
                     argument.Name.Value)
                 .AddLocation(argument)
-                .SetPath(path)
-                .SetExtension(_argumentProperty, report.Path.ToCollection())
+                .SetExtension("responseName", responseName)
+                .SetExtension("errorPath", validationResult.Path)
+                .Build();
+        }
 
+        public static IError ArgumentValueIsInvalid(
+            ArgumentNode argument,
+            string responseName,
+            ScalarSerializationException exception)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(exception.Message)
+                .AddLocation(argument)
+                .SetExtension("responseName", responseName)
                 .Build();
         }
     }
