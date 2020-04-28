@@ -12693,10 +12693,10 @@ react-refresh@^0.7.0:
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.7.2.tgz#f30978d21eb8cac6e2f2fde056a7d04f6844dd50"
   integrity sha512-u5l7fhAJXecWUJzVxzMRU2Zvw8m4QmDNHlTrT5uo3KBlYBhmChd7syAakBoay1yIiVhx/8Fi7a6v6kQZfsw81Q==
 
-react-responsive-carousel@^3.1.51:
-  version "3.2.4"
-  resolved "https://registry.yarnpkg.com/react-responsive-carousel/-/react-responsive-carousel-3.2.4.tgz#06b2bbb0824878cb9883b9902f3c178262ee7da3"
-  integrity sha512-lJdXaJj2V9sSD7LjGDHpKT4M9Rg6grUHsSNBB0nRUz8hqCDXeoSmxM7OhlXhLY7D98N0DlI/e9BPpmgYc8KiMQ==
+react-responsive-carousel@^3.2.5:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/react-responsive-carousel/-/react-responsive-carousel-3.2.5.tgz#d8b0202286cbe83174ad96cbe0f3b8e371ef7606"
+  integrity sha512-cRhDRPP1wjW/oqmlUqGV1xx0e923Wc5rWfo+Q2k64nCTz1S7qutotq8Mfst4nHMtlN4+uyx+q0M7GKn4lBuU6g==
   dependencies:
     classnames "^2.2.5"
     prop-types "^15.5.8"

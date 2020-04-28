@@ -53,7 +53,7 @@
     "react-helmet": "^5.2.1",
     "react-instantsearch-dom": "^6.4.0",
     "react-redux": "^7.2.0",
-    "react-responsive-carousel": "^3.1.51",
+    "react-responsive-carousel": "^3.2.5",
     "react-share": "^4.1.0",
     "styled-components": "^5.0.1"
   },
