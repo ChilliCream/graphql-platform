@@ -31,9 +31,7 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_any",
-                            new BooleanValueNode(true)
-                        )
-            );
+                            new BooleanValueNode(true)));
 
             AssertOperation<FooSimple>(
                 value,
@@ -50,11 +48,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("bar_some",
                     new ObjectValueNode(
                         new ObjectFieldNode("element",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             AssertEnterAndLeave<FooSimple>(
                 value,
@@ -71,11 +65,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested_some",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             AssertEnterAndLeave<Foo>(
                 value,
@@ -90,9 +80,7 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("fooNested_any",
-                    new BooleanValueNode(true)
-                )
-            );
+                    new BooleanValueNode(true)));
 
             AssertOperation<Foo>(
                 value,

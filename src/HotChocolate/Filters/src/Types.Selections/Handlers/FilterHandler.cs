@@ -39,8 +39,7 @@ namespace HotChocolate.Types.Selections.Handlers
                         nameof(Enumerable.Where),
                         new[] { fit.EntityType },
                         expression,
-                        filterExpression
-                        );
+                        filterExpression);
                 }
                 else
                 {

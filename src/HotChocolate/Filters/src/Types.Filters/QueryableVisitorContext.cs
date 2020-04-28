@@ -75,8 +75,7 @@ namespace HotChocolate.Types.Filters
             [NotNullWhen(true)] out FilterOperationHandler? handler)
         {
             if (Defintion.OperationHandler.TryGetValue(
-                    (kind, operationKind), out FilterOperationHandler? operationHandler)
-            )
+                (kind, operationKind), out FilterOperationHandler? operationHandler))
             {
                 handler = operationHandler;
                 return true;

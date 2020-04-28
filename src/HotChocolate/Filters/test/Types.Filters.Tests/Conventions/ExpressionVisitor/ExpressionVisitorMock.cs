@@ -39,14 +39,11 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public int CallCount(FilterOperationHandler _)
-            => filterOperationCallCounter;
+        public int CallCount(FilterOperationHandler _) => filterOperationCallCounter;
 
-        public int CallCount(FilterFieldEnter _)
-            => fieldEnterCallCounter;
+        public int CallCount(FilterFieldEnter _) => fieldEnterCallCounter;
 
-        public int CallCount(FilterFieldLeave _)
-            => fieldLeaveCallCounter;
+        public int CallCount(FilterFieldLeave _) => fieldLeaveCallCounter;
 
         public bool FilterOperationHandler(
                 FilterOperation operation,
@@ -93,13 +90,13 @@ namespace HotChocolate.Types.Filters
             fieldLeaveHandler(field, node, context);
         }
 
-        public static ExpressionVisitorMock Create(FilterOperationHandler handler)
-            => new ExpressionVisitorMock().Setup(handler);
+        public static ExpressionVisitorMock Create(FilterOperationHandler handler) =>
+            new ExpressionVisitorMock().Setup(handler);
 
-        public static ExpressionVisitorMock Create(FilterFieldEnter handler)
-            => new ExpressionVisitorMock().Setup(handler);
+        public static ExpressionVisitorMock Create(FilterFieldEnter handler) =>
+            new ExpressionVisitorMock().Setup(handler);
 
-        public static ExpressionVisitorMock Create(FilterFieldLeave handler)
-            => new ExpressionVisitorMock().Setup(handler);
+        public static ExpressionVisitorMock Create(FilterFieldLeave handler) =>
+            new ExpressionVisitorMock().Setup(handler);
     }
 }

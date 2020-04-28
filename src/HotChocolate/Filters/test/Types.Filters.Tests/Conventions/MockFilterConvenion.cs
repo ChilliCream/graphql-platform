@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters
                 as FilterExpressionVisitorDefinition;
         }
 
-        public new static readonly MockFilterConvention Default
-            = new MockFilterConvention();
+        public new static readonly MockFilterConvention Default { get; } =
+            new MockFilterConvention();
     }
 }

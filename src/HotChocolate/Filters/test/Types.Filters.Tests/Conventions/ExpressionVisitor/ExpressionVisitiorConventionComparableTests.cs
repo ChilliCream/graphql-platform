@@ -186,9 +186,7 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_in",
-                new ListValueNode(new[] { new IntValueNode(13), new IntValueNode(14) }
-                ))
-            );
+                new ListValueNode(new[] { new IntValueNode(13), new IntValueNode(14) })));
 
             AssertOperation<Foo>(
                 value,

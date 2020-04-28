@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Filters
                             .Kind(kind)
                                 .Enter(helper.FilterFieldEnter)
                                 .Leave(helper.FilterFieldLeave))
-                    .GetExpressionDefiniton();
+                        .GetExpressionDefiniton();
 
             // act
             var filter = new QueryableFilterVisitorContext(
