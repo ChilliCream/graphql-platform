@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public interface IErrorBuilder
@@ -9,9 +11,13 @@ namespace HotChocolate
 
         IErrorBuilder SetCode(string code);
 
+        IErrorBuilder RemoveCode();
+
         IErrorBuilder SetPath(IReadOnlyList<object> path);
 
         IErrorBuilder SetPath(Path path);
+
+        IErrorBuilder RemovePath();
 
         IErrorBuilder AddLocation(Location location);
 
@@ -20,6 +26,8 @@ namespace HotChocolate
         IErrorBuilder ClearLocations();
 
         IErrorBuilder SetException(Exception exception);
+
+        IErrorBuilder RemoveException();
 
         IErrorBuilder SetExtension(string key, object value);
 

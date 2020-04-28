@@ -1,196 +1,205 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
+using System.Xml.Serialization;
 using HotChocolate.Execution;
+using HotChocolate.Properties;
+
+#nullable  enable
 
 namespace HotChocolate
 {
-    internal class Error
-        : IError
+    internal sealed class Error : IError
     {
-        private const string _code = "code";
-        private OrderedDictionary<string, object> _extensions =
-            new OrderedDictionary<string, object>();
-        private bool _needsCopy;
+        private const string _codePropertyName = "code";
 
-        private string _message;
-
-        public Error()
+        public Error(
+            string message,
+            string? code,
+            Path? path,
+            IReadOnlyList<Location>? locations,
+            IReadOnlyDictionary<string, object?>? extensions,
+            Exception? exception)
         {
-            Locations = ImmutableList<Location>.Empty;
+            Message = message;
+            Code = code;
+            Path = path;
+            Locations = locations;
+            Extensions = extensions;
+            Exception = exception;
         }
 
-        public string Message
-        {
-            get => _message;
-            internal set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    throw new ArgumentException(
-                        "The message mustn't be null or empty.",
-                        nameof(value));
-                }
-                _message = value;
-            }
-        }
+        public string Message { get; }
 
-        public string Code
-        {
-            get
-            {
-                if (_extensions.TryGetValue(_code, out object code) &&
-                    code is string s)
-                {
-                    return s;
-                }
+        public string? Code { get; }
 
-                return null;
-            }
-            internal set
-            {
-                CopyExtensions();
-                if (value == null)
-                {
-                    _extensions.Remove(_code);
-                }
-                else
-                {
-                    _extensions[_code] = value;
-                }
-            }
-        }
+        public Path? Path { get; }
 
-        public IReadOnlyList<object> Path { get; set; }
+        public IReadOnlyList<Location>? Locations { get; }
 
-        IReadOnlyList<Location> IError.Locations =>
-            Locations.Count == 0 ? null : Locations;
+        public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        public IImmutableList<Location> Locations { get; set; }
-
-        public Exception Exception { get; set; }
-
-        IReadOnlyDictionary<string, object> IError.Extensions =>
-            _extensions.Count == 0 ? null : _extensions;
-
-        public OrderedDictionary<string, object> Extensions
-        {
-            get
-            {
-                CopyExtensions();
-                return _extensions;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-                _needsCopy = false;
-                _extensions = value;
-            }
-        }
-
-        private void CopyExtensions()
-        {
-            if (_needsCopy)
-            {
-                _extensions = _extensions.Clone();
-                _needsCopy = false;
-            }
-        }
-
-        public IError WithCode(string code)
-        {
-            Error error = Copy();
-            error.Code = code;
-            return error;
-        }
-
-        public IError WithException(Exception exception)
-        {
-            Error error = Copy();
-            error.Exception = exception;
-            return error;
-        }
-
-        public IError RemoveException()
-        {
-            Error error = Copy();
-            error.Exception = null;
-            return error;
-        }
-
-        public IError WithExtensions(
-            IReadOnlyDictionary<string, object> extensions)
-        {
-            Error error = Copy();
-            error.Extensions =
-                new OrderedDictionary<string, object>(extensions);
-            return error;
-        }
-
-        public IError AddExtension(string key, object value)
-        {
-            Error error = Copy();
-            error.Extensions.Add(key, value);
-            return error;
-        }
-
-        public IError RemoveExtension(string key)
-        {
-            Error error = Copy();
-            error.Extensions.Remove(key);
-            return error;
-        }
-
-
-        public IError WithLocations(IReadOnlyList<Location> locations)
-        {
-            Error error = Copy();
-            error.Locations = ImmutableList.CreateRange(locations);
-            return error;
-        }
+        public Exception? Exception { get; }
 
         public IError WithMessage(string message)
         {
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The message mustn't be null or empty.",
+                    AbstractionResources.Error_WithMessage_Message_Cannot_Be_Empty,
                     nameof(message));
             }
 
-            Error error = Copy();
-            error.Message = message;
-            return error;
+            return new Error(message, Code, Path, Locations, Extensions, Exception);
+        }
+
+        public IError WithCode(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new ArgumentException(
+                    AbstractionResources.Error_WithCode_Code_Cannot_Be_Empty,
+                    nameof(code));
+            }
+
+            var extensions = new ExtensionData(Extensions) {[_codePropertyName] = code};
+            return new Error(Message, code, Path, Locations, extensions, Exception);
+        }
+
+        public IError RemoveCode()
+        {
+            var extensions = new ExtensionData(Extensions);
+            extensions.Remove(_codePropertyName);
+            return new Error(Message, null, Path, Locations, extensions, Exception);
         }
 
         public IError WithPath(Path path)
         {
-            Error error = Copy();
-            error.Path = path.ToCollection();
-            return error;
+            if (path is null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            return new Error(Message, Code, path, Locations, Extensions, Exception);
         }
 
         public IError WithPath(IReadOnlyList<object> path)
         {
-            Error error = Copy();
-            error.Path = path;
-            return error;
+            if (path is null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            if (path.Count == 0)
+            {
+                throw new ArgumentException(
+                    AbstractionResources.Error_WithPath_Path_Cannot_Be_Empty,
+                    nameof(path));
+            }
+
+            Path segment = Path.New((string)path[0]);
+
+            for (var i = 1; i < path.Count; i++)
+            {
+                segment = path[i] switch
+                {
+                    string s => segment.Append(s),
+                    int n => segment.Append(n),
+                    _ => throw new NotSupportedException(
+                        AbstractionResources.Error_WithPath_Path_Value_NotSupported)
+                };
+            }
+
+            return WithPath(segment);
         }
 
-        internal Error Copy()
+        public IError RemovePath()
         {
-            return new Error
+            return new Error(Message, Code, null, Locations, Extensions, Exception);
+        }
+
+        public IError WithLocations(IReadOnlyList<Location> locations)
+        {
+            if (locations == null)
             {
-                Message = Message,
-                _extensions = _extensions,
-                _needsCopy = true,
-                Path = Path,
-                Locations = Locations,
-                Exception = Exception
-            };
+                throw new ArgumentNullException(nameof(locations));
+            }
+
+            return new Error(Message, Code, Path, locations, Extensions, Exception);
+        }
+
+        public IError RemoveLocations()
+        {
+            return new Error(Message, Code, Path, null, Extensions, Exception);
+        }
+
+        public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
+        {
+            if (extensions == null)
+            {
+                throw new ArgumentNullException(nameof(extensions));
+            }
+
+            return new Error(Message, Code, Path, Locations, extensions, Exception);
+        }
+
+        public IError RemoveExtensions()
+        {
+            return new Error(Message, Code, Path, Locations, null, Exception);
+        }
+
+        public IError SetExtension(string key, object? value)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new ArgumentException(
+                    AbstractionResources.Error_SetExtension_Key_Cannot_Be_Empty,
+                    nameof(key));
+            }
+
+            var extensions = Extensions is { }
+                ? new ExtensionData(Extensions)
+                : new ExtensionData();
+            extensions[key] = value;
+            return new Error(Message, Code, Path, Locations, extensions, Exception);
+        }
+
+        public IError RemoveExtension(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                throw new ArgumentException(
+                    AbstractionResources.Error_SetExtension_Key_Cannot_Be_Empty,
+                    nameof(key));
+            }
+
+            if (Extensions is null)
+            {
+                return this;
+            }
+
+            var extensions = new ExtensionData(Extensions);
+            extensions.Remove(key);
+
+            return extensions.Count == 0
+                ? new Error(Message, Code, Path, Locations, null, Exception)
+                : new Error(Message, Code, Path, Locations, extensions, Exception);
+        }
+
+        public IError WithException(Exception exception)
+        {
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            return new Error(Message, Code, Path, Locations, Extensions, exception);
+        }
+
+        public IError RemoveException()
+        {
+            return new Error(Message, Code, Path, Locations, Extensions, null);
         }
     }
 }

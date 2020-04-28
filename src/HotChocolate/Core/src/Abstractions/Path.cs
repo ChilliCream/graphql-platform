@@ -8,7 +8,7 @@ namespace HotChocolate
     /// <summary>
     /// Represents the execution path to a field of the currently executed operation.
     /// </summary>
-    public sealed class Path  : IEquatable<Path>
+    public sealed class Path : IEquatable<Path>
     {
         private Path(Path? parent, NameString name)
         {

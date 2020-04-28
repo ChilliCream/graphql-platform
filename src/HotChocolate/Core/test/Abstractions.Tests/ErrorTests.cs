@@ -65,7 +65,7 @@ namespace HotChocolate
             IError error = new Error { Message = "123" };
 
             // act
-            error = error.AddExtension("a", "b").AddExtension("c", "d");
+            error = error.SetExtension("a", "b").AddExtension("c", "d");
 
             // assert
             Assert.Collection(error.Extensions.OrderBy(t => t.Key),

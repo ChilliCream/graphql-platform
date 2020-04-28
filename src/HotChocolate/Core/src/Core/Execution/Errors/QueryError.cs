@@ -349,7 +349,7 @@ namespace HotChocolate.Execution
                 extensions?.ToImmutableDictionary());
         }
 
-        public IError AddExtension(string key, object value)
+        public IError SetExtension(string key, object value)
         {
             if (key == null)
             {

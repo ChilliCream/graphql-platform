@@ -3,13 +3,20 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate
 {
-    public class ErrorBuilder
-        : IErrorBuilder
+    public class ErrorBuilder : IErrorBuilder
     {
-        private readonly Error _error = new Error();
+        private string? _message;
+        private string? _code;
+        private Path? _path;
+        private Exception? _exception;
+        private ExtensionData? _extensions;
+        private List<Location>? _locations;
 
         public ErrorBuilder()
         {
@@ -22,30 +29,67 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(error));
             }
 
-            _error.Message = error.Message;
-            _error.Code = error.Code;
-            _error.Exception = error.Exception;
-            if (error.Extensions != null && error.Extensions.Count > 0)
+            _message = error.Message;
+            _code = error.Code;
+            _path = error.Path;
+            _exception = error.Exception;
+
+            if (error.Extensions is { } && error.Extensions.Count > 0)
             {
-                _error.Extensions =
-                    new OrderedDictionary<string, object>(error.Extensions);
+                _extensions = new ExtensionData(error.Extensions);
             }
-            if (error.Locations != null && error.Locations.Count > 0)
+
+            if (error.Locations is { } && error.Locations.Count > 0)
             {
-                _error.Locations = ImmutableList.CreateRange(error.Locations);
+                _locations = new List<Location>(error.Locations);
             }
-            _error.Path = error.Path;
         }
+
+        /// <summary>
+        /// Gets the error message.
+        /// This property is mandatory and cannot be null.
+        /// </summary>
+        public string? Message => _message;
+
+        /// <summary>
+        /// Gets an error code that can be used to automatically
+        /// process an error.
+        /// This property is optional and can be null.
+        /// </summary>
+        public string? Code => _code;
+
+        /// <summary>
+        /// Gets the path to the object that caused the error.
+        /// This property is optional and can be null.
+        /// </summary>
+        public Path? Path => _path;
+
+        /// <summary>
+        /// Gets the source text positions to which this error refers to.
+        /// This property is optional and can be null.
+        /// </summary>
+        public IReadOnlyList<Location>? Locations => _locations;
+
+        /// <summary>
+        /// Gets non-spec error properties.
+        /// This property is optional and can be null.
+        /// </summary>
+        public IReadOnlyDictionary<string, object?>? Extensions => _extensions;
+
+        /// <summary>
+        /// Gets the exception associated with this error.
+        /// </summary>
+        public Exception? Exception => _exception;
 
         public IErrorBuilder SetMessage(string message)
         {
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The message mustn't be null or empty.",
+                    AbstractionResources.Error_Message_Mustnt_Be_Null,
                     nameof(message));
             }
-            _error.Message = message;
+            _message = message;
             return this;
         }
 
