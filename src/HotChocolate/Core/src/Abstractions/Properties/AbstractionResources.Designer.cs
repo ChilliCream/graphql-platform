@@ -111,21 +111,33 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string Error_WithPath_Path_Cannot_Be_Empty {
+        internal static string Path_WithPath_Path_Cannot_Be_Empty {
             get {
-                return ResourceManager.GetString("Error_WithPath_Path_Cannot_Be_Empty", resourceCulture);
+                return ResourceManager.GetString("Path_WithPath_Path_Cannot_Be_Empty", resourceCulture);
             }
         }
         
-        internal static string Error_WithPath_Path_Value_NotSupported {
+        internal static string Path_WithPath_Path_Value_NotSupported {
             get {
-                return ResourceManager.GetString("Error_WithPath_Path_Value_NotSupported", resourceCulture);
+                return ResourceManager.GetString("Path_WithPath_Path_Value_NotSupported", resourceCulture);
             }
         }
         
         internal static string Error_SetExtension_Key_Cannot_Be_Empty {
             get {
                 return ResourceManager.GetString("Error_SetExtension_Key_Cannot_Be_Empty", resourceCulture);
+            }
+        }
+        
+        internal static string Location_Line_Is_1_Based {
+            get {
+                return ResourceManager.GetString("Location_Line_Is_1_Based", resourceCulture);
+            }
+        }
+        
+        internal static string Location_Column_Is_1_Based {
+            get {
+                return ResourceManager.GetString("Location_Column_Is_1_Based", resourceCulture);
             }
         }
     }

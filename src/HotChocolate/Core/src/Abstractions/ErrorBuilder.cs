@@ -17,6 +17,8 @@ namespace HotChocolate
         private Exception? _exception;
         private ExtensionData? _extensions;
         private List<Location>? _locations;
+        private bool _dirtyLocation;
+        private bool _dirtyExtensions;
 
         public ErrorBuilder()
         {
@@ -95,98 +97,133 @@ namespace HotChocolate
 
         public IErrorBuilder SetCode(string code)
         {
-            _error.Code = code;
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new ArgumentException(
+                    AbstractionResources.Error_WithCode_Code_Cannot_Be_Empty,
+                    nameof(code));
+            }
+
+            _code = code;
             return this;
         }
 
-        public IErrorBuilder SetPath(IReadOnlyList<object> path)
+        public IErrorBuilder RemoveCode()
         {
-            _error.Path = path;
+            _code = null;
             return this;
         }
 
         public IErrorBuilder SetPath(Path path)
         {
-            _error.Path = path?.ToCollection();
+            _path = path ?? throw new ArgumentNullException(nameof(path));
+            return this;
+        }
+
+        public IErrorBuilder SetPath(IReadOnlyList<object> path) => SetPath(Path.FromList(path));
+
+        public IErrorBuilder RemovePath()
+        {
+            _path = null;
             return this;
         }
 
         public IErrorBuilder AddLocation(Location location)
         {
-            _error.Locations = _error.Locations.Add(location);
+            if (_dirtyLocation && _locations is { })
+            {
+                _locations = new List<Location>(_locations);
+                _dirtyLocation = false;
+            }
+
+            (_locations ??= new List<Location>()).Add(location);
             return this;
         }
 
-        public IErrorBuilder AddLocation(int line, int column)
-        {
-            if (line < 1)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(line), line,
-                    "line is a 1-base index and cannot be less than one.");
-            }
-
-            if (column < 1)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(column), column,
-                    "column is a 1-base index and cannot be less than one.");
-            }
-
-            _error.Locations = _error.Locations.Add(new Location(line, column));
-            return this;
-        }
+        public IErrorBuilder AddLocation(int line, int column) =>
+            AddLocation(new Location(line, column));
 
         public IErrorBuilder ClearLocations()
         {
-            _error.Locations = _error.Locations.Clear();
+            _dirtyLocation = false;
+            _locations = null;
             return this;
         }
 
-
-        public IErrorBuilder SetException(Exception exception)
+        public IErrorBuilder SetExtension(string key, object? value)
         {
-            _error.Exception = exception;
-            return this;
-        }
+            if (_dirtyExtensions && _extensions is { })
+            {
+                _extensions = new ExtensionData(_extensions);
+                _dirtyExtensions = false;
+            }
 
-        public IErrorBuilder SetExtension(string key, object value)
-        {
-            _error.Extensions[key] = value;
+            _extensions ??= new ExtensionData();
+            _extensions[key] = value;
             return this;
         }
 
         public IErrorBuilder RemoveExtension(string key)
         {
-            _error.Extensions.Remove(key);
+            if (_extensions == null)
+            {
+                return this;
+            }
+
+            if (_dirtyExtensions)
+            {
+                _extensions = new ExtensionData(_extensions);
+                _dirtyExtensions = false;
+            }
+
+            _extensions.Remove(key);
+
+            if (_extensions.Count == 0)
+            {
+                _extensions = null;
+            }
+
             return this;
         }
 
         public IErrorBuilder ClearExtensions()
         {
-            _error.Extensions.Clear();
+            _dirtyExtensions = false;
+            _extensions = null;
+            return this;
+        }
+
+        public IErrorBuilder SetException(Exception exception)
+        {
+            _exception = exception ?? throw new ArgumentNullException(nameof(exception));
+            return this;
+        }
+
+        public IErrorBuilder RemoveException()
+        {
+            _exception = null;
             return this;
         }
 
         public IError Build()
         {
-            if (string.IsNullOrEmpty(_error.Message))
+            if (string.IsNullOrEmpty(_message))
             {
                 throw new InvalidOperationException(
-                    "The message mustn't be null or empty.");
+                    AbstractionResources.Error_Message_Mustnt_Be_Null);
             }
-            return _error.Copy();
+
+            _dirtyExtensions = true;
+            _dirtyLocation = true;
+
+            return new Error(_message, _code, _path, _locations, _extensions, _exception);
         }
 
         public static ErrorBuilder New() => new ErrorBuilder();
 
-        public static ErrorBuilder FromError(IError error)
-        {
-            return new ErrorBuilder(error);
-        }
+        public static ErrorBuilder FromError(IError error) => new ErrorBuilder(error);
 
-        public static ErrorBuilder FromDictionary(
-            IReadOnlyDictionary<string, object> dict)
+        public static ErrorBuilder FromDictionary(IReadOnlyDictionary<string, object> dict)
         {
             if (dict == null)
             {
@@ -196,23 +233,21 @@ namespace HotChocolate
             var builder = ErrorBuilder.New();
             builder.SetMessage((string)dict["message"]);
 
-            if (dict.TryGetValue("extensions", out object obj)
-                && obj is IDictionary<string, object> extensions)
+            if (dict.TryGetValue("extensions", out object obj) &&
+                obj is IDictionary<string, object> extensions)
             {
-                foreach (var item in extensions)
+                foreach (KeyValuePair<string, object> item in extensions)
                 {
                     builder.SetExtension(item.Key, item.Value);
                 }
             }
 
-            if (dict.TryGetValue("path", out obj)
-                && obj is IReadOnlyList<object> path)
+            if (dict.TryGetValue("path", out obj) && obj is IReadOnlyList<object> path)
             {
                 builder.SetPath(path);
             }
 
-            if (dict.TryGetValue("locations", out obj)
-                && obj is IList<object> locations)
+            if (dict.TryGetValue("locations", out obj) && obj is IList<object> locations)
             {
                 foreach (IDictionary<string, object> loc in locations
                     .OfType<IDictionary<string, object>>())

@@ -1,27 +1,30 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq.Expressions;
-using System.Xml.Serialization;
-using HotChocolate.Execution;
 using HotChocolate.Properties;
 
 #nullable  enable
 
 namespace HotChocolate
 {
-    internal sealed class Error : IError
+    public sealed class Error : IError
     {
         private const string _codePropertyName = "code";
 
         public Error(
             string message,
-            string? code,
-            Path? path,
-            IReadOnlyList<Location>? locations,
-            IReadOnlyDictionary<string, object?>? extensions,
-            Exception? exception)
+            string? code = null,
+            Path? path = null,
+            IReadOnlyList<Location>? locations = null,
+            IReadOnlyDictionary<string, object?>? extensions = null,
+            Exception? exception = null)
         {
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentException(
+                    AbstractionResources.Error_WithMessage_Message_Cannot_Be_Empty,
+                    nameof(message));
+            }
+            
             Message = message;
             Code = code;
             Path = path;
@@ -84,35 +87,7 @@ namespace HotChocolate
             return new Error(Message, Code, path, Locations, Extensions, Exception);
         }
 
-        public IError WithPath(IReadOnlyList<object> path)
-        {
-            if (path is null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            if (path.Count == 0)
-            {
-                throw new ArgumentException(
-                    AbstractionResources.Error_WithPath_Path_Cannot_Be_Empty,
-                    nameof(path));
-            }
-
-            Path segment = Path.New((string)path[0]);
-
-            for (var i = 1; i < path.Count; i++)
-            {
-                segment = path[i] switch
-                {
-                    string s => segment.Append(s),
-                    int n => segment.Append(n),
-                    _ => throw new NotSupportedException(
-                        AbstractionResources.Error_WithPath_Path_Value_NotSupported)
-                };
-            }
-
-            return WithPath(segment);
-        }
+        public IError WithPath(IReadOnlyList<object> path) => WithPath(Path.FromList(path));
 
         public IError RemovePath()
         {
@@ -121,7 +96,7 @@ namespace HotChocolate
 
         public IError WithLocations(IReadOnlyList<Location> locations)
         {
-            if (locations == null)
+            if (locations is null)
             {
                 throw new ArgumentNullException(nameof(locations));
             }
@@ -136,7 +111,7 @@ namespace HotChocolate
 
         public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
         {
-            if (extensions == null)
+            if (extensions is null)
             {
                 throw new ArgumentNullException(nameof(extensions));
             }
@@ -189,7 +164,7 @@ namespace HotChocolate
 
         public IError WithException(Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }

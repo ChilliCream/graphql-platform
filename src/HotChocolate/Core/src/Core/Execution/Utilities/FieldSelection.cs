@@ -36,6 +36,7 @@ namespace HotChocolate.Execution
             ResponseName = fieldInfo.ResponseName;
             Field = fieldInfo.Field;
             Selection = MergeField(fieldInfo);
+            Selections = fieldInfo.Nodes;
 
             Middleware = fieldInfo.Middleware;
             ResponseIndex = responseIndex;
@@ -52,6 +53,7 @@ namespace HotChocolate.Execution
             ResponseName = field.ResponseName;
             Field = field.Field;
             Selection = field.Selection;
+            Selections = field.Selections;
 
             Middleware = field.Middleware;
             ResponseIndex = responseIndex;
@@ -65,7 +67,9 @@ namespace HotChocolate.Execution
 
         public FieldNode Selection { get; }
 
-        public IReadOnlyList<FieldNode> Nodes { get; }
+        public IReadOnlyList<FieldNode> Selections { get; }
+
+        public IReadOnlyList<FieldNode> Nodes => Selections;
 
         public FieldDelegate Middleware { get; }
 

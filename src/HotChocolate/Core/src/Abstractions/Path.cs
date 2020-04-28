@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
 
 #nullable  enable
 
@@ -177,6 +178,37 @@ namespace HotChocolate
         public static Path New(NameString name)
         {
             return new Path(null, name);
+        }
+
+        internal static Path FromList(IReadOnlyList<object> path)
+        {
+            if (path is null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            if (path.Count == 0)
+            {
+                throw new ArgumentException(
+                    AbstractionResources.Path_WithPath_Path_Cannot_Be_Empty,
+                    nameof(path));
+            }
+
+            Path segment = Path.New((string)path[0]);
+
+            for (var i = 1; i < path.Count; i++)
+            {
+                segment = path[i] switch
+                {
+                    NameString n => segment.Append(n),
+                    string s => segment.Append(s),
+                    int n => segment.Append(n),
+                    _ => throw new NotSupportedException(
+                        AbstractionResources.Path_WithPath_Path_Value_NotSupported)
+                };
+            }
+
+            return segment;
         }
     }
 }
