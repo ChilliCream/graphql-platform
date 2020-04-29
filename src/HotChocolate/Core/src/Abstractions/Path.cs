@@ -82,19 +82,27 @@ namespace HotChocolate
         /// </returns>
         public bool Equals(Path other)
         {
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
             if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            return ((Parent == null && other.Parent == null) || other.Parent.Equals(Parent))
-                && string.Equals(other.Name, Name, StringComparison.Ordinal)
-                && other.Index.Equals(Index);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (Depth == other.Depth && Index == other.Index && Name.Equals(other.Name))
+            {
+                if (ReferenceEquals(null, Parent))
+                {
+                    return ReferenceEquals(null, other.Parent);
+                }
+
+                return !ReferenceEquals(null, other.Parent) && Parent.Equals(other.Parent);
+            }
+
+            return false;
         }
 
 

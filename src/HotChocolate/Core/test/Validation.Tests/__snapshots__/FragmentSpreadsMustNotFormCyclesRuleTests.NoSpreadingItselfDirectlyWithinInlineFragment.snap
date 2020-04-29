@@ -2,20 +2,27 @@
   {
     "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
     "Code": null,
-    "Path": [
-      "human",
-      "pets"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Name": "human",
+        "Index": null,
+        "Depth": 0
+      },
+      "Name": "pets",
+      "Index": null,
+      "Depth": 1
+    },
     "Locations": [
       {
         "Line": 12,
         "Column": 21
       }
     ],
-    "Exception": null,
     "Extensions": {
       "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles"
-    }
+    },
+    "Exception": null
   }
 ]

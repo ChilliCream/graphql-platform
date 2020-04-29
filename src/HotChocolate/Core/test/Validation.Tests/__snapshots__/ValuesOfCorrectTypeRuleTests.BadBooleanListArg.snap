@@ -2,21 +2,24 @@
   {
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
-    "Path": [
-      "booleanList"
-    ],
+    "Path": {
+      "Parent": null,
+      "Name": "booleanList",
+      "Index": null,
+      "Depth": 0
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 49
       }
     ],
-    "Exception": null,
     "Extensions": {
-      "argument": "booleanListArg",
-      "argumentValue": "[ true, \"false\" ]",
       "locationType": "[Boolean!]",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+      "argument": "booleanListArg",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
+      "argumentValue": "[ true, \"false\" ]"
+    },
+    "Exception": null
   }
 ]

@@ -13,17 +13,17 @@
         "Column": 21
       }
     ],
-    "Exception": null,
     "Extensions": {
-      "declaringTypeA": "Dog",
       "declaringTypeB": "Dog",
+      "responseNameA": "name",
       "fieldA": "nickname",
-      "fieldB": "name",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging",
       "typeA": "String",
       "typeB": "String!",
-      "responseNameA": "name",
-      "responseNameB": "name",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
-    }
+      "declaringTypeA": "Dog",
+      "fieldB": "name",
+      "responseNameB": "name"
+    },
+    "Exception": null
   }
 ]

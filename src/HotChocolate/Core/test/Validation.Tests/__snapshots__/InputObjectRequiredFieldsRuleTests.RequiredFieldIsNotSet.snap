@@ -2,19 +2,22 @@
   {
     "Message": "`name` is a required field and cannot be null.",
     "Code": null,
-    "Path": [
-      "findDog2"
-    ],
+    "Path": {
+      "Parent": null,
+      "Name": "findDog2",
+      "Index": null,
+      "Depth": 0
+    },
     "Locations": [
       {
         "Line": 3,
         "Column": 39
       }
     ],
-    "Exception": null,
     "Extensions": {
-      "field": "name",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
-    }
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields",
+      "field": "name"
+    },
+    "Exception": null
   }
 ]

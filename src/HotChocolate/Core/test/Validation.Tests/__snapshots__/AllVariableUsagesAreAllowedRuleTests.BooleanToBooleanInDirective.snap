@@ -2,21 +2,24 @@
   {
     "Message": "The variable `boolVar` is not compatible with the type of the current location.",
     "Code": null,
-    "Path": [
-      "dog"
-    ],
+    "Path": {
+      "Parent": null,
+      "Name": "dog",
+      "Index": null,
+      "Depth": 0
+    },
     "Locations": [
       {
         "Line": 3,
         "Column": 38
       }
     ],
-    "Exception": null,
     "Extensions": {
-      "variable": "boolVar",
-      "variableType": "Boolean",
       "locationType": "Boolean!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
-    }
+      "variable": "boolVar",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed",
+      "variableType": "Boolean"
+    },
+    "Exception": null
   }
 ]

@@ -178,7 +178,7 @@ namespace HotChocolate
 
             // assert
             Assert.Equal("foo", error.Code);
-            Assert.Collection(error.Extensions,
+            Assert.Collection(error.Extensions!,
                 t => Assert.Equal("foo", t.Value));
         }
 

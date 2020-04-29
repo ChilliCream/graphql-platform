@@ -105,6 +105,7 @@ namespace HotChocolate
             }
 
             _code = code;
+            SetExtension("code", code);
             return this;
         }
 

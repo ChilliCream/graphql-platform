@@ -2,43 +2,57 @@
   {
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "multipleReqs"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Name": "arguments",
+        "Index": null,
+        "Depth": 0
+      },
+      "Name": "multipleReqs",
+      "Index": null,
+      "Depth": 1
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 41
       }
     ],
-    "Exception": null,
     "Extensions": {
-      "argument": "x",
-      "argumentValue": "\"two\"",
       "locationType": "Int!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+      "argument": "x",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
+      "argumentValue": "\"two\""
+    },
+    "Exception": null
   },
   {
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "multipleReqs"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Name": "arguments",
+        "Index": null,
+        "Depth": 0
+      },
+      "Name": "multipleReqs",
+      "Index": null,
+      "Depth": 1
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 51
       }
     ],
-    "Exception": null,
     "Extensions": {
-      "argument": "y",
-      "argumentValue": "\"one\"",
       "locationType": "Int!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+      "argument": "y",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
+      "argumentValue": "\"one\""
+    },
+    "Exception": null
   }
 ]

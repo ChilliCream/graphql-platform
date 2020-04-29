@@ -24,13 +24,18 @@ namespace HotChocolate
                     AbstractionResources.Error_WithMessage_Message_Cannot_Be_Empty,
                     nameof(message));
             }
-            
+
             Message = message;
             Code = code;
             Path = path;
             Locations = locations;
             Extensions = extensions;
             Exception = exception;
+
+            if (code is { } && Extensions is null)
+            {
+                Extensions = new ExtensionData { {_codePropertyName, code} };
+            }
         }
 
         public string Message { get; }
@@ -66,14 +71,23 @@ namespace HotChocolate
                     nameof(code));
             }
 
-            var extensions = new ExtensionData(Extensions) {[_codePropertyName] = code};
+            var extensions = Extensions is null
+                ? new ExtensionData()
+                : new ExtensionData(Extensions) {[_codePropertyName] = code};
             return new Error(Message, code, Path, Locations, extensions, Exception);
         }
 
         public IError RemoveCode()
         {
-            var extensions = new ExtensionData(Extensions);
-            extensions.Remove(_codePropertyName);
+            IReadOnlyDictionary<string, object?>? extensions = Extensions;
+
+            if (Extensions is { })
+            {
+                var temp = new ExtensionData(Extensions);
+                temp.Remove(_codePropertyName);
+                extensions = temp;
+            }
+
             return new Error(Message, null, Path, Locations, extensions, Exception);
         }
 
@@ -174,7 +188,7 @@ namespace HotChocolate
 
         public IError RemoveException()
         {
-            return new Error(Message, Code, Path, Locations, Extensions, null);
+            return new Error(Message, Code, Path, Locations, Extensions);
         }
     }
 }

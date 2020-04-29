@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Utilities
                         variableDefinition.Variable.Name.Value)
                     .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
-                    .SetExtension("type", variableDefinition.Type.ToString())
+                    .SetExtension("type", variableDefinition.Type.ToString()!)
                     .AddLocation(variableDefinition)
                     .Build());
         }
@@ -57,7 +57,10 @@ namespace HotChocolate.Execution.Utilities
                     errorBuilder.SetExtension("inputObjectError", ex.Message);
                     break;
                 default:
-                    errorBuilder.SetException(exception);
+                    if (exception is { })
+                    {
+                        errorBuilder.SetException(exception);
+                    }
                     break;
             }
 
