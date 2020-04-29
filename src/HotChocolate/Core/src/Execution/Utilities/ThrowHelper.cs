@@ -74,5 +74,16 @@ namespace HotChocolate.Execution.Utilities
                     .AddLocation(directive)
                     .Build());
         }
+
+        public static GraphQLException FieldDoesNotExistOnType(FieldNode selection, string typeName)
+        {
+            return new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ThrowHelper_FieldDoesNotExistOnType,
+                    selection.Name.Value,
+                    typeName)
+                .AddLocation(selection)
+                .Build());
+        }
     }
 }

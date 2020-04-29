@@ -6,17 +6,15 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers
 {
-    public delegate IImmutableDictionary<string, object> ModifyScopedContext(
-        IImmutableDictionary<string, object> contextData);
-
     /// <summary>
     /// The resolver context represent the execution context for a specific
     /// field that is being resolved.
     /// </summary>
-    public interface IResolverContext
-        : IHasContextData
+    public interface IResolverContext : IHasContextData
     {
         /// <summary>
         /// Gets the GraphQL schema on which the query is executed.
@@ -64,7 +62,7 @@ namespace HotChocolate.Resolvers
         /// Gets the source stack containing all previous resolver results
         /// of the current execution path.
         /// </summary>
-        IImmutableStack<object> Source { get; }
+        IImmutableStack<object?> Source { get; }
 
         /// <summary>
         /// Gets the current execution path.
@@ -76,14 +74,14 @@ namespace HotChocolate.Resolvers
         /// resolvers to store and retrieve data during execution scoped to the
         /// hierarchy
         /// </summary>
-        IImmutableDictionary<string, object> ScopedContextData { get; set; }
+        IImmutableDictionary<string, object?> ScopedContextData { get; set; }
 
         /// <summary>
         /// The local context data dictionary can be used by middlewares and
         /// resolvers to store and retrieve data during execution scoped to the
         /// field
         /// </summary>
-        IImmutableDictionary<string, object> LocalContextData { get; set; }
+        IImmutableDictionary<string, object?> LocalContextData { get; set; }
 
         /// <summary>
         /// Gets access to the coerced variable values of the request.
@@ -205,8 +203,7 @@ namespace HotChocolate.Resolvers
         /// Returns the fields that would be selected if this resolver
         /// returns an object of the specified typeContext.
         /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext);
+        IReadOnlyList<IFieldSelection> CollectFields(ObjectType typeContext);
 
         /// <summary>
         /// Collects the fields of a selection set with the specified

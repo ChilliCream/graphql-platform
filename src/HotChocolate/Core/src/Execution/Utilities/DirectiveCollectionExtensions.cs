@@ -8,18 +8,18 @@ namespace HotChocolate.Execution.Utilities
     {
         public static IValueNode? SkipValue(this IReadOnlyList<DirectiveNode> directives)
         {
-            DirectiveNode directive = directives.GetSkipDirective();
-            return directive == null ? null : GetIfArgumentValue(directive);
+            DirectiveNode? directive = directives.GetSkipDirective();
+            return directive is null ? null : GetIfArgumentValue(directive);
         }
 
-        public static IValueNode IncludeValue(
+        public static IValueNode? IncludeValue(
             this IReadOnlyList<DirectiveNode> directives)
         {
-            DirectiveNode directive = directives.GetIncludeDirective();
-            return directive == null ? null : GetIfArgumentValue(directive);
+            DirectiveNode? directive = directives.GetIncludeDirective();
+            return directive is null ? null : GetIfArgumentValue(directive);
         }
 
-        private static IValueNode GetIfArgumentValue(DirectiveNode directive)
+        private static IValueNode? GetIfArgumentValue(DirectiveNode directive)
         {
             if (directive.Arguments.Count == 1)
             {
@@ -36,11 +36,11 @@ namespace HotChocolate.Execution.Utilities
             throw ThrowHelper.MissingIfArgument(directive);
         }
 
-        private static DirectiveNode GetIncludeDirective(
+        private static DirectiveNode? GetIncludeDirective(
             this IReadOnlyList<DirectiveNode> directives) =>
             GetDirective(directives, WellKnownDirectives.Include);
 
-        private static DirectiveNode GetSkipDirective(
+        private static DirectiveNode? GetSkipDirective(
             this IReadOnlyList<DirectiveNode> directives) =>
             GetDirective(directives, WellKnownDirectives.Skip);
 

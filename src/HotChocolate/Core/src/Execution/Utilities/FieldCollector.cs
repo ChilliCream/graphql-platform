@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -12,39 +13,28 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class FieldCollector
     {
-        private const string _argumentProperty = "argument";
-
         private static readonly IReadOnlyDictionary<NameString, PreparedArgument> _emptyArguments =
             new Dictionary<NameString, PreparedArgument>();
 
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
-        private readonly ITypeConversion _converter;
 
-        public FieldCollector(
-            ISchema schema, 
-            FragmentCollection fragments, 
-            ITypeConversion converter)
+        public FieldCollector(ISchema schema, FragmentCollection fragments)
         {
             _schema = schema;
             _fragments = fragments;
-            _converter = converter;
         }
 
-        public IReadOnlyList<IPreparedSelection> CollectFields(
-            ObjectType type,
-            SelectionSetNode selectionSet,
-            Path path)
+        public IReadOnlyList<IPreparedSelection> CollectFields(ObjectType type, SelectionSetNode selectionSet)
         {
             var fields = new OrderedDictionary<string, PreparedSelection>();
-            CollectFields(type, selectionSet, path, null, fields);
+            CollectFields(type, selectionSet, null, fields);
             return fields.Values.ToList();
         }
 
         private void CollectFields(
             ObjectType type,
             SelectionSetNode selectionSet,
-            Path path,
             FieldVisibility? fieldVisibility,
             IDictionary<string, PreparedSelection> fields)
         {
@@ -55,7 +45,6 @@ namespace HotChocolate.Execution.Utilities
                 ResolveFields(
                     type,
                     selection,
-                    path,
                     ExtractVisibility(selection, fieldVisibility),
                     fields);
             }
@@ -64,7 +53,6 @@ namespace HotChocolate.Execution.Utilities
         private void ResolveFields(
             ObjectType type,
             ISelectionNode selection,
-            Path path,
             FieldVisibility? fieldVisibility,
             IDictionary<string, PreparedSelection> fields)
         {
@@ -74,7 +62,6 @@ namespace HotChocolate.Execution.Utilities
                     ResolveFieldSelection(
                         type,
                         (FieldNode)selection,
-                        path,
                         fieldVisibility,
                         fields);
                     break;
@@ -83,7 +70,6 @@ namespace HotChocolate.Execution.Utilities
                     ResolveInlineFragment(
                         type,
                         (InlineFragmentNode)selection,
-                        path,
                         fieldVisibility,
                         fields);
                     break;
@@ -92,7 +78,6 @@ namespace HotChocolate.Execution.Utilities
                     ResolveFragmentSpread(
                         type,
                         (FragmentSpreadNode)selection,
-                        path,
                         fieldVisibility,
                         fields);
                     break;
@@ -102,7 +87,6 @@ namespace HotChocolate.Execution.Utilities
         private void ResolveFieldSelection(
             ObjectType type,
             FieldNode selection,
-            Path path,
             FieldVisibility? visibility,
             IDictionary<string, PreparedSelection> fields)
         {
@@ -130,7 +114,7 @@ namespace HotChocolate.Execution.Utilities
                         selection,
                         fields.Count,
                         responseName,
-                        null,
+                        CreateFieldMiddleware(field, selection),
                         CoerceArgumentValues(field, selection, responseName));
 
                     if (visibility is { })
@@ -143,18 +127,13 @@ namespace HotChocolate.Execution.Utilities
             }
             else
             {
-                throw new GraphQLException(ErrorBuilder.New()
-                    .SetMessage(CoreResources.FieldCollector_FieldNotFound)
-                    .SetPath(path)
-                    .AddLocation(selection)
-                    .Build());
+                throw ThrowHelper.FieldDoesNotExistOnType(selection, type.Name);
             }
         }
 
         private void ResolveFragmentSpread(
             ObjectType type,
             FragmentSpreadNode fragmentSpread,
-            Path path,
             FieldVisibility? fieldVisibility,
             IDictionary<string, PreparedSelection> fields)
         {
@@ -164,7 +143,6 @@ namespace HotChocolate.Execution.Utilities
                 CollectFields(
                     type,
                     fragment.SelectionSet,
-                    path,
                     fieldVisibility,
                     fields);
             }
@@ -173,7 +151,6 @@ namespace HotChocolate.Execution.Utilities
         private void ResolveInlineFragment(
             ObjectType type,
             InlineFragmentNode inlineFragment,
-            Path path,
             FieldVisibility? fieldVisibility,
             IDictionary<string, PreparedSelection> fields)
         {
@@ -183,7 +160,6 @@ namespace HotChocolate.Execution.Utilities
                 CollectFields(
                     type,
                     fragment.SelectionSet,
-                    path,
                     fieldVisibility,
                     fields);
             }
@@ -332,9 +308,7 @@ namespace HotChocolate.Execution.Utilities
             return true;
         }
 
-        private static object ParseLiteral(
-            IInputType argumentType,
-            IValueNode value)
+        private static object ParseLiteral(IInputType argumentType, IValueNode value)
         {
             IInputType type = (argumentType is NonNullType)
                 ? (IInputType)argumentType.InnerType()
@@ -342,43 +316,21 @@ namespace HotChocolate.Execution.Utilities
             return type.ParseLiteral(value);
         }
 
-        public FieldDelegate GetOrCreateMiddleware(
-            ObjectField field,
-            FieldNode selection,
-            Func<FieldDelegate> fieldPipeline)
+        private FieldDelegate CreateFieldMiddleware(ObjectField field, FieldNode selection)
         {
-            if (field == null)
+            FieldDelegate pipeline = field.Middleware;
+
+            if (field.ExecutableDirectives.Count > 0 || selection.Directives.Count > 0)
             {
-                throw new ArgumentNullException(nameof(field));
-            }
+                IReadOnlyList<IDirective> directives = CollectDirectives(field, selection);
 
-            if (selection == null)
-            {
-                throw new ArgumentNullException(nameof(selection));
-            }
-
-            if (fieldPipeline == null)
-            {
-                throw new ArgumentNullException(nameof(fieldPipeline));
-            }
-
-            FieldDelegate directivePipeline = fieldPipeline.Invoke();
-
-            if (field.ExecutableDirectives.Count > 0
-                || selection.Directives.Count > 0)
-            {
-                IReadOnlyList<IDirective> directives =
-                    CollectDirectives(field, selection);
-
-                if (directives.Any())
+                if (directives.Count > 0)
                 {
-                    directivePipeline = Compile(
-                        directivePipeline,
-                        directives);
+                    pipeline = Compile(pipeline, directives);
                 }
             }
 
-            return directivePipeline;
+            return pipeline;
         }
 
         private IReadOnlyList<IDirective> CollectDirectives(
@@ -408,14 +360,11 @@ namespace HotChocolate.Execution.Utilities
             ObjectField field,
             FieldNode selection)
         {
-            foreach (IDirective directive in
-                GetFieldSelectionDirectives(field, selection))
+            foreach (IDirective directive in GetFieldSelectionDirectives(field, selection))
             {
-                if (!directive.Type.IsRepeatable
-                    && !processed.Add(directive.Name))
+                if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
                 {
-                    directives.Remove(
-                        directives.First(t => t.Type == directive.Type));
+                    directives.Remove(directives.First(t => t.Type == directive.Type));
                 }
                 directives.Add(directive);
             }
@@ -425,8 +374,9 @@ namespace HotChocolate.Execution.Utilities
             ObjectField field,
             FieldNode selection)
         {
-            foreach (DirectiveNode directive in selection.Directives)
+            for (int i = 0; i < selection.Directives.Count; i++)
             {
+                DirectiveNode directive = selection.Directives[i];
                 if (_schema.TryGetDirectiveType(directive.Name.Value,
                     out DirectiveType directiveType)
                     && directiveType.IsExecutable)
@@ -444,13 +394,12 @@ namespace HotChocolate.Execution.Utilities
             List<IDirective> directives,
             ObjectField field)
         {
-            foreach (IDirective directive in field.ExecutableDirectives)
+            for (int i = 0; i < field.ExecutableDirectives.Count; i++)
             {
-                if (!directive.Type.IsRepeatable
-                    && !processed.Add(directive.Name))
+                IDirective directive = field.ExecutableDirectives[i];
+                if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
                 {
-                    directives.Remove(
-                        directives.First(t => t.Type == directive.Type));
+                    directives.Remove(directives.First(t => t.Type == directive.Type));
                 }
                 directives.Add(directive);
             }
@@ -464,20 +413,19 @@ namespace HotChocolate.Execution.Utilities
 
             for (int i = directives.Count - 1; i >= 0; i--)
             {
-                next = BuildComponent(directives[i], next);
+                if (directives[i] is { IsExecutable: true } directive)
+                {
+                    next = BuildComponent(directive, next);
+                }
             }
 
             return next;
         }
 
-        private static FieldDelegate BuildComponent(
-            IDirective directive,
-            FieldDelegate first)
+        private static FieldDelegate BuildComponent(IDirective directive, FieldDelegate first)
         {
             FieldDelegate next = first;
-
-            IReadOnlyList<DirectiveMiddleware> components =
-                directive.MiddlewareComponents;
+            IReadOnlyList<DirectiveMiddleware> components = directive.MiddlewareComponents;
 
             for (int i = components.Count - 1; i >= 0; i--)
             {
@@ -490,18 +438,16 @@ namespace HotChocolate.Execution.Utilities
                         return Task.CompletedTask;
                     }
 
-                    return component.Invoke(
-                        new DirectiveContext(context, directive));
+                    return component.Invoke(new DirectiveContext(context, directive));
                 };
             }
 
             return next;
         }
 
-        private static bool HasErrors(object result)
+        private static bool HasErrors(object? result)
         {
-            if (result is IError error
-                || result is IEnumerable<IError> errors)
+            if (result is IError error || result is IEnumerable<IError> errors)
             {
                 return true;
             }

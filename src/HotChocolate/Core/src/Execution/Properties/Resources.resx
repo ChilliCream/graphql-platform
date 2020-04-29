@@ -101,4 +101,7 @@
   <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
     <value>The {0}-directive is missing the if-argument.</value>
   </data>
+  <data name="ThrowHelper_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>Field `{0}` does not exist on type `{1}`.</value>
+  </data>
 </root>

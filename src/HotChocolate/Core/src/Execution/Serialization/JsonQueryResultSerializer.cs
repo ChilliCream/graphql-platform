@@ -122,7 +122,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteString(_message, error.Message);
 
             WriteLocations(writer, error.Locations);
-            WritePath(writer, error.Path);
+            WritePath(writer, error.Path?.ToList());
             WriteExtensions(writer, error.Extensions);
 
             writer.WriteEndObject();

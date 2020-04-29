@@ -51,7 +51,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
-        public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
+        public IReadOnlyList<IDirective> ExecutableDirectives { get; }
 
         /// <summary>
         /// Gets the associated .net type member of this field.
