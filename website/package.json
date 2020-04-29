@@ -40,7 +40,7 @@
     "gatsby-remark-autolink-headers": "^2.1.25",
     "gatsby-remark-images": "^3.2.6",
     "gatsby-remark-mermaid": "^1.2.0",
-    "gatsby-remark-prismjs": "^3.3.34",
+    "gatsby-remark-prismjs": "^3.5.0",
     "gatsby-remark-reading-time": "^1.1.0",
     "gatsby-source-filesystem": "^2.3.0",
     "gatsby-transformer-json": "^2.4.0",
