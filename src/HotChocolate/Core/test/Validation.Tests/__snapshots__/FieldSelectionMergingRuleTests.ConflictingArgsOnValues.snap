@@ -14,15 +14,15 @@
       }
     ],
     "Extensions": {
+      "declaringTypeA": "Dog",
       "declaringTypeB": "Dog",
-      "responseNameA": "doesKnowCommand",
       "fieldA": "doesKnowCommand",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging",
+      "fieldB": "doesKnowCommand",
       "typeA": "Boolean!",
       "typeB": "Boolean!",
-      "declaringTypeA": "Dog",
-      "fieldB": "doesKnowCommand",
-      "responseNameB": "doesKnowCommand"
+      "responseNameA": "doesKnowCommand",
+      "responseNameB": "doesKnowCommand",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
     "Exception": null
   }

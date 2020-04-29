@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "Boolean!",
       "variable": "stringVar",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed",
-      "variableType": "String"
+      "variableType": "String",
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     },
     "Exception": null
   }

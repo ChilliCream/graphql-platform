@@ -15,8 +15,8 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names",
-      "field": "favoriteCookieFlavor"
+      "field": "favoriteCookieFlavor",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names"
     },
     "Exception": null
   }

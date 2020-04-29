@@ -20,8 +20,8 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields",
-      "field": "nonNullField"
+      "field": "nonNullField",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
     },
     "Exception": null
   }

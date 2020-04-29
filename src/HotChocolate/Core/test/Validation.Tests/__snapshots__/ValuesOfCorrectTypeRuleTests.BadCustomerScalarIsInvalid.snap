@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "Invalid",
       "argument": "arg",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
-      "argumentValue": "123"
+      "argumentValue": "123",
+      "locationType": "Invalid",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
     "Exception": null
   }

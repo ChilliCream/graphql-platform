@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Properties;
 
 #nullable  enable
@@ -34,7 +35,7 @@ namespace HotChocolate
 
             if (code is { } && Extensions is null)
             {
-                Extensions = new ExtensionData { {_codePropertyName, code} };
+                Extensions = new OrderedDictionary<string, object?> { {_codePropertyName, code} };
             }
         }
 
@@ -62,18 +63,16 @@ namespace HotChocolate
             return new Error(message, Code, Path, Locations, Extensions, Exception);
         }
 
-        public IError WithCode(string code)
+        public IError WithCode(string? code)
         {
             if (string.IsNullOrEmpty(code))
             {
-                throw new ArgumentException(
-                    AbstractionResources.Error_WithCode_Code_Cannot_Be_Empty,
-                    nameof(code));
+                return RemoveCode();
             }
 
             var extensions = Extensions is null
-                ? new ExtensionData()
-                : new ExtensionData(Extensions) {[_codePropertyName] = code};
+                ? new OrderedDictionary<string, object?>()
+                : new OrderedDictionary<string, object?>(Extensions) {[_codePropertyName] = code};
             return new Error(Message, code, Path, Locations, extensions, Exception);
         }
 
@@ -83,7 +82,7 @@ namespace HotChocolate
 
             if (Extensions is { })
             {
-                var temp = new ExtensionData(Extensions);
+                var temp = new OrderedDictionary<string, object?>(Extensions);
                 temp.Remove(_codePropertyName);
                 extensions = temp;
             }
@@ -91,31 +90,26 @@ namespace HotChocolate
             return new Error(Message, null, Path, Locations, extensions, Exception);
         }
 
-        public IError WithPath(Path path)
+        public IError WithPath(Path? path)
         {
-            if (path is null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            return new Error(Message, Code, path, Locations, Extensions, Exception);
+            return path is null
+                ? RemovePath()
+                : new Error(Message, Code, path, Locations, Extensions, Exception);
         }
 
-        public IError WithPath(IReadOnlyList<object> path) => WithPath(Path.FromList(path));
+        public IError WithPath(IReadOnlyList<object>? path) =>
+            WithPath(path is null ? null : Path.FromList(path));
 
         public IError RemovePath()
         {
             return new Error(Message, Code, null, Locations, Extensions, Exception);
         }
 
-        public IError WithLocations(IReadOnlyList<Location> locations)
+        public IError WithLocations(IReadOnlyList<Location>? locations)
         {
-            if (locations is null)
-            {
-                throw new ArgumentNullException(nameof(locations));
-            }
-
-            return new Error(Message, Code, Path, locations, Extensions, Exception);
+            return locations is null
+                ? RemoveLocations()
+                : new Error(Message, Code, Path, locations, Extensions, Exception);
         }
 
         public IError RemoveLocations()
@@ -148,8 +142,8 @@ namespace HotChocolate
             }
 
             var extensions = Extensions is { }
-                ? new ExtensionData(Extensions)
-                : new ExtensionData();
+                ? new OrderedDictionary<string, object?>(Extensions)
+                : new OrderedDictionary<string, object?>();
             extensions[key] = value;
             return new Error(Message, Code, Path, Locations, extensions, Exception);
         }
@@ -168,7 +162,7 @@ namespace HotChocolate
                 return this;
             }
 
-            var extensions = new ExtensionData(Extensions);
+            var extensions = new OrderedDictionary<string, object?>(Extensions);
             extensions.Remove(key);
 
             return extensions.Count == 0
@@ -176,14 +170,11 @@ namespace HotChocolate
                 : new Error(Message, Code, Path, Locations, extensions, Exception);
         }
 
-        public IError WithException(Exception exception)
+        public IError WithException(Exception? exception)
         {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
-            return new Error(Message, Code, Path, Locations, Extensions, exception);
+            return exception is null ?
+                RemoveException() :
+                new Error(Message, Code, Path, Locations, Extensions, exception);
         }
 
         public IError RemoveException()

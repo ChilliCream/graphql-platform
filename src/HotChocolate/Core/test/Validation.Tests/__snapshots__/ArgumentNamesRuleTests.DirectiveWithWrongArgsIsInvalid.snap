@@ -15,9 +15,9 @@
       }
     ],
     "Extensions": {
+      "directive": "complex",
       "argument": "if",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
-      "directive": "complex"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "argument": "DogCommand",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Dog",
-      "field": "doesKnowCommand"
+      "field": "doesKnowCommand",
+      "argument": "DogCommand",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   },
@@ -38,10 +38,10 @@
       }
     ],
     "Extensions": {
-      "argument": "dogCommand",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Dog",
-      "field": "doesKnowCommand"
+      "field": "doesKnowCommand",
+      "argument": "dogCommand",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

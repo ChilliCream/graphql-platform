@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "argument": "floatArg",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Arguments",
-      "field": "nonNullFloatArgField"
+      "field": "nonNullFloatArgField",
+      "argument": "floatArg",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

@@ -15,11 +15,11 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections",
-      "type": "FurColor",
+      "declaringType": "Cat",
       "field": "furColor",
+      "type": "FurColor",
       "responseName": "furColor",
-      "declaringType": "Cat"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
     },
     "Exception": null
   }

@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "String",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
       "fieldName": "name",
-      "fieldType": "String"
+      "fieldType": "String",
+      "locationType": "String",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
     "Exception": null
   }

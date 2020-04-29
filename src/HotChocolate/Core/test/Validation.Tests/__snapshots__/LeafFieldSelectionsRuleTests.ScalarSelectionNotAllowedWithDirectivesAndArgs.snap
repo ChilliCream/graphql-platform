@@ -15,11 +15,11 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections",
-      "type": "Boolean!",
+      "declaringType": "Dog",
       "field": "doesKnowCommand",
+      "type": "Boolean!",
       "responseName": "doesKnowCommand",
-      "declaringType": "Dog"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
     },
     "Exception": null
   }

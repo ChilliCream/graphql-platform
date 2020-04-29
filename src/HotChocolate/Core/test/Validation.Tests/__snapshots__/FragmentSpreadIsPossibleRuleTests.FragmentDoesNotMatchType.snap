@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "fragment": "fragmentDoesNotMatchType",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible",
       "typeCondition": "Human",
-      "selectionSetType": "Dog"
+      "selectionSetType": "Dog",
+      "fragment": "fragmentDoesNotMatchType",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
     "Exception": null
   }

@@ -73,7 +73,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="code" />.
         /// </returns>
-        IError WithCode(string code);
+        IError WithCode(string? code);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -96,7 +96,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="path" />.
         /// </returns>
-        IError WithPath(Path path);
+        IError WithPath(Path? path);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -109,7 +109,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="path" />.
         /// </returns>
-        IError WithPath(IReadOnlyList<object> path);
+        IError WithPath(IReadOnlyList<object>? path);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -133,7 +133,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="locations" />.
         /// </returns>
-        IError WithLocations(IReadOnlyList<Location> locations);
+        IError WithLocations(IReadOnlyList<Location>? locations);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -208,7 +208,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="exception" />.
         /// </returns>
-        IError WithException(Exception exception);
+        IError WithException(Exception? exception);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error

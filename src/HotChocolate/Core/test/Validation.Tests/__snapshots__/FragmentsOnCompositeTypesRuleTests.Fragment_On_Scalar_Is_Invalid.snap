@@ -15,9 +15,9 @@
       }
     ],
     "Extensions": {
+      "typeCondition": "Int",
       "fragment": "fragOnScalar",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types",
-      "typeCondition": "Int"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types"
     },
     "Exception": null
   }

@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "argument": "nonNullBooleanArg",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Arguments",
-      "field": "nonNullBooleanArgField"
+      "field": "nonNullBooleanArgField",
+      "argument": "nonNullBooleanArg",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

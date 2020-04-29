@@ -20,10 +20,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "[String]",
       "variable": "stringVar",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed",
-      "variableType": "String"
+      "variableType": "String",
+      "locationType": "[String]",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     },
     "Exception": null
   }

@@ -15,11 +15,11 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections",
-      "type": "Int",
+      "declaringType": "Dog",
       "field": "barkVolume",
+      "type": "Int",
       "responseName": "barkVolume",
-      "declaringType": "Dog"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
     },
     "Exception": null
   }

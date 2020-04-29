@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "Boolean!",
       "argument": "if",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
-      "argumentValue": "\"yes\""
+      "argumentValue": "\"yes\"",
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
     "Exception": null
   },
@@ -43,10 +43,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "Boolean!",
       "argument": "if",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
-      "argumentValue": "ENUM"
+      "argumentValue": "ENUM",
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
     "Exception": null
   }

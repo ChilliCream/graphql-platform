@@ -15,11 +15,11 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types",
-      "type": "[Pet]",
+      "declaringType": "Human",
       "field": "pets",
+      "type": "[Pet]",
       "responseName": "pets",
-      "declaringType": "Human"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null
   }

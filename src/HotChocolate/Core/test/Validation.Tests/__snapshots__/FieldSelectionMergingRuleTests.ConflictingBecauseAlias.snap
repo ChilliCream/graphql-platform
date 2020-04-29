@@ -14,15 +14,15 @@
       }
     ],
     "Extensions": {
+      "declaringTypeA": "Dog",
       "declaringTypeB": "Dog",
-      "responseNameA": "name",
       "fieldA": "nickname",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging",
+      "fieldB": "name",
       "typeA": "String",
       "typeB": "String!",
-      "declaringTypeA": "Dog",
-      "fieldB": "name",
-      "responseNameB": "name"
+      "responseNameA": "name",
+      "responseNameB": "name",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
     "Exception": null
   }

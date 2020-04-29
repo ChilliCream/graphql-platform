@@ -10,8 +10,8 @@
       }
     ],
     "Extensions": {
-      "detectedComplexity": 16,
-      "allowedComplexity": 15
+      "allowedComplexity": 15,
+      "detectedComplexity": 16
     },
     "Exception": null
   }

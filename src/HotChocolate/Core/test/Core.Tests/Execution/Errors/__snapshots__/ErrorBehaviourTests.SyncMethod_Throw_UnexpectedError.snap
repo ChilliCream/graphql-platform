@@ -6,30 +6,33 @@
     {
       "Message": "Unexpected Execution Error",
       "Code": null,
-      "Path": [
-        "error8"
-      ],
+      "Path": {
+        "Parent": null,
+        "Name": "error8",
+        "Index": null,
+        "Depth": 0
+      },
       "Locations": [
         {
           "Line": 1,
           "Column": 3
         }
       ],
+      "Extensions": null,
       "Exception": {
         "ClassName": "System.Exception",
         "Message": "query error 8",
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Execution.ErrorBehaviourTests.Query.Error8() in /Users/michael/local/hc/src/HotChocolate/Core/test/Core.Tests/Execution/Errors/ErrorBehaviourTests.cs:line 400\n   at lambda_method(Closure , IResolverContext )\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michael/local/hc/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 74\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverContext resolverContext, IErrorHandler errorHandler) in /Users/michael/local/hc/src/HotChocolate/Core/src/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 40",
+        "StackTraceString": "   at HotChocolate.Execution.ErrorBehaviourTests.Query.Error8() in /Users/michael/local/hc/src/HotChocolate/Core/test/Core.Tests/Execution/Errors/ErrorBehaviourTests.cs:line 399\n   at lambda_method(Closure , IResolverContext )\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michael/local/hc/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 74\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverContext resolverContext, IErrorHandler errorHandler) in /Users/michael/local/hc/src/HotChocolate/Core/src/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 40",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
         "HResult": -2146233088,
         "Source": "HotChocolate.Core.Tests",
         "WatsonBuckets": null
-      },
-      "Extensions": {}
+      }
     }
   ],
   "Extensions": null,

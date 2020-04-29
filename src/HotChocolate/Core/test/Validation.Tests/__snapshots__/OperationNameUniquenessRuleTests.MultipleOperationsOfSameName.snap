@@ -10,8 +10,8 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness",
-      "operation": "Foo"
+      "operation": "Foo",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness"
     },
     "Exception": null
   }

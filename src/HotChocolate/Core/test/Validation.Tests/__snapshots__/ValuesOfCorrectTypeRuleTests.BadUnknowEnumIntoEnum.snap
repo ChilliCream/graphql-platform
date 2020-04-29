@@ -20,10 +20,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "DogCommand",
       "argument": "enumArg",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
-      "argumentValue": "HELLO"
+      "argumentValue": "HELLO",
+      "locationType": "DogCommand",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
     "Exception": null
   }

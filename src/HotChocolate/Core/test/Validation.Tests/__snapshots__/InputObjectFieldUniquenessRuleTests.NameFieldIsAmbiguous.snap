@@ -15,8 +15,8 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness",
-      "field": "name"
+      "field": "name",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
     },
     "Exception": null
   }

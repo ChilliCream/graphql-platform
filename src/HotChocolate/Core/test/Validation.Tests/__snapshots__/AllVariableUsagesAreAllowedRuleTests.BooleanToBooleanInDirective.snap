@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "Boolean!",
       "variable": "boolVar",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed",
-      "variableType": "Boolean"
+      "variableType": "Boolean",
+      "locationType": "Boolean!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     },
     "Exception": null
   }

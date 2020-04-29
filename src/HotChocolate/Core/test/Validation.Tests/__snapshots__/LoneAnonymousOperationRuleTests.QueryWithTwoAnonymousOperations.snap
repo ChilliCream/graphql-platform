@@ -10,8 +10,8 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Lone-Anonymous-Operation",
-      "operations": 2
+      "operations": 2,
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Lone-Anonymous-Operation"
     },
     "Exception": null
   }

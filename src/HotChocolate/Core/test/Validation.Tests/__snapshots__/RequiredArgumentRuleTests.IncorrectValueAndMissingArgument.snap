@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "argument": "req1",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Arguments",
-      "field": "multipleReqs"
+      "field": "multipleReqs",
+      "argument": "req1",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   },
@@ -38,10 +38,10 @@
       }
     ],
     "Extensions": {
-      "argument": "x",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Arguments",
-      "field": "multipleReqs"
+      "field": "multipleReqs",
+      "argument": "x",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   },
@@ -61,10 +61,10 @@
       }
     ],
     "Extensions": {
-      "argument": "y",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Arguments",
-      "field": "multipleReqs"
+      "field": "multipleReqs",
+      "argument": "y",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

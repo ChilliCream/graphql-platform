@@ -20,10 +20,10 @@
       }
     ],
     "Extensions": {
-      "fragment": "humanOrAlienFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible",
       "typeCondition": "HumanOrAlien",
-      "selectionSetType": "Pet"
+      "selectionSetType": "Pet",
+      "fragment": "humanOrAlienFragment",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
     "Exception": null
   }

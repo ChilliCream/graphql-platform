@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types",
       "type": "Dog",
       "field": "meowVolume",
-      "responseName": "meowVolume"
+      "responseName": "meowVolume",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null
   },
@@ -38,10 +38,10 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types",
       "type": "Dog",
       "field": "kawVolume",
-      "responseName": "barkVolume"
+      "responseName": "barkVolume",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null
   }

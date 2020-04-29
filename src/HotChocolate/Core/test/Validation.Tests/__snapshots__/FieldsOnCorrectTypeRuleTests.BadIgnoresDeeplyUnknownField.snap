@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types",
       "type": "Dog",
       "field": "unknown_field",
-      "responseName": "unknown_field"
+      "responseName": "unknown_field",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null
   }

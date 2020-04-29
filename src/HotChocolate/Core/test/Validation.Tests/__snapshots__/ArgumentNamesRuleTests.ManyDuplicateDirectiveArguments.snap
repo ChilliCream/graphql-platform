@@ -15,9 +15,9 @@
       }
     ],
     "Extensions": {
+      "directive": "directive",
       "argument": "arg1",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness",
-      "directive": "directive"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
     },
     "Exception": null
   },
@@ -37,9 +37,9 @@
       }
     ],
     "Extensions": {
+      "directive": "directive",
       "argument": "arg1",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness",
-      "directive": "directive"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
     },
     "Exception": null
   }

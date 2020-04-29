@@ -9,13 +9,13 @@ namespace HotChocolate
     {
         IErrorBuilder SetMessage(string message);
 
-        IErrorBuilder SetCode(string code);
+        IErrorBuilder SetCode(string? code);
 
         IErrorBuilder RemoveCode();
 
-        IErrorBuilder SetPath(IReadOnlyList<object> path);
+        IErrorBuilder SetPath(IReadOnlyList<object>? path);
 
-        IErrorBuilder SetPath(Path path);
+        IErrorBuilder SetPath(Path? path);
 
         IErrorBuilder RemovePath();
 
@@ -25,7 +25,7 @@ namespace HotChocolate
 
         IErrorBuilder ClearLocations();
 
-        IErrorBuilder SetException(Exception exception);
+        IErrorBuilder SetException(Exception? exception);
 
         IErrorBuilder RemoveException();
 

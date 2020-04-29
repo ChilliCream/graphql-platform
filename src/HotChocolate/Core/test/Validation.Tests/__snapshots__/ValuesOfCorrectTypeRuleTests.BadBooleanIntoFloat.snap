@@ -20,10 +20,10 @@
       }
     ],
     "Extensions": {
-      "locationType": "Float",
       "argument": "floatArg",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type",
-      "argumentValue": "true"
+      "argumentValue": "true",
+      "locationType": "Float",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
     "Exception": null
   }

@@ -20,8 +20,8 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness",
-      "field": "f1"
+      "field": "f1",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
     },
     "Exception": null
   },
@@ -46,8 +46,8 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness",
-      "field": "f1"
+      "field": "f1",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
     },
     "Exception": null
   }

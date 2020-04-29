@@ -20,9 +20,9 @@
       }
     ],
     "Extensions": {
+      "directive": "include",
       "argument": "unless",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
-      "directive": "include"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   },
@@ -47,9 +47,9 @@
       }
     ],
     "Extensions": {
+      "directive": "include",
       "argument": "if",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
-      "directive": "include"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

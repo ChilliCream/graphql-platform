@@ -20,10 +20,10 @@
       }
     ],
     "Extensions": {
-      "fragment": "intelligentFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible",
       "typeCondition": "Intelligent",
-      "selectionSetType": "Pet"
+      "selectionSetType": "Pet",
+      "fragment": "intelligentFragment",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
     "Exception": null
   }

@@ -20,9 +20,9 @@
       }
     ],
     "Extensions": {
+      "directive": "skip",
       "argument": "if",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
-      "directive": "skip"
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

@@ -15,10 +15,10 @@
       }
     ],
     "Extensions": {
-      "argument": "intArg",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
       "type": "Arguments",
-      "field": "nonNullIntArgField"
+      "field": "nonNullIntArgField",
+      "argument": "intArg",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
     "Exception": null
   }

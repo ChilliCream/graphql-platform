@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Properties;
@@ -15,7 +14,7 @@ namespace HotChocolate
         private string? _code;
         private Path? _path;
         private Exception? _exception;
-        private ExtensionData? _extensions;
+        private OrderedDictionary<string, object?>? _extensions;
         private List<Location>? _locations;
         private bool _dirtyLocation;
         private bool _dirtyExtensions;
@@ -38,7 +37,7 @@ namespace HotChocolate
 
             if (error.Extensions is { } && error.Extensions.Count > 0)
             {
-                _extensions = new ExtensionData(error.Extensions);
+                _extensions = new OrderedDictionary<string, object?>(error.Extensions);
             }
 
             if (error.Locations is { } && error.Locations.Count > 0)
@@ -46,42 +45,6 @@ namespace HotChocolate
                 _locations = new List<Location>(error.Locations);
             }
         }
-
-        /// <summary>
-        /// Gets the error message.
-        /// This property is mandatory and cannot be null.
-        /// </summary>
-        public string? Message => _message;
-
-        /// <summary>
-        /// Gets an error code that can be used to automatically
-        /// process an error.
-        /// This property is optional and can be null.
-        /// </summary>
-        public string? Code => _code;
-
-        /// <summary>
-        /// Gets the path to the object that caused the error.
-        /// This property is optional and can be null.
-        /// </summary>
-        public Path? Path => _path;
-
-        /// <summary>
-        /// Gets the source text positions to which this error refers to.
-        /// This property is optional and can be null.
-        /// </summary>
-        public IReadOnlyList<Location>? Locations => _locations;
-
-        /// <summary>
-        /// Gets non-spec error properties.
-        /// This property is optional and can be null.
-        /// </summary>
-        public IReadOnlyDictionary<string, object?>? Extensions => _extensions;
-
-        /// <summary>
-        /// Gets the exception associated with this error.
-        /// </summary>
-        public Exception? Exception => _exception;
 
         public IErrorBuilder SetMessage(string message)
         {
@@ -95,13 +58,11 @@ namespace HotChocolate
             return this;
         }
 
-        public IErrorBuilder SetCode(string code)
+        public IErrorBuilder SetCode(string? code)
         {
             if (string.IsNullOrEmpty(code))
             {
-                throw new ArgumentException(
-                    AbstractionResources.Error_WithCode_Code_Cannot_Be_Empty,
-                    nameof(code));
+                return RemoveCode();
             }
 
             _code = code;
@@ -115,13 +76,19 @@ namespace HotChocolate
             return this;
         }
 
-        public IErrorBuilder SetPath(Path path)
+        public IErrorBuilder SetPath(Path? path)
         {
-            _path = path ?? throw new ArgumentNullException(nameof(path));
+            if (path is null)
+            {
+                return RemovePath();
+            }
+
+            _path = path;
             return this;
         }
 
-        public IErrorBuilder SetPath(IReadOnlyList<object> path) => SetPath(Path.FromList(path));
+        public IErrorBuilder SetPath(IReadOnlyList<object>? path) =>
+            SetPath(path is null ? null : Path.FromList(path));
 
         public IErrorBuilder RemovePath()
         {
@@ -155,11 +122,11 @@ namespace HotChocolate
         {
             if (_dirtyExtensions && _extensions is { })
             {
-                _extensions = new ExtensionData(_extensions);
+                _extensions = new OrderedDictionary<string, object?>(_extensions);
                 _dirtyExtensions = false;
             }
 
-            _extensions ??= new ExtensionData();
+            _extensions ??= new OrderedDictionary<string, object?>();
             _extensions[key] = value;
             return this;
         }
@@ -173,7 +140,7 @@ namespace HotChocolate
 
             if (_dirtyExtensions)
             {
-                _extensions = new ExtensionData(_extensions);
+                _extensions = new OrderedDictionary<string, object?>(_extensions);
                 _dirtyExtensions = false;
             }
 
@@ -194,9 +161,14 @@ namespace HotChocolate
             return this;
         }
 
-        public IErrorBuilder SetException(Exception exception)
+        public IErrorBuilder SetException(Exception? exception)
         {
-            _exception = exception ?? throw new ArgumentNullException(nameof(exception));
+            if (exception is null)
+            {
+                return RemoveException();
+            }
+
+            _exception = exception;
             return this;
         }
 
@@ -234,7 +206,7 @@ namespace HotChocolate
             var builder = ErrorBuilder.New();
             builder.SetMessage((string)dict["message"]);
 
-            if (dict.TryGetValue("extensions", out object obj) &&
+            if (dict.TryGetValue("extensions", out object? obj) &&
                 obj is IDictionary<string, object> extensions)
             {
                 foreach (KeyValuePair<string, object> item in extensions)
