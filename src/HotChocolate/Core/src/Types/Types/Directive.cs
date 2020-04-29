@@ -201,7 +201,7 @@ namespace HotChocolate.Types
             return true;
         }
 
-        internal static Directive FromDescription(
+        public static Directive FromDescription(
             DirectiveType directiveType,
             DirectiveDefinition definition,
             object source)

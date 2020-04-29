@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Utilities
@@ -12,16 +14,19 @@ namespace HotChocolate.Execution.Utilities
     {
         private const string _argumentProperty = "argument";
 
-        private static readonly IReadOnlyDictionary<string, PreparedArgument> _emptyArguments =
-            new Dictionary<string, PreparedArgument>();
+        private static readonly IReadOnlyDictionary<NameString, PreparedArgument> _emptyArguments =
+            new Dictionary<NameString, PreparedArgument>();
 
+        private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
         private readonly ITypeConversion _converter;
 
-
-
-        public FieldCollector(FragmentCollection fragments, ITypeConversion converter)
+        public FieldCollector(
+            ISchema schema, 
+            FragmentCollection fragments, 
+            ITypeConversion converter)
         {
+            _schema = schema;
             _fragments = fragments;
             _converter = converter;
         }
@@ -133,12 +138,12 @@ namespace HotChocolate.Execution.Utilities
                         preparedSelection.TryAddVariableVisibility(visibility);
                     }
 
-                    fields.Add(responseName, fieldInfo);
+                    fields.Add(responseName, preparedSelection);
                 }
             }
             else
             {
-                throw new QueryException(ErrorBuilder.New()
+                throw new GraphQLException(ErrorBuilder.New()
                     .SetMessage(CoreResources.FieldCollector_FieldNotFound)
                     .SetPath(path)
                     .AddLocation(selection)
@@ -227,7 +232,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private IReadOnlyDictionary<string, PreparedArgument> CoerceArgumentValues(
+        private IReadOnlyDictionary<NameString, PreparedArgument> CoerceArgumentValues(
             ObjectField field,
             FieldNode selection,
             string responseName)
@@ -237,7 +242,7 @@ namespace HotChocolate.Execution.Utilities
                 return _emptyArguments;
             }
 
-            var arguments = new Dictionary<string, PreparedArgument>();
+            var arguments = new Dictionary<NameString, PreparedArgument>();
 
             for (var i = 0; i < selection.Arguments.Count; i++)
             {
@@ -335,6 +340,173 @@ namespace HotChocolate.Execution.Utilities
                 ? (IInputType)argumentType.InnerType()
                 : argumentType;
             return type.ParseLiteral(value);
+        }
+
+        public FieldDelegate GetOrCreateMiddleware(
+            ObjectField field,
+            FieldNode selection,
+            Func<FieldDelegate> fieldPipeline)
+        {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (selection == null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
+            if (fieldPipeline == null)
+            {
+                throw new ArgumentNullException(nameof(fieldPipeline));
+            }
+
+            FieldDelegate directivePipeline = fieldPipeline.Invoke();
+
+            if (field.ExecutableDirectives.Count > 0
+                || selection.Directives.Count > 0)
+            {
+                IReadOnlyList<IDirective> directives =
+                    CollectDirectives(field, selection);
+
+                if (directives.Any())
+                {
+                    directivePipeline = Compile(
+                        directivePipeline,
+                        directives);
+                }
+            }
+
+            return directivePipeline;
+        }
+
+        private IReadOnlyList<IDirective> CollectDirectives(
+            ObjectField field,
+            FieldNode selection)
+        {
+            var processed = new HashSet<string>();
+            var directives = new List<IDirective>();
+
+            CollectTypeSystemDirectives(
+                processed,
+                directives,
+                field);
+
+            CollectQueryDirectives(
+                processed,
+                directives,
+                field,
+                selection);
+
+            return directives.AsReadOnly();
+        }
+
+        private void CollectQueryDirectives(
+            HashSet<string> processed,
+            List<IDirective> directives,
+            ObjectField field,
+            FieldNode selection)
+        {
+            foreach (IDirective directive in
+                GetFieldSelectionDirectives(field, selection))
+            {
+                if (!directive.Type.IsRepeatable
+                    && !processed.Add(directive.Name))
+                {
+                    directives.Remove(
+                        directives.First(t => t.Type == directive.Type));
+                }
+                directives.Add(directive);
+            }
+        }
+
+        private IEnumerable<IDirective> GetFieldSelectionDirectives(
+            ObjectField field,
+            FieldNode selection)
+        {
+            foreach (DirectiveNode directive in selection.Directives)
+            {
+                if (_schema.TryGetDirectiveType(directive.Name.Value,
+                    out DirectiveType directiveType)
+                    && directiveType.IsExecutable)
+                {
+                    yield return Directive.FromDescription(
+                        directiveType,
+                        new DirectiveDefinition(directive),
+                        field);
+                }
+            }
+        }
+
+        private static void CollectTypeSystemDirectives(
+            HashSet<string> processed,
+            List<IDirective> directives,
+            ObjectField field)
+        {
+            foreach (IDirective directive in field.ExecutableDirectives)
+            {
+                if (!directive.Type.IsRepeatable
+                    && !processed.Add(directive.Name))
+                {
+                    directives.Remove(
+                        directives.First(t => t.Type == directive.Type));
+                }
+                directives.Add(directive);
+            }
+        }
+
+        private static FieldDelegate Compile(
+            FieldDelegate fieldPipeline,
+            IReadOnlyList<IDirective> directives)
+        {
+            FieldDelegate next = fieldPipeline;
+
+            for (int i = directives.Count - 1; i >= 0; i--)
+            {
+                next = BuildComponent(directives[i], next);
+            }
+
+            return next;
+        }
+
+        private static FieldDelegate BuildComponent(
+            IDirective directive,
+            FieldDelegate first)
+        {
+            FieldDelegate next = first;
+
+            IReadOnlyList<DirectiveMiddleware> components =
+                directive.MiddlewareComponents;
+
+            for (int i = components.Count - 1; i >= 0; i--)
+            {
+                DirectiveDelegate component = components[i].Invoke(next);
+
+                next = context =>
+                {
+                    if (HasErrors(context.Result))
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    return component.Invoke(
+                        new DirectiveContext(context, directive));
+                };
+            }
+
+            return next;
+        }
+
+        private static bool HasErrors(object result)
+        {
+            if (result is IError error
+                || result is IEnumerable<IError> errors)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

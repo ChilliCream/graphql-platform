@@ -1,18 +1,19 @@
 ﻿using System.Threading.Tasks;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers
 {
     /// <summary>
     /// The middleware context represent the execution context for a field
     /// middleware.
     /// </summary>
-    public interface IMiddlewareContext
-        : IResolverContext
+    public interface IMiddlewareContext : IResolverContext
     {
         /// <summary>
         /// Gets or sets the result of the middleware.
         /// </summary>
-        object Result { get; set; }
+        object? Result { get; set; }
 
         /// <summary>
         /// Defines if at least one middleware has modified the result.
