@@ -1,6 +1,6 @@
 module.exports = {
   siteMetadata: {
-    title: `ChilliCream GraphQL`,
+    title: `ChilliCream GraphQL Platform`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
     siteUrl: `https://chillicream.com`,

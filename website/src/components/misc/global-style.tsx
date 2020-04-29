@@ -112,6 +112,15 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: bold;
   }
 
+  blockquote {
+    margin-bottom: 1.188em;
+    background-color: #e7e9eb;
+
+    > p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
   ul {
     margin: 0 0 1.188em 1.188em;
     list-style-position: outside;
@@ -157,15 +166,29 @@ export const GlobalStyle = createGlobalStyle`
     text-align: left;
   }
 
+  tbody {
+    > tr:nth-child(odd) {
+      background-color: #f6f8fa;
+    }
+
+    > tr:hover {
+      background-color: #e7e9eb;
+    }
+  }
+
   td,
   th {
     border-bottom: 1px solid #aaa;
-    padding: 0.625em 1em;
+    padding: 5px 10px;
     font-feature-settings: "tnum";
+    font-size: 0.875em;
+    line-height: 1.667em;
     text-align: left;
   }
 
   th {
+    border-top: 1px solid #aaa;
+    border-bottom: 2px solid #aaa;
     font-weight: bold;
   }
 
@@ -193,11 +216,8 @@ export const GlobalStyle = createGlobalStyle`
   .gatsby-highlight-code-line {
     background-color: #444;
     display: block;
-    margin-right: -1em;
-    margin-left: -1em;
-    padding-right: 1em;
-    padding-left: 0.75em;
-    border-left: 0.25em solid #f99;
+    margin: 0 -50px;
+    padding: 0 50px;
   }
 
   .mermaid {

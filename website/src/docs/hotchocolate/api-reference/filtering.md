@@ -1007,8 +1007,6 @@ input UserFilter {
 | `csharp±Directive<TDirective>(TDirective directiveInstance)`                     | Add directive of type `TDirective` to the type                                                                                                  |
 | `csharp±Directive<TDirective>(NameString name, params ArgumentNode[] arguments)` | Add directive of type `TDirective` to the type                                                                                                  |
 
----
-
 # Filter Conventions
 
 The customization of filters with `FilterInputTypes<T>` works if you only want to customize one specific filter type.
@@ -1021,16 +1019,15 @@ To use a filter convention you can extend `FilterConvention` and override the `C
 You then have to register your custom convention on the schema builder with `AddConvention`.
 
 ```csharp
-public class CustomConvention : FilterConvention
+public class CustomConvention
+    : FilterConvention
 {
-    protected override void Configure(IFilterConventionDescriptor descriptor)
-    {
-    }
+    protected override void Configure(IFilterConventionDescriptor descriptor) { }
 }
 
 SchemaBuilder.New().AddConvention<CustomConvention>();
 //
-SchemaBuilder.New().AddConvention(new FilterConvention(x => /*Config*/));
+SchemaBuilder.New().AddConvention(new FilterConvention(x => /* Config */));
 ```
 
 ## Convention Descriptor Basics
@@ -1039,14 +1036,14 @@ In this section, we will take a look at the basic features of the filter convent
 The documentation will reference often to `descriptor`. Imagine this `descriptor` as the parameter of the Configure method of the filter convention in the following context:
 
 ```csharp
-public class CustomConvention : FilterConvention
+public class CustomConvention
+    : FilterConvention
 {
     protected override void Configure(
-       /**highlight-start**/
+        /**highlight-start**/
         IFilterConventionDescriptor descriptor
-      /**highlight-end**/
-     )
-     {}
+        /**highlight-end**/
+    ) { }
 }
 
 SchemaBuilder.New().AddConvention<CustomConvention>();
@@ -1118,8 +1115,8 @@ public delegate NameString GetFilterTypeName(
 **Configuration**
 
 ```csharp
-descriptor.TypeName(
-    (context,types) => context.Naming.GetTypeName(entityType, TypeKind.Object) + "Custom");
+descriptor.TypeName((context,types) =>
+    context.Naming.GetTypeName(entityType, TypeKind.Object) + "Custom");
 ```
 
 **Result**
@@ -1145,8 +1142,8 @@ public delegate string GetFilterTypeDescription(
 **Configuration**
 
 ```csharp
-descriptor.TypeName(
-    (context,types) => context.Naming.GetTypeDescription(entityType, TypeKind.Object); + "Custom");
+descriptor.TypeName((context,types) =>
+    context.Naming.GetTypeDescription(entityType, TypeKind.Object); + "Custom");
 ```
 
 **Result**
@@ -1177,8 +1174,6 @@ descriptor.Reset();
 
 > **⚠ Note:** You will need to add a complete configuration, otherwise the filter will not work as desired!
 
----
-
 ## Describe with convention
 
 With the filter convention descriptor, you have full control over what filters are inferred, their names, operations, and a lot more.
@@ -1193,7 +1188,6 @@ This provides a very clean interface, but can, on the other hand, get messy quic
 You can drill up with `And()`.
 
 ```csharp
-
  descriptor.Operation(FilterOperationKind.Equals).Description("has to be equal");
  descriptor.Operation(FilterOperationKind.NotEquals).Description("has not to be equal");
  descriptor.Type(FilterKind.Comparable).Operation(FilterOperationKind.NotEquals).Description("has to be comparable and not equal")
@@ -1463,4 +1457,3 @@ To configure you have to use the following delegate:
 
 If you just want to build your extension for implicit bindings, you can just out a custom `FilterFieldDefinition`.
 It makes sense to encapsulate that logic in a FilterFieldDescriptor though. This descriptor can the
-
