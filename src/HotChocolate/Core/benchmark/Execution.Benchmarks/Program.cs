@@ -5,6 +5,6 @@ namespace HotChocolate.Execution.Benchmarks
     class Program
     {
         static void Main(string[] args) =>
-            BenchmarkRunner.Run<ResultDataBenchmarks>();
+            BenchmarkRunner.Run<VariableCoercionBenchmarks>();
     }
 }
