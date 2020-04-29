@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.Spatial</PackageId>
+    <AssemblyName>HotChocolate.Types.Spatial</AssemblyName>
+    <RootNamespace>HotChocolate</RootNamespace>
+    <Description>Contains spatial extension to the Hot Chocolate GraphQL type system.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+</Project>
