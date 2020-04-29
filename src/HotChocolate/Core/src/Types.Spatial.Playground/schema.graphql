@@ -3,7 +3,9 @@ schema {
 }
 
 type Query {
-  citites(where: CityFilter): String
+  citites(where: CityFilter): City
+  parcels: [CadastralParcel]
+  person(id: String!): Person
 }
 
 input CityFilter {
@@ -58,6 +60,11 @@ enum Dimension {
   FALSE
   TRUE
   DONTCARE
+}
+
+type City {
+  shape: GeoJSONObject
+  name: String
 }
 
 input GeometryFilter {
@@ -352,4 +359,73 @@ input PointFilter {
   touches_not: GeoJsonFitlerInput
   intersection: UnionInput
   difference: DifferenceInput
+}
+
+interface GeoJSONObject {
+  id: ID!
+  type: GeoJSONType!
+}
+
+enum GeoJSONType {
+  Point
+  MultiPoint
+  LineString
+  MultiLineString
+  Polygon
+  MultiPolygon
+  GeometryCollection
+  Feature
+  FeatureCollection
+}
+
+type Person implements GeoJSONObject {
+  id: ID!
+  type: GeoJSONType!
+  properties: PersonProperties
+}
+
+type PersonProperties {
+  firstName: String
+  lastName: String
+  partOf: [Record]
+}
+
+type Record implements GeoJSONObject {
+  id: ID!
+  type: GeoJSONType!
+  properties: RecordProperties
+}
+
+type RecordProperties {
+  right: RightType
+  relatedTo: [CadastralParcel]!
+}
+
+enum RightType {
+  SomeRight
+  AnotherRight
+  YetAnotherRight
+}
+
+type CadastralParcel implements GeoJSONObject {
+  id: ID!
+  type: GeoJSONType!
+  geometry: GeoJSONMultiSurface
+  properties: CadastralParcelProperties
+}
+
+type GeoJSONMultiSurface {
+  type: GeoJSONType!
+  #coordinates: [[[[Float]]]]
+}
+
+type CadastralParcelProperties {
+  parcelNumber: String
+  area(unit: AreaUnit = m2): Float
+  records: [Record]
+}
+
+enum AreaUnit {
+  m2
+  ft2
 }
