@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace HotChocolate.Validation
 {
@@ -21,7 +20,7 @@ namespace HotChocolate.Validation
             IDocumentValidator queryValidator = CreateValidator();
 
             // act
-            Action a = () => queryValidator.Validate(schema, null);
+            Action a = () => queryValidator.Validate(schema, null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -36,7 +35,7 @@ namespace HotChocolate.Validation
 
             // act
             // act
-            Action a = () => queryValidator.Validate(null,
+            Action a = () => queryValidator.Validate(null!,
                 new DocumentNode(null, new List<IDefinitionNode>()));
 
             // assert
@@ -625,32 +624,44 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void TestMe()
+        public void DuplicatesWillBeIgnoredOnFieldMerging()
         {
-            var schema = SchemaBuilder.New()
-                .AddDocumentFromString(FileResource.Open("Fusion.graphql"))
-                .Use(next => context => Task.CompletedTask)
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
                 .Create();
 
-            var map = JsonConvert.DeserializeObject<Dictionary<string, string>>(
-                FileResource.Open("persisted-queries.json"));
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("InvalidIntrospectionQuery.graphql"));
 
-            var services = new ServiceCollection()
+            var originalOperation = ((OperationDefinitionNode)document.Definitions[0]);
+            OperationDefinitionNode operationWithDuplicates = originalOperation.WithSelectionSet(
+                originalOperation.SelectionSet.WithSelections(
+                    new List<ISelectionNode>
+                    {
+                        originalOperation.SelectionSet.Selections[0],
+                        originalOperation.SelectionSet.Selections[0]
+                    }));
+
+            document = document.WithDefinitions(
+                new List<IDefinitionNode>(document.Definitions.Skip(1))
+                {
+                    operationWithDuplicates
+                });
+
+            ServiceProvider services = new ServiceCollection()
                 .AddValidation()
                 .Services
                 .BuildServiceProvider();
 
-            var validator = services.GetRequiredService<IDocumentValidatorFactory>().CreateValidator();
-            var pool = services.GetRequiredService<DocumentValidatorContextPool>();
+            IDocumentValidatorFactory factory = services.GetRequiredService<IDocumentValidatorFactory>();
+            IDocumentValidator validator = factory.CreateValidator();
 
-            foreach (string query in map.Values)
-            {
-                var result = validator.Validate(schema, Utf8GraphQLParser.Parse(query));
-                Assert.False(result.HasErrors);
-            }
+            // act
+            DocumentValidatorResult result = validator.Validate(schema, document);
 
-            var context = pool.Get();
-
+            // assert
+            Assert.False(result.HasErrors);
         }
 
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);

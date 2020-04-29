@@ -26,6 +26,16 @@ namespace HotChocolate.Validation.Rules
     /// </summary>
     internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     {
+        protected override ISyntaxVisitorAction Enter(
+            OperationDefinitionNode node,
+            IDocumentValidatorContext context)
+        {
+            context.FieldSets.Clear();
+            context.SelectionSets.Clear();
+
+            return base.Enter(node, context);
+        }
+
         protected override ISyntaxVisitorAction Leave(
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
@@ -144,6 +154,27 @@ namespace HotChocolate.Validation.Rules
             return Continue;
         }
 
+        protected override ISyntaxVisitorAction VisitChildren(
+            FragmentSpreadNode node,
+            IDocumentValidatorContext context)
+        {
+            if (context.Fragments.TryGetValue(
+                node.Name.Value,
+                out FragmentDefinitionNode? fragment) &&
+                context.VisitedFragments.Add(fragment.Name.Value))
+            {
+                ISyntaxVisitorAction result = Visit(fragment, node, context);
+                context.VisitedFragments.Remove(fragment.Name.Value);
+
+                if (result.IsBreak())
+                {
+                    return Break;
+                }
+            }
+
+            return DefaultAction;
+        }
+
         private static bool HasFields(SelectionSetNode selectionSet)
         {
             for (int i = 0; i < selectionSet.Selections.Count; i++)
@@ -171,9 +202,7 @@ namespace HotChocolate.Validation.Rules
         {
             if (fields.Count == 1)
             {
-                FieldInfo field = fields[0];
-
-                if (field.Field.SelectionSet is { } selectionSet &&
+                if (fields[0].Field.SelectionSet is { } selectionSet &&
                     context.FieldSets.TryGetValue(selectionSet, out IList<FieldInfo>? fieldSet))
                 {
                     TryMergeFieldsInSet(context, fieldSet);
@@ -187,15 +216,18 @@ namespace HotChocolate.Validation.Rules
                     for (int j = i + 1; j < fields.Count; j++)
                     {
                         FieldInfo fieldB = fields[j];
-                        if (fieldA.ResponseName.Equals(
-                            fieldB.ResponseName,
-                            StringComparison.Ordinal))
+                        if (!object.ReferenceEquals(fieldA.Field, fieldB.Field) &&
+                            string.Equals(
+                                fieldA.ResponseName, 
+                                fieldB.ResponseName, 
+                                StringComparison.Ordinal))
                         {
                             if (SameResponseShape(fieldA.Type, fieldB.Type))
                             {
                                 if (IsParentTypeAligned(fieldA, fieldB))
                                 {
-                                    if (AreArgumentsIdentical(fieldA.Field, fieldB.Field))
+                                    if (fieldA.Field.Name.Equals(fieldB.Field.Name) &&
+                                        AreArgumentsIdentical(fieldA.Field, fieldB.Field))
                                     {
                                         TryMergeFieldsInSet(context, fieldA, fieldB);
                                     }
