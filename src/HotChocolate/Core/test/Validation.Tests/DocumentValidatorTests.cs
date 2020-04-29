@@ -7,6 +7,7 @@ using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace HotChocolate.Validation
 {
@@ -626,243 +627,30 @@ namespace HotChocolate.Validation
         [Fact]
         public void TestMe()
         {
-            ExpectValid(
-                SchemaBuilder.New()
-                    .AddDocumentFromString(FileResource.Open("Fusion.graphql"))
-                    .Use(next => context => Task.CompletedTask)
-                    .Create(),
-                null,
-                @"
-                query evContractsPageQuery($contractId: ID!) {
-  me {
-    threeA: contracts(tag: [THREEA]) {
-      __typename
-      ...taDepositCard_data
-      id
-    }
-    contract(id: $contractId) {
-      __typename
-      ...evContractsHeader_data
-      ...evContractsSummaryCard_data
-      ...evContractsSurrenderValueCard_data
-      ...evContractsBenefitsUponSurvivalCard_data
-      ...evContractsPremiumOverviewCard_data
-      ...evCurrentPremiumInvoicesCard_data
-      ... on EvContract {
-        contractId
-        isThreeA
-        benefitUponSurvival {
-          estimatedTotal
-        }
-        envelopes(first: 3, order_by: { envelopeDate: DESC }) {
-          ...envelopesCard_data
-        }
-        premiumInvoiceProcessing
-        advisor {
-          __typename
-          ...advisorBanner_data
-          id
-        }
-      }
-      id
-    }
-    id
-  }
-}
-fragment advisorBanner_data on Advisor {
-  __typename
-  id
-  phoneNumber
-  email
-  pictureUrl
-  ... on BrokerCompany {
-    companyName
-  }
-  ... on GeneralAgency {
-    url
-    agencyName
-  }
-  ... on SwissLifeAdvisor {
-    firstName
-    lastName
-    jobDescription
-  }
-  ... on SwissLifeGeneralInfo {
-    name
-    phoneNumbers {
-      phoneNumber
-      label
-    }
-  }
-}
-fragment envelopesCard_data on CustomerEnvelopeConnection {
-  edges {
-    node {
-      id
-      contractNumber
-      envelopeId
-      envelopeDate
-      envelopeTitle
-      documents {
-        __typename
-        id
-        contractNumber
-        documentId
-        documentType
-        documentCategory
-        documentDate
-        isTaxRelevant
-      }
-    }
-  }
-}
-fragment evContractsBenefitsUponSurvivalCard_data on EvContract {
-  benefitUponSurvival {
-    dueDate
-    estimatedTotal
-    estimatedBonus
-    estimatedFundAssets
-    guaranteed
-    fundPerformanceUsedForEstimation
-  }
-  surrenderValue {
-    existingLoan
-  }
-  currency
-}
-fragment evContractsHeader_data on EvContract {
-  number
-  productName
-}
-fragment evContractsOrderDocumentDialog_data on EvContract {
-  insuranceType
-  id
-  surrenderValueDocumentPartnerId
-  ...evContractsOrderDocumentStepOrder_data
-}
-fragment evContractsOrderDocumentStepOrder_data on EvContract {
-  currency
-  insuranceType
-  surrenderValue {
-    net
-    validityDate
-  }
-}
-fragment evContractsPremiumOverviewCard_data on EvContract {
-  ...evPremiumPaymentInfo_data
-  premium {
-    proRata
-    single
-  }
-  accountId
-  hasAccount
-  id
-}
-fragment evContractsSummaryCard_data on EvContract {
-  id
-  begin
-  pillar_translate: pillar @translate
-  insuranceTypeName
-  retirementStart
-  customers {
-    partnerId
-    firstName
-    lastName
-    gender
-    id
-  }
-  contractEndDate
-}
-fragment evContractsSurrenderValueCard_data on EvContract {
-  id
-  currency
-  insuranceType
-  hasMonetaryAsset
-  surrenderValue {
-    net
-    existingLoan
-    validityDate
-  }
-  ...evContractsOrderDocumentDialog_data
-}
-fragment evCurrentPremiumInvoicesCard_data on EvContract {
-  id
-  premiuminvoices(first: 3, order_by: { dueDate: DESC }) {
-    edges {
-      node {
-        id
-        balance
-        bill
-        contractId
-        currency
-        documentNumber
-        dueDate
-        invoiceNumber
-        invoicePeriodEndDate
-        invoicePeriodStartDate
-        premium
-        status
-        statusName
-        settlementBlock
-        envelopes {
-          edges {
-            node {
-              id
-              contractNumber
-              envelopeId
-              envelopeDate
-              envelopeTitle
-              documents {
-                __typename
-                id
-                contractNumber
-                documentId
-                documentType
-                documentDate
-                documentCategory
-                isTaxRelevant
-              }
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(FileResource.Open("Fusion.graphql"))
+                .Use(next => context => Task.CompletedTask)
+                .Create();
+
+            var map = JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                FileResource.Open("persisted-queries.json"));
+
+            var services = new ServiceCollection()
+                .AddValidation()
+                .Services
+                .BuildServiceProvider();
+
+            var validator = services.GetRequiredService<IDocumentValidatorFactory>().CreateValidator();
+            var pool = services.GetRequiredService<DocumentValidatorContextPool>();
+
+            foreach (string query in map.Values)
+            {
+                var result = validator.Validate(schema, Utf8GraphQLParser.Parse(query));
+                Assert.False(result.HasErrors);
             }
-          }
-        }
-      }
-    }
-  }
-}
-fragment evPremiumPaymentInfo_data on EvContract {
-  currency
-  premium {
-    paidCalculationDate
-    annual
-    paymentFrequency
-    periodicityName
-    proRata
-    single
-  }
-}
-fragment taDepositBusiness on Contract {
-  productName
-  active
-  ... on ThreeA {
-    maximumAmount
-    annualPremium
-    currency
-  }
-}
-fragment taDepositCard_data on Contract {
-  number
-  category
-  productName
-  active
-  ... on ThreeA {
-    maximumAmount
-    annualPremium
-    currency
-    bvgMismatch
-  }
-  ...taDepositBusiness
-}
-                ");
+
+            var context = pool.Get();
+
         }
 
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
