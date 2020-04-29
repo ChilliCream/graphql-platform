@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
 
         public IDirective Directive { get; }
 
-        public object Result
+        public object? Result
         {
             get => _middlewareContext.Result;
             set => _middlewareContext.Result = value;
@@ -52,7 +52,7 @@ namespace HotChocolate.Execution
         public FieldNode FieldSelection =>
             _middlewareContext.FieldSelection;
 
-        public IImmutableStack<object> Source =>
+        public IImmutableStack<object?> Source =>
             _middlewareContext.Source;
 
         public Path Path =>
@@ -64,10 +64,10 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted =>
             _middlewareContext.RequestAborted;
 
-        public IDictionary<string, object> ContextData =>
+        public IDictionary<string, object?> ContextData =>
             _middlewareContext.ContextData;
 
-        public IImmutableDictionary<string, object> ScopedContextData
+        public IImmutableDictionary<string, object?> ScopedContextData
         {
             get => _middlewareContext.ScopedContextData;
             set => _middlewareContext.ScopedContextData = value;
@@ -79,7 +79,7 @@ namespace HotChocolate.Execution
         public IVariableValueCollection Variables =>
             _middlewareContext.Variables;
 
-        public IImmutableDictionary<string, object> LocalContextData
+        public IImmutableDictionary<string, object?> LocalContextData
         {
             get => _middlewareContext.LocalContextData;
             set => _middlewareContext.LocalContextData = value;
