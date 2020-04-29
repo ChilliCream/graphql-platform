@@ -46,12 +46,20 @@ export const ArticleContent = styled.div`
     transform: translateX(0px);
   }
 
+  > blockquote {
+    padding: 30px 20px;
+  }
+
   > table {
-    margin-right: 20px;
-    margin-left: 20px;
-    padding-right: 0;
-    padding-left: 0;
-    width: calc(100% - 40px);
+    th:first-child,
+    td:first-child {
+      padding-left: 20px;
+    }
+
+    th:last-child,
+    td:last-child {
+      padding-right: 20px;
+    }
   }
 
   > .gatsby-highlight {
@@ -78,12 +86,20 @@ export const ArticleContent = styled.div`
       transform: translateX(30px);
     }
 
+    > blockquote {
+      padding: 30px 50px;
+    }
+
     > table {
-      margin-right: 50px;
-      margin-left: 50px;
-      padding-right: 0;
-      padding-left: 0;
-      width: calc(100% - 100px);
+      th:first-child,
+      td:first-child {
+        padding-left: 50px;
+      }
+
+      th:last-child,
+      td:last-child {
+        padding-right: 50px;
+      }
     }
 
     > .gatsby-highlight {
