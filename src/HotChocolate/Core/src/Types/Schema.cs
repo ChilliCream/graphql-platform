@@ -117,7 +117,7 @@ namespace HotChocolate
         /// Returns a collection with all possible object types
         /// for the given abstract type.
         /// </returns>
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType)
+        public IReadOnlyList<ObjectType> GetPossibleTypes(INamedType abstractType)
         {
             if (abstractType == null)
             {

@@ -36,6 +36,9 @@ namespace HotChocolate.Resolvers
         /// </summary>
         IReadOnlyList<FieldNode> Selections { get; }
 
+        /// <summary>
+        /// Gets the merged field selections.
+        /// </summary>
         [Obsolete("Use Selections.")]
         IReadOnlyList<FieldNode> Nodes { get; }
     }

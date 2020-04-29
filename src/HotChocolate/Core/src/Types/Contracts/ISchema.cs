@@ -94,7 +94,7 @@ namespace HotChocolate
         /// Returns a collection with all possible object types
         /// for the given abstract type.
         /// </returns>
-        IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType);
+        IReadOnlyList<ObjectType> GetPossibleTypes(INamedType abstractType);
 
         /// <summary>
         /// Gets a directive type by its name.

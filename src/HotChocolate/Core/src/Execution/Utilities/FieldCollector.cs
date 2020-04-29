@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -25,11 +22,59 @@ namespace HotChocolate.Execution.Utilities
             _fragments = fragments;
         }
 
-        public IReadOnlyList<IPreparedSelection> CollectFields(ObjectType type, SelectionSetNode selectionSet)
+        public IReadOnlyList<PreparedSelectionSet> CreateSelectionSets(
+            OperationDefinitionNode operation)
         {
+            var selectionSets = new List<PreparedSelectionSet>();
             var fields = new OrderedDictionary<string, PreparedSelection>();
-            CollectFields(type, selectionSet, null, fields);
-            return fields.Values.ToList();
+
+            SelectionSetNode selectionSet = operation.SelectionSet;
+            ObjectType typeContext = _schema.GetOperationType(operation.Operation);
+
+            Visit(selectionSet, typeContext, selectionSets, fields);
+            fields.Clear();
+
+            return selectionSets;
+        }
+
+        private void Visit(
+            SelectionSetNode selectionSet,
+            ObjectType typeContext,
+            ICollection<PreparedSelectionSet> selectionSets,
+            IDictionary<string, PreparedSelection> fields)
+        {
+            fields.Clear();
+            CollectFields(typeContext, selectionSet, null, fields);
+            var selections = new List<PreparedSelection>();
+            selectionSets.Add(new PreparedSelectionSet(selectionSet, typeContext, selections));
+
+            foreach (PreparedSelection selection in fields.Values)
+            {
+                // complete selection
+                selection.MakeReadOnly();
+                selections.Add(selection);
+
+                // traverse child selections
+                INamedType fieldType = selection.Field.Type.NamedType();
+                if (fieldType.IsCompositeType())
+                {
+                    if (selection.SelectionSet is null)
+                    {
+                        // todo: throw helper
+                        throw new GraphQLException(
+                            ErrorBuilder.New()
+                                .SetMessage("A composite type allways needs to specify a selection set.")
+                                .AddLocation(selection.Selection)
+                                .Build());
+                    }
+
+                    IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
+                    for (int i = 0; i < possibleTypes.Count; i++)
+                    {
+                        Visit(selection.SelectionSet, possibleTypes[i], selectionSets, fields);
+                    }
+                }
+            }
         }
 
         private void CollectFields(
@@ -99,7 +144,7 @@ namespace HotChocolate.Execution.Utilities
             {
                 if (fields.TryGetValue(responseName, out PreparedSelection? preparedSelection))
                 {
-                    preparedSelection.Selections.Add(selection);
+                    preparedSelection.AddSelection(selection);
 
                     if (visibility is { })
                     {

@@ -30,23 +30,6 @@ namespace HotChocolate
             return builder.Build(schema);
         }
 
-        public static ObjectType GetOperationType(
-            this ISchema schema,
-            OperationType operation)
-        {
-            switch (operation)
-            {
-                case Language.OperationType.Query:
-                    return schema.QueryType;
-                case Language.OperationType.Mutation:
-                    return schema.MutationType;
-                case Language.OperationType.Subscription:
-                    return schema.SubscriptionType;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         public static bool IsRootType(this ISchema schema, IType type)
         {
             if (type.IsObjectType())
