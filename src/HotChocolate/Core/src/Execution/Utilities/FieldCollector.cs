@@ -16,22 +16,25 @@ namespace HotChocolate.Execution.Utilities
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
 
-        public FieldCollector(ISchema schema, FragmentCollection fragments)
+        private FieldCollector(ISchema schema, FragmentCollection fragments)
         {
             _schema = schema;
             _fragments = fragments;
         }
 
-        public IReadOnlyList<PreparedSelectionSet> CreateSelectionSets(
+        public static IReadOnlyList<PreparedSelectionSet> PrepareSelectionSets(
+            ISchema schema, 
+            FragmentCollection fragments,
             OperationDefinitionNode operation)
         {
             var selectionSets = new List<PreparedSelectionSet>();
             var fields = new OrderedDictionary<string, PreparedSelection>();
 
             SelectionSetNode selectionSet = operation.SelectionSet;
-            ObjectType typeContext = _schema.GetOperationType(operation.Operation);
+            ObjectType typeContext = schema.GetOperationType(operation.Operation);
 
-            Visit(selectionSet, typeContext, selectionSets, fields);
+            var collector = new FieldCollector(schema, fragments);
+            collector.Visit(selectionSet, typeContext, selectionSets, fields);
             fields.Clear();
 
             return selectionSets;
