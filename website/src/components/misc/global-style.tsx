@@ -203,6 +203,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   .gatsby-highlight {
+    position: relative;
     margin: 1.188em 0;
     overflow: auto;
     font-size: 0.833em !important;
@@ -210,6 +211,36 @@ export const GlobalStyle = createGlobalStyle`
     * {
       font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
       line-height: 1.5em !important;
+    }
+
+    pre[class*="language-"] {
+      margin: 0;
+
+      ::before {
+        position: absolute;
+        top: 0;
+        right: 50px;
+        left: initial;
+        border-radius: 0px 0px 4px 4px;
+        padding: 6px 8px;
+        font-size: 0.833em;
+        font-weight: bold;
+        letter-spacing: 0.075em;
+        line-height: 1em;
+        text-transform: uppercase;
+      }
+    }
+
+    pre[class="language-csharp"]::before {
+      content: "C#";
+      color: #4f3903;
+      background: #ffb806;
+    }
+
+    pre[class="language-graphql"]::before {
+      content: "GraphQL";
+      color: #ffffff;
+      background: #e535ab;
     }
   }
 
