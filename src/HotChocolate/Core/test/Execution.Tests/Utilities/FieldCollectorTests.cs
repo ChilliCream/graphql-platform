@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution.Utilities
@@ -40,7 +41,7 @@ namespace HotChocolate.Execution.Utilities
                     Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
                     Assert.Collection(
                         selectionSet.GetSelections(schema.QueryType),
-                        selection => Assert.Equal("foo",  selection.ResponseName));
+                        selection => Assert.Equal("foo", selection.ResponseName));
                 });
         }
 
@@ -75,7 +76,7 @@ namespace HotChocolate.Execution.Utilities
                     Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
                     Assert.Collection(
                         selectionSet.GetSelections(schema.QueryType),
-                        selection => Assert.Equal("foo",  selection.ResponseName));
+                        selection => Assert.Equal("foo", selection.ResponseName));
                 });
         }
 
@@ -122,6 +123,59 @@ namespace HotChocolate.Execution.Utilities
                 selectionSets[hero.SelectionSet].GetSelections(schema.GetType<ObjectType>("Human")),
                 selection => Assert.Equal("name", selection.ResponseName),
                 selection => Assert.Equal("homePlanet", selection.ResponseName));
+
+            var op = new PreparedOperation(
+                "abc",
+                document,
+                operation,
+                schema.QueryType,
+                selectionSets);
+            op.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Prepare_Fragment_Definition()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+            @"{
+                hero(episode: EMPIRE) {
+                    name
+                    ... abc
+                    ... def
+                }
+              }
+             
+              fragment abc on Droid {
+                  primaryFunction
+              }
+
+              fragment def on Human {
+                  homePlanet
+              } 
+             ");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                FieldCollector.PrepareSelectionSets(schema, fragments, operation);
+
+            // assert
+            var op = new PreparedOperation(
+                "abc",
+                document,
+                operation,
+                schema.QueryType,
+                selectionSets);
+            op.Print().MatchSnapshot();
         }
     }
 }

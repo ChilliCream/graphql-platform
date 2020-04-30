@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class PreparedSelectionSet
+    internal sealed class PreparedSelectionSet : IPreparedSelectionSet
     {
         private static IReadOnlyList<IPreparedSelection> _empty = new IPreparedSelection[0];
         private ObjectType? _firstType;
@@ -19,6 +19,26 @@ namespace HotChocolate.Execution.Utilities
         }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public IEnumerable<ObjectType> GetPossibleTypes()
+        {
+            if (_map is { })
+            {
+                foreach (ObjectType possibleType in _map.Keys)
+                {
+                    yield return possibleType;
+                }
+            }
+            else
+            {
+                yield return _firstType!;
+
+                if (_secondType is { })
+                {
+                    yield return _secondType;
+                }
+            }
+        }
 
         public IReadOnlyList<IPreparedSelection> GetSelections(ObjectType typeContext)
         {

@@ -127,7 +127,7 @@ namespace HotChocolate.Execution.Utilities
                         fields);
                     break;
 
-                case NodeKind.FragmentDefinition:
+                case NodeKind.FragmentSpread:
                     ResolveFragmentSpread(
                         type,
                         (FragmentSpreadNode)selection,
