@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
 
@@ -22,24 +23,23 @@ namespace HotChocolate.Execution.Utilities
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
 
-            OperationDefinitionNode operation = 
+            OperationDefinitionNode operation =
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
 
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyList<PreparedSelectionSet> selectionSets = 
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
                 FieldCollector.PrepareSelectionSets(schema, fragments, operation);
 
             // assert
             Assert.Collection(
-                selectionSets,
-                selectionSet => 
+                selectionSets.Values,
+                selectionSet =>
                 {
-                    Assert.Equal(schema.QueryType, selectionSet.TypeContext);
                     Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
                     Assert.Collection(
-                        selectionSet.Selections,
+                        selectionSet.GetSelections(schema.QueryType),
                         selection => Assert.Equal("foo",  selection.ResponseName));
                 });
         }
@@ -58,26 +58,70 @@ namespace HotChocolate.Execution.Utilities
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo foo }");
 
-            OperationDefinitionNode operation = 
+            OperationDefinitionNode operation =
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
 
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyList<PreparedSelectionSet> selectionSets = 
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
                 FieldCollector.PrepareSelectionSets(schema, fragments, operation);
 
             // assert
             Assert.Collection(
-                selectionSets,
-                selectionSet => 
+                selectionSets.Values,
+                selectionSet =>
                 {
-                    Assert.Equal(schema.QueryType, selectionSet.TypeContext);
                     Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
                     Assert.Collection(
-                        selectionSet.Selections,
+                        selectionSet.GetSelections(schema.QueryType),
                         selection => Assert.Equal("foo",  selection.ResponseName));
                 });
+        }
+
+        [Fact]
+        public void Prepare_Inline_Fragment()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+            @"{
+                hero(episode: EMPIRE) {
+                    name
+                    ... on Droid {
+                        primaryFunction
+                    }
+                    ... on Human {
+                        homePlanet
+                    }
+                }
+             }");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                FieldCollector.PrepareSelectionSets(schema, fragments, operation);
+
+            // assert
+            IPreparedSelection hero = selectionSets[operation.SelectionSet].GetSelections(schema.QueryType).Single();
+            Assert.Equal("hero", hero.ResponseName);
+
+            Assert.Collection(
+                selectionSets[hero.SelectionSet].GetSelections(schema.GetType<ObjectType>("Droid")),
+                selection => Assert.Equal("name", selection.ResponseName),
+                selection => Assert.Equal("primaryFunction", selection.ResponseName));
+
+            Assert.Collection(
+                selectionSets[hero.SelectionSet].GetSelections(schema.GetType<ObjectType>("Human")),
+                selection => Assert.Equal("name", selection.ResponseName),
+                selection => Assert.Equal("homePlanet", selection.ResponseName));
         }
     }
 }

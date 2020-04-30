@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using PSS = HotChocolate.Execution.Utilities.PreparedSelectionSet;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -22,34 +24,34 @@ namespace HotChocolate.Execution.Utilities
             _fragments = fragments;
         }
 
-        public static IReadOnlyList<PreparedSelectionSet> PrepareSelectionSets(
-            ISchema schema, 
+        public static IReadOnlyDictionary<SelectionSetNode, PSS> PrepareSelectionSets(
+            ISchema schema,
             FragmentCollection fragments,
             OperationDefinitionNode operation)
         {
-            var selectionSets = new List<PreparedSelectionSet>();
-            var fields = new OrderedDictionary<string, PreparedSelection>();
+            var selectionSets = new Dictionary<SelectionSetNode, PSS>();
+            Action<PSS> register = s => selectionSets[s.SelectionSet] = s;
 
             SelectionSetNode selectionSet = operation.SelectionSet;
             ObjectType typeContext = schema.GetOperationType(operation.Operation);
+            var root = new PSS(operation.SelectionSet);
+            register(root);
 
             var collector = new FieldCollector(schema, fragments);
-            collector.Visit(selectionSet, typeContext, selectionSets, fields);
-            fields.Clear();
-
+            collector.Visit(selectionSet, typeContext, root, register);
             return selectionSets;
         }
 
         private void Visit(
             SelectionSetNode selectionSet,
             ObjectType typeContext,
-            ICollection<PreparedSelectionSet> selectionSets,
-            IDictionary<string, PreparedSelection> fields)
+            PSS current,
+            Action<PSS> register)
         {
-            fields.Clear();
+            var fields = new OrderedDictionary<string, PreparedSelection>();
             CollectFields(typeContext, selectionSet, null, fields);
             var selections = new List<PreparedSelection>();
-            selectionSets.Add(new PreparedSelectionSet(selectionSet, typeContext, selections));
+            current.AddSelections(typeContext, selections);
 
             foreach (PreparedSelection selection in fields.Values)
             {
@@ -71,10 +73,13 @@ namespace HotChocolate.Execution.Utilities
                                 .Build());
                     }
 
+                    var next = new PSS(selection.SelectionSet);
+                    register(next);
+
                     IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
                     for (int i = 0; i < possibleTypes.Count; i++)
                     {
-                        Visit(selection.SelectionSet, possibleTypes[i], selectionSets, fields);
+                        Visit(selection.SelectionSet, possibleTypes[i], next, register);
                     }
                 }
             }

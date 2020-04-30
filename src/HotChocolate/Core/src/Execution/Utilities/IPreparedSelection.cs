@@ -15,6 +15,8 @@ namespace HotChocolate.Execution.Utilities
 
         IReadOnlyList<FieldNode> Selections { get; }
 
+        SelectionSetNode? SelectionSet { get; }
+
         int ResponseIndex { get; }
 
         string ResponseName { get; }

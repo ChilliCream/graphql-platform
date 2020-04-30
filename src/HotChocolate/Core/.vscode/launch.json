@@ -9,9 +9,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/benchmark/Validation.Benchmarks/bin/Debug/netcoreapp3.1/HotChocolate.Validation.Benchmarks.dll",
+            "program": "${workspaceFolder}/benchmark/Execution.Benchmarks/bin/Debug/netcoreapp3.1/HotChocolate.Execution.Benchmarks.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/benchmark/Validation.Benchmarks",
+            "cwd": "${workspaceFolder}/benchmark/Execution.Benchmarks",
             "console": "internalConsole",
             "stopAtEntry": false
         },

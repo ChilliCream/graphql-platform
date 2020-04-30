@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using PSS = HotChocolate.Execution.Utilities.PreparedSelectionSet;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -37,6 +38,37 @@ namespace HotChocolate.Execution.Utilities
         /// </summary>
         OperationType Type { get; }
 
-        IReadOnlyList<IPreparedSelection> GetFields(ObjectType type, SelectionSetNode selectionSet);
+        IReadOnlyList<IPreparedSelection> GetSelections(
+            SelectionSetNode selectionSet,
+            ObjectType typeContext);
+    }
+
+    internal sealed class PreparedOperation : IPreparedOperation
+    {
+        private static IReadOnlyList<IPreparedSelection> _empty = new IPreparedSelection[0];
+        private readonly IReadOnlyDictionary<SelectionSetNode, PSS> _selectionSets;
+
+        public string Id { get; }
+
+        public string? Name { get; }
+
+        public DocumentNode Document { get; }
+
+        public OperationDefinitionNode Definition { get; }
+
+        public ObjectType RootType { get; }
+
+        public OperationType Type { get; }
+
+        public IReadOnlyList<IPreparedSelection> GetSelections(
+            SelectionSetNode selectionSet,
+            ObjectType typeContext)
+        {
+            if (_selectionSets.TryGetValue(selectionSet, out PSS? preparedSelectionSet))
+            {
+                return preparedSelectionSet.GetSelections(typeContext);
+            }
+            return _empty;
+        }
     }
 }
