@@ -4,4 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Voyager\HotChocolate.AspNetCore.Voyager.csproj" />
+    <ProjectReference Include="..\..\src\Types.Spatial\Types.Spatial.csproj" />
+  </ItemGroup>
+
 </Project>

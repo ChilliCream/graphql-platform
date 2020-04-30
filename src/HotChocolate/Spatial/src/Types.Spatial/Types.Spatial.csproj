@@ -4,4 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
 </Project>
