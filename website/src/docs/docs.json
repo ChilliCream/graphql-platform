@@ -17,12 +17,12 @@
         "title": "API Reference",
         "items": [
           {
-            "path": "filtering",
-            "title": "Filtering"
+            "path": "index",
+            "title": "API Reference"
           },
           {
-            "path": "index",
-            "title": "Whatever"
+            "path": "filtering",
+            "title": "Filtering"
           }
         ]
       }
