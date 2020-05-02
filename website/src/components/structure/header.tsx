@@ -8,7 +8,7 @@ import { Search } from "../misc/search";
 
 import BarsIconSvg from "../../images/bars.svg";
 import GithubIconSvg from "../../images/github.svg";
-import LogoIconSvg from "../../images/chillicream.svg";
+import LogoIconSvg from "../../images/chillicream-winking.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
