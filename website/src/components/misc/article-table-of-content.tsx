@@ -1,0 +1,126 @@
+import { graphql } from "gatsby";
+import React, { FunctionComponent, useEffect } from "react";
+import styled from "styled-components";
+import { ArticleTableOfContentFragment } from "../../../graphql-types";
+
+interface ArticleTableOfContentProperties {
+  data: ArticleTableOfContentFragment;
+}
+
+export const ArticleTableOfContent: FunctionComponent<ArticleTableOfContentProperties> = ({
+  data,
+}) => {
+  useEffect(() => {
+    const ids = data
+      .tableOfContents!.split(/"|\//)
+      .filter((item) => item.indexOf("#") === 0)
+      .map((item) => {
+        const id = item.substring(1);
+
+        return {
+          id: `toc-${id}`,
+          position: document.getElementById(id)!.offsetTop - 60,
+        };
+      })
+      .reverse();
+    let currentActiveId: string | undefined;
+
+    const handler = () => {
+      const currentScrollPosition =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      let newActiveId: string | undefined;
+
+      for (let i = 0; i < ids.length; i++) {
+        if (currentScrollPosition >= ids[i].position) {
+          newActiveId = ids[i].id;
+          break;
+        }
+      }
+
+      if (currentActiveId !== newActiveId) {
+        if (currentActiveId) {
+          document.getElementById(currentActiveId)!.parentElement!.className =
+            "";
+        }
+
+        currentActiveId = newActiveId;
+
+        if (currentActiveId) {
+          document.getElementById(currentActiveId)!.parentElement!.className =
+            "active";
+        }
+      }
+    };
+
+    if (ids.length > 0) {
+      document.addEventListener("scroll", handler);
+    }
+
+    return () => {
+      if (ids.length > 0) {
+        document.removeEventListener("scroll", handler);
+      }
+    };
+  }, [data]);
+
+  return data.tableOfContents!.length > 0 ? (
+    <Container>
+      <Title>Table of Contents</Title>
+      <Content
+        dangerouslySetInnerHTML={{
+          __html: data.tableOfContents!.replace(
+            /href=\"(.*?#)(.*?)\"/gi,
+            'id="toc-$2" href="/docs$1$2"'
+          ),
+        }}
+      />
+    </Container>
+  ) : (
+    <></>
+  );
+};
+
+export const ArticleTableOfContentGraphQLFragment = graphql`
+  fragment ArticleTableOfContent on MarkdownRemark {
+    tableOfContents(maxDepth: 1)
+  }
+`;
+
+const Container = styled.section`
+  margin-bottom: 20px;
+`;
+
+const Title = styled.h6`
+  padding: 0 20px 5px;
+  font-size: 0.833em;
+`;
+
+const Content = styled.div`
+  > ul {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0 20px;
+    list-style-type: none;
+
+    > li {
+      flex: 0 0 auto;
+      margin: 5px 0;
+      padding: 0;
+      line-height: initial;
+
+      &.active > a {
+        font-weight: bold;
+      }
+
+      > a {
+        font-size: 0.833em;
+        color: #666;
+
+        :hover {
+          color: #000;
+        }
+      }
+    }
+  }
+`;

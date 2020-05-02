@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public static class ClassMiddlewareFactory
+    internal static class ClassMiddlewareFactory
     {
         internal static QueryMiddleware Create<TMiddleware>()
             where TMiddleware : class
@@ -11,12 +11,9 @@ namespace HotChocolate.Execution
             return next =>
             {
                 MiddlewareFactory<TMiddleware, QueryDelegate> factory =
-                    MiddlewareActivator
-                        .CompileFactory<TMiddleware, QueryDelegate>();
+                    MiddlewareActivator.CompileFactory<TMiddleware, QueryDelegate>();
 
-                return CreateDelegate(
-                    (s, n) => factory(s, n),
-                    next);
+                return CreateDelegate((s, n) => factory(s, n), next);
             };
         }
 
@@ -36,8 +33,7 @@ namespace HotChocolate.Execution
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IQueryContext> compiled =
-                MiddlewareActivator
-                    .CompileMiddleware<TMiddleware, IQueryContext>();
+                MiddlewareActivator.CompileMiddleware<TMiddleware, IQueryContext>();
 
             return context =>
             {

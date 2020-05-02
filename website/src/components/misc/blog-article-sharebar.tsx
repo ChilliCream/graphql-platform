@@ -17,7 +17,7 @@ export const BlogArticleSharebar: FunctionComponent<BlogArticleSharebarPropertie
   tags,
 }) => {
   const { frontmatter } = markdownRemark!;
-  const articelUrl = site!.siteMetadata!.baseUrl! + frontmatter!.path!;
+  const articelUrl = site!.siteMetadata!.siteUrl! + frontmatter!.path!;
   const title = frontmatter!.title!;
 
   return (
@@ -49,7 +49,7 @@ export const BlogArticleSharebarGraphQLFragment = graphql`
     site {
       siteMetadata {
         author
-        baseUrl
+        siteUrl
       }
     }
   }

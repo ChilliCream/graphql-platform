@@ -74,27 +74,27 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   h1 {
-    font-size: 2em;
+    font-size: 1.750em;
   }
 
   h2 {
-    font-size: 1.667em;
+    font-size: 1.625em;
   }
 
   h3 {
-    font-size: 1.667em;
-  }
-
-  h4 {
     font-size: 1.5em;
   }
 
-  h5 {
+  h4 {
     font-size: 1.375em;
   }
 
-  h6 {
+  h5 {
     font-size: 1.25em;
+  }
+
+  h6 {
+    font-size: 1.125em;
   }
 
   hr {
@@ -112,22 +112,32 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: bold;
   }
 
+  blockquote {
+    margin-bottom: 1.188em;
+    background-color: #e7e9eb;
+
+    > p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
   ul {
     margin: 0 0 1.188em 1.188em;
-    list-style-position: inside;
+    list-style-position: outside;
     list-style-image: none;
     list-style-type: disc;
   }
 
   ol {
     margin: 0 0 1.188em 1.188em;
-    list-style-position: inside;
+    list-style-position: outside;
     list-style-image: none;
     list-style-type: decimal;
   }
 
   li {
     margin-bottom: calc(1.188em / 2);
+    line-height: 1.667em;
   }
 
   li > ol {
@@ -156,15 +166,29 @@ export const GlobalStyle = createGlobalStyle`
     text-align: left;
   }
 
+  tbody {
+    > tr:nth-child(odd) {
+      background-color: #f6f8fa;
+    }
+
+    > tr:hover {
+      background-color: #e7e9eb;
+    }
+  }
+
   td,
   th {
     border-bottom: 1px solid #aaa;
-    padding: 0.625em 1em;
+    padding: 5px 10px;
     font-feature-settings: "tnum";
+    font-size: 0.875em;
+    line-height: 1.667em;
     text-align: left;
   }
 
   th {
+    border-top: 1px solid #aaa;
+    border-bottom: 2px solid #aaa;
     font-weight: bold;
   }
 
@@ -187,6 +211,13 @@ export const GlobalStyle = createGlobalStyle`
       font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
       line-height: 1.5em !important;
     }
+  }
+
+  .gatsby-highlight-code-line {
+    background-color: #444;
+    display: block;
+    margin: 0 -50px;
+    padding: 0 50px;
   }
 
   .mermaid {

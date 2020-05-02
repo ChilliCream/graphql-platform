@@ -13,6 +13,7 @@ import { State } from "../../state";
 import { toggleNavigationGroup } from "../../state/common";
 import { IconContainer } from "./icon-container";
 import { Link } from "./link";
+import { useStickyElement } from "./useStickyElement";
 
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
@@ -20,13 +21,19 @@ import ProductSwitcherIconSvg from "../../images/th-large.svg";
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
+  selectedPath: string;
   selectedProduct: string;
 }
 
 export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> = ({
   data,
+  selectedPath,
   selectedProduct,
 }) => {
+  const { containerRef, elementRef } = useStickyElement<
+    HTMLElement,
+    HTMLDivElement
+  >();
   const expandedPaths = useSelector<State, string[]>(
     (state) => state.common.expandedPaths
   );
@@ -63,7 +70,12 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
           !subItems && path === "index" ? basePath : basePath + "/" + path;
 
         return (
-          <NavigationItem key={itemPath}>
+          <NavigationItem
+            key={itemPath + (subItems ? "/parent" : "")}
+            className={
+              !subItems && isActive(selectedPath, itemPath) ? "active" : ""
+            }
+          >
             {subItems ? (
               <NavigationGroup
                 expanded={expandedPaths.indexOf(itemPath) !== -1}
@@ -99,8 +111,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   }, [handleCloseClick]);
 
   return (
-    <Navigation>
-      <FixedContainer>
+    <Navigation ref={containerRef}>
+      <FixedContainer ref={elementRef}>
         <ProductSwitcher>
           <ProductSwitcherButton
             onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
@@ -157,6 +169,10 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   );
 };
 
+function isActive(selectedPath: string, itemPath: string) {
+  return itemPath === selectedPath.substring(0, selectedPath.lastIndexOf("/"));
+}
+
 export const DocPageNavigationGraphQLFragment = graphql`
   fragment DocPageNavigation on Query {
     config: file(
@@ -187,9 +203,11 @@ interface Item {
 }
 
 const Navigation = styled.nav`
+  position: relative;
   display: none;
   flex: 0 0 250px;
   flex-direction: column;
+  z-index: 1;
 
   * {
     user-select: none;
@@ -202,8 +220,9 @@ const Navigation = styled.nav`
 
 const FixedContainer = styled.div`
   position: fixed;
-  padding: 25px 0 250px;
+  padding: 25px 0 25px;
   width: 250px;
+  overflow: initial;
 `;
 
 const ProductSwitcher = styled.div``;
@@ -287,6 +306,7 @@ const NavigationList = styled.ol`
   flex-direction: column;
   margin: 0;
   padding: 0 20px 20px;
+  list-style-type: none;
 `;
 
 const NavigationItem = styled.li`
@@ -294,7 +314,11 @@ const NavigationItem = styled.li`
   margin: 5px 0;
   padding: 0;
   min-height: 20px;
-  list-style-type: none;
+  line-height: initial;
+
+  &.active > a {
+    font-weight: bold;
+  }
 `;
 
 const NavigationGroupToggle = styled.div`
@@ -307,7 +331,7 @@ const NavigationGroupToggle = styled.div`
 
 const NavigationGroupContent = styled.div`
   > ${NavigationList} {
-    padding: 5px 0;
+    padding: 5px 10px;
   }
 `;
 

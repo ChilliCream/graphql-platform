@@ -323,10 +323,13 @@ namespace HotChocolate.Execution
                     writer.WriteStringValue(n.Value);
                     break;
 
+                case Uri u:
+                    writer.WriteStringValue(u.ToString());
+                    break;
+
                 default:
-                    throw new NotSupportedException(
-                        $"The specified type `{value.GetType().FullName}` " +
-                        "is not supported by the result serializer.");
+                    writer.WriteStringValue(value.ToString());
+                    break;
             }
         }
     }
