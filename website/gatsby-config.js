@@ -84,6 +84,14 @@ module.exports = {
           `gatsby-remark-reading-time`,
           `gatsby-remark-mermaid`,
           {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+              toasterDuration: 60000,
+            },
+          },
+          {
             resolve: `gatsby-remark-prismjs`,
             options: {
               showLineNumbers: false,
