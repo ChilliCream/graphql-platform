@@ -1,6 +1,6 @@
 module.exports = {
   siteMetadata: {
-    title: `ChilliCream GraphQL`,
+    title: `ChilliCream GraphQL Platform`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
     siteUrl: `https://chillicream.com`,
@@ -83,6 +83,14 @@ module.exports = {
           `gatsby-remark-autolink-headers`,
           `gatsby-remark-reading-time`,
           `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+              toasterDuration: 60000,
+            },
+          },
           {
             resolve: `gatsby-remark-prismjs`,
             options: {
