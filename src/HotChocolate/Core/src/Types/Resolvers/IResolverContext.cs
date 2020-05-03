@@ -17,6 +17,11 @@ namespace HotChocolate.Resolvers
     public interface IResolverContext : IHasContextData
     {
         /// <summary>
+        /// Gets the scoped request service provider.
+        /// </summary>
+        IServiceProvider Services { get; }
+
+        /// <summary>
         /// Gets the GraphQL schema on which the query is executed.
         /// </summary>
         ISchema Schema { get; }
