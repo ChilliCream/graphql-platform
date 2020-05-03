@@ -6,7 +6,7 @@ title: Filtering
 
 With _Hot Chocolate_ filters, you can expose complex filter objects through your GraphQL API that translates to native database queries.
 
-The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
+The default filter implementation translates filters to expression trees and applies these on `IQueryable`.
 
 # Overview
 
@@ -98,9 +98,7 @@ public class Query
 
 # Customizing Filters
 
-The filter objects can be customized and you can rename and remove operations from it or define operations explicitly.
-
-Filters are input objects and are defined through a `FilterInputType<T>`. To define and customize a filter we have to inherit from `FilterInputType<T>` and configure it like any other type.
+A `FilterInputType<T>` defines a GraphQL input type, that _Hot Chocolate_ uses for filtering. You can customize these similar to a normal input type. You can change the name of the type; add, remove, or change operations or directive; and configure the binding behavior. To define and customize a filter we must inherit from `FilterInputType<T>` and configure it like any other type by overriding the `Configure` method.
 
 ```csharp
 public class PersonFilterType
@@ -120,9 +118,9 @@ public class PersonFilterType
 }
 ```
 
-The above type defines explicitly for what fields filter operations are allowed and what filter operations are allowed. Also, the filter renames the equals filter to `equals`.
+The above filter type defines explicitly which fields allow filtering and what operations these filters allow. Additionally, the filter type changes the name of the equals operation of the filter of the field `Name` to `equals`.
 
-To apply this filter type we just have to provide it to the `UseFiltering` extension method with as the generic type argument.
+To make use of the configuration in this filter type, you can provide it to the `UseFiltering` extension method as the generic type argument.
 
 ```csharp
 public class QueryType
@@ -156,7 +154,7 @@ public class QueryType
 
 > ⚠️ **Note**: Be sure to install the `HotChocolate.Types.Sorting` NuGet package.
 
-If you want to combine for instance paging, filtering and sorting make sure that the order is like follows:
+If you want to combine for instance paging, filtering, and sorting make sure that the order is like follows:
 
 ```csharp
 public class QueryType
@@ -174,7 +172,7 @@ public class QueryType
 
 **Why is order important?**
 
-Paging, filtering and sorting are modular middlewares that form the field resolver pipeline.
+Paging, filtering, and sorting are modular middlewares that form the field resolver pipeline.
 
 The above example forms the following pipeline:
 
@@ -198,9 +196,9 @@ So, if we, for instance, applied paging as our last middleware the data set woul
 
 # Filter & Operations Kinds
 
-Filtering can be broken down into different kinds of filters that then have different operations.
+You can break down filtering into different kinds of filters that then have different operations.
 The filter kind is bound to the type. A string is fundamentally something different than an array or an object.
-Each filter kind has different operations that can be applied to it. Some operations are unique to a filter and some operations are shared across multiple filters.
+Each filter kind has different operations that you can apply to it. Some operations are unique to a filter and some operations are shared across multiple filter
 e.g. A string filter has string specific operations like `Contains` or `EndsWith` but still shares the operations `Equals` and `NotEquals` with the boolean filter.
 
 ## Filter Kinds
@@ -309,7 +307,7 @@ In this example, we look at the filter configuration of a comparable filter.
 A comparable filter is generated for all values that implement IComparable except string and boolean.
 e.g. `csharp±enum`, `csharp±int`, `csharp±DateTime`...
 
-As an example we will use the following model:
+As an example, we will use the following model:
 
 ```csharp
 public class User
@@ -387,7 +385,7 @@ public class UserFilterType : FilterInputType<User>
 ## String Filter
 
 In this example, we look at the filter configuration of a String filter.
-As an example we will use the following model:
+As an example, we will use the following model:
 
 ```csharp
 public class User
@@ -462,10 +460,9 @@ public class UserFilterType : FilterInputType<User>
 
 In this example, we look at the filter configuration of an object filter.
 
-An object filter is generated for all nested objects. The object filter can also be used to filter over database relations.
-For each nested object, filters are generated.
+_Hot Chocolate_ generated object filters for all objects. Since Version 11, _Hot Chocolate_ also generates filter types for nested objects. You can also use object filters to filter over database relations.
 
-As an example we will use the following model:
+As an example, we will use the following model:
 
 ```csharp
 public class User
@@ -569,7 +566,7 @@ public class AddressFilterType : FilterInputType<Address>
     }
 }
 
-// Or Inline
+// or inline
 
 public class UserFilterType : FilterInputType<User>
 {
@@ -590,14 +587,14 @@ public class UserFilterType : FilterInputType<User>
 
 In this example, we look at the filter configuration of a list filter.
 
-List filters are generated for all nested IEnumerables. The array filter addresses scalars and object values differently.
-In the case of a scalar, an object type is generated to address the different operations of this scalar. If a list of strings is filtered, an object type is created to address all string operations.
-In case the list contains a complex object, an object filter for this object is generated.
+_Hot Chocolate_ can also generate filters for IEnumerables. Like object filter, _Hot Chocolate_ generates filters for the whole object tree. List filter addresses scalars and object values differently.
+In the case the field is a scalar value, _Hot Chocolate_ creates and object type to address the different operations of this scalar. e.g. If you specify filters for a list of strings, _Hot Chocolate_ creates an object type that contains all operations of the string filter.
+In case the list holds a complex object, it generates an object filter for this object instead.
 
-A list filter is generated for all properties that implement IEnumerable.
+_Hot Chocolate_ implicitly generates filters for all properties that implement `IEnumerable`.
 e.g. `csharp±string[]`, `csharp±List<Foo>`, `csharp±IEnumerable<Bar>`...
 
-As an example we will use the following model:
+As an example, we will use the following model:
 
 ```csharp
 public class User
@@ -714,7 +711,7 @@ public class UserFilterType : FilterInputType<User>
 
 # Naming Conventions
 
-_Hot Chococlate_ already provides two naming schemes for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of <<LINk FILTER CONVENTIONS>>
+\_Hot Chocolate already provides two naming schemes for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of <<LINk FILTER CONVENTIONS>>
 
 ## Snake Case
 
@@ -875,22 +872,22 @@ input ISingleFilterOfInt16Filter {
 
 # Customizing Filter
 
-Hot Chocolate provides different APIs to customize filtering. You can write custom filter input types, customize the inference behavior of .NET Objects, customize the generated expression, or create a custom visitor and attach your exotic database.
+Hot Chocolate provides different APIs to customize filtering. You can write custom filter input types, customize the inference behavior of .NET Objects, customize the generated expression, or create a custom visitor, and attach your exotic database.
 
 **As this can be a bit overwhelming the following questionnaire might help:**
 
-|                                                                                                                            |                                 |
-| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| _You do not want all of the generated filters and only allow a particular set of filters in a specific case?_              | Custom&nbsp;FilterInputType     |
-| _You want to change the name of a field or a whole type?_                                                                  | Custom&nbsp;FilterInputType     |
-| _You want to change the name of the `where` argument?_                                                                     | Filter Conventions ArgumentName |
-| _You want to configure how the name and the description of filters are generated in general? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
-| _You want to configure what filters are allowed in general?_                                                               | Filter&nbsp;Conventions         |
-| \_Your database provider does not support certain operations of `IQueryable`                                               | Filter&nbsp;Conventions         |
-| _You want to change the naming of a particular filter type? e.g._ `foo_contains` _should be_ `foo_like`                    | Filter&nbsp;Conventions         |
-| _You want to customize the expression a filter is generating: e.g._ `_equals` _should not be case sensitive?_              | Expression&nbsp;Visitor&nbsp;   |
-| _You want to create your own filter types with custom parameters and custom expressions? e.g. GeoJson?_                    | Filter&nbsp;Conventions         |
-| _You have a database client that does not support `IQueryable` and wants to generate filters for it?_                      | Custom&nbsp;Visitor             |
+|                                                                                                                                         |                                 |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| _You do not want all the generated filters and only allow a specific set of filters in a specific case?_                                | Custom&nbsp;FilterInputType     |
+| _You want to change the name of a field or a whole type?_                                                                               | Custom&nbsp;FilterInputType     |
+| _You want to change the name of the `where` argument?_                                                                                  | Filter Conventions ArgumentName |
+| _You want to configure how *Hot Chocolate* generates the name and the description of filters in globally? e.g. `PascalCaseFilterType`?_ | Filter&nbsp;Conventions         |
+| _You want to configure what the different types of filters are allowed globally?_                                                       | Filter&nbsp;Conventions         |
+| _Your database provider does not support certain operations of `IQueryable`_                                                            | Filter&nbsp;Conventions         |
+| _You want to change the naming of a specific lar filter type? e.g._ `foo_contains` _should be_ `foo_like`                               | Filter&nbsp;Conventions         |
+| _You want to customize the expression a filter is generating: e.g._ `_equals` _should not be case sensitive?_                           | Expression&nbsp;Visitor&nbsp;   |
+| _You want to create your own filter types with custom parameters and custom expressions? e.g. GeoJson?_                                 | Filter&nbsp;Conventions         |
+| _You have a database client that does not support `IQueryable` and wants to generate filters for it?_                                   | Custom&nbsp;Visitor             |
 
 # Custom&nbsp;FilterInputType
 
@@ -913,7 +910,7 @@ public class UserFilterType
 }
 ```
 
-`IFilterInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>` and adds the configuration interface for the filters. By default filters for all fields of the type are generated.
+`IFilterInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>` and adds the configuration interface for the filters. By default, _Hot Chocolate_ generates filters for all properties of the type.
 If you do want to specify the filters by yourself you can change this behavior with `BindFields`, `BindFieldsExplicitly` or `BindFieldsImplicitly`.
 
 ```csharp
@@ -944,12 +941,12 @@ input UserFilter {
 }
 ```
 
-To add or customize a filter you have to use `Filter(x => x.Foo)` for scalars `List(x => x.Bar)` for lists and `Object(x => x.Baz)` for nested objects.
+To add or customize a filter you must use `Filter(x => x.Foo)` for scalars `List(x => x.Bar)` for lists and `Object(x => x.Baz)` for nested objects.
 These methods will return fluent interfaces to configure the filter for the selected field.
 
-A field has different filter operations that can be configured. You will find more about filter types and filter operations here <<LINK>>
+A field has different filter operations that you can configure. You will find more about filter types and filter operations here <<LINK>>
 When fields are bound implicitly, meaning filters are added for all properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
-Operations on fields can again be bound implicitly or explicitly. By default, operations are generated for all fields of the type.
+Operations on fields can again be bound implicitly or explicitly. By default, _Hot Chocolate_ generates operations for all fields of the type.
 If you do want to specify the operations by yourself you can change this behavior with `BindFilters`, `BindFiltersExplicitly` or `BindFiltersImplicitly`.
 
 It is also possible to customize the GraphQL field of the operation further. You can change the name, add a description or directive.
@@ -993,16 +990,16 @@ input UserFilter {
 | `csharp±BindFieldsExplicitly`                                                    | Defines that all filters have to be specified explicitly. This means that only the filters are applied that are added with `Filter(x => x.Foo)` |
 | `csharp±BindFieldsImplicitly`                                                    | The filter type will add filters for all compatible fields.                                                                                     |
 | `csharp±Description(string value)`                                               | Adds explanatory text of the `FilterInputType<T>` that can be accessed via introspection.                                                       |
-| `csharp±Name(NameString value)`                                                  | Defines the graphql name of the `FilterInputType<T>`.                                                                                           |
+| `csharp±Name(NameString value)`                                                  | Defines the _GraphQL_ name of the `FilterInputType<T>`.                                                                                         |
 | `csharp±Ignore( Expression<Func<T, object>> property);`                          | Ignore the specified property.                                                                                                                  |
 | `csharp±Filter( Expression<Func<T, string>> property)`                           | Defines a string filter for the selected property.                                                                                              |
 | `csharp±Filter( Expression<Func<T, bool>> property)`                             | Defines a bool filter for the selected property.                                                                                                |
-| `csharp±Filter( Expression<Func<T, IComparable>> property)`                      | Defines a comarable filter for the selected property.                                                                                           |
+| `csharp±Filter( Expression<Func<T, IComparable>> property)`                      | Defines a comparable filter for the selected property.                                                                                          |
 | `csharp±Object<TObject>( Expression<Func<T, TObject>> property)`                 | Defines a object filter for the selected property.                                                                                              |
-| `csharp±List( Expression<Func<T, IEnumerable<string>>> property)`                | Defines a array string filter for the selected property.                                                                                        |
-| `csharp±List( Expression<Func<T, IEnumerable<bool>>> property)`                  | Defines a array bool filter for the selected property.                                                                                          |
-| `csharp±List( Expression<Func<T, IEnumerable<IComparable>>> property)`           | Defines a array comarable filter for the selected property.                                                                                     |
-| `csharp±Filter<TObject>( Expression<Func<T, IEnumerable<TObject>>> property)`    | Defines a array object filter for the selected property.                                                                                        |
+| `csharp±List( Expression<Func<T, IEnumerable<string>>> property)`                | Defines an array string filter for the selected property.                                                                                       |
+| `csharp±List( Expression<Func<T, IEnumerable<bool>>> property)`                  | Defines an array bool filter for the selected property.                                                                                         |
+| `csharp±List( Expression<Func<T, IEnumerable<IComparable>>> property)`           | Defines an array comarable filter for the selected property.                                                                                    |
+| `csharp±Filter<TObject>( Expression<Func<T, IEnumerable<TObject>>> property)`    | Defines an array object filter for the selected property.                                                                                       |
 | `csharp±Directive<TDirective>(TDirective directiveInstance)`                     | Add directive `directiveInstance` to the type                                                                                                   |
 | `csharp±Directive<TDirective>(TDirective directiveInstance)`                     | Add directive of type `TDirective` to the type                                                                                                  |
 | `csharp±Directive<TDirective>(NameString name, params ArgumentNode[] arguments)` | Add directive of type `TDirective` to the type                                                                                                  |
@@ -1017,8 +1014,8 @@ You can see the convention as a configuration object that holds the state that i
 
 ## Get Started
 
-To use a filter convention you can extend `FilterConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
-You then have to register your custom convention on the schema builder with `AddConvention`.
+To use a filter convention, you can extend `FilterConvention` and override the `Configure` method. Alternatively, you can directly configure the convention over the constructor argument.
+You then must register your custom convention on the schema builder with `AddConvention`.
 
 ```csharp
 public class CustomConvention : FilterConvention
@@ -1105,9 +1102,9 @@ input ISingleFilterOfInt16Filter {
 
 ### Configure Filter Type Name Globally
 
-To change the way filter types are named, you have to exchange the factory.
+You can change the way _Hot Chocolate_ names the types by supplying a delegate.
 
-You have to provide a delegate of the following type:
+This delgate must be of the following type:
 
 ```csharp
 public delegate NameString GetFilterTypeName(
@@ -1165,7 +1162,7 @@ input UserFilter {
 
 ### Reset Configuration
 
-By default, all predefined values are configured. To start from scratch, you need to call `Reset()`first.
+_Hot Chocolate_ shippes with well-defined defaults. To start from scratch, you need to call `Reset()`first.
 
 **Configuration**
 
@@ -1182,9 +1179,9 @@ descriptor.Reset();
 ## Describe with convention
 
 With the filter convention descriptor, you have full control over what filters are inferred, their names, operations, and a lot more.
-The convention provides a familiar interface to the type configuration. It is recommended to first take a look at `Filter & Operations` to understand the concept of filters. This will help you understand how the filter configuration works.
+The convention provides a familiar interface to the type configuration. We recommended to first take a look at `Filter & Operations` to understand the concept of filters. This will help you understand how the filter configuration works.
 
-Filtering has two core components at its heart. First, you have the inference of filters based on .NET types. The second component is an interceptor that translates the filters to the desired output and applies it to the resolver pipeline. These two parts can (and have to) be configured completely independently. With this separation, it is possible to easily extend the behavior. The descriptor is designed to be extendable by extension methods.
+Filtering has two core components at its heart. First, you have the inference of filters based on .NET types. The second part is an interceptor that translates the filters to the desired output and applies it to the resolver pipeline. These two parts can (and have to) be configured completely independently. With this separation, it is possible to easily extend the behavior. The descriptor is designed to be extendable by extension methods.
 
 **It's fluent**
 
@@ -1213,11 +1210,11 @@ You can drill up with `And()`.
 
 ### Configuration of the type system
 
-In this section, we will focus mainly on the generation of the schema. If you are interested in changing how filters are translated to the database, you have to look here <<INSERT LINK HERE>>
+In this section, we will focus on the generation of the schema. If you are interested in changing how filters translate to the database, you have to look here <<INSERT LINK HERE>>
 
 #### Configure Filter Operations
 
-Operations can be configured in two ways.
+There are two ways to configure Operations.
 
 You can configure a default configuration that applies to all operations of this kind. In this case the configuration for `FilterOperationKind.Equals` would be applied to all `FilterKind` that specify this operation.
 
@@ -1440,7 +1437,7 @@ input UserFilter {
 
 The default binding behavior of _Hot Chocolate_ is implicit. Filter types are no exception.
 This first may seem like magic, but unfortunately, there is none. It is just code. With `AddImplicitFilter` you can add this pinch of magic to your extension too.
-The filters are created as the type is generated. For each property of a model, a list of factories is sequentially asked to create a definition. The first that can handle the property wins and creates a definition for the filter.
+_Hot Chocolate_ creates the filters as it build the input type. The type iterates over a list of factories sequentially and tries to create a definition for each property. The first factory that can handle the property wins and creates a definition for the filter.
 
 To configure you have to use the following delegate:
 
@@ -1462,7 +1459,7 @@ To configure you have to use the following delegate:
 | _definition_        | `out FilterFieldDefintion?` | The generated definition for the property. Return null if the current factory cannot handle the property. |
 
 If you just want to build your extension for implicit bindings, you can just out a custom `FilterFieldDefinition`.
-It makes sense to encapsulate that logic in a FilterFieldDescriptor though. This descriptor can then also be used for fluent configuration.
+It makes sense to encapsulate that logic in a FilterFieldDescriptor though. You can reuse this descriptor also for the fluent configuration interface.
 
 **Example**
 
@@ -1488,17 +1485,17 @@ private static bool TryCreateStringFilter(
 
 ##### Creating a fluent filter extension
 
-_Hot Chocolate_ provides fluent interfaces for all of its APIs. If you want to create an extension that integrates seamlessly with _Hot Chocolate_ it makes sense to also provide fluent interfaces. It makes sense to briefly understand how `Type -> Descriptor -> Definition` work. You can read more about it here //TODO LINK
+_Hot Chocolate_ provides fluent interfaces for all its APIs. If you want to create an extension that integrates seamlessly with _Hot Chocolate_ it makes sense to also provide fluent interfaces. It makes sense to briefly understand how `Type -> Descriptor -> Definition` work. You can read more about it here //TODO LINK
 
 Here a quick introduction:
 
 _Type_
 
-A type is a description of a GraphQL Type System Object. The type is built during schema creation and specifies how a GraphQL Type should look like. It contains, for example, the definition, fields, interfaces, and all life cycle methods. Type do only exist on startup, they do not exist on runtime.
+A type is a description of a GraphQL Type System Object. _Hot Chocolate_ builds types during schema creation. Types specify how a GraphQL Type looks like. It holds, for example, the definition, fields, interfaces, and all life cycle methods. Type do only exist on startup; they do not exist on runtime.
 
 _Type Definition_
 
-Each type has a definition that describes the type. It contains, for example, the name, description, the CLR type and the field definitions. The field definitions describe the fields that are on the type.
+Each type has a definition that describes the type. It holds, for example, the name, description, the CLR type and the field definitions. The field definitions describe the fields that are on the type.
 
 _Type Descriptor_
 
@@ -1518,33 +1515,354 @@ FilterInputTypeDescriptor<User> inputDesc;
 inputDesc.Filter(x => x.Name).AllowEqual().Description("This is the name")
 ```
 
-Let's look at an example. Imagine you want to define a custom set of filters for a library like `NetTopologySuite`. You want to get all tourist attractions that closest to the current position.
+We have a few case studies that will show you how you can change the inference:
+
+1. String "\_like" shows an example of how you can easily add a "\_like" operation to the string filter
+2. DateTime "from", "to"
+3. NetTopologySuite
+
+> The configuration you see in this case study only shows how you add an operation to an already-existing filter. After this, the job is only half way done. To create a working filter, you must also change the expression visitor. Check the documentation for //TODO: ExpressionVisitor
+
+##### Case Study: String "\_like"
+
+**Situation**
+The customer has requested a full-text search of the description field of a product. The product owner has promised the feature to the customer two sprints ago and it has still not been shipped. The UX guru of your company has, slightly under pressure, worked out a solution and together with the frontend team they have already build a prototype. In the heat of the moment, they did not read the user story correctly and, unfortunately, realized last minute that the current filtering API does not fit their needs. The customer does also has to be able to create complex search queries. `This%Test` should match `This is a Test`. As you come back from lunch a hysterical product owner explains the situation to you. To you, it is immediately clear that this can be easily done by using the SQL `like` operator.
+
+In your codebase you use the `UseFiltering` middleware extensively. In some cases, you also have customized filter types. To cover all possible cases you need
+
+1. Implicit Binding: `[UseFiltering]` should automagically create the "\_like" filter for every string filter
+2. Explicity Binding: `desc.Filter(x => x.Description).AllowLike())`
+3. Expression Visitor: You want to directly filter on the database. You use EF Core.
+
+**Implicit Binding**
+With the conventions, it is easy to add operations on already existing filters. We will first look into the configuration for filter inference and in a second step into the code first extension.
+
+You just need to navigate to the filter you like to modify. `descriptor.Type(FilterKind.String)`. Just add the operation you need with `.Operation(FilterOperationKind.Like)`. The next step is to add factories for the name and the description.
+
+Altogether this looks like this:
+
+```csharp
+public class CustomConvention : FilterConvention
+{
+    protected override void Configure(IFilterConventionDescriptor descriptor)
+    {
+      descriptor
+          .Type(FilterKind.String)
+            .Operation(FilterOperationKind.GreaterThanOrEqual)
+                .Name((def, kind) => def.Name + "_like" );
+                .Description("Full text search. Use % as a placeholder for any symbol");
+    }
+}
+```
+
+**Explicit Binding**
+By extending the filter descriptor of the string filter you can add a fluent extension that seamlessly integrated with the _Hot Chocolate_ API.
+
+//TODO: currently there `StringFilterOperationDescriptor` requires `StringFilterFieldDescriptor` instead of `StringFilterFieldDescriptor` and there is no way to `Allow<T>`
+//TODO: TYPO ! FilterFieldDefintion
+//TODO: Move RewriteType to convention .
+//TODO: Move up CreateFieldName
+
+```csharp
+public static class StringLikeFilterExtension
+{
+    public static IStringFilterOperationDescriptor AllowLike(
+        IStringFilterFieldDescriptor descriptor)
+    {
+        return descriptor.Allow(
+            FilterOperationKind.ArrayAll,
+            (ctx, definition) =>
+            {
+                var operation = new FilterOperation(
+                    typeof(string), FilterOperationKind.ArrayAll, definition.Property);
+
+                return StringFilterOperationDescriptor.New(
+                    ctx,
+                    descriptor,
+                    ctx.GetFilterConvention().CreateFieldName(FilterOperationKind.ArrayAll),
+                    ctx.GetFilterConvention().RewriteType(FilterOperationKind.ArrayAll),
+                    operation);
+            }
+        )
+    }
+}
+```
+
+---
+
+##### Case Study: DateTime "from", "to"
+
+**Situation**
+
+1. Implicit Binding: `[UseFiltering]` should automagically create `DateTimeFilter` and the corresponding "\_from" and "\_to".
+2. Explicity Binding: `desc.Filter(x => x.OrderedAt).AllowFrom().AllowTo())`
+3. Expression Visitor: You want to directly filter on the database. You use EF Core.
+
+**Configuration**
+
+It is slightly more complex to create a custom filter than just modifying existing operations. There are a few different parts that must come together to make this work. Implicit and Explicit Bindings are coming together in this example.
+
+Let's start with the configuration of the convention. By splitting the configuration up into a set of extension methods that can be applied to the convention, it is possible to easily replace sub-components of the extension. e.g. some users might want to use an expression visitor, some others might want to use MognoDB Native.
+
+- `UseDateTimeFilter` adds support for date-time filters and registers the expression visitor for it. Abstraction for `UseDateTimeFilterImplicitly().UseDateTimeExpression()`
+
+- `UseDateTimeFilterImplicitly` only registers the configuration of the schema building part of the extension
+
+- `UseDateTimeExpression` only registers the expression visitor configuration.
+
+With this separation, a user that prefers to use a custom visitor, can just register the types and skip the expression visitor configuration
+
+TODO: UseExpressionVisitor should return expression visitor if it already exists
+TODO: Reference Definition from Filter Operation instead of property. This way we could reduce complexity further and improve extensibility
+
+```csharp
+public static class DateTimeFilterConventionExtensions
+{
+    public static IFilterConventionDescriptor UseDateTimeFilter(
+        this IFilterConventionDescriptor descriptor) =>
+            descriptor.UseDateTimeFilterImplicitly()
+                .UseDateTimeFilterExpression();
+
+    public static IFilterConventionDescriptor UseDateTimeFilterImplicitly(
+        this IFilterConventionDescriptor descriptor) =>
+            descriptor.AddImplicitFilter(TryCreateDateTimeFilter)
+                .Type(FilterKind.DateTime)
+                .Operation(FilterOperationKind.GreaterThanOrEquals)
+                    .Name((def, _) => def.Name + "_from")
+                    .Description("")
+                    .And()
+                .Operation(FilterOperationKind.LowerThanOrEquals)
+                    .Name((def, _) => def.Name + "_to")
+                    .Description("")
+                    .And()
+                .And();
+
+    public static IFilterConventionDescriptor UseDateTimeFilterExpression(
+        this IFilterConventionDescriptor descriptor) =>
+            descriptor.UseExpressionVisitor()
+                .Kind(FilterKind.DateTime)
+                    .Operation(FilterOperationKind.LowerThanOrEquals)
+                        .Handler(ComparableOperationHandlers.LowerThanOrEquals).And()
+                    .Operation(FilterOperationKind.GreaterThanOrEquals)
+                    .Handler(ComparableOperationHandlers.GreaterThanOrEquals).And()
+                    .And()
+                  .And();
+}
+```
+
+**Create Date Time Filter Implicitly**
+
+`DateTime` is a new filter. _Hot Chocolate_ is only aware of its existence because of the delegate passed to `AddImplicitFilter`
+
+```csharp
+private static bool TryCreateDateTimeFiler(
+    IDescriptorContext context,
+    Type type,
+    PropertyInfo property,
+    IFilterConvention filterConventions,
+    [NotNullWhen(true)] out FilterFieldDefintion? definition)
+{
+    if (type == typeof())
+    {
+        var field = new DateTimeFilterFieldDescriptor(
+          context, property, filterConventions);
+        definition = field.CreateDefinition();
+        return true;
+    }
+
+    definition = null;
+    return false;
+}
+```
+
+TODO: make filters name based
+**Filter Field**
+
+A filter field is a collection of operations. It holds the configuration of the different operations like _“from”_ and _“to”_. In classic _Hot Chocolate_ fashion there is a descriptor that describes these collections. _Hot Chocolate_ provides the base class `FilterFieldDescriptorBase` you can use as an extension point. There is quite a lot of boilerplate code you need to write. e.g. it makes sense to define an interface for the descriptor.
+You find an example here: //TODO LINK
+
+For the explicit binding, we need to override `CreateOperationDefinition`. In case the filter is bound implicitly, this method is invoked for each operation.
+TODO: I think there is an issue with AllowNotEndsWith.
+
+```csharp
+// We override this method for implicity binding
+protected override FilterOperationDefintion CreateOperationDefinition(
+    FilterOperationKind operationKind) =>
+        CreateOperation(operationKind).CreateDefinition();
+```
+
+For the implicit binding, we only need to add the methods `AllowFrom` and `AllowTo`.
+
+```csharp
+// The following to methods are for adding the filters explicitly
+public IDateTimeFilterOperationDescriptor AllowFrom() =>
+    GetOrCreateOperation(FilterOperationKind.GreaterThanOrEqual);
+
+public IDateTimeFilterOperationDescriptor AllowTo() =>
+    GetOrCreateOperation(FilterOperationKind.LowerThanOrEqual);
+
+// This is just a little helper that reduces code duplication
+private DateTimeFilterOperationDescriptor GetOrCreateOperation(
+    FilterOperationKind operationKind) =>
+        Filters.GetOrAddOperation(operationKind,
+            () => CreateOperation(operationKind));
+```
+
+All the methods described above call `CreateOperation`. This method creates the operation descriptor. The `FitlerOperation` that is created here, will also be available for the expression visitor.
+
+```csharp
+// This helper method creates the operation.
+private DateTimeFilterOperationDescriptor CreateOperation(
+    FilterOperationKind operationKind)
+    {
+        // This operation is also available in execution.
+        var operation = new FilterOperation(
+            typeof(DateTime),
+            Definition.Kind,
+            operationKind,
+            Definition.Property);
+
+        return DateTimeOffsetFilterOperationDescriptor.New(
+            Context,
+            this,
+            CreateFieldName(operationKind),
+            RewriteType(operationKind),
+            operation,
+            FilterConvention);
+    }
+```
+
+**Filter Operation**
+
+In this example; there are two filter operations _"form"_ and _"to"_. The configuration with a descriptor combines explicit and implicit binding. As a base class, you can use `FilterOperationDescriptorBase`.
+Here is the interface that is used in this example:
+
+```csharp
+public interface IDateTimeFilterOperationDescriptor
+        : IDescriptor<FilterOperationDefintion>
+        , IFluent
+    {
+        /// Define filter operations for another field.
+        IDateTimeFilterFieldDescriptor And();
+
+        /// Specify the name of the filter operation.
+        IDateTimeFilterOperationDescriptor Name(NameString value);
+
+        /// Specify the description of the filter operation.
+        IDateTimeFilterOperationDescriptor Description(string value);
+
+        /// Annotate the operation filter field with a directive.
+        IDateTimeFilterOperationDescriptor Directive<T>(T directiveInstance)
+            where T : class;
+        IDateTimeFilterOperationDescriptor Directive<T>()
+            where T : class, new();
+        IDateTimeFilterOperationDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
+    }
+```
+
+You can find the implementation of this interface here: //TODO link
+
+**Filter Type Extension**
+The last missing piece to complete the integration into _Hot Chocolate_ is an extension of `FilterInputType<T>`. This can again be done as a extension method.
+
+```csharp
+public IStringFilterFieldDescriptor Filter(
+    Expression<Func<T, string>> property)
+{
+    if (property.ExtractMember() is PropertyInfo p)
+    {
+        return Fields.GetOrAddDescriptor(p,
+            () => new StringFilterFieldDescriptor(Context, p));
+    }
+
+    throw new ArgumentException(
+        FilterResources.FilterInputTypeDescriptor_OnlyProperties,
+        nameof(property));
+}
+```
+
+//TODO Open this api
+
+---
+
+##### Case Study: Filters for NetTopologySuite
+
+**Situation**
 
 > **Note:** If you are searching for `NetTopologySuite`, they are already implemented. Have a look at//TODO LINK
 
+1. Implicit Binding: `[UseFiltering]` should automagically create `Point` and the corresponding "\_distance"
+2. Explicity Binding: `desc.Filter(x => x.Location).AllowDistance()`
+3. Expression Visitor: You want to directly filter on the database. You use EF Core.
+
+Things are different in this case, as there is no longer a 1:1 mapping of input type to method or property. Imagine you want to fetch all bakeries that are near you. In C# you would write something like `dbContext.Bakeries.Where(x => x.Location.Distance(me.Location) < 5)`. This cannot be translated to a _GraphQL_ input type directly.
+
+A _GraphQL_ query might look like this.
+
 ```graphql
 {
-  cities(
-    where: {
-      location: {
-        distance_lt {
-          value: 1
-          unit: MILE
-        }
-      }
-    }
+  bakeries(
+    where: { location: { distance: { from: { x: 32, y: 15 }, is_lt: 5 } } }
   ) {
     name
   }
 }
 ```
 
-```csharp
-public class Booking
+_GraphQL_ input fields cannot have arguments. To work around this issue a data structure is needed that combines the filter payload and the operation. The input type for this example has the following structure.
+
+````csharp
+public class FilterDistance
 {
-    public DateTime CheckinTime { get; set;}
+
+    public FilterDistance(
+        FilterPointData from)
+    {
+        From = from;
+    }
+    /// contains the x and y coordinates.
+    public FilterPointData From { get; }
+
+    public double Is { get; set; }
+}
+
+```graphql
+input FilterDistanceInput {
+  from: FilterPointDataInput!
+  is: Float
+  is_gt: Float
+  is_gte: Float
+  is_lt: Float
+  is_lte: Float
+  is_in: Float
+  is_not: Float
+  is_not_gt: Float
+  is_not_gte: Float
+  is_not_lt: Float
+  is_not_lte: Float
+  is_not_in: Float
+}
+````
+
+//TODO: Add skip / inopfield!
+
+_Hot Chocolate_ would generate nested filters for the payload property "From" by default. This can be avoided by declaring the field as input payload.
+
+```csharp
+public class DistanceFilterType
+    : FilterInputType<FilterDistance>
+{
+    protected override void Configure(
+        IFilterInputTypeDescriptor<FilterDistance> descriptor)
+    {
+        descriptor.Input(x => x.From);
+        descriptor.Filter(x => x.Is);
+    }
 }
 ```
 
-**The Field Descriptor**
-The first part of your extension consists of a `FilterFieldDescriptor`. With this descriptor, you describe the field and what operations that this field can be filtered by. There is a base class you can use that makes integration easier: `FilterFieldDescriptorBase`. In our example we want the field to be a `FilterFieldDescriptor` that describes a `DateTimeOffset`.
+**Convention & Implicit Factory & Type Descriptor**
+
+The configuration of the convention, the implicit type factory and the descirptors are very similar to the the two examples before. To not bloat the documentation with duplication we just refere to these two examples and to the reference implementation here //TODO LINK
