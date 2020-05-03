@@ -10,18 +10,13 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {
-        public ObjectType ObjectType => throw new NotImplementedException();
-
-        public ObjectField Field => throw new NotImplementedException();
-
-        public FieldNode FieldSelection => throw new NotImplementedException();
-
-        public NameString ResponseName => throw new NotImplementedException();
+        private object? _result;
 
         // todo: we should deprecate this one
         public IImmutableStack<object?> Source => throw new NotImplementedException();
@@ -32,38 +27,24 @@ namespace HotChocolate.Execution
 
         public IImmutableDictionary<string, object?> LocalContextData { get; set; }
 
-        public object? Result { get; set; }
-
-        public bool IsResultModified { get; }
-
-        public T Argument<T>(NameString name)
+        public object? Result
         {
-            throw new NotImplementedException();
+            get => _result;
+            set
+            {
+                _result = value;
+                IsResultModified = true;
+            }
         }
 
-        public ValueKind ArgumentKind(NameString name)
-        {
-            throw new NotImplementedException();
-        }
+        public bool IsResultModified { get; private set; }
 
-
-       
         public void ModifyScopedContext(ModifyScopedContext modify)
         {
             ScopedContextData = modify(ScopedContextData);
         }
 
         public T Parent<T>()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<T> ResolveAsync<T>()
-        {
-            throw new NotImplementedException();
-        }
-
-        public T Resolver<T>()
         {
             throw new NotImplementedException();
         }

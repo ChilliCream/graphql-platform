@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
     internal partial class MiddlewareContext : IMiddlewareContext
     {
         private readonly IOperationContext _operationContext;
-        private readonly Task<object?>? _resolverResult;
+        private Task<object?>? _resolverResult;
 
         public IServiceProvider Services => _operationContext.Services;
 
@@ -118,36 +118,31 @@ namespace HotChocolate.Execution
             _operationContext.AddError(_operationContext.ErrorHandler.Handle(error));
         }
 
+        [return: MaybeNull]
         public async Task<T> ResolveAsync<T>()
         {
             if (_resolverResult is null)
             {
-                _resolverResult = Field.Resolver is null 
-                    ? Task.FromResult<object?>(null) 
+                _resolverResult = Field.Resolver is null
+                    ? Task.FromResult<object?>(null)
                     : Field.Resolver.Invoke(this);
             }
 
-            if (!_hasCachedResolverResult)
+            object? result;
+
+            if (_resolverResult.IsCompleted && _resolverResult.Exception is null)
             {
-                if (Field.Resolver == null)
-                {
-                    _cachedResolverResult = default(T);
-                }
-                else
-                {
-                    _cachedResolverResult =
-                        await Field.Resolver.Invoke(this).ConfigureAwait(false);
-                }
-                _hasCachedResolverResult = true;
+                result = _resolverResult.Result;
+            }
+            else
+            {
+                result = await _resolverResult.ConfigureAwait(false);
             }
 
-            return (T)_cachedResolverResult;
+            return result is null ? default! : (T)result;
         }
 
-        public T Resolver<T>()
-        {
-            throw new NotImplementedException();
-        }
+        public T Resolver<T>() => _operationContext.Activator.GetOrCreateResolver<T>();
 
         public T Service<T>()
         {
