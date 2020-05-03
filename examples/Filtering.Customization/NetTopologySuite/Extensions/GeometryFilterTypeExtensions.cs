@@ -5,20 +5,21 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types.Filters;
 using HotChocolate.Utilities;
+using NetTopologySuite.Geometries;
 
 namespace Filtering.Customization
 {
-    public static class DateTimeFilterTypeExtensions
+    public static class GeometryFilterTypeExtensions
     {
-        public static IDateTimeFilterFieldDescriptor Filter<T>(
+        public static IGeometryFilterFieldDescriptor Filter<T>(
             this IFilterInputTypeDescriptor<T> descriptor,
-            Expression<Func<T, DateTime>> property)
+            Expression<Func<T, Geometry>> property)
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
                 return descriptor.AddFilter(
                     p,
-                    ctx => new DateTimeFilterFieldDescriptor(ctx, p, ctx.GetFilterConvention()));
+                    ctx => new GeometryFilterFieldDescriptor(ctx, p, ctx.GetFilterConvention()));
             }
 
             throw new ArgumentException("Only properties allowed", nameof(property));

@@ -39,6 +39,16 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// All Object Filters
         /// </summary>
-        DateTime = 0x11
+        DateTime = 0x11,
+
+        /// <summary>
+        /// All Object Filters
+        /// </summary>
+        Geometry = 0x12,
+
+        /// <summary>
+        /// All Object Filters
+        /// </summary>
+        Skip = 0x13
     }
 }

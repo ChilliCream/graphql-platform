@@ -60,17 +60,10 @@ namespace HotChocolate.Types.Filters
         /// </summary>
         IFilterInputTypeDescriptor<T> BindFieldsImplicitly();
 
-        TDesc Filter<TDesc>(
+        TDesc AddFilter<TDesc>(
             PropertyInfo property,
             Func<IDescriptorContext, TDesc> factory)
             where TDesc : FilterFieldDescriptorBase;
-
-        /// <summary>
-        /// Ignore the specified property.
-        /// </summary>
-        /// <param name="property">The property that hall be ignored.</param>
-        IFilterInputTypeDescriptor<T> Ignore(
-            Expression<Func<T, object>> property);
 
         IFilterInputTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
@@ -81,7 +74,6 @@ namespace HotChocolate.Types.Filters
 
         IFilterInputTypeDescriptor<T> Directive(
             NameString name,
-            params ArgumentNode[] arguments);
-
+            params ArgumentNode[] arguments); 
     }
 }

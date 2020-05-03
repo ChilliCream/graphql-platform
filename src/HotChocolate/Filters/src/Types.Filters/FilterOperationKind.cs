@@ -40,5 +40,8 @@ namespace HotChocolate.Types.Filters
 
         ArrayAny = 0x0032,
 
+        Distance = 0x33,
+
+        Skip = 0x34,
     }
 }

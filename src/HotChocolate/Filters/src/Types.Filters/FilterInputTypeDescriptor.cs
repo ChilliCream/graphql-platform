@@ -170,32 +170,57 @@ namespace HotChocolate.Types.Filters
         public IFilterInputTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
-        public TDesc Filter<TDesc>(
+        public TDesc AddFilter<TDesc>(
             PropertyInfo property,
             Func<IDescriptorContext, TDesc> factory)
             where TDesc : FilterFieldDescriptorBase =>
                 Fields.GetOrAddDescriptor(property, () => factory(Context));
-
-        public IFilterInputTypeDescriptor<T> Ignore(
-            Expression<Func<T, object>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                Fields.GetOrAddDescriptor(p,
-                    () => new IgnoredFilterFieldDescriptor(Context, p, _convention));
-                return this;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
 
         public static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context,
             Type entityType,
             IFilterConvention convention) =>
                 new FilterInputTypeDescriptor<T>(context, entityType, convention);
+    }
+
+    public static class FilterInputTypeDescriptorInputExtensions
+    {
+        public static IFilterInputTypeDescriptor<T> Input<T>(
+            this IFilterInputTypeDescriptor<T> descriptor,
+            Expression<Func<T, object>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                descriptor.AddFilter(p,
+                    ctx => new InputFilterFieldDescriptor(
+                        ctx, p, ctx.GetFilterConvention()));
+                return descriptor;
+            }
+
+            throw new ArgumentException(
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
+                nameof(property));
+        }
+    }
+
+    public static class FilterInputTypeDescriptorIgnoreExtensions
+    {
+        public static IFilterInputTypeDescriptor<T> Ignore<T>(
+            this IFilterInputTypeDescriptor<T> descriptor,
+            Expression<Func<T, object>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                descriptor.AddFilter(p,
+                    ctx => new IgnoredFilterFieldDescriptor(
+                        ctx, p, ctx.GetFilterConvention()));
+                return descriptor;
+            }
+
+            throw new ArgumentException(
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
+                nameof(property));
+        }
     }
 
     public static class FilterInputTypeDescriptorStringExtensions
@@ -206,7 +231,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return descriptor.Filter(p,
+                return descriptor.AddFilter(p,
                     ctx => new StringFilterFieldDescriptor(
                         ctx, p, ctx.GetFilterConvention()));
             }
@@ -225,7 +250,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return descriptor.Filter(p,
+                return descriptor.AddFilter(p,
                     ctx => new BooleanFilterFieldDescriptor(
                         ctx, p, ctx.GetFilterConvention()));
             }
@@ -244,7 +269,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return descriptor.Filter(p,
+                return descriptor.AddFilter(p,
                     ctx => new ComparableFilterFieldDescriptor(
                         ctx, p, ctx.GetFilterConvention()));
             }
@@ -263,7 +288,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return descriptor.Filter(p,
+                return descriptor.AddFilter(p,
                     ctx => new ObjectFilterFieldDescriptor<TObject>(
                         ctx, p, ctx.GetFilterConvention()));
             }
@@ -282,7 +307,7 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return descriptor.Filter(
+                return descriptor.AddFilter(
                     p,
                     ctx => new ArrayFilterFieldDescriptor<TObject>(
                         ctx, p, ctx.GetFilterConvention()));

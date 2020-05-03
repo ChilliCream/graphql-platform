@@ -46,7 +46,7 @@ namespace Filtering.Customization
             )
         };
 
-        [UseFiltering]
+        [UseFiltering(FilterType = typeof(TourstAttractionFilterType))]
         public IQueryable<TouristAttraction> GetTouristAttractions() => _attractions.AsQueryable();
     }
 }

@@ -7,30 +7,34 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
+using NetTopologySuite.Geometries;
 
 namespace Filtering.Customization
 {
-    public class DateTimeFilterFieldDescriptor
+    public class GeometryFilterFieldDescriptor
         : FilterFieldDescriptorBase,
-        IDateTimeFilterFieldDescriptor
+        IGeometryFilterFieldDescriptor
     {
-        public DateTimeFilterFieldDescriptor(
+        private static readonly ClrTypeReference _distanceTypeReference =
+            new ClrTypeReference(typeof(DistanceFilterType), TypeContext.Input, true, true);
+
+        public GeometryFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property,
             IFilterConvention filterConventions)
-            : base(FilterKind.DateTime, context, property, filterConventions)
+            : base(FilterKind.Geometry, context, property, filterConventions)
         {
         }
 
         /// <inheritdoc/>
-        public new IDateTimeFilterFieldDescriptor Name(NameString value)
+        public new IGeometryFilterFieldDescriptor Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
         /// <inheritdoc/>
-        public new IDateTimeFilterFieldDescriptor BindFilters(
+        public new IGeometryFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior)
         {
             base.BindFilters(bindingBehavior);
@@ -38,11 +42,11 @@ namespace Filtering.Customization
         }
 
         /// <inheritdoc/>
-        public IDateTimeFilterFieldDescriptor BindFiltersExplicitly() =>
+        public IGeometryFilterFieldDescriptor BindFiltersExplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
         /// <inheritdoc/>
-        public IDateTimeFilterFieldDescriptor BindFiltersImplicitly() =>
+        public IGeometryFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
         // We override this method for implicity binding
@@ -51,35 +55,49 @@ namespace Filtering.Customization
                 CreateOperation(operationKind).CreateDefinition();
 
         // The following to methods are for adding the filters explicitly
-        public IDateTimeFilterOperationDescriptor AllowFrom() =>
-            GetOrCreateOperation(FilterOperationKind.GreaterThanOrEquals);
+        public IGeometryFilterOperationDescriptor AllowDistance() =>
+            Filters.GetOrAddOperation(
+                FilterOperationKind.Distance,
+                () =>
+                {
+                    var operation = new FilterOperation(
+                              typeof(Geometry),
+                              Definition.Kind,
+                              FilterOperationKind.Distance,
+                              Definition.Property);
 
-        public IDateTimeFilterOperationDescriptor AllowTo() =>
-            GetOrCreateOperation(FilterOperationKind.LowerThanOrEquals);
+                    return GeometryFilterOperationDescriptor.New(
+                        Context,
+                        this,
+                        CreateFieldName(FilterOperationKind.Distance),
+                        _distanceTypeReference,
+                        operation,
+                        FilterConvention);
+                });
 
         // This is just a little helper that reduces code duplication
-        private DateTimeFilterOperationDescriptor GetOrCreateOperation(
+        private GeometryFilterOperationDescriptor GetOrCreateOperation(
             FilterOperationKind operationKind) =>
                 Filters.GetOrAddOperation(operationKind,
                     () => CreateOperation(operationKind));
 
         /// <inheritdoc/>
-        public IDateTimeFilterFieldDescriptor Ignore(bool ignore = true)
+        public IGeometryFilterFieldDescriptor Ignore(bool ignore = true)
         {
             Definition.Ignore = ignore;
             return this;
         }
 
-        private DateTimeFilterOperationDescriptor CreateOperation(
+        private GeometryFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {
             var operation = new FilterOperation(
-                typeof(DateTime),
+                typeof(Geometry),
                 Definition.Kind,
                 operationKind,
                 Definition.Property);
 
-            return DateTimeFilterOperationDescriptor.New(
+            return GeometryFilterOperationDescriptor.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),

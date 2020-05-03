@@ -202,7 +202,6 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
-
         private ComparableFilterOperationDescriptor GetOrCreateOperation(
             FilterOperationKind operationKind)
         {

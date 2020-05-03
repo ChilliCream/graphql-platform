@@ -243,7 +243,6 @@ namespace HotChocolate.Types.Filters
         {
             protected override void Configure(IFilterConventionDescriptor descriptor)
             {
-                base.Configure(descriptor);
                 descriptor.ArgumentName("test")
                     .ElementName("TESTelement")
                     .TypeName(
