@@ -15,6 +15,10 @@ module.exports = {
         link: `/docs/hotchocolate`,
       },
       {
+        name: `Support`,
+        link: `/support`,
+      },
+      {
         name: `Blog`,
         link: `/blog`,
       },
@@ -88,7 +92,6 @@ module.exports = {
             options: {
               tooltipText: `Copy`,
               toasterText: "Copied code example",
-              toasterDuration: 60000,
             },
           },
           {
