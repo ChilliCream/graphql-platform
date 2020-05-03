@@ -64,7 +64,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   p {
-    margin-bottom: 1.188em;
+    margin-bottom: 20px;
     line-height: 1.667em;
 
     code[class*="language-"] {
@@ -98,7 +98,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   hr {
-    margin-bottom: 1.188em;
+    margin-bottom: 20px;
     border: none;
     height: 1px;
     background: #aaa;
@@ -113,7 +113,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   blockquote {
-    margin-bottom: 1.188em;
+    margin-bottom: 20px;
     background-color: #e7e9eb;
 
     > p:last-child {
@@ -122,38 +122,34 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   ul {
-    margin: 0 0 1.188em 1.188em;
+    margin: 0 0 20px 20px;
     list-style-position: outside;
     list-style-image: none;
     list-style-type: disc;
   }
 
   ol {
-    margin: 0 0 1.188em 1.188em;
+    margin: 0 0 20px 20px;
     list-style-position: outside;
     list-style-image: none;
     list-style-type: decimal;
   }
 
   li {
-    margin-bottom: calc(1.188em / 2);
+    margin-bottom: 10px;
     line-height: 1.667em;
   }
 
   li > ol {
-    margin-top: calc(1.188em / 2);
-    margin-bottom: calc(1.188em / 2);
-    margin-left: 1.188em;
+    margin: 10px 0 10px 20px;
   }
 
   li > ul {
-    margin-top: calc(1.188em / 2);
-    margin-bottom: calc(1.188em / 2);
-    margin-left: 1.188em;
+    margin: 10px 0 10px 20px;
   }
 
   li > p {
-    margin-bottom: calc(1.188em / 2);
+    margin-bottom: 10px;
   }
 
   table {
@@ -181,7 +177,7 @@ export const GlobalStyle = createGlobalStyle`
     border-bottom: 1px solid #aaa;
     padding: 5px 10px;
     font-feature-settings: "tnum";
-    font-size: 0.875em;
+    font-size: 0.833em;
     line-height: 1.667em;
     text-align: left;
   }
@@ -202,9 +198,84 @@ export const GlobalStyle = createGlobalStyle`
     padding-right: 0;
   }
 
+  .gatsby-code-button-container {
+    position: relative;
+    top: 54px;
+    z-index: 1;
+    display: flex;
+    margin: -34px 0 0;
+
+    > .gatsby-code-button {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0 0 0 4px;
+      padding: 8px 8px;
+      background-color: #aaa;
+      transition: all 0.4s ease-in;
+
+      &:after {
+        visibility: hidden;
+        position: initial;
+        display: none;
+      }
+
+      &:hover {
+        &:after {
+          visibility: hidden;
+          display: none;
+        }
+
+        > svg {
+          fill:	#2d2d2d;
+        }
+      }
+
+      &:focus:after {
+        visibility: hidden;
+        display: none;
+      }
+
+      > svg {
+      width: 18px;
+      height: 18px;
+        fill: #2d2d2d;
+      }
+    }
+  }
+
+  .gatsby-code-button-toaster {
+    top: initial;
+    right: 0;
+    bottom: 30px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: initial;
+
+    > .gatsby-code-button-toaster-text {
+      flex: 0 0 60%;
+      border-radius: 4px;
+      font-family: sans-serif;
+      font-size: 1em;
+      font-weight: bold;
+      line-height: 1em;
+      background-color: #aaa;
+      color: #667;
+    }
+
+    @media only screen and (min-width: 400px) {
+      > .gatsby-code-button-toaster-text {
+        max-width: 300px;
+      }
+    }
+  }
+
   .gatsby-highlight {
     position: relative;
-    margin: 1.188em 0;
+    margin: 20px 0;
     overflow: auto;
     font-size: 0.833em !important;
 
@@ -213,17 +284,16 @@ export const GlobalStyle = createGlobalStyle`
       line-height: 1.5em !important;
     }
 
-    pre[class*="language-"] {
+    > pre[class*="language-"] {
       margin: 0;
 
       ::before {
         position: absolute;
         top: 0;
-        right: 50px;
-        left: initial;
+        left: 50px;
         border-radius: 0px 0px 4px 4px;
         padding: 6px 8px;
-        font-size: 0.833em;
+        font-size: 0.800em;
         font-weight: bold;
         letter-spacing: 0.075em;
         line-height: 1em;
@@ -231,13 +301,13 @@ export const GlobalStyle = createGlobalStyle`
       }
     }
 
-    pre[class="language-csharp"]::before {
+    > pre[class="language-csharp"]::before {
       content: "C#";
       color: #4f3903;
       background: #ffb806;
     }
 
-    pre[class="language-graphql"]::before {
+    > pre[class="language-graphql"]::before {
       content: "GraphQL";
       color: #ffffff;
       background: #e535ab;
@@ -252,6 +322,6 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   .mermaid {
-    margin-bottom: 1.188em;
+    margin-bottom: 20px;
   }
 `;

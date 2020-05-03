@@ -62,12 +62,20 @@ export const ArticleContent = styled.div`
     }
   }
 
+  > .gatsby-code-button-container {
+    padding: 0;
+  }
+
   > .gatsby-highlight {
     padding-right: 0;
     padding-left: 0;
 
-    > pre {
+    > pre[class*="language-"] {
       padding: 30px 20px;
+
+      ::before {
+        left: 20px;
+      }
     }
   }
 
@@ -102,10 +110,18 @@ export const ArticleContent = styled.div`
       }
     }
 
+    > .gatsby-code-button-container {
+      padding: 0;
+    }
+
     > .gatsby-highlight {
-      > pre {
+      > pre[class*="language-"] {
         padding-right: 50px;
         padding-left: 50px;
+
+        ::before {
+          left: 50px;
+        }
       }
     }
   }
