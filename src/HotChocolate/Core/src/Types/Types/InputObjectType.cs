@@ -53,7 +53,7 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public object ParseLiteral(IValueNode literal)
+        public virtual object ParseLiteral(IValueNode literal)
         {
             if (literal is null)
             {
@@ -133,19 +133,9 @@ namespace HotChocolate.Types
 
         public object Deserialize(object serialized)
         {
-            if (serialized is null)
+            if (TryDeserialize(serialized, out object deserialized))
             {
-                return null;
-            }
-
-            if (serialized is IReadOnlyDictionary<string, object> dict)
-            {
-                return _deserialize(dict);
-            }
-
-            if (ClrType != typeof(object) && ClrType.IsInstanceOfType(serialized))
-            {
-                return serialized;
+                return deserialized;
             }
 
             throw new InputObjectSerializationException(
