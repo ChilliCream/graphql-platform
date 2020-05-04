@@ -30,15 +30,15 @@ namespace HotChocolate.Execution.Utilities
             OperationDefinitionNode operation)
         {
             var selectionSets = new Dictionary<SelectionSetNode, PSS>();
-            Action<PSS> register = s => selectionSets[s.SelectionSet] = s;
+            void Register(PreparedSelectionSet s) => selectionSets[s.SelectionSet] = s;
 
             SelectionSetNode selectionSet = operation.SelectionSet;
             ObjectType typeContext = schema.GetOperationType(operation.Operation);
             var root = new PSS(operation.SelectionSet);
-            register(root);
+            Register(root);
 
             var collector = new FieldCollector(schema, fragments);
-            collector.Visit(selectionSet, typeContext, root, register);
+            collector.Visit(selectionSet, typeContext, root, Register);
             return selectionSets;
         }
 
@@ -68,7 +68,7 @@ namespace HotChocolate.Execution.Utilities
                         // todo: throw helper
                         throw new GraphQLException(
                             ErrorBuilder.New()
-                                .SetMessage("A composite type allways needs to specify a selection set.")
+                                .SetMessage("A composite type always needs to specify a selection set.")
                                 .AddLocation(selection.Selection)
                                 .Build());
                     }
@@ -77,7 +77,7 @@ namespace HotChocolate.Execution.Utilities
                     register(next);
 
                     IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
-                    for (int i = 0; i < possibleTypes.Count; i++)
+                    for (var i = 0; i < possibleTypes.Count; i++)
                     {
                         Visit(selection.SelectionSet, possibleTypes[i], next, register);
                     }

@@ -149,14 +149,14 @@ namespace HotChocolate.Execution.Utilities
                     ... def
                 }
               }
-             
+
               fragment abc on Droid {
                   primaryFunction
               }
 
               fragment def on Human {
                   homePlanet
-              } 
+              }
              ");
 
             OperationDefinitionNode operation =
@@ -176,6 +176,41 @@ namespace HotChocolate.Execution.Utilities
                 schema.QueryType,
                 selectionSets);
             op.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Prepare_Duplicate_Field_With_Skip()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo @skip(if: true) foo @skip(if: false) }");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                FieldCollector.PrepareSelectionSets(schema, fragments, operation);
+
+            // assert
+            Assert.Collection(
+                selectionSets.Values,
+                selectionSet =>
+                {
+                    Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
+                    Assert.Collection(
+                        selectionSet.GetSelections(schema.QueryType),
+                        selection => Assert.Equal("foo", selection.ResponseName));
+                });
         }
     }
 }
