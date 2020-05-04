@@ -19,7 +19,7 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets the name this field will have in the response map.
         /// </summary>
-        string ResponseName { get; }
+        NameString ResponseName { get; }
 
         /// <summary>
         /// Gets the field that was selected.

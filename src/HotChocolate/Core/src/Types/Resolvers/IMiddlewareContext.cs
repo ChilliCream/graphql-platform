@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 #nullable enable
 
@@ -30,6 +31,7 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the resolved field value.
         /// </returns>
+        [return: MaybeNull]
         Task<T> ResolveAsync<T>();
     }
 }

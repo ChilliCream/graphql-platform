@@ -5,21 +5,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public interface IPreparedSelection
+    public interface IPreparedSelection : IFieldSelection
     {
         ObjectType DeclaringType { get; }
 
-        ObjectField Field { get; }
-
-        FieldNode Selection { get; }
-
-        IReadOnlyList<FieldNode> Selections { get; }
-
         SelectionSetNode? SelectionSet { get; }
-
-        int ResponseIndex { get; }
-
-        string ResponseName { get; }
 
         FieldDelegate ResolverPipeline { get; }
 
