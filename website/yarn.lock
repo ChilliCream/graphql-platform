@@ -7190,14 +7190,14 @@ gatsby-transformer-json@^2.4.0:
     "@babel/runtime" "^7.9.2"
     bluebird "^3.7.2"
 
-gatsby-transformer-remark@^2.7.5:
-  version "2.7.5"
-  resolved "https://registry.yarnpkg.com/gatsby-transformer-remark/-/gatsby-transformer-remark-2.7.5.tgz#bb279e90543eca895dd504e070d29aff5348db0d"
-  integrity sha512-/2vehj+Ev7zpAF1OL0jqttjrCU0Ti2SXRwYbYtAo/AkXTM/Wn6yA7gLUOT74eM/Q2DosKcQVB3rkob/uJiXayQ==
+gatsby-transformer-remark@^2.8.5:
+  version "2.8.5"
+  resolved "https://registry.yarnpkg.com/gatsby-transformer-remark/-/gatsby-transformer-remark-2.8.5.tgz#4fa537236fa8631b86c6ffcde54897248165c3cf"
+  integrity sha512-vYW1GJcIKIqy0HOOe5qWPKdwRTjr/jyT6ki84ECxeTWPkYaKHA+WoW4eZjUVrB7BZIKYwDh9wE8wqXQLA4m90Q==
   dependencies:
-    "@babel/runtime" "^7.8.7"
+    "@babel/runtime" "^7.9.2"
     bluebird "^3.7.2"
-    gatsby-core-utils "^1.1.4"
+    gatsby-core-utils "^1.2.0"
     gray-matter "^4.0.2"
     hast-util-raw "^4.0.0"
     hast-util-to-html "^4.0.1"
@@ -7210,7 +7210,7 @@ gatsby-transformer-remark@^2.7.5:
     remark-retext "^3.1.3"
     remark-stringify "6.0.4"
     retext-english "^3.0.4"
-    sanitize-html "^1.22.1"
+    sanitize-html "^1.23.0"
     underscore.string "^3.3.5"
     unified "^6.2.0"
     unist-util-remove-position "^1.1.4"
@@ -13379,7 +13379,7 @@ safe-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
 
-sanitize-html@^1.22.1:
+sanitize-html@^1.23.0:
   version "1.23.0"
   resolved "https://registry.yarnpkg.com/sanitize-html/-/sanitize-html-1.23.0.tgz#e7a5ce7427cd2844dae5b9961cd372e349f91fb5"
   integrity sha512-7MgUrbZpaig6zHwuHjpNqhkiuutFPWWoFY/RmdtEnvrFKMLafzSHfFyOozVpKWytkZIUhbYu3VQ/93OmYdo3ag==
