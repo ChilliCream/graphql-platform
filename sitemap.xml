@@ -53,4 +53,6 @@
 <url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/api-reference/filtering</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/api-reference</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/platform/</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/support/</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 </urlset>
