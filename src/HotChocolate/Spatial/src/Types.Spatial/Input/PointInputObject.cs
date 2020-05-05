@@ -13,8 +13,8 @@ namespace Types.Spatial.Input
 {
     public class PointInputObject : InputObjectType<Point>
     {
-        private const string _longitude = "longitude";
-        private const string _latitude = "latitude";
+        private const string _longitude = "x";
+        private const string _latitude = "y";
         private const string _srid = "srid";
 
         private IInputField _longitudeField;
@@ -33,15 +33,18 @@ namespace Types.Spatial.Input
             descriptor.BindFieldsExplicitly();
 
             // required fields
-            descriptor.Field("longitude")
-                .Type<NonNullType<FloatType>>();
+            descriptor.Field("x")
+                .Type<NonNullType<FloatType>>()
+                .Description("X or Longitude");
 
-            descriptor.Field("latitude")
-                .Type<NonNullType<FloatType>>();
+            descriptor.Field("y")
+                .Type<NonNullType<FloatType>>()
+                .Description("Y or Latitude");
 
             // optional fields
             descriptor.Field("srid")
-                .Type<IntType>();
+                .Type<IntType>()
+                .Description("Spatial Reference System Identifier");
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -75,16 +78,22 @@ namespace Types.Spatial.Input
                     }
                 }
 
-                if (longitude.HasValue && latitude.HasValue)
+                if (!longitude.HasValue || !latitude.HasValue)
                 {
-                    return srid.HasValue
-                        ? throw new System.Exception("Factory goes here.")
-                        : new Point(longitude.Value, latitude.Value);
+                    throw new InputObjectSerializationException("You have to at least specify x and y");
                 }
+
+                if (!srid.HasValue)
+                {
+                    return new Point(longitude.Value, latitude.Value);
+                }
+
+                var factory = new NtsGeometryServices().CreateGeometryFactory(srid.Value);
+                return factory.CreatePoint(new Coordinate(longitude.Value, latitude.Value));
             }
 
             // TODO : resources
-            throw new InputObjectSerializationException("ERROR_MESSAGE");
+            throw new InputObjectSerializationException("Failed to serialize PointInputObject");
         }
 
         public override bool TrySerialize(object value, out object? serialized)
