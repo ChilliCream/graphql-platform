@@ -6,7 +6,6 @@ import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
 const PlatformPage: FunctionComponent = () => {
-  const areaTitle = "The ChilliCream GraphQL Platform";
   const data = useStaticQuery<GetPlatformDataQuery>(graphql`
     query getPlatformData {
       intro: file(relativePath: { eq: "startpage-header.svg" }) {
@@ -17,9 +16,9 @@ const PlatformPage: FunctionComponent = () => {
 
   return (
     <Layout>
-      <SEO title={areaTitle} />
+      <SEO title="Platform" />
       <Intro url={data.intro!.publicURL!}>
-        <Title>{areaTitle}</Title>
+        <Title>The ChilliCream GraphQL Platform</Title>
         <Hero>
           An end-to-end solution to build, manage and access your GraphQL API
         </Hero>

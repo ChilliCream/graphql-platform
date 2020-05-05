@@ -1,13 +1,13 @@
 import { graphql } from "gatsby";
 import React, {
   FunctionComponent,
-  useState,
-  useEffect,
   MouseEvent,
   useCallback,
+  useEffect,
+  useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
 import { State } from "../../state";
 import { toggleNavigationGroup } from "../../state/common";
@@ -16,7 +16,9 @@ import { Link } from "./link";
 import { useStickyElement } from "./useStickyElement";
 
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
+import ArrowRightIconSvg from "../../images/arrow-right.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
+import TimesIconSvg from "../../images/times.svg";
 import ProductSwitcherIconSvg from "../../images/th-large.svg";
 
 interface DocPageNavigationProperties {
@@ -30,10 +32,11 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   selectedPath,
   selectedProduct,
 }) => {
+  const [sideNavOpen, setSideNavOpen] = useState<boolean>(false);
   const { containerRef, elementRef } = useStickyElement<
     HTMLElement,
     HTMLDivElement
-  >();
+  >(1050);
   const expandedPaths = useSelector<State, string[]>(
     (state) => state.common.expandedPaths
   );
@@ -51,6 +54,14 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     setProductSwitcherOpen(false);
   }, []);
 
+  const handleCloseSideNav = useCallback(() => {
+    setSideNavOpen(false);
+  }, []);
+
+  const handleOpenSideNav = useCallback(() => {
+    setSideNavOpen(true);
+  }, []);
+
   const handleToggleClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>, isOpen) => {
       setProductSwitcherOpen(!isOpen);
@@ -64,7 +75,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   }, []);
 
   const buildNavigationStructure = (items: Item[], basePath: string) => (
-    <NavigationList>
+    <NavigationList open={!productSwitcherOpen}>
       {items.map(({ path, title, items: subItems }) => {
         const itemPath =
           !subItems && path === "index" ? basePath : basePath + "/" + path;
@@ -112,7 +123,9 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
 
   return (
     <Navigation ref={containerRef}>
-      <FixedContainer ref={elementRef}>
+      <BodyStyle disableScrolling={sideNavOpen} />
+      <MenuOpener onClick={handleOpenSideNav} />
+      <FixedContainer ref={elementRef} open={sideNavOpen}>
         <ProductSwitcher>
           <ProductSwitcherButton
             onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
@@ -122,6 +135,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
               <ProductSwitcherIconSvg />
             </IconContainer>
           </ProductSwitcherButton>
+          <CloseButton onClick={handleCloseSideNav} />
           <ProductSwitcherDialog
             open={productSwitcherOpen}
             onClick={handleClickDialog}
@@ -202,40 +216,130 @@ interface Item {
   items?: Item[];
 }
 
+const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
+  body {
+    overflow: ${({ disableScrolling }) =>
+      disableScrolling ? "hidden" : "initial"};
+
+    @media only screen and (min-width: 600px) {
+      overflow: initial;
+    }
+  }
+`;
+
 const Navigation = styled.nav`
-  position: relative;
-  display: none;
-  flex: 0 0 250px;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  z-index: 2;
+  display: flex;
   flex-direction: column;
-  z-index: 1;
+  width: 50px;
+  height: calc(100vh - 60px);
 
   * {
     user-select: none;
   }
 
   @media only screen and (min-width: 1050px) {
-    display: flex;
+    position: relative;
+    top: initial;
+    left: initial;
+    flex: 0 0 250px;
+    width: initial;
+    height: initial;
   }
 `;
 
-const FixedContainer = styled.div`
-  position: fixed;
-  padding: 25px 0 25px;
-  width: 250px;
-  overflow: initial;
+const MenuOpener = styled(ArrowRightIconSvg)`
+  margin-top: 30px;
+  border-radius: 0 4px 4px 0;
+  border: 1px solid #aaa;
+  border-left: none;
+  padding: 5px;
+  width: 24px;
+  height: 24px;
+  opacity: 0.3;
+  cursor: pointer;
+  background-color: white;
+  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.2s ease-in-out;
+  animation: pulse 4s infinite;
+
+  &:hover {
+    opacity: 1;
+    animation: initial;
+  }
+
+  @media only screen and (min-width: 1050px) {
+    display: none;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.3;
+    }
+
+    25% {
+      opacity: 0.7;
+    }
+
+    100% {
+      opacity: 0.3;
+    }
+  }
 `;
 
-const ProductSwitcher = styled.div``;
+const FixedContainer = styled.div<{ open: boolean }>`
+  position: absolute;
+  display: ${({ open }) => (open ? "initial" : "none")};
+  padding: 25px 0 0;
+  width: 100vw;
+  height: calc(100% - 25px);
+  overflow-y: initial;
+  background-color: white;
+  opacity: ${({ open }) => (open ? "1" : "0")};
+  transition: opacity 0.2s ease-in-out;
+
+  @media only screen and (min-width: 600px) {
+    width: 450px;
+    box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  }
+
+  @media only screen and (min-width: 1050px) {
+    position: fixed;
+    display: initial;
+    padding: 25px 0;
+    width: 250px;
+    height: initial;
+    overflow-y: hidden;
+    background-color: initial;
+    opacity: initial;
+    box-shadow: initial;
+  }
+`;
+
+const ProductSwitcher = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+  @media only screen and (min-width: 1050px) {
+    flex-wrap: initial;
+  }
+`;
 
 const ProductSwitcherButton = styled.button`
   display: flex;
+  flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  margin: 6px 14px 20px;
+  margin-left: 14px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding: 7px 5px;
-  width: calc(100% - 28px);
+  padding: 7px 10px;
+  width: calc(100% - 74px);
+  height: 38px;
   font-size: 0.833em;
   transition: background-color 0.2s ease-in-out;
 
@@ -250,25 +354,56 @@ const ProductSwitcherButton = styled.button`
   :hover {
     background-color: #ddd;
   }
+
+  @media only screen and (min-width: 1050px) {
+    margin: 6px 14px 20px;
+    padding: 7px 5px;
+    width: calc(100% - 28px);
+    height: initial;
+  }
+`;
+
+const CloseButton = styled(TimesIconSvg)`
+  flex: 0 0 auto;
+  padding: 17px 17px;
+  width: 26px;
+  height: 26px;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  @media only screen and (min-width: 1050px) {
+    display: none;
+  }
 `;
 
 const ProductSwitcherDialog = styled.div<{ open: boolean }>`
-  position: fixed;
-  top: 130px;
-  z-index: 10;
-  display: ${(props) => (props.open ? "flex" : "none")};
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin: 0 14px;
+  display: ${({ open }) => (open ? "flex" : "none")};
+  flex: 1 1 100%;
+  flex-direction: column;
   padding: 10px;
-  border-radius: 5px;
-  width: 700px;
   background-color: #fff;
-  box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25);
+
+  @media only screen and (min-width: 1050px) {
+    position: fixed;
+    z-index: 10;
+    top: 130px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0 14px;
+    border-radius: 5px;
+    width: 700px;
+    height: initial;
+    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25);
+  }
 `;
 
 const CurrentProduct = styled.div`
-  flex: 0 0 calc(50% - 32px);
+  flex: 0 0 auto;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 5px;
@@ -276,10 +411,14 @@ const CurrentProduct = styled.div`
   font-size: 0.833em;
   color: #666;
   background-color: #ddd;
+
+  @media only screen and (min-width: 1050px) {
+    flex: 0 0 calc(50% - 32px);
+  }
 `;
 
 const ProductLink = styled(Link)`
-  flex: 0 0 calc(50% - 32px);
+  flex: 0 0 auto;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 5px;
@@ -291,6 +430,10 @@ const ProductLink = styled(Link)`
   :hover {
     background-color: #ddd;
   }
+
+  @media only screen and (min-width: 1050px) {
+    flex: 0 0 calc(50% - 32px);
+  }
 `;
 
 const ProductTitle = styled.h6`
@@ -301,12 +444,17 @@ const ProductDescription = styled.p`
   margin-bottom: 0;
 `;
 
-const NavigationList = styled.ol`
-  display: flex;
+const NavigationList = styled.ol<{ open: boolean }>`
+  display: ${({ open }) => (open ? "flex" : "none")};
   flex-direction: column;
   margin: 0;
-  padding: 0 20px 20px;
+  padding: 0 25px 20px;
   list-style-type: none;
+
+  @media only screen and (min-width: 1050px) {
+    display: flex;
+    padding: 0 20px 20px;
+  }
 `;
 
 const NavigationItem = styled.li`
@@ -341,19 +489,19 @@ const NavigationGroup = styled.div<{ expanded: boolean }>`
   cursor: pointer;
 
   > ${NavigationGroupContent} {
-    display: ${(props) => (props.expanded ? "initial" : "none")};
+    display: ${({ expanded }) => (expanded ? "initial" : "none")};
   }
 
   > ${NavigationGroupToggle} > ${IconContainer} {
     margin-left: auto;
 
     > .arrow-down {
-      display: ${(props) => (props.expanded ? "none" : "initial")};
+      display: ${({ expanded }) => (expanded ? "none" : "initial")};
       fill: #666;
     }
 
     > .arrow-up {
-      display: ${(props) => (props.expanded ? "initial" : "none")};
+      display: ${({ expanded }) => (expanded ? "initial" : "none")};
       fill: #666;
     }
   }

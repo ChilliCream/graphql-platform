@@ -276,7 +276,7 @@ export const GlobalStyle = createGlobalStyle`
   .gatsby-highlight {
     position: relative;
     margin: 20px 0;
-    overflow: auto;
+    overflow: initial;
     font-size: 0.833em !important;
 
     * {

@@ -1,32 +1,50 @@
-import { createRef, useEffect } from "react";
+import { createRef, useEffect, useState } from "react";
 
 export function useStickyElement<
   ContainerRef extends HTMLElement,
   ElementRef extends HTMLElement
->() {
+>(beStickyStartingWithWidth: number) {
+  const [beSticky, updateBeSticky] = useState(false);
   const containerRef = createRef<ContainerRef>();
   const elementRef = createRef<ElementRef>();
 
   useEffect(() => {
-    let handler: () => void | undefined;
+    const verify = () => {
+      const currentViewportWidth =
+        document.body.clientWidth || document.documentElement.clientWidth;
 
+      updateBeSticky(currentViewportWidth >= beStickyStartingWithWidth);
+    };
+
+    verify();
+    window.addEventListener("resize", verify);
+
+    return () => {
+      window.removeEventListener("resize", verify);
+    };
+  }, [beStickyStartingWithWidth]);
+
+  useEffect(() => {
     if (containerRef.current && elementRef.current) {
       const container = containerRef.current;
       const element = elementRef.current;
 
-      calculatePosition(container, element);
-      handler = () => calculatePosition(container, element);
-      document.addEventListener("scroll", handler);
-      window.addEventListener("resize", handler);
-    }
+      if (beSticky) {
+        const recalculate = () => calculatePosition(container, element);
 
-    return () => {
-      if (handler) {
-        document.removeEventListener("scroll", handler);
-        window.removeEventListener("resize", handler);
+        recalculate();
+        document.addEventListener("scroll", recalculate);
+        window.addEventListener("resize", recalculate);
+
+        return () => {
+          document.removeEventListener("scroll", recalculate);
+          window.removeEventListener("resize", recalculate);
+        };
+      } else {
+        resetPosition(element);
       }
-    };
-  });
+    }
+  }, [beSticky]);
 
   return {
     containerRef,
@@ -38,6 +56,7 @@ function calculatePosition<
   ContainerRef extends HTMLElement,
   ElementRef extends HTMLElement
 >(container: ContainerRef, element: ElementRef) {
+  console.log("CALC");
   const scrollTop =
     document.body.scrollTop || document.documentElement.scrollTop;
   const containerHeightAndTop = container.offsetTop + container.offsetHeight;
@@ -49,4 +68,10 @@ function calculatePosition<
     element.style.position = "fixed";
     element.style.top = "initial";
   }
+}
+
+function resetPosition<ElementRef extends HTMLElement>(element: ElementRef) {
+  console.log("RESET");
+  element.style.position = "";
+  element.style.top = "";
 }
