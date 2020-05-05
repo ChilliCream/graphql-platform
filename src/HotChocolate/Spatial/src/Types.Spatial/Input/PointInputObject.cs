@@ -42,7 +42,7 @@ namespace Types.Spatial.Input
                 .Description("Y or Latitude");
 
             // optional fields
-            descriptor.Field("srid")
+            descriptor.Field(_srid)
                 .Type<IntType>()
                 .Description("Spatial Reference System Identifier");
         }
