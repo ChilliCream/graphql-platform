@@ -33,11 +33,11 @@ namespace Types.Spatial.Input
             descriptor.BindFieldsExplicitly();
 
             // required fields
-            descriptor.Field("x")
+            descriptor.Field(_longitude)
                 .Type<NonNullType<FloatType>>()
                 .Description("X or Longitude");
 
-            descriptor.Field("y")
+            descriptor.Field(_latitude)
                 .Type<NonNullType<FloatType>>()
                 .Description("Y or Latitude");
 
@@ -54,46 +54,47 @@ namespace Types.Spatial.Input
                 return null;
             }
 
-            if (literal is ObjectValueNode obj && obj.Fields.Count >= 2)
+            if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
+                throw new InputObjectSerializationException(
+                    "Failed to serialize PointInputObject. Needs at least two input fields");
+
+            double? longitude = null;
+            double? latitude = null;
+            int? srid = null;
+
+            for (int i = 0; i < obj.Fields.Count; i++)
             {
-                double? longitude = null;
-                double? latitude = null;
-                int? srid = null;
+                ObjectFieldNode field = obj.Fields[i];
 
-                for (int i = 0; i < obj.Fields.Count; i++)
+                switch (field.Name.Value)
                 {
-                    ObjectFieldNode field = obj.Fields[i];
-
-                    switch (field.Name.Value)
-                    {
-                        case _longitude:
-                            longitude = (double)_longitudeField.Type.ParseLiteral(field.Value);
-                            break;
-                        case _latitude:
-                            latitude = (double)_latitudeField.Type.ParseLiteral(field.Value);
-                            break;
-                        case _srid:
-                            srid = (int)_sridField.Type.ParseLiteral(field.Value);
-                            break;
-                    }
+                    case _longitude:
+                        longitude = (double)_longitudeField.Type.ParseLiteral(field.Value);
+                        break;
+                    case _latitude:
+                        latitude = (double)_latitudeField.Type.ParseLiteral(field.Value);
+                        break;
+                    case _srid:
+                        srid = (int)_sridField.Type.ParseLiteral(field.Value);
+                        break;
                 }
-
-                if (!longitude.HasValue || !latitude.HasValue)
-                {
-                    throw new InputObjectSerializationException("You have to at least specify x and y");
-                }
-
-                if (!srid.HasValue)
-                {
-                    return new Point(longitude.Value, latitude.Value);
-                }
-
-                var factory = new NtsGeometryServices().CreateGeometryFactory(srid.Value);
-                return factory.CreatePoint(new Coordinate(longitude.Value, latitude.Value));
             }
 
+            if (!longitude.HasValue || !latitude.HasValue)
+            {
+                throw new InputObjectSerializationException(
+                    "Failed to serialize PointInputObject. You have to at least specify x and y");
+            }
+
+            if (!srid.HasValue)
+            {
+                return new Point(longitude.Value, latitude.Value);
+            }
+
+            var factory = new NtsGeometryServices().CreateGeometryFactory(srid.Value);
+            return factory.CreatePoint(new Coordinate(longitude.Value, latitude.Value));
+
             // TODO : resources
-            throw new InputObjectSerializationException("Failed to serialize PointInputObject");
         }
 
         public override bool TrySerialize(object value, out object? serialized)
