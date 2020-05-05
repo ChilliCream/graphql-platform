@@ -94,9 +94,8 @@ namespace Types.Spatial.Input
             }
 
             var factory = new NtsGeometryServices().CreateGeometryFactory(srid.Value);
-            return factory.CreatePoint(new Coordinate(longitude.Value, latitude.Value));
 
-            // TODO : resources
+            return factory.CreatePoint(new Coordinate(longitude.Value, latitude.Value));
         }
 
         public override bool TrySerialize(object value, out object? serialized)
