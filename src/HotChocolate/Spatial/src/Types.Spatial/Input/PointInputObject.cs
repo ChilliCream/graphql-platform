@@ -17,16 +17,11 @@ namespace Types.Spatial.Input
         private const string _latitude = "y";
         private const string _srid = "srid";
 
-        private IInputField _longitudeField;
-        private IInputField _latitudeField;
-        private IInputField _sridField;
+        private IInputField _longitudeField = default!;
+        private IInputField _latitudeField = default!;
+        private IInputField _sridField = default!;
 
-        public PointInputObject()
-        {
-            _longitudeField = default!;
-            _latitudeField = default!;
-            _sridField = default!;
-        }
+        public PointInputObject() {}
 
         protected override void Configure(IInputObjectTypeDescriptor<Point> descriptor)
         {
