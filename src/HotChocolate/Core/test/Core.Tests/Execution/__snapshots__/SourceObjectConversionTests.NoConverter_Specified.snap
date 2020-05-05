@@ -8,16 +8,24 @@
     {
       "Message": "Unexpected Execution Error",
       "Code": null,
-      "Path": [
-        "foo",
-        "qux"
-      ],
+      "Path": {
+        "Parent": {
+          "Parent": null,
+          "Name": "foo",
+          "Index": null,
+          "Depth": 0
+        },
+        "Name": "qux",
+        "Index": null,
+        "Depth": 1
+      },
       "Locations": [
         {
           "Line": 1,
           "Column": 9
         }
       ],
+      "Extensions": null,
       "Exception": {
         "ClassName": "System.InvalidCastException",
         "Message": "Could not cast the source object to `HotChocolate.Execution.SourceObjectConversionTests+Baz`.",
@@ -31,8 +39,7 @@
         "HResult": -2147467262,
         "Source": "HotChocolate.Core",
         "WatsonBuckets": null
-      },
-      "Extensions": {}
+      }
     }
   ],
   "Extensions": null,

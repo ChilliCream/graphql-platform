@@ -22,7 +22,7 @@ namespace HotChocolate.Validation
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            if (GetOperationType(context.Schema, node.Operation) is { } type)
+            if (context.Schema.GetOperationType(node.Operation) is { } type)
             {
                 context.Types.Push(type);
                 context.Variables.Clear();
@@ -105,23 +105,6 @@ namespace HotChocolate.Validation
         {
             context.Types.Pop();
             return Continue;
-        }
-
-        private static ObjectType GetOperationType(
-            ISchema schema,
-            OperationType operation)
-        {
-            switch (operation)
-            {
-                case Language.OperationType.Query:
-                    return schema.QueryType;
-                case Language.OperationType.Mutation:
-                    return schema.MutationType;
-                case Language.OperationType.Subscription:
-                    return schema.SubscriptionType;
-                default:
-                    throw new NotSupportedException();
-            }
         }
     }
 }

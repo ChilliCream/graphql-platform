@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Execution
@@ -44,17 +43,16 @@ namespace HotChocolate.Execution
 
             foreach (IError error in errors)
             {
-                var formattedError = new OrderedDictionary();
-                formattedError[_message] = error.Message;
+                var formattedError = new OrderedDictionary {[_message] = error.Message};
 
                 if (error.Locations is { } && error.Locations.Count > 0)
                 {
                     formattedError[_locations] = SerializeLocations(error.Locations);
                 }
 
-                if (error.Path is { } && error.Path.Count > 0)
+                if (error.Path is { })
                 {
-                    formattedError[_path] = error.Path;
+                    formattedError[_path] = error.Path.ToList();
                 }
 
                 if (error.Extensions is { } && error.Extensions.Count > 0)
@@ -73,7 +71,7 @@ namespace HotChocolate.Execution
         {
             var serializedLocations = new IReadOnlyDictionary<string, int>[locations.Count];
 
-            for (int i = 0; i < locations.Count; i++)
+            for (var i = 0; i < locations.Count; i++)
             {
                 Location location = locations[i];
                 serializedLocations[i] = new OrderedDictionary<string, int>

@@ -4,10 +4,9 @@ using System.Linq;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Properties;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Errors
 {
-    public class ErrorHandler
-        : IErrorHandler
+    public class ErrorHandler : IErrorHandler
     {
         private const string _messageProperty = "message";
         private const string _stackTraceProperty = "stackTrace";

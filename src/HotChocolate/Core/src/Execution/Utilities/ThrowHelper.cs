@@ -1,10 +1,11 @@
 using System;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public static class ThrowHelper
+    internal static class ThrowHelper
     {
         public static GraphQLException VariableIsNotAnInputType(
             VariableDefinitionNode variableDefinition)
@@ -16,7 +17,7 @@ namespace HotChocolate.Execution.Utilities
                         variableDefinition.Variable.Name.Value)
                     .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
-                    .SetExtension("type", variableDefinition.Type.ToString())
+                    .SetExtension("type", variableDefinition.Type.ToString()!)
                     .AddLocation(variableDefinition)
                     .Build());
         }
@@ -56,11 +57,36 @@ namespace HotChocolate.Execution.Utilities
                     errorBuilder.SetExtension("inputObjectError", ex.Message);
                     break;
                 default:
-                    errorBuilder.SetException(exception);
+                    if (exception is { })
+                    {
+                        errorBuilder.SetException(exception);
+                    }
                     break;
             }
 
             return new GraphQLException(errorBuilder.Build());
+        }
+
+        public static GraphQLException MissingIfArgument(DirectiveNode directive)
+        {
+            return new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        Resources.ThrowHelper_MissingDirectiveIfArgument,
+                        directive.Name.Value)
+                    .AddLocation(directive)
+                    .Build());
+        }
+
+        public static GraphQLException FieldDoesNotExistOnType(FieldNode selection, string typeName)
+        {
+            return new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ThrowHelper_FieldDoesNotExistOnType,
+                    selection.Name.Value,
+                    typeName)
+                .AddLocation(selection)
+                .Build());
         }
     }
 }

@@ -2,41 +2,47 @@
   {
     "Message": "The argument `whoKnows` does not exist.",
     "Code": null,
-    "Path": [
-      "dog"
-    ],
+    "Path": {
+      "Parent": null,
+      "Name": "dog",
+      "Index": null,
+      "Depth": 0
+    },
     "Locations": [
       {
         "Line": 8,
         "Column": 37
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Dog",
       "field": "doesKnowCommand",
       "argument": "whoKnows",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The argument `unknown` does not exist.",
     "Code": null,
-    "Path": [
-      "dog"
-    ],
+    "Path": {
+      "Parent": null,
+      "Name": "dog",
+      "Index": null,
+      "Depth": 0
+    },
     "Locations": [
       {
         "Line": 8,
         "Column": 67
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Dog",
       "field": "doesKnowCommand",
       "argument": "unknown",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   }
 ]
