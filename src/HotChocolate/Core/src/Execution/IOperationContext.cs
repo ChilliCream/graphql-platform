@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -100,5 +102,12 @@ namespace HotChocolate.Execution
         /// Returns a rewritten literal.
         /// </returns>
         IValueNode ReplaceVariables(IValueNode value, IType type);
+
+        IMiddlewareContext RentMiddlewareContext(
+            IPreparedSelection selection,
+            object? parent, 
+            IImmutableStack<object?> source,
+            Path path,
+            IImmutableDictionary<string, object?> scopedContextData);
     }
 }

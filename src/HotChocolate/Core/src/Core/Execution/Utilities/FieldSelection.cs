@@ -73,6 +73,8 @@ namespace HotChocolate.Execution
 
         public FieldDelegate Middleware { get; }
 
+        NameString IFieldSelection.ResponseName => throw new System.NotImplementedException();
+
         public IReadOnlyDictionary<NameString, ArgumentValue> CoerceArguments(
             IVariableValueCollection variables,
             ITypeConversion converter)
