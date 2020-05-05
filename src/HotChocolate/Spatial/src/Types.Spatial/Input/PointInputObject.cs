@@ -55,8 +55,10 @@ namespace Types.Spatial.Input
             }
 
             if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
+            {
                 throw new InputObjectSerializationException(
                     "Failed to serialize PointInputObject. Needs at least two input fields");
+            }
 
             double? longitude = null;
             double? latitude = null;
