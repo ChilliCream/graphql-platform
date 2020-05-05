@@ -7,36 +7,45 @@ namespace HotChocolate.Execution.Utilities
     public class PreparedArgument
     {
         public PreparedArgument(
-            IInputField argument,
+            Argument argument,
             ValueKind kind,
             bool isFinal,
+            bool isImplicit,
             object? value,
-            IValueNode? valueLiteral)
+            IValueNode valueLiteral)
         {
             Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Kind = kind;
             IsFinal = isFinal;
+            IsImplicit = isImplicit;
+            IsError = false;
             Error = null;
             Value = value;
-            ValueLiteral = valueLiteral;
+            ValueLiteral = valueLiteral ?? throw new ArgumentNullException(nameof(valueLiteral));
         }
 
-        public PreparedArgument(IInputField argument, IError error)
+        public PreparedArgument(Argument argument, IError error)
         {
             Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Error = error ?? throw new ArgumentNullException(nameof(error));
+            IsError = true;
+            IsFinal = true;
             Kind = null;
             Value = null;
             ValueLiteral = null;
         }
 
-        public IInputField Argument { get; }
+        public Argument Argument { get; }
 
         public IInputType Type => Argument.Type;
 
         public ValueKind? Kind { get; }
 
         public bool IsFinal { get; }
+
+        public bool IsError { get; }
+
+        public bool IsImplicit { get; }
 
         public object? Value { get; }
 

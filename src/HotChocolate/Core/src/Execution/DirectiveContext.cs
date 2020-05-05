@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -87,11 +88,15 @@ namespace HotChocolate.Execution
             set => _middlewareContext.LocalContextData = value;
         }
 
+        [return: MaybeNull]
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
+        [return: MaybeNull]
         public T CustomProperty<T>(string key) =>
-            _middlewareContext.CustomProperty<T>(key);
+                    _middlewareContext.CustomProperty<T>(key);
+        
+        [return: MaybeNull]
         public T Parent<T>() => _middlewareContext.Parent<T>();
 
         public void ReportError(string errorMessage) =>
@@ -129,5 +134,14 @@ namespace HotChocolate.Execution
 
         public void ModifyScopedContext(ModifyScopedContext modify) =>
             _middlewareContext.ModifyScopedContext(modify);
+
+        public T ArgumentValue<T>(NameString name) => 
+            _middlewareContext.ArgumentValue<T>(name);
+
+        public T ArgumentLiteral<T>(NameString name) where T : IValueNode =>
+            _middlewareContext.ArgumentLiteral<T>(name);
+
+        public Optional<T> ArgumentOptional<T>(NameString name) => 
+            _middlewareContext.ArgumentOptional<T>(name);
     }
 }

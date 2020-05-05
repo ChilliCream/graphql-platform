@@ -31,7 +31,6 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the resolved field value.
         /// </returns>
-        [return: MaybeNull]
         Task<T> ResolveAsync<T>();
     }
 }

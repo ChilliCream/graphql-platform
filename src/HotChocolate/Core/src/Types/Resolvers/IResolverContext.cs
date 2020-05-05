@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -108,6 +109,7 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the previous (parent) resolver result.
         /// </returns>
+        [return: MaybeNull]
         T Parent<T>();
 
         /// <summary>
@@ -122,7 +124,50 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the value of the specified field argument.
         /// </returns>
+        [return: MaybeNull]
         T Argument<T>(NameString name);
+
+        /// <summary>
+        /// Gets a specific field argument value.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type to which the argument shall be casted to.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the specified field argument as literal.
+        /// </returns>
+        T ArgumentValue<T>(NameString name);
+
+        /// <summary>
+        /// Gets a specific field argument as literal.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type to which the argument shall be casted to.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the specified field argument as literal.
+        /// </returns>
+        T ArgumentLiteral<T>(NameString name) where T : IValueNode;
+
+        /// <summary>
+        /// Gets a specific field argument as optional.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type to which the argument shall be casted to.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the specified field argument as optional.
+        /// </returns>
+        Optional<T> ArgumentOptional<T>(NameString name);
 
         /// <summary>
         /// Gets the value kind of a specific field argument.
@@ -136,7 +181,7 @@ namespace HotChocolate.Resolvers
         ValueKind ArgumentKind(NameString name);
 
         /// <summary>
-        /// Gets as specific service from the dependency injection container.
+        /// Gets as required service from the dependency injection container.
         /// </summary>
         /// <typeparam name="T">
         /// The service type.
@@ -147,7 +192,7 @@ namespace HotChocolate.Resolvers
         T Service<T>();
 
         /// <summary>
-        /// Gets as specific service from the dependency injection container.
+        /// Gets as required service from the dependency injection container.
         /// </summary>
         /// <param name="service">The service type.</param>
         /// <returns>
@@ -164,6 +209,7 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the value of the custom request property.
         /// </returns>
+        [return: MaybeNull]
         T CustomProperty<T>(string key);
 
         /// <summary>
@@ -250,5 +296,5 @@ namespace HotChocolate.Resolvers
         /// Helper method to modify the scoped context data.
         /// </summary>
         void ModifyScopedContext(ModifyScopedContext modify);
-    }
+    }    
 }

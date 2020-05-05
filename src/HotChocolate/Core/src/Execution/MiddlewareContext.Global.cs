@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {
-        private readonly IOperationContext _operationContext;
+        private IOperationContext _operationContext = default!;
         private Task<object?>? _resolverResult;
 
         public IServiceProvider Services => _operationContext.Services;
@@ -117,8 +117,7 @@ namespace HotChocolate.Execution
 
             _operationContext.AddError(_operationContext.ErrorHandler.Handle(error));
         }
-
-        [return: MaybeNull]
+        
         public async Task<T> ResolveAsync<T>()
         {
             if (_resolverResult is null)

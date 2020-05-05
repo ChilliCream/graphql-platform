@@ -7,9 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class PreparedSelection
-        : IPreparedSelection
-        , IFieldSelection
+    internal sealed class PreparedSelection : IPreparedSelection
     {
         private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
         private List<FieldVisibility>? _visibilities;
@@ -55,7 +53,7 @@ namespace HotChocolate.Execution.Utilities
         public int ResponseIndex { get; }
 
         /// <inheritdoc />
-        public string ResponseName { get; }
+        public NameString ResponseName { get; }
 
         /// <inheritdoc />
         public FieldDelegate ResolverPipeline { get; }

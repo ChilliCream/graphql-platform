@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -87,5 +86,19 @@ namespace HotChocolate.Execution
         /// </summary>
         /// <param name="error">The error that shall be added.</param>
         void AddError(IError error);
+
+        /// <summary>
+        /// Rewrites the value literals and replaces the variables.
+        /// </summary>
+        /// <param name="value">
+        /// A literal containing variables.
+        /// </param>
+        /// <param name="type">
+        /// The type of which the literal is.
+        /// </param>
+        /// <returns>
+        /// Returns a rewritten literal.
+        /// </returns>
+        IValueNode ReplaceVariables(IValueNode value, IType type);
     }
 }

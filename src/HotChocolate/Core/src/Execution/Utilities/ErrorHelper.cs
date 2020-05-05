@@ -31,5 +31,15 @@ namespace HotChocolate.Execution.Utilities
                 .SetExtension("responseName", responseName)
                 .Build();
         }
+
+        public static IError ArgumentDefaultValueIsInvalid(
+            string responseName,
+            ScalarSerializationException exception)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(exception.Message)
+                .SetExtension("responseName", responseName)
+                .Build();
+        }
     }
 }

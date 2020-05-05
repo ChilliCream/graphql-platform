@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {
-        private IPreparedSelection _selection;
+        private IPreparedSelection _selection = default!;
         
         public ObjectType ObjectType => _selection.DeclaringType;
 
@@ -25,15 +25,5 @@ namespace HotChocolate.Execution
         public FieldNode FieldSelection => _selection.Selection;
 
         public NameString ResponseName => _selection.ResponseName;
-
-        public T Argument<T>(NameString name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ValueKind ArgumentKind(NameString name)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

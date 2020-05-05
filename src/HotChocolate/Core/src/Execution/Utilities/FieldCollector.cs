@@ -266,7 +266,7 @@ namespace HotChocolate.Execution.Utilities
             FieldNode selection,
             string responseName)
         {
-            if (selection.Arguments.Count == 0)
+            if (field.Arguments.Count == 0)
             {
                 return _emptyArguments;
             }
@@ -278,11 +278,28 @@ namespace HotChocolate.Execution.Utilities
                 ArgumentNode argumentValue = selection.Arguments[i];
                 if (field.Arguments.TryGetField(argumentValue.Name.Value, out Argument? argument))
                 {
-                    arguments[argument.Name] =
+                    arguments[argument.Name.Value] =
                         CreateArgumentValue(
                             responseName,
                             argument,
-                            argumentValue);
+                            argumentValue,
+                            argumentValue.Value,
+                            false);
+                }
+            }
+
+            for (int i = 0; i < field.Arguments.Count; i++)
+            {
+                Argument argument = field.Arguments[i];
+                if (!arguments.ContainsKey(argument.Name))
+                {
+                    arguments[argument.Name.Value] =
+                        CreateArgumentValue(
+                            responseName,
+                            argument,
+                            null,
+                            argument.DefaultValue ?? NullValueNode.Default,
+                            true);
                 }
             }
 
@@ -292,13 +309,14 @@ namespace HotChocolate.Execution.Utilities
         private PreparedArgument CreateArgumentValue(
             string responseName,
             Argument argument,
-            ArgumentNode argumentValue)
+            ArgumentNode? argumentValue,
+            IValueNode value,
+            bool isDefaultValue)
         {
             ArgumentNonNullValidator.ValidationResult validationResult =
-                ArgumentNonNullValidator.Validate(
-                    argument, argumentValue.Value, Path.New(argument.Name));
+                ArgumentNonNullValidator.Validate(argument, value, Path.New(argument.Name));
 
-            if (validationResult.HasErrors)
+            if (argumentValue is { } && validationResult.HasErrors)
             {
                 return new PreparedArgument(
                     argument,
@@ -308,34 +326,42 @@ namespace HotChocolate.Execution.Utilities
                         validationResult));
             }
 
-            if (argument.Type.IsLeafType() && CanBeCompiled(argumentValue.Value))
+            if (argument.Type.IsLeafType() && CanBeCompiled(value))
             {
                 try
                 {
                     return new PreparedArgument(
                         argument,
-                        argumentValue.Value.GetValueKind(),
+                        value.GetValueKind(),
                         true,
-                        ParseLiteral(argument.Type, argumentValue.Value),
-                        argumentValue.Value);
+                        isDefaultValue,
+                        ParseLiteral(argument.Type, value),
+                        value);
                 }
                 catch (ScalarSerializationException ex)
                 {
-                    return new PreparedArgument(
-                        argument,
-                        ErrorHelper.ArgumentValueIsInvalid(
-                            argumentValue,
-                            responseName,
-                            ex));
+                    if (argumentValue is { })
+                    {
+                        return new PreparedArgument(
+                            argument,
+                            ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
+                    }
+                    else
+                    {
+                        return new PreparedArgument(
+                            argument,
+                            ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
+                    }
                 }
             }
 
             return new PreparedArgument(
                 argument,
-                argumentValue.Value.GetValueKind(),
+                value.GetValueKind(),
                 false,
+                isDefaultValue,
                 null,
-                argumentValue.Value);
+                value);
         }
 
         private bool CanBeCompiled(IValueNode valueLiteral)
