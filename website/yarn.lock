@@ -968,10 +968,10 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
-  version "7.9.2"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.9.2.tgz#d90df0583a3a252f09aaa619665367bae518db06"
-  integrity sha512-NE2DtOdufG7R5vnfQUTehdTfNycfUANEtCa9PssN9O/xmTzP4E08UI797ixaei6hBEVL9BI/PsdJS5x7mWoB9Q==
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2", "@babel/runtime@^7.9.6":
+  version "7.9.6"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.9.6.tgz#a9102eb5cadedf3f31d08a9ecf294af7827ea29f"
+  integrity sha512-64AF1xY3OAkFHqOb9s4jpgk1Mm5vDZ4L3acHvAml+53nO1XbXLuDodsVpO4OIUsmemlUHMxNdYMNJmsvOwLrvQ==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -7077,12 +7077,12 @@ gatsby-recipes@^0.1.1:
     ws "^7.2.5"
     xstate "^4.9.1"
 
-gatsby-remark-autolink-headers@^2.1.25:
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/gatsby-remark-autolink-headers/-/gatsby-remark-autolink-headers-2.2.3.tgz#2346b1c6e1779ee38f64bf3f29c2de0d83e485e5"
-  integrity sha512-xPU2FPniRaNu/9z4szPmkTrx7NlDoaOUTxlPyTSD4vynuphZGBonGMiqb2BOj03RHIeKEvRAp3dhvIMSJ+TPsQ==
+gatsby-remark-autolink-headers@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/gatsby-remark-autolink-headers/-/gatsby-remark-autolink-headers-2.3.1.tgz#2f7077444a310543361ba298a26c45b5f4680304"
+  integrity sha512-VFtmQkP2cF2XE5+5sZyQ1ttR0zwTgO9ECJEBRTXMqGfiv94GzuSdW9qkw8LJqxHpgo5tt8oC7W4DSqSlln2qrw==
   dependencies:
-    "@babel/runtime" "^7.8.7"
+    "@babel/runtime" "^7.9.6"
     github-slugger "^1.3.0"
     lodash "^4.17.15"
     mdast-util-to-string "^1.1.0"
