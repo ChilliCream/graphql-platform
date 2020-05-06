@@ -20,9 +20,7 @@ namespace Types.Spatial.Playground
                 .AddServices(sp)
                 .AddQueryType(d => d.Name("Query"))
                 .AddMutationType(d => d.Name("Mutation"))
-                .AddType<PointInputObject>()
-                .AddType<PointOutputObject>()
-                .AddType<LineStringInputObject>()
+                .AddSpatialTypes()
                 .AddType<GeoQueries>()
                 .AddType<GeoMutations>()
                 .Create());
