@@ -16,7 +16,7 @@ export const ArticleComments: FunctionComponent<ArticleCommentsProperties> = ({
   title,
 }) => {
   const disqusConfig = {
-    url: data.site!.siteMetadata!.baseUrl! + path,
+    url: data.site!.siteMetadata!.siteUrl! + path,
     identifier: path,
     title,
   };
@@ -28,7 +28,7 @@ export const ArticleCommentsGraphQLFragment = graphql`
   fragment ArticleComments on Query {
     site {
       siteMetadata {
-        baseUrl
+        siteUrl
       }
     }
   }

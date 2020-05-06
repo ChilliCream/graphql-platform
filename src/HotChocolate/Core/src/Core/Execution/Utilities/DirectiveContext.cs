@@ -90,6 +90,8 @@ namespace HotChocolate.Execution
             set => _middlewareContext.LocalContextData = value;
         }
 
+        public IServiceProvider Services => throw new NotImplementedException();
+
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
@@ -132,5 +134,20 @@ namespace HotChocolate.Execution
 
         public void ModifyScopedContext(ModifyScopedContext modify) =>
             _middlewareContext.ModifyScopedContext(modify);
+
+        public T ArgumentValue<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T ArgumentLiteral<T>(NameString name) where T : IValueNode
+        {
+            throw new NotImplementedException();
+        }
+
+        public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public static class ClassMiddlewareFactory
+    internal static class ClassMiddlewareFactory
     {
         internal static QueryMiddleware Create<TMiddleware>()
             where TMiddleware : class

@@ -15,9 +15,24 @@ namespace HotChocolate.Validation
                 : Field.Alias.Value;
         }
 
+        /// <summary>
+        /// Gets the response name.
+        /// </summary>
         public string ResponseName { get; }
+
+        /// <summary>
+        /// Gets the declaring type.
+        /// </summary>
         public IType DeclaringType { get; }
+
+        /// <summary>
+        /// Gets the field's return type.
+        /// </summary>
         public IType Type { get; }
+
+        /// <summary>
+        /// Gets the field selection.
+        /// </summary>
         public FieldNode Field { get; }
     }
 }

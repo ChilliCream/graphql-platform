@@ -20,6 +20,15 @@ namespace HotChocolate.Language.Visitors
             _options = options;
         }
 
+        /// <summary>
+        /// The visitor options.
+        /// </summary>
+        protected SyntaxVisitorOptions Options => _options;
+
+        /// <summary>
+        /// The visitor default action.
+        /// </summary>
+        /// <value></value>
         protected virtual ISyntaxVisitorAction DefaultAction { get; }
 
         /// <summary>
@@ -61,7 +70,10 @@ namespace HotChocolate.Language.Visitors
 
             if (result.Kind == SyntaxVisitorActionKind.Continue)
             {
-                VisitChildren(node, context);
+                if (VisitChildren(node, context).Kind == SyntaxVisitorActionKind.Break)
+                {
+                    return Break;
+                }
             }
 
             if (result.Kind == SyntaxVisitorActionKind.Continue ||

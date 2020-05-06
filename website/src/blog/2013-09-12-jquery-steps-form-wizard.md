@@ -223,7 +223,7 @@ The final JavaScript code looks like this after we stick everything together.
 $("#form")
   .steps({
     bodyTag: "fieldset",
-    onStepChanging: function(event, currentIndex, newIndex) {
+    onStepChanging: function (event, currentIndex, newIndex) {
       // Always allow going backward even if the current step contains invalid fields!
       if (currentIndex > newIndex) {
         return true;
@@ -249,7 +249,7 @@ $("#form")
       // Start validation; Prevent going forward if false
       return form.valid();
     },
-    onStepChanged: function(event, currentIndex, priorIndex) {
+    onStepChanged: function (event, currentIndex, priorIndex) {
       // Suppress (skip) "Warning" step if the user is old enough and wants to the previous step.
       if (currentIndex === 2 && priorIndex === 3) {
         $(this).steps("previous");
@@ -261,7 +261,7 @@ $("#form")
         $(this).steps("next");
       }
     },
-    onFinishing: function(event, currentIndex) {
+    onFinishing: function (event, currentIndex) {
       var form = $(this);
 
       // Disable validation on fields that are disabled.
@@ -271,7 +271,7 @@ $("#form")
       // Start validation; Prevent form submission if false
       return form.valid();
     },
-    onFinished: function(event, currentIndex) {
+    onFinished: function (event, currentIndex) {
       var form = $(this);
 
       // Submit form input
@@ -279,7 +279,7 @@ $("#form")
     },
   })
   .validate({
-    errorPlacement: function(error, element) {
+    errorPlacement: function (error, element) {
       element.before(error);
     },
     rules: {
