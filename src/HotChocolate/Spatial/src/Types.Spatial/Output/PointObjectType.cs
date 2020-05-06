@@ -3,7 +3,7 @@ using NetTopologySuite.Geometries;
 
 namespace Types.Spatial.Output
 {
-    public class PointOutputObject : ObjectType<Point>
+    public class PointObjectType : ObjectType<Point>
     {
         protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
         {
