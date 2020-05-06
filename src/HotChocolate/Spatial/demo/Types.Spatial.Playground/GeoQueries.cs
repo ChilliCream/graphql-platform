@@ -25,5 +25,10 @@ namespace Types.Spatial.Playground
         {
             return line.Length;
         }
+
+        public Point GetPointRaw(Point point)
+        {
+            return point;
+        }
     }
 }

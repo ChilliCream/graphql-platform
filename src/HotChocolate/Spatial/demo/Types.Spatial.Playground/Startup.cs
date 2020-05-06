@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Types.Spatial.Input;
+using Types.Spatial.Output;
 
 namespace Types.Spatial.Playground
 {
@@ -25,6 +21,7 @@ namespace Types.Spatial.Playground
                 .AddQueryType(d => d.Name("Query"))
                 .AddMutationType(d => d.Name("Mutation"))
                 .AddType<PointInputObject>()
+                .AddType<PointOutputObject>()
                 .AddType<LineStringInputObject>()
                 .AddType<GeoQueries>()
                 .AddType<GeoMutations>()
