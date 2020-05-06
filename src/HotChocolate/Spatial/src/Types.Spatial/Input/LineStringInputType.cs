@@ -55,7 +55,7 @@ namespace Types.Spatial.Input
             int? srid = null;
             var points = new List<List<double?>>();
 
-            for (int i = 0; i < obj.Fields.Count; i++)
+            for (var i = 0; i < obj.Fields.Count; i++)
             {
                 ObjectFieldNode field = obj.Fields[i];
 
@@ -78,8 +78,13 @@ namespace Types.Spatial.Input
             }
 
             var coordinates = new Coordinate[points.Count];
-            for (int i = 0; i < points.Count; i++)
+            for (var i = 0; i < points.Count; i++)
             {
+                if (points[i].Count != 2)
+                {
+                    throw new InputObjectSerializationException("Each Coordinate pair must have two elements");
+                }
+
                 coordinates[i] = new Coordinate(points[i][0].Value, points[i][1].Value);
             }
 
