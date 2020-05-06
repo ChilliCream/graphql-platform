@@ -13,9 +13,9 @@ namespace Types.Spatial.Input
 {
     public class PointInputObject : InputObjectType<Point>
     {
-        private const string _x = "x";
-        private const string _y = "y";
-        private const string _srid = "srid";
+        private const string _xFieldName = "x";
+        private const string _yFieldName = "y";
+        private const string _sridFieldName = "srid";
 
         private IInputField _xField = default!;
         private IInputField _yField = default!;
@@ -28,16 +28,16 @@ namespace Types.Spatial.Input
             descriptor.BindFieldsExplicitly();
 
             // required fields
-            descriptor.Field(_x)
+            descriptor.Field(_xFieldName)
                 .Type<NonNullType<FloatType>>()
                 .Description("X or Longitude");
 
-            descriptor.Field(_y)
+            descriptor.Field(_yFieldName)
                 .Type<NonNullType<FloatType>>()
                 .Description("Y or Latitude");
 
             // optional fields
-            descriptor.Field(_srid)
+            descriptor.Field(_sridFieldName)
                 .Type<IntType>()
                 .Description("Spatial Reference System Identifier. e.g. latitude/longitude (WGS84): 4326, web mercator: 3867");
         }
@@ -65,13 +65,13 @@ namespace Types.Spatial.Input
 
                 switch (field.Name.Value)
                 {
-                    case _x:
+                    case _xFieldName:
                         x = (double)_xField.Type.ParseLiteral(field.Value);
                         break;
-                    case _y:
+                    case _yFieldName:
                         y = (double)_yField.Type.ParseLiteral(field.Value);
                         break;
-                    case _srid:
+                    case _sridFieldName:
                         srid = (int)_sridField.Type.ParseLiteral(field.Value);
                         break;
                 }
@@ -108,9 +108,9 @@ namespace Types.Spatial.Input
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            _xField = Fields[_x];
-            _yField = Fields[_y];
-            _sridField = Fields[_srid];
+            _xField = Fields[_xFieldName];
+            _yField = Fields[_yFieldName];
+            _sridField = Fields[_sridFieldName];
         }
     }
 }
