@@ -83,7 +83,7 @@ namespace Types.Spatial.Input
                 return new LineString(coordinates);
             }
 
-            var factory = new NtsGeometryServices().CreateGeometryFactory(srid.Value);
+            var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
 
             return factory.CreateLineString(coordinates);
         }

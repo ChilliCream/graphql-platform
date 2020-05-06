@@ -88,7 +88,7 @@ namespace Types.Spatial.Input
                 return new Point(x.Value, y.Value);
             }
 
-            var factory = new NtsGeometryServices().CreateGeometryFactory(srid.Value);
+            var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
 
             return factory.CreatePoint(new Coordinate(x.Value, y.Value));
         }
