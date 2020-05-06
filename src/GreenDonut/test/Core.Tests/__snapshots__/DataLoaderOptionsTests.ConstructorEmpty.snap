@@ -2,7 +2,7 @@
   "Batch": true,
   "Cache": null,
   "CacheKeyResolver": null,
-  "CacheSize": 1000,
+  "CacheSize": 100,
   "Caching": true,
   "MaxBatchSize": 0
 }

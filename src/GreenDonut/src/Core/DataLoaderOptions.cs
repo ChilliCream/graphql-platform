@@ -46,7 +46,7 @@ namespace GreenDonut
         /// Gets or sets the cache size. If set to <c>10</c> for example, it
         /// says only <c>10</c> cache entries can live inside the cache. When
         /// adding an additional entry the least recently used entry will be
-        /// removed. The default value is set to <c>1000</c>.
+        /// removed. The default value is set to <c>100</c>.
         /// </summary>
         public int CacheSize { get; set; }
 
