@@ -6,6 +6,7 @@ import { GetStartpageDataQuery } from "../../graphql-types";
 import { BananaCakepop } from "../components/images/banana-cakepop";
 import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
 import { Link } from "../components/misc/link";
+import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
@@ -18,7 +19,7 @@ const IndexPage: FunctionComponent = () => {
       arrowRight: file(relativePath: { eq: "arrow-right.svg" }) {
         publicURL
       }
-      bg: file(relativePath: { eq: "startpage-header.svg" }) {
+      intro: file(relativePath: { eq: "startpage-header.svg" }) {
         publicURL
       }
     }
@@ -27,8 +28,8 @@ const IndexPage: FunctionComponent = () => {
   return (
     <Layout>
       <SEO title="Home" />
-      <Intro url={data.bg!.publicURL!}>
-        <Title>The Ultimate GraphQL Platform</Title>
+      <Intro url={data.intro!.publicURL!}>
+        <Hero>The Ultimate GraphQL Platform</Hero>
         <Slideshow
           arrowLeftUrl={data.arrowLeft!.publicURL!}
           arrowRightUrl={data.arrowRight!.publicURL!}
@@ -66,26 +67,6 @@ const IndexPage: FunctionComponent = () => {
 };
 
 export default IndexPage;
-
-const Intro = styled.section<{ url: string }>`
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 25px;
-  width: 100%;
-  background-image: url("${(props) => props.url}");
-  background-attachment: scroll;
-  background-position-x: 50%;
-  background-position-y: 100%;
-  background-repeat: no-repeat;
-  background-size: cover;
-
-  @media only screen and (min-width: 992px) {
-    padding: 60px 0;
-  }
-`;
 
 const Slideshow = styled(Carousel)<{
   arrowLeftUrl: string;
@@ -263,17 +244,5 @@ const SlideDescription = styled.p`
 
   @media only screen and (min-width: 768px) {
     display: initial;
-  }
-`;
-
-const Title = styled.h1`
-  flex: 0 0 auto;
-  margin-bottom: 20px;
-  font-size: 2.222em;
-  text-align: center;
-  color: #fff;
-
-  @media only screen and (min-width: 768px) {
-    margin-bottom: 20px;
   }
 `;
