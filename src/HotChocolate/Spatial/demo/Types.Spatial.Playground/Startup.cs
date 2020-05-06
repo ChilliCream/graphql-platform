@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Types.Spatial.Input;
-using Types.Spatial.Output;
 
 namespace Types.Spatial.Playground
 {
@@ -18,11 +16,16 @@ namespace Types.Spatial.Playground
         {
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
-                .AddQueryType(d => d.Name("Query"))
-                .AddMutationType(d => d.Name("Mutation"))
-                .AddSpatialTypes()
-                .AddType<GeoQueries>()
-                .AddType<GeoMutations>()
+                .AddDocumentFromFile("schema.graphql")
+                .ModifyOptions(x => x.RemoveUnreachableTypes = false)
+                .ModifyOptions(x => x.StrictValidation = false)
+                .Use(next => context =>
+                {
+                    context.Result = "";
+                    return next(context);
+                })
+                //.AddType<GeoQueries>()
+                // .AddType<GeoMutations>()
                 .Create());
         }
 
