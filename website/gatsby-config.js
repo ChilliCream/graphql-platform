@@ -15,6 +15,10 @@ module.exports = {
         link: `/docs/hotchocolate`,
       },
       {
+        name: `Support`,
+        link: `/support`,
+      },
+      {
         name: `Blog`,
         link: `/blog`,
       },
@@ -83,6 +87,13 @@ module.exports = {
           `gatsby-remark-autolink-headers`,
           `gatsby-remark-reading-time`,
           `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
           {
             resolve: `gatsby-remark-prismjs`,
             options: {

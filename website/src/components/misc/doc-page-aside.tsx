@@ -6,7 +6,7 @@ export const DocPageAside: FunctionComponent = ({ children }) => {
   const { containerRef, elementRef } = useStickyElement<
     HTMLElement,
     HTMLDivElement
-  >();
+  >(1300);
 
   return (
     <Aside ref={containerRef}>
@@ -31,6 +31,6 @@ const Aside = styled.aside`
 
 const FixedContainer = styled.div`
   position: fixed;
-  padding: 25px 0 25px;
+  padding: 25px 0;
   width: 250px;
 `;
