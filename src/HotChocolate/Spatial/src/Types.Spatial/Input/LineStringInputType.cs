@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -19,21 +21,22 @@ namespace Types.Spatial.Input
         private IInputField _pointsField = default!;
         private IInputField _sridField = default!;
 
-        public LineStringInputObject() {}
-
         protected override void Configure(IInputObjectTypeDescriptor<LineString> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
             // required fields
             descriptor.Field(_points)
-                .Type<NonNullType<ListType<PointInputObject>>>()
-                .Description("An array of points comprising the line. There must be more than 1 point");
+                // TODO: Make FloatType NonNullable
+                .Type<NonNullType<ListType<ListType<FloatType>>>>()
+                .Description(
+                    "An two dimensional array of x and y pairs comprising the line. There must be more than 1 point. Example: [[30, 10], [10, 30], [40, 40]]");
 
             // optional fields
             descriptor.Field(_srid)
                 .Type<IntType>()
-                .Description("Spatial Reference System Identifier. e.g. latitude/longitude (WGS84): 4326, web mercator: 3867");
+                .Description(
+                    "Spatial Reference System Identifier. e.g. latitude/longitude (WGS84): 4326, web mercator: 3867");
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -50,7 +53,7 @@ namespace Types.Spatial.Input
             }
 
             int? srid = null;
-            var points = new List<Point>();
+            var points = new List<List<double?>>();
 
             for (int i = 0; i < obj.Fields.Count; i++)
             {
@@ -59,7 +62,8 @@ namespace Types.Spatial.Input
                 switch (field.Name.Value)
                 {
                     case _points:
-                        points = (List<Point>)_pointsField.Type.ParseLiteral(field.Value);
+                        // var ps = (double[,])_pointsField.Type.ParseLiteral(field.Value);
+                        points = (List<List<double?>>)_pointsField.Type.ParseLiteral(field.Value);
                         break;
                     case _srid:
                         srid = (int)_sridField.Type.ParseLiteral(field.Value);
@@ -67,7 +71,8 @@ namespace Types.Spatial.Input
                 }
             }
 
-            if (points.Count < 2) {
+            if (points.Count < 2)
+            {
                 throw new InputObjectSerializationException(
                     "Failed to serialize LineStringInputObject. A line requires at least two points");
             }
@@ -75,7 +80,7 @@ namespace Types.Spatial.Input
             var coordinates = new Coordinate[points.Count];
             for (int i = 0; i < points.Count; i++)
             {
-                coordinates[i] = new Coordinate(points[i].X, points[i].Y);
+                coordinates[i] = new Coordinate(points[i][0].Value, points[i][1].Value);
             }
 
             if (!srid.HasValue)
