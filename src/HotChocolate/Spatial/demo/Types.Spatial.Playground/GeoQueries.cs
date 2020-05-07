@@ -6,34 +6,14 @@ namespace Types.Spatial.Playground
     [ExtendObjectType(Name = "Query")]
     public class GeoQueries
     {
-        /*public double GetPointX(Point point)
-        {
-            return point.X;
-        }
-
-        public int GetPointSRID(Point point)
-        {
-            return point.SRID;
-        }
-
-        public int GetLineCount(LineString line)
-        {
-            return line.NumPoints;
-        }
-
-        public double GetLineLength(LineString line)
-        {
-            return line.Length;
-        }
-
-        public Point GetPointRaw(Point point)
-        {
-            return point;
-        }*/
-
-        public Point GetPointRaw()
+        public Point GetRawPoint()
         {
             return new Point(1.1, 2.1);
+        }
+
+        public Point GetRawPointWithElevation()
+        {
+            return new Point(1.1, 2.1, 100);
         }
     }
 }
