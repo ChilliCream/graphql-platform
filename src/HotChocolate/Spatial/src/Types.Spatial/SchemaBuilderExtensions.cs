@@ -1,7 +1,8 @@
 using HotChocolate;
+using NetTopologySuite.Geometries;
 using Types.Spatial.Common;
-using Types.Spatial.Input;
 using Types.Spatial.Output;
+using Types.Spatial.Scalar;
 
 namespace Types.Spatial
 {
@@ -12,7 +13,8 @@ namespace Types.Spatial
             return builder
                 .AddType<GeoJSONInterface>()
                 .AddType<GeoJSONGeometryType>()
-                .AddType<PointObjectType>();
+                .AddType<PointObjectType>()
+                .BindClrType<Coordinate, GeoJSONPositionScalar>();
         }
     }
 }

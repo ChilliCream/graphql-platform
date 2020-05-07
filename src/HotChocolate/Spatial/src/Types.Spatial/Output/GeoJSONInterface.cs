@@ -1,5 +1,5 @@
+using System;
 using HotChocolate.Types;
-using NetTopologySuite.Geometries;
 using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
@@ -16,7 +16,8 @@ namespace Types.Spatial.Output
             descriptor.Field("bbox")
                 .Type<ListType<FloatType>>();
 
-            // TODO: Add crs: CoordinateReferenceSystemObject
+            descriptor.Field("crs")
+                .Type<StringType>();
         }
     }
 }

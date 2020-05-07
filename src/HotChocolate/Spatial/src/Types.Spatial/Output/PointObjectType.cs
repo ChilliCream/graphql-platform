@@ -20,15 +20,18 @@ namespace Types.Spatial.Output
             descriptor.Field("bbox")
                 .Resolver(BBoxResolver);
 
-            // TODO: implement coordinates resolver with coordinates Scalar
+            descriptor.Field("coordinates")
+                .Resolver((ctx) => ctx.Parent<Point>().Coordinates);
+
+            descriptor.Field("crs")
+                .Resolver(() => "urn:ogc:def:crs:OGC::CRS84");
         }
 
-        private List<float> BBoxResolver(IResolverContext context)
+        private IReadOnlyCollection<double> BBoxResolver(IResolverContext context)
         {
-            var point = context.Parent<Point>();
+            var envelope = context.Parent<Point>().EnvelopeInternal;
 
-            // TODO: add logic
-            return new List<float>();
+            return new [] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
         }
     }
 }
