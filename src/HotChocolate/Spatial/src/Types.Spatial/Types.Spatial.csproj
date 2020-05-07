@@ -5,6 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="GeoAPI" Version="1.7.5" />
     <PackageReference Include="NetTopologySuite" Version="2.0.0" />
   </ItemGroup>
 
