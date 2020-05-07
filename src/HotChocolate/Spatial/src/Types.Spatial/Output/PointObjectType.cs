@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
+using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
 {
@@ -9,18 +12,23 @@ namespace Types.Spatial.Output
         {
             descriptor.BindFieldsExplicitly();
 
-            descriptor.Field(p => p.X)
-                .Name("x")
-                .Description("X or Longitude");
+            descriptor.Implements<GeoJSONInterface>();
 
-            descriptor.Field(p => p.Y)
-                .Name("y")
-                .Description("Y or Latitude");
+            descriptor.Field("type")
+                .Resolver(() => GeoJSONGeometryType.Point);
 
-            descriptor.Field(p => p.SRID)
-                .Name("srid")
-                .Description(
-                    "Spatial Reference System Identifier. e.g. latitude/longitude (WGS84): 4326, web mercator: 3867");
+            descriptor.Field("bbox")
+                .Resolver(BBoxResolver);
+
+            // TODO: implement coordinates resolver with coordinates Scalar
+        }
+
+        private List<float> BBoxResolver(IResolverContext context)
+        {
+            var point = context.Parent<Point>();
+
+            // TODO: add logic
+            return new List<float>();
         }
     }
 }

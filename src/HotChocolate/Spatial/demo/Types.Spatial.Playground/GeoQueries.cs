@@ -6,7 +6,7 @@ namespace Types.Spatial.Playground
     [ExtendObjectType(Name = "Query")]
     public class GeoQueries
     {
-        public double GetPointX(Point point)
+        /*public double GetPointX(Point point)
         {
             return point.X;
         }
@@ -29,6 +29,11 @@ namespace Types.Spatial.Playground
         public Point GetPointRaw(Point point)
         {
             return point;
+        }*/
+
+        public Point GetPointRaw()
+        {
+            return new Point(1.1, 2.1);
         }
     }
 }
