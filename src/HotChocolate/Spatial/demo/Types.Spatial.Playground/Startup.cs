@@ -16,16 +16,7 @@ namespace Types.Spatial.Playground
         {
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
-                /*.AddDocumentFromFile("schema.graphql")
-                .ModifyOptions(x => x.RemoveUnreachableTypes = false)
-                .ModifyOptions(x => x.StrictValidation = false)
-                .Use(next => context =>
-                {
-                    context.Result = "";
-                    return next(context);
-                })*/
-                //.AddType<GeoQueries>()
-                // .AddType<GeoMutations>()
+                .AddQueryType(d => d.Name("Query"))
                 .AddSpatialTypes()
                 .AddType<GeoQueries>()
                 .Create());
