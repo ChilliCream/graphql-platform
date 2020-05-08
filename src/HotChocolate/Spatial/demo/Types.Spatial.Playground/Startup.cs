@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Types.Spatial.Output;
 
 namespace Types.Spatial.Playground
 {
@@ -19,6 +20,8 @@ namespace Types.Spatial.Playground
                 .AddQueryType(d => d.Name("Query"))
                 .AddSpatialTypes()
                 .AddType<GeoQueries>()
+                .AddType<PointObjectExtensionType>()
+                .AddType<GeoJSONInterfaceCrsExtension>()
                 .Create());
         }
 
