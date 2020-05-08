@@ -67,9 +67,21 @@ union AnnotatedUnionTwo @onUnion = | A | B
 
 union UndefinedUnion
 
+inputunion FeedInput = Story | Article | Advert
+
+inputunion AnnotatedUnionInput @onUnion = A | B
+
+inputunion AnnotatedUnionTwoInput @onUnion = | A | B
+
+inputunion UndefinedUnionInput
+
 extend union Feed = Photo | Video
 
 extend union Feed @onUnion
+
+extend inputunion FeedInput = Photo | Video
+
+extend inputunion FeedInput @onUnion
 
 scalar CustomScalar
 

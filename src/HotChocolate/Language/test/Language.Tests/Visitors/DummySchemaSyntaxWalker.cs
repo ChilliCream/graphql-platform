@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -9,7 +9,7 @@ namespace HotChocolate.Language
 
         public DummySchemaSyntaxWalker() { }
 
-        public bool VisitedAllNodes => _visited.Count == 17;
+        public bool VisitedAllNodes => _visited.Count == 23;
 
         protected override void VisitSchemaDefinition(
             SchemaDefinitionNode node,
@@ -145,6 +145,22 @@ namespace HotChocolate.Language
         {
             _visited.Add(nameof(VisitEnumTypeExtension));
             base.VisitEnumTypeExtension(node, context);
+        }
+
+        protected override void VisitInputUnionTypeExtension(
+            InputUnionTypeExtensionNode node,
+            object context)
+        {
+            _visited.Add(nameof(VisitInputUnionTypeExtension));
+            base.VisitInputUnionTypeExtension(node, context);
+        }
+
+        protected override void VisitInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            object context)
+        {
+            _visited.Add(nameof(VisitInputUnionTypeDefinition));
+            base.VisitInputUnionTypeDefinition(node, context);
         }
     }
 }
