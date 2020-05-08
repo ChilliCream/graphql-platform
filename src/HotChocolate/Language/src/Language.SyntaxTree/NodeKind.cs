@@ -44,6 +44,8 @@ namespace HotChocolate.Language
         EnumTypeExtension,
         InputObjectTypeExtension,
         DirectiveDefinition,
-        FloatValue
+        FloatValue,
+        InputUnionTypeDefinition,
+        InputUnionTypeExtension
     }
 }

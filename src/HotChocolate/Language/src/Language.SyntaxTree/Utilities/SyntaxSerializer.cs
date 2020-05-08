@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Utilities
 {
     public sealed partial class SyntaxSerializer
@@ -93,6 +91,9 @@ namespace HotChocolate.Language.Utilities
                 case NodeKind.UnionTypeDefinition:
                     VisitUnionTypeDefinition((UnionTypeDefinitionNode)node, writer);
                     break;
+                case NodeKind.InputUnionTypeDefinition:
+                    VisitInputUnionTypeDefinition((InputUnionTypeDefinitionNode)node, writer);
+                    break;
                 case NodeKind.EnumTypeDefinition:
                     VisitEnumTypeDefinition((EnumTypeDefinitionNode)node, writer);
                     break;
@@ -119,6 +120,9 @@ namespace HotChocolate.Language.Utilities
                     break;
                 case NodeKind.UnionTypeExtension:
                     VisitUnionTypeExtension((UnionTypeExtensionNode)node, writer);
+                    break;
+                case NodeKind.InputUnionTypeExtension:
+                    VisitInputUnionTypeExtension((InputUnionTypeExtensionNode)node, writer);
                     break;
                 case NodeKind.EnumTypeExtension:
                     VisitEnumTypeExtension((EnumTypeExtensionNode)node, writer);
@@ -186,6 +190,9 @@ namespace HotChocolate.Language.Utilities
                 case NodeKind.UnionTypeDefinition:
                     VisitUnionTypeDefinition((UnionTypeDefinitionNode)node, writer);
                     break;
+                case NodeKind.InputUnionTypeDefinition:
+                    VisitInputUnionTypeDefinition((InputUnionTypeDefinitionNode)node, writer);
+                    break;
                 case NodeKind.EnumTypeDefinition:
                     VisitEnumTypeDefinition((EnumTypeDefinitionNode)node, writer);
                     break;
@@ -203,6 +210,9 @@ namespace HotChocolate.Language.Utilities
                     break;
                 case NodeKind.UnionTypeExtension:
                     VisitUnionTypeExtension((UnionTypeExtensionNode)node, writer);
+                    break;
+                case NodeKind.InputUnionTypeExtension:
+                    VisitInputUnionTypeExtension((InputUnionTypeExtensionNode)node, writer);
                     break;
                 case NodeKind.EnumTypeExtension:
                     VisitEnumTypeExtension((EnumTypeExtensionNode)node, writer);

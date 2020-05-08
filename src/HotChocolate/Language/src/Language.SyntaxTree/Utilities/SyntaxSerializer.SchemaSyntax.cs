@@ -164,6 +164,42 @@ namespace HotChocolate.Language.Utilities
                 " | ");
         }
 
+        private void VisitInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            ISyntaxWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+            VisitInputUnionTypeDefinitionBase(node, writer);
+        }
+
+        private void VisitInputUnionTypeExtension(
+            InputUnionTypeExtensionNode node,
+            ISyntaxWriter writer)
+        {
+            writer.Write(Keywords.Extend);
+            writer.WriteSpace();
+            VisitInputUnionTypeDefinitionBase(node, writer);
+        }
+
+        private void VisitInputUnionTypeDefinitionBase(
+            InputUnionTypeDefinitionNodeBase node,
+            ISyntaxWriter writer)
+        {
+            writer.Write(Keywords.InputUnion);
+            writer.WriteSpace();
+            writer.WriteName(node.Name);
+
+            WriteDirectives(node.Directives, writer);
+
+            writer.WriteSpace();
+            writer.Write('=');
+            writer.WriteSpace();
+
+            writer.WriteMany(node.Types,
+                (n, w) => writer.WriteNamedType(n),
+                " | ");
+        }
+
         private void VisitEnumTypeDefinition(
             EnumTypeDefinitionNode node,
             ISyntaxWriter writer)

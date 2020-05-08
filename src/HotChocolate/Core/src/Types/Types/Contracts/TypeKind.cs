@@ -37,6 +37,8 @@ namespace HotChocolate.Types
         NonNull = 64,
 
 
-        Directive = 128
+        Directive = 128,
+
+        InputUnion = 256
     }
 }

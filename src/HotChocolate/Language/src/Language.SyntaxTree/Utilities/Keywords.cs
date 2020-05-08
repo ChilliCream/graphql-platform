@@ -9,6 +9,7 @@ namespace HotChocolate.Language.Utilities
         public const string Union = "union";
         public const string Enum = "enum";
         public const string Input = "input";
+        public const string InputUnion = "inputunion";
         public const string Extend = "extend";
         public const string Directive = "directive";
         public const string Implements = "implements";
