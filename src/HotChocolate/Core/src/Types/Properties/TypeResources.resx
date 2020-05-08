@@ -608,4 +608,7 @@ Type: `{0}`</value>
   <data name="InputUnionType_MustHaveTypes" xml:space="preserve">
     <value>A input union type must define one or more unique member types.</value>
   </data>
+  <data name="InputUnionTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The input union type extension can only be merged with an input union type.</value>
+  </data>
 </root>

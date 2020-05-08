@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -178,6 +178,7 @@ namespace HotChocolate.Utilities
                 || typeof(InterfaceType).IsAssignableFrom(type)
                 || typeof(EnumType).IsAssignableFrom(type)
                 || typeof(UnionType).IsAssignableFrom(type)
+                || typeof(InputUnionType).IsAssignableFrom(type)
                 || typeof(InputObjectType).IsAssignableFrom(type)
                 || type.IsGenericType
                 && (typeof(ListType<>) == type.GetGenericTypeDefinition()

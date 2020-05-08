@@ -657,6 +657,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input union type extension can only be merged with an input union type..
+        /// </summary>
+        internal static string InputUnionTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("InputUnionTypeExtension_CannotMerge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A GraphQL-formatted string representing the default value for this input value..
         /// </summary>
         internal static string InputValue_DefaultValue {
