@@ -210,6 +210,9 @@ namespace HotChocolate
                 case UnionType type:
                     return SerializeUnionType(type, referenced);
 
+                case InputUnionType type:
+                    return SerializeInputUnionType(type, referenced);
+
                 case EnumType type:
                     return SerializeEnumType(type, referenced);
 
@@ -304,6 +307,28 @@ namespace HotChocolate
                 .ToList();
 
             return new UnionTypeDefinitionNode
+            (
+                null,
+                new NameNode(unionType.Name),
+                SerializeDescription(unionType.Description),
+                directives,
+                types
+            );
+        }
+
+        private static InputUnionTypeDefinitionNode SerializeInputUnionType(
+            InputUnionType unionType,
+            ReferencedTypes referenced)
+        {
+            var directives = unionType.Directives
+                .Select(t => SerializeDirective(t, referenced))
+                .ToList();
+
+            var types = unionType.Types.Values
+                .Select(t => SerializeNamedType(t, referenced))
+                .ToList();
+
+            return new InputUnionTypeDefinitionNode
             (
                 null,
                 new NameNode(unionType.Name),

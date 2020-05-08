@@ -598,5 +598,50 @@ namespace HotChocolate
 
             return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
         }
+
+        public static ISchemaBuilder AddInputUnionType(
+           this ISchemaBuilder builder,
+           Action<IInputUnionTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new InputUnionType(configure));
+        }
+
+        public static ISchemaBuilder AddInputUnionType<T>(
+            this ISchemaBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddType(new InputUnionType<T>());
+        }
+
+        public static ISchemaBuilder AddInputUnionType<T>(
+            this ISchemaBuilder builder,
+            Action<IInputUnionTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new InputUnionType<T>(configure));
+        }
     }
 }

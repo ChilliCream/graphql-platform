@@ -25,6 +25,12 @@ namespace HotChocolate.Configuration
                     .MakeGenericType(unresolvedType.Type),
                     TypeContext.Output);
             }
+            else if (IsInputUnionType(unresolvedType))
+            {
+                schemaType = new ClrTypeReference(typeof(InputUnionType<>)
+                    .MakeGenericType(unresolvedType.Type),
+                    TypeContext.Input);
+            }
             else if (IsInterfaceType(unresolvedType))
             {
                 schemaType = new ClrTypeReference(typeof(InterfaceType<>)
@@ -72,6 +78,13 @@ namespace HotChocolate.Configuration
         {
             return unresolvedType.Type.IsDefined(typeof(UnionTypeAttribute), true)
                 && (unresolvedType.Context == TypeContext.Output
+                    || unresolvedType.Context == TypeContext.None);
+        }
+
+        private static bool IsInputUnionType(IClrTypeReference unresolvedType)
+        {
+            return unresolvedType.Type.IsDefined(typeof(InputUnionTypeAttribute), true)
+                && (unresolvedType.Context == TypeContext.Input
                     || unresolvedType.Context == TypeContext.None);
         }
 
