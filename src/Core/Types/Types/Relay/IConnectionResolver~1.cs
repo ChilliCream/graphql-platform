@@ -2,9 +2,11 @@
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
+#nullable enable
+
 namespace HotChocolate.Types.Relay
 {
-    public interface IConnectionResolver
+    public interface IConnectionResolver<T> : IConnectionResolver
     {
         /// <summary>
         /// Resolves a connection for a pageable data source.
@@ -21,7 +23,7 @@ namespace HotChocolate.Types.Relay
         /// </returns>
         Task<IConnection> ResolveAsync(
             IMiddlewareContext context,
-            object source,
+            T source,
             int? first,
             int? last,
             string? after,

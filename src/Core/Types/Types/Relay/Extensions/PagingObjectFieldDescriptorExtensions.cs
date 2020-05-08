@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Relay
             return descriptor
                 .AddPagingArguments()
                 .Type<ConnectionWithCountType<TSchemaType>>()
-                .Use<QueryableConnectionMiddleware<TClrType>>();
+                .Use<ConnectionMiddleware<TClrType>>();
         }
 
         public static IObjectFieldDescriptor UsePaging<TSchemaType>(
@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Relay
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(QueryableConnectionMiddleware<>);
+            Type middlewareDefinition = typeof(ConnectionMiddleware<>);
 
             descriptor
                 .AddPagingArguments()

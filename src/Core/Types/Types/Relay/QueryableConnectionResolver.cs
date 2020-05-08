@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Relay
 {
     public class QueryableConnectionResolver<T>
-        : IConnectionResolver
+        : IConnectionResolver<IQueryable<T>>
     {
         private const string _totalCount = "__totalCount";
         private const string _position = "__position";
@@ -37,6 +37,22 @@ namespace HotChocolate.Types.Relay
 
             _properties = pagingDetails.Properties
                 ?? new Dictionary<string, object>();
+        }
+
+        public Task<IConnection> ResolveAsync(
+            IQueryable<T> source, 
+            int first, 
+            int last, 
+            string after, 
+            string before, 
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IConnection> ResolveAsync(object source, int first, int last, string after, string before, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<Connection<T>> ResolveAsync(
@@ -229,6 +245,8 @@ namespace HotChocolate.Types.Relay
             return properties;
         }
 
+        
+
         protected class QueryablePagingDetails
         {
             public long? TotalCount { get; set; }
@@ -238,8 +256,7 @@ namespace HotChocolate.Types.Relay
             public int? Last { get; set; }
         }
 
-        protected class QueryableEdge
-            : Edge<T>
+        protected class QueryableEdge : Edge<T>
         {
             public QueryableEdge(string cursor, T node, int index)
                 : base(cursor, node)
