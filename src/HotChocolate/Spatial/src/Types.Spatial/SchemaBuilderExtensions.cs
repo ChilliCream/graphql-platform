@@ -15,6 +15,10 @@ namespace Types.Spatial
                 .AddType<GeoJSONGeometryType>()
                 .AddType<GeoJSONPointObjectType>()
                 .AddType<GeoJSONMultiPointObjectType>()
+                .AddType<GeoJSONLineStringObjectType>()
+                .AddType<GeoJSONMultiLineStringObjectType>()
+                .AddType<GeoJSONPolygonObjectType>()
+                .AddType<GeoJSONMultiPolygonObjectType>()
                 .AddType<GeoJSONCoordinateReferenceSystemObjectType>()
                 .BindClrType<Coordinate, GeoJSONPositionScalar>();
         }
@@ -25,6 +29,10 @@ namespace Types.Spatial
                 .BindClrType<GeoJSONCoordinateReferenceSystem, GeoJSONCoordinateReferenceSystemScalar>()
                 .AddType<GeoJSONPointObjectExtensionType>()
                 .AddType<GeoJSONMultiPointObjectExtensionType>()
+                .AddType<GeoJSONLineStringObjectExtensionType>()
+                .AddType<GeoJSONMultiLineStringObjectExtensionType>()
+                .AddType<GeoJSONPolygonObjectExtensionType>()
+                .AddType<GeoJSONMultiPolygonObjectExtensionType>()
                 .AddType<GeoJSONInterfaceCrsExtension>();
         }
     }

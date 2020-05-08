@@ -21,9 +21,9 @@ namespace Types.Spatial.Output
 
         internal class Resolver
         {
-            public IReadOnlyCollection<double> GetBbox([Parent] Point point)
+            public IReadOnlyCollection<double> GetBbox([Parent] Point geometry)
             {
-                var envelope = point.EnvelopeInternal;
+                var envelope = geometry.EnvelopeInternal;
 
                 // TODO: support Z
                 return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };

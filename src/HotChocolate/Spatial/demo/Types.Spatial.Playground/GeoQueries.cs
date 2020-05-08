@@ -20,5 +20,46 @@ namespace Types.Spatial.Playground
         {
             return new MultiPoint(new [] { new Point(1.1, 2.1), new Point(3.1, 5.1) });
         }
+
+        public LineString GetRawLineString()
+        {
+            return new LineString(new[] { new Coordinate(1.1, 2.1), new Coordinate(3.1, 5.1) });
+        }
+
+        public MultiLineString GetRawMultiLineString()
+        {
+            return new MultiLineString(new [] {
+                new LineString(new[] { new Coordinate(1.1, 2.1), new Coordinate(3.1, 5.1) }),
+                new LineString(new[] { new Coordinate(7.1, 2.1), new Coordinate(3.1, 7.1) })
+            });
+        }
+
+        public Polygon GetRawPolygon()
+        {
+            return new Polygon(new LinearRing(new[] {
+                new Coordinate(1.1, 2.1),
+                new Coordinate(3.1, 5.1),
+                new Coordinate(5.1, 7.1),
+                new Coordinate(1.1, 2.1)
+            }));
+        }
+
+        public MultiPolygon GetRawMultiPolygon()
+        {
+            return new MultiPolygon(new[] {
+                new Polygon(new LinearRing(new[] {
+                    new Coordinate(1.1, 2.1),
+                    new Coordinate(3.1, 5.1),
+                    new Coordinate(5.1, 7.1),
+                    new Coordinate(1.1, 2.1)
+                })),
+                new Polygon(new LinearRing(new[] {
+                    new Coordinate(5.1, 6.1),
+                    new Coordinate(8.1, 9.1),
+                    new Coordinate(10.1, 11.1),
+                    new Coordinate(5.1, 6.1)
+                }))
+            });
+        }
     }
 }
