@@ -14,6 +14,8 @@ namespace Types.Spatial
                 .AddType<GeoJSONInterface>()
                 .AddType<GeoJSONGeometryType>()
                 .AddType<GeoJSONPointObjectType>()
+                .AddType<GeoJSONMultiPointObjectType>()
+                .AddType<GeoJSONCoordinateReferenceSystemObjectType>()
                 .BindClrType<Coordinate, GeoJSONPositionScalar>();
         }
 
