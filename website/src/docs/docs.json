@@ -21,6 +21,10 @@
             "title": "API Reference"
           },
           {
+            "path": "batching-and-caching",
+            "title": "Batching & Caching"
+          },
+          {
             "path": "filtering",
             "title": "Filtering"
           }
