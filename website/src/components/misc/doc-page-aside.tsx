@@ -1,5 +1,9 @@
-import React, { FunctionComponent } from "react";
-import styled from "styled-components";
+import React, { FunctionComponent, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { State } from "../../state";
+import { toggleAside } from "../../state/common";
+import { Aside, BodyStyle, FixedContainer } from "./doc-page-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 import { useStickyElement } from "./useStickyElement";
 
 export const DocPageAside: FunctionComponent = ({ children }) => {
@@ -7,30 +11,26 @@ export const DocPageAside: FunctionComponent = ({ children }) => {
     HTMLElement,
     HTMLDivElement
   >(1300);
+  const showAside = useSelector<State, boolean>(
+    (state) => state.common.showAside
+  );
+  const dispatch = useDispatch();
+
+  const handleCloseAside = useCallback(() => {
+    dispatch(toggleAside());
+  }, []);
 
   return (
     <Aside ref={containerRef}>
-      <FixedContainer ref={elementRef}>{children}</FixedContainer>
+      <BodyStyle disableScrolling={showAside} />
+      <FixedContainer ref={elementRef} className={showAside ? "show" : ""}>
+        <DocPagePaneHeader
+          title="In this article"
+          showWhenScreenWidthIsSmallerThan={1300}
+          onClose={handleCloseAside}
+        />
+        {children}
+      </FixedContainer>
     </Aside>
   );
 };
-
-const Aside = styled.aside`
-  display: none;
-  flex: 0 0 250px;
-  flex-direction: column;
-
-  * {
-    user-select: none;
-  }
-
-  @media only screen and (min-width: 1300px) {
-    display: flex;
-  }
-`;
-
-const FixedContainer = styled.div`
-  position: fixed;
-  padding: 25px 0;
-  width: 250px;
-`;

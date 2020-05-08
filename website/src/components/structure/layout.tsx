@@ -4,6 +4,7 @@ import { GlobalStyle } from "../misc/global-style";
 import { Footer } from "./footer";
 import { Header } from "./header";
 import { CookieConsent } from "../misc/cookie-consent";
+import { PageTop } from "../misc/page-top";
 
 export const Layout: FunctionComponent = ({ children }) => {
   return (
@@ -12,6 +13,7 @@ export const Layout: FunctionComponent = ({ children }) => {
       <Header />
       <Content>{children}</Content>
       <Footer />
+      <PageTop />
       <CookieConsent />
     </>
   );

@@ -3,7 +3,11 @@ import { CommonState, initialState } from "./common.state";
 import {
   changeSearchQuery,
   hideCookieConsent,
+  hideLegacyDocHeader,
   showCookieConsent,
+  showLegacyDocInfo,
+  toggleAside,
+  toggleTOC,
   toggleNavigationGroup,
 } from "./common.actions";
 
@@ -22,9 +26,31 @@ export const commonReducer = createReducer<CommonState>(
     showCookieConsent: false,
   })),
 
+  onAction(hideLegacyDocHeader, (state) => ({
+    ...state,
+    showLegacyDocInfo: false,
+  })),
+
   onAction(showCookieConsent, (state) => ({
     ...state,
     showCookieConsent: true,
+  })),
+
+  onAction(showLegacyDocInfo, (state) => ({
+    ...state,
+    showLegacyDocInfo: true,
+  })),
+
+  onAction(toggleAside, (state) => ({
+    ...state,
+    showAside: !state.showAside,
+    showTOC: false,
+  })),
+
+  onAction(toggleTOC, (state) => ({
+    ...state,
+    showAside: false,
+    showTOC: !state.showTOC,
   })),
 
   onAction(toggleNavigationGroup, (state, { path }) => {

@@ -1,13 +1,13 @@
 import { graphql } from "gatsby";
 import React, { FunctionComponent, useEffect } from "react";
 import styled from "styled-components";
-import { ArticleTableOfContentFragment } from "../../../graphql-types";
+import { ArticleSectionsFragment } from "../../../graphql-types";
 
-interface ArticleTableOfContentProperties {
-  data: ArticleTableOfContentFragment;
+interface ArticleSectionsProperties {
+  data: ArticleSectionsFragment;
 }
 
-export const ArticleTableOfContent: FunctionComponent<ArticleTableOfContentProperties> = ({
+export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   data,
 }) => {
   useEffect(() => {
@@ -65,7 +65,7 @@ export const ArticleTableOfContent: FunctionComponent<ArticleTableOfContentPrope
 
   return data.tableOfContents!.length > 0 ? (
     <Container>
-      <Title>Table of Contents</Title>
+      <Title>In this article</Title>
       <Content
         dangerouslySetInnerHTML={{
           __html: data.tableOfContents!.replace(
@@ -80,8 +80,8 @@ export const ArticleTableOfContent: FunctionComponent<ArticleTableOfContentPrope
   );
 };
 
-export const ArticleTableOfContentGraphQLFragment = graphql`
-  fragment ArticleTableOfContent on MarkdownRemark {
+export const ArticleSectionsGraphQLFragment = graphql`
+  fragment ArticleSections on MarkdownRemark {
     tableOfContents(maxDepth: 1)
   }
 `;
@@ -91,8 +91,12 @@ const Container = styled.section`
 `;
 
 const Title = styled.h6`
-  padding: 0 20px 5px;
+  padding: 0 25px 5px;
   font-size: 0.833em;
+
+  @media only screen and (min-width: 1300px) {
+    padding: 0 20px 5px;
+  }
 `;
 
 const Content = styled.div`
@@ -100,7 +104,7 @@ const Content = styled.div`
     display: flex;
     flex-direction: column;
     margin: 0;
-    padding: 0 20px;
+    padding: 0 25px;
     list-style-type: none;
 
     > li {
@@ -121,6 +125,10 @@ const Content = styled.div`
           color: #000;
         }
       }
+    }
+
+    @media only screen and (min-width: 1300px) {
+      padding: 0 20px;
     }
   }
 `;
