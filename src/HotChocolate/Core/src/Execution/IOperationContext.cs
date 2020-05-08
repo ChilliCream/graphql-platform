@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -63,6 +64,7 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; }
 
+        // TODO : documentation -> remember this are the raw collected fields without visibility
         IReadOnlyList<IPreparedSelection> CollectFields(
             SelectionSetNode selectionSet,
             ObjectType objectType);
@@ -83,11 +85,23 @@ namespace HotChocolate.Execution
         /// <value></value>
         ITypeConversion Converter { get; }
 
+        ITaskQueue TaskQueue { get; }
+
+        IBatchScheduler BatchScheduler { get; }
+
+        INonNullViolationTracker NonNullViolations { get; }
+
         /// <summary>
         /// Adds an error thread-safe to the result object.
         /// </summary>
         /// <param name="error">The error that shall be added.</param>
-        void AddError(IError error);
+        void AddError(IError error, FieldNode? selection = null);
+
+        /// <summary>
+        /// Adds a errors thread-safe to the result object.
+        /// </summary>
+        /// <param name="error">The error that shall be added.</param>
+        void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
 
         /// <summary>
         /// Rewrites the value literals and replaces the variables.
@@ -103,15 +117,20 @@ namespace HotChocolate.Execution
         /// </returns>
         IValueNode ReplaceVariables(IValueNode value, IType type);
 
-        IMiddlewareContext RentMiddlewareContext(
+        void EnqueueResolverTask(
             IPreparedSelection selection,
+            int responseIndex,
+            ResultMap resultMap,
             object? parent,
-            IImmutableStack<object?> source,
             Path path,
             IImmutableDictionary<string, object?> scopedContextData);
 
         ResultMapList RentResultMapList();
 
         ResultMap RentResultMap(int count);
+
+        Task WaitForEngine();
+
+        bool IsCompleted { get; }
     }
 }

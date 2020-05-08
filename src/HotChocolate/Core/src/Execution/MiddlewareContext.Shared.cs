@@ -12,15 +12,17 @@ namespace HotChocolate.Execution
         public void Initialize(
             IOperationContext operationContext, 
             IPreparedSelection selection,
+            ResultMap resultMap,
+            int responseIndex,
             object? parent, 
-            IImmutableStack<object?> source,
             Path path,
             IImmutableDictionary<string, object?> scopedContextData)
         {
             _operationContext = operationContext;
             _selection = selection;
+            ResultMap = resultMap;
+            ResponseIndex = responseIndex;
             _parent = parent;
-            Source = source;
             Path = path;
             ScopedContextData = scopedContextData;
         }
@@ -33,11 +35,13 @@ namespace HotChocolate.Execution
             _resolverResult = default;
             _result = default;
 
-            Source = default!;
             Path = default!;
             ScopedContextData = default!;
             LocalContextData = _emptyContext;
             IsResultModified = false;
+            ValueType = null;
+            ResponseIndex = default;
+            ResultMap = default!;
         }
     }
 }

@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
-using System.Linq;
-using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution
 {
@@ -58,7 +54,7 @@ namespace HotChocolate.Execution
         {
             try
             {
-                return _operationContext.CollectFields(selectionSet, typeContext);
+                IPreparedSelectionList fields = _operationContext.CollectFields(selectionSet, typeContext);
             }
             catch (GraphQLException ex)
             {
@@ -117,7 +113,7 @@ namespace HotChocolate.Execution
 
             _operationContext.AddError(_operationContext.ErrorHandler.Handle(error));
         }
-        
+
         public async Task<T> ResolveAsync<T>()
         {
             if (_resolverResult is null)

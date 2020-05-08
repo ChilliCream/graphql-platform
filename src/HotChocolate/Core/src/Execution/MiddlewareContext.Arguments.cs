@@ -1,8 +1,8 @@
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
