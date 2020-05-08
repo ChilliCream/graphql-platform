@@ -80,6 +80,9 @@ namespace HotChocolate.Language
                 case UnionTypeDefinitionNode value:
                     return RewriteUnionTypeDefinition(value, context);
 
+                case InputUnionTypeDefinitionNode value:
+                    return RewriteInputUnionTypeDefinition(value, context);
+
                 case EnumTypeDefinitionNode value:
                     return RewriteEnumTypeDefinition(value, context);
 
@@ -114,6 +117,9 @@ namespace HotChocolate.Language
 
                 case InputObjectTypeExtensionNode value:
                     return RewriteInputObjectTypeExtension(value, context);
+
+                case InputUnionTypeExtensionNode value:
+                    return RewriteInputUnionTypeExtension(value, context);
 
                 default:
                     throw new NotSupportedException();
@@ -421,6 +427,45 @@ namespace HotChocolate.Language
             TContext context)
         {
             UnionTypeExtensionNode current = node;
+
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
+
+            current = Rewrite(current, current.Name, context,
+                RewriteName, current.WithName);
+
+            current = RewriteMany(current, current.Types, context,
+                RewriteNamedType, current.WithTypes);
+
+            return current;
+        }
+
+        protected virtual InputUnionTypeDefinitionNode RewriteInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            TContext context)
+        {
+            InputUnionTypeDefinitionNode current = node;
+
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
+
+            current = Rewrite(current, current.Name, context,
+                RewriteName, current.WithName);
+
+            current = Rewrite(current, current.Description, context,
+                RewriteStringValue, current.WithDescription);
+
+            current = RewriteMany(current, current.Types, context,
+                RewriteNamedType, current.WithTypes);
+
+            return current;
+        }
+
+        protected virtual InputUnionTypeExtensionNode RewriteInputUnionTypeExtension(
+            InputUnionTypeExtensionNode node,
+            TContext context)
+        {
+            InputUnionTypeExtensionNode current = node;
 
             current = RewriteDirectives(current, current.Directives,
                 context, current.WithDirectives);
