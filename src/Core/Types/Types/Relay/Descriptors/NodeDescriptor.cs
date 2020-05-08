@@ -35,12 +35,10 @@ namespace HotChocolate.Types.Relay.Descriptors
                 .Extend()
                 .OnBeforeCreate(c =>
                 {
-                    c.ContextData[RelayConstants.NodeResolverFactory] =
-                        nodeResolverFactory;
+                    c.ContextData[RelayConstants.NodeResolverFactory] = nodeResolverFactory;
                 });
 
-            return _typeDescriptor.Field("id")
-                .Type<NonNullType<IdType>>();
+            return _typeDescriptor.Field("id").Type<NonNullType<IdType>>();
         }
     }
 }
