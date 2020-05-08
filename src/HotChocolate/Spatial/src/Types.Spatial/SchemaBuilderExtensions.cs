@@ -16,5 +16,13 @@ namespace Types.Spatial
                 .AddType<PointObjectType>()
                 .BindClrType<Coordinate, GeoJSONPositionScalar>();
         }
+
+        public static ISchemaBuilder AddCRSTypes(this ISchemaBuilder builder)
+        {
+            return builder
+                .AddType<GeoJSONPointObjectExtensionType>()
+                .AddType<GeoJSONMultiPointObjectExtensionType>()
+                .AddType<GeoJSONInterfaceCrsExtension>();
+        }
     }
 }

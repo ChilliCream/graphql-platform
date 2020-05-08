@@ -18,10 +18,9 @@ namespace Types.Spatial.Playground
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
                 .AddQueryType(d => d.Name("Query"))
-                .AddSpatialTypes()
                 .AddType<GeoQueries>()
-                .AddType<PointObjectExtensionType>()
-                .AddType<GeoJSONInterfaceCrsExtension>()
+                .AddSpatialTypes()
+                .AddCRSTypes()
                 .Create());
         }
 
