@@ -105,9 +105,13 @@ namespace HotChocolate.Execution
 
         IMiddlewareContext RentMiddlewareContext(
             IPreparedSelection selection,
-            object? parent, 
+            object? parent,
             IImmutableStack<object?> source,
             Path path,
             IImmutableDictionary<string, object?> scopedContextData);
+
+        ResultMapList RentResultMapList();
+
+        ResultMap RentResultMap(int count);
     }
 }
