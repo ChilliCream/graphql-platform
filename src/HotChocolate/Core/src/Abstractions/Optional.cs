@@ -22,6 +22,12 @@ namespace HotChocolate
             HasValue = true;
         }
 
+        internal Optional(T value, bool hasValue)
+        {
+            Value = value;
+            HasValue = hasValue;
+        }
+
         /// <summary>
         /// The name value.
         /// </summary>

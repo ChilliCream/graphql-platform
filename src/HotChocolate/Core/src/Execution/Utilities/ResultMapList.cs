@@ -7,5 +7,10 @@ namespace HotChocolate.Execution
         , IResultMapList
     {
         public IResultData? Parent { get; set; }
+
+        /// <summary>
+        /// Specifies that the elements of this list are nullable.
+        /// </summary>
+        public bool Nullable { get; set; }
     }
 }

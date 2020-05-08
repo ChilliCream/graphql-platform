@@ -2,19 +2,19 @@
   {
     "Message": "The specified value type of variable `search` does not match the variable type.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 2,
         "Column": 71
       }
     ],
-    "Exception": null,
     "Extensions": {
       "variable": "search",
       "variableType": "ComplexInput",
       "locationType": "ComplexInput",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+    },
+    "Exception": null
   }
 ]

@@ -153,17 +153,19 @@ namespace HotChocolate.Execution
             writer.WriteEndObject();
         }
 
-        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object> path)
+        private static void WritePath(Utf8JsonWriter writer, Path path)
         {
-            if (path is { } && path.Count > 0)
+            if (path is { })
             {
                 writer.WritePropertyName(_path);
 
                 writer.WriteStartArray();
 
-                for (int i = 0; i < path.Count; i++)
+                IReadOnlyList<object> list = path.ToList();
+
+                for (var i = 0; i < list.Count; i++)
                 {
-                    switch (path[i])
+                    switch (list[i])
                     {
                         case NameString n:
                             writer.WriteStringValue(n.Value);

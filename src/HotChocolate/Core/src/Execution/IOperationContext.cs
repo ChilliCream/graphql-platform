@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using HotChocolate.Execution.Utilities;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
@@ -28,12 +32,17 @@ namespace HotChocolate.Execution
         /// Gets the operation that is being executed.
         /// </summary>
         /// <value></value>
-        IOperation Operation { get; }
+        IPreparedOperation Operation { get; }
 
         /// <summary>
-        /// Gets the coerced variables.
+        /// Gets the value representing the instance of the
+        /// <see cref="Operation.RootType" />
         /// </summary>
-        /// <value></value>
+        object? RootValue { get; }
+
+        /// <summary>
+        /// Gets the coerced variable values for the current operation.
+        /// </summary>
         IVariableValueCollection Variables { get; }
 
         /// <summary>
@@ -46,7 +55,7 @@ namespace HotChocolate.Execution
         /// The context data dictionary can be used by middlewares and
         /// resolvers to store and retrieve data during execution.
         /// </summary>
-        IDictionary<string, object> ContextData { get; }
+        IDictionary<string, object?> ContextData { get; }
 
         /// <summary>
         /// Gets a cancellation token is used to signal
@@ -54,12 +63,9 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; }
 
-        /*
-        IReadOnlyList<FieldSelection> CollectFields(
-            ObjectType objectType,
+        IReadOnlyList<IPreparedSelection> CollectFields(
             SelectionSetNode selectionSet,
-            Path path);
-            */
+            ObjectType objectType);
 
         /// <summary>
         /// Gets the activator helper class.
@@ -82,5 +88,30 @@ namespace HotChocolate.Execution
         /// </summary>
         /// <param name="error">The error that shall be added.</param>
         void AddError(IError error);
+
+        /// <summary>
+        /// Rewrites the value literals and replaces the variables.
+        /// </summary>
+        /// <param name="value">
+        /// A literal containing variables.
+        /// </param>
+        /// <param name="type">
+        /// The type of which the literal is.
+        /// </param>
+        /// <returns>
+        /// Returns a rewritten literal.
+        /// </returns>
+        IValueNode ReplaceVariables(IValueNode value, IType type);
+
+        IMiddlewareContext RentMiddlewareContext(
+            IPreparedSelection selection,
+            object? parent,
+            IImmutableStack<object?> source,
+            Path path,
+            IImmutableDictionary<string, object?> scopedContextData);
+
+        ResultMapList RentResultMapList();
+
+        ResultMap RentResultMap(int count);
     }
 }

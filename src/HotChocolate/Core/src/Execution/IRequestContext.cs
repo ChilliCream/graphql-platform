@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {
@@ -36,5 +37,15 @@ namespace HotChocolate.Execution
         /// Gets or sets an unexpected execution exception.
         /// </summary>
         Exception Exception { get; set; }
+
+        /// <summary>
+        /// Gets or sets the document validation result.
+        /// </summary>
+        DocumentValidatorResult? ValidationResult { get; set; }
+
+        /// <summary>
+        /// Gets or sets the execution result.
+        /// </summary>
+        IExecutionResult? Result { get; set; }
     }
 }

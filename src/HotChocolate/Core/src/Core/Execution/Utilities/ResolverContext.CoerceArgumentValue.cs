@@ -12,6 +12,8 @@ namespace HotChocolate.Execution
     internal partial class ResolverContext
         : IMiddlewareContext
     {
+        public IServiceProvider Services => throw new NotImplementedException();
+
         public T Argument<T>(NameString name)
         {
             name.EnsureNotEmpty(nameof(name));
@@ -137,6 +139,21 @@ namespace HotChocolate.Execution
 
             converted = default;
             return false;
+        }
+
+        public T ArgumentValue<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T ArgumentLiteral<T>(NameString name) where T : IValueNode
+        {
+            throw new NotImplementedException();
+        }
+
+        public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
         }
     }
 }

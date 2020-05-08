@@ -2,22 +2,29 @@
   {
     "Message": "The variable `intVar` is not compatible with the type of the current location.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "nonNullIntArgField"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Name": "arguments",
+        "Index": null,
+        "Depth": 0
+      },
+      "Name": "nonNullIntArgField",
+      "Index": null,
+      "Depth": 1
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 52
       }
     ],
-    "Exception": null,
     "Extensions": {
       "variable": "intVar",
       "variableType": "Int",
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
-    }
+    },
+    "Exception": null
   }
 ]

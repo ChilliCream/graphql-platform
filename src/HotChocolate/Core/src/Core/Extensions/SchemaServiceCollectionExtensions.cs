@@ -4,6 +4,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Batching;
 using System.Linq;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate

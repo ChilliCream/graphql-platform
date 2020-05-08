@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Errors
 {
     internal class FuncErrorFilterWrapper
         : IErrorFilter
