@@ -9,9 +9,11 @@ namespace Types.Spatial.Output
 {
     /// https://geojson.org/geojson-spec.html#coordinate-reference-system-objects
     // "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::26912" } }
-    public enum CRSType
+
+    public class GeoJSONCoordinateReferenceSystem
     {
-        Name
+        public CRSType Type { get; set; }
+        public CRSProperties? Properties { get; set; }
     }
 
     public class CRSProperties
@@ -19,9 +21,8 @@ namespace Types.Spatial.Output
         public string? Name { get; set; }
     }
 
-    public class CRS
+    public enum CRSType
     {
-        public CRSType Type { get; set; }
-        public CRSProperties? Properties { get; set; }
+        Name
     }
 }
