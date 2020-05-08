@@ -6,22 +6,7 @@ using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
 {
-    public class PointObjectExtensionType : ObjectTypeExtension<Point>
-    {
-        protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field<CrsResolvers>(x => x.GetCrs(default!));
-        }
-    }
-
-    public class CrsResolvers
-    {
-        public string GetCrs([Parent] Geometry geometry)
-            => "urn:ogc:def:crs:OGC::CRS84";
-    }
-
-    public class PointObjectType : ObjectType<Point>
+    public class GeoJSONPointObjectType : ObjectType<Point>
     {
         protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
         {
@@ -40,8 +25,18 @@ namespace Types.Spatial.Output
             {
                 var envelope = point.EnvelopeInternal;
 
+                // TODO: support Z
                 return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
             }
+        }
+    }
+
+    public class GeoJSONPointObjectExtensionType : ObjectTypeExtension<Point>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field<CrsResolvers>(x => x.GetCrs(default!));
         }
     }
 }

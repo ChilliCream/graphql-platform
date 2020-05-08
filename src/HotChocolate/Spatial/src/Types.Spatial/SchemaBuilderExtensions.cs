@@ -13,7 +13,7 @@ namespace Types.Spatial
             return builder
                 .AddType<GeoJSONInterface>()
                 .AddType<GeoJSONGeometryType>()
-                .AddType<PointObjectType>()
+                .AddType<GeoJSONPointObjectType>()
                 .BindClrType<Coordinate, GeoJSONPositionScalar>();
         }
 
