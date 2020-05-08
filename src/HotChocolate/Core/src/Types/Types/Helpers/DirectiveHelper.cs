@@ -30,6 +30,8 @@ namespace HotChocolate.Types
                     return DirectiveLocation.InputFieldDefinition;
                 case Argument argument:
                     return DirectiveLocation.ArgumentDefinition;
+                case InputUnionType inputUnion:
+                    return DirectiveLocation.InputUnion;
                 default:
                     throw new NotSupportedException();
             }
