@@ -9,7 +9,7 @@ namespace HotChocolate.Language
 
         public DummySchemaSyntaxWalker() { }
 
-        public bool VisitedAllNodes => _visited.Count == 23;
+        public bool VisitedAllNodes => _visited.Count == 19;
 
         protected override void VisitSchemaDefinition(
             SchemaDefinitionNode node,

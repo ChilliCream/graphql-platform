@@ -75,6 +75,8 @@ namespace HotChocolate.Language.Visitors
                     return Leave((EnumValueDefinitionNode)node, context);
                 case NodeKind.InputObjectTypeDefinition:
                     return Leave((InputObjectTypeDefinitionNode)node, context);
+                case NodeKind.InputUnionTypeDefinition:
+                    return Leave((InputUnionTypeDefinitionNode)node, context);
                 case NodeKind.DirectiveDefinition:
                     return Leave((DirectiveDefinitionNode)node, context);
                 case NodeKind.SchemaExtension:
@@ -91,6 +93,8 @@ namespace HotChocolate.Language.Visitors
                     return Leave((EnumTypeExtensionNode)node, context);
                 case NodeKind.InputObjectTypeExtension:
                     return Leave((InputObjectTypeExtensionNode)node, context);
+                case NodeKind.InputUnionTypeExtension:
+                    return Leave((InputUnionTypeExtensionNode)node, context);
                 default:
                     throw new NotSupportedException(node.GetType().FullName);
             }
@@ -282,6 +286,16 @@ namespace HotChocolate.Language.Visitors
 
         protected virtual ISyntaxVisitorAction Leave(
            InputObjectTypeExtensionNode node,
+           ISyntaxVisitorContext context) =>
+           DefaultAction;
+
+        protected virtual ISyntaxVisitorAction Leave(
+           InputUnionTypeExtensionNode node,
+           ISyntaxVisitorContext context) =>
+           DefaultAction;
+
+        protected virtual ISyntaxVisitorAction Leave(
+           InputUnionTypeDefinitionNode node,
            ISyntaxVisitorContext context) =>
            DefaultAction;
     }

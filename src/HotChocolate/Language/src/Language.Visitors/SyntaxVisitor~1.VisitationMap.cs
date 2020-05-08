@@ -74,6 +74,8 @@ namespace HotChocolate.Language.Visitors
                     return VisitChildren((EnumValueDefinitionNode)node, context);
                 case NodeKind.InputObjectTypeDefinition:
                     return VisitChildren((InputObjectTypeDefinitionNode)node, context);
+                case NodeKind.InputUnionTypeDefinition:
+                    return VisitChildren((InputUnionTypeDefinitionNode)node, context);
                 case NodeKind.DirectiveDefinition:
                     return VisitChildren((DirectiveDefinitionNode)node, context);
                 case NodeKind.SchemaExtension:
@@ -90,6 +92,8 @@ namespace HotChocolate.Language.Visitors
                     return VisitChildren((EnumTypeExtensionNode)node, context);
                 case NodeKind.InputObjectTypeExtension:
                     return VisitChildren((InputObjectTypeExtensionNode)node, context);
+                case NodeKind.InputUnionTypeExtension:
+                    return VisitChildren((InputUnionTypeExtensionNode)node, context);
 
                 default:
                     throw new NotSupportedException(node.GetType().FullName);
@@ -763,6 +767,45 @@ namespace HotChocolate.Language.Visitors
         }
 
         protected virtual ISyntaxVisitorAction VisitChildren(
+            InputUnionTypeDefinitionNode node,
+            TContext context)
+        {
+            if (_options.VisitDescriptions && node.Description is { })
+            {
+                if (Visit(node.Description, node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
+            {
+                return Break;
+            }
+
+            if (_options.VisitDirectives)
+            {
+                for (int i = 0; i < node.Directives.Count; i++)
+                {
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
+                }
+            }
+
+            for (int i = 0; i < node.Types.Count; i++)
+            {
+                if (Visit(node.Types[i], node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+
+            return DefaultAction;
+        }
+
+        protected virtual ISyntaxVisitorAction VisitChildren(
             EnumTypeDefinitionNode node,
             TContext context)
         {
@@ -1040,6 +1083,37 @@ namespace HotChocolate.Language.Visitors
 
         protected virtual ISyntaxVisitorAction VisitChildren(
             UnionTypeExtensionNode node,
+            TContext context)
+        {
+            if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
+            {
+                return Break;
+            }
+
+            if (_options.VisitDirectives)
+            {
+                for (int i = 0; i < node.Directives.Count; i++)
+                {
+                    if (Visit(node.Directives[i], node, context).IsBreak())
+                    {
+                        return Break;
+                    }
+                }
+            }
+
+            for (int i = 0; i < node.Types.Count; i++)
+            {
+                if (Visit(node.Types[i], node, context).IsBreak())
+                {
+                    return Break;
+                }
+            }
+
+            return DefaultAction;
+        }
+
+        protected virtual ISyntaxVisitorAction VisitChildren(
+            InputUnionTypeExtensionNode node,
             TContext context)
         {
             if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
