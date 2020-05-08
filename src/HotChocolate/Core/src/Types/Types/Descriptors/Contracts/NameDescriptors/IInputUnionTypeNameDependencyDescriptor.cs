@@ -4,9 +4,9 @@ namespace HotChocolate.Types
 {
     public interface IInputUnionTypeNameDependencyDescriptor
     {
-        IUnionTypeDescriptor DependsOn<TDependency>()
+        IInputUnionTypeDescriptor DependsOn<TDependency>()
             where TDependency : IType;
 
-        IUnionTypeDescriptor DependsOn(Type schemaType);
+        IInputUnionTypeDescriptor DependsOn(Type schemaType);
     }
 }

@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors
                 ?? throw new ArgumentNullException(nameof(createName));
         }
 
-        public IUnionTypeDescriptor DependsOn<TDependency>()
+        public IInputUnionTypeDescriptor DependsOn<TDependency>()
             where TDependency : IType
         {
             TypeNameHelper.AddNameFunction(
@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Descriptors
             return _descriptor;
         }
 
-        public IUnionTypeDescriptor DependsOn(Type schemaType)
+        public IInputUnionTypeDescriptor DependsOn(Type schemaType)
         {
             TypeNameHelper.AddNameFunction(
                 _descriptor, _createName, schemaType);

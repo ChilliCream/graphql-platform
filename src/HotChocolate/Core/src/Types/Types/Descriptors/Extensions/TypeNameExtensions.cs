@@ -168,7 +168,7 @@ namespace HotChocolate.Types
         }
 
         public static IInputUnionTypeNameDependencyDescriptor Name(
-            this IUnionTypeDescriptor descriptor,
+            this IInputUnionTypeDescriptor descriptor,
             Func<INamedType, NameString> createName)
         {
             if (descriptor == null)
