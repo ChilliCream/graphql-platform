@@ -18,7 +18,9 @@ namespace Types.Spatial.Playground
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
                 .AddQueryType(d => d.Name("Query"))
+                .AddMutationType(d => d.Name("Mutation"))
                 .AddType<GeoQueries>()
+                .AddType<GeoMutations>()
                 .AddSpatialTypes()
                 .AddCRSTypes()
                 .Create());

@@ -6,6 +6,18 @@ namespace Types.Spatial.Playground
     [ExtendObjectType(Name = "Query")]
     public class GeoQueries
     {
+        public Coordinate GetRawCoordinate()
+        {
+            return new Coordinate(1.0, 2.0);
+        }
+
+        public Coordinate GetRawCoordinateZ()
+        {
+            var coordinate = new Coordinate(1.0, 2.0) {Z = 3.0};
+
+            return coordinate;
+        }
+
         public Point GetRawPoint()
         {
             return new Point(1.1, 2.1);
