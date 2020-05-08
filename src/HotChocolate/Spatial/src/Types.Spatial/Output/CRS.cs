@@ -7,20 +7,15 @@ using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
 {
-    public enum CRSType {
-        Link,
+    /// https://geojson.org/geojson-spec.html#coordinate-reference-system-objects
+    // "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::26912" } }
+    public enum CRSType
+    {
         Name
     }
 
-    public enum CRSLinkType {
-        Proj4,
-        OgcWKT,
-        EsriWKT
-    }
-
-    public class CRSProperties {
-        public string? Href { get; set; }
-        public CRSLinkType Type { get; set; }
+    public class CRSProperties
+    {
         public string? Name { get; set; }
     }
 
@@ -29,3 +24,4 @@ namespace Types.Spatial.Output
         public CRSType Type { get; set; }
         public CRSProperties? Properties { get; set; }
     }
+}
