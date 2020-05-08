@@ -348,6 +348,36 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
+        /// Parses an input union type definition.
+        /// <see cref="InputUnionTypeDefinitionNode" />:
+        /// Description? inputunion Name Directives[isConstant=true]?
+        /// UnionMemberTypes?
+        /// </summary>
+        /// <param name="context">The parser context.</param>
+        private InputUnionTypeDefinitionNode ParseInputUnionTypeDefinition()
+        {
+            TokenInfo start = Start();
+
+            MoveNext();
+
+            NameNode name = ParseName();
+            List<DirectiveNode> directives =
+                ParseDirectives(true);
+            List<NamedTypeNode> types = ParseUnionMemberTypes();
+
+            Location? location = CreateLocation(in start);
+
+            return new InputUnionTypeDefinitionNode
+            (
+                location,
+                name,
+                TakeDescription(),
+                directives,
+                types
+            );
+        }
+
+        /// <summary>
         /// Parses an union type definition.
         /// <see cref="UnionTypeDefinitionNode" />:
         /// Description? union Name Directives[isConstant=true]?

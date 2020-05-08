@@ -39,6 +39,11 @@ namespace HotChocolate.Language
                     return ParseInterfaceTypeExtension(in start);
                 }
 
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.InputUnion))
+                {
+                    return ParseInputUnionTypeExtension(in start);
+                }
+
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
                 {
                     return ParseUnionTypeExtension(in start);
@@ -185,6 +190,30 @@ namespace HotChocolate.Language
                 directives,
                 interfaces,
                 fields
+            );
+        }
+
+        private InputUnionTypeExtensionNode ParseInputUnionTypeExtension(
+            in TokenInfo start)
+        {
+            MoveNext();
+
+            NameNode name = ParseName();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<NamedTypeNode> types = ParseUnionMemberTypes();
+            Location? location = CreateLocation(in start);
+
+            if (directives.Count == 0 && types.Count == 0)
+            {
+                throw Unexpected(_reader.Kind);
+            }
+
+            return new InputUnionTypeExtensionNode
+            (
+                location,
+                name,
+                directives,
+                types
             );
         }
 

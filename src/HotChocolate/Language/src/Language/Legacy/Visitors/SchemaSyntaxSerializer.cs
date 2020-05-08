@@ -136,6 +136,27 @@ namespace HotChocolate.Language
             WriteRightBrace(writer);
         }
 
+        protected override void VisitInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.InputUnion);
+            writer.WriteSpace();
+            writer.WriteName(node.Name);
+
+            WriteDirectives(node.Directives, writer);
+
+            writer.WriteSpace();
+            writer.Write('=');
+            writer.WriteSpace();
+
+            writer.WriteMany(node.Types,
+                (n, w) => writer.WriteNamedType(n),
+                " | ");
+        }
+
         protected override void VisitUnionTypeDefinition(
             UnionTypeDefinitionNode node,
             DocumentWriter writer)

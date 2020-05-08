@@ -1,6 +1,5 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
-using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -730,6 +729,126 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = "schema @a @b(c: 1) { query: A }";
+
+            var serializer = new SchemaSyntaxSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "inputunion A = B | C";
+
+            var serializer = new SchemaSyntaxSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "inputunion A = B | C";
+
+            var serializer = new SchemaSyntaxSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefWithDirectiveNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "inputunion A @a = B | C inputunion A @a @b = B | C";
+
+            var serializer = new SchemaSyntaxSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeWithDirectiveDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "inputunion A @a = B | C inputunion A @a @b = B | C";
+
+            var serializer = new SchemaSyntaxSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "\"abc\" inputunion A = B | C";
+
+            var serializer = new SchemaSyntaxSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefWithDescriptionNoIndentt_OutHasIndentation()
+        {
+            // arrange
+            string query = "\"abc\"inputunion A = B | C";
 
             var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();

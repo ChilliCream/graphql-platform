@@ -772,5 +772,103 @@ namespace HotChocolate.Language.Utilities
             // assert
             Assert.Equal(schema, result);
         }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "inputunion A = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string schema = "inputunion A = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefWithDirectiveNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "inputunion A @a = B | C inputunion A @a @b = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeWithDirectiveDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string schema = "inputunion A @a = B | C inputunion A @a @b = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "\"abc\" inputunion A = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeDefWithDescriptionNoIndented_OutHasIndentation()
+        {
+            // arrange
+            string schema = "\"abc\"inputunion A = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputUnionTypeExtensionDef_InOutShouldBeTheSame()
+        {
+            // arrange
+            string schema = "extend inputunion A = B | C";
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
+
+            // act
+            string result = document.ToString(false);
+
+            // assert
+            Assert.Equal(schema, result);
+        }
     }
 }

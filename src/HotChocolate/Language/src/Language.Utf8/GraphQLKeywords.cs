@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language
 {
     internal static class GraphQLKeywords
     {
@@ -46,6 +46,20 @@
 
         public static readonly byte[] Union = new byte[]
         {
+            (byte)'u',
+            (byte)'n',
+            (byte)'i',
+            (byte)'o',
+            (byte)'n'
+        };
+
+        public static readonly byte[] InputUnion = new byte[]
+        {
+            (byte)'i',
+            (byte)'n',
+            (byte)'p',
+            (byte)'u',
+            (byte)'t',
             (byte)'u',
             (byte)'n',
             (byte)'i',

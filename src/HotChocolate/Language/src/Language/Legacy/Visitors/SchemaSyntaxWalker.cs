@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChocolate.Language
 {
@@ -71,6 +71,9 @@ namespace HotChocolate.Language
                 case EnumTypeDefinitionNode value:
                     VisitEnumTypeDefinition(value, context);
                     break;
+                case InputUnionTypeDefinitionNode value:
+                    VisitInputUnionTypeDefinition(value, context);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -102,6 +105,9 @@ namespace HotChocolate.Language
                     break;
                 case InputObjectTypeExtensionNode value:
                     VisitInputObjectTypeExtension(value, context);
+                    break;
+                case InputUnionTypeExtensionNode value:
+                    VisitInputUnionTypeExtension(value, context);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -278,6 +284,25 @@ namespace HotChocolate.Language
             VisitName(node.Name, context);
             VisitMany(node.Directives, context, VisitDirective);
             VisitMany(node.Values, context, VisitEnumValueDefinition);
+        }
+
+        protected override void VisitInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            TContext context)
+        {
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Types, context, VisitNamedType);
+        }
+
+        protected override void VisitInputUnionTypeExtension(
+            InputUnionTypeExtensionNode node,
+            TContext context)
+        {
+            VisitName(node.Name, context);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Types, context, VisitNamedType);
         }
 
         private static void VisitIfNotNull<T>(

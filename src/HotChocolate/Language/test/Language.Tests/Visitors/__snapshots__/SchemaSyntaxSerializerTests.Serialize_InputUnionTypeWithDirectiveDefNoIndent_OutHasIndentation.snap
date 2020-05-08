@@ -1,0 +1,3 @@
+﻿inputunion A @a = B | C
+
+inputunion A @a @b = B | C

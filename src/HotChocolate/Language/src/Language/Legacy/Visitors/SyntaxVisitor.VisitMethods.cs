@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -216,6 +216,16 @@ namespace HotChocolate.Language
 
         protected virtual void VisitDirectiveDefinition(
             DirectiveDefinitionNode node,
+            TContext context)
+        { }
+
+        protected virtual void VisitInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            TContext context)
+        { }
+
+        protected virtual void VisitInputUnionTypeExtension(
+            InputUnionTypeExtensionNode node,
             TContext context)
         { }
 
