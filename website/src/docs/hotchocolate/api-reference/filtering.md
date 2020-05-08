@@ -1993,3 +1993,38 @@ TODO: add example
 There are two extension points on each _filter kind_. You can alter the _entering_ of a filter and the _leaving_.
 
 **Enter**
+You can configure the entering with the following delegate:
+
+```csharp
+public delegate bool FilterFieldEnter(
+    FilterOperationField field,
+    ObjectFieldNode node,
+    IQueryableFilterVisitorContext context,
+    [NotNullWhen(true)]out ISyntaxVisitorAction? action);
+```
+
+If this field returns _true_ the filter visitor will continue visitation with the specified _action_ in the out parameter `action`. [Check out the visitor documentation for all possible actions](http://addlinkshere).
+If the field does not return true and a visitor action, the visitor will continue and search for a _operation handler_. After this, the visitor will continue with `SkipAndLeave`.
+
+| Parameter                                | Description                          |
+| ---------------------------------------- | ------------------------------------ |
+| `FilterOperationField field`             | The current field                    |
+| `ObjectFieldNode node`                   | The object node of the current field |
+| `IQueryableFilterVisitorContext context` | The context that builds up the state |
+| `out ISyntaxVisitorAction? action`       | The visitor action                   |
+
+**Leave**
+You can configure the entering with the following delegate:
+
+```csharp
+public delegate void FilterFieldLeave(
+    FilterOperationField field,
+    ObjectFieldNode node,
+    IQueryableFilterVisitorContext context);
+```
+
+| Parameter                                | Description                          |
+| ---------------------------------------- | ------------------------------------ |
+| `FilterOperationField field`             | The current field                    |
+| `ObjectFieldNode node`                   | The object node of the current field |
+| `IQueryableFilterVisitorContext context` | The context that builds up the state |
