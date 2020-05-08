@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public MemberInfo Member { get; set; }
 
+        public MemberInfo ResolverMember { get; set; }
+
         public Type ResultType { get; set; }
 
         public FieldResolverDelegate Resolver { get; set; }
