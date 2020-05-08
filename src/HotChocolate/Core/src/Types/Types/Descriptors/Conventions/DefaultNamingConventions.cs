@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -144,7 +143,7 @@ namespace HotChocolate.Types.Descriptors
 
             string name = type.GetGraphQLName();
 
-            if (kind == TypeKind.InputObject
+            if ((kind == TypeKind.InputObject || kind == TypeKind.InputUnion)
                 && !name.EndsWith("Input", StringComparison.Ordinal))
             {
                 name = name + "Input";
