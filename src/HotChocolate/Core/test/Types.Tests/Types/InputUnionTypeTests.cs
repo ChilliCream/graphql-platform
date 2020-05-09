@@ -1,5 +1,10 @@
+using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Properties;
+using Snapshooter.Xunit;
 using Xunit;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -215,6 +220,95 @@ namespace HotChocolate.Types
             Assert.NotEmpty(fooBarInputType.Directives["foo"]);
         }
 
+        [Fact]
+        public void ParseLiteral_WithTypeName_Foo()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("fooField", new StringValueNode("123")),
+                new ObjectFieldNode("__typename", new StringValueNode("FooInput"))
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Foo>(obj);
+            Assert.Equal("123", (obj as Foo)?.FooField);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_WithTypeName_Bar()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("barField", new StringValueNode("123")),
+                new ObjectFieldNode("__typename", new StringValueNode("BarInput"))
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Bar>(obj);
+            Assert.Equal("123", (obj as Bar)?.BarField);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_WithTypeName_Invalid()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("barField", new StringValueNode("123")),
+                new ObjectFieldNode("__typename", new StringValueNode("BarInput"))
+            });
+
+            // act 
+            // assert 
+            InputObjectSerializationException exception =
+                Assert.Throws<InputObjectSerializationException>(
+                    () => inputUnionType.ParseLiteral(literal));
+
+            Assert.Equal(TypeResources.InputUnionType_UnableToResolveType, exception.Message);
+        }
+
         public class FooInputType
             : InputObjectType<Foo>
         {
@@ -233,19 +327,35 @@ namespace HotChocolate.Types
         public class Foo
             : IFooOrBar
         {
-            public string FooField { get; set; }
+            public string? FooField { get; set; }
+
+            public string? SharedField { get; set; }
+
+            public string? SharedFieldDifferentType { get; set; }
+
+            public Bar? NestedField { get; set; }
+
+            public Bar? NestedFieldDifferentType { get; set; }
         }
 
         public class Bar
             : IFooOrBar
         {
-            public string BarField { get; set; }
+            public string? BarField { get; set; }
+
+            public string? SharedField { get; set; }
+
+            public int? SharedFieldDifferentType { get; set; }
+
+            public Bar? NestedField { get; set; }
+
+            public Foo? NestedFieldDifferentType { get; set; }
         }
 
         public class Baz
             : IFooOrBar
         {
-            public string BazField { get; set; }
+            public string? BazField { get; set; }
         }
 
         public interface IFooOrBar

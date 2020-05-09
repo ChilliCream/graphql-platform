@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using System;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Utilities.Serialization
 {
@@ -55,16 +55,28 @@ namespace HotChocolate.Utilities.Serialization
             for (int i = 0; i < source.Fields.Count; i++)
             {
                 ObjectFieldNode fieldValue = source.Fields[i];
-                if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
+                if (fieldValue.Name.Value == "__typename")
                 {
-                    object value = field.Type.ParseLiteral(fieldValue.Value);
-                    target[field.Name] = ConvertValue(field, converter, value);
+                    if (!(fieldValue.Value is StringValueNode typeName &&
+                       typeName.Value == type.Name))
+                    {
+                        throw new InputObjectSerializationException(
+                            $"The provided value does not match the input type.");
+                    }
                 }
                 else
                 {
-                    throw new InputObjectSerializationException(
-                        $"The field `{fieldValue.Name.Value}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                    if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
+                    {
+                        object value = field.Type.ParseLiteral(fieldValue.Value);
+                        target[field.Name] = ConvertValue(field, converter, value);
+                    }
+                    else
+                    {
+                        throw new InputObjectSerializationException(
+                            $"The field `{fieldValue.Name.Value}` does not exist on " +
+                            $"the type `{type.Name}`.");
+                    }
                 }
             }
         }

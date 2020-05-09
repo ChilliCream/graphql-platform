@@ -76,9 +76,10 @@ namespace HotChocolate.Types
             {
                 for (var i = 0; i < ov.Fields.Count; i++)
                 {
-                    if (ov.Fields[i].Name.Equals("__typename"))
+                    ObjectFieldNode field = ov.Fields[i];
+                    if (field.Name.Value == "__typename")
                     {
-                        if (ov.Fields[i].Value is StringValueNode typename &&
+                        if (field.Value is StringValueNode typename &&
                             _typeMap.TryGetValue(
                                 typename.Value,
                                 out InputObjectType type))

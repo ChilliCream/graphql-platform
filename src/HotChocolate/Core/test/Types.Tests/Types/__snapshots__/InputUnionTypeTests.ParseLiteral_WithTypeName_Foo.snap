@@ -1,0 +1,7 @@
+﻿{
+  "FooField": "123",
+  "SharedField": null,
+  "SharedFieldDifferentType": null,
+  "NestedField": null,
+  "NestedFieldDifferentType": null
+}
