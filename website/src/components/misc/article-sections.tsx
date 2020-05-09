@@ -1,7 +1,9 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent, useEffect } from "react";
+import React, { FunctionComponent, useCallback, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
+import { closeAside } from "../../state/common";
 
 interface ArticleSectionsProperties {
   data: ArticleSectionsFragment;
@@ -10,6 +12,12 @@ interface ArticleSectionsProperties {
 export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   data,
 }) => {
+  const dispatch = useDispatch();
+
+  const handleCloseClick = useCallback(() => {
+    dispatch(closeAside());
+  }, []);
+
   useEffect(() => {
     const ids = data
       .tableOfContents!.split(/"|\//)
@@ -67,6 +75,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
     <Container>
       <Title>In this article</Title>
       <Content
+        onClick={handleCloseClick}
         dangerouslySetInnerHTML={{
           __html: data.tableOfContents!.replace(
             /href=\"(.*?#)(.*?)\"/gi,

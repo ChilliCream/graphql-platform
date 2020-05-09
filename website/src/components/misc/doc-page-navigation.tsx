@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styled, { css } from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
 import { State } from "../../state";
-import { toggleNavigationGroup, toggleTOC } from "../../state/common";
+import { closeTOC, toggleNavigationGroup, toggleTOC } from "../../state/common";
 import { BodyStyle, FixedContainer, Navigation } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 import { IconContainer } from "./icon-container";
@@ -48,6 +48,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
 
   const handleClickDialog = useCallback((event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
+    dispatch(closeTOC());
   }, []);
 
   const handleCloseClick = useCallback(() => {
@@ -58,17 +59,25 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     dispatch(toggleTOC());
   }, []);
 
+  const handleClickNavigationItem = useCallback(() => {
+    dispatch(closeTOC());
+  }, []);
+
   const handleToggleClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>, isOpen) => {
-      setProductSwitcherOpen(!isOpen);
       event.stopPropagation();
+      setProductSwitcherOpen(!isOpen);
     },
     []
   );
 
-  const handleToggleExpand = useCallback((path: string) => {
-    dispatch(toggleNavigationGroup({ path }));
-  }, []);
+  const handleToggleExpand = useCallback(
+    (event: MouseEvent<HTMLDivElement>, path: string) => {
+      event.stopPropagation();
+      dispatch(toggleNavigationGroup({ path }));
+    },
+    []
+  );
 
   const buildNavigationStructure = (items: Item[], basePath: string) => (
     <NavigationList open={!productSwitcherOpen}>
@@ -88,13 +97,14 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                 ? "active"
                 : ""
             }
+            onClick={handleClickNavigationItem}
           >
             {subItems ? (
               <NavigationGroup
                 expanded={expandedPaths.indexOf(itemPath) !== -1}
               >
                 <NavigationGroupToggle
-                  onClick={() => handleToggleExpand(itemPath)}
+                  onClick={(e) => handleToggleExpand(e, itemPath)}
                 >
                   {title}
                   <IconContainer size={16}>
@@ -122,6 +132,29 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
       window.removeEventListener("click", handleCloseClick);
     };
   }, [handleCloseClick]);
+
+  useEffect(() => {
+    /*
+      Ensures that all groups along the selected path are expanded on page load.
+    */
+    const index =
+      selectedPath.indexOf(selectedProduct) + selectedProduct.length + 1;
+    const parts = selectedPath
+      .substring(index)
+      .split("/")
+      .filter((part) => part.length > 0);
+
+    if (parts.length > 1) {
+      const path = selectedPath.substring(
+        0,
+        selectedPath.lastIndexOf(parts[parts.length - 1]) - 1
+      );
+
+      if (!expandedPaths.includes(path)) {
+        dispatch(toggleNavigationGroup({ path }));
+      }
+    }
+  }, []);
 
   return (
     <Navigation ref={containerRef}>
