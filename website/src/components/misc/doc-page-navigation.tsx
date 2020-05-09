@@ -133,6 +133,29 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     };
   }, [handleCloseClick]);
 
+  useEffect(() => {
+    /*
+      Ensures that all groups along the selected path are expanded on page load.
+    */
+    const index =
+      selectedPath.indexOf(selectedProduct) + selectedProduct.length + 1;
+    const parts = selectedPath
+      .substring(index)
+      .split("/")
+      .filter((part) => part.length > 0);
+
+    if (parts.length > 1) {
+      const path = selectedPath.substring(
+        0,
+        selectedPath.lastIndexOf(parts[parts.length - 1]) - 1
+      );
+
+      if (!expandedPaths.includes(path)) {
+        dispatch(toggleNavigationGroup({ path }));
+      }
+    }
+  }, []);
+
   return (
     <Navigation ref={containerRef}>
       <BodyStyle disableScrolling={showTOC} />
