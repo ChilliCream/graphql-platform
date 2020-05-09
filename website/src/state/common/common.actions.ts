@@ -4,6 +4,10 @@ export const changeSearchQuery = createAction<{ readonly query: string }>(
   "[Common] Change search query"
 );
 
+export const closeAside = createAction("[Common] Close aside pane");
+
+export const closeTOC = createAction("[Common] Close table of contents pane");
+
 export const hideCookieConsent = createAction(
   "[Common] Hide cookie consent message"
 );

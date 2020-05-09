@@ -2,6 +2,8 @@ import { createReducer, onAction } from "../state.helpers";
 import { CommonState, initialState } from "./common.state";
 import {
   changeSearchQuery,
+  closeAside,
+  closeTOC,
   hideCookieConsent,
   hideLegacyDocHeader,
   showCookieConsent,
@@ -20,6 +22,16 @@ export const commonReducer = createReducer<CommonState>(
       searchQuery: query,
     };
   }),
+
+  onAction(closeAside, (state) => ({
+    ...state,
+    showAside: false,
+  })),
+
+  onAction(closeTOC, (state) => ({
+    ...state,
+    showTOC: false,
+  })),
 
   onAction(hideCookieConsent, (state) => ({
     ...state,
