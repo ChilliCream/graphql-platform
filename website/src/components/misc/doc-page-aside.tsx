@@ -25,7 +25,7 @@ export const DocPageAside: FunctionComponent = ({ children }) => {
       <BodyStyle disableScrolling={showAside} />
       <FixedContainer ref={elementRef} className={showAside ? "show" : ""}>
         <DocPagePaneHeader
-          title="In this article"
+          title="About this article"
           showWhenScreenWidthIsSmallerThan={1300}
           onClose={handleCloseAside}
         />

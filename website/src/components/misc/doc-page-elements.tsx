@@ -16,7 +16,6 @@ const FullSize = css`
   padding: 25px 0;
   width: 250px;
   height: initial;
-  overflow-y: hidden;
   background-color: initial;
   opacity: initial;
   box-shadow: initial;
@@ -28,7 +27,7 @@ export const FixedContainer = styled.div`
   padding: 25px 0 0;
   width: 100vw;
   height: calc(100vh - 85px);
-  overflow-y: initial;
+  overflow: initial;
   background-color: white;
   opacity: 0;
   transition: opacity 2s ease-in-out;
