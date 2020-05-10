@@ -2,6 +2,7 @@ using System;
 using System.Collections.Immutable;
 using HotChocolate.Resolvers;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
@@ -18,6 +19,8 @@ namespace HotChocolate.Execution
         public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = default!;
 
         public IImmutableDictionary<string, object?> LocalContextData { get; set; } = default!;
+
+        internal Task? Task { get; set; }
 
         public object? Result
         {

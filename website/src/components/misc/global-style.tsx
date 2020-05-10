@@ -55,7 +55,7 @@ export const GlobalStyle = createGlobalStyle`
   h4,
   h5,
   h6 {
-    margin-bottom: 0.5em;
+    margin-bottom: 10px;
     font-family: "Roboto", sans-serif;
     font-weight: bold;
     line-height: 1.250em;
@@ -276,7 +276,7 @@ export const GlobalStyle = createGlobalStyle`
   .gatsby-highlight {
     position: relative;
     margin: 20px 0;
-    overflow: auto;
+    overflow: initial;
     font-size: 0.833em !important;
 
     * {
@@ -301,6 +301,12 @@ export const GlobalStyle = createGlobalStyle`
       }
     }
 
+    > pre[class="language-bash"]::before {
+      content: "Bash";
+      color: #333;
+      background: #0fd;
+    }
+
     > pre[class="language-csharp"]::before {
       content: "C#";
       color: #4f3903;
@@ -311,6 +317,18 @@ export const GlobalStyle = createGlobalStyle`
       content: "GraphQL";
       color: #ffffff;
       background: #e535ab;
+    }
+
+    > pre[class="language-json"]::before {
+      content: "JSON";
+      color: #ffffff;
+      background: #1da0f2;
+    }
+
+    > pre[class="language-sql"]::before {
+      content: "SQL";
+      color: #ffffff;
+      background: #80f;
     }
   }
 

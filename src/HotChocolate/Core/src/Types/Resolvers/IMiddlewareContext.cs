@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 
 #nullable enable
 
@@ -11,6 +12,8 @@ namespace HotChocolate.Resolvers
     /// </summary>
     public interface IMiddlewareContext : IResolverContext
     {
+        IType? ValueType { get; set;}
+
         /// <summary>
         /// Gets or sets the result of the middleware.
         /// </summary>
