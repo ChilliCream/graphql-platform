@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Utilities.Serialization
@@ -55,7 +56,7 @@ namespace HotChocolate.Utilities.Serialization
             for (int i = 0; i < source.Fields.Count; i++)
             {
                 ObjectFieldNode fieldValue = source.Fields[i];
-                if (fieldValue.Name.Value == "__typename")
+                if (IntrospectionFields.TypeName.Equals(fieldValue.Name.Value))
                 {
                     if (!(fieldValue.Value is StringValueNode typeName &&
                        typeName.Value == type.Name))
