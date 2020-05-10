@@ -280,7 +280,6 @@ namespace HotChocolate.Validation.Rules
                 nestedContext = context.Pool.Get();
                 foreach (InputObjectType type in unionType.Types.Values)
                 {
-                    context.Types.Push(type);
                     nestedContext.Types.Push(type);
                     Visit(node, nestedContext);
                     if (nestedContext.Errors.Count == 0 &&
