@@ -1,5 +1,3 @@
-using System;
-
 namespace GreenDonut
 {
     /// <summary>
@@ -28,7 +26,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Gets or sets a cache instance to either share a cache instance
-        /// across serveral dataloader or to provide a custom cache
+        /// across several dataloader or to provide a custom cache
         /// implementation. In case no cache instance is provided, the
         /// dataloader will use the default cache implementation.
         /// The default value is set to <c>null</c>.

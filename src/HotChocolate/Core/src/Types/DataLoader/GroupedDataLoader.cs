@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,18 +9,9 @@ namespace HotChocolate.DataLoader
     public abstract class GroupedDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue[]>
     {
-        private static DataLoaderOptions<TKey> _options = new DataLoaderOptions<TKey>
-        {
-            AutoDispatching = false,
-            Batching = true,
-            CacheSize = DataLoaderDefaults.CacheSize,
-            MaxBatchSize = DataLoaderDefaults.MaxBatchSize
-        };
-
-        protected GroupedDataLoader()
-            : base(_options)
-        {
-        }
+        protected GroupedDataLoader(IBatchScheduler batchScheduler)
+            : base(batchScheduler)
+        { }
 
         protected sealed override async Task<IReadOnlyList<Result<TValue[]>>> FetchAsync(
             IReadOnlyList<TKey> keys,
