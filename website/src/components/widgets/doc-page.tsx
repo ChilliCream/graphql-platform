@@ -61,7 +61,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                 <ListAltIconSvg /> Table of contents
               </Button>
               <Button onClick={handleToggleAside} className="aside-toggle">
-                <NewspaperIconSvg /> In this article
+                <NewspaperIconSvg /> About this article
               </Button>
             </ResponsiveMenu>
             <ArticleTitle>{title}</ArticleTitle>
