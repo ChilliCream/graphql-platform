@@ -232,6 +232,38 @@ namespace HotChocolate.Validation
                  .Build();
         }
 
+        public static IError InputUnionTypeDoesNotMatch(
+            this IDocumentValidatorContext context,
+            ISyntaxNode node,
+            InputUnionType unionType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(Resources.ErrorHelper_InputUnionTypeDoesNotMatch, unionType.Name)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("unionType", unionType.Name)
+                .SetExtension("experimental", "InputUnionType")
+                .Build();
+        }
+
+        public static IError InputUnionTypeDoesNotKnowThisType(
+            this IDocumentValidatorContext context,
+            ISyntaxNode node,
+            string typename,
+            InputUnionType unionType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_InputUnionTypeDoesNotKnowThisType,
+                    typename,
+                    unionType.Name)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("unionType", unionType.Name)
+                .SetExtension("experimental", "InputUnionType")
+                .Build();
+        }
+
         public static IError FieldsAreNotMergable(
             this IDocumentValidatorContext context,
             FieldInfo fieldA,
