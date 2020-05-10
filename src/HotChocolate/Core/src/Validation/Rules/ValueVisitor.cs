@@ -37,7 +37,7 @@ namespace HotChocolate.Validation.Rules
     /// chapter.
     ///
     /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
-    /// </summary>
+    /// </summary> 
     internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     {
         public ValueVisitor()
@@ -207,6 +207,10 @@ namespace HotChocolate.Validation.Rules
                     }
                 }
             }
+            else if (namedType is InputUnionType inputUnionType)
+            {
+                return EnterInputUnion(inputUnionType, node, context);
+            }
             else
             {
                 context.UnexpectedErrorsDetected = true;
@@ -215,30 +219,138 @@ namespace HotChocolate.Validation.Rules
             return Continue;
         }
 
+        protected override ISyntaxVisitorAction Leave(
+            ObjectValueNode node,
+            IDocumentValidatorContext context)
+        {
+            ISyntaxVisitorAction action = base.Leave(node, context);
+
+            if (context.Types.TryPeek(1, out IType type) &&
+                type is InputUnionType inputUnionType)
+            {
+                context.Types.Pop();
+            }
+
+            return action;
+        }
+
+        private ISyntaxVisitorAction EnterInputUnion(
+            InputUnionType unionType,
+            ObjectValueNode node,
+            IDocumentValidatorContext context)
+        {
+            // first check for typename on next layer
+            // this would be less complex
+            for (var i = 0; i < node.Fields.Count; i++)
+            {
+                ObjectFieldNode field = node.Fields[i];
+                if (IntrospectionFields.TypeName.Equals(field.Name.Value))
+                {
+                    if (field.Value is StringValueNode typename)
+                    {
+                        if (unionType.Types.TryGetValue(
+                            typename.Value,
+                            out InputObjectType? type))
+                        {
+                            context.Types.Push(type);
+                            return Continue;
+                        }
+                        else
+                        {
+                            context.Errors.Add(
+                                context.InputUnionTypeDoesNotKnowThisType(
+                                    node, typename.Value, unionType));
+                        }
+                    }
+                    context.UnexpectedErrorsDetected = true;
+                    return Skip;
+
+                }
+            }
+
+            if (context.Pool == null)
+            {
+                context.UnexpectedErrorsDetected = true;
+                return Skip;
+            }
+
+            DocumentValidatorContext? nestedContext = null;
+            try
+            {
+                nestedContext = context.Pool.Get();
+                foreach (InputObjectType type in unionType.Types.Values)
+                {
+                    context.Types.Push(type);
+                    nestedContext.Types.Push(type);
+                    Visit(node, nestedContext);
+                    if (nestedContext.Errors.Count == 0 &&
+                        nestedContext.UnexpectedErrorsDetected == false)
+                    {
+                        return Skip;
+                    }
+                    nestedContext.Clear();
+                }
+
+                context.Errors.Add(context.InputUnionTypeDoesNotMatch(node, unionType));
+            }
+            catch
+            {
+                context.UnexpectedErrorsDetected = true;
+            }
+            finally
+            {
+                if (nestedContext != null)
+                {
+                    context.Pool.Return(nestedContext);
+                }
+            }
+            return Skip;
+        }
+
         protected override ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
             IDocumentValidatorContext context)
         {
             if (context.Types.TryPeek(out IType type) &&
-                type.NamedType() is InputObjectType it &&
-                it.Fields.TryGetField(node.Name.Value, out InputField field))
+                type.NamedType() is InputObjectType it)
             {
-                if (field.Type.IsNonNullType() &&
-                    node.Value.IsNull())
+                if (it.Fields.TryGetField(node.Name.Value, out InputField field))
                 {
-                    context.Errors.Add(
-                        context.FieldIsRequiredButNull(node, field.Name));
-                }
+                    if (field.Type.IsNonNullType() &&
+                        node.Value.IsNull())
+                    {
+                        context.Errors.Add(
+                            context.FieldIsRequiredButNull(node, field.Name));
+                    }
 
-                context.InputFields.Push(field);
-                context.Types.Push(field.Type);
-                return Continue;
+                    context.InputFields.Push(field);
+                    context.Types.Push(field.Type);
+                    return Continue;
+                }
+                else if (IntrospectionFields.TypeName.Equals(node.Name.Value) &&
+                    context.Types.TryPeek(1, out IType nextType) &&
+                    nextType is InputUnionType inputUnionType)
+                {
+                    if (node.Value is StringValueNode typename &&
+                        typename.Value == it.Name)
+                    {
+                        return Skip;
+                    }
+                    else
+                    {
+                        context.Errors.Add(context.InputUnionTypeDoesNotMatch(node, inputUnionType));
+                        return Skip;
+                    }
+                }
+                else
+                {
+                    context.Errors.Add(context.InputFieldDoesNotExist(node));
+                    return Skip;
+                }
             }
-            else
-            {
-                context.Errors.Add(context.InputFieldDoesNotExist(node));
-                return Skip;
-            }
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
+
         }
 
         protected override ISyntaxVisitorAction Leave(

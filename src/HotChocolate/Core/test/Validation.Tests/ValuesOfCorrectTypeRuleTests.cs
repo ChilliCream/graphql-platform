@@ -1162,5 +1162,138 @@ namespace HotChocolate.Validation
                 }
             ");
         }
+
+
+        [Fact]
+        public void InputUnionOfValidTypeWithValidTypeName()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        inputUnionField(union: {__typename: ""ComplexInput"", name:""Test""})
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionOfValidTypeWithInvalidTypeName()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        inputUnionField(union: {__typename: ""ComplexInput3"", name:""Test""})
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionOfInvalidTypeWithValidTypeName()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        inputUnionField(union: {__typename: ""ComplexInput"", name: 123})
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionOfValidTypeNoTypeName()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        inputUnionField(union: {name:""Test""})
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionOfInvalidTypeNoTypeName()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        inputUnionField(union: {name:123})
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionOfValidComplexTypeNoTypeName()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        inputUnionField(union: { requiredField: true, intField: 3 })
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionOfInvalidComplexTypeNoTypeName()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        inputUnionField(union: { intField: 3 })
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionValidNull()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        inputUnionField(union: null)
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionValidArgumentMissing()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        inputUnionField
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionInvalidNull()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        nonNullInputUnionField(union: {nestedNonNull: null})
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void InputUnionInvalidArgumentMissing()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        nonNullInputUnionField(union: {})
+                    }
+                }
+            ");
+        }
     }
 }

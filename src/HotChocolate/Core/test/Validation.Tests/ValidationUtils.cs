@@ -1,9 +1,9 @@
+using System;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
-using System;
 
 #nullable enable
 
@@ -11,9 +11,16 @@ namespace HotChocolate.Validation
 {
     public static class ValidationUtils
     {
+        private static DocumentValidatorContextPool validatorContextPool
+            = new DocumentValidatorContextPool();
+
         public static IDocumentValidatorContext CreateContext(ISchema? schema = null)
         {
-            return new DocumentValidatorContext { Schema = schema ?? CreateSchema() };
+            return new DocumentValidatorContext
+            {
+                Schema = schema ?? CreateSchema(),
+                Pool = validatorContextPool
+            };
         }
 
         public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)

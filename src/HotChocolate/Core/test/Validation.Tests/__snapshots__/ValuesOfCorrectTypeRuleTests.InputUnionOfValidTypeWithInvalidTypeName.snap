@@ -1,0 +1,21 @@
+﻿[
+  {
+    "Message": "The provided typename ComplexInput3 does not match any type defined on ComplexInputUnionTypeInput.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "inputUnionField"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 48
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "unionType": "ComplexInputUnionTypeInput",
+      "experimental": "InputUnionType"
+    }
+  }
+]

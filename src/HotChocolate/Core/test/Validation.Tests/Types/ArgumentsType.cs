@@ -106,6 +106,11 @@ namespace HotChocolate.Validation.Types
                 .Type<NonNullType<IdType>>()
                 .Resolver(() => null);
 
+            descriptor.Field("inputUnionField")
+                .Argument("union", t => t.Type<ComplexInputUnionType>())
+                .Type<NonNullType<IdType>>()
+                .Resolver(() => null);
+
             descriptor.Field("nonNullIdArgField")
                 .Argument("idArg", t => t.Type<NonNullType<IdType>>())
                 .Type<NonNullType<IdType>>()
@@ -162,6 +167,11 @@ namespace HotChocolate.Validation.Types
             descriptor.Field("nonNullField")
                 .Argument("nonNullIntArg", t => t.Type<NonNullType<IntType>>())
                 .Type<NonNullType<StringType>>()
+                .Resolver(() => null);
+
+            descriptor.Field("nonNullInputUnionField")
+                .Argument("union", t => t.Type<ComplexInputUnionNestedType>())
+                .Type<NonNullType<IdType>>()
                 .Resolver(() => null);
 
             descriptor.Field("stringListNonNullArgField")

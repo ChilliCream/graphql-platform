@@ -1,0 +1,21 @@
+﻿[
+  {
+    "Message": "`nestedNonNull` is a required field and cannot be null.",
+    "Code": null,
+    "Path": [
+      "arguments",
+      "nonNullInputUnionField"
+    ],
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 56
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "field": "nestedNonNull",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
+    }
+  }
+]
