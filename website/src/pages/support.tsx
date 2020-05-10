@@ -2,7 +2,14 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetSupportDataQuery } from "../../graphql-types";
-import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
+import {
+  Hero,
+  Intro,
+  Section,
+  SectionTitle,
+  Teaser,
+  Title,
+} from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
@@ -87,31 +94,6 @@ const SupportPage: FunctionComponent = () => {
 };
 
 export default SupportPage;
-
-const Section = styled.section`
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 25px 0;
-
-  > * {
-    margin: 0 20px 20px;
-    max-width: 800px;
-  }
-`;
-
-const SectionTitle = styled.h1`
-  flex: 0 0 auto;
-  font-size: 2.222em;
-  text-align: center;
-  color: #667;
-
-  @media only screen and (min-width: 768px) {
-    margin-bottom: 20px;
-  }
-`;
 
 const List = styled.ul`
   list-style-type: none;

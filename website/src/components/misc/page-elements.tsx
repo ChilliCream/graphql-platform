@@ -47,3 +47,28 @@ export const Teaser = styled.p`
   text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
   color: #fff;
 `;
+
+export const Section = styled.section`
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 25px 0;
+
+  > * {
+    margin: 0 20px 20px;
+    max-width: 800px;
+  }
+`;
+
+export const SectionTitle = styled.h1`
+  flex: 0 0 auto;
+  font-size: 2.222em;
+  text-align: center;
+  color: #667;
+
+  @media only screen and (min-width: 768px) {
+    margin-bottom: 20px;
+  }
+`;
