@@ -53,6 +53,8 @@ namespace HotChocolate.Validation
 
         IDictionary<string, object> ContextData { get; }
 
+        DocumentValidatorContextPool? Pool { get; }
+
         IList<FieldInfo> RentFieldInfoList();
     }
 }

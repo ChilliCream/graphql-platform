@@ -35,11 +35,17 @@ namespace HotChocolate.Language
             return list[lastIndex];
         }
 
-        public static bool TryPeek<T>(this IList<T> list, [NotNullWhen(true)]out T item)
+        public static bool TryPeek<T>(this IList<T> list, [NotNullWhen(true)]out T item) =>
+            TryPeek(list, 0, out item);
+
+        public static bool TryPeek<T>(
+            this IList<T> list,
+            int index,
+            [NotNullWhen(true)]out T item)
         {
-            if (list.Count > 0)
+            if (list.Count > index)
             {
-                var lastIndex = list.Count - 1;
+                var lastIndex = list.Count - 1 - index;
                 item = list[lastIndex]!;
                 return true;
             }

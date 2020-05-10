@@ -107,6 +107,8 @@ namespace HotChocolate.Validation
 
         public IDictionary<string, object> ContextData { get; } = new Dictionary<string, object>();
 
+        public DocumentValidatorContextPool? Pool { get; set; }
+
         public IList<FieldInfo> RentFieldInfoList()
         {
             FieldInfoListBuffer buffer = _buffers.Peek();
