@@ -270,7 +270,9 @@ const ProductSwitcher = styled.div`
   align-items: center;
 
   @media only screen and (min-width: 1050px) {
+    position: relative;
     flex-wrap: initial;
+    overflow: initial;
   }
 `;
 
