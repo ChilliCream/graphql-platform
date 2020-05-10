@@ -10,6 +10,5 @@ namespace GreenDonut
     /// <param name="eventArgs">
     /// An object containing context related arguments.
     /// </param>
-    public delegate void RequestBufferedEventHandler(IDataLoader sender,
-        EventArgs eventArgs);
+    public delegate void RequestBufferedEventHandler(IDataLoader sender, EventArgs eventArgs);
 }

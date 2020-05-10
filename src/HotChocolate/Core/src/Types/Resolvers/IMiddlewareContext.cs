@@ -12,7 +12,7 @@ namespace HotChocolate.Resolvers
     /// </summary>
     public interface IMiddlewareContext : IResolverContext
     {
-        IType? ValueType { get; set;} 
+        IType? ValueType { get; set;}
 
         /// <summary>
         /// Gets or sets the result of the middleware.
