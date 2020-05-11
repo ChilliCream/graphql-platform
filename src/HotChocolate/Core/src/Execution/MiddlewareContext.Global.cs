@@ -55,7 +55,19 @@ namespace HotChocolate.Execution
         {
             try
             {
-                IPreparedSelectionList fields = _operationContext.CollectFields(selectionSet, typeContext);
+                IPreparedSelectionList fields = _operationContext.CollectFields(
+                    selectionSet, typeContext);
+
+                if (fields.IsFinal)
+                {
+                    return fields;
+                }
+
+                var finalFields = new List<IFieldSelection>();
+                for (int i = 0; i < fields.Count; i++)
+                {
+                    
+                }
             }
             catch (GraphQLException ex)
             {

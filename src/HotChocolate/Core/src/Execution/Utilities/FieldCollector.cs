@@ -51,13 +51,18 @@ namespace HotChocolate.Execution.Utilities
             var fields = new OrderedDictionary<string, PreparedSelection>();
             CollectFields(typeContext, selectionSet, null, fields);
             var selections = new List<PreparedSelection>();
-            current.AddSelections(typeContext, selections);
+            bool isFinal = true;
 
             foreach (PreparedSelection selection in fields.Values)
             {
                 // complete selection
                 selection.MakeReadOnly();
                 selections.Add(selection);
+
+                if (isFinal && !selection.IsFinal)
+                {
+                    isFinal = false;
+                }
 
                 // traverse child selections
                 INamedType fieldType = selection.Field.Type.NamedType();
@@ -83,6 +88,8 @@ namespace HotChocolate.Execution.Utilities
                     }
                 }
             }
+
+            current.AddSelections(typeContext, new PreparedSelectionList(selections, isFinal));
         }
 
         private void CollectFields(

@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
         CancellationToken RequestAborted { get; }
 
         // TODO : documentation -> remember this are the raw collected fields without visibility
-        IReadOnlyList<IPreparedSelection> CollectFields(
+        IPreparedSelectionList CollectFields(
             SelectionSetNode selectionSet,
             ObjectType objectType);
 

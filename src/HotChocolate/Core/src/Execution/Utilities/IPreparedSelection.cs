@@ -15,6 +15,8 @@ namespace HotChocolate.Execution.Utilities
 
         IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; }
 
+        bool IsFinal { get; }
+
         bool IsVisible(IVariableValueCollection variables);
     }
 }

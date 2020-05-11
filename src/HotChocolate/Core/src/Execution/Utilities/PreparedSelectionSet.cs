@@ -6,12 +6,13 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class PreparedSelectionSet : IPreparedSelectionSet
     {
-        private static IReadOnlyList<IPreparedSelection> _empty = new IPreparedSelection[0];
+        private static IPreparedSelectionList _empty = 
+            new PreparedSelectionList(new IPreparedSelection[0], true);
         private ObjectType? _firstType;
-        private IReadOnlyList<IPreparedSelection>? _firstSelections;
+        private IPreparedSelectionList? _firstSelections;
         private ObjectType? _secondType;
-        private IReadOnlyList<IPreparedSelection>? _secondSelections;
-        private Dictionary<ObjectType, IReadOnlyList<IPreparedSelection>>? _map;
+        private IPreparedSelectionList? _secondSelections;
+        private Dictionary<ObjectType, IPreparedSelectionList>? _map;
 
         public PreparedSelectionSet(SelectionSetNode selectionSet)
         {
@@ -44,9 +45,9 @@ namespace HotChocolate.Execution.Utilities
         {
             if (_map is { })
             {
-                if (_map.TryGetValue(typeContext, out IReadOnlyList<IPreparedSelection>? info))
+                if (_map.TryGetValue(typeContext, out IPreparedSelectionList? selections))
                 {
-                    return info;
+                    return selections;
                 }
                 return _empty;
             }
@@ -64,9 +65,7 @@ namespace HotChocolate.Execution.Utilities
             return _empty;
         }
 
-        public void AddSelections(
-            ObjectType typeContext,
-            IReadOnlyList<IPreparedSelection> selections)
+        public void AddSelections(ObjectType typeContext, IPreparedSelectionList selections)
         {
             if (_map is { })
             {
@@ -86,7 +85,7 @@ namespace HotChocolate.Execution.Utilities
                 }
                 else
                 {
-                    _map = new Dictionary<ObjectType, IReadOnlyList<IPreparedSelection>>
+                    _map = new Dictionary<ObjectType, IPreparedSelectionList>
                     {
                         { _firstType, _firstSelections! },
                         { _secondType, _secondSelections! },
@@ -101,7 +100,4 @@ namespace HotChocolate.Execution.Utilities
             }
         }
     }
-
-    internal class PreparedSelectionList  : IPreparedSelectionList
-    {}
 }
