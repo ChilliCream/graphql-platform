@@ -21,8 +21,6 @@ namespace HotChocolate.Types
         private readonly Dictionary<NameString, InputObjectType> _typeMap =
             new Dictionary<NameString, InputObjectType>();
 
-        private ResolveAbstractType _resolveAbstractType;
-
         protected InputUnionType()
         {
             _configure = Configure;

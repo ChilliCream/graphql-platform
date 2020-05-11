@@ -1205,6 +1205,150 @@ namespace HotChocolate.Types
             serialized.MatchSnapshot();
         }
 
+        [Fact]
+        public void Deserialize_ValueIsNull()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            bool result = type.TryDeserialize(null, out object value);
+
+            // assert
+            Assert.Null(value);
+        }
+
+        [Fact]
+        public void Deserialize_ValueIsDictionary()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            bool result = type.TryDeserialize(
+                new Dictionary<string, object>
+                {
+                    { "barField", "123" },
+                    { "__typename", "BarInput" }
+                },
+                out object value);
+
+            // assert
+            Assert.Equal("123", Assert.IsType<Bar>(value).BarField);
+        }
+
+        [Fact]
+        public void Deserialize_UnknownTypeName()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            // assert
+            InputObjectSerializationException exception =
+                Assert.Throws<InputObjectSerializationException>(
+                    () => type.Deserialize(
+                        new Dictionary<string, object>
+                        {
+                            { "barField", "123" },
+                            { "__typename", "BazInput" }
+                        }));
+
+            Assert.Equal(TypeResources.InputUnionType_UnableToResolveType, exception.Message);
+        }
+
+        [Fact]
+        public void Deserialize_NoTypeName()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            // assert
+            InputObjectSerializationException exception =
+                Assert.Throws<InputObjectSerializationException>(
+                    () => type.Deserialize(
+                        new Dictionary<string, object>
+                        {
+                            { "barField", "123" },
+                        }));
+
+            Assert.Equal(TypeResources.InputUnionType_TypeNameNotSpecified, exception.Message);
+        }
+
+        [Fact]
+        public void Deserialize_ClrType()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType<Bar>(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            // assert
+            bool result = type.TryDeserialize(new Bar() { BarField = "123" }, out object value);
+
+            // assert
+            Assert.Equal("123", Assert.IsType<Bar>(value).BarField);
+        }
+
+
         public class FooInputType
             : InputObjectType<Foo>
         {

@@ -123,16 +123,20 @@ namespace HotChocolate.Utilities.Serialization
         {
             foreach (KeyValuePair<string, object> fieldValue in source)
             {
-                if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
+                if (fieldValue.Key != "__typename")
                 {
-                    object value = field.Type.Deserialize(fieldValue.Value);
-                    target[field.Name] = ConvertValue(field, converter, value);
-                }
-                else
-                {
-                    throw new InputObjectSerializationException(
-                        $"The field `{fieldValue.Key}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                    if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
+                    {
+                        object value = field.Type.Deserialize(fieldValue.Value);
+                        target[field.Name] = ConvertValue(field, converter, value);
+
+                    }
+                    else
+                    {
+                        throw new InputObjectSerializationException(
+                            $"The field `{fieldValue.Key}` does not exist on " +
+                            $"the type `{type.Name}`.");
+                    }
                 }
             }
         }
