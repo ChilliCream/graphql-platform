@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.DataLoader;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -21,9 +22,8 @@ namespace HotChocolate.Execution.Utilities
 
         private async Task ExecuteResolversAsync(
             IOperationContext operationContext,
-            IBatchScheduler batchScheduler, // we might have more than one
-            ITaskQueue taskQueue
-        )
+            IBatchDispatcher batchDispatcher, // we might have more than one
+            ITaskQueue taskQueue)
         {
             while (taskQueue.HasTasks)
             {
@@ -34,10 +34,9 @@ namespace HotChocolate.Execution.Utilities
                     middlewareContext.Task = resolverPipeline(middlewareContext);
                 }
 
-                while (taskQueue.IsEmpty && batchScheduler.HasTasks)
+                while (taskQueue.IsEmpty && batchDispatcher.HasTasks)
                 {
-                    await batchScheduler.DispatchAsync(
-                        operationContext.RequestAborted)
+                    await batchDispatcher.DispatchAsync(operationContext.RequestAborted)
                         .ConfigureAwait(false);
                 }
             }
@@ -52,13 +51,6 @@ namespace HotChocolate.Execution.Utilities
         bool IsEmpty { get; }
 
         MiddlewareContext Dequeue();
-    }
-
-    internal interface IBatchScheduler
-    {
-        bool HasTasks { get; }
-
-        Task DispatchAsync(CancellationToken cancellationToken);
     }
 
     internal static class ValueCompletion
