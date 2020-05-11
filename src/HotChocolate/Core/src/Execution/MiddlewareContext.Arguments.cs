@@ -6,7 +6,8 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal partial class MiddlewareContext : IMiddlewareContext
+    internal partial class MiddlewareContext
+        : IMiddlewareContext
     {
         public T Argument<T>(NameString name)
         {
@@ -74,7 +75,7 @@ namespace HotChocolate.Execution
                 throw new GraphQLException(); // throw helper
             }
 
-            // There can only be no kind if there was an error which would have 
+            // There can only be no kind if there was an error which would have
             // already been raised at this point.
             return argument.Kind ?? ValueKind.Unknown;
         }

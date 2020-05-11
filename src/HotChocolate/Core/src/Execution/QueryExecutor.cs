@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.DataLoader;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Utilities
@@ -14,7 +15,10 @@ namespace HotChocolate.Execution.Utilities
             throw new System.NotImplementedException();
         }
 
-        private async Task ExecuteResolversAsync(IOperationContext operationContext)
+        private async Task ExecuteResolversAsync(
+            IOperationContext operationContext,
+            IBatchDispatcher batchDispatcher, // we might have more than one
+            ITaskQueue taskQueue)
         {
             // operationContext.Tasks.IsEmpty && operationContext.BatchScheduler.IsEmpty && AllTasksDone
             while (!operationContext.IsCompleted)
@@ -25,13 +29,9 @@ namespace HotChocolate.Execution.Utilities
                     task.BeginExecute();
                 }
 
-                // operationContext.Tasks.HasTasks || operationContext.BatchScheduler.HasTasks
-                await operationContext.WaitForEngine();
-
-                while (operationContext.TaskQueue.IsEmpty && operationContext.BatchScheduler.HasTasks)
+                while (taskQueue.IsEmpty && batchDispatcher.HasTasks)
                 {
-                    await operationContext.BatchScheduler.DispatchAsync(
-                        operationContext.RequestAborted)
+                    await batchDispatcher.DispatchAsync(operationContext.RequestAborted)
                         .ConfigureAwait(false);
                     await operationContext.WaitForEngine();
                 }
@@ -52,16 +52,7 @@ namespace HotChocolate.Execution.Utilities
         void Enqueue(ResolverTask task);
     }
 
-    internal interface IBatchScheduler
-    {
-        bool HasTasks { get; }
-
-        bool IsEmpty { get; }
-
-        Task DispatchAsync(CancellationToken cancellationToken);
-    }
-
-    internal interface INonNullViolationTracker
+    internal static class ValueCompletion
     {
         void Register(FieldNode selection, IResultData resultData);
     }

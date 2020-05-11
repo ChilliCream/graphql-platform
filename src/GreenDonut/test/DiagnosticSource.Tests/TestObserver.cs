@@ -10,8 +10,7 @@ namespace GreenDonut
 
         public TestObserver(TestListener listener)
         {
-            _listener = listener ??
-                throw new ArgumentNullException(nameof(listener));
+            _listener = listener ?? throw new ArgumentNullException(nameof(listener));
         }
 
         public void OnCompleted() { }
