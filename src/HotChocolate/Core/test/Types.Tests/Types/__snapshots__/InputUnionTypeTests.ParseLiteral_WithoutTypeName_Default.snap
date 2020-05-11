@@ -1,6 +1,6 @@
 ﻿{
-  "FooField": "123",
-  "SharedField": null,
+  "FooField": null,
+  "SharedField": "123",
   "SharedFieldDifferentType": null,
   "NestedFieldDifferentType": null,
   "UnionList": null

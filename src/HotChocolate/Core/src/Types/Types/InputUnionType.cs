@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Types
 {
@@ -77,7 +79,7 @@ namespace HotChocolate.Types
                 for (var i = 0; i < ov.Fields.Count; i++)
                 {
                     ObjectFieldNode field = ov.Fields[i];
-                    if (field.Name.Value == "__typename")
+                    if (IntrospectionFields.TypeName.Equals(field.Name.Value))
                     {
                         if (field.Value is StringValueNode typename &&
                             _typeMap.TryGetValue(
@@ -93,8 +95,17 @@ namespace HotChocolate.Types
                         }
                     }
                 }
+
+                foreach (InputObjectType type in Types.Values)
+                {
+                    if (IsInstanceOfType(type, literal))
+                    {
+                        return type.ParseLiteral(literal);
+                    }
+                }
+
                 throw new InputObjectSerializationException(
-                    TypeResources.InputUnionType_TypeNameNotSpecified);
+                    TypeResources.InputUnionType_UnableToResolveType);
             }
 
             if (literal is NullValueNode)
@@ -105,7 +116,6 @@ namespace HotChocolate.Types
             throw new InputObjectSerializationException(
                 TypeResources.InputUnionType_CannotParseLiteral);
         }
-
 
         public bool IsInstanceOfType(object value)
         {
@@ -299,7 +309,6 @@ namespace HotChocolate.Types
             InputUnionTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
-
             CompleteTypeSet(context, definition);
         }
 
@@ -349,6 +358,68 @@ namespace HotChocolate.Types
                         .Build());
                 }
             }
+        }
+
+        private bool IsInstanceOfType(
+            IInputType inputType,
+            IValueNode value)
+        {
+            IInputType internalType = inputType;
+
+            if (internalType.IsNonNullType())
+            {
+                internalType = (IInputType)internalType.InnerType();
+                if (value.IsNull())
+                {
+                    return false;
+                }
+            }
+
+            if (internalType is ListType listType
+                && listType.ElementType is IInputType elementType
+                && value is ListValueNode list)
+            {
+                for (var i = 0; i < list.Items.Count; i++)
+                {
+                    if (!IsInstanceOfType(elementType, list.Items[i]))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (internalType is InputObjectType inputObject)
+            {
+                if (value is ObjectValueNode node)
+                {
+                    for (var i = 0; i < node.Fields.Count; i++)
+                    {
+                        ObjectFieldNode fieldNode = node.Fields[i];
+                        if (!(inputObject.Fields.TryGetField(
+                                fieldNode.Name.Value, out InputField inputField) &&
+                            IsInstanceOfType(inputField.Type, fieldNode.Value)))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            if (internalType is InputUnionType inputUnion)
+            {
+                foreach (InputObjectType type in inputUnion.Types.Values)
+                {
+                    if (IsInstanceOfType(type, value))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            return internalType.IsInstanceOfType(value);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -58,7 +59,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(c =>
             {
                 c.RegisterType(new InputUnionType<IFooOrBar>(d => d
-                    .Name(dep => dep.Name + "FooInput")
+                    .Name((Func<INamedType, NameString>)(dep => (NameString)(dep.Name + "FooInput")))
                     .DependsOn<StringType>()));
 
                 c.RegisterType(new FooInputType());
@@ -79,7 +80,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(c =>
             {
                 c.RegisterType(new InputUnionType<IFooOrBar>(d => d
-                    .Name(dep => dep.Name + "FooInput")
+                    .Name((Func<INamedType, NameString>)(dep => (NameString)(dep.Name + "FooInput")))
                     .DependsOn(typeof(StringType))));
 
                 c.RegisterType(new FooInputType());
@@ -147,7 +148,7 @@ namespace HotChocolate.Types
             // act
             InputUnionType fooBarInputType = CreateType(new InputUnionType(d => d
                 .Name("BarInputUnion")
-                .Directive("foo")
+                .Directive<string>("foo")
                 .Type<FooInputType>()
                 .Type<BarInputType>()),
                 b => b.AddDirectiveType<FooDirectiveType>());
@@ -179,7 +180,7 @@ namespace HotChocolate.Types
             // act
             InputUnionType fooBarInputType = CreateType(new InputUnionType(d => d
                 .Name("BarInputUnion")
-                .Directive(new DirectiveNode("foo"))
+                .Directive<DirectiveNode>(new DirectiveNode("foo"))
                 .Type<FooInputType>()
                 .Type<BarInputType>()),
                 b => b.AddDirectiveType<FooDirectiveType>());
@@ -195,7 +196,7 @@ namespace HotChocolate.Types
             // act
             InputUnionType fooBarInputType = CreateType(new InputUnionType(d => d
                 .Name("BarInputUnion")
-                .Directive(new FooDirective())
+                .Directive<FooDirective>(new FooDirective())
                 .Type<FooInputType>()
                 .Type<BarInputType>()),
                 b => b.AddDirectiveType<FooDirectiveType>());
@@ -309,9 +310,325 @@ namespace HotChocolate.Types
             Assert.Equal(TypeResources.InputUnionType_UnableToResolveType, exception.Message);
         }
 
+        [Fact]
+        public void ParseLiteral_WithoutTypeName_Foo()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("fooField", new StringValueNode("123")),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Foo>(obj);
+            Assert.Equal("123", (obj as Foo)?.FooField);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_WithoutTypeName_Bar()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("barField", new StringValueNode("123")),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Bar>(obj);
+            Assert.Equal("123", (obj as Bar)?.BarField);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_WithoutTypeName_Default()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("sharedField", new StringValueNode("123")),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Foo>(obj);
+            Assert.Equal("123", (obj as Foo)?.SharedField);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_SharedFieldDifferentType_Foo()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("sharedFieldDifferentType", new StringValueNode("123")),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Foo>(obj);
+            Assert.Equal("123", (obj as Foo)?.SharedFieldDifferentType);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_SharedFieldDifferentType_Bar()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("sharedFieldDifferentType", new IntValueNode(123)),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Bar>(obj);
+            Assert.Equal(123, (obj as Bar)?.SharedFieldDifferentType);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_InvalidValueNode()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            IValueNode literal = new StringValueNode("123");
+
+            // act 
+            // assert 
+            InputObjectSerializationException exception =
+                Assert.Throws<InputObjectSerializationException>(
+                    () => inputUnionType.ParseLiteral(literal));
+
+            Assert.Equal(TypeResources.InputUnionType_CannotParseLiteral, exception.Message);
+        }
+
+        [Fact]
+        public void ParseLiteral_UnkownTypeStructure()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("unkownField", new IntValueNode(123)),
+            });
+
+            // act 
+            // assert 
+            InputObjectSerializationException exception =
+                Assert.Throws<InputObjectSerializationException>(
+                    () => inputUnionType.ParseLiteral(literal));
+
+            Assert.Equal(TypeResources.InputUnionType_UnableToResolveType, exception.Message);
+        }
+
+        [Fact]
+        public void ParseLiteral_DifferentTypesInSameList_Foo()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            ObjectValueNode foo = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("sharedFieldDifferentType", new StringValueNode("123")),
+            });
+
+            ObjectValueNode bar = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("sharedFieldDifferentType", new IntValueNode(123)),
+            });
+
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode(
+                    "unionList",
+                    new ListValueNode(new List<IValueNode>(){ foo, bar})),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Foo>((obj as Foo)?.UnionList?[0]);
+            Assert.IsType<Bar>((obj as Foo)?.UnionList?[1]);
+            Assert.Equal("123", ((obj as Foo)?.UnionList?[0] as Foo)?.SharedFieldDifferentType);
+            Assert.Equal(123, ((obj as Foo)?.UnionList?[1] as Bar)?.SharedFieldDifferentType);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_SharedFieldDifferentType_Foo_Nested()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode(
+                    "nestedFieldDifferentType",
+                    new ObjectValueNode(
+                        new List<ObjectFieldNode> {
+                            new ObjectFieldNode(
+                                "sharedFieldDifferentType",
+                                new IntValueNode(123)) })),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Foo>(obj);
+            Assert.Equal(123, (obj as Foo)?.NestedFieldDifferentType?.SharedFieldDifferentType);
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseLiteral_SharedFieldDifferentType_Bar_Nested()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode(
+                    "nestedFieldDifferentType",
+                    new ObjectValueNode(
+                        new List<ObjectFieldNode> {
+                            new ObjectFieldNode(
+                                "sharedFieldDifferentType",
+                                new StringValueNode("123")) })),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<Bar>(obj);
+            Assert.Equal("123", (obj as Bar)?.NestedFieldDifferentType?.SharedFieldDifferentType);
+            obj.MatchSnapshot();
+        }
+
         public class FooInputType
             : InputObjectType<Foo>
         {
+            protected override void Configure(IInputObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Field(x => x.UnionList).Type<ListType<InputUnionType<IFooOrBar>>>();
+            }
         }
 
         public class BarInputType
@@ -333,9 +650,9 @@ namespace HotChocolate.Types
 
             public string? SharedFieldDifferentType { get; set; }
 
-            public Bar? NestedField { get; set; }
-
             public Bar? NestedFieldDifferentType { get; set; }
+
+            public List<IFooOrBar>? UnionList { get; set; }
         }
 
         public class Bar
@@ -346,8 +663,6 @@ namespace HotChocolate.Types
             public string? SharedField { get; set; }
 
             public int? SharedFieldDifferentType { get; set; }
-
-            public Bar? NestedField { get; set; }
 
             public Foo? NestedFieldDifferentType { get; set; }
         }

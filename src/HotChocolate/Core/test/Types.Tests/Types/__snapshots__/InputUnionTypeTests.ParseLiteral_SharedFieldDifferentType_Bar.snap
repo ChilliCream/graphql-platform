@@ -1,6 +1,6 @@
 ﻿{
-  "BarField": "123",
+  "BarField": null,
   "SharedField": null,
-  "SharedFieldDifferentType": null,
+  "SharedFieldDifferentType": 123,
   "NestedFieldDifferentType": null
 }
