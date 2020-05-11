@@ -965,6 +965,115 @@ namespace HotChocolate.Types
             Assert.NotEmpty(fooType.Directives["foo"]);
         }
 
+        [Fact]
+        public void IsInstanceOfType_ValueIsNull_True()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive<FooDirective>()));
+            });
+
+            InputUnionType fooType =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            bool result = fooType.IsInstanceOfType((object)null!);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ValueIsBar_True()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive<FooDirective>()));
+            });
+
+            InputUnionType fooType =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            bool result = fooType.IsInstanceOfType(new Bar());
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ValueIsFoo_True()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive<FooDirective>()));
+            });
+
+            InputUnionType fooType =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            bool result = fooType.IsInstanceOfType(new Foo());
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ValueIsBaz_False()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive<FooDirective>()));
+            });
+
+            InputUnionType fooType =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            bool result = fooType.IsInstanceOfType(new Baz());
+
+            // assert
+            Assert.False(result);
+        }
+
+
         public class FooInputType
             : InputObjectType<Foo>
         {
