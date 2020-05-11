@@ -978,8 +978,7 @@ namespace HotChocolate.Types
                 x.RegisterType(new InputUnionType(d => d
                     .Name("BarInputUnion")
                     .Type<FooInputType>()
-                    .Type<BarInputType>()
-                    .Directive<FooDirective>()));
+                    .Type<BarInputType>()));
             });
 
             InputUnionType fooType =
@@ -999,14 +998,12 @@ namespace HotChocolate.Types
             Schema schema = Schema.Create(x =>
             {
                 x.Options.StrictValidation = false;
-                x.RegisterDirective(new FooDirectiveType());
                 x.RegisterType(new FooInputType());
                 x.RegisterType(new BarInputType());
                 x.RegisterType(new InputUnionType(d => d
                     .Name("BarInputUnion")
                     .Type<FooInputType>()
-                    .Type<BarInputType>()
-                    .Directive<FooDirective>()));
+                    .Type<BarInputType>()));
             });
 
             InputUnionType fooType =
@@ -1026,14 +1023,12 @@ namespace HotChocolate.Types
             Schema schema = Schema.Create(x =>
             {
                 x.Options.StrictValidation = false;
-                x.RegisterDirective(new FooDirectiveType());
                 x.RegisterType(new FooInputType());
                 x.RegisterType(new BarInputType());
                 x.RegisterType(new InputUnionType(d => d
                     .Name("BarInputUnion")
                     .Type<FooInputType>()
-                    .Type<BarInputType>()
-                    .Directive<FooDirective>()));
+                    .Type<BarInputType>()));
             });
 
             InputUnionType fooType =
@@ -1053,14 +1048,12 @@ namespace HotChocolate.Types
             Schema schema = Schema.Create(x =>
             {
                 x.Options.StrictValidation = false;
-                x.RegisterDirective(new FooDirectiveType());
                 x.RegisterType(new FooInputType());
                 x.RegisterType(new BarInputType());
                 x.RegisterType(new InputUnionType(d => d
                     .Name("BarInputUnion")
                     .Type<FooInputType>()
-                    .Type<BarInputType>()
-                    .Directive<FooDirective>()));
+                    .Type<BarInputType>()));
             });
 
             InputUnionType fooType =
@@ -1073,6 +1066,59 @@ namespace HotChocolate.Types
             Assert.False(result);
         }
 
+        [Fact]
+        public void ParseValue_ValueIsNull()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            IValueNode valueNode = type.ParseValue((object)null!);
+
+            // assert
+            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseValue_ValueIsBar()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            IValueNode valueNode = type.ParseValue(new Bar()
+            {
+                BarField = "123",
+                SharedField = "123"
+            });
+
+            // assert
+            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+        }
 
         public class FooInputType
             : InputObjectType<Foo>
