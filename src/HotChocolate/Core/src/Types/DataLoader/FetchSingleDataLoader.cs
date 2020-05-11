@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using GreenDonut;
 
 namespace HotChocolate.DataLoader
 {
@@ -9,13 +10,18 @@ namespace HotChocolate.DataLoader
     {
         private readonly FetchCache<TKey, TValue> _fetch;
 
-        public FetchSingleDataLoader(FetchCache<TKey, TValue> fetch)
-            : this(fetch, DataLoaderDefaults.CacheSize)
+        public FetchSingleDataLoader(
+            IBatchScheduler batchScheduler,
+            FetchCache<TKey, TValue> fetch)
+            : this(batchScheduler, fetch, DataLoaderDefaults.CacheSize)
         {
         }
 
-        public FetchSingleDataLoader(FetchCache<TKey, TValue> fetch, int cacheSize)
-            : base(cacheSize)
+        public FetchSingleDataLoader(
+            IBatchScheduler batchScheduler,
+            FetchCache<TKey, TValue> fetch,
+            int cacheSize)
+            : base(batchScheduler, cacheSize)
         {
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }

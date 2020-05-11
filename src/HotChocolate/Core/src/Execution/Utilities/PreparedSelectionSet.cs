@@ -40,7 +40,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        public IReadOnlyList<IPreparedSelection> GetSelections(ObjectType typeContext)
+        public IPreparedSelectionList GetSelections(ObjectType typeContext)
         {
             if (_map is { })
             {
@@ -101,4 +101,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
     }
+
+    internal class PreparedSelectionList  : IPreparedSelectionList
+    {}
 }

@@ -51,9 +51,4 @@ namespace HotChocolate.Execution.Utilities
 
         void Enqueue(ResolverTask task);
     }
-
-    internal static class ValueCompletion
-    {
-        void Register(FieldNode selection, IResultData resultData);
-    }
 }

@@ -87,6 +87,7 @@ namespace HotChocolate.Execution
             get => _middlewareContext.LocalContextData;
             set => _middlewareContext.LocalContextData = value;
         }
+        public IType? ValueType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         [return: MaybeNull]
         public T Argument<T>(NameString name) =>

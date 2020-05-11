@@ -24,9 +24,13 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchBatchDataLoader<TKey, TValue>(
                     factory(services)));
+                    */
         }
 
         public static bool Register<TKey, TValue>(
@@ -46,8 +50,11 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
+            throw new NotImplementedException();
+
+                /*
             return registry.Register(key, services =>
-                new FetchBatchDataLoader<TKey, TValue>(fetch));
+                new FetchBatchDataLoader<TKey, TValue>(fetch));*/
         }
 
         public static bool Register<TKey, TValue>(
@@ -67,9 +74,12 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchGroupedDataLoader<TKey, TValue>(
-                    factory(services)));
+                    factory(services)));*/
         }
 
         public static bool Register<TKey, TValue>(
@@ -89,8 +99,12 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
+    throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchGroupedDataLoader<TKey, TValue>(fetch));
+                */
         }
 
         public static bool Register<TKey, TValue>(
@@ -110,9 +124,13 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchSingleDataLoader<TKey, TValue>(
                     factory(services)));
+                    */
         }
 
         public static bool Register<TKey, TValue>(
@@ -132,8 +150,12 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
+            throw new NotImplementedException();
+
+                /*
             return registry.Register(key, services =>
                 new FetchSingleDataLoader<TKey, TValue>(fetch));
+                */
         }
 
         public static bool Register<TValue>(
