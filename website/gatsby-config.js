@@ -15,6 +15,10 @@ module.exports = {
         link: `/docs/hotchocolate`,
       },
       {
+        name: `Support`,
+        link: `/support`,
+      },
+      {
         name: `Blog`,
         link: `/blog`,
       },
@@ -84,10 +88,25 @@ module.exports = {
           `gatsby-remark-reading-time`,
           `gatsby-remark-mermaid`,
           {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
+          {
             resolve: `gatsby-remark-prismjs`,
             options: {
               showLineNumbers: false,
               inlineCodeMarker: `±`,
+              languageExtensions: [
+                {
+                  language: "sdl",
+                  extend: "graphql",
+                  definition: {},
+                  insertBefore: {},
+                },
+              ],
             },
           },
           {

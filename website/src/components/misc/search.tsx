@@ -181,7 +181,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   display: ${(props) => (props.show ? `grid` : `none`)};
   padding: 15px 20px;
   max-height: 80vh;
-  overflow: scroll;
+  overflow: initial;
   -webkit-overflow-scrolling: touch;
   background: white;
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);

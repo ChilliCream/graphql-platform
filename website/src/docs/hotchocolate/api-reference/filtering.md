@@ -23,7 +23,7 @@ public class Foo
 }
 ```
 
-```graphql
+```sdl
 input FooFilter {
   bar: String
   bar_contains: String
@@ -266,7 +266,7 @@ public class Query : ObjectType
 
 The produced GraphQL SDL will look like the following:
 
-```graphql
+```sdl
 type Query {
   users(where: UserFilter): [User]
 }
@@ -328,7 +328,7 @@ public class Query : ObjectType
 
 The produced GraphQL SDL will look like the following:
 
-```graphql
+```sdl
 type Query {
   users(where: UserFilter): [User]
 }
@@ -406,7 +406,7 @@ public class Query : ObjectType
 
 The produced GraphQL SDL will look like the following:
 
-```graphql
+```sdl
 type Query {
   users(where: UserFilter): [User]
 }
@@ -491,7 +491,7 @@ public class Query : ObjectType
 
 The produced GraphQL SDL will look like the following:
 
-```graphql
+```sdl
 type Query {
   users(where: UserFilter): [User]
 }
@@ -625,7 +625,7 @@ public class Query : ObjectType
 
 The produced GraphQL SDL will look like the following:
 
-```graphql
+```sdl
 type Query {
   users(where: UserFilter): [User]
 }
@@ -735,7 +735,7 @@ SchemaBuilder.New().AddConvention<CustomConvention>();
 SchemaBuilder.New().AddConvention(new FilterConvention(x => x.UseSnakeCase())
 ```
 
-```graphql
+```sdl
 input FooBarFilter {
   AND: [FooBarFilter!]
   nested: String
@@ -813,7 +813,7 @@ SchemaBuilder.New().AddConvention<CustomConvention>();
 SchemaBuilder.New().AddConvention(new FilterConvention(x => x.UsePascalCase())
 ```
 
-```graphql
+```sdl
 input FooBarFilter {
   AND: [FooBarFilter!]
   Nested: String
@@ -871,8 +871,6 @@ input ISingleFilterOfInt16Filter {
 }
 ```
 
----
-
 # Customizing Filter
 
 Hot Chocolate provides different APIs to customize filtering. You can write custom filter input types, customize the inference behavior of .NET Objects, customize the generated expression, or create a custom visitor and attach your exotic database.
@@ -927,7 +925,7 @@ public class UserFilterType
 }
 ```
 
-```graphql
+```sdl
 input UserFilter {
   name: String
   name_contains: String
@@ -973,7 +971,7 @@ public class UserFilterType
 }
 ```
 
-```graphql
+```sdl
 input UserFilter {
   exits_with_name: String @name
   """
@@ -1063,7 +1061,7 @@ descriptor.ArgumentName("example_argument_name");
 
 **Result**
 
-```graphql
+```sdl
 type Query {
   users(example_argument_name: UserFilter): [User]
 }
@@ -1081,7 +1079,7 @@ descriptor.ElementName("example_element_name");
 
 **Result**
 
-```graphql
+```sdl
 input ISingleFilterOfInt16Filter {
   AND: [ISingleFilterOfInt16Filter!]
   example_element_name: Short
@@ -1121,7 +1119,7 @@ descriptor.TypeName((context,types) =>
 
 **Result**
 
-```graphql
+```sdl
 type Query {
   users(where: UserCustom): [User]
 }
@@ -1148,7 +1146,7 @@ descriptor.TypeName((context,types) =>
 
 **Result**
 
-```graphql
+```sdl
 """
 Custom
 """
@@ -1229,7 +1227,7 @@ The operation descriptor allows you to configure the name, the description or ev
 
 In this example, we will look at the following input type:
 
-```graphql
+```sdl
 input UserFilter {
   loggingCount: Int
   loggingCount_gt: Int
@@ -1287,7 +1285,7 @@ public delegate NameString CreateFieldName(
 
 **result**
 
-```graphql{8,18}
+```sdl{8,18}
 input UserFilter {
   loggingCount: Int
   loggingCount_gt: Int
@@ -1338,7 +1336,7 @@ You can either set the description for all operations of this kind or only for a
 
 **result**
 
-```graphql{2-4,11-14, 20-22,27-29}
+```sdl{2-4,11-14, 20-22,27-29}
 input UserFilter {
   """
   has to be equal
@@ -1401,7 +1399,7 @@ There are multiple ways to ignore an operation:
 
 **result**
 
-```graphql{2,4, 8,14,18}
+```sdl{2,4, 8,14,18}
 input UserFilter {
   ↵
   loggingCount_gt: Int
