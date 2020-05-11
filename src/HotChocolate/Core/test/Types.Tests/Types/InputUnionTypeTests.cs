@@ -701,6 +701,270 @@ namespace HotChocolate.Types
             obj.MatchSnapshot();
         }
 
+        [Fact]
+        public void EnsureInputObjectTypeKindIsCorret()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            TypeKind kind = inputUnionType.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.InputUnion, kind);
+        }
+
+        [Fact]
+        public void GenericInputObjectUnion_AddDirectives_NameArgs()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType<IFooOrBar>(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive("foo")));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void GenericInputObjectUnion_AddDirectives_NameArgs2()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType<IFooOrBar>(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive(new NameString("foo"))));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void GenericInputObjectUnion_AddDirectives_DirectiveNode()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType<IFooOrBar>(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive(new DirectiveNode("foo"))));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void GenericInputObjectUnion_AddDirectives_DirectiveClassInstance()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType<IFooOrBar>(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive(new FooDirective())));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void GenericInputObjectUnion_AddDirectives_DirectiveType()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType<IFooOrBar>(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive<FooDirective>()));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void InputObjectUnion_AddDirectives_NameArgs()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive("foo")));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void InputObjectUnion_AddDirectives_NameArgs2()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive(new NameString("foo"))));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void InputObjectUnion_AddDirectives_DirectiveNode()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive(new DirectiveNode("foo"))));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void InputObjectUnion_AddDirectives_DirectiveClassInstance()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive(new FooDirective())));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void InputObjectUnion_AddDirectives_DirectiveType()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterDirective(new FooDirectiveType());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()
+                    .Directive<FooDirective>()));
+            });
+
+            // act
+            InputUnionType fooType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // assert
+            Assert.NotEmpty(fooType.Directives["foo"]);
+        }
+
         public class FooInputType
             : InputObjectType<Foo>
         {
