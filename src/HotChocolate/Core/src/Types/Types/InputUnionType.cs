@@ -187,8 +187,11 @@ namespace HotChocolate.Types
                 foreach (InputObjectType type in _typeMap.Values)
                 {
                     if (type.IsInstanceOfType(value) &&
-                            type.TrySerialize(value, out serialized))
+                            type.TrySerialize(value, out var serializedDict) &&
+                            serializedDict is Dictionary<string, object> serializedTyped)
                     {
+                        serializedTyped.Add("__typename", type.Name);
+                        serialized = serializedTyped;
                         return true;
                     }
                 }

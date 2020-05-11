@@ -1,0 +1,7 @@
+﻿{
+  "barField": "123",
+  "nestedFieldDifferentType": null,
+  "sharedField": "123",
+  "sharedFieldDifferentType": null,
+  "__typename": "BarInput"
+}

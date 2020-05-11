@@ -1120,6 +1120,91 @@ namespace HotChocolate.Types
             QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
         }
 
+
+        [Fact]
+        public void Serialize_ValueIsNull()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            object serialized = type.Serialize(null);
+
+            // assert
+            Assert.Null(serialized);
+        }
+
+        [Fact]
+        public void Serialize_ValueIsBar()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            object serialized = type.Serialize(
+                new Bar
+                {
+                    BarField = "123",
+                    SharedField = "123"
+                });
+
+            // assert
+            serialized.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_ValueIsDictionary()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+
+            InputUnionType type =
+                schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            object serialized = type.Serialize(
+                new Dictionary<string, object>
+                {
+                    { "BarField", "123" }
+                });
+
+            // assert
+            serialized.MatchSnapshot();
+        }
+
         public class FooInputType
             : InputObjectType<Foo>
         {
