@@ -622,6 +622,85 @@ namespace HotChocolate.Types
             obj.MatchSnapshot();
         }
 
+        [Fact]
+        public void ParseLiteral_ParseNullValueNode()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+            NullValueNode literal = NullValueNode.Default;
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert 
+            Assert.Null(obj);
+        }
+
+        [Fact]
+        public void ParseLiteral_ParseNullValue()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+
+            // act
+            // assert 
+            ArgumentNullException exception =
+                Assert.Throws<ArgumentNullException>(
+                    () => inputUnionType.ParseLiteral(null));
+        }
+
+        [Fact]
+        public void ParseLiteral_NullValueInList()
+        {
+            // arrange
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+            });
+            InputUnionType inputUnionType = schema.GetType<InputUnionType>("BarInputUnion");
+
+
+            ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode(
+                    "unionList",
+                    new ListValueNode(new List<IValueNode>(){ NullValueNode.Default })),
+            });
+
+            // act
+            object obj = inputUnionType.ParseLiteral(literal);
+
+            // assert
+            Assert.Null((obj as Foo)?.UnionList?[0]);
+            obj.MatchSnapshot();
+        }
+
         public class FooInputType
             : InputObjectType<Foo>
         {

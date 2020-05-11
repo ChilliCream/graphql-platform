@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -372,6 +371,13 @@ namespace HotChocolate.Types
                 if (value.IsNull())
                 {
                     return false;
+                }
+            }
+            else
+            {
+                if (value.IsNull())
+                {
+                    return true;
                 }
             }
 
