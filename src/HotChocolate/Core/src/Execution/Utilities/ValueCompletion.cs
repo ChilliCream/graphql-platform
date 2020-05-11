@@ -73,7 +73,7 @@ namespace HotChocolate.Execution.Utilities
             throw new GraphQLException("unexpected");
         }
 
-        private static object? CompleteListValue(
+        private static IResultData CompleteListValue(
             IOperationContext operationContext,
             IMiddlewareContext middlewareContext,
             Path path,
@@ -81,39 +81,140 @@ namespace HotChocolate.Execution.Utilities
             object? result)
         {
             IType elementType = fieldType.ElementType();
+            if (elementType.IsCompositeType())
+            {
+                return CompleteResultMapListValue(
+                    operationContext,
+                    middlewareContext,
+                    path,
+                    fieldType,
+                    elementType,
+                    result);
+            }
 
+            return CompleteResultListValue(
+                operationContext,
+                middlewareContext,
+                path,
+                fieldType,
+                elementType,
+                result);
+        }
+
+        private static ResultMapList CompleteResultMapListValue(
+            IOperationContext operationContext,
+            IMiddlewareContext middlewareContext,
+            Path path,
+            IType fieldType,
+            IType elementType,
+            object? result)
+        {
             if (result is Array array)
             {
-                var completedResult = new object?[array.Length];
+                ResultMapList completedResult = operationContext.RentResultMapList();
+                completedResult.IsNullable = elementType.IsNullableType();
+
                 for (int i = 0; i < array.Length; i++)
                 {
-                    completedResult[i] = Complete(
+                    completedResult.Add((ResultMap)Complete(
                         operationContext,
                         middlewareContext,
                         path.Append(i),
                         elementType,
-                        array.GetValue(i));
+                        array.GetValue(i))!);
                 }
+
                 return completedResult;
             }
             else if (result is IList list)
             {
-                var completedResult = new object?[list.Count];
+                ResultMapList completedResult = operationContext.RentResultMapList();
+                completedResult.IsNullable = elementType.IsNullableType();
+
                 for (int i = 0; i < list.Count; i++)
                 {
-                    completedResult[i] = Complete(
+                    completedResult.Add((ResultMap)Complete(
                         operationContext,
                         middlewareContext,
                         path.Append(i),
                         elementType,
-                        list[i]);
+                        list[i])!);
                 }
+
                 return completedResult;
             }
             else if (result is IEnumerable enumerable)
             {
                 int index = 0;
-                var completedResult = new List<object?>();
+                ResultMapList completedResult = operationContext.RentResultMapList();
+                completedResult.IsNullable = elementType.IsNullableType();
+
+                foreach (object? element in enumerable)
+                {
+                    completedResult.Add((ResultMap)Complete(
+                        operationContext,
+                        middlewareContext,
+                        path.Append(index++),
+                        elementType,
+                        element)!);
+                }
+
+                return completedResult;
+            }
+            else
+            {
+                // TODO : error helper
+                throw new GraphQLException("not a list error");
+            }
+        }
+
+        private static ResultList CompleteResultListValue(
+           IOperationContext operationContext,
+           IMiddlewareContext middlewareContext,
+           Path path,
+           IType fieldType,
+           IType elementType,
+           object? result)
+        {
+            if (result is Array array)
+            {
+                ResultList completedResult = operationContext.RentResultList();
+                completedResult.IsNullable = elementType.IsNullableType();
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    completedResult.Add(Complete(
+                        operationContext,
+                        middlewareContext,
+                        path.Append(i),
+                        elementType,
+                        array.GetValue(i)));
+                }
+
+                return completedResult;
+            }
+            else if (result is IList list)
+            {
+                ResultList completedResult = operationContext.RentResultList();
+                completedResult.IsNullable = elementType.IsNullableType();
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    completedResult.Add(Complete(
+                        operationContext,
+                        middlewareContext,
+                        path.Append(i),
+                        elementType,
+                        list[i]));
+                }
+
+                return completedResult;
+            }
+            else if (result is IEnumerable enumerable)
+            {
+                int index = 0;
+                ResultList completedResult = operationContext.RentResultList();
+                completedResult.IsNullable = elementType.IsNullableType();
 
                 foreach (object? element in enumerable)
                 {
@@ -124,6 +225,7 @@ namespace HotChocolate.Execution.Utilities
                         elementType,
                         element));
                 }
+
                 return completedResult;
             }
             else

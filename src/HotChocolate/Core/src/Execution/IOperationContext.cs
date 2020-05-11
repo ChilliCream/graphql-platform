@@ -4,15 +4,15 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
+using HotChocolate.DataLoader;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal interface IOperationContext
+    internal interface IOperationContext : IHasContextData
     {
         /// <summary>
         /// Gets the schema on which the query is being executed.
@@ -48,33 +48,27 @@ namespace HotChocolate.Execution
         IVariableValueCollection Variables { get; }
 
         /// <summary>
-        /// Gets the query result.
-        /// </summary>
-        /// <value></value>
-        IQueryResultBuilder Result { get; }
-
-        /// <summary>
-        /// The context data dictionary can be used by middlewares and
-        /// resolvers to store and retrieve data during execution.
-        /// </summary>
-        IDictionary<string, object?> ContextData { get; }
-
-        /// <summary>
         /// Gets a cancellation token is used to signal
         /// if the request has be aborted.
         /// </summary>
         CancellationToken RequestAborted { get; }
 
+        // TODO : DO WE NEED this on the context
+        /// <summary>
+        /// Gets the query result.
+        /// </summary>
+        /// <value></value>
+        IQueryResultBuilder Result { get; }
+
         // TODO : documentation -> remember this are the raw collected fields without visibility
-        IPreparedSelectionList CollectFields(
-            SelectionSetNode selectionSet,
-            ObjectType objectType);
+        IPreparedSelectionList CollectFields(SelectionSetNode selectionSet, ObjectType objectType);
 
         /// <summary>
         /// Gets the activator helper class.
         /// </summary>
         IActivator Activator { get; }
 
+        // TODO : introduce new diagnostic abstraction
         /// <summary>
         /// Gets the diagnostics writer for query execution.
         /// </summary>
@@ -85,12 +79,6 @@ namespace HotChocolate.Execution
         /// </summary>
         /// <value></value>
         ITypeConversion Converter { get; }
-
-        ITaskQueue TaskQueue { get; }
-
-        IBatchScheduler BatchScheduler { get; }
-
-        INonNullViolationTracker NonNullViolations { get; }
 
         /// <summary>
         /// Adds an error thread-safe to the result object.
@@ -104,6 +92,8 @@ namespace HotChocolate.Execution
         /// <param name="error">The error that shall be added.</param>
         void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
 
+
+        // TODO : move to helper class
         /// <summary>
         /// Rewrites the value literals and replaces the variables.
         /// </summary>
@@ -118,20 +108,45 @@ namespace HotChocolate.Execution
         /// </returns>
         IValueNode ReplaceVariables(IValueNode value, IType type);
 
-        void EnqueueResolverTask(
-            IPreparedSelection selection,
-            int responseIndex,
-            ResultMap resultMap,
-            object? parent,
-            Path path,
-            IImmutableDictionary<string, object?> scopedContextData);
-
         ResultMapList RentResultMapList();
+
+        ResultList RentResultList();
 
         ResultMap RentResultMap(int count);
 
-        Task WaitForEngine();
+        IExecutionContext Execution { get; }
+    }
 
+    /// <summary>
+    /// The execution context provides access to the task queue, 
+    /// the batch dispatcher and exposes processing relevant state information. 
+    /// </summary>
+    internal interface IExecutionContext
+    {
+        /// <summary>
+        /// Gets the task queue.
+        /// </summary>
+        ITaskQueue Tasks { get; }
+
+        /// <summary>
+        /// Gets the batch dispatcher.
+        /// </summary>
+        IBatchDispatcher BatchDispatcher { get; }
+
+        /// <summary>
+        /// 
+        /// wait for => executionContext.Tasks.Count > 0 
+        /// || executionContext.BatchDispatcher.HasTasks 
+        /// || IsCompleted 
+        /// || cancellationToken.IsCancellationRequested
+        /// </summary>
+        Task WaitForEngine(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// operationContext.Tasks.IsEmpty 
+        /// && operationContext.BatchScheduler.IsEmpty 
+        /// && AllTasksDone
+        /// </summary>
         bool IsCompleted { get; }
     }
 }

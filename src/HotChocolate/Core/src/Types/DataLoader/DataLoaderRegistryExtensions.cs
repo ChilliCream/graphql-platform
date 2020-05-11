@@ -52,9 +52,9 @@ namespace HotChocolate.DataLoader
 
             throw new NotImplementedException();
 
-                /*
-            return registry.Register(key, services =>
-                new FetchBatchDataLoader<TKey, TValue>(fetch));*/
+            /*
+        return registry.Register(key, services =>
+            new FetchBatchDataLoader<TKey, TValue>(fetch));*/
         }
 
         public static bool Register<TKey, TValue>(
@@ -99,7 +99,7 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-    throw new NotImplementedException();
+            throw new NotImplementedException();
 
             /*
             return registry.Register(key, services =>
@@ -152,10 +152,10 @@ namespace HotChocolate.DataLoader
 
             throw new NotImplementedException();
 
-                /*
-            return registry.Register(key, services =>
-                new FetchSingleDataLoader<TKey, TValue>(fetch));
-                */
+            /*
+        return registry.Register(key, services =>
+            new FetchSingleDataLoader<TKey, TValue>(fetch));
+            */
         }
 
         public static bool Register<TValue>(
@@ -175,12 +175,15 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+/*
             return registry.Register(key, services =>
             {
                 FetchOnce<TValue> fetch = factory(services);
                 return new FetchSingleDataLoader<string, TValue>(
                     k => fetch(), DataLoaderDefaults.MinCacheSize);
-            });
+            });*/
         }
 
         public static bool Register<TValue>(
@@ -200,11 +203,15 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
             {
                 return new FetchSingleDataLoader<string, TValue>(
                     k => fetch(), DataLoaderDefaults.MinCacheSize);
             });
+            */
         }
 
         public static bool Register<T>(

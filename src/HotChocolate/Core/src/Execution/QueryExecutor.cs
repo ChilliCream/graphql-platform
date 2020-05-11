@@ -16,39 +16,32 @@ namespace HotChocolate.Execution.Utilities
         }
 
         private async Task ExecuteResolversAsync(
-            IOperationContext operationContext,
-            IBatchDispatcher batchDispatcher, // we might have more than one
-            ITaskQueue taskQueue)
-        {
-            // operationContext.Tasks.IsEmpty && operationContext.BatchScheduler.IsEmpty && AllTasksDone
-            while (!operationContext.IsCompleted)
+            IExecutionContext executionContext, 
+            CancellationToken cancellationToken)
+        {            
+            while (!cancellationToken.IsCancellationRequested && 
+                !executionContext.IsCompleted)
             {
-                while (operationContext.TaskQueue.HasTasks)
+                while (executionContext.Tasks.TryDequeue(out ResolverTask task))
                 {
-                    ResolverTask task = operationContext.TaskQueue.Dequeue();
                     task.BeginExecute();
                 }
 
-                while (taskQueue.IsEmpty && batchDispatcher.HasTasks)
+                await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
+
+                while (executionContext.Tasks.IsEmpty && 
+                    executionContext.BatchDispatcher.HasTasks)
                 {
-                    await batchDispatcher.DispatchAsync(operationContext.RequestAborted)
+                    await executionContext.BatchDispatcher.DispatchAsync(cancellationToken)
                         .ConfigureAwait(false);
-                    await operationContext.WaitForEngine();
+                    await executionContext.WaitForEngine(cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             // ensure non-null propagation
         }
-    }
-
-    internal interface ITaskQueue
-    {
-        bool HasTasks { get; }
-
-        bool IsEmpty { get; }
-
-        ResolverTask Dequeue();
-
-        void Enqueue(ResolverTask task);
     }
 }

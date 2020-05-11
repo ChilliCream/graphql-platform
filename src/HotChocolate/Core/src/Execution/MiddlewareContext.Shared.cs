@@ -42,6 +42,7 @@ namespace HotChocolate.Execution
             ValueType = null;
             ResponseIndex = default;
             ResultMap = default!;
+            HasErrors = false;
         }
     }
 }

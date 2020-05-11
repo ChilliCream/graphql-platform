@@ -12,6 +12,7 @@ namespace HotChocolate.Execution
     {
         private ValueTask _task;
         private IOperationContext _operationContext = default!;
+        private IPreparedSelection _selection = default!;
 
         public MiddlewareContext Context { get; } = new MiddlewareContext();
 
@@ -35,21 +36,71 @@ namespace HotChocolate.Execution
 
         private async ValueTask ExecuteAsync()
         {
-            // todo: coerce arguments
-
-            await Context.ResolverPipeline(Context).ConfigureAwait(false);
-
-            if (Context.Result is IError error)
+            if (TryCoerceArguments())
             {
-                _operationContext.AddError(error, Context.FieldSelection);
-                Context.Result = null;
-            }
-            else if (Context.Result is IEnumerable<IError> errors)
-            {
-                _operationContext.AddErrors(errors, Context.FieldSelection);
-                Context.Result = null;
+                await ExecuteResolverPipelineAsync();
             }
 
+            if (Context.RequestAborted.IsCancellationRequested)
+            {
+                return;
+            }
+
+            CompleteValue();
+        }
+
+        private bool TryCoerceArguments()
+        {
+            foreach(PreparedArgument argument in _selection.Arguments.Values)
+            {
+                if(argument.IsError) 
+                {
+
+                }
+                
+                if(argument.)
+            }
+        }
+
+        private async ValueTask ExecuteResolverPipelineAsync()
+        {
+            try
+            {
+                await Context.ResolverPipeline(Context).ConfigureAwait(false);
+
+                switch (Context.Result)
+                {
+                    case IError error:
+                        Context.ReportError(error);
+                        Context.Result = null;
+                        break;
+
+                    case IEnumerable<IError> errors:
+                        foreach (IError error in errors)
+                        {
+                            Context.ReportError(error);
+                        }
+                        Context.Result = null;
+                        break;
+                }
+            }
+            catch (GraphQLException ex)
+            {
+                foreach (IError error in ex.Errors)
+                {
+                    Context.ReportError(error);
+                }
+                Context.Result = null;
+            }
+            catch (Exception ex)
+            {
+                Context.ReportError(ex);
+                Context.Result = null;
+            }
+        }
+
+        private void CompleteValue()
+        {
             try
             {
                 Context.Result = ValueCompletion.Complete(
@@ -61,12 +112,15 @@ namespace HotChocolate.Execution
             }
             catch (GraphQLException ex)
             {
-                _operationContext.AddError(null, Context.FieldSelection);
+                foreach (IError error in ex.Errors)
+                {
+                    Context.ReportError(error);
+                }
                 Context.Result = null;
             }
             catch (Exception ex)
             {
-                _operationContext.AddError(null, Context.FieldSelection);
+                Context.ReportError(ex);
                 Context.Result = null;
             }
 
@@ -88,12 +142,12 @@ namespace HotChocolate.Execution
             _task = default;
             _operationContext = operationContext;
             Context.Initialize(
-                operationContext, 
-                selection, 
-                resultMap, 
-                responseIndex, 
-                parent, 
-                path, 
+                operationContext,
+                selection,
+                resultMap,
+                responseIndex,
+                parent,
+                path,
                 scopedContextData);
         }
 

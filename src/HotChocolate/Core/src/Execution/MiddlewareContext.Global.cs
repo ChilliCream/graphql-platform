@@ -64,10 +64,17 @@ namespace HotChocolate.Execution
                 }
 
                 var finalFields = new List<IFieldSelection>();
+
                 for (int i = 0; i < fields.Count; i++)
                 {
-                    
+                    IPreparedSelection selection = fields[i];
+                    if (selection.IsFinal || selection.IsVisible(_operationContext.Variables))
+                    {
+                        finalFields.Add(selection);
+                    }
                 }
+
+                return finalFields;
             }
             catch (GraphQLException ex)
             {
@@ -117,14 +124,33 @@ namespace HotChocolate.Execution
                 .Build());
         }
 
+        public void ReportError(Exception exception)
+        {
+            if (exception is null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            IError error = _operationContext.ErrorHandler
+                .CreateUnexpectedError(exception)
+                .SetPath(Path)
+                .AddLocation(FieldSelection)
+                .Build();
+
+            ReportError(error);
+        }
+
         public void ReportError(IError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
 
-            _operationContext.AddError(_operationContext.ErrorHandler.Handle(error));
+            _operationContext.AddError(
+                _operationContext.ErrorHandler.Handle(error), 
+                FieldSelection);
+            HasErrors = true;
         }
 
         public async Task<T> ResolveAsync<T>()

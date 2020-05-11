@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Validation;
@@ -13,19 +14,20 @@ namespace HotChocolate.Execution
         ISchema Schema { get; }
 
         /// <summary>
-        /// Gets or sets the initial query request.
-        /// </summary>
-        IReadOnlyQueryRequest Request { get; set; }
-
-        /// <summary>
         /// Gets or sets the scoped request services.
         /// </summary>
         IServiceProvider Services { get; }
 
         /// <summary>
-        /// Gets or sets the parsed query document.
+        /// Gets the error handler which adds additional context
+        /// data to errors and exceptions.
         /// </summary>
-        DocumentNode Document { get; set; }
+        IErrorHandler ErrorHandler { get; }
+
+        /// <summary>
+        /// Gets or sets the initial query request.
+        /// </summary>
+        IReadOnlyQueryRequest Request { get; }
 
         /// <summary>
         /// Notifies when the connection underlying this request is aborted
@@ -34,9 +36,9 @@ namespace HotChocolate.Execution
         CancellationToken RequestAborted { get; set; }
 
         /// <summary>
-        /// Gets or sets an unexpected execution exception.
+        /// Gets or sets the parsed query document.
         /// </summary>
-        Exception Exception { get; set; }
+        DocumentNode Document { get; set; }
 
         /// <summary>
         /// Gets or sets the document validation result.
@@ -47,5 +49,10 @@ namespace HotChocolate.Execution
         /// Gets or sets the execution result.
         /// </summary>
         IExecutionResult? Result { get; set; }
+
+        /// <summary>
+        /// Gets or sets an unexpected execution exception.
+        /// </summary>
+        Exception Exception { get; set; }
     }
 }

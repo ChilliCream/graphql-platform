@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public interface IResultMapList
-        : IReadOnlyList<IResultMap?>
+    public interface IResultList
+        : IReadOnlyList<object?>
         , IResultData
     {
     }

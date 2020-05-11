@@ -72,7 +72,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public void SetValue(int index, string name, object value)
+        public void SetValue(int index, string name, object value, bool isNullable = true)
         {
             if (index >= _capacity)
             {
@@ -89,7 +89,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(value));
             }
 
-            _buffer[index] = new ResultValue(name, value);
+            _buffer[index] = new ResultValue(name, value, isNullable);
         }
 
         public void RemoveValue(int index)
