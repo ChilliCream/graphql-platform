@@ -31,6 +31,8 @@ namespace HotChocolate.Execution
 
         public bool IsCompleted { get; private set; }
 
+        public IExecutionContext Execution => throw new NotImplementedException();
+
         public void AddError(IError error, FieldNode? selection = null)
         {
             throw new NotImplementedException();
@@ -55,6 +57,11 @@ namespace HotChocolate.Execution
             object? parent,
             Path path,
             IImmutableDictionary<string, object?> scopedContextData)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ResultList RentResultList()
         {
             throw new NotImplementedException();
         }

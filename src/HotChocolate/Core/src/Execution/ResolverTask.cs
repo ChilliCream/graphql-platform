@@ -58,8 +58,10 @@ namespace HotChocolate.Execution
 
                 }
                 
-                if(argument.)
+                // if(argument.)
             }
+
+            return true;
         }
 
         private async ValueTask ExecuteResolverPipelineAsync()
@@ -126,7 +128,7 @@ namespace HotChocolate.Execution
 
             if (Context.Result is null && Context.Field.Type.IsNonNullType())
             {
-                _operationContext.NonNullViolations.Register(Context.FieldSelection, null);
+                // _operationContext.NonNullViolations.Register(Context.FieldSelection, null);
             }
         }
 

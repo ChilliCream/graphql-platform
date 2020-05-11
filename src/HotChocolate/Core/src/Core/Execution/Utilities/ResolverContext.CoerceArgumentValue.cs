@@ -14,6 +14,8 @@ namespace HotChocolate.Execution
     {
         public IServiceProvider Services => throw new NotImplementedException();
 
+        public IType ValueType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public T Argument<T>(NameString name)
         {
             name.EnsureNotEmpty(nameof(name));
@@ -152,6 +154,11 @@ namespace HotChocolate.Execution
         }
 
         public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        T IResolverContext.Source<T>()
         {
             throw new NotImplementedException();
         }

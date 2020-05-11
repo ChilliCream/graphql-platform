@@ -64,6 +64,8 @@ namespace HotChocolate.Execution.Utilities
         /// <inheritdoc />
         public bool IsFinal { get; private set; } = true;
 
+        IPreparedArgumentMap IPreparedSelection.Arguments => throw new NotImplementedException();
+
         /// <inheritdoc />
         public bool IsVisible(IVariableValueCollection variables)
         {
@@ -231,6 +233,4 @@ namespace HotChocolate.Execution.Utilities
             return selections[0].Directives;
         }
     }
-
-    
 }

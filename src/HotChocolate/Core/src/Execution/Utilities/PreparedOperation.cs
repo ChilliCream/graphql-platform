@@ -8,7 +8,8 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class PreparedOperation : IPreparedOperation
     {
-        private static IReadOnlyList<IPreparedSelection> _empty = new IPreparedSelection[0];
+        private static IPreparedSelectionList _empty = 
+            new PreparedSelectionList(new IPreparedSelection[0], true);
         private readonly IReadOnlyDictionary<SelectionSetNode, PSS> _selectionSets;
 
         public PreparedOperation(
@@ -42,7 +43,7 @@ namespace HotChocolate.Execution.Utilities
 
         public OperationType Type { get; }
 
-        public IReadOnlyList<IPreparedSelection> GetSelections(
+        public IPreparedSelectionList GetSelections(
             SelectionSetNode selectionSet,
             ObjectType typeContext)
         {

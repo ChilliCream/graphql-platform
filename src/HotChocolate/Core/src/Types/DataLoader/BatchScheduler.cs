@@ -8,7 +8,7 @@ namespace HotChocolate.DataLoader
 {
     public class BatchScheduler
         : IBatchScheduler
-        , IBatchDispatcher
+        // , IBatchDispatcher
     {
         private readonly object _lock = new object();
         private readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();

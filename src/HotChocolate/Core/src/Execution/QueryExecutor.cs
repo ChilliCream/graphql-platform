@@ -22,14 +22,16 @@ namespace HotChocolate.Execution.Utilities
             while (!cancellationToken.IsCancellationRequested && 
                 !executionContext.IsCompleted)
             {
-                while (executionContext.Tasks.TryDequeue(out ResolverTask task))
+                while (!cancellationToken.IsCancellationRequested && 
+                    executionContext.Tasks.TryDequeue(out ResolverTask task))
                 {
                     task.BeginExecute();
                 }
 
                 await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
 
-                while (executionContext.Tasks.IsEmpty && 
+                while (!cancellationToken.IsCancellationRequested && 
+                    executionContext.Tasks.IsEmpty && 
                     executionContext.BatchDispatcher.HasTasks)
                 {
                     await executionContext.BatchDispatcher.DispatchAsync(cancellationToken)

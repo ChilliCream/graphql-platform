@@ -56,10 +56,7 @@ namespace HotChocolate.Execution
 
         public FieldNode FieldSelection =>
             _middlewareContext.FieldSelection;
-
-        public IImmutableStack<object> Source =>
-            _middlewareContext.Source;
-
+            
         public Path Path =>
             _middlewareContext.Path;
 
@@ -91,6 +88,8 @@ namespace HotChocolate.Execution
         }
 
         public IServiceProvider Services => throw new NotImplementedException();
+
+        public IType ValueType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
@@ -146,6 +145,11 @@ namespace HotChocolate.Execution
         }
 
         public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        T IResolverContext.Source<T>()
         {
             throw new NotImplementedException();
         }
