@@ -65,12 +65,6 @@ namespace HotChocolate.Resolvers
         NameString ResponseName { get; }
 
         /// <summary>
-        /// Gets the source stack containing all previous resolver results
-        /// of the current execution path.
-        /// </summary>
-        IImmutableStack<object?> Source { get; }
-
-        /// <summary>
         /// Gets the current execution path.
         /// </summary>
         Path Path { get; }
@@ -101,6 +95,18 @@ namespace HotChocolate.Resolvers
         CancellationToken RequestAborted { get; }
 
         /// <summary>
+        /// Gets the source value on which the resolver executes.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type to which the result shall be casted.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the source value on which the resolver executes.
+        /// </returns>
+        [return: MaybeNull]
+        T Source<T>();
+
+        /// <summary>
         /// Gets the previous (parent) resolver result.
         /// </summary>
         /// <typeparam name="T">
@@ -109,6 +115,7 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the previous (parent) resolver result.
         /// </returns>
+        [Obsolete("Use Source<T>().")]
         [return: MaybeNull]
         T Parent<T>();
 
@@ -124,7 +131,11 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the value of the specified field argument.
         /// </returns>
+        [Obsolete("Use ArgumentValue<T>(name) or " +
+            "ArgumentLiteral<TValueNode>(name) or " + 
+            "ArgumentOptional<T>(name).")]
         [return: MaybeNull]
+
         T Argument<T>(NameString name);
 
         /// <summary>
@@ -147,13 +158,13 @@ namespace HotChocolate.Resolvers
         /// <param name="name">
         /// The argument name.
         /// </param>
-        /// <typeparam name="T">
+        /// <typeparam name="TValueNode">
         /// The type to which the argument shall be casted to.
         /// </typeparam>
         /// <returns>
         /// Returns the value of the specified field argument as literal.
         /// </returns>
-        T ArgumentLiteral<T>(NameString name) where T : IValueNode;
+        TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode;
 
         /// <summary>
         /// Gets a specific field argument as optional.
@@ -296,5 +307,5 @@ namespace HotChocolate.Resolvers
         /// Helper method to modify the scoped context data.
         /// </summary>
         void ModifyScopedContext(ModifyScopedContext modify);
-    }    
+    }
 }

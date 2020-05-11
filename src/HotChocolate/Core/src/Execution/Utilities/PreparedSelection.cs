@@ -62,6 +62,11 @@ namespace HotChocolate.Execution.Utilities
         public IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; }
 
         /// <inheritdoc />
+        public bool IsFinal { get; private set; } = true;
+
+        IPreparedArgumentMap IPreparedSelection.Arguments => throw new NotImplementedException();
+
+        /// <inheritdoc />
         public bool IsVisible(IVariableValueCollection variables)
         {
             if (_isReadOnly)
@@ -98,6 +103,7 @@ namespace HotChocolate.Execution.Utilities
             }
 
             _visibilities ??= new List<FieldVisibility>();
+            IsFinal = false;
 
             if (_visibilities.Count == 0)
             {

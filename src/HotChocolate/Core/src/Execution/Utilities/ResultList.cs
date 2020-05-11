@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public sealed class ResultMapList
-        : List<IResultMap?>
-        , IResultMapList
+    public sealed class ResultList
+        : List<object?>
+        , IResultList
     {
         public IResultData? Parent { get; set; }
 

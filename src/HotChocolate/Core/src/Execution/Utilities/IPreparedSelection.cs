@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -13,7 +12,9 @@ namespace HotChocolate.Execution.Utilities
 
         FieldDelegate ResolverPipeline { get; }
 
-        IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; }
+        IPreparedArgumentMap Arguments { get; }
+
+        bool IsFinal { get; }
 
         bool IsVisible(IVariableValueCollection variables);
     }

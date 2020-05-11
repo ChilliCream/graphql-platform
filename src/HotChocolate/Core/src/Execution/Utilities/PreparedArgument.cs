@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public class PreparedArgument
+    public sealed class PreparedArgument
     {
         public PreparedArgument(
             Argument argument,

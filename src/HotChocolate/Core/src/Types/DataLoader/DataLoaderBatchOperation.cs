@@ -22,6 +22,7 @@ namespace HotChocolate.DataLoader
 
         public async Task InvokeAsync(CancellationToken cancellationToken)
         {
+            /*
             foreach (IDataLoader dataLoader in GetTouchedDataLoaders())
             {
                 if (dataLoader.BufferedRequests > 0)
@@ -30,6 +31,8 @@ namespace HotChocolate.DataLoader
                         .ConfigureAwait(false);
                 }
             }
+            */
+            throw new NotImplementedException();
         }
 
         private void RequestBuffered(IDataLoader sender, EventArgs eventArgs)
@@ -69,7 +72,8 @@ namespace HotChocolate.DataLoader
                     if (!_touched.Contains(value))
                     {
                         _touched = _touched.Add(value);
-                        value.RequestBuffered += RequestBuffered;
+                        // value.RequestBuffered += RequestBuffered;
+                        throw new NotImplementedException();
                     }
                 }
             }

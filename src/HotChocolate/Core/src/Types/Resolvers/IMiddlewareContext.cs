@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using HotChocolate.Types;
 
 #nullable enable
@@ -7,8 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers
 {
     /// <summary>
-    /// The middleware context represent the execution context for a field
-    /// middleware.
+    /// The middleware context represent the execution context for a field middleware.
     /// </summary>
     public interface IMiddlewareContext : IResolverContext
     {

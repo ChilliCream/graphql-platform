@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
-using System.Linq;
-using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -58,7 +55,26 @@ namespace HotChocolate.Execution
         {
             try
             {
-                return _operationContext.CollectFields(selectionSet, typeContext);
+                IPreparedSelectionList fields = _operationContext.CollectFields(
+                    selectionSet, typeContext);
+
+                if (fields.IsFinal)
+                {
+                    return fields;
+                }
+
+                var finalFields = new List<IFieldSelection>();
+
+                for (int i = 0; i < fields.Count; i++)
+                {
+                    IPreparedSelection selection = fields[i];
+                    if (selection.IsFinal || selection.IsVisible(_operationContext.Variables))
+                    {
+                        finalFields.Add(selection);
+                    }
+                }
+
+                return finalFields;
             }
             catch (GraphQLException ex)
             {
@@ -108,16 +124,35 @@ namespace HotChocolate.Execution
                 .Build());
         }
 
+        public void ReportError(Exception exception)
+        {
+            if (exception is null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            IError error = _operationContext.ErrorHandler
+                .CreateUnexpectedError(exception)
+                .SetPath(Path)
+                .AddLocation(FieldSelection)
+                .Build();
+
+            ReportError(error);
+        }
+
         public void ReportError(IError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
 
-            _operationContext.AddError(_operationContext.ErrorHandler.Handle(error));
+            _operationContext.AddError(
+                _operationContext.ErrorHandler.Handle(error), 
+                FieldSelection);
+            HasErrors = true;
         }
-        
+
         public async Task<T> ResolveAsync<T>()
         {
             if (_resolverResult is null)

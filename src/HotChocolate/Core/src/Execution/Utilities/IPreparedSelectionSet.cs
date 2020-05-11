@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Utilities
         SelectionSetNode SelectionSet { get; }
 
         IEnumerable<ObjectType> GetPossibleTypes();
-        
-        IReadOnlyList<IPreparedSelection> GetSelections(ObjectType typeContext);
+
+        IPreparedSelectionList GetSelections(ObjectType typeContext);
     }
 }

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Immutable;
-using HotChocolate.Resolvers;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -11,16 +11,17 @@ namespace HotChocolate.Execution
         private object? _result;
         private object? _parent;
 
-        // todo: we should deprecate this one
-        public IImmutableStack<object?> Source { get; private set; } = default!;
-
         public Path Path { get; private set; } = default!;
 
         public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = default!;
 
         public IImmutableDictionary<string, object?> LocalContextData { get; set; } = default!;
 
-        internal Task? Task { get; set; }
+        public IType? ValueType { get; set; }
+
+        public ResultMap ResultMap { get; private set; } = default!;
+
+        public bool HasErrors { get; private set; }
 
         public object? Result
         {
@@ -40,7 +41,7 @@ namespace HotChocolate.Execution
         }
 
         [return: MaybeNull]
-        public T Parent<T>()
+        public T Source<T>()
         {
             if (_parent is null)
             {
@@ -55,5 +56,8 @@ namespace HotChocolate.Execution
             throw new InvalidCastException(
                 $"The parent cannot be casted to {typeof(T).FullName}.");
         }
+
+        [return: MaybeNull]
+        public T Parent<T>() => Source<T>();
     }
 }

@@ -55,9 +55,6 @@ namespace HotChocolate.Execution
         public FieldNode FieldSelection =>
             _middlewareContext.FieldSelection;
 
-        public IImmutableStack<object?> Source =>
-            _middlewareContext.Source;
-
         public Path Path =>
             _middlewareContext.Path;
 
@@ -87,17 +84,23 @@ namespace HotChocolate.Execution
             get => _middlewareContext.LocalContextData;
             set => _middlewareContext.LocalContextData = value;
         }
+        public IType? ValueType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+        [Obsolete]
         [return: MaybeNull]
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
         [return: MaybeNull]
         public T CustomProperty<T>(string key) =>
-                    _middlewareContext.CustomProperty<T>(key);
+            _middlewareContext.CustomProperty<T>(key);
         
+        [Obsolete]
         [return: MaybeNull]
         public T Parent<T>() => _middlewareContext.Parent<T>();
+
+        [return: MaybeNull]
+        public T Source<T>() => _middlewareContext.Source<T>();
 
         public void ReportError(string errorMessage) =>
             _middlewareContext.ReportError(errorMessage);
