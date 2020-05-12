@@ -74,8 +74,13 @@ namespace Types.Spatial.Playground
             });
         }
 
-        public Point GetEchoPoint(Coordinate coord) {
+        public Point GetEchoCoord(Coordinate coord) {
             return new Point(coord);
+        }
+
+        public Point GetEchoPoint(Point point)
+        {
+            return point;
         }
     }
 }
