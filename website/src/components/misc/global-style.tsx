@@ -14,6 +14,7 @@ export const GlobalStyle = createGlobalStyle`
     line-height: 30px;
     background-color: #ccc;
     color: #667;
+    overflow-x: hidden;
     scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
