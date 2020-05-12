@@ -1,8 +1,6 @@
 ﻿using System;
-using GeoAPI.CoordinateSystems;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using NetTopologySuite.Geometries;
 using Types.Spatial.Output;
 
 namespace Types.Spatial.Scalar

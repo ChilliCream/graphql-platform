@@ -1,10 +1,3 @@
-using System.Collections.Generic;
-using GeoAPI.CoordinateSystems;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using NetTopologySuite.Geometries;
-using Types.Spatial.Common;
-
 namespace Types.Spatial.Output
 {
     /// https://geojson.org/geojson-spec.html#coordinate-reference-system-objects
