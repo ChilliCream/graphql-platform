@@ -89,7 +89,8 @@ namespace Types.Spatial.Scalar
                         _ => throw new ArgumentException("Couldn't convert member of the array to double",
                         nameof(literal)),
                     };
-                    coordinate.Z = zValue;
+
+                    coordinate = new CoordinateZ(xValue, yValue, zValue);
                 }
 
                 return coordinate;
