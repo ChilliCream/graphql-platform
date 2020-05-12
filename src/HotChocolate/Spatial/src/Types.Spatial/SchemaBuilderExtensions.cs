@@ -28,7 +28,6 @@ namespace Types.Spatial
         public static ISchemaBuilder AddCRSTypes(this ISchemaBuilder builder)
         {
             return builder
-                .BindClrType<GeoJSONCoordinateReferenceSystem, GeoJSONCoordinateReferenceSystemScalar>()
                 .AddType<GeoJSONPointObjectExtensionType>()
                 .AddType<GeoJSONMultiPointObjectExtensionType>()
                 .AddType<GeoJSONLineStringObjectExtensionType>()

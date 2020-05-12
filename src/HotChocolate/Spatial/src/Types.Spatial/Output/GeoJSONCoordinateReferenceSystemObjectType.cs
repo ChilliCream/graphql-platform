@@ -3,9 +3,11 @@ using HotChocolate.Types;
 
 namespace Types.Spatial.Output
 {
-    public class GeoJSONCoordinateReferenceSystemObjectType : ObjectType<GeoJSONCoordinateReferenceSystem>
+    public class GeoJSONCoordinateReferenceSystemObjectType
+        : ObjectType<GeoJSONCoordinateReferenceSystem>
     {
-        protected override void Configure(IObjectTypeDescriptor<GeoJSONCoordinateReferenceSystem> descriptor)
+        protected override void Configure(
+            IObjectTypeDescriptor<GeoJSONCoordinateReferenceSystem> descriptor)
         {
             descriptor.BindFieldsImplicitly();
         }
