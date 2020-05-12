@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
+using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,11 @@ namespace Types.Spatial.Playground
                 .AddType<GeoMutations>()
                 .AddSpatialTypes()
                 .AddCRSTypes()
-                .Create());
+                .Create(),
+                new QueryExecutionOptions
+                {
+                    IncludeExceptionDetails = true
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
