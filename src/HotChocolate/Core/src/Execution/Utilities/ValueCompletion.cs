@@ -111,7 +111,7 @@ namespace HotChocolate.Execution.Utilities
         {
             if (result is Array array)
             {
-                ResultMapList completedResult = operationContext.RentResultMapList();
+                ResultMapList completedResult = operationContext.Result.RentResultMapList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 for (int i = 0; i < array.Length; i++)
@@ -128,7 +128,7 @@ namespace HotChocolate.Execution.Utilities
             }
             else if (result is IList list)
             {
-                ResultMapList completedResult = operationContext.RentResultMapList();
+                ResultMapList completedResult = operationContext.Result.RentResultMapList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 for (int i = 0; i < list.Count; i++)
@@ -146,7 +146,7 @@ namespace HotChocolate.Execution.Utilities
             else if (result is IEnumerable enumerable)
             {
                 int index = 0;
-                ResultMapList completedResult = operationContext.RentResultMapList();
+                ResultMapList completedResult = operationContext.Result.RentResultMapList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 foreach (object? element in enumerable)
@@ -178,7 +178,7 @@ namespace HotChocolate.Execution.Utilities
         {
             if (result is Array array)
             {
-                ResultList completedResult = operationContext.RentResultList();
+                ResultList completedResult = operationContext.Result.RentResultList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 for (int i = 0; i < array.Length; i++)
@@ -195,7 +195,7 @@ namespace HotChocolate.Execution.Utilities
             }
             else if (result is IList list)
             {
-                ResultList completedResult = operationContext.RentResultList();
+                ResultList completedResult = operationContext.Result.RentResultList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 for (int i = 0; i < list.Count; i++)
@@ -213,7 +213,7 @@ namespace HotChocolate.Execution.Utilities
             else if (result is IEnumerable enumerable)
             {
                 int index = 0;
-                ResultList completedResult = operationContext.RentResultList();
+                ResultList completedResult = operationContext.Result.RentResultList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 foreach (object? element in enumerable)
@@ -269,7 +269,7 @@ namespace HotChocolate.Execution.Utilities
             SelectionSetNode selectionSet = middlewareContext.FieldSelection.SelectionSet!;
             IReadOnlyList<IPreparedSelection> selections =
                 operationContext.CollectFields(selectionSet, objectType);
-            ResultMap resultMap = operationContext.RentResultMap(selections.Count);
+            ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             int responseIndex = 0;
 
             for (int i = 0; i < selections.Count; i++)
@@ -277,7 +277,7 @@ namespace HotChocolate.Execution.Utilities
                 IPreparedSelection selection = selections[i];
                 if (selection.IsVisible(operationContext.Variables))
                 {
-                    operationContext.EnqueueResolverTask(
+                    operationContext.Execution.Tasks.Enqueue(
                         selection,
                         responseIndex++,
                         resultMap,

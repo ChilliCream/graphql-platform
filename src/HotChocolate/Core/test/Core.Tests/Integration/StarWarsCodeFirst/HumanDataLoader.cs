@@ -12,8 +12,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
     {
         private readonly CharacterRepository _repository;
 
-        public HumanDataLoader(CharacterRepository repository)
-            : base(new DataLoaderOptions<string>())
+        public HumanDataLoader(CharacterRepository repository) : base(null)
         {
             _repository = repository
                 ?? throw new ArgumentNullException(nameof(repository));
