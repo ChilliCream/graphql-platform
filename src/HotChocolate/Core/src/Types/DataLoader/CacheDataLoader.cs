@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.DataLoader
 {
     public abstract class CacheDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
     {
-        protected CacheDataLoader(IBatchScheduler batchScheduler, FetchCache<TKey, TValue> fetch)
+        protected CacheDataLoader(IAutoBatchDispatcher batchScheduler, FetchCache<TKey, TValue> fetch)
             : base(batchScheduler)
         { }
 
-        protected CacheDataLoader(IBatchScheduler batchScheduler, int cacheSize)
+        protected CacheDataLoader(IAutoBatchDispatcher batchScheduler, int cacheSize)
             : base(batchScheduler, new DataLoaderOptions<TKey> { CacheSize = cacheSize })
         { }
 
