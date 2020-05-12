@@ -165,7 +165,7 @@ namespace Types.Spatial.Scalar
             {
                 try
                 {
-                    coordinate.Z = Convert.ToDouble(list[2]);
+                    coordinate = new CoordinateZ(x, y, Convert.ToDouble(list[2]));
                 }
                 catch (OverflowException)
                 {
