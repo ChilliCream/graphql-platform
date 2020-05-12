@@ -99,6 +99,14 @@ module.exports = {
             options: {
               showLineNumbers: false,
               inlineCodeMarker: `±`,
+              languageExtensions: [
+                {
+                  language: "sdl",
+                  extend: "graphql",
+                  definition: {},
+                  insertBefore: {},
+                },
+              ],
             },
           },
           {

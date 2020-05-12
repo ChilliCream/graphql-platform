@@ -55,16 +55,16 @@ export const CookieConsent: FunctionComponent = () => {
   );
 };
 
-const Dialog = styled.div<{ show: boolean }>((props) => ({
-  position: "fixed",
-  bottom: 0,
-  zIndex: 20,
-  display: props.show ? "initial" : "none",
-  width: "100vw",
-  backgroundColor: "#ffb806",
-  opacity: props.show ? 1 : 0,
-  transition: "opacity 0.2s ease-in-out",
-}));
+const Dialog = styled.div<{ show: boolean }>`
+  position: fixed;
+  bottom: 0;
+  z-index: 20;
+  display: ${({ show }) => (show ? "initial" : "none")};
+  width: 100vw;
+  background-color: #ffb806;
+  opacity: ${({ show }) => (show ? 1 : 0)};
+  transition: opacity 0.2s ease-in-out;
+`;
 
 const Container = styled.div`
   display: flex;
@@ -95,7 +95,7 @@ const LearnMoreLink = styled(Link)`
   color: #4f3903;
 `;
 
-const AgreeButton = styled.a`
+const AgreeButton = styled.button`
   flex: 0 0 auto;
   margin-left: auto;
   padding: 10px 0;
