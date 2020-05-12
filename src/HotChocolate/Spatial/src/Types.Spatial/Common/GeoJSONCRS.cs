@@ -17,5 +17,14 @@ namespace Types.Spatial.Common
                 }
             };
         }
+
+        public float GetSrid([Parent] Geometry geometry)
+        {
+            if (geometry.SRID == 0) {
+                return 4326;
+            }
+
+            return geometry.SRID;
+        }
     }
 }
