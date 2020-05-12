@@ -22,8 +22,7 @@ namespace Types.Spatial.Scalar
             if (literal == null)
                 throw new ArgumentNullException(nameof(literal));
 
-            return literal is ListValueNode
-                   || literal is NullValueNode;
+            return literal is ListValueNode || literal is NullValueNode;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -65,53 +64,31 @@ namespace Types.Spatial.Scalar
                         nameof(literal));
                 }
 
-                double xValue;
-                double yValue;
-
-                // TODO: Maybe make it faster by switching on .Kind
-                switch (xNode)
+                var xValue = xNode switch
                 {
-                    case FloatValueNode node:
-                        xValue = node.ToDouble();
-                        break;
-                    case IntValueNode node:
-                        xValue = node.ToDouble();
-                        break;
-                    default:
-                        throw new ArgumentException("Couldn't convert element of the array to double", nameof(literal));
-                }
-
-                switch (yNode)
+                    FloatValueNode node => node.ToDouble(),
+                    IntValueNode node => node.ToDouble(),
+                    _ => throw new ArgumentException("Couldn't convert element of the array to double", nameof(literal)),
+                };
+                var yValue = yNode switch
                 {
-                    case FloatValueNode node:
-                        yValue = node.ToDouble();
-                        break;
-                    case IntValueNode node:
-                        yValue = node.ToDouble();
-                        break;
-                    default:
-                        throw new ArgumentException("Couldn't convert element of the array to double", nameof(literal));
-                }
+                    FloatValueNode node => node.ToDouble(),
+                    IntValueNode node => node.ToDouble(),
+                    _ => throw new ArgumentException("Couldn't convert element of the array to double", nameof(literal)),
+                };
 
                 // optional third element (z/elevation)
                 var coordinate = new Coordinate(xValue, yValue);
                 if (listNode.Items.Count == 3)
                 {
                     var zNode = listNode.Items[2];
-                    double zValue;
-                    switch (zNode)
+                    var zValue = zNode switch
                     {
-                        case FloatValueNode node:
-                            zValue = node.ToDouble();
-                            break;
-                        case IntValueNode node:
-                            zValue = node.ToDouble();
-                            break;
-                        default:
-                            throw new ArgumentException("Couldn't convert member of the array to double",
-                                nameof(literal));
-                    }
-
+                        FloatValueNode node => node.ToDouble(),
+                        IntValueNode node => node.ToDouble(),
+                        _ => throw new ArgumentException("Couldn't convert member of the array to double",
+                        nameof(literal)),
+                    };
                     coordinate.Z = zValue;
                 }
 
@@ -158,8 +135,7 @@ namespace Types.Spatial.Scalar
                 return true;
             }
 
-            var list = serialized as IList;
-            if (list == null)
+            if (!(serialized is IList list))
             {
                 value = null;
                 return false;
@@ -202,8 +178,7 @@ namespace Types.Spatial.Scalar
 
         public override bool TrySerialize(object value, out object serialized)
         {
-            var coordinate = value as Coordinate;
-            if (coordinate == null)
+            if (!(value is Coordinate coordinate))
             {
                 throw new ArgumentException(
                     "The specified value cannot be serialized as a Coordinate.");
