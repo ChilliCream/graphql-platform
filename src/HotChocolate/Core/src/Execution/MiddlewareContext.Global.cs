@@ -147,7 +147,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(error));
             }
 
-            _operationContext.AddError(
+            _operationContext.Result.AddError(
                 _operationContext.ErrorHandler.Handle(error), 
                 FieldSelection);
             HasErrors = true;

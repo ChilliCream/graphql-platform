@@ -14,6 +14,9 @@ namespace HotChocolate.Execution.Utilities
 
         IPreparedArgumentMap Arguments { get; }
 
+        /// </summary>
+        /// Defines if this selection needs post processing for skip and include.
+        /// <summary>
         bool IsFinal { get; }
 
         bool IsVisible(IVariableValueCollection variables);

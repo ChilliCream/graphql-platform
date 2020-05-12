@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -23,6 +23,11 @@ namespace HotChocolate.Execution
         /// data to errors and exceptions.
         /// </summary>
         IErrorHandler ErrorHandler { get; }
+
+        /// <summary>
+        /// Gets the type conversion service.
+        /// </summary>
+        ITypeConversion Converter { get; }
 
         /// <summary>
         /// Gets or sets the initial query request.

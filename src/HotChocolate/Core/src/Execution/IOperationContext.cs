@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
-using GreenDonut;
-using HotChocolate.DataLoader;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -50,14 +47,7 @@ namespace HotChocolate.Execution
         /// Gets a cancellation token is used to signal
         /// if the request has be aborted.
         /// </summary>
-        CancellationToken RequestAborted { get; }
-
-        // TODO : DO WE NEED this on the context
-        /// <summary>
-        /// Gets the query result.
-        /// </summary>
-        /// <value></value>
-        IQueryResultBuilder Result { get; }
+        CancellationToken RequestAborted { get; }        
 
         // TODO : documentation -> remember this are the raw collected fields without visibility
         IPreparedSelectionList CollectFields(SelectionSetNode selectionSet, ObjectType objectType);
@@ -79,19 +69,6 @@ namespace HotChocolate.Execution
         /// <value></value>
         ITypeConversion Converter { get; }
 
-        /// <summary>
-        /// Adds an error thread-safe to the result object.
-        /// </summary>
-        /// <param name="error">The error that shall be added.</param>
-        void AddError(IError error, FieldNode? selection = null);
-
-        /// <summary>
-        /// Adds a errors thread-safe to the result object.
-        /// </summary>
-        /// <param name="error">The error that shall be added.</param>
-        void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
-
-
         // TODO : move to helper class
         /// <summary>
         /// Rewrites the value literals and replaces the variables.
@@ -107,12 +84,35 @@ namespace HotChocolate.Execution
         /// </returns>
         IValueNode ReplaceVariables(IValueNode value, IType type);
 
-        ResultMapList RentResultMapList();
+        IResultHelper Result { get; }
 
-        ResultList RentResultList();
+        IExecutionContext Execution { get; }
+    }
+
+    public interface IResultHelper
+    {
+        ResultMapList RentResultMapList();
 
         ResultMap RentResultMap(int count);
 
-        IExecutionContext Execution { get; }
+        ResultList RentResultList();
+
+        void SetData(IResultMap resultMap);
+
+        /// <summary>
+        /// Adds an error thread-safe to the result object.
+        /// </summary>
+        /// <param name="error">The error that shall be added.</param>
+        void AddError(IError error, FieldNode? selection = null);
+
+        /// <summary>
+        /// Adds a errors thread-safe to the result object.
+        /// </summary>
+        /// <param name="error">The error that shall be added.</param>
+        void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
+
+        void AddNonNullViolation(FieldNode selection, IResultMap parent);
+        
+        IReadOnlyQueryResult BuildResult();
     }
 }

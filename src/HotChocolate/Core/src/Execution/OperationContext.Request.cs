@@ -13,16 +13,18 @@ namespace HotChocolate.Execution
 {
     internal sealed partial class OperationContext : IOperationContext
     {
-        private IRequestContext _context;
+        private IRequestContext _requestContext = default!;
 
-        public ISchema Schema => _context.Schema;
+        public ISchema Schema => _requestContext.Schema;
 
-        public IServiceProvider Services => _context.Services;
+        public IServiceProvider Services => _requestContext.Services;
 
-        public IErrorHandler ErrorHandler => _context.ErrorHandler;
+        public IErrorHandler ErrorHandler => _requestContext.ErrorHandler;
 
-        public IDictionary<string, object?> ContextData => _context.ContextData;
+        public ITypeConversion Converter => _requestContext.Converter;
 
-        public CancellationToken RequestAborted => _context.RequestAborted;
+        public IDictionary<string, object?> ContextData => _requestContext.ContextData;
+
+        public CancellationToken RequestAborted => _requestContext.RequestAborted;
     }
 }

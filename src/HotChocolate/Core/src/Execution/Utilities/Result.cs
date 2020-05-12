@@ -20,10 +20,14 @@ namespace HotChocolate.Execution
         public List<ObjectBuffer<ResultMapList>> ResultMapLists { get; } =
             new List<ObjectBuffer<ResultMapList>>();
 
+        public List<ObjectBuffer<ResultList>> ResultLists { get; } =
+            new List<ObjectBuffer<ResultList>>();
+
         public void Dispose()
         {
             _resultPool.Return(ResultMaps);
             _resultPool.Return(ResultMapLists);
+            _resultPool.Return(ResultLists);
         }
     }
 }
