@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types;
 
 namespace Types.Spatial.Output
@@ -6,9 +7,7 @@ namespace Types.Spatial.Output
     {
         protected override void Configure(IObjectTypeDescriptor<GeoJSONCoordinateReferenceSystem> descriptor)
         {
-            descriptor.BindFieldsExplicitly();
-
-            descriptor.Field(x => x.Type);
+            descriptor.BindFieldsImplicitly();
         }
     }
 }
