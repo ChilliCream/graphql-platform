@@ -73,5 +73,9 @@ namespace Types.Spatial.Playground
                 }))
             });
         }
+
+        public Point GetEchoPoint(Coordinate coord) {
+            return new Point(coord);
+        }
     }
 }
