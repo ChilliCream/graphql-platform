@@ -2,13 +2,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Fetching
 {
     public interface IBatchDispatcher
     {
-        event EventHandler<EventArgs> TaskEnqueued;
-
         bool HasTasks { get; }
+
+        event EventHandler? TaskEnqueued;
 
         Task DispatchAsync(CancellationToken cancellationToken);
     }

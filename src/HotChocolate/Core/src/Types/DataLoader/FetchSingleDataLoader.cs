@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenDonut;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.DataLoader
 {
@@ -11,14 +11,14 @@ namespace HotChocolate.DataLoader
         private readonly FetchCache<TKey, TValue> _fetch;
 
         public FetchSingleDataLoader(
-            IBatchScheduler batchScheduler,
+            IAutoBatchDispatcher batchScheduler,
             FetchCache<TKey, TValue> fetch)
             : this(batchScheduler, fetch, DataLoaderDefaults.CacheSize)
         {
         }
 
         public FetchSingleDataLoader(
-            IBatchScheduler batchScheduler,
+            IAutoBatchDispatcher batchScheduler,
             FetchCache<TKey, TValue> fetch,
             int cacheSize)
             : base(batchScheduler, cacheSize)
