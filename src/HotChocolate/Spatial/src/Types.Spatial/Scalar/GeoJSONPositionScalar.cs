@@ -42,7 +42,7 @@ namespace Types.Spatial.Scalar
 
             if (literal is ListValueNode listNode)
             {
-                if (listNode.Items.Count != 2 || listNode.Items.Count != 3)
+                if (listNode.Items.Count != 2 && listNode.Items.Count != 3)
                 {
                     throw new ArgumentException(
                         "The Position type has to have two or three elements [x,y] or [x,y,z]",
