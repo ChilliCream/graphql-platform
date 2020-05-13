@@ -32,8 +32,8 @@ namespace HotChocolate.Execution.Utilities
             var nextIndex = _index++;
             if (nextIndex <= _capacity)
             {
-                obj = _buffer[_index] ?? new T();
-                _buffer[_index] = null;
+                obj = _buffer[nextIndex] ?? new T();
+                _buffer[nextIndex] = null;
                 return true;
             }
 
@@ -55,8 +55,8 @@ namespace HotChocolate.Execution.Utilities
             var nextIndex = Interlocked.Increment(ref _index);
             if (nextIndex <= _capacity)
             {
-                obj = _buffer[_index] ?? new T();
-                _buffer[_index] = null;
+                obj = _buffer[nextIndex] ?? new T();
+                _buffer[nextIndex] = null;
                 return true;
             }
 
