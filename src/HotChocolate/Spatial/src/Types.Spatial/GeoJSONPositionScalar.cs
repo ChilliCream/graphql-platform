@@ -17,10 +17,30 @@ namespace Types.Spatial
         public override bool IsInstanceOfType(IValueNode literal)
         {
             if (literal == null)
+            {
                 throw new ArgumentNullException(nameof(literal));
+            }
 
-            return literal is ListValueNode || literal is NullValueNode;
-        }
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            if (literal is ListValueNode listValueNode)
+            {
+                for (var i = 0; i < listValueNode.Items.Count; i++)
+                {
+                    if (listValueNode.Items[i].Value is ListValueNode || listValueNode.Items[i].Value is IList)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+}
 
         public override object ParseLiteral(IValueNode literal)
         {
@@ -66,14 +86,16 @@ namespace Types.Spatial
                     FloatValueNode node => node.ToDouble(),
                     IntValueNode node => node.ToDouble(),
                     _ => throw new ArgumentException(
-                        "Couldn't convert element of the array to double", nameof(literal)),
+                        $"Couldn't convert X coordiante of type {xNode.GetType()} to a double",
+                        nameof(literal)),
                 };
                 var yValue = yNode switch
                 {
                     FloatValueNode node => node.ToDouble(),
                     IntValueNode node => node.ToDouble(),
                     _ => throw new ArgumentException(
-                        "Couldn't convert element of the array to double", nameof(literal)),
+                         $"Couldn't convert Y coordinate of type {yNode.GetType()} to a double",
+                          nameof(literal)),
                 };
 
                 // optional third element (z/elevation)
@@ -86,7 +108,8 @@ namespace Types.Spatial
                         FloatValueNode node => node.ToDouble(),
                         IntValueNode node => node.ToDouble(),
                         _ => throw new ArgumentException(
-                            "Couldn't convert member of the array to double", nameof(literal)),
+                             $"Couldn't convert Z coordinate of type {zNode.GetType()} to a double",
+                             nameof(literal)),
                     };
 
                     coordinate = new CoordinateZ(xValue, yValue, zValue);

@@ -22,7 +22,7 @@ namespace Types.Spatial
 
             descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
 
-            descriptor.Field(_coordinatesFieldName).Type<GeoJSONPositionScalar>();
+            descriptor.Field(_coordinatesFieldName).Type<ListType<GeoJSONPositionScalar>>();
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -38,7 +38,7 @@ namespace Types.Spatial
                     "Failed to serialize MultiPoint. Needs at least type and coordinate fields");
             }
 
-            Coordinate[]? coordinates = null;
+            IList<Coordinate>? coordinates = null;
             GeoJSONGeometryType? type = null;
 
             for (var i = 0; i < obj.Fields.Count; i++)
@@ -49,7 +49,7 @@ namespace Types.Spatial
                 {
                     case _coordinatesFieldName:
                         coordinates =
-                            (Coordinate[])_coordinatesField.Type.ParseLiteral(field.Value);
+                            (IList<Coordinate>)_coordinatesField.Type.ParseLiteral(field.Value);
                         break;
                     case _typeFieldName:
                         type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
@@ -65,8 +65,8 @@ namespace Types.Spatial
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
-            var points = new Point[coordinates.Length];
-            for (var i = 0; i < coordinates.Length; i++) {
+            var points = new Point[coordinates.Count];
+            for (var i = 0; i < coordinates.Count; i++) {
                 points[i] = new Point(coordinates[i]);
             }
 
