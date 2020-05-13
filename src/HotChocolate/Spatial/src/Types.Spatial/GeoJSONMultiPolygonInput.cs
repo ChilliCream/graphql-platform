@@ -5,20 +5,20 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite.Geometries;
 using Types.Spatial.Common;
-using Types.Spatial.Scalar;
+using Types.Spatial;
 
-namespace Types.Spatial.Input
+namespace Types.Spatial
 {
-    public class GeoJSONPointInput : InputObjectType<Point>
+    public class GeoJSONMultiPolygonInput : InputObjectType<MultiPolygon>
     {
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
-        public GeoJSONPointInput() { }
+        public GeoJSONMultiPolygonInput() { }
 
-        protected override void Configure(IInputObjectTypeDescriptor<Point> descriptor)
+        protected override void Configure(IInputObjectTypeDescriptor<MultiPolygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
@@ -37,10 +37,10 @@ namespace Types.Spatial.Input
             if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize Point. Needs at least type and coordinate fields");
+                    "Failed to serialize MultiPolygon. Needs at least type and coordinates fields");
             }
 
-            Coordinate? coordinates = null;
+            Coordinate[][]? parts = null;
             GeoJSONGeometryType? type = null;
 
             for (var i = 0; i < obj.Fields.Count; i++)
@@ -50,7 +50,7 @@ namespace Types.Spatial.Input
                 switch (field.Name.Value)
                 {
                     case _coordinatesFieldName:
-                        coordinates = (Coordinate)_coordinatesField.Type.ParseLiteral(field.Value);
+                        parts = (Coordinate[][])_coordinatesField.Type.ParseLiteral(field.Value);
                         break;
                     case _typeFieldName:
                         type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
@@ -58,15 +58,27 @@ namespace Types.Spatial.Input
                 }
             }
 
-            if (coordinates == null || type != GeoJSONGeometryType.Point)
+            if (parts == null || type != GeoJSONGeometryType.MultiPolygon)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize PointInputObject. You have to at least specify a type and coordinates array");
+                    "Failed to serialize MultiPolygon. You have to at least specify a type and coordinates array");
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
+            var geometries = new Polygon[parts.Length];
+            for (var i = 0; i < parts.Length; i++)
+            {
+                var coordinates = new Coordinate[parts[i].Length];
+                for (var j = 0; j < parts[i].Length; j++)
+                {
+                    coordinates[j] = new Coordinate(parts[i][j]);
+                }
 
-            return new Point(coordinates);
+                var ring = new LinearRing(coordinates);
+                geometries[i] = new Polygon(ring);
+            }
+
+            return new MultiPolygon(geometries);
         }
 
         public override bool TrySerialize(object value, out object? serialized)

@@ -1,9 +1,8 @@
 using HotChocolate;
 using NetTopologySuite.Geometries;
+using Types.Spatial;
 using Types.Spatial.Common;
-using Types.Spatial.Input;
 using Types.Spatial.Output;
-using Types.Spatial.Scalar;
 
 namespace Types.Spatial
 {

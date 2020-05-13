@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
-namespace Types.Spatial.Scalar
+namespace Types.Spatial
 {
     public class GeoJSONPositionScalar : ScalarType<Coordinate>
     {
-        private IInputField _coordinateField = default!;
-
         /// https://tools.ietf.org/html/rfc7946#section-3.1.1
         public GeoJSONPositionScalar() : base("Position")
         {

@@ -5,20 +5,20 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite.Geometries;
 using Types.Spatial.Common;
-using Types.Spatial.Scalar;
+using Types.Spatial;
 
-namespace Types.Spatial.Input
+namespace Types.Spatial
 {
-    public class GeoJSONPolygonInput : InputObjectType<Polygon>
+    public class GeoJSONMultiPointInput : InputObjectType<MultiPoint>
     {
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
-        public GeoJSONPolygonInput() { }
+        public GeoJSONMultiPointInput() { }
 
-        protected override void Configure(IInputObjectTypeDescriptor<Polygon> descriptor)
+        protected override void Configure(IInputObjectTypeDescriptor<MultiPoint> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
@@ -37,7 +37,7 @@ namespace Types.Spatial.Input
             if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize Polygon. Needs at least type and coordinates fields");
+                    "Failed to serialize MultiPoint. Needs at least type and coordinate fields");
             }
 
             Coordinate[]? coordinates = null;
@@ -58,17 +58,19 @@ namespace Types.Spatial.Input
                 }
             }
 
-            if (coordinates == null || type != GeoJSONGeometryType.Polygon)
+            if (coordinates == null || type != GeoJSONGeometryType.MultiPoint)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize Polygon. You have to at least specify a type and coordinates array");
+                    "Failed to serialize MultiPoint. You have to at least specify a type and coordinates array");
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
+            var points = new Point[coordinates.Length];
+            for (var i = 0; i < coordinates.Length; i++) {
+                points[i] = new Point(coordinates[i]);
+            }
 
-            var ring = new LinearRing(coordinates);
-
-            return new Polygon(ring);
+            return new MultiPoint(points);
         }
 
         public override bool TrySerialize(object value, out object? serialized)

@@ -5,9 +5,9 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite.Geometries;
 using Types.Spatial.Common;
-using Types.Spatial.Scalar;
+using Types.Spatial;
 
-namespace Types.Spatial.Input
+namespace Types.Spatial
 {
     public class GeoJSONMultiLineStringInput : InputObjectType<MultiLineString>
     {
