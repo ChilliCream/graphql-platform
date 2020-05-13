@@ -6,9 +6,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Utilities
 {
-    /// <summary>
-    ///  The task queue stores <see cref="ResolverTask"/> in a queue. 
-    /// </summary>
+    /// <inheritdoc/>
     internal class TaskQueue : ITaskQueue
     {
         private readonly BufferedObjectPool<ResolverTask> _resolverTaskPool;
