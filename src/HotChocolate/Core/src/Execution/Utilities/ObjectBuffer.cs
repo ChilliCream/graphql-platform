@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -36,6 +37,28 @@ namespace HotChocolate.Execution.Utilities
             if (_index < _capacity)
             {
                 obj = _buffer[_index++];
+                return true;
+            }
+
+            obj = null;
+            return false;
+        }
+
+        public T PopSafe()
+        {
+            if (TryPopSafe(out T? obj))
+            {
+                return obj;
+            }
+            throw new InvalidOperationException("Buffer is used up.");
+        }
+
+        public bool TryPopSafe([NotNullWhen(true)] out T? obj)
+        {
+            var nextIndex = Interlocked.Increment(ref _index);
+            if (nextIndex <= _capacity)
+            {
+                obj = _buffer[nextIndex];
                 return true;
             }
 

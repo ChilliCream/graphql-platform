@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -20,7 +21,7 @@ namespace HotChocolate.Execution.Utilities
         /// <summary>
         /// 
         /// </summary>
-        bool TryDequeue(out ResolverTask task);
+        bool TryDequeue([NotNullWhen(true)] out ResolverTask? task);
 
         /// <summary>
         /// 
