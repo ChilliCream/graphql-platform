@@ -48,7 +48,8 @@ namespace Types.Spatial
                 switch (field.Name.Value)
                 {
                     case _coordinatesFieldName:
-                        coordinates = (Coordinate[])_coordinatesField.Type.ParseLiteral(field.Value);
+                        coordinates =
+                            (Coordinate[])_coordinatesField.Type.ParseLiteral(field.Value);
                         break;
                     case _typeFieldName:
                         type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
@@ -59,7 +60,8 @@ namespace Types.Spatial
             if (coordinates == null || type != GeoJSONGeometryType.Polygon)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize Polygon. You have to at least specify a type and coordinates array");
+                    "Failed to serialize Polygon. You have to at least specify a type and" +
+                    " coordinates array");
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);

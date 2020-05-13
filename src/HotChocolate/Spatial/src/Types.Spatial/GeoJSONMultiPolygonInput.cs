@@ -59,7 +59,8 @@ namespace Types.Spatial
             if (parts == null || type != GeoJSONGeometryType.MultiPolygon)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize MultiPolygon. You have to at least specify a type and coordinates array");
+                    "Failed to serialize MultiPolygon. You have to at least specify a type and" +
+                    "coordinates array");
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);

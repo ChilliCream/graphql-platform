@@ -65,13 +65,15 @@ namespace Types.Spatial
                 {
                     FloatValueNode node => node.ToDouble(),
                     IntValueNode node => node.ToDouble(),
-                    _ => throw new ArgumentException("Couldn't convert element of the array to double", nameof(literal)),
+                    _ => throw new ArgumentException(
+                        "Couldn't convert element of the array to double", nameof(literal)),
                 };
                 var yValue = yNode switch
                 {
                     FloatValueNode node => node.ToDouble(),
                     IntValueNode node => node.ToDouble(),
-                    _ => throw new ArgumentException("Couldn't convert element of the array to double", nameof(literal)),
+                    _ => throw new ArgumentException(
+                        "Couldn't convert element of the array to double", nameof(literal)),
                 };
 
                 // optional third element (z/elevation)
@@ -83,8 +85,8 @@ namespace Types.Spatial
                     {
                         FloatValueNode node => node.ToDouble(),
                         IntValueNode node => node.ToDouble(),
-                        _ => throw new ArgumentException("Couldn't convert member of the array to double",
-                        nameof(literal)),
+                        _ => throw new ArgumentException(
+                            "Couldn't convert member of the array to double", nameof(literal)),
                     };
 
                     coordinate = new CoordinateZ(xValue, yValue, zValue);
@@ -141,7 +143,8 @@ namespace Types.Spatial
 
             if (list.Count < 2)
             {
-                throw new ArgumentException("The Position type has to at least contain two values (x,y)",
+                throw new ArgumentException(
+                    "The Position type has to at least contain two values (x,y)",
                     nameof(serialized));
             }
 
@@ -154,7 +157,8 @@ namespace Types.Spatial
             }
             catch (OverflowException)
             {
-                throw new ArgumentException("Members of the Position array have to be of type double");
+                throw new ArgumentException(
+                    "Members of the Position array have to be of type double");
             }
 
             var coordinate = new Coordinate(x, y);
@@ -166,7 +170,8 @@ namespace Types.Spatial
                 }
                 catch (OverflowException)
                 {
-                    throw new ArgumentException("Members of the Position array have to be of type double");
+                    throw new ArgumentException(
+                        "Members of the Position array have to be of type double");
                 }
             }
 

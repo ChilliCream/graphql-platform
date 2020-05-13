@@ -35,7 +35,8 @@ namespace Types.Spatial
             if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize MultiLineString. Needs at least type and coordinates fields");
+                    "Failed to serialize MultiLineString. Needs at least type and coordinates " +
+                    "fields");
             }
 
             Coordinate[][]? parts = null;
@@ -59,7 +60,8 @@ namespace Types.Spatial
             if (parts == null || type != GeoJSONGeometryType.MultiLineString)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize MultiLineString. You have to at least specify a type and coordinates array");
+                    "Failed to serialize MultiLineString. You have to at least specify a type and" +
+                    "coordinates array");
             }
 
             var geometries = new LineString[parts.Length];

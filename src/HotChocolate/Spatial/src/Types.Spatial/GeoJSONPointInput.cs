@@ -59,7 +59,8 @@ namespace Types.Spatial
             if (coordinates == null || type != GeoJSONGeometryType.Point)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize PointInputObject. You have to at least specify a type and coordinates array");
+                    "Failed to serialize PointInputObject. You have to at least specify a type " +
+                    "and coordinates array");
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
