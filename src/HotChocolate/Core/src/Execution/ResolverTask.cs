@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Utilities;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -36,9 +36,12 @@ namespace HotChocolate.Execution
 
         private async ValueTask ExecuteAsync()
         {
+            bool errors = true;
+
             if (TryCoerceArguments())
             {
-                await ExecuteResolverPipelineAsync();
+                await ExecuteResolverPipelineAsync().ConfigureAwait(false);
+                errors = false;
             }
 
             if (Context.RequestAborted.IsCancellationRequested)
@@ -46,19 +49,50 @@ namespace HotChocolate.Execution
                 return;
             }
 
-            CompleteValue();
+            CompleteValue(withErrors: errors);
         }
 
         private bool TryCoerceArguments()
         {
-            foreach(PreparedArgument argument in _selection.Arguments.Values)
+            if (_selection.Arguments.HasErrors)
             {
-                if(argument.IsError) 
+                foreach (PreparedArgument argument in _selection.Arguments.Values)
                 {
-
+                    if (argument.IsError)
+                    {
+                        Context.ReportError(argument.Error!.WithPath(Context.Path));
+                    }
                 }
-                
-                // if(argument.)
+
+                return false;
+            }
+
+            if (!_selection.IsFinal)
+            {
+                var args = new Dictionary<NameString, PreparedArgument>();
+
+                foreach (PreparedArgument argument in _selection.Arguments.Values)
+                {
+                    if (argument.IsFinal)
+                    {
+                        args.Add(argument.Argument.Name, argument);
+                    }
+                    else
+                    {
+                        IValueNode literal = _operationContext.ReplaceVariables(
+                            argument.ValueLiteral!, argument.Type);
+
+                        args.Add(argument.Argument.Name, new PreparedArgument(
+                            argument.Argument,
+                            literal.TryGetValueKind(out ValueKind kind) ? kind : ValueKind.Unknown,
+                            argument.IsFinal,
+                            argument.IsImplicit,
+                            null,
+                            literal));
+                    }
+                }
+
+                Context.Arguments = args;
             }
 
             return true;
@@ -101,16 +135,18 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void CompleteValue()
+        private void CompleteValue(bool withErrors)
         {
             try
             {
-                Context.Result = ValueCompletion.Complete(
-                    _operationContext,
-                    Context,
-                    Context.Path,
-                    Context.Field.Type,
-                    Context.Result);
+                Context.Result = withErrors
+                    ? null
+                    : ValueCompletion.Complete(
+                        _operationContext,
+                        Context,
+                        Context.Path,
+                        Context.Field.Type,
+                        Context.Result);
             }
             catch (GraphQLException ex)
             {
@@ -128,7 +164,18 @@ namespace HotChocolate.Execution
 
             if (Context.Result is null && Context.Field.Type.IsNonNullType())
             {
-                // _operationContext.NonNullViolations.Register(Context.FieldSelection, null);
+                _operationContext.Result.AddNonNullViolation(
+                    Context.FieldSelection,
+                    Context.Path,
+                    Context.ResultMap);
+            }
+            else
+            {
+                Context.ResultMap.SetValue(
+                    Context.ResponseIndex,
+                    Context.ResponseName,
+                    Context.Result,
+                    Context.Field.Type.IsNullableType());
             }
         }
 
@@ -143,6 +190,7 @@ namespace HotChocolate.Execution
         {
             _task = default;
             _operationContext = operationContext;
+            _selection = selection;
             Context.Initialize(
                 operationContext,
                 selection,
@@ -157,6 +205,7 @@ namespace HotChocolate.Execution
         {
             _task = default;
             _operationContext = default!;
+            _selection = default!;
             Context.Clear();
         }
     }

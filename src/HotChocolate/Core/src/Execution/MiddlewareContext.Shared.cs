@@ -25,6 +25,7 @@ namespace HotChocolate.Execution
             _parent = parent;
             Path = path;
             ScopedContextData = scopedContextData;
+            Arguments = _selection.Arguments;
         }
 
         public void Clear()
@@ -43,6 +44,7 @@ namespace HotChocolate.Execution
             ResponseIndex = default;
             ResultMap = default!;
             HasErrors = false;
+            Arguments = null;
         }
     }
 }
