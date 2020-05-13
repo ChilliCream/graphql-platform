@@ -7,7 +7,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace HotChocolate.Execution.Utilities
 {
     /// <summary>
-    ///  
+    ///  The task queue stores <see cref="ResolverTask"/> in a queue. 
     /// </summary>
     internal class TaskQueue : ITaskQueue
     {
