@@ -41,7 +41,7 @@ const JumpToTop = styled.button`
   position: fixed;
   right: 50px;
   bottom: 50px;
-  z-index: 1;
+  z-index: 20;
   display: none;
   border-radius: 50%;
   padding: 8px;
@@ -59,5 +59,9 @@ const JumpToTop = styled.button`
   svg {
     width: 30px;
     height: 30px;
+  }
+
+  @media only screen and (min-width: 1600px) {
+    right: calc(((100vw - 1300px) / 2) - 100px);
   }
 `;
