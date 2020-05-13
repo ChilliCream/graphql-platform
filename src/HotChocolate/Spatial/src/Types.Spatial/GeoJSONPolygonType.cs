@@ -36,7 +36,7 @@ namespace Types.Spatial
         protected override void Configure(IObjectTypeDescriptor<Polygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
-            descriptor.Field<CrsResolvers>(x => x.GetCrs(default!));
+            descriptor.Field<GeoJSONResolvers>(x => x.GetCrs(default!));
         }
     }
 }

@@ -3,9 +3,9 @@ using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 using Types.Spatial;
 
-namespace Types.Spatial.Common
+namespace Types.Spatial
 {
-    public class CrsResolvers
+    public class GeoJSONResolvers
     {
         public GeoJSONCoordinateReferenceSystem GetCrs([Parent] Geometry geometry)
         {
