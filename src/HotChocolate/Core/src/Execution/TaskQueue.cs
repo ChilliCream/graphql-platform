@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Utilities
         private readonly ConcurrentQueue<ResolverTask> _queue =
             new ConcurrentQueue<ResolverTask>();
 
-        public event EventHandler<EventArgs> BufferedTasks;
+        public event EventHandler? TaskEnqueued;
 
         internal TaskQueue(
             IOperationContext operationContext,
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution.Utilities
                 scopedContextData);
 
             _queue.Enqueue(resolverTask);
-            BufferedTasks.Invoke(this, EventArgs.Empty);
+            TaskEnqueued?.Invoke(this, EventArgs.Empty);
         }
 
         public void Clear()

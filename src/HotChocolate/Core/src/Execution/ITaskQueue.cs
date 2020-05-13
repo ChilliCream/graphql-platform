@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Utilities
     /// </summary>
     internal interface ITaskQueue
     {
-        event EventHandler<EventArgs> BufferedTasks;
+        event EventHandler TaskEnqueued;
         /// <summary>
         /// 
         /// </summary>
