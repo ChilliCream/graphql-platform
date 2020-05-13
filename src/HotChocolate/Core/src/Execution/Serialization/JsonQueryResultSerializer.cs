@@ -177,10 +177,17 @@ namespace HotChocolate.Execution.Serialization
                             writer.WriteNumberValue(n);
                             break;
 
+                        case short n:
+                            writer.WriteNumberValue(n);
+                            break;
+                        
+                        case long n:
+                            writer.WriteNumberValue(n);
+                            break;
+
                         default:
-                            throw new InvalidOperationException(
-                                "The specified value is of an invalid type " +
-                                "for the error path.");
+                            writer.WriteStringValue(path[i].ToString());
+                            break;
                     }
                 }
 
