@@ -22,7 +22,7 @@ namespace Types.Spatial
 
             descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
 
-            descriptor.Field(_coordinatesFieldName).Type<GeoJSONPositionScalar>();
+            descriptor.Field(_coordinatesFieldName).Type<ListType<ListType<GeoJSONPositionScalar>>>();
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -39,7 +39,7 @@ namespace Types.Spatial
                     "fields");
             }
 
-            Coordinate[][]? parts = null;
+            List<List<Coordinate>>? parts = null;
             GeoJSONGeometryType? type = null;
 
             for (var i = 0; i < obj.Fields.Count; i++)
@@ -49,7 +49,7 @@ namespace Types.Spatial
                 switch (field.Name.Value)
                 {
                     case _coordinatesFieldName:
-                        parts = (Coordinate[][])_coordinatesField.Type.ParseLiteral(field.Value);
+                        parts = (List<List<Coordinate>>)_coordinatesField.Type.ParseLiteral(field.Value);
                         break;
                     case _typeFieldName:
                         type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
@@ -64,11 +64,11 @@ namespace Types.Spatial
                     "coordinates array");
             }
 
-            var geometries = new LineString[parts.Length];
-            for (var i = 0; i < parts.Length; i++)
+            var geometries = new LineString[parts.Count];
+            for (var i = 0; i < parts.Count; i++)
             {
-                var coordinates = new Coordinate[parts[i].Length];
-                for (var j = 0; j < parts[i].Length; j++) {
+                var coordinates = new Coordinate[parts[i].Count];
+                for (var j = 0; j < parts[i].Count; j++) {
                     coordinates[j] = new Coordinate(parts[i][j]);
                 }
 
