@@ -74,13 +74,38 @@ namespace Types.Spatial.Playground
             });
         }
 
-        public Point GetEchoCoord(Coordinate coord) {
-            return new Point(coord);
+        public Point GetEchoCoord(Coordinate geom) {
+            return new Point(geom);
         }
 
-        public Point GetEchoPoint(Point point)
+        public Point GetEchoPoint(Point geom)
         {
-            return point;
+            return geom;
+        }
+
+        public MultiPoint GetEchoMultiPoint(MultiPoint geom)
+        {
+            return geom;
+        }
+
+        public LineString GetEchoLineString(LineString geom)
+        {
+            return geom;
+        }
+
+        public MultiLineString GetEchoMultiLineString(MultiLineString geom)
+        {
+            return geom;
+        }
+
+        public Polygon GetEchoPolygon(Polygon geom)
+        {
+            return geom;
+        }
+
+        public MultiPolygon GetEchoMultiPolygon(MultiPolygon geom)
+        {
+            return geom;
         }
     }
 }
