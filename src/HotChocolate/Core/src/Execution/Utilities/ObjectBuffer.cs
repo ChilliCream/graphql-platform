@@ -16,11 +16,6 @@ namespace HotChocolate.Execution.Utilities
             _capacity = capacity;
             _buffer = new T[capacity];
             _clean = clean;
-
-            for (var i = 0; i < _capacity; i++)
-            {
-                _buffer[i] = new T();
-            }
         }
 
         public T Pop()
@@ -35,7 +30,7 @@ namespace HotChocolate.Execution.Utilities
         public bool TryPop([NotNullWhen(true)] out T? obj)
         {
             var nextIndex = _index++;
-            if (nextIndex <= _capacity)
+            if (0 <= nextIndex)
             {
                 obj = _buffer[_index] ?? new T();
                 _buffer[_index] = null;
@@ -58,7 +53,7 @@ namespace HotChocolate.Execution.Utilities
         public bool TryPopSafe([NotNullWhen(true)] out T? obj)
         {
             var nextIndex = Interlocked.Increment(ref _index);
-            if (nextIndex <= _capacity)
+            if (0 <= nextIndex)
             {
                 obj = _buffer[_index] ?? new T();
                 _buffer[_index] = null;
@@ -110,19 +105,8 @@ namespace HotChocolate.Execution.Utilities
             return false;
         }
 
-
         public void Reset()
         {
-            if (_index > 0)
-            {
-                for (int i = 0; i < _index; i++)
-                {
-                    if (_buffer[i] != null)
-                    {
-                        _clean(_buffer[i]!);
-                    }
-                }
-            }
             _index = 0;
         }
     }
