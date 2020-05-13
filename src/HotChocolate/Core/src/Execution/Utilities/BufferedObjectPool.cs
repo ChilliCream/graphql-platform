@@ -5,7 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace HotChocolate.Execution.Utilities
 {
     /// <summary>
-    ///  A pool of objects. Bufferes a set of obejcts to ensure fast, thread safe object pooling
+    ///  A pool of objects. Bufferes a set of objects to ensure fast, thread safe object pooling
     /// </summary>
     /// <typeparam name="T"> The type of objects to pool.</typeparam>
     internal sealed class BufferedObjectPool<T> where T : class, new()

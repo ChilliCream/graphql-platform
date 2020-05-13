@@ -55,6 +55,7 @@ namespace HotChocolate.Execution.Utilities
                 scopedContextData);
 
             _queue.Enqueue(resolverTask);
+
             TaskEnqueued?.Invoke(this, EventArgs.Empty);
         }
 
