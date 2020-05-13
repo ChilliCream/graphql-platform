@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
@@ -8,6 +9,7 @@ namespace HotChocolate.Execution.Utilities
     /// </summary>
     internal interface ITaskQueue
     {
+        event EventHandler<EventArgs> BufferedTasks;
         /// <summary>
         /// 
         /// </summary>

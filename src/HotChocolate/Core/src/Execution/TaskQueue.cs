@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,6 +20,7 @@ namespace HotChocolate.Execution.Utilities
         private readonly ConcurrentQueue<ResolverTask> _queue =
             new ConcurrentQueue<ResolverTask>();
 
+        public event EventHandler<EventArgs> BufferedTasks;
 
         internal TaskQueue(
             IOperationContext operationContext,
@@ -76,6 +78,7 @@ namespace HotChocolate.Execution.Utilities
                 scopedContextData);
 
             _queue.Enqueue(resolverTask);
+            BufferedTasks.Invoke(this, EventArgs.Empty);
         }
 
         public void Clear()
