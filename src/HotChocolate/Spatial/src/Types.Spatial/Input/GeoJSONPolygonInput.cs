@@ -9,16 +9,16 @@ using Types.Spatial.Scalar;
 
 namespace Types.Spatial.Input
 {
-    public class GeoJSONPointInput : InputObjectType<Point>
+    public class GeoJSONPolygonInput : InputObjectType<Polygon>
     {
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
-        public GeoJSONPointInput() { }
+        public GeoJSONPolygonInput() { }
 
-        protected override void Configure(IInputObjectTypeDescriptor<Point> descriptor)
+        protected override void Configure(IInputObjectTypeDescriptor<Polygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
@@ -37,10 +37,10 @@ namespace Types.Spatial.Input
             if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize Point. Needs at least type and coordinate fields");
+                    "Failed to serialize Polygon. Needs at least type and coordinates fields");
             }
 
-            Coordinate? coordinates = null;
+            Coordinate[]? coordinates = null;
             GeoJSONGeometryType? type = null;
 
             for (var i = 0; i < obj.Fields.Count; i++)
@@ -50,7 +50,7 @@ namespace Types.Spatial.Input
                 switch (field.Name.Value)
                 {
                     case _coordinatesFieldName:
-                        coordinates = (Coordinate)_coordinatesField.Type.ParseLiteral(field.Value);
+                        coordinates = (Coordinate[])_coordinatesField.Type.ParseLiteral(field.Value);
                         break;
                     case _typeFieldName:
                         type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
@@ -58,15 +58,17 @@ namespace Types.Spatial.Input
                 }
             }
 
-            if (coordinates == null || type != GeoJSONGeometryType.Point)
+            if (coordinates == null || type != GeoJSONGeometryType.Polygon)
             {
                 throw new InputObjectSerializationException(
-                    "Failed to serialize PointInputObject. You have to at least specify a type and coordinates array");
+                    "Failed to serialize Polygon. You have to at least specify a type and coordinates array");
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
 
-            return new Point(coordinates);
+            var ring = new LinearRing(coordinates);
+
+            return new Polygon(ring);
         }
 
         public override bool TrySerialize(object value, out object? serialized)
