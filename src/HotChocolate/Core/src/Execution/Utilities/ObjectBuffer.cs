@@ -64,7 +64,6 @@ namespace HotChocolate.Execution.Utilities
             return false;
         }
 
-
         public void Push(T obj)
         {
             if (!TryPush(obj))
