@@ -16,6 +16,11 @@ namespace HotChocolate.Execution
         ITaskQueue Tasks { get; }
 
         /// <summary>
+        /// Gets the tasks that need to be completed.
+        /// </summary>
+        ICompletionQueue Completion { get; }
+
+        /// <summary>
         /// Gets the batch dispatcher.
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
@@ -27,6 +32,8 @@ namespace HotChocolate.Execution
         /// || cancellationToken.IsCancellationRequested
         /// </summary>
         Task WaitForEngine(CancellationToken cancellationToken);
+
+        Task WaitForCompletion(CancellationToken cancellationToken);
 
         /// <summary>
         /// operationContext.Tasks.IsEmpty 
