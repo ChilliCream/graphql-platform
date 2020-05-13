@@ -95,7 +95,7 @@ namespace HotChocolate.Execution.Utilities
 
         public bool TryPushSafe(T obj)
         {
-            var nextIndex = Interlocked.Decrement(ref _index) + 1;
+            var nextIndex = Interlocked.Decrement(ref _index);
             if (0 <= _capacity)
             {
                 _clean(obj);
