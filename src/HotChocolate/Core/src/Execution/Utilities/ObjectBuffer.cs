@@ -52,7 +52,7 @@ namespace HotChocolate.Execution.Utilities
 
         public bool TryPopSafe([NotNullWhen(true)] out T? obj)
         {
-            var nextIndex = Interlocked.Increment(ref _index);
+            var nextIndex = Interlocked.Increment(ref _index) - 1;
             if (nextIndex <= _capacity)
             {
                 obj = _buffer[nextIndex] ?? new T();
@@ -95,7 +95,7 @@ namespace HotChocolate.Execution.Utilities
 
         public bool TryPushSafe(T obj)
         {
-            var nextIndex = Interlocked.Decrement(ref _index);
+            var nextIndex = Interlocked.Decrement(ref _index) + 1;
             if (0 <= _capacity)
             {
                 _clean(obj);
