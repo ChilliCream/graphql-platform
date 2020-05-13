@@ -26,10 +26,10 @@ namespace HotChocolate.Execution.Utilities
         bool IsEmpty { get; }
 
         /// <summary>
-        /// Tried to dequeue a element from the queue
+        /// Try to dequeue a element from the queue
         /// </summary>
         /// <param name="task">
-        ///     The dequed task. Is not null when the method returns<c>true</c>
+        /// The dequed task. Is not null when the method returns<c>true</c>
         /// </param>
         /// <returns>Return <c>true</c> if there was an element to dequeue</returns>
         bool TryDequeue([NotNullWhen(true)] out ResolverTask? task);
@@ -48,6 +48,6 @@ namespace HotChocolate.Execution.Utilities
         /// <summary>
         /// Clears the queue and returnes all the <see cref="ResolverTask"/> instances to the pool.
         /// </summary>
-        public void Clear();
+        void Clear();
     }
 }
