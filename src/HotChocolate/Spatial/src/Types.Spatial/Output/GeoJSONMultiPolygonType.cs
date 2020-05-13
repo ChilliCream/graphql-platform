@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
@@ -6,22 +6,22 @@ using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
 {
-    public class GeoJSONPointObjectType : ObjectType<Point>
+    public class GeoJSONMultiPolygonType : ObjectType<MultiPolygon>
     {
-        protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<MultiPolygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
             descriptor.Implements<GeoJSONInterface>();
 
-            descriptor.Field("type").Resolver(GeoJSONGeometryType.Point);
+            descriptor.Field("type").Resolver(GeoJSONGeometryType.MultiPolygon);
             descriptor.Field(x => x.Coordinates);
             descriptor.Field<Resolver>(x => x.GetBbox(default!));
         }
 
         internal class Resolver
         {
-            public IReadOnlyCollection<double> GetBbox([Parent] Point geometry)
+            public IReadOnlyCollection<double> GetBbox([Parent] MultiPolygon geometry)
             {
                 var envelope = geometry.EnvelopeInternal;
 
@@ -31,9 +31,9 @@ namespace Types.Spatial.Output
         }
     }
 
-    public class GeoJSONPointObjectExtensionType : ObjectTypeExtension<Point>
+    public class GeoJSONMultiPolygonObjectExtensionType : ObjectTypeExtension<MultiPolygon>
     {
-        protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<MultiPolygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field<CrsResolvers>(x => x.GetCrs(default!));

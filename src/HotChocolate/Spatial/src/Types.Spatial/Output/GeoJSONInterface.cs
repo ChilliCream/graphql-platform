@@ -24,7 +24,7 @@ namespace Types.Spatial.Output
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {
             descriptor.Name(nameof(GeoJSONInterface));
-            descriptor.Field("crs").Type<GeoJSONCoordinateReferenceSystemObjectType>();
+            descriptor.Field("crs").Type<GeoJSONCoordinateReferenceSystemType>();
         }
     }
 }

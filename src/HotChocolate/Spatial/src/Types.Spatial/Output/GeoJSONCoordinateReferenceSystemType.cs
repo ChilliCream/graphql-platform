@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using HotChocolate.Types;
 
 namespace Types.Spatial.Output
 {
-    public class GeoJSONCoordinateReferenceSystemObjectType
+    public class GeoJSONCoordinateReferenceSystemType
         : ObjectType<GeoJSONCoordinateReferenceSystem>
     {
         protected override void Configure(

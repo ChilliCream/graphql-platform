@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
@@ -6,22 +6,22 @@ using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
 {
-    public class GeoJSONMultiLineStringObjectType : ObjectType<MultiLineString>
+    public class GeoJSONPointType : ObjectType<Point>
     {
-        protected override void Configure(IObjectTypeDescriptor<MultiLineString> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
             descriptor.Implements<GeoJSONInterface>();
 
-            descriptor.Field("type").Resolver(GeoJSONGeometryType.MultiLineString);
+            descriptor.Field("type").Resolver(GeoJSONGeometryType.Point);
             descriptor.Field(x => x.Coordinates);
             descriptor.Field<Resolver>(x => x.GetBbox(default!));
         }
 
         internal class Resolver
         {
-            public IReadOnlyCollection<double> GetBbox([Parent] MultiLineString geometry)
+            public IReadOnlyCollection<double> GetBbox([Parent] Point geometry)
             {
                 var envelope = geometry.EnvelopeInternal;
 
@@ -31,9 +31,9 @@ namespace Types.Spatial.Output
         }
     }
 
-    public class GeoJSONMultiLineStringObjectExtensionType : ObjectTypeExtension<MultiLineString>
+    public class GeoJSONPointObjectExtensionType : ObjectTypeExtension<Point>
     {
-        protected override void Configure(IObjectTypeDescriptor<MultiLineString> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field<CrsResolvers>(x => x.GetCrs(default!));

@@ -21,14 +21,14 @@ namespace Types.Spatial
                 .AddType<GeoJSONPolygonInput>()
                 .AddType<GeoJSONMultiPolygonInput>()
 
-                .AddType<GeoJSONPointObjectType>()
-                .AddType<GeoJSONMultiPointObjectType>()
-                .AddType<GeoJSONLineStringObjectType>()
-                .AddType<GeoJSONMultiLineStringObjectType>()
-                .AddType<GeoJSONPolygonObjectType>()
-                .AddType<GeoJSONMultiPolygonObjectType>()
+                .AddType<GeoJSONPointType>()
+                .AddType<GeoJSONMultiPointType>()
+                .AddType<GeoJSONLineStringType>()
+                .AddType<GeoJSONMultiLineStringType>()
+                .AddType<GeoJSONPolygonType>()
+                .AddType<GeoJSONMultiPolygonType>()
 
-                .AddType<GeoJSONCoordinateReferenceSystemObjectType>()
+                .AddType<GeoJSONCoordinateReferenceSystemType>()
 
                 .BindClrType<Coordinate, GeoJSONPositionScalar>();
         }

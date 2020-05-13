@@ -6,22 +6,22 @@ using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
 {
-    public class GeoJSONPolygonObjectType : ObjectType<Polygon>
+    public class GeoJSONLineStringType : ObjectType<LineString>
     {
-        protected override void Configure(IObjectTypeDescriptor<Polygon> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<LineString> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
             descriptor.Implements<GeoJSONInterface>();
 
-            descriptor.Field("type").Resolver(GeoJSONGeometryType.Polygon);
+            descriptor.Field("type").Resolver(GeoJSONGeometryType.LineString);
             descriptor.Field(x => x.Coordinates);
             descriptor.Field<Resolver>(x => x.GetBbox(default!));
         }
 
         internal class Resolver
         {
-            public IReadOnlyCollection<double> GetBbox([Parent] Polygon geometry)
+            public IReadOnlyCollection<double> GetBbox([Parent] LineString geometry)
             {
                 var envelope = geometry.EnvelopeInternal;
 
@@ -31,9 +31,9 @@ namespace Types.Spatial.Output
         }
     }
 
-    public class GeoJSONPolygonObjectExtensionType : ObjectTypeExtension<Polygon>
+    public class GeoJSONLineStringObjectExtensionType : ObjectTypeExtension<LineString>
     {
-        protected override void Configure(IObjectTypeDescriptor<Polygon> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<LineString> descriptor)
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field<CrsResolvers>(x => x.GetCrs(default!));

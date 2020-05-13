@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
@@ -6,7 +6,7 @@ using Types.Spatial.Common;
 
 namespace Types.Spatial.Output
 {
-    public class GeoJSONMultiPointObjectType : ObjectType<MultiPoint>
+    public class GeoJSONMultiPointType : ObjectType<MultiPoint>
     {
         protected override void Configure(IObjectTypeDescriptor<MultiPoint> descriptor)
         {
