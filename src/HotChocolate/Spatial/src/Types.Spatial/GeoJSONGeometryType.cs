@@ -1,4 +1,4 @@
-namespace Types.Spatial.Common
+namespace Types.Spatial
 {
     public enum GeoJSONGeometryType
     {
@@ -9,11 +9,5 @@ namespace Types.Spatial.Common
         Polygon,
         MultiPolygon,
         GeometryCollection,
-    }
-
-    // https://tools.ietf.org/html/rfc7946#section-1.4
-    public enum GeoJSONTypes {
-        Feature,
-        FeatureCollection
     }
 }
