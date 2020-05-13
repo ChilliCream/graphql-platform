@@ -85,15 +85,15 @@ namespace HotChocolate.Execution.Utilities
             return false;
         }
 
-        public void PopSafe(T obj)
+        public void PushSafe(T obj)
         {
-            if (!TryPush(obj))
+            if (!TryPushSafe(obj))
             {
                 throw new InvalidOperationException("Buffer is full.");
             }
         }
 
-        public bool TryPopSafe(T obj)
+        public bool TryPushSafe(T obj)
         {
             var nextIndex = Interlocked.Decrement(ref _index);
             if (0 <= _capacity)
