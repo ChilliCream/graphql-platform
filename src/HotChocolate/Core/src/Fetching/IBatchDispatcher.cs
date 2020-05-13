@@ -1,6 +1,4 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Fetching
 {
@@ -10,6 +8,6 @@ namespace HotChocolate.Fetching
 
         event EventHandler? TaskEnqueued;
 
-        Task DispatchAsync(CancellationToken cancellationToken);
+        void Dispatch();
     }
 }

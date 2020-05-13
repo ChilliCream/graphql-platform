@@ -1,8 +1,5 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.DataLoader;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -21,11 +18,10 @@ namespace HotChocolate.Execution.Utilities
         {
             BeginCompletion(executionContext, cancellationToken);
 
-            while (!cancellationToken.IsCancellationRequested &&
-                !executionContext.IsCompleted)
+            while (!cancellationToken.IsCancellationRequested && !executionContext.IsCompleted)
             {
                 while (!cancellationToken.IsCancellationRequested &&
-                    executionContext.Tasks.TryDequeue(out ResolverTask task))
+                    executionContext.Tasks.TryDequeue(out ResolverTask? task))
                 {
                     task.BeginExecute();
                 }
@@ -36,10 +32,8 @@ namespace HotChocolate.Execution.Utilities
                     executionContext.Tasks.IsEmpty &&
                     executionContext.BatchDispatcher.HasTasks)
                 {
-                    await executionContext.BatchDispatcher.DispatchAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    await executionContext.WaitForEngine(cancellationToken)
-                        .ConfigureAwait(false);
+                    executionContext.BatchDispatcher.Dispatch();
+                    await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
                 }
             }
 
