@@ -22,7 +22,7 @@ namespace Types.Spatial
 
             descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
 
-            descriptor.Field(_coordinatesFieldName).Type<GeoJSONPositionScalar>();
+            descriptor.Field(_coordinatesFieldName).Type<ListType<GeoJSONPositionScalar>>();
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -38,7 +38,7 @@ namespace Types.Spatial
                     "Failed to serialize LineString. Needs at least type and coordinates fields");
             }
 
-            Coordinate[]? coordinates = null;
+            IList<Coordinate>? coordinates = null;
             GeoJSONGeometryType? type = null;
 
             for (var i = 0; i < obj.Fields.Count; i++)
@@ -49,7 +49,7 @@ namespace Types.Spatial
                 {
                     case _coordinatesFieldName:
                         coordinates =
-                            (Coordinate[])_coordinatesField.Type.ParseLiteral(field.Value);
+                            (IList<Coordinate>)_coordinatesField.Type.ParseLiteral(field.Value);
                         break;
                     case _typeFieldName:
                         type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
@@ -65,8 +65,10 @@ namespace Types.Spatial
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
+            var coords = new Coordinate[coordinates.Count];
+            coordinates.CopyTo(coords, 0);
 
-            return new LineString(coordinates);
+            return new LineString(coords);
         }
 
         public override bool TrySerialize(object value, out object? serialized)
