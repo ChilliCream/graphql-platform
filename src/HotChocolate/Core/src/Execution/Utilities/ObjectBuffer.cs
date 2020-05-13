@@ -1,11 +1,12 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace HotChocolate.Execution.Utilities
 {
     internal sealed class ObjectBuffer<T> where T : class, new()
     {
-        private readonly T[] _buffer;
+        private readonly T?[] _buffer;
         private readonly int _capacity;
         private readonly Action<T> _clean;
         private int _index;
@@ -15,11 +16,6 @@ namespace HotChocolate.Execution.Utilities
             _capacity = capacity;
             _buffer = new T[capacity];
             _clean = clean;
-
-            for (var i = 0; i < _capacity; i++)
-            {
-                _buffer[i] = new T();
-            }
         }
 
         public T Pop()
@@ -33,9 +29,11 @@ namespace HotChocolate.Execution.Utilities
 
         public bool TryPop([NotNullWhen(true)] out T? obj)
         {
-            if (_index < _capacity)
+            var nextIndex = _index++;
+            if (nextIndex <= _capacity)
             {
-                obj = _buffer[_index++];
+                obj = _buffer[nextIndex] ?? new T();
+                _buffer[nextIndex] = null;
                 return true;
             }
 
@@ -43,15 +41,71 @@ namespace HotChocolate.Execution.Utilities
             return false;
         }
 
+        public T PopSafe()
+        {
+            if (TryPopSafe(out T? obj))
+            {
+                return obj;
+            }
+            throw new InvalidOperationException("Buffer is used up.");
+        }
+
+        public bool TryPopSafe([NotNullWhen(true)] out T? obj)
+        {
+            var nextIndex = Interlocked.Increment(ref _index) - 1;
+            if (nextIndex <= _capacity)
+            {
+                obj = _buffer[nextIndex] ?? new T();
+                _buffer[nextIndex] = null;
+                return true;
+            }
+
+            obj = null;
+            return false;
+        }
+
+        public void Push(T obj)
+        {
+            if (!TryPush(obj))
+            {
+                throw new InvalidOperationException("Buffer is full.");
+            }
+        }
+
+        public bool TryPush(T obj)
+        {
+            var nextIndex = _index--;
+            if (0 <= _capacity)
+            {
+                _clean(obj);
+                _buffer[nextIndex] = obj;
+                return true;
+            }
+            return false;
+        }
+
+        public void PushSafe(T obj)
+        {
+            if (!TryPushSafe(obj))
+            {
+                throw new InvalidOperationException("Buffer is full.");
+            }
+        }
+
+        public bool TryPushSafe(T obj)
+        {
+            var nextIndex = Interlocked.Decrement(ref _index);
+            if (0 <= _capacity)
+            {
+                _clean(obj);
+                _buffer[nextIndex] = obj;
+                return true;
+            }
+            return false;
+        }
+
         public void Reset()
         {
-            if (_index > 0)
-            {
-                for (int i = 0; i < _index; i++)
-                {
-                    _clean(_buffer[i]);
-                }
-            }
             _index = 0;
         }
     }
