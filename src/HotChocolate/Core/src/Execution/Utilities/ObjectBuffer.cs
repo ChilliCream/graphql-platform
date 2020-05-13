@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Utilities
         public bool TryPop([NotNullWhen(true)] out T? obj)
         {
             var nextIndex = _index++;
-            if (0 <= nextIndex)
+            if (nextIndex <= _capacity)
             {
                 obj = _buffer[_index] ?? new T();
                 _buffer[_index] = null;
@@ -53,7 +53,7 @@ namespace HotChocolate.Execution.Utilities
         public bool TryPopSafe([NotNullWhen(true)] out T? obj)
         {
             var nextIndex = Interlocked.Increment(ref _index);
-            if (0 <= nextIndex)
+            if (nextIndex <= _capacity)
             {
                 obj = _buffer[_index] ?? new T();
                 _buffer[_index] = null;
@@ -76,7 +76,7 @@ namespace HotChocolate.Execution.Utilities
         public bool TryPush(T obj)
         {
             var nextIndex = _index--;
-            if (_index <= _capacity)
+            if (0 <= _capacity)
             {
                 _clean(obj);
                 _buffer[nextIndex] = obj;
@@ -96,7 +96,7 @@ namespace HotChocolate.Execution.Utilities
         public bool TryPopSafe(T obj)
         {
             var nextIndex = Interlocked.Decrement(ref _index);
-            if (_index <= _capacity)
+            if (0 <= _capacity)
             {
                 _clean(obj);
                 _buffer[nextIndex] = obj;
