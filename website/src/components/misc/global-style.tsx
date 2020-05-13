@@ -12,7 +12,7 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     font-size: 18px;
     line-height: 30px;
-    background-color: #ccc;
+    background-color: #efefef;
     color: #667;
     overflow-x: hidden;
     scroll-behavior: smooth;
