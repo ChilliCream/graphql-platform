@@ -94,11 +94,11 @@ export const Footer: FunctionComponent = () => {
 
 const Container = styled.footer<{ url: string }>`
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   padding: 200px 20px 60px;
+  width: 100vw;
   min-height: 300px;
   background-color: #fff;
   background-image: url("${(props) => props.url}");
@@ -111,6 +111,11 @@ const Container = styled.footer<{ url: string }>`
 
   @media only screen and (min-width: 1250px) {
     padding: 200px 0 60px;
+  }
+
+  @media only screen and (min-width: 1500px) {
+    margin: 0 auto;
+    width: 1300px;
   }
 `;
 

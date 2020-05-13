@@ -133,6 +133,11 @@ const ContainerWrapper = styled.header`
   @media only screen and (min-width: 992px) {
     justify-content: initial;
   }
+
+  @media only screen and (min-width: 1500px) {
+    margin: 0 auto;
+    width: 1300px;
+  }
 `;
 
 const LogoLink = styled(Link)`

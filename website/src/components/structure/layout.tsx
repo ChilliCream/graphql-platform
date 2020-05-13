@@ -39,5 +39,11 @@ const Content = styled.main`
   flex-direction: column;
   align-items: center;
   padding-top: 60px;
+  width: 100vw;
   background-color: #fff;
+
+  @media only screen and (min-width: 1500px) {
+    margin: 0 auto;
+    width: 1300px;
+  }
 `;
