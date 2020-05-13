@@ -56,7 +56,6 @@ function calculatePosition<
   ContainerRef extends HTMLElement,
   ElementRef extends HTMLElement
 >(container: ContainerRef, element: ElementRef) {
-  console.log("CALC");
   const scrollTop =
     document.body.scrollTop || document.documentElement.scrollTop;
   const containerHeightAndTop = container.offsetTop + container.offsetHeight;
@@ -71,7 +70,6 @@ function calculatePosition<
 }
 
 function resetPosition<ElementRef extends HTMLElement>(element: ElementRef) {
-  console.log("RESET");
   element.style.position = "";
   element.style.top = "";
 }
