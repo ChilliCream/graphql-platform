@@ -1,0 +1,6 @@
+#This is the Schema file, download it from the playground or generate any other way
+
+schema {
+  query: YourQueryObjectHere
+}
+
