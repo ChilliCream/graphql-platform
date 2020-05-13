@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -6,9 +7,11 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal partial class MiddlewareContext
-        : IMiddlewareContext
+    internal partial class MiddlewareContext : IMiddlewareContext
     {
+        public IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; set; } = 
+            default!;
+
         public T Argument<T>(NameString name)
         {
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
@@ -27,7 +30,7 @@ namespace HotChocolate.Execution
 
         public T ArgumentValue<T>(NameString name)
         {
-            if (!_selection.Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
                 throw new GraphQLException(); // throw helper
             }
@@ -37,7 +40,7 @@ namespace HotChocolate.Execution
 
         public Optional<T> ArgumentOptional<T>(NameString name)
         {
-            if (!_selection.Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
                 throw new GraphQLException(); // throw helper
             }
@@ -47,17 +50,12 @@ namespace HotChocolate.Execution
 
         public T ArgumentLiteral<T>(NameString name) where T : IValueNode
         {
-            if (!_selection.Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
                 throw new GraphQLException(); // throw helper
             }
 
             IValueNode literal = argument.ValueLiteral!;
-
-            if (!argument.IsFinal)
-            {
-                literal = _operationContext.ReplaceVariables(literal, argument.Type);
-            }
 
             if (literal is T castedLiteral)
             {
@@ -70,7 +68,7 @@ namespace HotChocolate.Execution
 
         public ValueKind ArgumentKind(NameString name)
         {
-            if (!_selection.Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
                 throw new GraphQLException(); // throw helper
             }
@@ -86,9 +84,7 @@ namespace HotChocolate.Execution
 
             if (!argument.IsFinal)
             {
-                IValueNode literal = argument.ValueLiteral!;
-                literal = _operationContext.ReplaceVariables(literal, argument.Type);
-                value = argument.Type.ParseLiteral(literal);
+                value = argument.Type.ParseLiteral(argument.ValueLiteral!);
             }
 
             if (value is null)

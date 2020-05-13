@@ -16,13 +16,24 @@ namespace HotChocolate.Execution.Utilities
             IType fieldType,
             object? result)
         {
+            throw new NotImplementedException();
+        }
+
+        private static object? CompleteInternal(
+            IOperationContext operationContext,
+            IMiddlewareContext middlewareContext,
+            Path path,
+            IType fieldType,
+            object? result,
+            ref bool nonNullViolation)
+        {
             if (fieldType.IsNonNullType())
             {
                 object? completedResult = Complete(
                     operationContext,
                     middlewareContext,
                     path,
-                    fieldType,
+                    fieldType.InnerType(),
                     result);
 
                 if (completedResult is null)

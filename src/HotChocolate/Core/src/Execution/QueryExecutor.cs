@@ -16,13 +16,15 @@ namespace HotChocolate.Execution.Utilities
         }
 
         private async Task ExecuteResolversAsync(
-            IExecutionContext executionContext, 
+            IExecutionContext executionContext,
             CancellationToken cancellationToken)
-        {            
-            while (!cancellationToken.IsCancellationRequested && 
+        {
+            BeginCompletion(executionContext, cancellationToken);
+
+            while (!cancellationToken.IsCancellationRequested &&
                 !executionContext.IsCompleted)
             {
-                while (!cancellationToken.IsCancellationRequested && 
+                while (!cancellationToken.IsCancellationRequested &&
                     executionContext.Tasks.TryDequeue(out ResolverTask task))
                 {
                     task.BeginExecute();
@@ -30,8 +32,8 @@ namespace HotChocolate.Execution.Utilities
 
                 await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
 
-                while (!cancellationToken.IsCancellationRequested && 
-                    executionContext.Tasks.IsEmpty && 
+                while (!cancellationToken.IsCancellationRequested &&
+                    executionContext.Tasks.IsEmpty &&
                     executionContext.BatchDispatcher.HasTasks)
                 {
                     await executionContext.BatchDispatcher.DispatchAsync(cancellationToken)
@@ -44,6 +46,38 @@ namespace HotChocolate.Execution.Utilities
             cancellationToken.ThrowIfCancellationRequested();
 
             // ensure non-null propagation
+        }
+
+        /// <summary>
+        /// Completes running resolver tasks and returns task to the bool.
+        /// </summary>
+        private void BeginCompletion(
+            IExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
+            Task.Factory.StartNew(
+                async () =>
+                {
+                    while (!cancellationToken.IsCancellationRequested &&
+                        !executionContext.IsCompleted)
+                    {
+                        await executionContext.WaitForCompletion(cancellationToken)
+                            .ConfigureAwait(false);
+
+                        while (!cancellationToken.IsCancellationRequested &&
+                            executionContext.Completion.TryDequeue(out ResolverTask? task))
+                        {
+                            if (!task.IsCompleted)
+                            {
+                                await task.EndExecuteAsync().ConfigureAwait(false);
+                            }
+                            // todo : return task to pool
+                        }
+                    }
+                },
+                cancellationToken,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
     }
 }

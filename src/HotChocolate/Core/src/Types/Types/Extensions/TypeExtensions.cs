@@ -21,7 +21,7 @@ namespace HotChocolate.Types
 
         public static bool IsNonNullType(this IType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
