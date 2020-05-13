@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Types.Spatial;
+using Types.Spatial.CRS;
 
 namespace Types.Spatial.Playground
 {

@@ -1,5 +1,4 @@
 using HotChocolate.Types;
-using Types.Spatial.Common;
 
 namespace Types.Spatial
 {
@@ -15,16 +14,6 @@ namespace Types.Spatial
 
             descriptor.Field("bbox")
                 .Type<ListType<FloatType>>();
-        }
-    }
-
-
-    public class GeoJSONInterfaceCrsExtension : InterfaceTypeExtension
-    {
-        protected override void Configure(IInterfaceTypeDescriptor descriptor)
-        {
-            descriptor.Name(nameof(GeoJSONInterface));
-            descriptor.Field("crs").Type<GeoJSONCoordinateReferenceSystemType>();
         }
     }
 }

@@ -2,7 +2,6 @@
 using HotChocolate;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
-using Types.Spatial.Common;
 
 namespace Types.Spatial
 {
@@ -28,15 +27,6 @@ namespace Types.Spatial
                 // TODO: support Z
                 return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
             }
-        }
-    }
-
-    public class GeoJSONPolygonObjectExtensionType : ObjectTypeExtension<Polygon>
-    {
-        protected override void Configure(IObjectTypeDescriptor<Polygon> descriptor)
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field<GeoJSONResolvers>(x => x.GetCrs(default!));
         }
     }
 }

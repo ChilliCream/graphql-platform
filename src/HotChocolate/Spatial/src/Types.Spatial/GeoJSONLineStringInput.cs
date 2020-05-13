@@ -4,8 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite.Geometries;
-using Types.Spatial.Common;
-using Types.Spatial;
 
 namespace Types.Spatial
 {

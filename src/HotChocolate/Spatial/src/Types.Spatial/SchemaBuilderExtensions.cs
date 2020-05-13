@@ -1,7 +1,5 @@
 using HotChocolate;
 using NetTopologySuite.Geometries;
-using Types.Spatial;
-using Types.Spatial.Common;
 
 namespace Types.Spatial
 {
@@ -30,18 +28,6 @@ namespace Types.Spatial
                 .AddType<GeoJSONCoordinateReferenceSystemType>()
 
                 .BindClrType<Coordinate, GeoJSONPositionScalar>();
-        }
-
-        public static ISchemaBuilder AddCRSTypes(this ISchemaBuilder builder)
-        {
-            return builder
-                .AddType<GeoJSONPointObjectExtensionType>()
-                .AddType<GeoJSONMultiPointObjectExtensionType>()
-                .AddType<GeoJSONLineStringObjectExtensionType>()
-                .AddType<GeoJSONMultiLineStringObjectExtensionType>()
-                .AddType<GeoJSONPolygonObjectExtensionType>()
-                .AddType<GeoJSONMultiPolygonObjectExtensionType>()
-                .AddType<GeoJSONInterfaceCrsExtension>();
         }
     }
 }
