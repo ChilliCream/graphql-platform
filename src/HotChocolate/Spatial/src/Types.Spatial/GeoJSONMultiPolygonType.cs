@@ -4,24 +4,24 @@ using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 using Types.Spatial.Common;
 
-namespace Types.Spatial.Output
+namespace Types.Spatial
 {
-    public class GeoJSONLineStringType : ObjectType<LineString>
+    public class GeoJSONMultiPolygonType : ObjectType<MultiPolygon>
     {
-        protected override void Configure(IObjectTypeDescriptor<LineString> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<MultiPolygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
             descriptor.Implements<GeoJSONInterface>();
 
-            descriptor.Field("type").Resolver(GeoJSONGeometryType.LineString);
+            descriptor.Field("type").Resolver(GeoJSONGeometryType.MultiPolygon);
             descriptor.Field(x => x.Coordinates);
             descriptor.Field<Resolver>(x => x.GetBbox(default!));
         }
 
         internal class Resolver
         {
-            public IReadOnlyCollection<double> GetBbox([Parent] LineString geometry)
+            public IReadOnlyCollection<double> GetBbox([Parent] MultiPolygon geometry)
             {
                 var envelope = geometry.EnvelopeInternal;
 
@@ -31,9 +31,9 @@ namespace Types.Spatial.Output
         }
     }
 
-    public class GeoJSONLineStringObjectExtensionType : ObjectTypeExtension<LineString>
+    public class GeoJSONMultiPolygonObjectExtensionType : ObjectTypeExtension<MultiPolygon>
     {
-        protected override void Configure(IObjectTypeDescriptor<LineString> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<MultiPolygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
             descriptor.Field<CrsResolvers>(x => x.GetCrs(default!));

@@ -1,7 +1,7 @@
 using HotChocolate.Types;
 using Types.Spatial.Common;
 
-namespace Types.Spatial.Output
+namespace Types.Spatial
 {
     public class GeoJSONInterface : InterfaceType
     {
