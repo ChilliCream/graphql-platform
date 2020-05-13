@@ -50,6 +50,35 @@ namespace HotChocolate.Execution.Utilities
             return obj;
         }
 
+        /// <summary>
+        ///  Return an object from the buffer if one is available. If the buffer is full
+        ///  return the buffer to the pool
+        /// </summary> 
+        public void Return(T obj)
+        {
+            // if there is no buffer we let the object leak
+            if (_rentedBuffers.TryPeek(out ObjectBuffer<T> buffer))
+            {
+                // We first try to push the resolver task safely to the buffer queue
+                if (!buffer.TryPushSafe(obj))
+                {
+                    // In case the buffer is full we need to retun it to the pool
+                    // We lock so it is ensure that in any case only one buffer is returnt to
+                    // the pool
+                    lock (_lockObject)
+                    {
+                        // as long as there are rented buffers take the first one an try to push
+                        // the object on it. In case the buffer is full, return it to the pool
+                        // and try with the next buffer.
+                        while (_rentedBuffers.TryPeek(out buffer) && !buffer.TryPush(obj))
+                        {
+                            _objectPool.Return(_rentedBuffers.Pop());
+                        }
+                    }
+                }
+            }
+        }
+
         public void Clear()
         {
             while (_rentedBuffers.TryPop(out ObjectBuffer<T>? buffer))
