@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
-    <ProjectReference Include="..\Fetching\HotChocolate.Batching.csproj" />
+    <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
   </ItemGroup>
