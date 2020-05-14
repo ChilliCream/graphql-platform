@@ -699,6 +699,19 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public static void IsAbstractType_InputUnionType_True()
+        {
+            // arrange
+            IType type = Mock.Of<InputUnionType>();
+
+            // act
+            bool result = type.IsAbstractType();
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
         public static void IsAbstractType_UnionType_True()
         {
             // arrange
