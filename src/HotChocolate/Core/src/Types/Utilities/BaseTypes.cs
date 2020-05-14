@@ -22,7 +22,9 @@ namespace HotChocolate.Utilities
             typeof(UnionType),
             typeof(UnionType<>),
             typeof(DirectiveType),
-            typeof(DirectiveType<>)
+            typeof(DirectiveType<>),
+            typeof(InputUnionType),
+            typeof(InputUnionType<>)
         };
 
         public static bool IsSchemaType(Type type)

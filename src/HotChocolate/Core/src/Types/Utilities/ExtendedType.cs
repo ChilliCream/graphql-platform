@@ -244,6 +244,7 @@ namespace HotChocolate.Utilities
                 || typeof(EnumType).IsAssignableFrom(type)
                 || typeof(UnionType).IsAssignableFrom(type)
                 || typeof(InputObjectType).IsAssignableFrom(type)
+                || typeof(InputUnionType).IsAssignableFrom(type)
                 || type.IsGenericType
                     && (typeof(ListType<>) == type.GetGenericTypeDefinition()
                         || typeof(NonNullType<>) == type.GetGenericTypeDefinition());

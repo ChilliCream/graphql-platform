@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -57,6 +57,24 @@ namespace HotChocolate
                             ... on Bar { nameBar }
                             ... on Foo { nameFoo }
                         }
+                    }");
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteWithInputUnionType()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    @"{ 
+                         foo(foo:{__typename:""FooInput""}) { nameFoo } 
                     }");
 
             // assert
@@ -189,6 +207,9 @@ namespace HotChocolate
                 c.RegisterType<FooType>();
                 c.RegisterType<BarType>();
                 c.RegisterType<FooBarUnionType>();
+                c.RegisterType<FooInputType>();
+                c.RegisterType<BarInputType>();
+                c.RegisterType<FooBarInputUnionType>();
                 c.RegisterType<DrinkType>();
                 c.RegisterType<TeaType>();
                 c.RegisterType<DogType>();
@@ -236,7 +257,8 @@ namespace HotChocolate
                 descriptor.Name("Query");
                 descriptor.Field("foo")
                     .Type<NonNullType<FooType>>()
-                    .Resolver(() => "foo");
+                    .Resolver(() => "foo")
+                    .Argument("foo", x => x.Type<FooBarInputUnionType>());
                 descriptor.Field("bar")
                     .Type<NonNullType<BarType>>()
                     .Resolver(c => "bar");
@@ -281,6 +303,29 @@ namespace HotChocolate
                     .Resolver(() => "foo");
                 descriptor.Field("nameBar").Resolver(() => "bar");
                 descriptor.IsOfType((c, obj) => obj.Equals("bar"));
+            }
+        }
+
+        public class FooInputType
+            : InputObjectType
+        {
+            protected override void Configure(
+                IInputObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("FooInput");
+                descriptor.Field("bar").Type<NonNullType<FooInputType>>();
+                descriptor.Field("nameFoo").Type<StringType>();
+            }
+        }
+
+        public class BarInputType
+            : InputObjectType
+        {
+            protected override void Configure(IInputObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("BarInput");
+                descriptor.Field("foo").Type<NonNullType<BarInputType>>();
+                descriptor.Field("nameBar").Type<StringType>();
             }
         }
 
@@ -334,6 +379,17 @@ namespace HotChocolate
                 descriptor.Name("FooBar");
                 descriptor.Type<BarType>();
                 descriptor.Type<FooType>();
+            }
+        }
+
+        public class FooBarInputUnionType
+            : InputUnionType
+        {
+            protected override void Configure(IInputUnionTypeDescriptor descriptor)
+            {
+                descriptor.Name("FooBarInput");
+                descriptor.Type<BarInputType>();
+                descriptor.Type<FooInputType>();
             }
         }
 
