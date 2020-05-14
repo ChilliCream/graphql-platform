@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<ArgumentException>(() => type.ParseLiteral(
+            Assert.Throws<ScalarSerializationException>(() => type.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
                     new ObjectFieldNode("coordinates", new ListValueNode()))));
