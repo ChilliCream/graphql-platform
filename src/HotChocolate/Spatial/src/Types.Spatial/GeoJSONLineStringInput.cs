@@ -57,7 +57,7 @@ namespace Types.Spatial
                 }
             }
 
-            if (coordinates == null || type != GeoJSONGeometryType.LineString)
+            if (type != GeoJSONGeometryType.LineString || coordinates is null || coordinates.Count < 2)
             {
                 throw new InputObjectSerializationException(
                     "Failed to serialize LineString. You have to at least specify a type and " +
@@ -69,16 +69,6 @@ namespace Types.Spatial
             coordinates.CopyTo(coords, 0);
 
             return new LineString(coords);
-        }
-
-        public override bool TrySerialize(object value, out object? serialized)
-        {
-            return base.TrySerialize(value, out serialized);
-        }
-
-        public override bool TryDeserialize(object serialized, out object? value)
-        {
-            return base.TryDeserialize(serialized, out value);
         }
 
         protected override void OnAfterCompleteType(

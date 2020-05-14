@@ -57,7 +57,7 @@ namespace Types.Spatial
                 }
             }
 
-            if (coordinates == null || type != GeoJSONGeometryType.MultiPoint)
+            if (type != GeoJSONGeometryType.MultiPoint || coordinates is null || coordinates.Count < 1)
             {
                 throw new InputObjectSerializationException(
                     "Failed to serialize MultiPoint. You have to at least specify a type and" +
@@ -71,16 +71,6 @@ namespace Types.Spatial
             }
 
             return new MultiPoint(points);
-        }
-
-        public override bool TrySerialize(object value, out object? serialized)
-        {
-            return base.TrySerialize(value, out serialized);
-        }
-
-        public override bool TryDeserialize(object serialized, out object? value)
-        {
-            return base.TryDeserialize(serialized, out value);
         }
 
         protected override void OnAfterCompleteType(

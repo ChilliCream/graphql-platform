@@ -1,0 +1,28 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  test(arg: LineStringInput): String
+}
+
+input LineStringInput {
+  coordinates: [Position]
+  type: GeoJSONGeometryType
+}
+
+enum GeoJSONGeometryType {
+  POINT
+  MULTIPOINT
+  LINESTRING
+  MULTILINESTRING
+  POLYGON
+  MULTIPOLYGON
+  GEOMETRYCOLLECTION
+}
+
+"A position is an array of numbers. There MUST be two or more elements."
+scalar Position
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

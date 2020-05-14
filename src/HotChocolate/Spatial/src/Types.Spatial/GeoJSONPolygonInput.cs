@@ -57,7 +57,7 @@ namespace Types.Spatial
                 }
             }
 
-            if (coordinates == null || type != GeoJSONGeometryType.Polygon)
+            if (type != GeoJSONGeometryType.Polygon || coordinates is null || coordinates.Count < 4)
             {
                 throw new InputObjectSerializationException(
                     "Failed to serialize Polygon. You have to at least specify a type and" +
@@ -71,16 +71,6 @@ namespace Types.Spatial
             var ring = new LinearRing(coords);
 
             return new Polygon(ring);
-        }
-
-        public override bool TrySerialize(object value, out object? serialized)
-        {
-            return base.TrySerialize(value, out serialized);
-        }
-
-        public override bool TryDeserialize(object serialized, out object? value)
-        {
-            return base.TryDeserialize(serialized, out value);
         }
 
         protected override void OnAfterCompleteType(

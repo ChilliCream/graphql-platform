@@ -57,7 +57,7 @@ namespace Types.Spatial
                 }
             }
 
-            if (parts == null || type != GeoJSONGeometryType.MultiLineString)
+            if (type != GeoJSONGeometryType.MultiLineString || parts is null || parts.Count < 1)
             {
                 throw new InputObjectSerializationException(
                     "Failed to serialize MultiLineString. You have to at least specify a type and" +
@@ -76,16 +76,6 @@ namespace Types.Spatial
             }
 
             return new MultiLineString(geometries);
-        }
-
-        public override bool TrySerialize(object value, out object? serialized)
-        {
-            return base.TrySerialize(value, out serialized);
-        }
-
-        public override bool TryDeserialize(object serialized, out object? value)
-        {
-            return base.TryDeserialize(serialized, out value);
         }
 
         protected override void OnAfterCompleteType(

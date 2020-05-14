@@ -56,7 +56,7 @@ namespace Types.Spatial
                 }
             }
 
-            if (coordinates == null || type != GeoJSONGeometryType.Point)
+            if (type != GeoJSONGeometryType.Point || coordinates is null)
             {
                 throw new InputObjectSerializationException(
                     "Failed to serialize PointInputObject. You have to at least specify a type " +
@@ -66,16 +66,6 @@ namespace Types.Spatial
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
 
             return new Point(coordinates);
-        }
-
-        public override bool TrySerialize(object value, out object? serialized)
-        {
-            return base.TrySerialize(value, out serialized);
-        }
-
-        public override bool TryDeserialize(object serialized, out object? value)
-        {
-            return base.TryDeserialize(serialized, out value);
         }
 
         protected override void OnAfterCompleteType(

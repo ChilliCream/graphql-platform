@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -10,18 +10,24 @@ using Xunit;
 
 namespace Types.Spatial.Tests
 {
-    public class GeoJSONPointInputTests
+    public class GeoJSONLineStringInputTests
     {
-        private readonly ListValueNode point = new ListValueNode(
-            new IntValueNode(30),
-            new IntValueNode(10)
-        );
+        private readonly ListValueNode linestring = new ListValueNode(
+            new ListValueNode(
+                new IntValueNode(30),
+                new IntValueNode(10)),
+            new ListValueNode(
+                new IntValueNode(10),
+                new IntValueNode(30)),
+            new ListValueNode(
+                new IntValueNode(40),
+                new IntValueNode(40)));
 
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddQueryType(d => d
             .Name("Query")
             .Field("test")
-            .Argument("arg", a => a.Type<GeoJSONPointInput>())
+            .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
             .Resolver("ghi"))
             .Create();
 
@@ -29,28 +35,36 @@ namespace Types.Spatial.Tests
         {
             ISchema schema = CreateSchema();
 
-            return schema.GetType<InputObjectType>("PointInput");
+            return schema.GetType<InputObjectType>("LineStringInput");
         }
 
         [Fact]
-        public void ParseLiteral_Point_With_Valid_Coordinates()
+        public void ParseLiteral_LineString_With_Valid_Coordinates()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             // act
             object result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
-                    new ObjectFieldNode("coordinates", point)));
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
+                    new ObjectFieldNode("coordinates", linestring)));
 
             // assert
-            Assert.Equal(30, Assert.IsType<Point>(result).X);
-            Assert.Equal(10, Assert.IsType<Point>(result).Y);
+            Assert.Equal(3, Assert.IsType<LineString>(result).NumPoints);
+
+            Assert.Equal(30, Assert.IsType<LineString>(result).Coordinates[0].X);
+            Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[0].Y);
+            Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[1].X);
+            Assert.Equal(30, Assert.IsType<LineString>(result).Coordinates[1].Y);
+            Assert.Equal(40, Assert.IsType<LineString>(result).Coordinates[2].X);
+            Assert.Equal(40, Assert.IsType<LineString>(result).Coordinates[2].Y);
         }
 
         [Fact]
-        public void ParseLiteral_Point_Is_Null()
+        public void ParseLiteral_LineString_Is_Null()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             object result = type.ParseLiteral(NullValueNode.Default);
@@ -59,8 +73,9 @@ namespace Types.Spatial.Tests
         }
 
         [Fact]
-        public void ParseLiteral_Point_Is_Not_ObjectType_Throws()
+        public void ParseLiteral_LineString_Is_Not_ObjectType_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             Assert.Throws<InputObjectSerializationException>(
@@ -68,36 +83,39 @@ namespace Types.Spatial.Tests
         }
 
         [Fact]
-        public void ParseLiteral_Point_With_Missing_Fields_Throws()
+        public void ParseLiteral_LineString_With_Missing_Fields_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             Assert.Throws<InputObjectSerializationException>(() => type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("missingType", new StringValueNode("ignored")),
-                    new ObjectFieldNode("coordinates", point))));
+                    new ObjectFieldNode("coordinates", linestring),
+                    new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
         }
 
         [Fact]
-        public void ParseLiteral_Point_With_Empty_Coordinates_Throws()
+        public void ParseLiteral_LineString_With_Empty_Coordinates_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<ArgumentException>(() => type.ParseLiteral(
+            Assert.Throws<InputObjectSerializationException>(() => type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
                     new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
         [Fact]
-        public void ParseLiteral_Point_With_Wrong_Geometry_Type_Throws()
+        public void ParseLiteral_LineString_With_Wrong_Geometry_Type_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             Assert.Throws<InputObjectSerializationException>(() => type.ParseLiteral(
                new ObjectValueNode(
                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
-                   new ObjectFieldNode("coordinates", point))));
+                   new ObjectFieldNode("coordinates", linestring))));
         }
 
         [Fact]
@@ -109,15 +127,15 @@ namespace Types.Spatial.Tests
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("test")
-                    .Argument("arg", a => a.Type<GeoJSONPointInput>())
-                    .Resolver(ctx => ctx.Argument<Point>("arg").ToString()))
+                    .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
+                    .Resolver(ctx => ctx.Argument<LineString>("arg").ToString()))
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: POINT, coordinates:[9,10] })}");
+                "{ test(arg: { type: LINESTRING, coordinates: [ [30, 10], [10, 30], [40, 40] ] })}");
 
             // assert
             result.MatchSnapshot();
