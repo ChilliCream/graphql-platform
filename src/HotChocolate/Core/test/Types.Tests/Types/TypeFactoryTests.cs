@@ -199,6 +199,39 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void CreateInputUnion()
+        {
+            // arrange
+            var objectTypeA = new InputObjectType(d => d
+                .Name("A")
+                .Field("a")
+                .Type<StringType>());
+
+            var objectTypeB = new InputObjectType(d => d
+                .Name("B")
+                .Field("a")
+                .Type<StringType>());
+
+            var source = "inputunion X = A | B";
+
+            // act
+            var schema = Schema.Create(source, c =>
+            {
+                c.RegisterType(objectTypeA);
+                c.RegisterType(objectTypeB);
+                c.RegisterQueryType<DummyQuery>();
+            });
+
+            // assert
+            InputUnionType type = schema.GetType<InputUnionType>("X");
+
+            Assert.Equal("X", type.Name);
+            Assert.Equal(2, type.Types.Count);
+            Assert.Equal("A", type.Types.First().Key);
+            Assert.Equal("B", type.Types.Last().Key);
+        }
+
+        [Fact]
         public void CreateEnum()
         {
             // arrange

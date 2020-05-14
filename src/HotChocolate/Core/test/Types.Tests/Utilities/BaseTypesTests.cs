@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Types;
 using Xunit;
 
@@ -18,6 +18,7 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(EnumType<FooEnum>), true)]
         [InlineData(typeof(InterfaceType), true)]
         [InlineData(typeof(UnionType), true)]
+        [InlineData(typeof(InputUnionType), true)]
         [InlineData(typeof(Foo), false)]
         [InlineData(typeof(FooEnum), false)]
         [Theory]
@@ -41,6 +42,7 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(EnumType), true)]
         [InlineData(typeof(EnumType<FooEnum>), false)]
         [InlineData(typeof(InterfaceType), true)]
+        [InlineData(typeof(InputUnionType), true)]
         [InlineData(typeof(UnionType), true)]
         [InlineData(typeof(Foo), false)]
         [InlineData(typeof(FooEnum), false)]

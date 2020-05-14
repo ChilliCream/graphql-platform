@@ -1200,7 +1200,7 @@ namespace HotChocolate.Validation
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "does only work when we support shape matching")]
         public void InputUnionOfValidTypeNoTypeName()
         {
             ExpectValid(@"
@@ -1212,7 +1212,7 @@ namespace HotChocolate.Validation
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "does only work when we support shape matching")]
         public void InputUnionOfInvalidTypeNoTypeName()
         {
             ExpectErrors(@"
@@ -1224,7 +1224,7 @@ namespace HotChocolate.Validation
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "does only work when we support shape matching")]
         public void InputUnionOfValidComplexTypeNoTypeName()
         {
             ExpectValid(@"
@@ -1236,7 +1236,7 @@ namespace HotChocolate.Validation
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "does only work when we support shape matching")]
         public void InputUnionOfInvalidComplexTypeNoTypeName()
         {
             ExpectErrors(@"
@@ -1272,7 +1272,7 @@ namespace HotChocolate.Validation
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "does only work when we support shape matching")]
         public void InputUnionInvalidNull()
         {
             ExpectErrors(@"
@@ -1284,7 +1284,7 @@ namespace HotChocolate.Validation
             ");
         }
 
-        [Fact]
+        [Fact(Skip = "does only work when we support shape matching")]
         public void InputUnionInvalidArgumentMissing()
         {
             ExpectErrors(@"
