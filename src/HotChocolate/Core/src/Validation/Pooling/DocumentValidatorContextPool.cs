@@ -10,13 +10,6 @@ namespace HotChocolate.Validation
         {
         }
 
-        public override DocumentValidatorContext Get()
-        {
-            DocumentValidatorContext validator = base.Get();
-            validator.Pool = this;
-            return validator;
-        }
-
         private class Policy : IPooledObjectPolicy<DocumentValidatorContext>
         {
             public DocumentValidatorContext Create() => new DocumentValidatorContext();
