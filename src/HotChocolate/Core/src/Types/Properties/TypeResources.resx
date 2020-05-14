@@ -614,4 +614,7 @@ Type: `{0}`</value>
   <data name="DirectiveLocation_InputUnion" xml:space="preserve">
     <value>Location adjacent to an input union type definition.</value>
   </data>
+  <data name="TypeKind_InputUnion" xml:space="preserve">
+    <value>Indicates this type is an input union. `possibleTypes` is a valid field.</value>
+  </data>
 </root>

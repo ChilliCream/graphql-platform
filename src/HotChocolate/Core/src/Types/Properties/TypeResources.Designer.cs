@@ -1325,6 +1325,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an input union. `possibleTypes` is a valid field..
+        /// </summary>
+        internal static string TypeKind_InputUnion {
+            get {
+                return ResourceManager.GetString("TypeKind_InputUnion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indicates this type is an interface. `fields` and `possibleTypes` are valid fields..
         /// </summary>
         internal static string TypeKind_Interface {

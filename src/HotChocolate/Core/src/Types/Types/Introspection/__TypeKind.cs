@@ -37,6 +37,10 @@ namespace HotChocolate.Types.Introspection
             descriptor.Item(TypeKind.NonNull)
                 .Name("NON_NULL")
                 .Description(TypeResources.TypeKind_NonNull);
+
+            descriptor.Item(TypeKind.InputUnion)
+                .Name("INPUT_UNION")
+                .Description(TypeResources.TypeKind_InputUnion);
         }
     }
 }
