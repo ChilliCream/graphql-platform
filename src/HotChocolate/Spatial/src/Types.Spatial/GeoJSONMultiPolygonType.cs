@@ -11,8 +11,8 @@ namespace HotChocolate.Types.Spatial
 
             descriptor.Implements<GeoJSONInterface>();
 
-            descriptor.Field("type").Resolver(GeoJSONGeometryType.MultiPolygon);
             descriptor.Field(x => x.Coordinates);
+            descriptor.Field<GeoJSONResolvers>(x => x.GetType(default!));
             descriptor.Field<Resolver>(x => x.GetBbox(default!));
         }
 
