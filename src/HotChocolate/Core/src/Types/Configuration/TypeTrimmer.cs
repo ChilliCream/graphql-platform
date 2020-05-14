@@ -47,6 +47,10 @@ namespace HotChocolate.Configuration
                         VisitUnion(u);
                         break;
 
+                    case InputUnionType iu:
+                        VisitInputUnion(iu);
+                        break;
+
                     case InterfaceType i:
                         VisitInterface(i);
                         break;
@@ -105,6 +109,16 @@ namespace HotChocolate.Configuration
             foreach (ObjectType objectType in type.Types.Values)
             {
                 Visit(objectType);
+            }
+        }
+
+        private void VisitInputUnion(InputUnionType type)
+        {
+            VisitDirectives(type);
+
+            foreach (InputObjectType inputObjectType in type.Types.Values)
+            {
+                Visit(inputObjectType);
             }
         }
 

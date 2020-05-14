@@ -100,5 +100,32 @@ namespace HotChocolate.Configuration
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        private void InputUnion_Set_Is_Correctly_Detected()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("abc")
+                    .Field("field")
+                    .Argument("arg", x => x.Type(new NamedTypeNode("def")))
+                    .Type<StringType>()
+                    .Resolver("test"))
+                .AddInputUnionType(c => c
+                    .Name("def")
+                    .Type(new NamedTypeNode("ghi")))
+                .AddInputObjectType(c => c
+                    .Name("ghi")
+                    .Field("field")
+                    .Type<StringType>())
+                .AddType<FloatType>()
+                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
     }
 }
