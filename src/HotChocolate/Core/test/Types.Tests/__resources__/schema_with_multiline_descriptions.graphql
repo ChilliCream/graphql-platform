@@ -122,5 +122,26 @@ input Foo {
   bar: String
 }
 
+"""
+bar
+Line 1
+Line 2
+"""
+input Bar {
+  """
+  qux
+  Line 1
+  Line 2
+  """
+  qux: String
+}
+
 type A { a: String }
 type B { b: String }
+
+"""
+FooAndBar
+Line 1
+Line 2
+"""
+inputunion FooAndBar= Foo | Bar

@@ -154,6 +154,49 @@ namespace HotChocolate
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task BindInputUnionTypeImplicit()
+        {
+            // arrange
+            var schema = Schema.Create(
+                @"
+                schema {
+                    query: FooQuery
+                }
+
+                type FooQuery {
+                    foo(qux: Qux): String
+                }
+
+                input Bar
+                {
+                    baz: String
+                }
+
+                input Baz
+                {
+                    qux: String
+                }
+
+                inputunion Qux = Bar | Baz",
+                c =>
+                {
+                    c.BindType<FooQuery>();
+                    c.BindType<Bar>();
+                    c.BindType<Baz>();
+                });
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ foo(qux: {__typename:\"Bar\" baz: \"hello\"}) }");
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+
         public class Query
         {
             public string GetTest()
@@ -166,15 +209,25 @@ namespace HotChocolate
 
         public class FooQuery
         {
-            public string GetFoo(Bar bar)
+            public string GetFoo(IMarker bar)
             {
-                return bar.Baz;
+                return "";
             }
         }
 
-        public class Bar
+        public interface IMarker
+        {
+
+        }
+
+        public class Bar : IMarker
         {
             public string Baz { get; set; }
+        }
+
+        public class Baz : IMarker
+        {
+            public string Qux { get; set; }
         }
 
         public class EnumQuery

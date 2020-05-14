@@ -187,6 +187,27 @@
           "possibleTypes": null
         },
         {
+          "kind": "INPUT_OBJECT",
+          "name": "Bar",
+          "description": "bar\nLine 1\nLine 2",
+          "fields": null,
+          "inputFields": [
+            {
+              "name": "qux",
+              "description": "qux\nLine 1\nLine 2",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
+            }
+          ],
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
           "kind": "OBJECT",
           "name": "A",
           "description": null,
@@ -231,6 +252,27 @@
           "interfaces": [],
           "enumValues": null,
           "possibleTypes": null
+        },
+        {
+          "kind": "INPUT_UNION",
+          "name": "FooAndBar",
+          "description": "FooAndBar\nLine 1\nLine 2",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": [
+            {
+              "kind": "INPUT_OBJECT",
+              "name": "Foo",
+              "ofType": null
+            },
+            {
+              "kind": "INPUT_OBJECT",
+              "name": "Bar",
+              "ofType": null
+            }
+          ]
         },
         {
           "kind": "OBJECT",
@@ -1099,13 +1141,13 @@
               "deprecationReason": null
             },
             {
-              "name": "DIRECTIVE",
-              "description": null,
+              "name": "INPUT_UNION",
+              "description": "Indicates this type is an input union. `possibleTypes` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
-              "name": "INPUTUNION",
+              "name": "DIRECTIVE",
               "description": null,
               "isDeprecated": false,
               "deprecationReason": null

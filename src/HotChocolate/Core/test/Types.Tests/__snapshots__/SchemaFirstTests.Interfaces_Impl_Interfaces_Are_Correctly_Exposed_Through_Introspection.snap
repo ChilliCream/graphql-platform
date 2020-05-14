@@ -995,13 +995,13 @@
               "deprecationReason": null
             },
             {
-              "name": "DIRECTIVE",
-              "description": null,
+              "name": "INPUT_UNION",
+              "description": "Indicates this type is an input union. `possibleTypes` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
-              "name": "INPUTUNION",
+              "name": "DIRECTIVE",
               "description": null,
               "isDeprecated": false,
               "deprecationReason": null

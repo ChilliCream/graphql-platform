@@ -273,6 +273,12 @@
               "description": "Location adjacent to an input object field definition.",
               "isDeprecated": false,
               "deprecationReason": null
+            },
+            {
+              "name": "INPUT_UNION",
+              "description": "Location adjacent to an input union type definition.",
+              "isDeprecated": false,
+              "deprecationReason": null
             }
           ],
           "possibleTypes": null
@@ -864,6 +870,12 @@
             {
               "name": "NON_NULL",
               "description": "Indicates this type is a non-null. `ofType` is a valid field.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "INPUT_UNION",
+              "description": "Indicates this type is an input union. `possibleTypes` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             },

@@ -32,6 +32,10 @@ namespace HotChocolate.Types.Factories
             new EnumTypeExtensionFactory();
         private readonly DirectiveTypeFactory _directiveTypeFactory =
             new DirectiveTypeFactory();
+        private readonly InputUnionTypeFactory _inputUnionTypeFactory =
+            new InputUnionTypeFactory();
+        private readonly InputUnionTypeExtensionFactory _inputUnionTypeExtensionFactory =
+            new InputUnionTypeExtensionFactory();
 
         private readonly List<ITypeReference> _types =
             new List<ITypeReference>();
@@ -103,6 +107,22 @@ namespace HotChocolate.Types.Factories
         {
             _types.Add(SchemaTypeReference.Create(
                 _unionTypeExtensionFactory.Create(_bindingLookup, node)));
+        }
+
+        protected override void VisitInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            object context)
+        {
+            _types.Add(SchemaTypeReference.Create(
+                _inputUnionTypeFactory.Create(_bindingLookup, node)));
+        }
+
+        protected override void VisitInputUnionTypeExtension(
+            InputUnionTypeExtensionNode node,
+            object context)
+        {
+            _types.Add(SchemaTypeReference.Create(
+                _inputUnionTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitInputObjectTypeDefinition(
