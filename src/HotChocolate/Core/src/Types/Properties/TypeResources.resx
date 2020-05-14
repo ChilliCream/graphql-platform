@@ -611,4 +611,7 @@ Type: `{0}`</value>
   <data name="InputUnionTypeExtension_CannotMerge" xml:space="preserve">
     <value>The input union type extension can only be merged with an input union type.</value>
   </data>
+  <data name="DirectiveLocation_InputUnion" xml:space="preserve">
+    <value>Location adjacent to an input union type definition.</value>
+  </data>
 </root>

@@ -498,6 +498,12 @@
               "description": "Location adjacent to an input object field definition.",
               "isDeprecated": false,
               "deprecationReason": null
+            },
+            {
+              "name": "INPUT_UNION",
+              "description": "Location adjacent to an input union type definition.",
+              "isDeprecated": false,
+              "deprecationReason": null
             }
           ],
           "possibleTypes": null
@@ -1094,6 +1100,12 @@
             },
             {
               "name": "DIRECTIVE",
+              "description": null,
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "INPUTUNION",
               "description": null,
               "isDeprecated": false,
               "deprecationReason": null

@@ -107,6 +107,6 @@ namespace HotChocolate.Types
         /// <summary>
         /// Location adjacent to an input union field definition.
         /// </summary>
-        InputUnionDefinition = 0x80000
+        InputUnion = 0x80000
     }
 }

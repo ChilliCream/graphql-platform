@@ -342,6 +342,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an input union type definition..
+        /// </summary>
+        internal static string DirectiveLocation_InputUnion {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_InputUnion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location adjacent to an interface definition..
         /// </summary>
         internal static string DirectiveLocation_Interface {

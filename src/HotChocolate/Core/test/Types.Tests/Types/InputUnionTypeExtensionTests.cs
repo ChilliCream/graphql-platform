@@ -202,7 +202,7 @@ namespace HotChocolate.Types
                 IDirectiveTypeDescriptor descriptor)
             {
                 descriptor.Name("dummy");
-                descriptor.Location(DirectiveLocation.InputUnionDefinition);
+                descriptor.Location(DirectiveLocation.InputUnion);
             }
         }
 
@@ -214,7 +214,7 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("dummy_arg");
                 descriptor.Argument("a").Type<StringType>();
-                descriptor.Location(DirectiveLocation.InputUnionDefinition);
+                descriptor.Location(DirectiveLocation.InputUnion);
             }
         }
 
@@ -226,7 +226,7 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("dummy_rep");
                 descriptor.Repeatable();
-                descriptor.Location(DirectiveLocation.InputUnionDefinition);
+                descriptor.Location(DirectiveLocation.InputUnion);
             }
         }
     }

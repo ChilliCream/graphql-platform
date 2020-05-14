@@ -81,6 +81,10 @@ namespace HotChocolate.Types.Introspection
             descriptor.Item(DirectiveLocation.InputFieldDefinition)
                 .Name("INPUT_FIELD_DEFINITION")
                 .Description(TypeResources.DirectiveLocation_InputFieldDefinition);
+
+            descriptor.Item(DirectiveLocation.InputUnion)
+                .Name("INPUT_UNION")
+                .Description(TypeResources.DirectiveLocation_InputUnion);
         }
     }
 }
