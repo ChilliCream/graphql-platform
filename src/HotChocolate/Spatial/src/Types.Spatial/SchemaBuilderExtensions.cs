@@ -1,7 +1,7 @@
 using HotChocolate;
 using NetTopologySuite.Geometries;
 
-namespace Types.Spatial
+namespace HotChocolate.Types.Spatial
 {
     public static class SchemaBuilderExtensions
     {

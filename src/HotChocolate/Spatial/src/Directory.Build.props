@@ -6,6 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

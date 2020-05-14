@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Types.Spatial.Playground
+namespace HotChocolate.Types.Spatial.Playground
 {
     public static class Program
     {

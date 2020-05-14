@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Types.Spatial.CRS;
 
-namespace Types.Spatial.Playground
+namespace HotChocolate.Types.Spatial.Playground
 {
     public class Startup
     {

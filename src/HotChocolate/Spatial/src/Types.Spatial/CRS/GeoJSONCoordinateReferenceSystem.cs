@@ -1,4 +1,4 @@
-namespace Types.Spatial
+namespace HotChocolate.Types.Spatial
 {
     /// https://geojson.org/geojson-spec.html#coordinate-reference-system-objects
     // "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::26912" } }

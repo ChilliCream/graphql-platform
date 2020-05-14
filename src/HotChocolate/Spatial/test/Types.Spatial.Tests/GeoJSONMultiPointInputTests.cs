@@ -8,7 +8,7 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial.Tests
 {
     public class GeoJSONMultiPointInputTests
     {

@@ -1,6 +1,6 @@
 ﻿using HotChocolate.Types;
 
-namespace Types.Spatial.CRS
+namespace HotChocolate.Types.Spatial.CRS
 {
     public class GeoJSONInterfaceCrsExtension : InterfaceTypeExtension
     {

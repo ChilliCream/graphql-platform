@@ -1,7 +1,7 @@
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
-namespace Types.Spatial.Playground
+namespace HotChocolate.Types.Spatial.Playground
 {
     [ExtendObjectType(Name = "Query")]
     public class GeoQueries

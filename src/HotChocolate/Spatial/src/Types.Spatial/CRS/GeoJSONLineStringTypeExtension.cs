@@ -1,7 +1,7 @@
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
-namespace Types.Spatial.CRS
+namespace HotChocolate.Types.Spatial.CRS
 {
     public class GeoJSONLineStringTypeExtension : ObjectTypeExtension<LineString>
     {

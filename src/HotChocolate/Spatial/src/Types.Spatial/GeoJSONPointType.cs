@@ -3,7 +3,7 @@ using HotChocolate;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
-namespace Types.Spatial
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONPointType : ObjectType<Point>
     {

@@ -1,9 +1,6 @@
-using HotChocolate;
-using HotChocolate.Types;
 using NetTopologySuite.Geometries;
-using Types.Spatial;
 
-namespace Types.Spatial
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONResolvers
     {

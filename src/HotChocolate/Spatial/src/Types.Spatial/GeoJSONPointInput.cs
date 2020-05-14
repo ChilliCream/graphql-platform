@@ -5,7 +5,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite.Geometries;
 
-namespace Types.Spatial
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONPointInput : InputObjectType<Point>
     {

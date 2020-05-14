@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
-namespace Types.Spatial
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONPositionScalar : ScalarType<Coordinate>
     {
@@ -40,14 +40,13 @@ namespace Types.Spatial
             }
 
             return false;
-}
+        }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object? ParseLiteral(IValueNode literal)
         {
-            // parse literal from input (ListValueNode) into Coordinate
-
             if (literal == null)
             {
+                // TODO : move throwhelper
                 throw new ArgumentNullException(nameof(literal));
             }
 
@@ -56,71 +55,38 @@ namespace Types.Spatial
                 return null;
             }
 
-            if (literal is ListValueNode listNode)
+            if (literal is ListValueNode list)
             {
-                if (listNode.Items.Count != 2 && listNode.Items.Count != 3)
+                if (list.Items[0] is IFloatValueLiteral x &&
+                    list.Items[1] is IFloatValueLiteral y)
                 {
-                    throw new ArgumentException(
-                        "The Position type has to have two or three elements [x,y] or [x,y,z]",
-                        nameof(literal));
-                }
-
-                var xNode = listNode.Items[0];
-                var yNode = listNode.Items[1];
-                if (xNode == null)
-                {
-                    throw new ArgumentException(
-                        "The first element of the array can not be null",
-                        nameof(literal));
-                }
-
-                if (yNode == null)
-                {
-                    throw new ArgumentException(
-                        "The second element of the array can not be null",
-                        nameof(literal));
-                }
-
-                var xValue = xNode switch
-                {
-                    FloatValueNode node => node.ToDouble(),
-                    IntValueNode node => node.ToDouble(),
-                    _ => throw new ArgumentException(
-                        $"Couldn't convert X coordiante of type {xNode.GetType()} to a double",
-                        nameof(literal)),
-                };
-                var yValue = yNode switch
-                {
-                    FloatValueNode node => node.ToDouble(),
-                    IntValueNode node => node.ToDouble(),
-                    _ => throw new ArgumentException(
-                         $"Couldn't convert Y coordinate of type {yNode.GetType()} to a double",
-                          nameof(literal)),
-                };
-
-                // optional third element (z/elevation)
-                var coordinate = new Coordinate(xValue, yValue);
-                if (listNode.Items.Count == 3)
-                {
-                    var zNode = listNode.Items[2];
-                    var zValue = zNode switch
+                    if (list.Items.Count == 2)
                     {
-                        FloatValueNode node => node.ToDouble(),
-                        IntValueNode node => node.ToDouble(),
-                        _ => throw new ArgumentException(
-                             $"Couldn't convert Z coordinate of type {zNode.GetType()} to a double",
-                             nameof(literal)),
-                    };
-
-                    coordinate = new CoordinateZ(xValue, yValue, zValue);
+                        return new Coordinate(x.ToDouble(), y.ToDouble());
+                    }
+                    else if (list.Items.Count == 3 &&
+                        list.Items[1] is IFloatValueLiteral z)
+                    {
+                        return new CoordinateZ(x.ToDouble(), y.ToDouble(), z.ToDouble());
+                    }
                 }
 
-                return coordinate;
+                if (list.Items.Count != 2 || list.Items.Count != 3)
+                {
+                    // TODO : move throwhelper
+                    throw new ScalarSerializationException(
+                        "The position type has to have two or three elements [x,y] or [x,y,z]");
+                }
+
+                // TODO : move throwhelper
+                throw new ScalarSerializationException(
+                    "All elements of the scalar have to be int or float literals.");
             }
 
-            throw new ArgumentException(
-                "The Position type can only parse List literals.",
-                nameof(literal));
+            // TODO : move throwhelper
+            throw new ScalarSerializationException(
+                "A valid position has to be a list or two [x,y] or three [x,y,z] elements " + 
+                "representing a position.");
         }
 
         /// input value from the client
@@ -212,12 +178,12 @@ namespace Types.Spatial
 
             if (!double.IsNaN(coordinate.Z))
             {
-                serialized = new double[] {coordinate.X, coordinate.Y, coordinate.Z};
+                serialized = new double[] { coordinate.X, coordinate.Y, coordinate.Z };
 
                 return true;
             }
 
-            serialized = new double[] {coordinate.X, coordinate.Y};
+            serialized = new double[] { coordinate.X, coordinate.Y };
 
             return true;
         }
