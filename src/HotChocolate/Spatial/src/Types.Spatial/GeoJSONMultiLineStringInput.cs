@@ -19,7 +19,6 @@ namespace HotChocolate.Types.Spatial
             descriptor.BindFieldsExplicitly();
 
             descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
-
             descriptor.Field(_coordinatesFieldName).Type<ListType<ListType<GeoJSONPositionScalar>>>();
         }
 
@@ -30,32 +29,37 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
+            if (!(literal is ObjectValueNode obj))
             {
                 ThrowHelper.InvalidInputObjectStructure(_geometryType);
 
                 return null;
             }
 
-            List<List<Coordinate>>? parts = null;
-            GeoJSONGeometryType? type = null;
+            (int typeIndex, int coordinateIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
+                _typeFieldName,
+                _coordinatesFieldName);
 
-            for (var i = 0; i < obj.Fields.Count; i++)
-            {
-                ObjectFieldNode field = obj.Fields[i];
+            if (indices.typeIndex == -1) {
+                ThrowHelper.InvalidInputObjectStructure(_geometryType);
 
-                switch (field.Name.Value)
-                {
-                    case _coordinatesFieldName:
-                        parts = (List<List<Coordinate>>)_coordinatesField.Type.ParseLiteral(field.Value);
-                        break;
-                    case _typeFieldName:
-                        type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
-                        break;
-                }
+                return null;
             }
 
-            if (type != _geometryType || parts is null || parts.Count < 1)
+            var type = (GeoJSONGeometryType)
+                _typeField.Type.ParseLiteral(obj.Fields[indices.typeIndex].Value);
+
+            if (type != _geometryType || indices.coordinateIndex == -1)
+            {
+                ThrowHelper.InvalidInputObjectStructure(_geometryType);
+
+                return null;
+            }
+
+            var parts = (List<List<Coordinate>>)
+                _coordinatesField.Type.ParseLiteral(obj.Fields[indices.coordinateIndex].Value);
+
+            if (parts is null || parts.Count < 1)
             {
                 ThrowHelper.InvalidInputObjectStructure(_geometryType);
 

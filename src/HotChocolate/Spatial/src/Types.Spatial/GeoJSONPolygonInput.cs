@@ -11,7 +11,6 @@ namespace HotChocolate.Types.Spatial
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
         private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.Polygon;
-
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
@@ -20,7 +19,6 @@ namespace HotChocolate.Types.Spatial
             descriptor.BindFieldsExplicitly();
 
             descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
-
             descriptor.Field(_coordinatesFieldName).Type<ListType<GeoJSONPositionScalar>>();
         }
 
@@ -31,33 +29,38 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
+            if (!(literal is ObjectValueNode obj))
             {
                 ThrowHelper.InvalidInputObjectStructure(_geometryType);
 
                 return null;
             }
 
-            IList<Coordinate>? coordinates = null;
-            GeoJSONGeometryType? type = null;
+            (int typeIndex, int coordinateIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
+                 _typeFieldName,
+                 _coordinatesFieldName);
 
-            for (var i = 0; i < obj.Fields.Count; i++)
+            if (indices.typeIndex == -1)
             {
-                ObjectFieldNode field = obj.Fields[i];
+                ThrowHelper.InvalidInputObjectStructure(_geometryType);
 
-                switch (field.Name.Value)
-                {
-                    case _coordinatesFieldName:
-                        coordinates =
-                            (IList<Coordinate>)_coordinatesField.Type.ParseLiteral(field.Value);
-                        break;
-                    case _typeFieldName:
-                        type = (GeoJSONGeometryType)_typeField.Type.ParseLiteral(field.Value);
-                        break;
-                }
+                return null;
             }
 
-            if (type != _geometryType || coordinates is null || coordinates.Count < 4)
+            var type = (GeoJSONGeometryType)
+                _typeField.Type.ParseLiteral(obj.Fields[indices.typeIndex].Value);
+
+            if (type != _geometryType || indices.coordinateIndex == -1)
+            {
+                ThrowHelper.InvalidInputObjectStructure(_geometryType);
+
+                return null;
+            }
+
+            var coordinates = (IList<Coordinate>)
+                _coordinatesField.Type.ParseLiteral(obj.Fields[indices.coordinateIndex].Value);
+
+            if (coordinates is null || coordinates.Count < 4)
             {
                 ThrowHelper.InvalidInputObjectStructure(_geometryType);
 
