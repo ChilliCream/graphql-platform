@@ -184,6 +184,7 @@ namespace HotChocolate.Types
                 case TypeKind.Object:
                 case TypeKind.Scalar:
                 case TypeKind.Union:
+                case TypeKind.InputUnion:
                     return true;
                 default:
                     return false;
