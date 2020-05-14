@@ -3,7 +3,8 @@ using CommandLine;
 namespace StrawberryShake.Tools.Options
 {
     [Verb("download")]
-    public class Download
+    public class Download : BaseOptions
+
     {
 
     }

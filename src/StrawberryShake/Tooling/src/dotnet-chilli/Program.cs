@@ -1,13 +1,14 @@
-﻿using StrawberryShake.Tools.Options;
+﻿using System.Threading.Tasks;
 using CommandLine;
+using StrawberryShake.Tools.Options;
 using StrawberryShake.Tools.Commands;
 
 namespace StrawberryShake.Tools
 {
     class Program
     {
-        static int Main(string[] args) =>
-            Parser.Default.ParseArguments<
+        static async Task<int> Main(string[] args) =>
+            await Parser.Default.ParseArguments<
                 Compile,
                 Download,
                 Generate,
@@ -21,7 +22,7 @@ namespace StrawberryShake.Tools
                 (Init z) => Command.Init(z),
                 (Publish z) => Command.Publish(z),
                 (Update z) => Command.Update(z),
-                errors => 1
+                errors => new ValueTask<int>(1)
             );
     }
 }
