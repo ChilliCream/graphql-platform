@@ -1,8 +1,8 @@
 using System;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate
 {
@@ -874,6 +874,116 @@ namespace HotChocolate
                 .ToString()
                 .MatchSnapshot();
         }
+
+
+        [Fact]
+        public void AddInputUnionType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputUnionType(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputUnionType_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputUnionType(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputUnionType_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+            builder.AddInputObjectType(d => d
+                .Name("Foo")
+                .Field("bar")
+                .Type<StringType>());
+
+            // act
+            SchemaBuilderExtensions.AddInputUnionType(
+                builder, d => d.Name("ABC").Type(new NamedTypeNode("Foo")));
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddInputUnionTypeT_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputUnionType<Foo>(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputUnionTypeT2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputUnionType<Foo>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputUnionTypeT_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputUnionType<Foo>(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputUnionTypeT_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+            builder.AddInputObjectType(d => d
+                .Name("Foo")
+                .Field("bar")
+                .Type<StringType>());
+
+            // act
+            SchemaBuilderExtensions.AddInputUnionType<IMyInterface>(
+                builder, d => d.Name("ABC").Type(new NamedTypeNode("Foo")));
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
 
         [Fact]
         public void AddInputObjectType_BuilderIsNull_ArgumentNullException()
