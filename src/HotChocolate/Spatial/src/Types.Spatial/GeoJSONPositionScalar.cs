@@ -57,7 +57,7 @@ namespace HotChocolate.Types.Spatial
 
             if (literal is ListValueNode list)
             {
-                if (list.Items.Count != 2 || list.Items.Count != 3)
+                if (list.Items.Count != 2 && list.Items.Count != 3)
                 {
                     // TODO : move throwhelper
                     throw new ScalarSerializationException(
