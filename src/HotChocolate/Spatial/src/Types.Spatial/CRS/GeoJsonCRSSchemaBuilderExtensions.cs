@@ -1,5 +1,3 @@
-using HotChocolate;
-
 namespace HotChocolate.Types.Spatial.CRS
 {
     public static class GeoJsonCRSSchemaBuilderExtensions

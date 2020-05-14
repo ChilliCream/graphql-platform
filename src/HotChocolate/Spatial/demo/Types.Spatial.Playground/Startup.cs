@@ -1,12 +1,11 @@
-using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types.Spatial.CRS;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Types.Spatial.CRS;
 
 namespace HotChocolate.Types.Spatial.Playground
 {

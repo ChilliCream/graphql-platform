@@ -1,4 +1,3 @@
-using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial.CRS

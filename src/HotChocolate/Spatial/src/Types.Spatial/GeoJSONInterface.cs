@@ -1,5 +1,3 @@
-using HotChocolate.Types;
-
 namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONInterface : InterfaceType

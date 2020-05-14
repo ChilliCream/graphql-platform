@@ -1,7 +1,4 @@
-﻿using System;
-using HotChocolate.Types;
-
-namespace HotChocolate.Types.Spatial
+﻿namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONCoordinateReferenceSystemType : ObjectType<GeoJSONCoordinateReferenceSystem>
     {

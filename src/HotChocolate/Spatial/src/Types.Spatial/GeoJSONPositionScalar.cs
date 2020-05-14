@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial
@@ -86,7 +85,7 @@ namespace HotChocolate.Types.Spatial
 
             // TODO : move throwhelper
             throw new ScalarSerializationException(
-                "A valid position has to be a list or two [x,y] or three [x,y,z] elements " + 
+                "A valid position has to be a list or two [x,y] or three [x,y,z] elements " +
                 "representing a position.");
         }
 

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using HotChocolate;
-using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial

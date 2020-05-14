@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using HotChocolate;
+﻿using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
