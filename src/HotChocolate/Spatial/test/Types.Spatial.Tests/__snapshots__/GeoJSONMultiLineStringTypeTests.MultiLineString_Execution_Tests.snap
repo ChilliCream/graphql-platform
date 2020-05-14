@@ -1,0 +1,35 @@
+﻿schema {
+  query: Query
+}
+
+interface GeoJSONInterface {
+  bbox: [Float]
+  "Type of the GeoJSON Object"
+  type: GeoJSONGeometryType!
+}
+
+type MultiLineString implements GeoJSONInterface {
+  bbox: [Float!]!
+  coordinates: [Position]
+  type: GeoJSONGeometryType!
+}
+
+type Query {
+  test: MultiLineString
+}
+
+enum GeoJSONGeometryType {
+  POINT
+  MULTIPOINT
+  LINESTRING
+  MULTILINESTRING
+  POLYGON
+  MULTIPOLYGON
+  GEOMETRYCOLLECTION
+}
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"A position is an array of numbers. There MUST be two or more elements."
+scalar Position

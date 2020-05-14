@@ -1,0 +1,22 @@
+﻿{
+  "Data": {
+    "test": {
+      "type": "POINT",
+      "coordinates": [
+        [
+          30.0,
+          10.0
+        ]
+      ],
+      "bbox": [
+        30.0,
+        10.0,
+        30.0,
+        10.0
+      ]
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}
