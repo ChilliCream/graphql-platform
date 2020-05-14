@@ -14,8 +14,6 @@ namespace HotChocolate.Types.Spatial
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
-        public GeoJSONLineStringInput() { }
-
         protected override void Configure(IInputObjectTypeDescriptor<LineString> descriptor)
         {
             descriptor.BindFieldsExplicitly();

@@ -14,8 +14,6 @@ namespace HotChocolate.Types.Spatial
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
-        public GeoJSONPointInput() { }
-
         protected override void Configure(IInputObjectTypeDescriptor<Point> descriptor)
         {
             descriptor.BindFieldsExplicitly();

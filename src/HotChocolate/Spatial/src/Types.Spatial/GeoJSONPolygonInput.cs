@@ -14,8 +14,6 @@ namespace HotChocolate.Types.Spatial
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
-        public GeoJSONPolygonInput() { }
-
         protected override void Configure(IInputObjectTypeDescriptor<Polygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
