@@ -1,0 +1,12 @@
+﻿{
+  "FooField": null,
+  "SharedField": null,
+  "SharedFieldDifferentType": null,
+  "NestedFieldDifferentType": {
+    "BarField": null,
+    "SharedField": null,
+    "SharedFieldDifferentType": 123,
+    "NestedFieldDifferentType": null
+  },
+  "UnionList": null
+}
