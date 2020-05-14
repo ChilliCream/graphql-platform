@@ -52,6 +52,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Language.Visit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Utilities.Introspection", "..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj", "{155E7E1E-E901-49F8-BFFB-56916FE34E69}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-chilli", "src\dotnet-chilli\dotnet-chilli.csproj", "{78E87EF9-8086-4FF9-874C-8C2E32153DD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,7 @@ Global
 		{1C4C8634-CB7C-4FFC-9FCA-9CEB30518354} = {C4F3ABC5-4596-4E1C-847A-2BBC1A7CBB00}
 		{503EFFAD-EA21-4DCA-A3B6-6F4E94E41D15} = {C4F3ABC5-4596-4E1C-847A-2BBC1A7CBB00}
 		{155E7E1E-E901-49F8-BFFB-56916FE34E69} = {C4F3ABC5-4596-4E1C-847A-2BBC1A7CBB00}
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3} = {B66A4E35-31A4-4412-BB5F-D0EE73C47D3D}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2DEE304E-BB41-42FF-A7F3-7497F1AB94AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -327,5 +330,17 @@ Global
 		{155E7E1E-E901-49F8-BFFB-56916FE34E69}.Release|x64.Build.0 = Release|Any CPU
 		{155E7E1E-E901-49F8-BFFB-56916FE34E69}.Release|x86.ActiveCfg = Release|Any CPU
 		{155E7E1E-E901-49F8-BFFB-56916FE34E69}.Release|x86.Build.0 = Release|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Debug|x64.Build.0 = Debug|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Debug|x86.Build.0 = Debug|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Release|x64.ActiveCfg = Release|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Release|x64.Build.0 = Release|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Release|x86.ActiveCfg = Release|Any CPU
+		{78E87EF9-8086-4FF9-874C-8C2E32153DD3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
