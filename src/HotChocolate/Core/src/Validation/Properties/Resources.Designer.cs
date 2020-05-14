@@ -277,6 +277,15 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A input union must specify the `__typename` field..
+        /// </summary>
+        internal static string ErrorHelper_InputUnionTypeNameIsRequired {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputUnionTypeNameIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to `{0}` returns {1} value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query..
         /// </summary>
         internal static string ErrorHelper_LeafFieldsCannotHaveSelections {

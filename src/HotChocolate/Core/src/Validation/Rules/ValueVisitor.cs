@@ -268,41 +268,7 @@ namespace HotChocolate.Validation.Rules
                 }
             }
 
-            if (context.Pool == null)
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
-
-            DocumentValidatorContext? nestedContext = null;
-            try
-            {
-                nestedContext = context.Pool.Get();
-                foreach (InputObjectType type in unionType.Types.Values)
-                {
-                    nestedContext.Types.Push(type);
-                    Visit(node, nestedContext);
-                    if (nestedContext.Errors.Count == 0 &&
-                        nestedContext.UnexpectedErrorsDetected == false)
-                    {
-                        return Skip;
-                    }
-                    nestedContext.Clear();
-                }
-
-                context.Errors.Add(context.InputUnionTypeDoesNotMatch(node, unionType));
-            }
-            catch
-            {
-                context.UnexpectedErrorsDetected = true;
-            }
-            finally
-            {
-                if (nestedContext != null)
-                {
-                    context.Pool.Return(nestedContext);
-                }
-            }
+            context.Errors.Add(context.InputUnionTypeNameIsRequired(node, unionType));
             return Skip;
         }
 

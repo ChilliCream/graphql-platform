@@ -639,7 +639,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A input union must specify the `__typename` field when no default is defined..
+        ///   Looks up a localized string similar to A input union must specify the `__typename` field..
         /// </summary>
         internal static string InputUnionType_TypeNameNotSpecified {
             get {

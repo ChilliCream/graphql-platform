@@ -603,7 +603,7 @@ Type: `{0}`</value>
     <value>Unable to resolve the specified type reference.</value>
   </data>
   <data name="InputUnionType_TypeNameNotSpecified" xml:space="preserve">
-    <value>A input union must specify the `__typename` field when no default is defined.</value>
+    <value>A input union must specify the `__typename` field.</value>
   </data>
   <data name="InputUnionType_MustHaveTypes" xml:space="preserve">
     <value>A input union type must define one or more unique member types.</value>

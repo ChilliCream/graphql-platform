@@ -246,6 +246,20 @@ namespace HotChocolate.Validation
                 .Build();
         }
 
+        public static IError InputUnionTypeNameIsRequired(
+            this IDocumentValidatorContext context,
+            ISyntaxNode node,
+            InputUnionType unionType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(Resources.ErrorHelper_InputUnionTypeNameIsRequired)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("unionType", unionType.Name)
+                .SetExtension("experimental", "InputUnionType")
+                .Build();
+        }
+
         public static IError InputUnionTypeDoesNotKnowThisType(
             this IDocumentValidatorContext context,
             ISyntaxNode node,

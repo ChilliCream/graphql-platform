@@ -228,4 +228,7 @@
   <data name="ErrorHelper_InputUnionTypeDoesNotMatch" xml:space="preserve">
     <value>The provided value node does not match any type defined on {0}.</value>
   </data>
+  <data name="ErrorHelper_InputUnionTypeNameIsRequired" xml:space="preserve">
+    <value>A input union must specify the `__typename` field.</value>
+  </data>
 </root>
