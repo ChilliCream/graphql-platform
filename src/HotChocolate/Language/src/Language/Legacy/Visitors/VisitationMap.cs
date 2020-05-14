@@ -123,6 +123,10 @@ namespace HotChocolate.Language
                     ResolveChildren(inputObjectTypeDefinition, children);
                     break;
 
+                case InputUnionTypeDefinitionNode inputUnionTypeDefinitionNode:
+                    ResolveChildren(inputUnionTypeDefinitionNode, children);
+                    break;
+
                 case DirectiveDefinitionNode directiveDefinition:
                     ResolveChildren(directiveDefinition, children);
                     break;
@@ -153,6 +157,10 @@ namespace HotChocolate.Language
 
                 case InputObjectTypeExtensionNode inputObjectTypeExtension:
                     ResolveChildren(inputObjectTypeExtension, children);
+                    break;
+
+                case InputUnionTypeExtensionNode inputUnionTypeExtension:
+                    ResolveChildren(inputUnionTypeExtension, children);
                     break;
             }
         }
@@ -902,6 +910,51 @@ namespace HotChocolate.Language
             {
                 children.Push(new SyntaxNodeInfo(items[i], name, i));
             }
+        }
+
+        protected virtual void ResolveChildren(
+            InputUnionTypeExtensionNode node,
+            IList<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Types),
+                node.Types,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            InputUnionTypeDefinitionNode node,
+            IList<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Types),
+                node.Types,
+                children);
         }
     }
 }

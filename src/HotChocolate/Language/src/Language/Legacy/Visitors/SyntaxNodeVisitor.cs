@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 namespace HotChocolate.Language
 {
     public class SyntaxNodeVisitor
@@ -33,6 +34,7 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<InputValueDefinitionNode>
         , ISyntaxNodeVisitor<InterfaceTypeDefinitionNode>
         , ISyntaxNodeVisitor<UnionTypeDefinitionNode>
+        , ISyntaxNodeVisitor<InputUnionTypeDefinitionNode>
         , ISyntaxNodeVisitor<EnumTypeDefinitionNode>
         , ISyntaxNodeVisitor<EnumValueDefinitionNode>
         , ISyntaxNodeVisitor<InputObjectTypeDefinitionNode>
@@ -42,6 +44,7 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<ObjectTypeExtensionNode>
         , ISyntaxNodeVisitor<InterfaceTypeExtensionNode>
         , ISyntaxNodeVisitor<UnionTypeExtensionNode>
+        , ISyntaxNodeVisitor<InputUnionTypeExtensionNode>
         , ISyntaxNodeVisitor<EnumTypeExtensionNode>
         , ISyntaxNodeVisitor<InputObjectTypeExtensionNode>
         , ISyntaxNodeVisitor<NameNode>
@@ -838,6 +841,42 @@ namespace HotChocolate.Language
                 return action;
             }
             return _defaultAction;
+        }
+
+        public VisitorAction Enter(
+            InputUnionTypeDefinitionNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
+        }
+
+        public VisitorAction Leave(
+            InputUnionTypeDefinitionNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
+        }
+
+        public VisitorAction Enter(
+            InputUnionTypeExtensionNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
+        }
+
+        public VisitorAction Leave(
+            InputUnionTypeExtensionNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
         }
     }
 }
