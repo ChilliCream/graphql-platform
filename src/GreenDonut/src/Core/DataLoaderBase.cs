@@ -72,8 +72,6 @@ namespace GreenDonut
             _maxBatchSize = _options.GetBatchSize();
         }
 
-        #region Explicit Implementation of IDataLoader
-
         /// <inheritdoc />
         Task<object?> IDataLoader.LoadAsync(
             object key,
@@ -154,8 +152,6 @@ namespace GreenDonut
 
             Set((TKey)key, newValue);
         }
-
-        #endregion
 
         /// <inheritdoc />
         public void Clear()
@@ -413,8 +409,6 @@ namespace GreenDonut
             }
         }
 
-        #region IDisposable
-
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -437,7 +431,5 @@ namespace GreenDonut
                 _disposed = true;
             }
         }
-
-        #endregion
     }
 }

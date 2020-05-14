@@ -6,8 +6,6 @@ namespace GreenDonut
 {
     public class TaskCacheTests
     {
-        #region Constructor
-
         [Fact(DisplayName = "Constructor: Should not throw any exception")]
         public void ConstructorNoException()
         {
@@ -20,10 +18,6 @@ namespace GreenDonut
             // assert
             Assert.Null(Record.Exception(verify));
         }
-
-        #endregion
-
-        #region Size
 
         [InlineData(0, 1)]
         [InlineData(1, 1)]
@@ -42,10 +36,6 @@ namespace GreenDonut
             // assert
             Assert.Equal(expectedCacheSize, result);
         }
-
-        #endregion
-
-        #region Usage
 
         [InlineData(new string[] { "Foo" }, 1)]
         [InlineData(new string[] { "Foo", "Bar" }, 2)]
@@ -70,10 +60,6 @@ namespace GreenDonut
             // assert
             Assert.Equal(expectedUsage, result);
         }
-
-        #endregion
-
-        #region Clear
 
         [Fact(DisplayName = "Clear: Should not throw any exception")]
         public void ClearNoException()
@@ -120,10 +106,6 @@ namespace GreenDonut
             Assert.Equal(0, cache.Usage);
         }
 
-        #endregion
-
-        #region Remove
-
         [Fact(DisplayName = "Remove: Should not throw any exception")]
         public void RemoveNoException()
         {
@@ -158,10 +140,6 @@ namespace GreenDonut
             Assert.False(exists);
             Assert.Null(actual);
         }
-
-        #endregion
-
-        #region TryAdd
 
         [Fact(DisplayName = "TryAdd: Should throw an argument null exception for value")]
         public void TryAddValueNull()
@@ -238,10 +216,6 @@ namespace GreenDonut
             Assert.Equal(expected, (string)actual);
         }
 
-        #endregion
-
-        #region TryGetValue
-
         [Fact(DisplayName = "TryGetValue: Should return false")]
         public void TryGetValueNullResult()
         {
@@ -294,7 +268,5 @@ namespace GreenDonut
             Assert.True(result);
             Assert.Equal(expected, (string)actual);
         }
-
-        #endregion
     }
 }

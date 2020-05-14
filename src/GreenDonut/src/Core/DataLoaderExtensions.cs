@@ -10,8 +10,6 @@ namespace GreenDonut
     /// </summary>
     public static class DataLoaderExtensions
     {
-        #region IDataLoader
-
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
         /// or enqueues this single request for bacthing if enabled.
@@ -122,10 +120,6 @@ namespace GreenDonut
 
             dataLoader.Set(key, Task.FromResult(value));
         }
-
-        #endregion
-
-        #region IDataLoader<TKey, TValue>
 
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
@@ -249,7 +243,5 @@ namespace GreenDonut
 
             dataLoader.Set(key, Task.FromResult(value));
         }
-
-        #endregion
     }
 }
