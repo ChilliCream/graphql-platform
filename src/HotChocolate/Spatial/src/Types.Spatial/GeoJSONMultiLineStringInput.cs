@@ -62,11 +62,16 @@ namespace HotChocolate.Types.Spatial
                     "coordinates array");
             }
 
-            var geometries = new LineString[parts.Count];
-            for (var i = 0; i < parts.Count; i++)
+            var lineCount = parts.Count;
+            var geometries = new LineString[lineCount];
+
+            for (var i = 0; i < lineCount; i++)
             {
-                var coordinates = new Coordinate[parts[i].Count];
-                for (var j = 0; j < parts[i].Count; j++) {
+                var pointCount = parts[i].Count;
+                var coordinates = new Coordinate[pointCount];
+
+                for (var j = 0; j < pointCount; j++)
+                {
                     coordinates[j] = new Coordinate(parts[i][j]);
                 }
 

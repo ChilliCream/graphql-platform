@@ -62,11 +62,15 @@ namespace HotChocolate.Types.Spatial
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
-            var geometries = new Polygon[parts.Count];
-            for (var i = 0; i < parts.Count; i++)
+            var polygonCount = parts.Count;
+            var geometries = new Polygon[polygonCount];
+
+            for (var i = 0; i < polygonCount; i++)
             {
-                var coordinates = new Coordinate[parts[i].Count];
-                for (var j = 0; j < parts[i].Count; j++)
+                var pointCount = parts[i].Count;
+                var coordinates = new Coordinate[pointCount];
+
+                for (var j = 0; j < pointCount; j++)
                 {
                     coordinates[j] = new Coordinate(parts[i][j]);
                 }

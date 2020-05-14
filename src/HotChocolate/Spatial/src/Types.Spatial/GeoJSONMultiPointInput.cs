@@ -63,8 +63,11 @@ namespace HotChocolate.Types.Spatial
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
-            var points = new Point[coordinates.Count];
-            for (var i = 0; i < coordinates.Count; i++) {
+            var pointCount = coordinates.Count;
+            var points = new Point[pointCount];
+
+            for (var i = 0; i < pointCount; i++)
+            {
                 points[i] = new Point(coordinates[i]);
             }
 
