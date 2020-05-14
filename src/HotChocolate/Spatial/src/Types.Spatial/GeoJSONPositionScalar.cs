@@ -57,6 +57,13 @@ namespace HotChocolate.Types.Spatial
 
             if (literal is ListValueNode list)
             {
+                if (list.Items.Count != 2 || list.Items.Count != 3)
+                {
+                    // TODO : move throwhelper
+                    throw new ScalarSerializationException(
+                        "The position type has to have two or three elements [x,y] or [x,y,z]");
+                }
+
                 if (list.Items[0] is IFloatValueLiteral x &&
                     list.Items[1] is IFloatValueLiteral y)
                 {
@@ -69,13 +76,6 @@ namespace HotChocolate.Types.Spatial
                     {
                         return new CoordinateZ(x.ToDouble(), y.ToDouble(), z.ToDouble());
                     }
-                }
-
-                if (list.Items.Count != 2 || list.Items.Count != 3)
-                {
-                    // TODO : move throwhelper
-                    throw new ScalarSerializationException(
-                        "The position type has to have two or three elements [x,y] or [x,y,z]");
                 }
 
                 // TODO : move throwhelper
