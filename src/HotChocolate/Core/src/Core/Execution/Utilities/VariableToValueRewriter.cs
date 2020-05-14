@@ -6,6 +6,7 @@ using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
@@ -59,7 +60,51 @@ namespace HotChocolate.Execution
             ObjectValueNode node,
             object context)
         {
-            return base.RewriteObjectValue(node, node);
+            INamedType namedType = _type.Peek().NamedType();
+            InputObjectType type = null;
+
+            if (namedType is InputUnionType inputUnion)
+            {
+                for (var i = 0; i < node.Fields.Count; i++)
+                {
+                    ObjectFieldNode field = node.Fields[i];
+                    if (IntrospectionFields.TypeName.Equals(field.Name.Value))
+                    {
+                        if (!(field.Value is StringValueNode typename) ||
+                            !inputUnion.Types.TryGetValue(
+                                typename.Value, out type))
+                        {
+                            throw new QueryException(
+                                ErrorBuilder.New()
+                                    .SetMessage(TypeResources.InputUnionType_UnableToResolveType)
+                                    .SetCode(ErrorCodes.Utilities.UnknownType)
+                                    .AddLocation(node)
+                                    .Build());
+                        }
+                    }
+                }
+                if (type == null)
+                {
+                    throw new QueryException(
+                        ErrorBuilder.New()
+                            .SetMessage(TypeResources.InputUnionType_TypeNameNotSpecified)
+                            .SetCode(ErrorCodes.Utilities.TypeNotSpecified)
+                            .AddLocation(node)
+                            .Build());
+                }
+                _type.Push(inputUnion);
+                _type.Push(type);
+
+            }
+
+            ObjectValueNode rewritten = base.RewriteObjectValue(node, node);
+
+            if (type != null)
+            {
+                _type.Pop();
+                _type.Pop();
+            }
+            return rewritten;
         }
 
         protected override ObjectFieldNode RewriteObjectField(
@@ -69,13 +114,18 @@ namespace HotChocolate.Execution
             INamedType namedType = _type.Peek().NamedType();
             IInputType fieldType = null;
 
+            if (IntrospectionFields.TypeName.Equals(node.Name.Value))
+            {
+                return node;
+            }
+
             if (namedType is ScalarType scalar
                 && scalar.IsInstanceOfType((ObjectValueNode)context))
             {
                 fieldType = scalar;
             }
-            else if (namedType is InputObjectType inputObject
-                && inputObject.Fields.TryGetField(
+            else if (namedType is InputObjectType inputObject &&
+                inputObject.Fields.TryGetField(
                     node.Name.Value,
                     out InputField field))
             {

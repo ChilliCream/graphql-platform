@@ -1,0 +1,15 @@
+﻿{
+  "Data": {
+    "do": {
+      "unionList": [
+        null,
+        {
+          "barField": "123"
+        }
+      ]
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

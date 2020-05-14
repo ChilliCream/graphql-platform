@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using Snapshooter.Xunit;
@@ -1346,6 +1348,409 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal("123", Assert.IsType<Bar>(value).BarField);
+        }
+
+
+        [Fact]
+        public async Task Query_WithTypeName_Foo()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { fooField: ""123"", __typename: ""FooInput"" })  {
+                        ... on Foo {
+                            fooField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Query_WithTypeName_Bar()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { barField: ""fooField"", __typename: ""BarInput"" })  {
+                        ... on Bar {
+                            barField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Query_WithTypeName_Invalid()
+        {
+            // arrange 
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { barField: ""fooField"", __typename: ""BazInput"" })  {
+                        ... on Bar {
+                            barField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_WithoutTypeName_Foo()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { fooField: ""123"" })  {
+                        ... on Foo {
+                            fooField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_WithoutTypeName_Bar()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { barField: ""fooField"" })  {
+                        ... on Bar {
+                            barField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_WithoutTypeName_Default()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { sharedField: ""123"" })  {
+                        ... on Foo {
+                            sharedField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_SharedFieldDifferentType_Foo()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { sharedFieldWithDifferentType: ""123"" })  {
+                        ... on Foo {
+                            sharedField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_SharedFieldDifferentType_Bar()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { sharedFieldWithDifferentType: 123 })  {
+                        ... on Foo {
+                            sharedField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_UnkownTypeStructure()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { unkownField: 123 })  {
+                        ... on Foo {
+                            sharedField
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_DifferentTypesInSameList_Foo()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { unionList: [{ fooField: ""123"" },{ barField: ""123"" }] })  {
+                        ... on Foo {
+                           unionList {
+                                ... on Foo {
+                                    fooField
+                                }
+                                ... on Bar {
+                                    barField
+                                }
+                            }       
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_SharedFieldDifferentType_Foo_Nested()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { nestedFieldDifferentType: {sharedFieldDifferentType:123} })  {
+                        ... on Foo {
+                            nestedFieldDifferentType { sharedFieldDifferentType }
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_SharedFieldDifferentType_Bar_Nested()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { nestedFieldDifferentType: {sharedFieldDifferentType:""123""} })  {
+                        ... on Bar {
+                            nestedFieldDifferentType { sharedFieldDifferentType }
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+
+        [Fact]
+        public async Task Query_ParseNullValue()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: null)  {
+                        ... on Bar {
+                            nestedFieldDifferentType { sharedFieldDifferentType }
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(Skip = "does only work when we support shape matching")]
+        public async Task Query_NullValueInList()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { unionList: [null,{ barField: ""123"" }] })  {
+                        ... on Foo {
+                           unionList {
+                                ... on Foo {
+                                    fooField
+                                }
+                                ... on Bar {
+                                    barField
+                                }
+                            }       
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+
+
+        [Fact]
+        public async Task Query_NullValueInList_WithTypeName()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { unionList: [
+                            null,
+                            { barField: ""123"", __typename:""BarInput"" }] 
+                        __typename:""FooInput""} )
+                        {
+                        ... on Foo {
+                           unionList {
+                                ... on Foo {
+                                    fooField
+                                }
+                                ... on Bar {
+                                    barField
+                                }
+                            }       
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+
+        [Fact]
+        public async Task Query_DifferentTypesInSameList_WithTypename_Foo()
+        {
+            // arrange
+            IQueryExecutor executor = CreateQuerySchema();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    do(input: { unionList: [
+                        { fooField: ""123"", __typename:""FooInput""},
+                        { barField: ""123"", __typename:""BarInput""}]
+                        __typename:""FooInput""})  {
+                        ... on Foo {
+                           unionList {
+                                ... on Foo {
+                                    fooField
+                                }
+                                ... on Bar {
+                                    barField
+                                }
+                            }       
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        private IQueryExecutor CreateQuerySchema()
+        {
+
+            Schema schema = Schema.Create(x =>
+            {
+                x.Options.StrictValidation = false;
+                x.RegisterQueryType(new ObjectType<Query>());
+                x.RegisterType(new FooInputType());
+                x.RegisterType(new BarInputType());
+                x.RegisterType(new InputUnionType<IFooOrBar>(d => d
+                    .Name("BarInputUnion")
+                    .Type<FooInputType>()
+                    .Type<BarInputType>()));
+                x.RegisterType(new UnionType<IFooOrBar>(d => d
+                    .Name("BarUnion")
+                    .Type<ObjectType<Bar>>()
+                    .Type<ObjectType<Foo>>()));
+            });
+            return schema.MakeExecutable();
+        }
+
+        public class Query
+        {
+            public IFooOrBar? GetDo(IFooOrBar? input) => input;
         }
 
 

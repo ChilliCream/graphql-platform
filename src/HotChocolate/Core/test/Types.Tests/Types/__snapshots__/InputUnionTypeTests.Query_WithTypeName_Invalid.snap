@@ -1,0 +1,25 @@
+﻿{
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "The provided typename BazInput does not match any type defined on BarInputUnion.",
+      "Code": null,
+      "Path": [
+        "do"
+      ],
+      "Locations": [
+        {
+          "Line": 3,
+          "Column": 31
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "unionType": "BarInputUnion",
+        "experimental": "InputUnionType"
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

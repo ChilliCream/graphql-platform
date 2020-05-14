@@ -68,6 +68,8 @@ namespace HotChocolate
         public static class Utilities
         {
             public const string UnknownField = "EXEC_VAR_UNKNOWN_FIELD";
+            public const string UnknownType = "EXEC_VAR_UNKNOWN_TYPE";
+            public const string TypeNotSpecified = "EXEC_VAR_TYPE_NOT_SPECIFIED";
             public const string NoConverter = "EXEC_VAR_NO_CONVERTER";
         }
     }
