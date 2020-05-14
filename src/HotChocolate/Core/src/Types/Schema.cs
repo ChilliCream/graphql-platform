@@ -1,8 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -110,26 +107,26 @@ namespace HotChocolate
 
         /// <summary>
         /// Gets the possible object types to
-        /// an abstract type (union type or interface type).
+        /// an abstract type (union type, input union type or interface type).
         /// </summary>
         /// <param name="abstractType">The abstract type.</param>
         /// <returns>
         /// Returns a collection with all possible object types
         /// for the given abstract type.
         /// </returns>
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType)
+        public IReadOnlyCollection<IType> GetPossibleTypes(INamedType abstractType)
         {
             if (abstractType == null)
             {
                 throw new ArgumentNullException(nameof(abstractType));
             }
 
-            if (_types.TryGetPossibleTypes(abstractType.Name, out IReadOnlyList<ObjectType> types))
+            if (_types.TryGetPossibleTypes(abstractType.Name, out IReadOnlyList<IType> types))
             {
                 return types;
             }
 
-            return Array.Empty<ObjectType>();
+            return Array.Empty<IType>();
         }
 
         /// <summary>

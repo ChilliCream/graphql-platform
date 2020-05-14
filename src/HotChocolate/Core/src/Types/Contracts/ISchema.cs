@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
@@ -87,14 +87,14 @@ namespace HotChocolate
 
         /// <summary>
         /// Gets the possible object types to
-        /// an abstract type (union type or interface type).
+        /// an abstract type (union type, input union type or interface type).
         /// </summary>
         /// <param name="abstractType">The abstract type.</param>
         /// <returns>
         /// Returns a collection with all possible object types
         /// for the given abstract type.
         /// </returns>
-        IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType);
+        IReadOnlyCollection<IType> GetPossibleTypes(INamedType abstractType);
 
         /// <summary>
         /// Gets a directive type by its name.

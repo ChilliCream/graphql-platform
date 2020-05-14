@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -255,12 +255,12 @@ namespace HotChocolate.Validation.Rules
                 return true;
             }
 
-            IReadOnlyCollection<ObjectType> types1 = context.Schema.GetPossibleTypes(parentType);
-            IReadOnlyCollection<ObjectType> types2 = context.Schema.GetPossibleTypes(typeCondition);
+            IReadOnlyCollection<IType> types1 = context.Schema.GetPossibleTypes(parentType);
+            IReadOnlyCollection<IType> types2 = context.Schema.GetPossibleTypes(typeCondition);
 
-            foreach (ObjectType a in types1)
+            foreach (IType a in types1)
             {
-                foreach (ObjectType b in types2)
+                foreach (IType b in types2)
                 {
                     if (ReferenceEquals(a, b))
                     {

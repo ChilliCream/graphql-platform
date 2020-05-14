@@ -8,7 +8,7 @@ namespace HotChocolate
     internal sealed class SchemaTypes
     {
         private readonly Dictionary<NameString, INamedType> _types;
-        private readonly Dictionary<NameString, List<ObjectType>> _possibleTypes;
+        private readonly Dictionary<NameString, List<IType>> _possibleTypes;
 
         public SchemaTypes(SchemaTypesDefinition definition)
         {
@@ -78,9 +78,9 @@ namespace HotChocolate
 
         public bool TryGetPossibleTypes(
             string abstractTypeName,
-            out IReadOnlyList<ObjectType> types)
+            out IReadOnlyList<IType> types)
         {
-            if (_possibleTypes.TryGetValue(abstractTypeName, out List<ObjectType> pt))
+            if (_possibleTypes.TryGetValue(abstractTypeName, out List<IType> pt))
             {
                 types = pt;
                 return true;
@@ -90,20 +90,20 @@ namespace HotChocolate
             return false;
         }
 
-        private static Dictionary<NameString, List<ObjectType>> CreatePossibleTypeLookup(
+        private static Dictionary<NameString, List<IType>> CreatePossibleTypeLookup(
             IReadOnlyCollection<INamedType> types)
         {
-            var possibleTypes = new Dictionary<NameString, List<ObjectType>>();
+            var possibleTypes = new Dictionary<NameString, List<IType>>();
 
             foreach (ObjectType objectType in types.OfType<ObjectType>())
             {
-                possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
+                possibleTypes[objectType.Name] = new List<IType> { objectType };
 
                 foreach (InterfaceType interfaceType in objectType.Interfaces)
                 {
-                    if (!possibleTypes.TryGetValue(interfaceType.Name, out List<ObjectType> pt))
+                    if (!possibleTypes.TryGetValue(interfaceType.Name, out List<IType> pt))
                     {
-                        pt = new List<ObjectType>();
+                        pt = new List<IType>();
                         possibleTypes[interfaceType.Name] = pt;
                     }
 
@@ -113,13 +113,28 @@ namespace HotChocolate
 
             foreach (UnionType unionType in types.OfType<UnionType>())
             {
-                foreach (ObjectType objectType in unionType.Types.Values)
+                foreach (IType objectType in unionType.Types.Values)
                 {
                     if (!possibleTypes.TryGetValue(
-                        unionType.Name, out List<ObjectType> pt))
+                        unionType.Name, out List<IType> pt))
                     {
-                        pt = new List<ObjectType>();
+                        pt = new List<IType>();
                         possibleTypes[unionType.Name] = pt;
+                    }
+
+                    pt.Add(objectType);
+                }
+            }
+
+            foreach (InputUnionType inputUnionType in types.OfType<InputUnionType>())
+            {
+                foreach (IType objectType in inputUnionType.Types.Values)
+                {
+                    if (!possibleTypes.TryGetValue(
+                        inputUnionType.Name, out List<IType> pt))
+                    {
+                        pt = new List<IType>();
+                        possibleTypes[inputUnionType.Name] = pt;
                     }
 
                     pt.Add(objectType);

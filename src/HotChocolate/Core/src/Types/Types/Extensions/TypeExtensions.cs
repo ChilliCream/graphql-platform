@@ -153,6 +153,16 @@ namespace HotChocolate.Types
             return IsType<UnionType>(type);
         }
 
+        public static bool IsInputUnionType(this IType type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return IsType<InputUnionType>(type);
+        }
+
         public static bool IsAbstractType(this IType type)
         {
             if (type == null)
@@ -160,7 +170,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return type.IsUnionType() || type.IsInterfaceType();
+            return type.IsUnionType() || type.IsInterfaceType() || type.IsInputUnionType();
         }
 
         public static bool IsNamedType(this IType type)
