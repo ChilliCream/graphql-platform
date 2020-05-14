@@ -21,7 +21,7 @@ namespace StrawberryShake.Tools
                 (Init z) => Command.Init(z),
                 (Publish z) => Command.Publish(z),
                 (Update z) => Command.Update(z),
-               errors => 1
+                errors => 1
             );
     }
 }
