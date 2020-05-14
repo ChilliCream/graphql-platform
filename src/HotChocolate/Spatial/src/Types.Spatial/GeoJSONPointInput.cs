@@ -10,6 +10,8 @@ namespace HotChocolate.Types.Spatial
     {
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
+        private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.Point;
+
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
 
@@ -31,8 +33,9 @@ namespace HotChocolate.Types.Spatial
 
             if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
             {
-                throw new InputObjectSerializationException(
-                    "Failed to serialize Point. Needs at least type and coordinate fields");
+               ThrowHelper.InvalidInputObjectStructure(_geometryType);
+
+                return null;
             }
 
             Coordinate? coordinates = null;
@@ -53,11 +56,11 @@ namespace HotChocolate.Types.Spatial
                 }
             }
 
-            if (type != GeoJSONGeometryType.Point || coordinates is null)
+            if (type != _geometryType || coordinates is null)
             {
-                throw new InputObjectSerializationException(
-                    "Failed to serialize PointInputObject. You have to at least specify a type " +
-                    "and coordinates array");
+                ThrowHelper.InvalidInputObjectStructure(_geometryType);
+
+                return null;
             }
 
             // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
