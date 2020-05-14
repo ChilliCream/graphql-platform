@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Moq;
 using Xunit;
 
@@ -528,6 +528,43 @@ namespace HotChocolate.Types
 
             // assert
             Assert.False(result);
+        }
+
+
+        [Fact]
+        public static void IsInputUnionType_True()
+        {
+            // arrange
+            IType type = Mock.Of<InputUnionType>();
+
+            // act
+            bool result = type.IsInputUnionType();
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public static void IsInputUnionType_False()
+        {
+            // arrange
+            IType type = Mock.Of<ObjectType>();
+
+            // act
+            bool result = type.IsInputUnionType();
+
+            // assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public static void IsInputUnionType_Type_Is_Null()
+        {
+            // act
+            Action action = () => TypeExtensions.IsInputUnionType(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
         }
 
         [Fact]
