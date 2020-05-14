@@ -2,8 +2,8 @@ using CommandLine;
 
 namespace StrawberryShake.Tools.Options
 {
-    [Verb("generate")]
-    public class GenerateOptions
+    [Verb("publish")]
+    public class Publish
     {
 
     }

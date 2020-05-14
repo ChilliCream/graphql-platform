@@ -2,8 +2,8 @@ using CommandLine;
 
 namespace StrawberryShake.Tools.Options
 {
-    [Verb("compile")]
-    public class CompileOptions
+    [Verb("update")]
+    public class Update
     {
 
     }
