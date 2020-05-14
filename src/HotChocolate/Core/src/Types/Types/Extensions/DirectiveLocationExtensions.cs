@@ -83,6 +83,10 @@ namespace HotChocolate.Types
                     DirectiveLocation.InputFieldDefinition,
                     Language.DirectiveLocation.InputFieldDefinition
                 },
+                {
+                    DirectiveLocation.InputUnion,
+                    Language.DirectiveLocation.InputUnion
+                },
            };
 
         public static Language.DirectiveLocation MapDirectiveLocation(

@@ -86,6 +86,10 @@ namespace HotChocolate.Types.Factories
                     Language.DirectiveLocation.InputFieldDefinition,
                     DirectiveLocation.InputFieldDefinition
                 },
+                {
+                    Language.DirectiveLocation.InputUnion,
+                    DirectiveLocation.InputUnion
+                },
            };
 
         public DirectiveType Create(

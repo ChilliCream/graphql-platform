@@ -128,6 +128,9 @@ namespace HotChocolate.Language
         public static DirectiveLocation InputFieldDefinition { get; } =
             new DirectiveLocation("INPUT_FIELD_DEFINITION");
 
+        public static DirectiveLocation InputUnion { get; } =
+            new DirectiveLocation("INPUT_UNION");
+
         public static bool IsValidName(string value)
         {
             return _cache.ContainsKey(value);
@@ -160,6 +163,7 @@ namespace HotChocolate.Language
             yield return EnumValue;
             yield return InputObject;
             yield return InputFieldDefinition;
+            yield return InputUnion;
         }
     }
 }
