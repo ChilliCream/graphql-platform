@@ -1996,7 +1996,7 @@ namespace HotChocolate.Types
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
                 descriptor.Name("foo");
-                descriptor.Location(DirectiveLocation.InputUnion)
+                descriptor.Location(DirectiveLocation.InputUnionDefinition)
                     .Location(DirectiveLocation.FieldDefinition);
             }
         }

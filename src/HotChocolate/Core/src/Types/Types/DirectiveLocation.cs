@@ -105,8 +105,8 @@ namespace HotChocolate.Types
         InputFieldDefinition = 0x20000,
 
         /// <summary>
-        /// Location adjacent to an input object field definition.
+        /// Location adjacent to an input union field definition.
         /// </summary>
-        InputUnion = 0x40000
+        InputUnionDefinition = 0x80000
     }
 }
