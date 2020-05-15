@@ -19,15 +19,19 @@ namespace HotChocolate.Types.Relay
         {
             await _next(context).ConfigureAwait(false);
 
+            var arguments = new ConnectionArguments(
+                context.Argument<int?>("first"),
+                context.Argument<int?>("last"),
+                context.Argument<string>("after"),
+                context.Argument<string>("before"));
+
             if (context.Result is IConnectionResolver localConnectionResolver)
             {
                 context.Result = localConnectionResolver.ResolveAsync(
                     context,
                     default,
-                    context.Argument<int?>("first"),
-                    context.Argument<int?>("last"),
-                    context.Argument<string>("after"),
-                    context.Argument<string>("before"),
+                    arguments,
+                    true, // where should we store this?
                     context.RequestAborted)
                     .ConfigureAwait(false);
             }
@@ -37,10 +41,8 @@ namespace HotChocolate.Types.Relay
                 context.Result = await connectionResolver.ResolveAsync(
                     context,
                     default,
-                    context.Argument<int?>("first"),
-                    context.Argument<int?>("last"),
-                    context.Argument<string>("after"),
-                    context.Argument<string>("before"),
+                    arguments,
+                    true, // where should we store this?
                     context.RequestAborted)
                     .ConfigureAwait(false);
             }
