@@ -40,6 +40,12 @@
               "deprecationReason": null
             },
             {
+              "name": "INPUT_UNION",
+              "description": "Indicates this type is a input union. `possibleTypes` is a valid field.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "ENUM",
               "description": "Indicates this type is an enum. `enumValues` is a valid field.",
               "isDeprecated": false,
@@ -652,6 +658,12 @@
             {
               "name": "UNION",
               "description": "Indicates the directive is valid on an union SDL definition.",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "INPUT_UNION",
+              "description": "Indicates the directive is valid on an input union SDL definition.",
               "isDeprecated": false,
               "deprecationReason": null
             },

@@ -48,6 +48,10 @@ namespace HotChocolate.Stitching.Merge
                     node = Rename(iotd, newName, schemaNames);
                     break;
 
+                case InputUnionTypeDefinitionNode iutd:
+                    node = Rename(iutd, newName, schemaNames);
+                    break;
+
                 case EnumTypeDefinitionNode etd:
                     node = Rename(etd, newName, schemaNames);
                     break;
@@ -205,6 +209,27 @@ namespace HotChocolate.Stitching.Merge
         {
             return AddSource(unionTypeDefinition, newName, schemaNames,
                 (n, d) => unionTypeDefinition
+                    .WithName(n).WithDirectives(d));
+        }
+
+        public static InputUnionTypeDefinitionNode Rename(
+            this InputUnionTypeDefinitionNode inputUnionTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return Rename(
+                inputUnionTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static InputUnionTypeDefinitionNode Rename(
+            this InputUnionTypeDefinitionNode inputUnionTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            return AddSource(inputUnionTypeDefinition, newName, schemaNames,
+                (n, d) => inputUnionTypeDefinition
                     .WithName(n).WithDirectives(d));
         }
 

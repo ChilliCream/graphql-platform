@@ -27,6 +27,8 @@ namespace HotChocolate.Stitching.Merge
                 SchemaMergerExtensions
                     .CreateTypeMergeRule<UnionTypeMergeHandler>(),
                 SchemaMergerExtensions
+                    .CreateTypeMergeRule<InputUnionTypeMergeHandler>(),
+                SchemaMergerExtensions
                     .CreateTypeMergeRule<EnumTypeMergeHandler>(),
             };
         private readonly List<MergeTypeRuleFactory> _mergeRules =

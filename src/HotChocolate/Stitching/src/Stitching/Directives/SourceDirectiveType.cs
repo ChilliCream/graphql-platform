@@ -17,6 +17,7 @@ namespace HotChocolate.Stitching
                 .Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.Interface)
                 .Location(DirectiveLocation.Union)
+                .Location(DirectiveLocation.InputUnion)
                 .Location(DirectiveLocation.InputObject)
                 .Location(DirectiveLocation.FieldDefinition)
                 .Location(DirectiveLocation.InputFieldDefinition)

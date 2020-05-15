@@ -9,6 +9,7 @@ namespace HotChocolate.Stitching.Introspection.Models
         Enum = 8,
         Scalar = 16,
         List = 32,
-        Non_Null = 64
+        Non_Null = 64,
+        Input_Union = 128,
     }
 }

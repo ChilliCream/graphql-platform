@@ -1,7 +1,7 @@
 type Query {
   customer(id: ID!): Customer
   consultant(id: ID!): Consultant
-  customerOrConsultant(id: ID!): CustomerOrConsultant
+  customerOrConsultant(id: ID!): customerOrConsultant
 }
 
 type Customer {
@@ -9,6 +9,7 @@ type Customer {
   name: String!
   consultant: Consultant
   complexArg(arg: ComplexInputType): String
+  complexArgUnion(arg: ComplexOrSimpleInput): String
 }
 
 type Consultant {
@@ -24,3 +25,9 @@ input ComplexInputType {
   value: String
   valueArray: [String]
 }
+
+input SimpleInputType { 
+  value: String 
+}
+
+inputunion ComplexOrSimpleInput = ComplexInputType | SimpleInputType

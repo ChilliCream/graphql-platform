@@ -1,7 +1,7 @@
 using System;
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -297,6 +297,86 @@ namespace HotChocolate.Stitching.Merge
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
         }
+
+        [Fact]
+        public void InputUnionType_AddType()
+        {
+            // arrange
+            const string schema = "inputunion Foo = A | B "
+                + "input A { a: String } "
+                + "input B { b: String }";
+            const string extensions = "extend inputunion Foo = C "
+                + "input C { c: String }";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
+        public void InputUnionType_AddDirectives()
+        {
+            // arrange
+            const string schema = "inputunion Foo = A | B "
+                + "input A { a: String } "
+                + "input B { b: String } "
+                + "directive @foo on INTERFACE";
+            const string extensions = "extend inputunion Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
+        public void InputUnionType_AddDuplicateDirectives()
+        {
+            // arrange
+            const string schema = "inputunion Foo @foo = A | B "
+                + "input A { a: String } "
+                + "input B { b: String } "
+                + "directive @foo on INTERFACE";
+            const string extensions = "extend inputunion Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            Action action = () => rewriter.AddExtensions(
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
+
+            // assert
+            Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void InputUnionType_AddUndeclaredDirectives()
+        {
+            // arrange
+            const string schema = "inputunion Foo = A | B "
+                + "input A { a: String } "
+                + "input B { b: String }";
+            const string extensions = "extend inputunion Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            Action action = () => rewriter.AddExtensions(
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
+
+            // assert
+            Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
+        }
+
 
         [Fact]
         public void InputObjectType_AddScalarField()

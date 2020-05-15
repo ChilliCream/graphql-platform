@@ -113,6 +113,9 @@ namespace HotChocolate.Stitching.Introspection
                 case TypeKind.Union:
                     return CreateUnion(type);
 
+                case TypeKind.Input_Union:
+                    return CreateInputUnion(type);
+
                 default:
                     throw new NotSupportedException(
                         StitchingResources.Type_NotSupported);
@@ -241,6 +244,19 @@ namespace HotChocolate.Stitching.Introspection
             FullType type)
         {
             return new UnionTypeDefinitionNode
+            (
+                null,
+                new NameNode(type.Name),
+                CreateDescription(type.Description),
+                Array.Empty<DirectiveNode>(),
+                CreateNamedTypeRefs(type.PossibleTypes)
+            );
+        }
+
+        private static InputUnionTypeDefinitionNode CreateInputUnion(
+            FullType type)
+        {
+            return new InputUnionTypeDefinitionNode
             (
                 null,
                 new NameNode(type.Name),

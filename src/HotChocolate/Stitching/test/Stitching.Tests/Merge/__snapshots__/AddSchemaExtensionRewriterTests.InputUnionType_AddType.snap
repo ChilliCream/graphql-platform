@@ -1,0 +1,13 @@
+﻿inputunion Foo = A | B | C
+
+input A {
+  a: String
+}
+
+input B {
+  b: String
+}
+
+input C {
+  c: String
+}

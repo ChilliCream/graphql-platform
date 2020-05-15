@@ -20,6 +20,7 @@ type Customer {
   id: ID!
   name: String!  
   complexArg(arg:ComplexInputType): String
+  complexArgUnion(arg: ComplexOrSimpleInput): String
   consultant: Consultant
   contracts: [Contract!]
     @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
@@ -54,3 +55,9 @@ input ComplexInputType {
   value: String
   valueArray: [String]
 }
+
+input SimpleInputType { 
+  value: String 
+}
+
+inputunion ComplexOrSimpleInput = ComplexInputType | SimpleInputType

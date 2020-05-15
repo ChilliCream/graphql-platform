@@ -167,6 +167,66 @@ namespace HotChocolate.Stitching.Merge
             return typeDefinition.WithTypes(types.Values.ToList());
         }
 
+        protected override InputUnionTypeDefinitionNode RewriteInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            MergeContext context)
+        {
+            InputUnionTypeDefinitionNode current = node;
+
+            if (context.Extensions.TryGetValue(
+                current.Name.Value,
+                out ITypeExtensionNode extension))
+            {
+                if (extension is InputUnionTypeExtensionNode inputUnionTypeExtension)
+                {
+                    current = AddTypes(current, inputUnionTypeExtension);
+                    current = AddDirectives(current, inputUnionTypeExtension,
+                        d => current.WithDirectives(d), context);
+                }
+                else
+                {
+                    throw new SchemaMergeException(
+                        current,
+                        extension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            StitchingResources
+                                .AddSchemaExtensionRewriter_TypeMismatch,
+                            node.Name.Value,
+                            node.Kind,
+                            extension.Kind));
+                }
+            }
+
+            return base.RewriteInputUnionTypeDefinition(current, context);
+        }
+
+        private static InputUnionTypeDefinitionNode AddTypes(
+            InputUnionTypeDefinitionNode typeDefinition,
+            InputUnionTypeExtensionNode typeExtension)
+        {
+            if (typeExtension.Types.Count == 0)
+            {
+                return typeDefinition;
+            }
+
+            var types =
+                new OrderedDictionary<string, NamedTypeNode>();
+
+            foreach (NamedTypeNode type in typeDefinition.Types)
+            {
+                types[type.Name.Value] = type;
+            }
+
+            foreach (NamedTypeNode type in typeExtension.Types)
+            {
+                types[type.Name.Value] = type;
+            }
+
+            return typeDefinition.WithTypes(types.Values.ToList());
+        }
+
+
         protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
             ObjectTypeDefinitionNode node,
             MergeContext context)

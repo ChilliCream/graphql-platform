@@ -1,4 +1,4 @@
-interface Contract @source(name: "Contract", schema: "A") {
+﻿interface Contract @source(name: "Contract", schema: "A") {
   id: ID!
 }
 
@@ -17,6 +17,7 @@ type Customer @source(name: "Customer", schema: "B") {
   name: String!
   consultant: Consultant
   complexArg(arg: ComplexInputType): String
+  complexArgUnion(arg: ComplexOrSimpleInput): String
 }
 
 type Consultant @source(name: "Consultant", schema: "B") {
@@ -32,3 +33,9 @@ input ComplexInputType @source(name: "ComplexInputType", schema: "B") {
   value: String
   valueArray: [String]
 }
+
+input SimpleInputType @source(name: "SimpleInputType", schema: "B") {
+  value: String
+}
+
+inputunion ComplexOrSimpleInput @source(name: "ComplexOrSimpleInput", schema: "B") = ComplexInputType | SimpleInputType

@@ -35,6 +35,8 @@ namespace HotChocolate.Stitching.Merge
                     return new InterfaceTypeInfo(itd, schema);
                 case UnionTypeDefinitionNode utd:
                     return new UnionTypeInfo(utd, schema);
+                case InputUnionTypeDefinitionNode utd:
+                    return new InputUnionTypeInfo(utd, schema);
                 case InputObjectTypeDefinitionNode iotd:
                     return new InputObjectTypeInfo(iotd, schema);
                 case EnumTypeDefinitionNode etd:

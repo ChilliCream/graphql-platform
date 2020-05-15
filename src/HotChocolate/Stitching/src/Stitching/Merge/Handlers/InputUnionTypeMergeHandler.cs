@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    internal class UnionTypeMergeHandler
+    internal class InputUnionTypeMergeHandler
         : ITypeMergeHandler
     {
         private readonly MergeTypeRuleDelegate _next;
 
-        public UnionTypeMergeHandler(MergeTypeRuleDelegate next)
+        public InputUnionTypeMergeHandler(MergeTypeRuleDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
@@ -18,9 +18,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            if (types.OfType<UnionTypeInfo>().Any())
+            if (types.OfType<InputUnionTypeInfo>().Any())
             {
-                var notMerged = types.OfType<UnionTypeInfo>().ToList();
+                var notMerged = types.OfType<InputUnionTypeInfo>().ToList();
                 bool hasLeftovers = types.Count > notMerged.Count;
 
                 for (int i = 0; i < notMerged.Count; i++)
@@ -32,7 +32,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
 
                 if (hasLeftovers)
                 {
-                    _next.Invoke(context, types.NotOfType<UnionTypeInfo>());
+                    _next.Invoke(context, types.NotOfType<InputUnionTypeInfo>());
                 }
             }
             else

@@ -20,6 +20,7 @@ type Customer {
   id: ID!
   name: String!
   consultant: Consultant
+  complexArgUnion(arg: ComplexOrSimpleInput): String
   contracts: [Contract!]
     @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
   contractIds: [ID!]
@@ -47,3 +48,9 @@ type SomeOtherContract implements Contract {
 }
 
 union CustomerOrConsultant = Customer | Consultant
+
+input SimpleInputType { 
+  value: String 
+}
+
+inputunion ComplexOrSimpleInput = ComplexInputType | SimpleInputType

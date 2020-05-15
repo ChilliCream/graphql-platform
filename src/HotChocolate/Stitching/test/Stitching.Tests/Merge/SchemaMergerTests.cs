@@ -1,11 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using ChilliCream.Testing;
-using Snapshooter.Xunit;
-using Xunit;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Snapshooter;
-using System.Collections.Generic;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -19,6 +19,26 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse("union Foo = Bar | Baz union A = B | C");
             DocumentNode schema_b =
                 Utf8GraphQLParser.Parse("union Foo = Bar | Baz");
+
+            // act
+            DocumentNode schema = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void MergeSimpleInputUnionSchemaWithDefaultHandler()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Utf8GraphQLParser.Parse("inputunion Foo = Bar | Baz inputunion A = B | C");
+            DocumentNode schema_b =
+                Utf8GraphQLParser.Parse("inputunion Foo = Bar | Baz");
 
             // act
             DocumentNode schema = SchemaMerger.New()

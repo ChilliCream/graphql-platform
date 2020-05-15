@@ -250,6 +250,18 @@ namespace HotChocolate.Stitching.Merge
             return node;
         }
 
+        protected override InputUnionTypeDefinitionNode RewriteInputUnionTypeDefinition(
+            InputUnionTypeDefinitionNode node,
+            Context context)
+        {
+            if (IsRelevant(node, context))
+            {
+                return base.RewriteInputUnionTypeDefinition(node, context);
+            }
+
+            return node;
+        }
+
         protected override InputObjectTypeDefinitionNode
             RewriteInputObjectTypeDefinition(
                 InputObjectTypeDefinitionNode node,

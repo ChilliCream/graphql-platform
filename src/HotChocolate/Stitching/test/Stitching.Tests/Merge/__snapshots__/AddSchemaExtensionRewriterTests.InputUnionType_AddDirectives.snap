@@ -1,0 +1,11 @@
+﻿inputunion Foo @foo = A | B
+
+input A {
+  a: String
+}
+
+input B {
+  b: String
+}
+
+directive @foo on INTERFACE

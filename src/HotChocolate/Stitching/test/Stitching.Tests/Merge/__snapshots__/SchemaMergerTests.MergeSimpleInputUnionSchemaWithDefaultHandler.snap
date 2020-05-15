@@ -1,0 +1,5 @@
+﻿inputunion Foo @source(name: "Foo", schema: "A") = Bar | Baz
+
+inputunion B_Foo @source(name: "Foo", schema: "B") = Bar | Baz
+
+inputunion A @source(name: "A", schema: "A") = B | C

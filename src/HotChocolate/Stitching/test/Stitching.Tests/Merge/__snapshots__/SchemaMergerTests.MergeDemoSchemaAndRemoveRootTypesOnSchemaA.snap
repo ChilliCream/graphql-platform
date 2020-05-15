@@ -1,7 +1,7 @@
-type Query {
+﻿type Query {
   customer(id: ID!): Customer @delegate(schema: "B")
   consultant(id: ID!): Consultant @delegate(schema: "B")
-  customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "B")
+  customerOrConsultant(id: ID!): customerOrConsultant @delegate(schema: "B")
 }
 
 interface Contract @source(name: "Contract", schema: "A") {
@@ -23,6 +23,7 @@ type Customer @source(name: "Customer", schema: "B") {
   name: String!
   consultant: Consultant
   complexArg(arg: ComplexInputType): String
+  complexArgUnion(arg: ComplexOrSimpleInput): String
 }
 
 type Consultant @source(name: "Consultant", schema: "B") {
@@ -38,3 +39,9 @@ input ComplexInputType @source(name: "ComplexInputType", schema: "B") {
   value: String
   valueArray: [String]
 }
+
+input SimpleInputType @source(name: "SimpleInputType", schema: "B") {
+  value: String
+}
+
+inputunion ComplexOrSimpleInput @source(name: "ComplexOrSimpleInput", schema: "B") = ComplexInputType | SimpleInputType

@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Execution;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.Execution;
-using HotChocolate.Types;
-using HotChocolate.Resolvers;
 using FileResource = ChilliCream.Testing.FileResource;
-using HotChocolate.AspNetCore.Tests.Utilities;
-using System.Threading;
 
 namespace HotChocolate.Stitching
 {
