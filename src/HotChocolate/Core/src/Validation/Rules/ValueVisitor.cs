@@ -239,8 +239,6 @@ namespace HotChocolate.Validation.Rules
             ObjectValueNode node,
             IDocumentValidatorContext context)
         {
-            // first check for typename on next layer
-            // this would be less complex
             for (var i = 0; i < node.Fields.Count; i++)
             {
                 ObjectFieldNode field = node.Fields[i];
