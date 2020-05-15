@@ -3,10 +3,9 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Relay
 {
-    public class Edge<T>
-        : IEdge
+    public class Edge<T> : IEdge
     {
-        public Edge(string cursor, T node)
+        public Edge(T node, string cursor)
         {
             if (string.IsNullOrEmpty(cursor))
             {
@@ -15,14 +14,14 @@ namespace HotChocolate.Types.Relay
                     nameof(cursor));
             }
 
-            Cursor = cursor;
             Node = node;
+            Cursor = cursor;
         }
-
-        public string Cursor { get; }
 
         public T Node { get; }
 
         object IEdge.Node => Node;
+
+        public string Cursor { get; }
     }
 }
