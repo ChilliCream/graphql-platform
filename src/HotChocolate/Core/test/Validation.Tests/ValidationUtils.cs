@@ -11,16 +11,9 @@ namespace HotChocolate.Validation
 {
     public static class ValidationUtils
     {
-        private static DocumentValidatorContextPool validatorContextPool
-            = new DocumentValidatorContextPool();
-
         public static IDocumentValidatorContext CreateContext(ISchema? schema = null)
         {
-            return new DocumentValidatorContext
-            {
-                Schema = schema ?? CreateSchema(),
-                Pool = validatorContextPool
-            };
+            return new DocumentValidatorContext { Schema = schema ?? CreateSchema() };
         }
 
         public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)
