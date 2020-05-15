@@ -131,11 +131,6 @@ namespace HotChocolate.Language
                     return ParseInterfaceTypeDefinition();
                 }
 
-                if (_reader.Value.SequenceEqual(GraphQLKeywords.InputUnion))
-                {
-                    return ParseInputUnionTypeDefinition();
-                }
-
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
                 {
                     return ParseUnionTypeDefinition();
@@ -149,6 +144,11 @@ namespace HotChocolate.Language
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
                 {
                     return ParseInputObjectTypeDefinition();
+                }
+
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.InputUnion))
+                {
+                    return ParseInputUnionTypeDefinition();
                 }
 
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.Extend))

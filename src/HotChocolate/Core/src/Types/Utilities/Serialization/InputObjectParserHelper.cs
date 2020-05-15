@@ -129,7 +129,6 @@ namespace HotChocolate.Utilities.Serialization
                     {
                         object value = field.Type.Deserialize(fieldValue.Value);
                         target[field.Name] = ConvertValue(field, converter, value);
-
                     }
                     else
                     {

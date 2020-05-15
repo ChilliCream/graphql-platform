@@ -232,8 +232,7 @@ namespace HotChocolate.Language
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
-            List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions();
+            List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
             List<DirectiveNode> directives = ParseDirectives(true);
@@ -294,11 +293,8 @@ namespace HotChocolate.Language
             NameNode name = ParseName();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
-            IValueNode? defaultValue = SkipEqual()
-                ? ParseValueLiteral(true)
-                : null;
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            IValueNode? defaultValue = SkipEqual() ? ParseValueLiteral(true) : null;
+            List<DirectiveNode> directives = ParseDirectives(true);
 
             Location? location = CreateLocation(in start);
 
@@ -327,12 +323,9 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<NamedTypeNode> interfaces =
-                ParseImplementsInterfaces();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
-            List<FieldDefinitionNode> fields =
-                ParseFieldsDefinition();
+            List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<FieldDefinitionNode> fields = ParseFieldsDefinition();
 
             Location? location = CreateLocation(in start);
 
@@ -361,8 +354,7 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
             List<NamedTypeNode> types = ParseUnionMemberTypes();
 
             Location? location = CreateLocation(in start);
@@ -391,8 +383,7 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
             List<NamedTypeNode> types = ParseUnionMemberTypes();
 
             Location? location = CreateLocation(in start);
@@ -503,8 +494,7 @@ namespace HotChocolate.Language
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
 
             Location? location = CreateLocation(in start);
 
@@ -524,10 +514,8 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
-            List<InputValueDefinitionNode> fields =
-                ParseInputFieldsDefinition();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<InputValueDefinitionNode> fields = ParseInputFieldsDefinition();
 
             Location? location = CreateLocation(in start);
 
