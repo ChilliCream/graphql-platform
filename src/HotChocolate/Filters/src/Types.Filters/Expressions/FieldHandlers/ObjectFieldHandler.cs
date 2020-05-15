@@ -1,32 +1,56 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class ObjectFieldHandler
-        : IExpressionFieldHandler
+    public static class ObjectFieldHandler
     {
-        public bool Enter(
+        public static bool Enter(
             FilterOperationField field,
             ObjectFieldNode node,
             IQueryableFilterVisitorContext context,
-            out ISyntaxVisitorAction action)
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
+            if (node.Value.IsNull())
+            {
+                if (field.Operation.IsNullable)
+                {
+                    MemberExpression nestedProperty = Expression.Property(
+                        context.GetInstance(),
+                        field.Operation.Property);
+
+                    Expression expression =
+                        FilterExpressionBuilder.Equals(nestedProperty, null!);
+
+                    context.GetLevel().Enqueue(expression);
+                }
+                else
+                {
+                    context.ReportError(
+                        ErrorHelper.CreateNonNullError(field, node, context));
+                }
+
+                action = SyntaxVisitor.Skip;
+                return true;
+            }
+
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 MemberExpression nestedProperty = Expression.Property(
                     context.GetInstance(),
                     field.Operation.Property);
+
                 context.PushInstance(nestedProperty);
                 action = SyntaxVisitor.Continue;
                 return true;
             }
-            action = SyntaxVisitor.SkipAndLeave;
+            action = null;
             return false;
         }
 
-        public void Leave(
+        public static void Leave(
             FilterOperationField field,
             ObjectFieldNode node,
             IQueryableFilterVisitorContext context)
