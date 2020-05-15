@@ -4,7 +4,11 @@ namespace HotChocolate.Types.Relay
 {
     public readonly struct ConnectionArguments
     {
-        public ConnectionArguments(int? first, int? last, string? after, string? before)
+        public ConnectionArguments(
+            int? first = null, 
+            int? last = null, 
+            string? after = null, 
+            string? before = null)
         {
             First = first;
             Last = last;

@@ -7,6 +7,8 @@ namespace HotChocolate.Types.Relay
 {
     public static class PagingObjectFieldDescriptorExtensions
     {
+        private static readonly Type _middleware = typeof(ConnectionMiddleware<>);
+
         public static IObjectFieldDescriptor UsePaging<TSchemaType, TClrType>(
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : class, IOutputType
@@ -21,9 +23,7 @@ namespace HotChocolate.Types.Relay
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : class, IOutputType
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(ConnectionMiddleware<>);
+            FieldMiddleware placeholder = next => context => Task.CompletedTask;
 
             descriptor
                 .AddPagingArguments()
@@ -32,18 +32,13 @@ namespace HotChocolate.Types.Relay
                 .Extend()
                 .OnBeforeCompletion((context, defintion) =>
                 {
-                    var reference = new ClrTypeReference(
-                        typeof(TSchemaType),
-                        TypeContext.Output);
+                    var reference = new ClrTypeReference(typeof(TSchemaType), TypeContext.Output);
                     IOutputType type = context.GetType<IOutputType>(reference);
+
                     if (type.NamedType() is IHasClrType hasClrType)
                     {
-                        Type middlewareType = middlewareDefinition
-                            .MakeGenericType(hasClrType.ClrType);
-                        FieldMiddleware middleware =
-                            FieldClassMiddlewareFactory.Create(middlewareType);
-                        int index =
-                            defintion.MiddlewareComponents.IndexOf(placeholder);
+                        FieldMiddleware middleware = CreateMiddleware(hasClrType.ClrType);
+                        int index = defintion.MiddlewareComponents.IndexOf(placeholder);
                         defintion.MiddlewareComponents[index] = middleware;
                     }
                 })
@@ -81,6 +76,18 @@ namespace HotChocolate.Types.Relay
                 .Argument("after", a => a.Type<StringType>())
                 .Argument("last", a => a.Type<PaginationAmountType>())
                 .Argument("before", a => a.Type<StringType>());
+        }
+
+        private static FieldMiddleware CreateMiddleware(Type type)
+        {
+            if (type.IsGenericType &&
+                typeof(IConnectionResolver<>) == type.GetGenericTypeDefinition())
+            {
+                type = type.GetGenericArguments()[0];
+            }
+
+            Type middlewareType = _middleware.MakeGenericType(type);
+            return FieldClassMiddlewareFactory.Create(middlewareType);
         }
     }
 }

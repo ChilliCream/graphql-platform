@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
-using HotChocolate.Utilities;
+using HotChocolate.Resolvers;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Types.Relay
@@ -14,19 +15,16 @@ namespace HotChocolate.Types.Relay
         public async Task TakeFirst()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
-
-            var pagingDetails = new PagingDetails
-            {
-                First = 2
-            };
-
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
             // act
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(2),
+                true);
 
             // assert
             Assert.Collection(connection.Edges,
@@ -54,19 +52,16 @@ namespace HotChocolate.Types.Relay
         public async Task TakeLast()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
-
-            var pagingDetails = new PagingDetails
-            {
-                Last = 2
-            };
-
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
             // act
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(last: 2),
+                true);
 
             // assert
             Assert.Collection(connection.Edges,
@@ -94,26 +89,22 @@ namespace HotChocolate.Types.Relay
         public async Task TakeFirstAfter()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 });
-
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
-
-            var pagingDetails = new PagingDetails
-            {
-                After = connection.PageInfo.StartCursor,
-                First = 2
-            };
-
-            connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(1),
+                true);
 
             // act
             connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(2, after: connection.PageInfo.StartCursor),
+                true);
 
             // assert
             Assert.Collection(connection.Edges,
@@ -141,41 +132,28 @@ namespace HotChocolate.Types.Relay
         public async Task TakeTwoAfterSecondTime()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
-            // 1. Page
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails { First = 2 });
-
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
-
-            //2. Page
-            var pagingDetails = new PagingDetails
-            {
-                After = connection.PageInfo.EndCursor,
-                First = 2
-            };
-
-            connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(2),
+                true);
 
             connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
-
-            //3. Page
-            pagingDetails = new PagingDetails
-            {
-                After = connection.PageInfo.EndCursor,
-                First = 2
-            };
-
-            connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(2, after: connection.PageInfo.EndCursor),
+                true);
 
             // act
             connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(2, after: connection.PageInfo.EndCursor),
+                true);
 
             // assert
             Assert.Collection(connection.Edges,
@@ -203,26 +181,22 @@ namespace HotChocolate.Types.Relay
         public async Task TakeLastBefore()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails { First = 5 });
-
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
-
-            var pagingDetails = new PagingDetails
-            {
-                Before = connection.PageInfo.EndCursor,
-                Last = 2
-            };
-
-            connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(5),
+                true);
 
             // act
             connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(last: 2, before: connection.PageInfo.EndCursor),
+                true);
 
             // assert
             Assert.Collection(connection.Edges,
@@ -250,19 +224,16 @@ namespace HotChocolate.Types.Relay
         public async Task HasNextPage_True()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
-
-            var pagingDetails = new PagingDetails
-            {
-                First = 5
-            };
-
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
             // act
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(5),
+                true);
 
             // assert
             Assert.True(connection.PageInfo.HasNextPage);
@@ -272,19 +243,16 @@ namespace HotChocolate.Types.Relay
         public async Task HasNextPage_False()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
-
-            var pagingDetails = new PagingDetails
-            {
-                First = 7
-            };
-
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
             // act
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(7),
+                true);
 
             // assert
             Assert.False(connection.PageInfo.HasNextPage);
@@ -294,26 +262,22 @@ namespace HotChocolate.Types.Relay
         public async Task HasPrevious_True()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 });
-
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
-
-            var pagingDetails = new PagingDetails
-            {
-                After = connection.PageInfo.StartCursor,
-                First = 2
-            };
-
-            connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(1),
+                true);
 
             // act
             connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(first: 2, after: connection.PageInfo.StartCursor),
+                true);
 
             // assert
             Assert.True(connection.PageInfo.HasPreviousPage);
@@ -323,26 +287,43 @@ namespace HotChocolate.Types.Relay
         public async Task HasPrevious_False()
         {
             // arrange
+            var context = new Mock<IMiddlewareContext>();
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
-
-            var pagingDetails = new PagingDetails();
-
-            var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionResolver<string>();
 
             // act
-            Connection<string> connection = await connectionFactory.ResolveAsync(
-                CancellationToken.None);
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(1),
+                true);
 
             // assert
             Assert.False(connection.PageInfo.HasPreviousPage);
         }
 
+        [Fact]
+        public async Task TotalCount()
+        {
+            // arrange
+            var context = new Mock<IMiddlewareContext>();
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+            var connectionFactory = new QueryableConnectionResolver<string>();
+
+            // act
+            IConnection connection = await connectionFactory.ResolveAsync(
+                context.Object,
+                list.AsQueryable(),
+                new ConnectionArguments(1),
+                true);
+
+            // assert
+            Assert.Equal(7, connection.PageInfo.TotalCount);
+        }
+
         private int GetPositionFromCursor(string cursor)
         {
-            Dictionary<string, object> properties = Base64Serializer
-                .Deserialize<Dictionary<string, object>>(cursor);
-            return Convert.ToInt32(properties["__position"]);
+            return int.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(cursor)));
         }
     }
 }

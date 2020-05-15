@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Relay
                         written = _utf8.GetBytes(cPtr, cursor.Length, bytePtr, buffer.Length);
                     }
 
-                    Base64.EncodeToUtf8InPlace(buffer, written, out written);
+                    Base64.DecodeFromUtf8InPlace(buffer, out written);
                     if (Utf8Parser.TryParse(buffer.Slice(0, written), out int index, out _))
                     {
                         return index;

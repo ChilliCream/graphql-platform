@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Relay
             int? before,
             out int offset)
         {
-            IQueryable<T> edges = ApplyCursorToEdges(allEdges, before, after);
+            IQueryable<T> edges = ApplyCursorToEdges(allEdges, after, before);
 
             offset = 0;
             if (after.HasValue)
