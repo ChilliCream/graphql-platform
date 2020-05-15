@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
+using HotChocolate.Execution.Properties;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -24,39 +24,15 @@ namespace HotChocolate.Execution.Utilities
             {
                 return obj;
             }
-            throw new InvalidOperationException("Buffer is used up.");
+            throw new InvalidOperationException(Resources.ObjectBuffer_IsEmpty);
         }
 
         public bool TryPop([NotNullWhen(true)] out T? obj)
         {
-            var nextIndex = _index++;
-            if (nextIndex <= _capacity)
+            if (_index < _capacity)
             {
-                obj = _buffer[nextIndex] ?? new T();
-                _buffer[nextIndex] = null;
-                return true;
-            }
-
-            obj = null;
-            return false;
-        }
-
-        public T PopSafe()
-        {
-            if (TryPopSafe(out T? obj))
-            {
-                return obj;
-            }
-            throw new InvalidOperationException("Buffer is used up.");
-        }
-
-        public bool TryPopSafe([NotNullWhen(true)] out T? obj)
-        {
-            var nextIndex = Interlocked.Increment(ref _index) - 1;
-            if (nextIndex <= _capacity)
-            {
-                obj = _buffer[nextIndex] ?? new T();
-                _buffer[nextIndex] = null;
+                obj = _buffer[_index] ?? new T();
+                _buffer[_index++] = null;
                 return true;
             }
 
@@ -68,37 +44,16 @@ namespace HotChocolate.Execution.Utilities
         {
             if (!TryPush(obj))
             {
-                throw new InvalidOperationException("Buffer is full.");
+                throw new InvalidOperationException(Resources.ObjectBuffer_IsUsedUp);
             }
         }
 
         public bool TryPush(T obj)
         {
-            var nextIndex = _index--;
-            if (0 <= _capacity)
+            if (0 < _index)
             {
                 _clean(obj);
-                _buffer[nextIndex] = obj;
-                return true;
-            }
-            return false;
-        }
-
-        public void PushSafe(T obj)
-        {
-            if (!TryPushSafe(obj))
-            {
-                throw new InvalidOperationException("Buffer is full.");
-            }
-        }
-
-        public bool TryPushSafe(T obj)
-        {
-            var nextIndex = Interlocked.Decrement(ref _index);
-            if (0 <= _capacity)
-            {
-                _clean(obj);
-                _buffer[nextIndex] = obj;
+                _buffer[--_index] = obj;
                 return true;
             }
             return false;
