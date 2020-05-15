@@ -83,6 +83,7 @@ namespace HotChocolate.Execution
                         }
                     }
                 }
+
                 if (type == null)
                 {
                     throw new QueryException(
@@ -92,9 +93,9 @@ namespace HotChocolate.Execution
                             .AddLocation(node)
                             .Build());
                 }
+
                 _type.Push(inputUnion);
                 _type.Push(type);
-
             }
 
             ObjectValueNode rewritten = base.RewriteObjectValue(node, node);
@@ -104,6 +105,7 @@ namespace HotChocolate.Execution
                 _type.Pop();
                 _type.Pop();
             }
+
             return rewritten;
         }
 
