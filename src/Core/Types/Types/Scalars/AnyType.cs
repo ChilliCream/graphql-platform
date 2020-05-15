@@ -20,6 +20,17 @@ namespace HotChocolate.Types
         {
         }
 
+        public AnyType(NameString name)
+            : base(name)
+        {
+        }
+
+        public AnyType(NameString name, string description)
+            : base(name)
+        {
+            Description = description;
+        }
+
         public override Type ClrType => typeof(object);
 
         protected override void OnCompleteType(

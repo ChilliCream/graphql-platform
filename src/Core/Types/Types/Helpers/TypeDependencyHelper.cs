@@ -33,13 +33,24 @@ namespace HotChocolate.Types
 
             foreach (ObjectFieldDefinition field in definition.Fields)
             {
-                if (field.Member != null && field.Resolver == null)
+                if (field.Resolver is null)
                 {
-                    context.RegisterResolver(
-                        field.Name,
-                        field.Member,
-                        definition.ClrType,
-                        field.ResolverType);
+                    if (field.ResolverMember is { })
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.ResolverMember,
+                            definition.ClrType,
+                            field.ResolverType);
+                    }
+                    else if (field.Member is { })
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.Member,
+                            definition.ClrType,
+                            field.ResolverType);
+                    }
                 }
             }
         }

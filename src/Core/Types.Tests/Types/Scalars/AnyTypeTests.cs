@@ -1000,6 +1000,40 @@ namespace HotChocolate.Types
             Assert.IsType<ObjectValueNode>(literal);
         }
 
+        [Fact]
+        public void CustomName()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .AddType(new AnyType("_Any"))
+                .Create();
+
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CustomNameAndDescription()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .AddType(new AnyType("_Any", "Any"))
+                .Create();
+
+            schema.ToString().MatchSnapshot();
+        }
+
         public class Foo
         {
             public Bar Bar { get; set; } = new Bar();
