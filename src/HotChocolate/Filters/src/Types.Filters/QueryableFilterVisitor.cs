@@ -15,8 +15,6 @@ namespace HotChocolate.Types.Filters
         {
         }
 
-        #region Object Value
-
         protected override ISyntaxVisitorAction Enter(
             ObjectValueNode node,
             QueryableFilterVisitorContext context)
@@ -41,10 +39,6 @@ namespace HotChocolate.Types.Filters
 
             return Continue;
         }
-
-        #endregion
-
-        #region Object Field
 
         protected override ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
@@ -115,10 +109,6 @@ namespace HotChocolate.Types.Filters
             return false;
         }
 
-        #endregion
-
-        #region List
-
         protected override ISyntaxVisitorAction Enter(
             ListValueNode node,
             QueryableFilterVisitorContext context)
@@ -150,8 +140,6 @@ namespace HotChocolate.Types.Filters
 
             return Continue;
         }
-
-        #endregion
 
         public static QueryableFilterVisitor Default = new QueryableFilterVisitor();
     }

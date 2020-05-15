@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Filters.Conventions;
-using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContext
-        : FilterVisitorContextBase, IQueryableFilterVisitorContext
+        : FilterVisitorContextBase
+        , IQueryableFilterVisitorContext
     {
         public QueryableFilterVisitorContext(
             InputObjectType initialType,
