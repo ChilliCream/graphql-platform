@@ -24,7 +24,6 @@ namespace HotChocolate.Types
                 t => Assert.IsType<BType>(t));
         }
 
-
         [Fact]
         public void InputUnionTypeExtension_SetTypeContextData()
         {
