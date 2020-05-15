@@ -18,8 +18,8 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
         private readonly ConcurrentDictionary<FilterOperationKind,
-            FilterExpressionOperationDescriptor> _operations
-            = new ConcurrentDictionary<FilterOperationKind, FilterExpressionOperationDescriptor>();
+            FilterExpressionOperationDescriptor> _operations = 
+            new ConcurrentDictionary<FilterOperationKind, FilterExpressionOperationDescriptor>();
 
         protected FilterExpressionTypeDefinition Definition { get; } =
             new FilterExpressionTypeDefinition();
