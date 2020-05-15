@@ -121,8 +121,8 @@ namespace HotChocolate.Execution
                 return node;
             }
 
-            if (namedType is ScalarType scalar
-                && scalar.IsInstanceOfType((ObjectValueNode)context))
+            if (namedType is ScalarType scalar &&
+                scalar.IsInstanceOfType((ObjectValueNode)context))
             {
                 fieldType = scalar;
             }

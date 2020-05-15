@@ -1163,7 +1163,6 @@ namespace HotChocolate.Validation
             ");
         }
 
-
         [Fact]
         public void InputUnionOfValidTypeWithValidTypeName()
         {
