@@ -8,23 +8,19 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
+using Enter = HotChocolate.Types.Filters.Conventions.FilterFieldEnter;
+using Leave = HotChocolate.Types.Filters.Conventions.FilterFieldLeave;
+using Handler = HotChocolate.Types.Filters.Conventions.FilterOperationHandler;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterExpressionVisitorDefinition : FilterVisitorDefinitionBase
     {
-        public IReadOnlyDictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>
-            FieldHandler
-        {
-            get; set;
-        } = ImmutableDictionary<FilterKind, (FilterFieldEnter? enter, FilterFieldLeave? leave)>
-            .Empty;
+        public IReadOnlyDictionary<FilterKind, (Enter? enter, Leave? leave)> FieldHandler
+        { get; set; } = ImmutableDictionary<FilterKind, (Enter? enter, Leave? leave)>.Empty;
 
-        public IReadOnlyDictionary<(FilterKind, FilterOperationKind), FilterOperationHandler>
-            OperationHandler
-        {
-            get; set;
-        } = ImmutableDictionary<(FilterKind, FilterOperationKind), FilterOperationHandler>.Empty;
+        public IReadOnlyDictionary<(FilterKind, FilterOperationKind), Handler> OperationHandler
+        { get; set; } = ImmutableDictionary<(FilterKind, FilterOperationKind), Handler>.Empty;
 
         public override async Task ApplyFilter<T>(
             IFilterConvention filterConvention,

@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -31,6 +30,6 @@ namespace HotChocolate.Types.Filters.Conventions
         public static FilterExpressionOperationDescriptor New(
             FilterExpressionTypeDescriptor descriptor,
             FilterOperationKind kind) =>
-                new FilterExpressionOperationDescriptor(descriptor, kind);
+            new FilterExpressionOperationDescriptor(descriptor, kind);
     }
 }

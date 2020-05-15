@@ -1,5 +1,3 @@
-using HotChocolate.Types.Filters.Expressions;
-
 namespace HotChocolate.Types.Filters.Conventions
 {
     public interface IFilterExpressionTypeDescriptor : IFluent
@@ -12,7 +10,7 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterExpressionOperationDescriptor Operation(FilterOperationKind kind);
 
         /// <summary>
-        /// Specifies the enter behaviour of the current field. The default action is <c>SkipAndLeave</c>
+        /// Specifies the enter behavior of the current field. The default action is <c>SkipAndLeave</c>
         /// </summary>
         /// <param name="handler">A delegate of type <see cref="FilterFieldEnter"/></param>
         IFilterExpressionTypeDescriptor Enter(FilterFieldEnter handler);

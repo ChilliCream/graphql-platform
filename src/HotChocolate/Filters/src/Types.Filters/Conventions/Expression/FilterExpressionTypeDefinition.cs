@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -12,9 +11,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public FilterFieldLeave? Leave { get; set; }
 
-        public IReadOnlyDictionary<FilterOperationKind, FilterOperationHandler>
-            OperationHandlers
-        { get; set; }
-                = ImmutableDictionary<FilterOperationKind, FilterOperationHandler>.Empty;
+        public IReadOnlyDictionary<FilterOperationKind, FilterOperationHandler> OperationHandlers
+        { get; set; } = ImmutableDictionary<FilterOperationKind, FilterOperationHandler>.Empty;
     }
 }

@@ -38,10 +38,8 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public IFilterExpressionOperationDescriptor Operation(FilterOperationKind kind)
-            => _operations.GetOrAdd(
-                kind,
-                _ => FilterExpressionOperationDescriptor.New(this, kind));
+        public IFilterExpressionOperationDescriptor Operation(FilterOperationKind kind) =>
+            _operations.GetOrAdd(kind, _ => FilterExpressionOperationDescriptor.New(this, kind));
 
         public FilterExpressionTypeDefinition CreateDefinition()
         {
@@ -54,7 +52,8 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
         public static FilterExpressionTypeDescriptor New(
-            FilterExpressionVisitorDescriptor descriptor, FilterKind kind) =>
-                new FilterExpressionTypeDescriptor(descriptor, kind);
+            FilterExpressionVisitorDescriptor descriptor,
+            FilterKind kind) =>
+            new FilterExpressionTypeDescriptor(descriptor, kind);
     }
 }

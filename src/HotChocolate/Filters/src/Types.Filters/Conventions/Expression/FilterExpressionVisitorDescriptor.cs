@@ -75,6 +75,6 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public static FilterExpressionVisitorDescriptor New(
             IFilterConventionDescriptor convention) =>
-                new FilterExpressionVisitorDescriptor(convention);
+            new FilterExpressionVisitorDescriptor(convention);
     }
 }
