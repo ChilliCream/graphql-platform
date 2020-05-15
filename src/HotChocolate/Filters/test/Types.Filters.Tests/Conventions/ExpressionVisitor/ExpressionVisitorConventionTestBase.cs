@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Filters
                             .Kind(kind)
                                 .Enter(helper.FilterFieldEnter)
                                 .Leave(helper.FilterFieldLeave))
-                        .GetExpressionDefiniton();
+                        .GetExpressionDefinition();
 
             // act
             var filter = new QueryableFilterVisitorContext(
@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Filters
                             .Kind(kind)
                                 .Operation(operationKind)
                                     .Handler(helper.FilterOperationHandler))
-                    .GetExpressionDefiniton();
+                    .GetExpressionDefinition();
 
             // act
             var filter = new QueryableFilterVisitorContext(

@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Filters
                 new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 null,
                 true);
             };
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Filters
                 new QueryableFilterVisitorContext(
                 fooType,
                 null,
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             };
@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Filters
                 new QueryableFilterVisitorContext(
                 null,
                 typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             };
