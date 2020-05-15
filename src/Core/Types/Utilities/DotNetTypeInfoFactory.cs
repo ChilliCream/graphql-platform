@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Utilities
 {
@@ -41,7 +42,7 @@ namespace HotChocolate.Utilities
 
         public static Type UnwrapNonNull(Type type)
         {
-            if(IsNonNullType(type))
+            if (IsNonNullType(type))
             {
                 return GetInnerType(type);
             }
@@ -347,7 +348,12 @@ namespace HotChocolate.Utilities
                 current = GetInnerType(current);
             }
 
-            if (IsOptional(type))
+            if (IsOptional(current))
+            {
+                current = GetInnerType(current);
+            }
+
+            if (IsConnectionResolver(current))
             {
                 current = GetInnerType(current);
             }
@@ -390,9 +396,10 @@ namespace HotChocolate.Utilities
                 || IsNullableType(type)
                 || IsWrapperType(type)
                 || IsResolverResultType(type)
-                || IsOptional(type))
+                || IsOptional(type)
+                || IsConnectionResolver(type))
             {
-                return type.GetGenericArguments().First();
+                return type.GetGenericArguments()[0];
             }
 
             if (ImplementsListInterface(type))
@@ -453,6 +460,12 @@ namespace HotChocolate.Utilities
                 }
             }
             return false;
+        }
+
+        public static bool IsConnectionResolver(Type type)
+        {
+            return type.IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(IConnectionResolver<>);
         }
 
         public static bool IsListType(Type type)

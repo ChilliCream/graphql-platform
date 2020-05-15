@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var edge = new Edge<string>(cursor, node);
+            var edge = new Edge<string>(node, cursor);
 
             // assert
             Assert.Equal(cursor, edge.Cursor);
@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            Action a = () => new Edge<string>(null, "abc");
+            Action a = () => new Edge<string>("abc", null);
 
             // assert
             Assert.Throws<ArgumentException>(a);
@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            Action a = () => new Edge<string>(string.Empty, "abc");
+            Action a = () => new Edge<string>("abc", string.Empty);
 
             // assert
             Assert.Throws<ArgumentException>(a);

@@ -4,31 +4,31 @@
       "bar": {
         "edges": [
           {
-            "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjB9",
+            "cursor": "MA==",
             "node": "a"
           },
           {
-            "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjF9",
+            "cursor": "MQ==",
             "node": "b"
           },
           {
-            "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjJ9",
+            "cursor": "Mg==",
             "node": "c"
           },
           {
-            "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjN9",
+            "cursor": "Mw==",
             "node": "d"
           },
           {
-            "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjR9",
+            "cursor": "NA==",
             "node": "e"
           },
           {
-            "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjV9",
+            "cursor": "NQ==",
             "node": "f"
           },
           {
-            "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjZ9",
+            "cursor": "Ng==",
             "node": "g"
           }
         ],

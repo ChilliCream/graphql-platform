@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay
 {
-    public class ConnectionMiddleware<TSource>
+    public class ConnectionMiddleware<TSource, TEntity>
     {
+        private readonly QueryableConnectionResolver<TEntity> _connectionResolver =
+            new QueryableConnectionResolver<TEntity>();
         private readonly FieldDelegate _next;
 
         public ConnectionMiddleware(FieldDelegate next)
@@ -29,18 +34,37 @@ namespace HotChocolate.Types.Relay
             {
                 context.Result = localConnectionResolver.ResolveAsync(
                     context,
-                    default,
+                    context.Result,
                     arguments,
                     true, // where should we store this?
                     context.RequestAborted)
                     .ConfigureAwait(false);
             }
-
-            if (connectionResolver is { } && context.Result is TSource item)
+            else if (connectionResolver is { } && context.Result is TSource source)
             {
                 context.Result = await connectionResolver.ResolveAsync(
                     context,
-                    default,
+                    source,
+                    arguments,
+                    true, // where should we store this?
+                    context.RequestAborted)
+                    .ConfigureAwait(false);
+            }
+            else if (context.Result is IQueryable<TEntity> queryable)
+            {
+                context.Result = await _connectionResolver.ResolveAsync(
+                    context,
+                    queryable,
+                    arguments,
+                    true, // where should we store this?
+                    context.RequestAborted)
+                    .ConfigureAwait(false);
+            }
+            else if (context.Result is IEnumerable<TEntity> enumerable)
+            {
+                context.Result = await _connectionResolver.ResolveAsync(
+                    context,
+                    enumerable.AsQueryable(),
                     arguments,
                     true, // where should we store this?
                     context.RequestAborted)

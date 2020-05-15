@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -7,20 +8,21 @@ namespace HotChocolate.Types.Relay
 {
     public static class PagingObjectFieldDescriptorExtensions
     {
-        private static readonly Type _middleware = typeof(ConnectionMiddleware<>);
+        private static readonly Type _middleware = typeof(ConnectionMiddleware<,>);
 
-        public static IObjectFieldDescriptor UsePaging<TSchemaType, TClrType>(
+        public static IObjectFieldDescriptor UsePaging<TSchemaType, TEntity>(
             this IObjectFieldDescriptor descriptor)
-            where TSchemaType : class, IOutputType
-        {
-            return descriptor
-                .AddPagingArguments()
-                .Type<ConnectionWithCountType<TSchemaType>>()
-                .Use<ConnectionMiddleware<TClrType>>();
-        }
+            where TSchemaType : class, IOutputType =>
+            UsePaging<TSchemaType>(descriptor, typeof(TEntity));
 
         public static IObjectFieldDescriptor UsePaging<TSchemaType>(
             this IObjectFieldDescriptor descriptor)
+            where TSchemaType : class, IOutputType =>
+            UsePaging<TSchemaType>(descriptor, null);
+
+        private static IObjectFieldDescriptor UsePaging<TSchemaType>(
+            IObjectFieldDescriptor descriptor,
+            Type entityType)
             where TSchemaType : class, IOutputType
         {
             FieldMiddleware placeholder = next => context => Task.CompletedTask;
@@ -32,15 +34,24 @@ namespace HotChocolate.Types.Relay
                 .Extend()
                 .OnBeforeCompletion((context, defintion) =>
                 {
-                    var reference = new ClrTypeReference(typeof(TSchemaType), TypeContext.Output);
-                    IOutputType type = context.GetType<IOutputType>(reference);
-
-                    if (type.NamedType() is IHasClrType hasClrType)
+                    if (entityType is null)
                     {
-                        FieldMiddleware middleware = CreateMiddleware(hasClrType.ClrType);
-                        int index = defintion.MiddlewareComponents.IndexOf(placeholder);
-                        defintion.MiddlewareComponents[index] = middleware;
+                        var reference = new ClrTypeReference(
+                            typeof(TSchemaType),
+                            TypeContext.Output);
+                        IOutputType type = context.GetType<IOutputType>(reference);
+                        entityType = ((IHasClrType)type.NamedType()).ClrType;
                     }
+
+                    MemberInfo member = defintion.ResolverMember ?? defintion.Member;
+                    Type resultType = defintion.Resolver is { } && defintion.ResultType is { }
+                        ? defintion.ResultType
+                        : GetResultType(member);
+                    resultType = UnwrapType(resultType);
+
+                    FieldMiddleware middleware = CreateMiddleware(resultType, entityType);
+                    int index = defintion.MiddlewareComponents.IndexOf(placeholder);
+                    defintion.MiddlewareComponents[index] = middleware;
                 })
                 .DependsOn<TSchemaType>();
 
@@ -78,16 +89,52 @@ namespace HotChocolate.Types.Relay
                 .Argument("before", a => a.Type<StringType>());
         }
 
-        private static FieldMiddleware CreateMiddleware(Type type)
+        private static FieldMiddleware CreateMiddleware(Type sourceType, Type entityType)
         {
-            if (type.IsGenericType &&
-                typeof(IConnectionResolver<>) == type.GetGenericTypeDefinition())
+            Type middlewareType = _middleware.MakeGenericType(sourceType, entityType);
+            return FieldClassMiddlewareFactory.Create(middlewareType);
+        }
+
+        private static Type GetResultType(MemberInfo member)
+        {
+            if (member is PropertyInfo p)
             {
-                type = type.GetGenericArguments()[0];
+                return p.PropertyType;
             }
 
-            Type middlewareType = _middleware.MakeGenericType(type);
-            return FieldClassMiddlewareFactory.Create(middlewareType);
+            if (member is MethodInfo m)
+            {
+                return m.ReturnType;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        internal static Type UnwrapType(Type resultType)
+        {
+            if (resultType.IsGenericType &&
+                resultType.GetGenericTypeDefinition() == typeof(IConnectionResolver<>))
+            {
+                return resultType.GetGenericArguments()[0];
+            }
+
+            if (typeof(IConnectionResolver).IsAssignableFrom(resultType))
+            {
+                Type[] interfaces = resultType.GetInterfaces();
+                for (int i = 0; i < interfaces.Length; i++)
+                {
+                    Type type = interfaces[i];
+                    if (type.IsGenericType &&
+                        type.GetGenericTypeDefinition() == typeof(IConnectionResolver<>))
+                    {
+                        return type.GetGenericArguments()[0];
+                    }
+                }
+
+                return typeof(object);
+            }
+
+            return resultType;
         }
     }
 }
