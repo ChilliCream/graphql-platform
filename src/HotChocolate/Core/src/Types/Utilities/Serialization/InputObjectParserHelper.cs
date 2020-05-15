@@ -123,7 +123,7 @@ namespace HotChocolate.Utilities.Serialization
         {
             foreach (KeyValuePair<string, object> fieldValue in source)
             {
-                if (fieldValue.Key != "__typename")
+                if (!IntrospectionFields.TypeName.Equals(fieldValue.Key))
                 {
                     if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
                     {

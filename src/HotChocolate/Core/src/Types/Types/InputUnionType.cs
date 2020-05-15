@@ -145,7 +145,7 @@ namespace HotChocolate.Types
                     type.ParseValue(value) is ObjectValueNode valueNode &&
                     valueNode.Fields is List<ObjectFieldNode> fields)
                 {
-                    fields.Add(new ObjectFieldNode("__typename", type.Name));
+                    fields.Add(new ObjectFieldNode(IntrospectionFields.TypeName, type.Name));
                     return valueNode.WithFields(fields);
                 }
             }
@@ -188,7 +188,7 @@ namespace HotChocolate.Types
                         type.TrySerialize(value, out var serializedDict) &&
                         serializedDict is Dictionary<string, object> serializedTyped)
                     {
-                        serializedTyped.Add("__typename", type.Name);
+                        serializedTyped.Add(IntrospectionFields.TypeName, type.Name);
                         serialized = serializedTyped;
                         return true;
                     }
@@ -226,7 +226,7 @@ namespace HotChocolate.Types
 
         private object Deserialize(IReadOnlyDictionary<string, object> dict)
         {
-            if (dict.TryGetValue("__typename", out object value) &&
+            if (dict.TryGetValue(IntrospectionFields.TypeName, out object value) &&
                 value is string typename)
             {
                 if (_typeMap.TryGetValue(typename, out InputObjectType type))
