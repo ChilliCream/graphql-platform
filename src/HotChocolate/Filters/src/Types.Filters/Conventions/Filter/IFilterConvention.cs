@@ -86,7 +86,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <returns></returns>
         IReadOnlyList<TryCreateImplicitFilter> GetImplicitFactories();
 
-        Task ApplyFilter<T>(
+        Task ApplyFilterAsync<T>(
             FieldDelegate next,
             ITypeConversion converter,
             IMiddlewareContext context);

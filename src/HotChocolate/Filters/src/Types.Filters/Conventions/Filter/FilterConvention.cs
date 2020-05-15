@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return GetOrCreateConfiguration().ElementName;
         }
 
-        public async Task ApplyFilter<T>(
+        public async Task ApplyFilterAsync<T>(
             FieldDelegate next,
             ITypeConversion converter,
             IMiddlewareContext context)

@@ -23,6 +23,6 @@ namespace HotChocolate.Types.Filters
         }
 
         public Task InvokeAsync(IMiddlewareContext context) =>
-            _contextData.Convention.ApplyFilter<T>(_next, _converter, context);
+            _contextData.Convention.ApplyFilterAsync<T>(_next, _converter, context);
     }
 }
