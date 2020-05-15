@@ -128,7 +128,7 @@ namespace HotChocolate.Types.Filters.Conventions
                     operation.Kind, out description);
             }
 
-            return description ?? "";
+            return description ?? string.Empty;
         }
 
         public string GetTypeDescription(IDescriptorContext context, Type entityType)
