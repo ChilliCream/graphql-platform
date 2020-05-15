@@ -104,8 +104,7 @@ namespace HotChocolate.Types
             ICompletionContext context,
             ObjectFieldDefinition definition)
         {
-            bool isIntrospectionField = IsIntrospectionField
-                || DeclaringType.IsIntrospectionType();
+            bool isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
 
             Resolver = definition.Resolver;
 
@@ -115,7 +114,7 @@ namespace HotChocolate.Types
                 // explicit resolver results or are provided through the
                 // resolver compiler.
                 FieldResolver resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver);
+                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver)!;
             }
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
@@ -125,9 +124,13 @@ namespace HotChocolate.Types
                     ? false
                     : isIntrospectionField;
 
+            var middlewareComponents = definition.MiddlewareComponents.Count == 0
+                ? Array.Empty<FieldMiddleware>()
+                : definition.MiddlewareComponents.ToArray();
+
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
-                definition.MiddlewareComponents.ToArray(),
+                middlewareComponents,
                 Resolver,
                 skipMiddleware);
 
@@ -157,11 +160,11 @@ namespace HotChocolate.Types
         private static FieldResolverDelegate? GetMostSpecificResolver(
             NameString typeName,
             FieldResolverDelegate? currentResolver,
-            FieldResolver externalCompiledResolver)
+            FieldResolver? externalCompiledResolver)
         {
             // if there is no external compiled resolver then we will pick
             // the internal resolver delegate.
-            if (externalCompiledResolver == null)
+            if (externalCompiledResolver is null)
             {
                 return currentResolver;
             }
@@ -169,8 +172,7 @@ namespace HotChocolate.Types
             // if the internal resolver is null or if the external compiled
             // resolver represents an explicit overwrite of the type resolver
             // then we will pick the external compiled resolver.
-            if (currentResolver == null
-                || externalCompiledResolver.TypeName.Equals(typeName))
+            if (currentResolver is null || externalCompiledResolver.TypeName.Equals(typeName))
             {
                 return externalCompiledResolver.Resolver;
             }

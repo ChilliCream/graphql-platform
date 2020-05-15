@@ -1,4 +1,6 @@
 using System;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -53,6 +55,11 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
             Type resultType);
+
+        IObjectFieldDescriptor ResolveWith<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod);
+
+        IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
 
         IObjectFieldDescriptor Subscribe(
             SubscribeResolverDelegate subscribeResolver);

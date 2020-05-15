@@ -1525,6 +1525,17 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void ResolveWith()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithQueryType>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo baz }")
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1552,7 +1563,7 @@ namespace HotChocolate.Types
         {
             public string GetBar(string foo) => "hello foo";
 
-            public string GetDescription([Parent]Foo foo) => foo.Description;
+            public string GetDescription([Parent] Foo foo) => foo.Description;
         }
 
         public class QueryWithIntArg
@@ -1675,8 +1686,8 @@ namespace HotChocolate.Types
                 string b = "abc") => null;
 
             public string Field2(
-                [DefaultValue(null)]string a,
-                [DefaultValue("abc")]string b) => null;
+                [DefaultValue(null)] string a,
+                [DefaultValue("abc")] string b) => null;
         }
 
         public class SubscriptionWithSubscribe
@@ -1690,6 +1701,25 @@ namespace HotChocolate.Types
             public string OnFoo()
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        public class ResolveWithQuery
+        {
+            public int Foo { get; set; } = 123;
+        }
+
+        public class ResolveWithQueryResolver
+        {
+            public string Bar { get; set; } = "Bar";
+        }
+
+        public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
+        {
+            protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+            {
+                descriptor.Field(t => t.Foo).ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
+                descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
             }
         }
     }

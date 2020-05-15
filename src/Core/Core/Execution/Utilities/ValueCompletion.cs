@@ -38,6 +38,8 @@ namespace HotChocolate.Execution
             {
                 resolverContext.SetCompletedValue(completionContext.Value);
             }
+
+            completionContext.Clear();
         }
 
         private static void CompleteValue(
