@@ -93,16 +93,8 @@ namespace HotChocolate.Types
                     }
                 }
 
-                foreach (InputObjectType type in Types.Values)
-                {
-                    if (IsInstanceOfType(type, literal))
-                    {
-                        return type.ParseLiteral(literal);
-                    }
-                }
-
                 throw new InputObjectSerializationException(
-                    TypeResources.InputUnionType_UnableToResolveType);
+                    TypeResources.InputUnionType_TypeNameNotSpecified);
             }
 
             if (literal is NullValueNode)
