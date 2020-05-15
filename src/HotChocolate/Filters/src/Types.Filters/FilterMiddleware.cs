@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters
                 throw new ArgumentNullException(nameof(contextData));
         }
 
-        public async Task InvokeAsync(IMiddlewareContext context) =>
+        public Task InvokeAsync(IMiddlewareContext context) =>
             _contextData.Convention.ApplyFilter<T>(_next, _converter, context);
     }
 }
