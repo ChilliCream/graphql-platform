@@ -16,11 +16,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
@@ -28,7 +24,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -50,11 +46,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
@@ -62,7 +54,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -86,13 +78,7 @@ namespace HotChocolate.Types.Filters
                     new ObjectFieldNode("fooNested",
                         new ObjectValueNode(
                             new ObjectFieldNode("bar",
-                                new StringValueNode("a")
-                            )
-                        )
-                    )
-                )
-            )
-            );
+                                new StringValueNode("a")))))));
 
             EvenDeeperFilterType fooType = CreateType(new EvenDeeperFilterType());
 
@@ -100,7 +86,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -124,13 +110,7 @@ namespace HotChocolate.Types.Filters
                     new ObjectFieldNode("nested",
                         new ObjectValueNode(
                             new ObjectFieldNode("bar",
-                                new StringValueNode("a")
-                            )
-                        )
-                    )
-                )
-            )
-            );
+                                new StringValueNode("a")))))));
 
             FilterInputType<Recursive> fooType = CreateType(new FilterInputType<Recursive>());
 
@@ -138,7 +118,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Recursive),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -161,13 +141,7 @@ namespace HotChocolate.Types.Filters
                     new ObjectFieldNode("fooNested",
                         new ObjectValueNode(
                             new ObjectFieldNode("bar",
-                                new StringValueNode("a")
-                            )
-                        )
-                    )
-                )
-            )
-            );
+                                new StringValueNode("a")))))));
 
             EvenDeeperFilterType fooType = CreateType(new EvenDeeperFilterType());
 
@@ -175,7 +149,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -215,7 +189,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
@@ -233,10 +207,10 @@ namespace HotChocolate.Types.Filters
         }
 
         /**
-         * As multiple hanlders for a single property can exists, it makes sense to test mutliple
-         * porperty filterContexting too. Just to see if the null checks are wrapped around the
+         * As multiple handlers for a single property can exists, it makes sense to test multiple
+         * property filterContexting too. Just to see if the null checks are wrapped around the
          * whole object and not just around the one of the expressions. With the current visitor
-         * implementation this cannot be the case. Anyway, as code lifes is good to check twice.
+         * implementation this cannot be the case. Anyway, as code lives is good to check twice.
          * */
         [Fact]
         public void Create_ObjectStringEqualNullWithMultipleFilters_Expression()
@@ -248,17 +222,9 @@ namespace HotChocolate.Types.Filters
                     new ObjectFieldNode("fooNested",
                         new ObjectValueNode(
                             new ObjectFieldNode("bar",
-                                new StringValueNode("a")
-                            ),
-
+                                new StringValueNode("a")),
                             new ObjectFieldNode("bar_not",
-                                new StringValueNode("c")
-                            )
-                        )
-                    )
-                )
-            )
-            );
+                                new StringValueNode("c")))))));
 
             EvenDeeperFilterType fooType = CreateType(new EvenDeeperFilterType());
 
@@ -266,7 +232,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                MockFilterConvention.Default.GetExpressionDefiniton(),
+                MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);

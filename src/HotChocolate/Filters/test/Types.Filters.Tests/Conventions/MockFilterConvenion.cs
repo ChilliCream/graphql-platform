@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Filters
             return GetOrCreateConfiguration();
         }
 
-        public FilterExpressionVisitorDefinition GetExpressionDefiniton()
+        public FilterExpressionVisitorDefinition GetExpressionDefinition()
         {
             return GetOrCreateConfiguration().VisitorDefinition
                 as FilterExpressionVisitorDefinition;

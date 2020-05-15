@@ -121,11 +121,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested_some",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
@@ -170,11 +166,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested_some",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
@@ -233,11 +225,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested_none",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
@@ -294,11 +282,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested_all",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
