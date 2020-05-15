@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterConventionDefaultOperationDescriptor
-        : FilterConventionOperationDescriptorBase, IFilterConventionDefaultOperationDescriptor
+        : FilterConventionOperationDescriptorBase
+        , IFilterConventionDefaultOperationDescriptor
     {
         private readonly FilterConventionDescriptor _descriptor;
 
@@ -36,6 +35,6 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public static FilterConventionDefaultOperationDescriptor New(
             FilterConventionDescriptor descriptor, FilterOperationKind kind) =>
-                new FilterConventionDefaultOperationDescriptor(descriptor, kind);
+            new FilterConventionDefaultOperationDescriptor(descriptor, kind);
     }
 }

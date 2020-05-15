@@ -11,12 +11,12 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         public static IFilterConventionDescriptor UseImplicitFilters(
             this IFilterConventionDescriptor descriptor) =>
-                descriptor
-                    .AddImplicitFilter(TryCreateStringFilter)
-                    .AddImplicitFilter(TryCreateBooleanFilter)
-                    .AddImplicitFilter(TryCreateComparableFilter)
-                    .AddImplicitFilter(TryCreateArrayFilter)
-                    .AddImplicitFilter(TryCreateObjectFilter);
+            descriptor
+                .AddImplicitFilter(TryCreateStringFilter)
+                .AddImplicitFilter(TryCreateBooleanFilter)
+                .AddImplicitFilter(TryCreateComparableFilter)
+                .AddImplicitFilter(TryCreateArrayFilter)
+                .AddImplicitFilter(TryCreateObjectFilter);
 
         private static bool TryCreateStringFilter(
             IDescriptorContext context,

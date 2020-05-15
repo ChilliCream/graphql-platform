@@ -19,9 +19,9 @@ namespace HotChocolate.Types.Filters.Conventions
         internal protected FilterConventionTypeDefinition Definition { get; } =
             new FilterConventionTypeDefinition();
 
-        private readonly ConcurrentDictionary<FilterOperationKind,
+        private readonly ConcurrentDictionary<FilterOperationKind, 
             FilterConventionOperationDescriptor> _operations =
-               new ConcurrentDictionary<FilterOperationKind, FilterConventionOperationDescriptor>();
+            new ConcurrentDictionary<FilterOperationKind, FilterConventionOperationDescriptor>();
 
         public IFilterConventionDescriptor And()
         {
@@ -83,6 +83,6 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public static FilterConventionTypeDescriptor New(
             FilterConventionDescriptor descriptor, FilterKind kind) =>
-                new FilterConventionTypeDescriptor(descriptor, kind);
+            new FilterConventionTypeDescriptor(descriptor, kind);
     }
 }

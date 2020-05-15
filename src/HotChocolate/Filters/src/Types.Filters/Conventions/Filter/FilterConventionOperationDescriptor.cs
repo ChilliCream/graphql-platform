@@ -3,7 +3,8 @@ using System;
 namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterConventionOperationDescriptor
-        : FilterConventionOperationDescriptorBase, IFilterConventionOperationDescriptor
+        : FilterConventionOperationDescriptorBase
+        , IFilterConventionOperationDescriptor
     {
         private readonly FilterConventionTypeDescriptor _descriptor;
 
@@ -41,6 +42,6 @@ namespace HotChocolate.Types.Filters.Conventions
         public static FilterConventionOperationDescriptor New(
             FilterConventionTypeDescriptor descriptor,
             FilterOperationKind kind) =>
-                new FilterConventionOperationDescriptor(descriptor, kind);
+            new FilterConventionOperationDescriptor(descriptor, kind);
     }
 }

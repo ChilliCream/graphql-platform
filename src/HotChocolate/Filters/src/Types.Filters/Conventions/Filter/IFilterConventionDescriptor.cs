@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterConventionDescriptor Ignore(FilterKind kind, bool ignore = true);
 
         /// <summary>
-        /// Configures the default behaviour of an <see cref="FilterOperationKind"/> 
+        /// Configures the default behavior of an <see cref="FilterOperationKind"/> 
         /// </summary>
         /// <param name="kind">The <see cref="FilterOperationKind"/> to configure</param> 
         IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind);

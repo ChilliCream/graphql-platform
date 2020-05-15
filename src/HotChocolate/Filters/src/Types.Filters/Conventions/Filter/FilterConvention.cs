@@ -67,9 +67,10 @@ namespace HotChocolate.Types.Filters.Conventions
             }
             else
             {
+                // TODO : ThrowHelper
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
-                        .SetMessage("No visitor definiton found for this FilterConvention")
+                        .SetMessage("No visitor definition found for this FilterConvention")
                         .Build());
             }
         }
@@ -152,10 +153,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return GetOrCreateConfiguration().ImplicitFilters;
         }
 
-        protected virtual void Configure(
-            IFilterConventionDescriptor descriptor)
-        {
-        }
+        protected virtual void Configure(IFilterConventionDescriptor descriptor) { }
 
         private FilterConventionDefinition CreateDefinition()
         {

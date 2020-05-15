@@ -10,17 +10,13 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public FilterKind FilterKind { get; set; }
 
-        public IReadOnlyCollection<FilterOperationKind> AllowedOperations { get; set; }
-            = Array.Empty<FilterOperationKind>();
+        public IReadOnlyCollection<FilterOperationKind> AllowedOperations { get; set; } = 
+            Array.Empty<FilterOperationKind>();
 
         public IReadOnlyDictionary<FilterOperationKind, CreateFieldName> OperationNames
-        {
-            get; set;
-        } = ImmutableDictionary<FilterOperationKind, CreateFieldName>.Empty;
+        { get; set; } = ImmutableDictionary<FilterOperationKind, CreateFieldName>.Empty;
 
         public IReadOnlyDictionary<FilterOperationKind, string> OperationDescriptions
-        {
-            get; set;
-        } = ImmutableDictionary<FilterOperationKind, string>.Empty;
+        { get; set; } = ImmutableDictionary<FilterOperationKind, string>.Empty;
     }
 }

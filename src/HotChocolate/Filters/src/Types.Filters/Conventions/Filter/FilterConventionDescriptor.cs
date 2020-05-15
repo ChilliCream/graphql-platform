@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return _defaultOperations.GetOrAdd(
                 kind,
                 (FilterOperationKind kind) =>
-                    FilterConventionDefaultOperationDescriptor.New(this, kind));
+                FilterConventionDefaultOperationDescriptor.New(this, kind));
         }
 
         public IFilterConventionTypeDescriptor Type(FilterKind kind)
@@ -111,8 +111,8 @@ namespace HotChocolate.Types.Filters.Conventions
                     .Build());
             }
 
-            var allowedOperations
-                = new Dictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>();
+            var allowedOperations = 
+                new Dictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>();
             var typeDefinitions = new Dictionary<FilterKind, FilterConventionTypeDefinition>();
             var defaultOperationNames = new Dictionary<FilterOperationKind, CreateFieldName>();
             var defaultOperationDescriptions = new Dictionary<FilterOperationKind, string>();
@@ -147,6 +147,7 @@ namespace HotChocolate.Types.Filters.Conventions
                     }
                 }
             }
+            
             Definition.DefaultOperationDescriptions = defaultOperationDescriptions;
             Definition.DefaultOperationNames = defaultOperationNames;
             Definition.AllowedOperations = allowedOperations;

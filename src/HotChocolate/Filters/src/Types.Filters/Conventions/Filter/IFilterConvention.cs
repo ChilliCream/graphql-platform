@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Filters.Conventions
     public interface IFilterConvention : IConvention
     {
         /// <summary>
-        /// Get the argument name definined for
+        /// Get the argument name defined for
         /// <see cref="FilterObjectFieldDescriptorExtensions.UseFiltering"/>
         /// Can be configured over <see cref="IFilterConventionDescriptor.ArgumentName"/>
         /// </summary>
