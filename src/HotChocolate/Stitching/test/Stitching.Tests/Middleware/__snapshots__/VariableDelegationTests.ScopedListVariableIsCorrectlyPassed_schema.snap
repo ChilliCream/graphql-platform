@@ -1,4 +1,4 @@
-schema {
+﻿schema {
   query: Query
   mutation: Mutation
 }
@@ -20,6 +20,7 @@ type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "custo
 
 type Customer @source(name: "Customer", schema: "customer") {
   complexArg(arg: ComplexInputType): String
+  complexArgUnion(arg: ComplexOrSimpleInput): String
   consultant(customer: CustomerInput): Consultant
   id: ID!
   kind: CustomerKind!
@@ -132,15 +133,21 @@ input SayInput @source(name: "SayInput", schema: "customer") {
   words: [String]
 }
 
+input SimpleInputType @source(name: "SimpleInputType", schema: "customer") {
+  value: String
+}
+
 enum CustomerKind @source(name: "CustomerKind", schema: "customer") {
   STANDARD
   PREMIUM
 }
 
+inputunion ComplexOrSimpleInput @source(name: "ComplexOrSimpleInput", schema: "customer") = ComplexInputType | SimpleInputType
+
 directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
 
 "Annotates the original name of a type."
-directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE
+directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE
 
 "The `Boolean` scalar type represents `true` or `false`."
 scalar Boolean

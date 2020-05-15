@@ -870,6 +870,7 @@ namespace HotChocolate.Types
 
             ObjectValueNode literal = new ObjectValueNode(new List<ObjectFieldNode>
             {
+                new ObjectFieldNode("__typename", new StringValueNode("FooInput")),
                 new ObjectFieldNode(
                     "unionList",
                     new ListValueNode(new List<IValueNode>(){ NullValueNode.Default })),

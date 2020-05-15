@@ -71,6 +71,11 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
             if (literal is ObjectValueNode ov)
             {
                 for (var i = 0; i < ov.Fields.Count; i++)
@@ -95,11 +100,6 @@ namespace HotChocolate.Types
 
                 throw new InputObjectSerializationException(
                     TypeResources.InputUnionType_TypeNameNotSpecified);
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
             }
 
             throw new InputObjectSerializationException(

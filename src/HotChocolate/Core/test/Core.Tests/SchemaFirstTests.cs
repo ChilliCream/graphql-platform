@@ -211,7 +211,7 @@ namespace HotChocolate
         {
             public string GetFoo(IMarker bar)
             {
-                return "";
+                return "hello";
             }
         }
 

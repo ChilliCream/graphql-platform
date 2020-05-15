@@ -54,3 +54,10 @@ input SimpleInputType {
 }
 
 inputunion ComplexOrSimpleInput = ComplexInputType | SimpleInputType
+
+input ComplexInputType {
+  deeper: ComplexInputType
+  deeperArray: [ComplexInputType]
+  value: String
+  valueArray: [String]
+}

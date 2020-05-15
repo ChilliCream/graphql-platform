@@ -1,14 +1,14 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using HotChocolate.Validation.Options;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Execution
 {

@@ -1,7 +1,7 @@
 type Query {
   customer(id: ID!): Customer
   consultant(id: ID!): Consultant
-  customerOrConsultant(id: ID!): customerOrConsultant
+  customerOrConsultant(id: ID!): CustomerOrConsultant
 }
 
 type Customer {

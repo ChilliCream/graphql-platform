@@ -28,6 +28,7 @@ type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "custo
 
 type Customer @source(name: "Customer", schema: "customer") {
   complexArg(arg: ComplexInputType): String
+  complexArgUnion(arg: ComplexOrSimpleInput): String
   consultant(customer: CustomerInput): Consultant
   id: ID!
   kind: CustomerKind!
@@ -98,10 +99,16 @@ input SayInput @source(name: "SayInput", schema: "customer") {
   words: [String]
 }
 
+input SimpleInputType @source(name: "SimpleInputType", schema: "customer") {
+  value: String
+}
+
 enum CustomerKind @source(name: "CustomerKind", schema: "customer") {
   STANDARD
   PREMIUM
 }
+
+inputunion ComplexOrSimpleInput @source(name: "ComplexOrSimpleInput", schema: "customer") = ComplexInputType | SimpleInputType
 
 interface Contract @source(name: "Contract", schema: "contract") {
   customerId: ID!

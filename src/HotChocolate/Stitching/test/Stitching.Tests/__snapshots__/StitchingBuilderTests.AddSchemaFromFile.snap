@@ -1,4 +1,4 @@
-type Query {
+﻿type Query {
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   customer(id: ID!): Customer @delegate(schema: "customer")
@@ -25,6 +25,7 @@ type Customer @source(name: "Customer", schema: "customer") {
   name: String!
   consultant: Consultant
   complexArg(arg: ComplexInputType): String
+  complexArgUnion(arg: ComplexOrSimpleInput): String
 }
 
 type Consultant @source(name: "Consultant", schema: "customer") {
@@ -40,3 +41,9 @@ input ComplexInputType @source(name: "ComplexInputType", schema: "customer") {
   value: String
   valueArray: [String]
 }
+
+input SimpleInputType @source(name: "SimpleInputType", schema: "customer") {
+  value: String
+}
+
+inputunion ComplexOrSimpleInput @source(name: "ComplexOrSimpleInput", schema: "customer") = ComplexInputType | SimpleInputType

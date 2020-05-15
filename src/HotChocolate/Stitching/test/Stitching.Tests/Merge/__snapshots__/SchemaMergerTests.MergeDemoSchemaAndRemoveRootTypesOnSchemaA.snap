@@ -1,7 +1,7 @@
 ﻿type Query {
   customer(id: ID!): Customer @delegate(schema: "B")
   consultant(id: ID!): Consultant @delegate(schema: "B")
-  customerOrConsultant(id: ID!): customerOrConsultant @delegate(schema: "B")
+  customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "B")
 }
 
 interface Contract @source(name: "Contract", schema: "A") {

@@ -29,6 +29,12 @@ namespace HotChocolate.Stitching.Schemas.Customers
                     a.Type<ComplexInputType>())
                 .Type<StringType>()
                 .Resolver("");
+
+            descriptor.Field("complexArgUnion")
+                .Argument("arg", a =>
+                    a.Type<ComplexOrSimpleInputType>())
+                .Type<StringType>()
+                .Resolver("");
         }
     }
 }

@@ -59,6 +59,18 @@ union AnnotatedUnionTwo @onUnion = A | B
 
 union UndefinedUnion = 
 
+inputunion FeedInput = Story | Article | Advert
+
+inputunion AnnotatedUnionInput @onUnion = A | B
+
+inputunion AnnotatedUnionTwoInput @onUnion = A | B
+
+inputunion UndefinedUnionInput = 
+
+
+
+
+
 
 
 
