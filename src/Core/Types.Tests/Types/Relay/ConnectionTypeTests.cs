@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -163,6 +165,16 @@ namespace HotChocolate.Types.Relay
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void InferSchemaWithAttributesCorrectly()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType
         {
@@ -217,7 +229,7 @@ namespace HotChocolate.Types.Relay
                 IObjectTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Interface<FooInterfaceType>();
-                descriptor.Field(t => t.Bar).UsePaging<StringType>();
+                descriptor.Field<ICollection<string>>(t => t.Bar).UsePaging<StringType>();
             }
         }
 
@@ -237,6 +249,50 @@ namespace HotChocolate.Types.Relay
         {
             public ICollection<string> Bar { get; } =
                 new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+        }
+
+        public class QueryWithPagingAttribute
+        {
+            [UsePaging]
+            public ICollection<string> Collection { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+
+            [UsePaging]
+            public IQueryable<string> Queryable { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable();
+
+            public IEnumerable<string> Enumerable { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable();
+
+            public ConnectionOfString ConnectionOfString { get; } =
+                new ConnectionOfString();
+
+            [UsePaging]
+            public IConnectionResolver<IEnumerable<string>> IConnectionOfString { get; } =
+                new ConnectionOfString();
+        }
+
+        public class ConnectionOfString : IConnectionResolver<IEnumerable<string>>
+        {
+            public ValueTask<IConnection> ResolveAsync(
+                IMiddlewareContext context,
+                IEnumerable<string> source,
+                ConnectionArguments arguments = default,
+                bool withTotalCount = false,
+                CancellationToken cancellationToken = default)
+            {
+                return new ValueTask<IConnection>(new Connection<string>(
+                    new PageInfo(false, false, "foo", "foo"),
+                    new List<Edge<string>> { new Edge<string>("abc", "foo") }));
+            }
+
+            public ValueTask<IConnection> ResolveAsync(
+                IMiddlewareContext context,
+                object source,
+                ConnectionArguments arguments = default,
+                bool withTotalCount = false,
+                CancellationToken cancellationToken = default) =>
+                ResolveAsync(context, source, arguments, withTotalCount, cancellationToken);
         }
     }
 }

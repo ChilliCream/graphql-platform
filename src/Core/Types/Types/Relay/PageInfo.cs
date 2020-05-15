@@ -7,7 +7,7 @@
             bool hasPreviousPage,
             string startCursor,
             string endCursor,
-            long? totalCount)
+            long? totalCount = null)
         {
             HasNextPage = hasNextPage;
             HasPreviousPage = hasPreviousPage;
