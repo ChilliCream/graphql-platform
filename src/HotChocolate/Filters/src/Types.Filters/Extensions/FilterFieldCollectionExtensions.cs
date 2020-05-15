@@ -17,10 +17,12 @@ namespace HotChocolate.Types.Filters.Extensions
             {
                 throw new ArgumentNullException(nameof(fields));
             }
+
             if (propertyInfo == null)
             {
                 throw new ArgumentNullException(nameof(propertyInfo));
             }
+
             if (valueFactory == null)
             {
                 throw new ArgumentNullException(nameof(valueFactory));
@@ -41,9 +43,9 @@ namespace HotChocolate.Types.Filters.Extensions
                 }
             }
 
-            T newDescirptor = valueFactory.Invoke();
-            fields.Add(newDescirptor);
-            return newDescirptor;
+            T newDescriptor = valueFactory.Invoke();
+            fields.Add(newDescriptor);
+            return newDescriptor;
         }
 
         public static T GetOrAddOperation<T>(

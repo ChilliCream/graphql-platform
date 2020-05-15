@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
-                    () => CreateOperation(operationKind));
+                () => CreateOperation(operationKind));
         }
 
         public IObjectFilterOperationDescriptor AllowObject()

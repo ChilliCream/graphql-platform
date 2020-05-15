@@ -50,6 +50,5 @@ namespace HotChocolate.Types.Filters
         /// Allow object filter operations.
         /// </summary>
         IObjectFilterOperationDescriptor AllowObject();
-
     }
 }

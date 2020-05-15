@@ -20,17 +20,17 @@ namespace HotChocolate.Types.Filters.Expressions
             IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
 
             return ErrorBuilder.New()
-                 .SetMessage(
-                     "The provided value for filter `{0}` of type {1} is invalid. " +
-                     "Null values are not supported.",
-                     context.Operations.Peek().Name,
-                     filterType.Visualize())
-                 .AddLocation(value)
-                 .SetExtension("expectedType", new NonNullType(type).Visualize())
-                 .SetExtension("filterKind", operation.FilterKind)
-                 .SetExtension("operationKind", operation.Kind)
-                 .SetExtension("filterType", filterType.Visualize())
-                 .Build();
+                .SetMessage(
+                    "The provided value for filter `{0}` of type {1} is invalid. " +
+                    "Null values are not supported.",
+                    context.Operations.Peek().Name,
+                    filterType.Visualize())
+                .AddLocation(value)
+                .SetExtension("expectedType", new NonNullType(type).Visualize())
+                .SetExtension("filterKind", operation.FilterKind)
+                .SetExtension("operationKind", operation.Kind)
+                .SetExtension("filterType", filterType.Visualize())
+                .Build();
         }
     }
 }

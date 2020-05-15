@@ -42,8 +42,7 @@ namespace HotChocolate.Types.Filters
             return true;
         }
 
-        private static Expression GetExpressionBodyWithNullCheck(this QueryableClosure closure)
-            => FilterExpressionBuilder.NotNullAndAlso(
-                closure.Parameter, closure.Level.Peek().Peek());
+        private static Expression GetExpressionBodyWithNullCheck(this QueryableClosure closure) => 
+            FilterExpressionBuilder.NotNullAndAlso(closure.Parameter, closure.Level.Peek().Peek());
     }
 }

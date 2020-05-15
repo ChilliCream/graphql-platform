@@ -1,10 +1,8 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IObjectFilterFieldDescriptor<TObject>
-        : IFluent
+    public interface IObjectFilterFieldDescriptor<TObject> : IFluent
     {
         /// <summary>
         /// Defines the name of the field to filter.
@@ -52,7 +50,6 @@ namespace HotChocolate.Types.Filters
         IObjectFilterOperationDescriptor<TObject> AllowObject(
             Action<IFilterInputTypeDescriptor<TObject>> descriptor);
 
-
         /// <summary>
         /// Allow object filter operations.
         /// </summary>
@@ -63,6 +60,5 @@ namespace HotChocolate.Types.Filters
         /// Allow object filter operations.
         /// </summary>
         IObjectFilterOperationDescriptor<TObject> AllowObject();
-
     }
 }

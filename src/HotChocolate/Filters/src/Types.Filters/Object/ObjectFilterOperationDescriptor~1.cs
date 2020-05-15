@@ -20,8 +20,7 @@ namespace HotChocolate.Types.Filters
             IFilterConvention filterConventions)
             : base(context, descriptor, name, type, operation, filterConventions)
         {
-            _descriptor = descriptor
-                ?? throw new ArgumentNullException(nameof(descriptor));
+            _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
         }
 
         /// <inheritdoc/>

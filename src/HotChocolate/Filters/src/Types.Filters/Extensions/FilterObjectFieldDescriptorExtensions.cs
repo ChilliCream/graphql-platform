@@ -14,8 +14,7 @@ namespace HotChocolate.Types
     public static class FilterObjectFieldDescriptorExtensions
     {
         private const string _whereArgumentNamePlaceholder = "placeholder";
-        private static readonly Type _middlewareDefinition =
-            typeof(FilterMiddleware<>);
+        private static readonly Type _middlewareDefinition = typeof(FilterMiddleware<>);
 
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor)

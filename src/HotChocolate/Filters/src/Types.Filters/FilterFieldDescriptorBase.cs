@@ -21,10 +21,8 @@ namespace HotChocolate.Types.Filters
             : base(context)
         {
             FilterConvention = filterConventions;
-
             Definition.Kind = filterKind;
-            Definition.Property = property
-                ?? throw new ArgumentNullException(nameof(property));
+            Definition.Property = property ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
                 property, MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
@@ -32,7 +30,6 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
-
             AllowedOperations = FilterConvention.GetAllowedOperations(Definition);
         }
 
