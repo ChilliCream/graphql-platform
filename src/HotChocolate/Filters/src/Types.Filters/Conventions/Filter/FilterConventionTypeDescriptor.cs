@@ -19,9 +19,9 @@ namespace HotChocolate.Types.Filters.Conventions
         internal protected FilterConventionTypeDefinition Definition { get; } =
             new FilterConventionTypeDefinition();
 
-        private readonly ConcurrentDictionary<FilterOperationKind, 
+        private readonly Dictionary<FilterOperationKind, 
             FilterConventionOperationDescriptor> _operations =
-            new ConcurrentDictionary<FilterOperationKind, FilterConventionOperationDescriptor>();
+            new Dictionary<FilterOperationKind, FilterConventionOperationDescriptor>();
 
         public IFilterConventionDescriptor And()
         {

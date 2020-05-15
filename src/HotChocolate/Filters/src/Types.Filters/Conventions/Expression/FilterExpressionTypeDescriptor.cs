@@ -17,9 +17,9 @@ namespace HotChocolate.Types.Filters.Conventions
             Definition.FilterKind = kind;
         }
 
-        private readonly ConcurrentDictionary<FilterOperationKind,
+        private readonly Dictionary<FilterOperationKind,
             FilterExpressionOperationDescriptor> _operations = 
-            new ConcurrentDictionary<FilterOperationKind, FilterExpressionOperationDescriptor>();
+            new Dictionary<FilterOperationKind, FilterExpressionOperationDescriptor>();
 
         protected FilterExpressionTypeDefinition Definition { get; } =
             new FilterExpressionTypeDefinition();
