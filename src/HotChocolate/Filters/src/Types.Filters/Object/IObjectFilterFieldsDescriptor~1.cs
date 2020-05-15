@@ -1,11 +1,19 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IObjectFilterFieldDescriptor<TObject>
-        : IFluent
+    public interface IObjectFilterFieldDescriptor<TObject> : IFluent
     {
+        /// <summary>
+        /// Defines the name of the field to filter.
+        /// </summary>
+        /// <param name="value">The name of the field.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="value"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
+        IObjectFilterFieldDescriptor<TObject> Name(NameString value);
+
         /// <summary>
         /// Defines the filter binding behavior.
         ///
@@ -42,7 +50,6 @@ namespace HotChocolate.Types.Filters
         IObjectFilterOperationDescriptor<TObject> AllowObject(
             Action<IFilterInputTypeDescriptor<TObject>> descriptor);
 
-
         /// <summary>
         /// Allow object filter operations.
         /// </summary>
@@ -53,6 +60,5 @@ namespace HotChocolate.Types.Filters
         /// Allow object filter operations.
         /// </summary>
         IObjectFilterOperationDescriptor<TObject> AllowObject();
-
     }
 }

@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -12,10 +13,7 @@ namespace HotChocolate.Types.Filters
     {
         protected QueryableFilterVisitor()
         {
-
         }
-
-        #region Object Value
 
         protected override ISyntaxVisitorAction Enter(
             ObjectValueNode node,
@@ -42,10 +40,6 @@ namespace HotChocolate.Types.Filters
             return Continue;
         }
 
-        #endregion
-
-        #region Object Field
-
         protected override ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
             QueryableFilterVisitorContext context)
@@ -54,29 +48,25 @@ namespace HotChocolate.Types.Filters
 
             if (context.Operations.Peek() is FilterOperationField field)
             {
-                for (var i = context.FieldHandlers.Count - 1; i >= 0; i--)
+                if (context.TryGetEnterHandler(
+                    field.Operation.FilterKind, out FilterFieldEnter? enter) &&
+                        enter(
+                            field,
+                            node,
+                            context,
+                            out ISyntaxVisitorAction? action))
                 {
-                    if (context.FieldHandlers[i].Enter(
-                        field,
-                        node,
-                        context,
-                        out ISyntaxVisitorAction action))
-                    {
-                        return action;
-                    }
+                    return action;
                 }
-                for (var i = context.OperationHandlers.Count - 1; i >= 0; i--)
+
+                if (context.TryGetOperation(
+                    field.Operation.FilterKind,
+                    field.Operation.Kind,
+                    out FilterOperationHandler? handler) &&
+                    handler(field.Operation, field.Type,
+                        node.Value, context, out Expression? expression))
                 {
-                    if (context.OperationHandlers[i].TryHandle(
-                        field.Operation,
-                        field.Type,
-                        node.Value,
-                        context,
-                        out Expression? expression))
-                    {
-                        context.GetLevel().Enqueue(expression);
-                        break;
-                    }
+                    context.GetLevel().Enqueue(expression);
                 }
                 return SkipAndLeave;
             }
@@ -89,12 +79,10 @@ namespace HotChocolate.Types.Filters
         {
             if (context.Operations.Peek() is FilterOperationField field)
             {
-                for (var i = context.FieldHandlers.Count - 1; i >= 0; i--)
+                if (context.TryGetLeaveHandler(
+                    field.Operation.FilterKind, out FilterFieldLeave? leave))
                 {
-                    context.FieldHandlers[i].Leave(
-                        field,
-                        node,
-                        context);
+                    leave(field, node, context);
                 }
             }
             return base.Leave(node, context);
@@ -120,10 +108,6 @@ namespace HotChocolate.Types.Filters
             combined = null;
             return false;
         }
-
-        #endregion
-
-        #region List
 
         protected override ISyntaxVisitorAction Enter(
             ListValueNode node,
@@ -156,8 +140,6 @@ namespace HotChocolate.Types.Filters
 
             return Continue;
         }
-
-        #endregion
 
         public static QueryableFilterVisitor Default = new QueryableFilterVisitor();
     }

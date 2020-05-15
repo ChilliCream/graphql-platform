@@ -11,7 +11,6 @@ namespace HotChocolate.Types.Filters
     public class FilterInputTypeTest
         : TypeTestBase
     {
-
         [Fact]
         public void FilterInputType_DynamicName()
         {
@@ -28,11 +27,9 @@ namespace HotChocolate.Types.Filters
                  )
              );
 
-
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void FilterInputType_DynamicName_NonGeneric()
@@ -49,7 +46,6 @@ namespace HotChocolate.Types.Filters
                      )
                  )
              );
-
 
             // assert
             schema.ToString().MatchSnapshot();

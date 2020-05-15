@@ -21,12 +21,7 @@ namespace HotChocolate.Types.Descriptors
             bool? isTypeNullable, bool? isElementTypeNullable)
             : base(context, isTypeNullable, isElementTypeNullable)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public Type Type { get; }
@@ -171,7 +166,6 @@ namespace HotChocolate.Types.Descriptors
 
             if (typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
             {
-
                 return new ClrTypeReference(
                     schemaType,
                     SchemaTypeReference.InferTypeContext(schemaType));
