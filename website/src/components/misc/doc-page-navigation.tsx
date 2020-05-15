@@ -272,7 +272,7 @@ const ProductSwitcher = styled.div`
   @media only screen and (min-width: 1050px) {
     position: relative;
     flex-wrap: initial;
-    overflow: initial;
+    overflow-y: initial;
   }
 `;
 

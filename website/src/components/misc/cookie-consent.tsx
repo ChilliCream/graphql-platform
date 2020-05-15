@@ -58,7 +58,7 @@ export const CookieConsent: FunctionComponent = () => {
 const Dialog = styled.div<{ show: boolean }>`
   position: fixed;
   bottom: 0;
-  z-index: 20;
+  z-index: 30;
   display: ${({ show }) => (show ? "initial" : "none")};
   width: 100vw;
   background-color: #ffb806;
