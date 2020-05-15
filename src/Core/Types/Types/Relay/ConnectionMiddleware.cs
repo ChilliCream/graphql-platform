@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay
 {
-    public class ConnectionMiddleware<T>
+    public class ConnectionMiddleware<TSource>
     {
         private readonly FieldDelegate _next;
 
@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Relay
 
         public async Task InvokeAsync(
             IMiddlewareContext context,
-            IConnectionResolver<T> connectionResolver)
+            IConnectionResolver<TSource> connectionResolver)
         {
             await _next(context).ConfigureAwait(false);
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Relay
                     .ConfigureAwait(false);
             }
 
-            if (connectionResolver is { } && context.Result is T item)
+            if (connectionResolver is { } && context.Result is TSource item)
             {
                 context.Result = await connectionResolver.ResolveAsync(
                     context,
