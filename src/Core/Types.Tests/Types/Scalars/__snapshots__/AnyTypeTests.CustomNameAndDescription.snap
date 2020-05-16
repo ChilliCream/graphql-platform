@@ -1,0 +1,10 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(input: _Any): _Any
+}
+
+"Any"
+scalar _Any
