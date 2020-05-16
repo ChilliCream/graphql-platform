@@ -1,0 +1,43 @@
+﻿{
+  "Data": {
+    "enumerable": {
+      "edges": [
+        {
+          "cursor": "MA==",
+          "node": "a"
+        },
+        {
+          "cursor": "MQ==",
+          "node": "b"
+        },
+        {
+          "cursor": "Mg==",
+          "node": "c"
+        },
+        {
+          "cursor": "Mw==",
+          "node": "d"
+        },
+        {
+          "cursor": "NA==",
+          "node": "e"
+        },
+        {
+          "cursor": "NQ==",
+          "node": "f"
+        },
+        {
+          "cursor": "Ng==",
+          "node": "g"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false
+      },
+      "totalCount": 7
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

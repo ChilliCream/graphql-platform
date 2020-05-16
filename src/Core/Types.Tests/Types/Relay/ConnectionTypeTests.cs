@@ -241,6 +241,39 @@ namespace HotChocolate.Types.Relay
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task UsePagingAttribute_InMemory_Enumerable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                enumerable {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType
         {
