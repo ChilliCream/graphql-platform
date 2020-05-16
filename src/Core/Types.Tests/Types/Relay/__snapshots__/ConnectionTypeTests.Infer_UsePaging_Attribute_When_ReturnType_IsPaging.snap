@@ -1,0 +1,19 @@
+﻿{
+  "Data": {
+    "connectionOfString": {
+      "edges": [
+        {
+          "cursor": "foo",
+          "node": "abc"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false
+      },
+      "totalCount": 1
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

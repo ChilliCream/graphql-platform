@@ -50,6 +50,14 @@ namespace HotChocolate.Types.Descriptors
         DefinitionBase IDefinitionFactory.CreateDefinition() =>
             CreateDefinition();
 
+        void IDescriptorExtension<T>.ModifyDefinition(Action<T> modify) =>
+            ModifyDefinition(modify);
+
+        private void ModifyDefinition(Action<T> modify)
+        {
+            modify(Definition);
+        }
+
         void IDescriptorExtension<T>.OnBeforeCreate(Action<T> configure) =>
             OnBeforeCreate(configure);
 

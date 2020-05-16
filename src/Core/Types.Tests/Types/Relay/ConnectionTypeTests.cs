@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -274,6 +276,80 @@ namespace HotChocolate.Types.Relay
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Infer_UsePaging_Attribute_When_ReturnType_IsPaging()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                connectionOfString {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task UsePagingAttribute_With_Injected_ConnectionResolver()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                enumerable {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }";
+
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IConnectionResolver<IEnumerable<string>>, ConnectionOfString>()
+                .BuildServiceProvider();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(query)
+                .SetServices(services)
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType
         {
@@ -382,7 +458,7 @@ namespace HotChocolate.Types.Relay
                 CancellationToken cancellationToken = default)
             {
                 return new ValueTask<IConnection>(new Connection<string>(
-                    new PageInfo(false, false, "foo", "foo"),
+                    new PageInfo(false, false, "foo", "foo", 1),
                     new List<Edge<string>> { new Edge<string>("abc", "foo") }));
             }
 
@@ -392,7 +468,12 @@ namespace HotChocolate.Types.Relay
                 ConnectionArguments arguments = default,
                 bool withTotalCount = false,
                 CancellationToken cancellationToken = default) =>
-                ResolveAsync(context, source, arguments, withTotalCount, cancellationToken);
+                ResolveAsync(
+                    context, 
+                    (IEnumerable<string>)source, 
+                    arguments, 
+                    withTotalCount, 
+                    cancellationToken);
         }
     }
 }

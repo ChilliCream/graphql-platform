@@ -9,6 +9,8 @@ namespace HotChocolate.Types
     public interface IDescriptorExtension<T>
         where T : DefinitionBase
     {
+        void ModifyDefinition(Action<T> modify);
+
         void OnBeforeCreate(Action<T> configure);
 
         INamedDependencyDescriptor OnBeforeNaming(

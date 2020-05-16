@@ -32,9 +32,9 @@ namespace HotChocolate.Types.Relay
 
             if (context.Result is IConnectionResolver localConnectionResolver)
             {
-                context.Result = localConnectionResolver.ResolveAsync(
+                context.Result = await localConnectionResolver.ResolveAsync(
                     context,
-                    context.Result,
+                    default, // in this case we do not have a result
                     arguments,
                     true, // where should we store this?
                     context.RequestAborted)
