@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Benchmarks
             {
                 return obj;
             }
-            throw new InvalidOperationException(Resources.ObjectBuffer_IsEmpty);
+            throw new InvalidOperationException("Resources.ObjectBuffer_IsEmpty");
         }
 
         public bool TryPop([NotNullWhen(true)] out T? obj)
@@ -52,7 +52,7 @@ namespace HotChocolate.Execution.Benchmarks
             {
                 return obj;
             }
-            throw new InvalidOperationException(Resources.ObjectBuffer_IsEmpty);
+            throw new InvalidOperationException("Resources.ObjectBuffer_IsEmpty");
         }
 
         public bool TryPopSafe([NotNullWhen(true)] out T? obj)
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution.Benchmarks
         {
             if (!TryPush(obj))
             {
-                throw new InvalidOperationException(Resources.ObjectBuffer_IsUsedUp);
+                throw new InvalidOperationException("Resources.ObjectBuffer_IsUsedUp");
             }
         }
 
@@ -86,7 +86,7 @@ namespace HotChocolate.Execution.Benchmarks
         {
             if (!TryPushSafe(obj))
             {
-                throw new InvalidOperationException(Resources.ObjectBuffer_IsUsedUp);
+                throw new InvalidOperationException("Resources.ObjectBuffer_IsUsedUp");
             }
         }
 

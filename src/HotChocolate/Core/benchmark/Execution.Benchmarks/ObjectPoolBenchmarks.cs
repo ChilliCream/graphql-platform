@@ -1,5 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
@@ -51,6 +51,26 @@ namespace HotChocolate.Execution.Benchmarks
                 }
             }
         }
+
+        [Benchmark]
+        public void BufferedObjectPoolNoLockInterlocked_GET_AND_RETURN_MANY()
+        {
+            var pool = new TestPool<ObjectBufferNoLockInterlocked<PoolElement>>(_poolSize);
+            var buffer = new BufferedObjectPoolNoLockInterlocked<PoolElement>(pool);
+            var stack = new Stack<PoolElement>();
+            for (int i = 0; i < Size; i++)
+            {
+                stack.Push(buffer.Get());
+                if (stack.Count > 30)
+                {
+                    while (stack.TryPop(out PoolElement element))
+                    {
+                        buffer.Return(element);
+                    }
+                }
+            }
+        }
+
         [Benchmark]
         public void ObjectPool_GET_AND_RETURN_MANY()
         {
@@ -87,6 +107,7 @@ namespace HotChocolate.Execution.Benchmarks
                 }
             }
         }
+
         [Benchmark]
         public void BufferedObjectPoolFullLock_GET_AND_RETURN_MANY()
         {
@@ -105,7 +126,6 @@ namespace HotChocolate.Execution.Benchmarks
                 }
             }
         }
-
 
         public void BufferedObjectPoolBasicLock_GET_AND_RETURN()
         {
@@ -139,6 +159,7 @@ namespace HotChocolate.Execution.Benchmarks
                 buffer.Get();
             }
         }
+
         public void BufferedObjectPoolNoLock_GET_AND_RETURN()
         {
             var pool = new TestPool<ObjectBuffer<PoolElement>>(_poolSize);
@@ -149,7 +170,6 @@ namespace HotChocolate.Execution.Benchmarks
                 buffer.Return(buffer.Get());
             }
         }
-
 
         public void ObjectPool_GET()
         {

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using HotChocolate.Execution.Properties;
@@ -7,41 +6,40 @@ using HotChocolate.Execution.Properties;
 #nullable enable
 namespace HotChocolate.Execution.Benchmarks
 {
-    internal sealed class ObjectBufferCStack<T> : IObjectBuffer where T : class, new()
+    internal sealed class ObjectBufferNoLockInterlocked<T> : IObjectBuffer where T : class, new()
     {
         private readonly object _objLock = new object();
-        private readonly ConcurrentStack<T> _stack = new ConcurrentStack<T>();
+        private readonly T?[] _buffer;
         private readonly int _capacity;
         private readonly Action<T> _clean;
         private int _index;
 
-        public ObjectBufferCStack() : this(8, x => { })
+        public ObjectBufferNoLockInterlocked() : this(8, x => { })
         {
         }
 
-        public ObjectBufferCStack(int capacity, Action<T> clean)
+        public ObjectBufferNoLockInterlocked(int capacity, Action<T> clean)
         {
             _capacity = capacity;
+            _buffer = new T[capacity];
             _clean = clean;
         }
 
-        public T PopSafe()
+        public T Pop()
         {
-            if (TryPopSafe(out T? obj))
+            if (TryPop(out T? obj))
             {
                 return obj;
             }
             throw new InvalidOperationException("Resources.ObjectBuffer_IsEmpty");
         }
 
-        public bool TryPopSafe([NotNullWhen(true)] out T? obj)
+        public bool TryPop([NotNullWhen(true)] out T? obj)
         {
             if (_index < _capacity)
             {
-                if (!_stack.TryPeek(out obj))
-                {
-                    obj = new T();
-                }
+                obj = _buffer[_index] ?? new T();
+                _buffer[_index] = null;
                 Interlocked.Increment(ref _index);
                 return true;
             }
@@ -50,21 +48,21 @@ namespace HotChocolate.Execution.Benchmarks
             return false;
         }
 
-        public void PushSafe(T obj)
+
+        public void Push(T obj)
         {
-            if (!TryPushSafe(obj))
+            if (!TryPush(obj))
             {
                 throw new InvalidOperationException("Resources.ObjectBuffer_IsUsedUp");
             }
         }
 
-        public bool TryPushSafe(T obj)
+        public bool TryPush(T obj)
         {
             if (0 < _index)
             {
                 _clean(obj);
-                _stack.Push(obj);
-                Interlocked.Decrement(ref _index);
+                _buffer[Interlocked.Decrement(ref _index)] = obj;
                 return true;
             }
             return false;
