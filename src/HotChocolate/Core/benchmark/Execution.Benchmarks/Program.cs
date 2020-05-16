@@ -4,7 +4,10 @@ namespace HotChocolate.Execution.Benchmarks
 {
     class Program
     {
-        static void Main(string[] args) =>
+        static void Main(string[] args)
+        {
             BenchmarkRunner.Run<ObjectPoolBenchmarks>();
+            BenchmarkRunner.Run<ObjectPoolBenchmarksGetAndReturn>();
+        }
     }
 }
