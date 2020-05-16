@@ -175,6 +175,72 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public async Task UsePagingAttribute_InMemory_Collection()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                collection {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task UsePagingAttribute_InMemory_Queryable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                queryable {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType
         {
