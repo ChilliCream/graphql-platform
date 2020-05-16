@@ -261,6 +261,7 @@ namespace HotChocolate.Types.Relay
             public IQueryable<string> Queryable { get; } =
                 new List<string> { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable();
 
+            [UsePaging]
             public IEnumerable<string> Enumerable { get; } =
                 new List<string> { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable();
 

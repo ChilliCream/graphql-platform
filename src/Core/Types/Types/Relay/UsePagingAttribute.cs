@@ -50,12 +50,37 @@ namespace HotChocolate.Types.Relay
             }
         }
 
+        internal void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            Type resultType)
+        {
+            var typeReference = new ClrTypeReference(resultType, TypeContext.Output);
+            Type schemaType = GetSchemaType(context, typeReference);
+
+            if (descriptor is IObjectFieldDescriptor ofd)
+            {
+                _off.MakeGenericMethod(schemaType).Invoke(null, new[] { ofd });
+            }
+            else if (descriptor is IInterfaceFieldDescriptor ifd)
+            {
+                _iff.MakeGenericMethod(schemaType).Invoke(null, new[] { ifd });
+            }
+        }
+
         private Type GetSchemaType(
             IDescriptorContext context,
             MemberInfo member)
         {
-            Type? type = SchemaType;
             ITypeReference returnType = context.Inspector.GetReturnType(member, TypeContext.Output);
+            return GetSchemaType(context, returnType);
+        }
+
+        private Type GetSchemaType(
+            IDescriptorContext context,
+            ITypeReference returnType)
+        {
+            Type? type = SchemaType;
 
             if (type is null &&
                 returnType is IClrTypeReference clr &&

@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
 {
@@ -46,7 +47,7 @@ namespace HotChocolate.Types.Relay
                     MemberInfo member = defintion.ResolverMember ?? defintion.Member;
                     Type resultType = defintion.Resolver is { } && defintion.ResultType is { }
                         ? defintion.ResultType
-                        : GetResultType(member);
+                        : member.GetReturnType(true) ?? typeof(object);
                     resultType = UnwrapType(resultType);
 
                     FieldMiddleware middleware = CreateMiddleware(resultType, entityType);
@@ -93,21 +94,6 @@ namespace HotChocolate.Types.Relay
         {
             Type middlewareType = _middleware.MakeGenericType(sourceType, entityType);
             return FieldClassMiddlewareFactory.Create(middlewareType);
-        }
-
-        private static Type GetResultType(MemberInfo member)
-        {
-            if (member is PropertyInfo p)
-            {
-                return p.PropertyType;
-            }
-
-            if (member is MethodInfo m)
-            {
-                return m.ReturnType;
-            }
-
-            throw new NotSupportedException();
         }
 
         internal static Type UnwrapType(Type resultType)

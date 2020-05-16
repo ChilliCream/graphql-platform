@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -60,8 +61,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters().ToDictionary(
-                    t => new NameString(t.Name));
+                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
                 Definition.ResultType = m.ReturnType;
             }
             else if (member is PropertyInfo p)
@@ -83,6 +83,20 @@ namespace HotChocolate.Types.Descriptors
                     Context,
                     this,
                     Definition.Member);
+            }
+
+            Type resultType = definition.ResultType;
+            if (resultType == typeof(object))
+            {
+                MemberInfo member = definition.ResolverMember ?? definition.Member;
+                resultType = member.GetReturnType(true) ?? typeof(object);
+            }
+
+            if (typeof(IConnectionResolver).IsAssignableFrom(resultType) &&
+                !definition.IsPagingEnabled)
+            {
+                var paging = new UsePagingAttribute();
+                paging.TryConfigure(Context, this, resultType);
             }
 
             base.OnCreateDefinition(definition);
@@ -207,7 +221,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.SetMoreSpecificType(resultType, TypeContext.Output);
 
                 Type resultTypeDef = resultType.GetGenericTypeDefinition();
-                Type clrResultType = resultType.IsGenericType 
+                Type clrResultType = resultType.IsGenericType
                     && resultTypeDef == typeof(NativeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
@@ -215,6 +229,10 @@ namespace HotChocolate.Types.Descriptors
                 if (!BaseTypes.IsSchemaType(clrResultType))
                 {
                     Definition.ResultType = clrResultType;
+                }
+                else
+                {
+                    Definition.ResultType = typeof(object);
                 }
             }
             return this;
@@ -238,7 +256,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.ResolverType = typeof(TResolver);
                 Definition.ResolverMember = member;
                 Definition.Resolver = null;
-                Definition.ResultType = resultType;
+                Definition.ResultType = member.GetReturnType(true) ?? typeof(object);
                 return this;
             }
 
@@ -255,12 +273,12 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+            if (propertyOrMethod is PropertyInfo p || propertyOrMethod is MethodInfo m)
             {
                 Definition.ResolverType = propertyOrMethod.DeclaringType;
                 Definition.ResolverMember = propertyOrMethod;
                 Definition.Resolver = null;
-                Definition.ResultType = propertyOrMethod.GetReturnType();
+                Definition.ResultType = propertyOrMethod.GetReturnType(true) ?? typeof(object);
             }
 
             throw new ArgumentException(
