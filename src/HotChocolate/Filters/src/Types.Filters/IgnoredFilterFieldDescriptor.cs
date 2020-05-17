@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -10,14 +10,12 @@ namespace HotChocolate.Types.Filters
     {
         public IgnoredFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property)
-            : base(context, property)
+            PropertyInfo property,
+            IFilterConvention filterConvention)
+            : base(FilterKind.Ignored, context, property, filterConvention)
         {
             Definition.Ignore = true;
         }
-
-        protected override ISet<FilterOperationKind> AllowedOperations { get; } =
-            new HashSet<FilterOperationKind>();
 
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind)

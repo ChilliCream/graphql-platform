@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 using HotChocolate.Utilities;
 using Xunit;
@@ -14,12 +15,14 @@ namespace HotChocolate.Types.Filters
         private readonly Expression<Func<Foo, string>> _property;
         private readonly PropertyInfo _propertyInfo;
         private readonly IDescriptorContext _descriptorContext;
+        private readonly IFilterConvention _filterConvention;
 
         public FilterFieldCollectionExtensionTest()
         {
             _property = x => x.Bar;
             _propertyInfo = (PropertyInfo)_property.ExtractMember();
             _descriptorContext = DescriptorContext.Create();
+            _filterConvention = new FilterConvention();
         }
 
         [Fact]
@@ -27,7 +30,8 @@ namespace HotChocolate.Types.Filters
         {
             //arrange
             Func<StringFilterFieldDescriptor> factory =
-                () => new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
+                () => new StringFilterFieldDescriptor(
+                    _descriptorContext, _propertyInfo, _filterConvention);
 
             //act
             //assert
@@ -38,13 +42,13 @@ namespace HotChocolate.Types.Filters
             Assert.Equal("fields", assertNullException.ParamName);
         }
 
-
         [Fact]
         public void GetOrAddDescriptor_Argument_PropertyInfo()
         {
             //arrange
             Func<StringFilterFieldDescriptor> factory =
-                () => new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
+                () => new StringFilterFieldDescriptor(
+                    _descriptorContext, _propertyInfo, _filterConvention);
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
 
             //act
@@ -53,7 +57,6 @@ namespace HotChocolate.Types.Filters
                 Assert.Throws<ArgumentNullException>(() => list.GetOrAddDescriptor(null, factory));
             Assert.Equal("propertyInfo", assertNullException.ParamName);
         }
-
 
         [Fact]
         public void GetOrAddDescriptor_Argument_Factory()
@@ -76,7 +79,9 @@ namespace HotChocolate.Types.Filters
         {
             //arrange 
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
-            var descriptor = new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
+            var descriptor = new StringFilterFieldDescriptor(
+                _descriptorContext, _propertyInfo, _filterConvention);
+
             Func<StringFilterFieldDescriptor> valueFactory = () => descriptor;
 
             //act
@@ -95,9 +100,11 @@ namespace HotChocolate.Types.Filters
             //arrange 
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
             var descriptorShouldNotBeRemoved =
-                new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
+                new StringFilterFieldDescriptor(
+                    _descriptorContext, _propertyInfo, _filterConvention);
             var newDescriptorShouldNotHaveAnyEffect =
-                new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
+                new StringFilterFieldDescriptor(
+                    _descriptorContext, _propertyInfo, _filterConvention);
             Func<StringFilterFieldDescriptor> valueFactory =
                 () => newDescriptorShouldNotHaveAnyEffect;
             list.Add(descriptorShouldNotBeRemoved);
@@ -119,9 +126,11 @@ namespace HotChocolate.Types.Filters
             //arrange 
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
             var descriptorToRemove =
-                new IgnoredFilterFieldDescriptor(_descriptorContext, _propertyInfo);
+                new IgnoredFilterFieldDescriptor(
+                    _descriptorContext, _propertyInfo, _filterConvention);
             var descriptorToAdd =
-                new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
+                new StringFilterFieldDescriptor(
+                    _descriptorContext, _propertyInfo, _filterConvention);
             Func<StringFilterFieldDescriptor> valueFactory = () => descriptorToAdd;
 
             list.Add(descriptorToRemove);
@@ -136,7 +145,6 @@ namespace HotChocolate.Types.Filters
             Assert.Same(descriptorToAdd, result);
             Assert.NotSame(descriptorToRemove, result);
         }
-
 
         [Fact]
         public void GetOrAddOperation_Argument_Fields()
@@ -153,7 +161,6 @@ namespace HotChocolate.Types.Filters
                         null, FilterOperationKind.Equals, factory));
             Assert.Equal("fields", assertNullException.ParamName);
         }
-
 
         [Fact]
         public void GetOrAddOperation_Argument_Factory()
@@ -216,7 +223,6 @@ namespace HotChocolate.Types.Filters
             Assert.NotSame(newDescriptorShouldNotHaveAnyEffect, result);
         }
 
-
         [Fact]
         public void GetOrAddOperation_Throws_ExceptionIfExistingDescriptorIsOfDifferentType()
         {
@@ -238,24 +244,24 @@ namespace HotChocolate.Types.Filters
                 list.GetOrAddOperation(FilterOperationKind.Equals, valueFactory));
         }
 
-
-
         private BooleanFilterOperationDescriptor CreateOperation(
            FilterOperationKind operationKind)
         {
             var descirptor = new BooleanFilterFieldDescriptor(
-                _descriptorContext, _propertyInfo);
+                _descriptorContext, _propertyInfo, _filterConvention);
             var typeReference = new ClrTypeReference(typeof(Foo), TypeContext.Input);
             var definition = new FilterOperationDefintion()
             {
                 Name = "Foo",
                 Type = typeReference,
-                Operation = new FilterOperation(typeof(string), operationKind, _propertyInfo),
+                Operation = new FilterOperation(typeof(string),
+                    FilterKind.Boolean, operationKind, _propertyInfo),
                 Property = _propertyInfo
             };
 
             var operation = new FilterOperation(
                 typeof(bool),
+                FilterKind.Boolean,
                 operationKind,
                 definition.Property);
 
@@ -264,26 +270,28 @@ namespace HotChocolate.Types.Filters
                 descirptor,
                 "Foo",
                 typeReference,
-                operation);
+                operation,
+                _filterConvention);
         }
-
 
         private ComparableFilterOperationDescriptor CreateComparableOperation(
            FilterOperationKind operationKind)
         {
             var descirptor = new ComparableFilterFieldDescriptor(
-                _descriptorContext, _propertyInfo);
+                _descriptorContext, _propertyInfo, _filterConvention);
             var typeReference = new ClrTypeReference(typeof(Foo), TypeContext.Input);
             var definition = new FilterOperationDefintion()
             {
                 Name = "Foo",
                 Type = typeReference,
-                Operation = new FilterOperation(typeof(string), operationKind, _propertyInfo),
+                Operation = new FilterOperation(typeof(string),
+                    FilterKind.Boolean, operationKind, _propertyInfo),
                 Property = _propertyInfo
             };
 
             var operation = new FilterOperation(
                 typeof(bool),
+                FilterKind.Boolean,
                 operationKind,
                 definition.Property);
 
@@ -292,13 +300,13 @@ namespace HotChocolate.Types.Filters
                 descirptor,
                 "Foo",
                 typeReference,
-                operation);
+                operation,
+                _filterConvention);
         }
 
         private class Foo
         {
             public string Bar { get; set; }
         }
-
     }
 }
