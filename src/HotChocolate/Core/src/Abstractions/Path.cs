@@ -30,7 +30,7 @@ namespace HotChocolate
         /// <summary>
         /// Gets the parent path segment.
         /// </summary>
-        public Path Parent { get; }
+        public Path? Parent { get; }
 
         /// <summary>
         /// Gets the name of this path segment.
@@ -80,7 +80,7 @@ namespace HotChocolate
         /// <c>true</c> if the current <see cref="Path"/> is equal to the
         /// <paramref name="other">other path</paramref> parameter; otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(Path other)
+        public bool Equals(Path? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -113,7 +113,7 @@ namespace HotChocolate
         /// <returns>
         /// true if the specified object  is equal to the current object; otherwise, false.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(obj, null))
             {
@@ -161,7 +161,7 @@ namespace HotChocolate
         public IReadOnlyList<object> ToList()
         {
             var stack = new List<object>();
-            Path current = this;
+            Path? current = this;
 
             while (current != null)
             {

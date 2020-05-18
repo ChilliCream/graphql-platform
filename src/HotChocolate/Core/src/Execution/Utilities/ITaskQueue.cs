@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Utilities
     internal interface ITaskQueue
     {
         /// <summary>
-        /// This event is rasied when a task is enqueued
+        /// This event is raised when a task is enqueued
         /// </summary>
         event EventHandler TaskEnqueued;
 
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Utilities
         /// Try to dequeue a element from the queue
         /// </summary>
         /// <param name="task">
-        /// The dequed task. Is not null when the method returns<c>true</c>
+        /// The dequeued task. Is not null when the method returns<c>true</c>
         /// </param>
         /// <returns>Return <c>true</c> if there was an element to dequeue</returns>
         bool TryDequeue([NotNullWhen(true)] out ResolverTask? task);
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Utilities
             IImmutableDictionary<string, object?> scopedContextData);
 
         /// <summary>
-        /// Clears the queue and returnes all the <see cref="ResolverTask"/> instances to the pool.
+        /// Clears the queue and returns all the <see cref="ResolverTask"/> instances to the pool.
         /// </summary>
         void Clear();
     }

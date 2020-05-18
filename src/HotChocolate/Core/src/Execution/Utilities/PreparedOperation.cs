@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Utilities
             Name = definition.Name?.Value;
             Document = document;
             Definition = definition;
-            SelectionSet = selectionSets[definition.SelectionSet];
+            RootSelectionSet = selectionSets[definition.SelectionSet];
             RootType = rootType;
             Type = definition.Operation;
             _selectionSets = selectionSets;
@@ -37,12 +37,15 @@ namespace HotChocolate.Execution.Utilities
 
         public OperationDefinitionNode Definition { get; }
 
-        public IPreparedSelectionSet SelectionSet { get; }
+        public IPreparedSelectionSet RootSelectionSet { get; }
 
         public ObjectType RootType { get; }
 
         public OperationType Type { get; }
 
+        public IPreparedSelectionList GetRootSelections() => 
+            RootSelectionSet.GetSelections(RootType);
+            
         public IPreparedSelectionList GetSelections(
             SelectionSetNode selectionSet,
             ObjectType typeContext)
@@ -56,7 +59,7 @@ namespace HotChocolate.Execution.Utilities
 
         public string Print()
         {
-            var operation = Definition.WithSelectionSet(Visit(SelectionSet));
+            var operation = Definition.WithSelectionSet(Visit(RootSelectionSet));
             var document = new DocumentNode(new[] { operation });
             return document.ToString();
         }
