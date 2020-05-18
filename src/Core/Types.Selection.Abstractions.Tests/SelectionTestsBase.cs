@@ -1094,7 +1094,7 @@ namespace HotChocolate.Types.Selections
 
             // act
             var result = executor.Execute("{ foos { totalCount pageInfo {startCursor}}}")
-                    as IReadOnlyQueryResult;
+                as IReadOnlyQueryResult;
 
             // assert
             Assert.NotNull(result);
