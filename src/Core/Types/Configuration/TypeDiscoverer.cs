@@ -66,6 +66,7 @@ namespace HotChocolate.Configuration
                 catch (SchemaException ex)
                 {
                     _errors.AddRange(ex.Errors);
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -73,6 +74,7 @@ namespace HotChocolate.Configuration
                         .SetMessage(ex.Message)
                         .SetException(ex)
                         .Build());
+                    break;
                 }
             }
             while (resolved && tries < max);

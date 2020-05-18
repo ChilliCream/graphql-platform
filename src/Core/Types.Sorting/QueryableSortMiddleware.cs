@@ -41,15 +41,6 @@ namespace HotChocolate.Types.Sorting
                 source = e.AsQueryable();
             }
 
-            if (context.Result is PageableData<T> p)
-            {
-                source = p.Source;
-            }
-            else
-            {
-                p = null;
-            }
-
             if (source != null
                 && context.Field
                     .Arguments[SortObjectFieldDescriptorExtensions.OrderByArgumentName]
@@ -62,9 +53,7 @@ namespace HotChocolate.Types.Sorting
                 sortArgument.Accept(visitor);
 
                 source = visitor.Sort(source);
-                context.Result = p is null
-                    ? (object)source
-                    : new PageableData<T>(source, p.Properties);
+                context.Result = source;
             }
         }
     }

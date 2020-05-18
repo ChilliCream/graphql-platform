@@ -1,12 +1,13 @@
 ﻿namespace HotChocolate.Types.Relay
 {
-    public class PageInfo
-        : IPageInfo
+    public readonly struct PageInfo : IPageInfo
     {
         public PageInfo(
-            bool hasNextPage, bool hasPreviousPage,
-            string startCursor, string endCursor,
-            long? totalCount)
+            bool hasNextPage,
+            bool hasPreviousPage,
+            string startCursor,
+            string endCursor,
+            long? totalCount = null)
         {
             HasNextPage = hasNextPage;
             HasPreviousPage = hasPreviousPage;

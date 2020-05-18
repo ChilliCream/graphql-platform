@@ -120,8 +120,7 @@ namespace HotChocolate.Execution
                 return parent;
             }
 
-            if (_executionContext.Converter
-                .TryConvert<object, T>(SourceObject, out parent))
+            if (_executionContext.Converter.TryConvert<object, T>(SourceObject, out parent))
             {
                 return parent;
             }

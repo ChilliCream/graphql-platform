@@ -17,8 +17,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected DescriptorBase(IDescriptorContext context)
         {
-            Context = context
-                ?? throw new ArgumentNullException(nameof(context));
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         protected internal IDescriptorContext Context { get; }
