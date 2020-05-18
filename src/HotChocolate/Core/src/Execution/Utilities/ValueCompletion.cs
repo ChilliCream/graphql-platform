@@ -278,25 +278,13 @@ namespace HotChocolate.Execution.Utilities
         {
             ObjectType objectType = ResolveObjectType(middlewareContext, fieldType, result);
             SelectionSetNode selectionSet = middlewareContext.FieldSelection.SelectionSet!;
-            IReadOnlyList<IPreparedSelection> selections =
-                operationContext.CollectFields(selectionSet, objectType);
-            ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
-            int responseIndex = 0;
-
-            for (int i = 0; i < selections.Count; i++)
-            {
-                IPreparedSelection selection = selections[i];
-                if (selection.IsVisible(operationContext.Variables))
-                {
-                    operationContext.Execution.Tasks.Enqueue(
-                        selection,
-                        responseIndex++,
-                        resultMap,
-                        result,
-                        middlewareContext.Path.Append(selection.ResponseName),
-                        middlewareContext.ScopedContextData);
-                }
-            }
+            IPreparedSelectionList selections = operationContext.CollectFields(
+                selectionSet, objectType);
+            
+            ResultMap resultMap = selections.EnqueueResolverTasks(
+                operationContext, 
+                n => middlewareContext.Path.Append(n), 
+                middlewareContext.ScopedContextData);
 
             return resultMap;
         }
