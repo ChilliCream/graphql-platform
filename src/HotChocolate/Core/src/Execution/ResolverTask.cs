@@ -19,38 +19,33 @@ namespace HotChocolate.Execution
 
         public void BeginExecute()
         {
-            _operationContext.Execution.RunningTasks.Enqueue(this);
+            _operationContext.Execution.TaskStats.TaskStarted();
             _task = ExecuteAsync();
-        }
-
-        public async ValueTask EndExecuteAsync()
-        {
-            try
-            {
-                await _task.ConfigureAwait(false);
-            }
-            catch
-            {
-                // ignore any issues here
-            }
         }
 
         private async ValueTask ExecuteAsync()
         {
-            bool errors = true;
-
-            if (TryCoerceArguments())
+            try
             {
-                await ExecuteResolverPipelineAsync().ConfigureAwait(false);
-                errors = false;
-            }
+                bool errors = true;
 
-            if (_context.RequestAborted.IsCancellationRequested)
+                if (TryCoerceArguments())
+                {
+                    await ExecuteResolverPipelineAsync().ConfigureAwait(false);
+                    errors = false;
+                }
+
+                if (_context.RequestAborted.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                CompleteValue(withErrors: errors);
+            }
+            finally
             {
-                return;
+                _operationContext.Execution.TaskStats.TaskCompleted();
             }
-
-            CompleteValue(withErrors: errors);
         }
 
         private bool TryCoerceArguments()
