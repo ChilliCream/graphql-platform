@@ -17,14 +17,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             _dataLoaderWithKey = typeof(DataLoaderResolverContextExtensions)
                 .GetTypeInfo()
                 .GetDeclaredMethod(
-                    "DataLoader",
+                    nameof(DataLoaderResolverContextExtensions.DataLoader),
                     typeof(IResolverContext),
                     typeof(string));
 
             _dataLoader = typeof(DataLoaderResolverContextExtensions)
                 .GetTypeInfo()
                 .GetDeclaredMethod(
-                    "DataLoader",
+                    nameof(DataLoaderResolverContextExtensions.DataLoader),
                     typeof(IResolverContext));
         }
 

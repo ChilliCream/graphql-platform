@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Execution.Utilities;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
@@ -19,7 +20,9 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the tasks that need to be completed.
         /// </summary>
-        ICompletionQueue Completion { get; }
+        ICompletionQueue RunningTasks { get; }
+
+        ObjectPool<ResolverTask> TaskPool { get; }
 
         /// <summary>
         /// Gets the batch dispatcher.
