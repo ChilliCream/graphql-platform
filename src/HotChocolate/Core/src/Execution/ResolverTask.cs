@@ -23,18 +23,6 @@ namespace HotChocolate.Execution
             _task = ExecuteAsync();
         }
 
-        public async ValueTask EndExecuteAsync()
-        {
-            try
-            {
-                await _task.ConfigureAwait(false);
-            }
-            catch
-            {
-                // ignore any issues here
-            }
-        }
-
         private async ValueTask ExecuteAsync()
         {
             try

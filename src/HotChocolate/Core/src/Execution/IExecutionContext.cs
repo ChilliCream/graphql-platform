@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
         IBatchDispatcher BatchDispatcher { get; }
 
         /// <summary>
-        /// wait for => executionContext.Tasks.Count > 0
+        /// wait for => TaskStats.Enqueued > 0
         /// || executionContext.BatchDispatcher.HasTasks
         /// || IsCompleted
         /// || cancellationToken.IsCancellationRequested
