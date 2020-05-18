@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -9,30 +8,37 @@ namespace HotChocolate.Execution.Utilities
     /// <inheritdoc/>
     internal class TaskQueue : ITaskQueue
     {
-        private readonly BufferedObjectPool<ResolverTask> _resolverTaskPool;
+        private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly IOperationContext _operationContext;
+        private readonly ITaskStatistics _stats;
         private readonly ConcurrentQueue<ResolverTask> _queue =
             new ConcurrentQueue<ResolverTask>();
 
-        public event EventHandler? TaskEnqueued;
-
         internal TaskQueue(
             IOperationContext operationContext,
-            ObjectPool<ObjectBuffer<ResolverTask>> resolverTaskPool)
+            ObjectPool<ResolverTask> resolverTaskPool)
         {
-            _resolverTaskPool = new BufferedObjectPool<ResolverTask>(resolverTaskPool);
             _operationContext = operationContext;
+            _resolverTaskPool = resolverTaskPool;
+            _stats = operationContext.Execution.TaskStats;
         }
 
         /// <inheritdoc/>
-        public int Count { get => _queue.Count; }
+        public int Count => _queue.Count;
 
         /// <inheritdoc/>
-        public bool IsEmpty { get => _queue.IsEmpty; }
+        public bool IsEmpty => _queue.IsEmpty;
 
         /// <inheritdoc/>
-        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task) =>
-            _queue.TryDequeue(out task);
+        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task)
+        {
+            if (_queue.TryDequeue(out task))
+            {
+                _stats.TaskDequeued();
+                return true;
+            }
+            return false;
+        }
 
         /// <inheritdoc/>
         public void Enqueue(
@@ -56,13 +62,18 @@ namespace HotChocolate.Execution.Utilities
 
             _queue.Enqueue(resolverTask);
 
-            TaskEnqueued?.Invoke(this, EventArgs.Empty);
+            _stats.TaskEnqueued();
         }
 
         public void Clear()
         {
+#if NETSTANDARD2_0
+            while (_queue.TryDequeue(out _))
+            {
+            }
+#else
             _queue.Clear();
-            _resolverTaskPool.Clear();
+#endif
         }
     }
 }

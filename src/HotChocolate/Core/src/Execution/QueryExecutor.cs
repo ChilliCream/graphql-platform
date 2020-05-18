@@ -1,77 +1,28 @@
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Utilities;
 
-namespace HotChocolate.Execution.Utilities
+namespace HotChocolate.Execution
 {
     internal sealed class QueryExecutor : IOperationExecutor
     {
-        public Task<IExecutionResult> ExecuteAsync(
-            IOperationContext executionContext,
+        public async Task<IExecutionResult> ExecuteAsync(
+            IOperationContext operationContext,
             CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
-        }
+            var scopedContext = ImmutableDictionary<string, object?>.Empty;
+            IPreparedSelectionList rootSelections = operationContext.Operation.GetRootSelections();
+            ResultMap resultMap = rootSelections.EnqueueResolverTasks(
+                operationContext, n => Path.New(n), scopedContext);
 
-        private async Task ExecuteResolversAsync(
-            IExecutionContext executionContext,
-            CancellationToken cancellationToken)
-        {
-            BeginCompletion(executionContext, cancellationToken);
+            await ResolverExecutionHelper.ExecuteResolversAsync(
+                operationContext.Execution,
+                cancellationToken)
+                .ConfigureAwait(false);
 
-            while (!cancellationToken.IsCancellationRequested && !executionContext.IsCompleted)
-            {
-                while (!cancellationToken.IsCancellationRequested &&
-                    executionContext.Tasks.TryDequeue(out ResolverTask? task))
-                {
-                    task.BeginExecute();
-                }
-
-                await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
-
-                while (!cancellationToken.IsCancellationRequested &&
-                    executionContext.Tasks.IsEmpty &&
-                    executionContext.BatchDispatcher.HasTasks)
-                {
-                    executionContext.BatchDispatcher.Dispatch();
-                    await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // ensure non-null propagation
-        }
-
-        /// <summary>
-        /// Completes running resolver tasks and returns task to the bool.
-        /// </summary>
-        private void BeginCompletion(
-            IExecutionContext executionContext,
-            CancellationToken cancellationToken)
-        {
-            Task.Factory.StartNew(
-                async () =>
-                {
-                    while (!cancellationToken.IsCancellationRequested &&
-                        !executionContext.IsCompleted)
-                    {
-                        await executionContext.WaitForCompletion(cancellationToken)
-                            .ConfigureAwait(false);
-
-                        while (!cancellationToken.IsCancellationRequested &&
-                            executionContext.Completion.TryDequeue(out ResolverTask? task))
-                        {
-                            if (!task.IsCompleted)
-                            {
-                                await task.EndExecuteAsync().ConfigureAwait(false);
-                            }
-                            // todo : return task to pool
-                        }
-                    }
-                },
-                cancellationToken,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
+            operationContext.Result.SetData(resultMap);
+            return operationContext.Result.BuildResult();
         }
     }
 }

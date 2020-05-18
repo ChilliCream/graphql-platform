@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Execution.Utilities;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
@@ -16,10 +17,9 @@ namespace HotChocolate.Execution
         /// </summary>
         ITaskQueue Tasks { get; }
 
-        /// <summary>
-        /// Gets the tasks that need to be completed.
-        /// </summary>
-        ICompletionQueue Completion { get; }
+        ObjectPool<ResolverTask> TaskPool { get; }
+
+        ITaskStatistics TaskStats { get; }
 
         /// <summary>
         /// Gets the batch dispatcher.
@@ -27,19 +27,16 @@ namespace HotChocolate.Execution
         IBatchDispatcher BatchDispatcher { get; }
 
         /// <summary>
-        /// wait for => executionContext.Tasks.Count > 0
+        /// wait for => TaskStats.Enqueued > 0
         /// || executionContext.BatchDispatcher.HasTasks
         /// || IsCompleted
         /// || cancellationToken.IsCancellationRequested
         /// </summary>
         Task WaitForEngine(CancellationToken cancellationToken);
 
-        Task WaitForCompletion(CancellationToken cancellationToken);
-
         /// <summary>
-        /// operationContext.Tasks.IsEmpty
-        /// && operationContext.BatchScheduler.IsEmpty
-        /// && AllTasksDone
+        /// operationContext.TaskStats.Enqueued == 0
+        /// && operationContext.TaskStats.Running == 0
         /// </summary>
         bool IsCompleted { get; }
     }
