@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
+using HotChocolate.Types.Spatial.Properties;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -10,8 +11,7 @@ namespace HotChocolate.Types.Spatial
         /// https://tools.ietf.org/html/rfc7946#section-3.1.1
         public GeoJSONPositionScalar() : base("Position")
         {
-            // TODO : move to resources.
-            Description = "A position is an array of numbers. There MUST be two or more elements.";
+            Description = Resources.GeoJSONPositionScalar_Description;
         }
 
         public override bool IsInstanceOfType(IValueNode literal)
