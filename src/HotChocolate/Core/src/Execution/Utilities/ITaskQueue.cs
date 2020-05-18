@@ -10,11 +10,6 @@ namespace HotChocolate.Execution.Utilities
     internal interface ITaskQueue
     {
         /// <summary>
-        /// This event is raised when a task is enqueued
-        /// </summary>
-        event EventHandler TaskEnqueued;
-
-        /// <summary>
         /// The number of <see cref="ResolverTask"/> in the queue
         /// </summary>
         int Count { get; }

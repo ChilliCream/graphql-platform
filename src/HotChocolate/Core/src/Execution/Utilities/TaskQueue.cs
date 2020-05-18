@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -11,17 +10,17 @@ namespace HotChocolate.Execution.Utilities
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly IOperationContext _operationContext;
+        private readonly ITaskStatistics _stats;
         private readonly ConcurrentQueue<ResolverTask> _queue =
             new ConcurrentQueue<ResolverTask>();
-
-        public event EventHandler? TaskEnqueued;
 
         internal TaskQueue(
             IOperationContext operationContext,
             ObjectPool<ResolverTask> resolverTaskPool)
         {
-            _resolverTaskPool = resolverTaskPool;
             _operationContext = operationContext;
+            _resolverTaskPool = resolverTaskPool;
+            _stats = operationContext.Execution.TaskStats;
         }
 
         /// <inheritdoc/>
@@ -31,8 +30,15 @@ namespace HotChocolate.Execution.Utilities
         public bool IsEmpty => _queue.IsEmpty;
 
         /// <inheritdoc/>
-        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task) =>
-            _queue.TryDequeue(out task);
+        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task)
+        {
+            if (_queue.TryDequeue(out task))
+            {
+                _stats.TaskDequeued();
+                return true;
+            }
+            return false;
+        }
 
         /// <inheritdoc/>
         public void Enqueue(
@@ -56,18 +62,18 @@ namespace HotChocolate.Execution.Utilities
 
             _queue.Enqueue(resolverTask);
 
-            TaskEnqueued?.Invoke(this, EventArgs.Empty);
+            _stats.TaskEnqueued();
         }
 
         public void Clear()
         {
-            #if NETSTANDARD2_0
+#if NETSTANDARD2_0
             while (_queue.TryDequeue(out _))
             {
             }
-            #else
+#else
             _queue.Clear();
-            #endif
+#endif
         }
     }
 }
