@@ -94,11 +94,11 @@ export const Footer: FunctionComponent = () => {
 
 const Container = styled.footer<{ url: string }>`
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   padding: 200px 20px 60px;
+  width: 100%;
   min-height: 300px;
   background-color: #fff;
   background-image: url("${(props) => props.url}");
