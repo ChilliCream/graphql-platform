@@ -4,7 +4,7 @@ using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
 namespace HotChocolate.Execution.Benchmarks
-{ 
+{
     internal sealed class BufferedObjectPool<T> where T : class, new()
     {
         private readonly object _lockObject = new object();
@@ -17,9 +17,9 @@ namespace HotChocolate.Execution.Benchmarks
         {
             _objectPool = objectPool;
         }
- 
+
         public T Get()
-        { 
+        {
             if (!_rentedBuffers.TryPeek(out ObjectBuffer<T> buffer) ||
                 !buffer.TryPopSafe(out T? obj))
             {
