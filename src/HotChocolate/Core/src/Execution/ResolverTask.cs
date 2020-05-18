@@ -17,11 +17,15 @@ namespace HotChocolate.Execution
 
         public bool IsCompleted => _task.IsCompleted;
 
-        public void BeginExecute() => _task = ExecuteAsync();
+        public void BeginExecute()
+        {
+            _operationContext.Execution.RunningTasks.Enqueue(this);
+            _task = ExecuteAsync();
+        }
 
         public async ValueTask EndExecuteAsync()
         {
-            try 
+            try
             {
                 await _task.ConfigureAwait(false);
             }

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using GreenDonut;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Utilities
 {
     internal sealed class CompletionQueue : ICompletionQueue
     {
@@ -17,7 +18,7 @@ namespace HotChocolate.Execution
             TaskEnqueued?.Invoke(this, EventArgs.Empty);
         }
 
-        public bool TryDequeue([NotNullWhen(true)]out ResolverTask? task)
+        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task)
         {
             return _queue.TryDequeue(out task);
         }
