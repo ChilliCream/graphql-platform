@@ -17,6 +17,20 @@ namespace HotChocolate.Execution.Utilities
         string Id { get; }
 
         /// <summary>
+        /// Gets the prepared root selections for this operation.
+        /// </summary>
+        /// <param name="selectionSet">
+        /// The selection set for which the selections shall be collected.
+        /// </param>
+        /// <param name="typeContext">
+        /// The type context under which the selections shall be collected.
+        /// </param>
+        /// <returns>
+        /// Returns the prepared root selections for this operation.
+        /// </returns>
+        IPreparedSelectionList GetRootSelections();
+
+        /// <summary>
         /// Gets the prepared selections for the specified 
         /// selection set under the specified type context.
         /// </summary>
@@ -31,7 +45,7 @@ namespace HotChocolate.Execution.Utilities
         /// selection set under the specified type context.
         /// </returns>
         IPreparedSelectionList GetSelections(
-            SelectionSetNode selectionSet, 
+            SelectionSetNode selectionSet,
             ObjectType typeContext);
 
         /// <summary>

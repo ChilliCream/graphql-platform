@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Utilities
     /// <inheritdoc/>
     internal class TaskQueue : ITaskQueue
     {
-        private readonly BufferedObjectPool<ResolverTask> _resolverTaskPool;
+        private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly IOperationContext _operationContext;
         private readonly ConcurrentQueue<ResolverTask> _queue =
             new ConcurrentQueue<ResolverTask>();
@@ -18,17 +18,17 @@ namespace HotChocolate.Execution.Utilities
 
         internal TaskQueue(
             IOperationContext operationContext,
-            ObjectPool<ObjectBuffer<ResolverTask>> resolverTaskPool)
+            ObjectPool<ResolverTask> resolverTaskPool)
         {
-            _resolverTaskPool = new BufferedObjectPool<ResolverTask>(resolverTaskPool);
+            _resolverTaskPool = resolverTaskPool;
             _operationContext = operationContext;
         }
 
         /// <inheritdoc/>
-        public int Count { get => _queue.Count; }
+        public int Count => _queue.Count;
 
         /// <inheritdoc/>
-        public bool IsEmpty { get => _queue.IsEmpty; }
+        public bool IsEmpty => _queue.IsEmpty;
 
         /// <inheritdoc/>
         public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task) =>
@@ -61,8 +61,13 @@ namespace HotChocolate.Execution.Utilities
 
         public void Clear()
         {
+            #if NETSTANDARD2_0
+            while (_queue.TryDequeue(out _))
+            {
+            }
+            #else
             _queue.Clear();
-            _resolverTaskPool.Clear();
+            #endif
         }
     }
 }

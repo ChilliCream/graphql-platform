@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -5,11 +6,37 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class QueryExecutor : IOperationExecutor
     {
-        public Task<IExecutionResult> ExecuteAsync(
-            IOperationContext executionContext,
+        public async Task<IExecutionResult> ExecuteAsync(
+            IOperationContext operationContext,
             CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            var scopedContext = ImmutableDictionary<string, object?>.Empty;
+            IPreparedSelectionList rootSelections = operationContext.Operation.GetRootSelections();
+            ResultMap resultMap = operationContext.Result.RentResultMap(rootSelections.Count);
+            int responseIndex = 0;
+
+            for (int i = 0; i < rootSelections.Count; i++)
+            {
+                IPreparedSelection selection = rootSelections[i];
+                if (selection.IsVisible(operationContext.Variables))
+                {
+                    operationContext.Execution.Tasks.Enqueue(
+                        selection,
+                        responseIndex++,
+                        resultMap,
+                        operationContext.RootValue,
+                        Path.New(selection.ResponseName),
+                        scopedContext);
+                }
+            }
+
+            await ExecuteResolversAsync(
+                operationContext.Execution, 
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            operationContext.Result.SetData(resultMap);
+            return operationContext.Result.BuildResult();
         }
 
         private async Task ExecuteResolversAsync(
@@ -21,6 +48,7 @@ namespace HotChocolate.Execution.Utilities
             while (!cancellationToken.IsCancellationRequested && !executionContext.IsCompleted)
             {
                 while (!cancellationToken.IsCancellationRequested &&
+                    !executionContext.IsCompleted &&
                     executionContext.Tasks.TryDequeue(out ResolverTask? task))
                 {
                     task.BeginExecute();
@@ -29,6 +57,7 @@ namespace HotChocolate.Execution.Utilities
                 await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
 
                 while (!cancellationToken.IsCancellationRequested &&
+                    !executionContext.IsCompleted &&
                     executionContext.Tasks.IsEmpty &&
                     executionContext.BatchDispatcher.HasTasks)
                 {
@@ -36,10 +65,6 @@ namespace HotChocolate.Execution.Utilities
                     await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // ensure non-null propagation
         }
 
         /// <summary>
@@ -59,13 +84,13 @@ namespace HotChocolate.Execution.Utilities
                             .ConfigureAwait(false);
 
                         while (!cancellationToken.IsCancellationRequested &&
-                            executionContext.Completion.TryDequeue(out ResolverTask? task))
+                            executionContext.RunningTasks.TryDequeue(out ResolverTask? task))
                         {
                             if (!task.IsCompleted)
                             {
                                 await task.EndExecuteAsync().ConfigureAwait(false);
                             }
-                            // todo : return task to pool
+                            executionContext.TaskPool.Return(task);
                         }
                     }
                 },
