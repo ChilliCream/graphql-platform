@@ -171,7 +171,7 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        // todo: we should return the rented list. 
+                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -203,7 +203,7 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        // todo: we should return the rented list. 
+                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -236,7 +236,7 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        // todo: we should return the rented list. 
+                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -289,7 +289,7 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        // todo: we should return the rented list. 
+                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -321,7 +321,7 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        // todo: we should return the rented list. 
+                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -354,7 +354,7 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        // todo: we should return the rented list. 
+                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
