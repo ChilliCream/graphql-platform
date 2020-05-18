@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Utilities
 {
     internal interface IResultHelper
     {
@@ -10,12 +10,6 @@ namespace HotChocolate.Execution
         ResultMap RentResultMap(int count);
 
         ResultList RentResultList();
-
-        void Return(ResultMapList rentedObject);
-
-        void Return(ResultMap rentedObject);
-
-        void Return(ResultList rentedObject);
 
         void SetData(IResultMap resultMap);
 
@@ -31,7 +25,7 @@ namespace HotChocolate.Execution
         /// <param name="error">The error that shall be added.</param>
         void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
 
-        void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent);
+        void AddNonNullViolation(FieldNode selection, IPathSegment path, IResultMap parent);
 
         IReadOnlyQueryResult BuildResult();
     }

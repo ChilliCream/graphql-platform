@@ -19,6 +19,11 @@ namespace HotChocolate.Execution
             return this;
         }
 
+        public IQueryResultBuilder SetData(IResult result)
+        {
+            throw new NotImplementedException();
+        }
+
         public IQueryResultBuilder AddError(IError error)
         {
             if (error is null)

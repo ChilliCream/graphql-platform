@@ -6,36 +6,36 @@ namespace HotChocolate.Execution
 {
     internal sealed class ResultPool
     {
-        private readonly ObjectPool<ObjectBuffer<ResultMap>> _resultMapPool;
-        private readonly ObjectPool<ObjectBuffer<ResultMapList>> _resultMapListPool;
-        private readonly ObjectPool<ObjectBuffer<ResultList>> _resultListPool;
+        private readonly ObjectPool<ResultObjectBuffer<ResultMap>> _resultMapPool;
+        private readonly ObjectPool<ResultObjectBuffer<ResultMapList>> _resultMapListPool;
+        private readonly ObjectPool<ResultObjectBuffer<ResultList>> _resultListPool;
 
         public ResultPool(
-            ObjectPool<ObjectBuffer<ResultMap>> resultMapPool,
-            ObjectPool<ObjectBuffer<ResultMapList>> resultMapListPool,
-            ObjectPool<ObjectBuffer<ResultList>> resultListPool)
+            ObjectPool<ResultObjectBuffer<ResultMap>> resultMapPool,
+            ObjectPool<ResultObjectBuffer<ResultMapList>> resultMapListPool,
+            ObjectPool<ResultObjectBuffer<ResultList>> resultListPool)
         {
             _resultMapPool = resultMapPool;
             _resultMapListPool = resultMapListPool;
             _resultListPool = resultListPool;
         }
 
-        public ObjectBuffer<ResultMap> GetResultMap()
+        public ResultObjectBuffer<ResultMap> GetResultMap()
         {
             return _resultMapPool.Get();
         }
 
-        public ObjectBuffer<ResultMapList> GetResultMapList()
+        public ResultObjectBuffer<ResultMapList> GetResultMapList()
         {
             return _resultMapListPool.Get();
         }
 
-        public ObjectBuffer<ResultList> GetResultList()
+        public ResultObjectBuffer<ResultList> GetResultList()
         {
             return _resultListPool.Get();
         }
 
-        public void Return(IList<ObjectBuffer<ResultMap>> buffers)
+        public void Return(IList<ResultObjectBuffer<ResultMap>> buffers)
         {
             for (int i = 0; i < buffers.Count; i++)
             {
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public void Return(IList<ObjectBuffer<ResultMapList>> buffers)
+        public void Return(IList<ResultObjectBuffer<ResultMapList>> buffers)
         {
             for (int i = 0; i < buffers.Count; i++)
             {
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public void Return(IList<ObjectBuffer<ResultList>> buffers)
+        public void Return(IList<ResultObjectBuffer<ResultList>> buffers)
         {
             for (int i = 0; i < buffers.Count; i++)
             {

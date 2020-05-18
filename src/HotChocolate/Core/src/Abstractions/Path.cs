@@ -219,4 +219,71 @@ namespace HotChocolate
             return segment;
         }
     }
+
+    public interface IPathSegment
+    {
+        /// <summary>
+        /// Gets the parent path segment.
+        /// </summary>
+        IPathSegment? Parent { get; }
+
+        /// <summary>
+        /// Gets the count of segments this path contains.
+        /// </summary>
+        int Depth { get; }
+
+        /// <summary>
+        /// Appends an element.
+        /// </summary>
+        /// <param name="index">The index of the element.</param>
+        /// <returns>Returns a new path segment pointing to an element in a list.</returns>
+        IPathSegment Append(int index);
+
+        /// <summary>
+        /// Appends a new path segment.
+        /// </summary>
+        /// <param name="name">The name of the path segment.</param>
+        /// <returns>Returns a new path segment.</returns>
+        IPathSegment Append(NameString name);
+
+        /// <summary>
+        /// Creates a new list representing the current <see cref="Path"/>.
+        /// </summary>
+        /// <returns>
+        /// Returns a new list representing the current <see cref="Path"/>.
+        /// </returns>
+        IReadOnlyList<object> ToList();
+
+        /// <summary>
+        /// Generates a string that represents the current path.
+        /// </summary>
+        /// <returns>
+        /// Returns a string that represents the current path.
+        /// </returns>
+        string Print();
+    }
+
+    public sealed class NamePathSegment : NewPath
+    {
+        internal NamePathSegment(IPathSegment? parent, NameString name)
+        {
+            Parent = parent;
+            Depth = parent is null ? 0 : parent.Depth + 1;
+            Name = name;
+        }
+
+        /// <inheritdoc />
+        public override IPathSegment? Parent { get; }
+
+        /// <inheritdoc />
+        public override int Depth { get; }
+
+        public NameString Name { get; }
+
+        public override string Print()
+        {
+            string parent = Parent is null ? string.Empty : Parent.Print();
+            return $"{parent}/{Name}";
+        }
+    }
 }
