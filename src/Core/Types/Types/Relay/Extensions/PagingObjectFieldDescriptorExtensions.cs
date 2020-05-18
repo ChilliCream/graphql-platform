@@ -29,10 +29,6 @@ namespace HotChocolate.Types.Relay
             FieldMiddleware placeholder = next => context => Task.CompletedTask;
 
             descriptor
-                .Extend()
-                .ModifyDefinition(d => d.IsPagingEnabled = true); 
-
-            descriptor
                 .AddPagingArguments()
                 .Type<ConnectionWithCountType<TSchemaType>>()
                 .Use(placeholder)

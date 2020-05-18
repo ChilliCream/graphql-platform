@@ -30,17 +30,7 @@ namespace HotChocolate.Types.Relay
                 context.Argument<string>("after"),
                 context.Argument<string>("before"));
 
-            if (context.Result is IConnectionResolver localConnectionResolver)
-            {
-                context.Result = await localConnectionResolver.ResolveAsync(
-                    context,
-                    default, // in this case we do not have a result
-                    arguments,
-                    true, // where should we store this?
-                    context.RequestAborted)
-                    .ConfigureAwait(false);
-            }
-            else if (connectionResolver is { } && context.Result is TSource source)
+            if (connectionResolver is { } && context.Result is TSource source)
             {
                 context.Result = await connectionResolver.ResolveAsync(
                     context,

@@ -352,12 +352,7 @@ namespace HotChocolate.Utilities
             {
                 current = GetInnerType(current);
             }
-
-            if (IsConnectionResolver(current))
-            {
-                current = GetInnerType(current);
-            }
-
+            
             return current;
         }
 
@@ -404,11 +399,6 @@ namespace HotChocolate.Utilities
             if (ImplementsListInterface(type))
             {
                 return GetInnerListType(type);
-            }
-
-            if (IsConnectionResolver(type))
-            {
-                return GetConnectionResolverSourceType(type);
             }
 
             return null;
@@ -464,53 +454,6 @@ namespace HotChocolate.Utilities
                 }
             }
             return false;
-        }
-
-        public static bool IsConnectionResolver(Type type)
-        {
-            if (IsConnectionResolverInterface(type))
-            {
-                return true;
-            }
-
-            if (type.IsClass)
-            {
-                foreach (Type interfaceType in type.GetInterfaces())
-                {
-                    if (IsConnectionResolverInterface(interfaceType))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public static bool IsConnectionResolverInterface(Type type)
-        {
-            return type.IsInterface && 
-                type.IsGenericType &&
-                type.GetGenericTypeDefinition() == typeof(IConnectionResolver<>);
-        }
-
-        internal static Type GetConnectionResolverSourceType(Type type)
-        {
-            if (IsConnectionResolverInterface(type))
-            {
-                return type.GetGenericArguments()[0];
-            }
-
-
-            foreach (Type interfaceType in type.GetInterfaces())
-            {
-                if (IsConnectionResolverInterface(interfaceType))
-                {
-                    return interfaceType.GetGenericArguments()[0];
-                }
-            }
-
-            return null;
         }
 
         public static bool IsListType(Type type)

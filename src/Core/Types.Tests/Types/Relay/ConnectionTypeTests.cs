@@ -277,7 +277,7 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
-        public async Task Infer_UsePaging_Attribute_When_ReturnType_IsPaging()
+        public async Task ConnectionType_Without_Paging_Middleware()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
@@ -440,12 +440,15 @@ namespace HotChocolate.Types.Relay
             public IEnumerable<string> Enumerable { get; } =
                 new List<string> { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable();
 
-            public ConnectionOfString ConnectionOfString { get; } =
-                new ConnectionOfString();
-
-            [UsePaging]
-            public IConnectionResolver<IEnumerable<string>> IConnectionOfString { get; } =
-                new ConnectionOfString();
+            [GraphQLType(typeof(ConnectionWithCountType<StringType>))]
+            public Connection<string> ConnectionOfString(
+                int? first = null, 
+                int? last = null, 
+                string? after = null, 
+                string? before = null) =>
+                new Connection<string>(
+                    new PageInfo(false, false, "foo", "foo", 1),
+                    new List<Edge<string>> { new Edge<string>("abc", "foo") });
         }
 
         public class ConnectionOfString : IConnectionResolver<IEnumerable<string>>

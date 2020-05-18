@@ -24,7 +24,5 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IList<FieldMiddleware> MiddlewareComponents { get; } =
             new List<FieldMiddleware>();
-
-        public bool IsPagingEnabled { get; set; }
     }
 }

@@ -16,9 +16,8 @@ type PageInfo {
 
 type QueryWithPagingAttribute {
   collection(after: String before: String first: PaginationAmount last: PaginationAmount): StringConnection
-  connectionOfString(after: String before: String first: PaginationAmount last: PaginationAmount): StringConnection
+  connectionOfString(after: String before: String first: Int last: Int): StringConnection
   enumerable(after: String before: String first: PaginationAmount last: PaginationAmount): StringConnection
-  iConnectionOfString(after: String before: String first: PaginationAmount last: PaginationAmount): StringConnection
   queryable(after: String before: String first: PaginationAmount last: PaginationAmount): StringConnection
 }
 

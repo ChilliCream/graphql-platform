@@ -85,20 +85,6 @@ namespace HotChocolate.Types.Descriptors
                     Definition.Member);
             }
 
-            Type resultType = definition.ResultType;
-            if (resultType == typeof(object))
-            {
-                MemberInfo member = definition.ResolverMember ?? definition.Member;
-                resultType = member.GetReturnType(true) ?? typeof(object);
-            }
-
-            if (typeof(IConnectionResolver).IsAssignableFrom(resultType) &&
-                !definition.IsPagingEnabled)
-            {
-                var paging = new UsePagingAttribute();
-                paging.TryConfigure(Context, this, resultType);
-            }
-
             base.OnCreateDefinition(definition);
 
             CompleteArguments(definition);

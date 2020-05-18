@@ -1106,7 +1106,7 @@ namespace HotChocolate.Types.Selections
 
             var pageInfoResult = foosResult["pageInfo"] as IDictionary<string, object>;
             Assert.NotNull(pageInfoResult);
-            Assert.Equal("eyJfX3RvdGFsQ291bnQiOjIsIl9fcG9zaXRpb24iOjB9",
+            Assert.Equal("MA==",
                 pageInfoResult["startCursor"]);
 
             Assert.NotNull(resultCtx);
