@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial
@@ -10,16 +11,24 @@ namespace HotChocolate.Types.Spatial
     {
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
+        private const string _crsFieldName = "crs";
         private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.MultiLineString;
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
+        private IInputField _crsField = default!;
 
         protected override void Configure(IInputObjectTypeDescriptor<MultiLineString> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
-            descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
-            descriptor.Field(_coordinatesFieldName).Type<ListType<ListType<GeoJSONPositionScalar>>>();
+            descriptor.Field(_typeFieldName)
+                .Type<EnumType<GeoJSONGeometryType>>();
+
+            descriptor.Field(_coordinatesFieldName)
+                .Type<ListType<ListType<GeoJSONPositionScalar>>>();
+
+            descriptor.Field(_crsFieldName)
+                .Type<IntType>();
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -36,11 +45,15 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            (int typeIndex, int coordinateIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
-                _typeFieldName,
-                _coordinatesFieldName);
+            (int typeIndex, int coordinateIndex, int crsIndex) indices =
+                ParseLiteralHelper.GetFieldIndices(
+                    obj,
+                    _typeFieldName,
+                    _coordinatesFieldName,
+                    _crsFieldName);
 
-            if (indices.typeIndex == -1) {
+            if (indices.typeIndex == -1)
+            {
                 ThrowHelper.InvalidInputObjectStructure(_geometryType);
 
                 return null;
@@ -82,7 +95,16 @@ namespace HotChocolate.Types.Spatial
                 geometries[i] = new LineString(coordinates);
             }
 
-            return new MultiLineString(geometries);
+            if (indices.crsIndex == -1)
+            {
+                return new MultiLineString(geometries);
+            }
+
+            var srid = (int)_crsField.Type.ParseLiteral(obj.Fields[indices.crsIndex].Value);
+
+            GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
+
+            return factory.CreateMultiLineString(geometries);
         }
 
         protected override void OnAfterCompleteType(
@@ -92,6 +114,7 @@ namespace HotChocolate.Types.Spatial
         {
             _coordinatesField = Fields[_coordinatesFieldName];
             _typeField = Fields[_typeFieldName];
+            _crsField = Fields[_crsFieldName];
         }
     }
 }

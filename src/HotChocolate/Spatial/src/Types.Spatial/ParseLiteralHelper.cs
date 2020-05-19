@@ -5,17 +5,19 @@ namespace HotChocolate.Types.Spatial
 {
     public static class ParseLiteralHelper
     {
-        public static (int typeIndex, int coordinateIndex) GetFieldIndices(ObjectValueNode obj,
+        public static (int typeIndex, int coordinateIndex, int crsIndex) GetFieldIndices(ObjectValueNode obj,
             string _typeFieldName,
-            string _coordinatesFieldName)
+            string _coordinatesFieldName,
+            string _crsFieldName)
         {
             var coordinateIndex = -1;
             var typeIndex = -1;
+            var crsIndex = -1;
 
             for (var i = 0; i < obj.Fields.Count; i++)
             {
-                if (coordinateIndex > -1 && typeIndex > -1) {
-                    return (typeIndex, coordinateIndex);
+                if (coordinateIndex > -1 && typeIndex > -1 && crsIndex > -1) {
+                    return (typeIndex, coordinateIndex, crsIndex);
                 }
 
                 ObjectFieldNode field = obj.Fields[i];
@@ -33,9 +35,16 @@ namespace HotChocolate.Types.Spatial
                     coordinateIndex = i;
                     continue;
                 }
+
+                if (crsIndex < 0 && string.Equals(field.Name.Value, _crsFieldName,
+                    StringComparison.InvariantCultureIgnoreCase))
+                {
+                    crsIndex = i;
+                    continue;
+                }
             }
 
-            return (typeIndex, coordinateIndex);
+            return (typeIndex, coordinateIndex, crsIndex);
         }
     }
 }

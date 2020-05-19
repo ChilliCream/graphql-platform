@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial
@@ -10,9 +11,11 @@ namespace HotChocolate.Types.Spatial
     {
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
+        private const string _crsFieldName = "crs";
         private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.Polygon;
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
+        private IInputField _crsField = default!;
 
         protected override void Configure(IInputObjectTypeDescriptor<Polygon> descriptor)
         {
@@ -20,6 +23,7 @@ namespace HotChocolate.Types.Spatial
 
             descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
             descriptor.Field(_coordinatesFieldName).Type<ListType<GeoJSONPositionScalar>>();
+            descriptor.Field(_crsFieldName).Type<IntType>();
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -36,9 +40,10 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            (int typeIndex, int coordinateIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
-                 _typeFieldName,
-                 _coordinatesFieldName);
+            (int typeIndex, int coordinateIndex, int crsIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
+                _typeFieldName,
+                _coordinatesFieldName,
+                _crsFieldName);
 
             if (indices.typeIndex == -1)
             {
@@ -67,13 +72,21 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
             var coords = new Coordinate[coordinates.Count];
             coordinates.CopyTo(coords, 0);
 
             var ring = new LinearRing(coords);
 
-            return new Polygon(ring);
+            if (indices.crsIndex == -1)
+            {
+                return new Polygon(ring);
+            }
+
+            var srid = (int)_crsField.Type.ParseLiteral(obj.Fields[indices.crsIndex].Value);
+
+            GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
+
+            return factory.CreatePolygon(ring);
         }
 
         protected override void OnAfterCompleteType(
@@ -83,6 +96,7 @@ namespace HotChocolate.Types.Spatial
         {
             _coordinatesField = Fields[_coordinatesFieldName];
             _typeField = Fields[_typeFieldName];
+            _crsField = Fields[_crsFieldName];
         }
     }
 }

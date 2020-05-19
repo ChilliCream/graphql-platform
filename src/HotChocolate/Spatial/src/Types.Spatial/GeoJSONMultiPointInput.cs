@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Spatial
@@ -10,9 +11,11 @@ namespace HotChocolate.Types.Spatial
     {
         private const string _typeFieldName = "type";
         private const string _coordinatesFieldName = "coordinates";
+        private const string _crsFieldName = "crs";
         private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.MultiPoint;
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;
+        private IInputField _crsField = default!;
 
         protected override void Configure(IInputObjectTypeDescriptor<MultiPoint> descriptor)
         {
@@ -20,6 +23,7 @@ namespace HotChocolate.Types.Spatial
 
             descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
             descriptor.Field(_coordinatesFieldName).Type<ListType<GeoJSONPositionScalar>>();
+            descriptor.Field(_crsFieldName).Type<IntType>();
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -36,9 +40,10 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            (int typeIndex, int coordinateIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
-                 _typeFieldName,
-                 _coordinatesFieldName);
+            (int typeIndex, int coordinateIndex, int crsIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
+                _typeFieldName,
+                _coordinatesFieldName,
+                _crsFieldName);
 
             if (indices.typeIndex == -1)
             {
@@ -67,7 +72,6 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            // var factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid.Value);
             var pointCount = coordinates.Count;
             var points = new Point[pointCount];
 
@@ -76,7 +80,15 @@ namespace HotChocolate.Types.Spatial
                 points[i] = new Point(coordinates[i]);
             }
 
-            return new MultiPoint(points);
+            if (indices.crsIndex == -1)
+            {
+                return new MultiPoint(points);
+            }
+
+            var srid = (int)_crsField.Type.ParseLiteral(obj.Fields[indices.crsIndex].Value);
+            GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
+
+            return factory.CreateMultiPoint(points);
         }
 
         protected override void OnAfterCompleteType(
@@ -86,6 +98,7 @@ namespace HotChocolate.Types.Spatial
         {
             _coordinatesField = Fields[_coordinatesFieldName];
             _typeField = Fields[_typeFieldName];
+            _crsField = Fields[_crsFieldName];
         }
     }
 }
