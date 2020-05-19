@@ -85,11 +85,11 @@ namespace HotChocolate.Execution
         private bool HasEngineFinished() =>
             TaskStats.Enqueued > 0 || BatchDispatcher.HasTasks || IsCompleted;
 
-        private void BatchDispatcherEventHandler(object? source, EventArgs args)
-            => SetEngineState();
+        private void BatchDispatcherEventHandler(object? source, EventArgs args) => 
+            SetEngineState();
 
-        private void TaskStatisticsEventHandler(object? source, EventArgs args)
-            => SetEngineState();
+        private void TaskStatisticsEventHandler(object? source, EventArgs args) => 
+            SetEngineState();
 
         private void ResetTaskSource()
         {
