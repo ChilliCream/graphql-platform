@@ -156,7 +156,7 @@ namespace HotChocolate.Types.Spatial.Tests
             result.MatchSnapshot();
         }
 
-        // [Fact]
+        [Fact]
         public void Schema_Tests()
         {
             // arrange

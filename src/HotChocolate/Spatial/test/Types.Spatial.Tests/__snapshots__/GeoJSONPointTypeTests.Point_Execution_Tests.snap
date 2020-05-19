@@ -3,14 +3,18 @@
 }
 
 interface GeoJSONInterface {
+  "The minimum bounding box around the geometry object"
   bbox: [Float]
-  "Type of the GeoJSON Object"
+  "The coordinate reference system integer identifier"
+  crs: Int
+  "The geometry type of the GeoJSON object"
   type: GeoJSONGeometryType!
 }
 
 type Point implements GeoJSONInterface {
   bbox: [Float!]!
   coordinates: [Position]
+  crs: Int!
   type: GeoJSONGeometryType!
 }
 
@@ -30,6 +34,9 @@ enum GeoJSONGeometryType {
 
 "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
 scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
 
 "A position is an array of numbers. There MUST be two or more elements."
 scalar Position

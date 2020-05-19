@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Types.Spatial.CRS;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -75,7 +74,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             ISchema schema = SchemaBuilder.New()
                 .BindClrType<Coordinate, GeoJSONPositionScalar>()
-                .AddType<GeoJSONLineStringTypeExtension>()
                 .AddType<GeoJSONLineStringType>()
                 .AddQueryType(d => d
                     .Name("Query")

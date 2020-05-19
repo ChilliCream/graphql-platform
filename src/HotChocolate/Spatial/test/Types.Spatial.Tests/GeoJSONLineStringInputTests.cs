@@ -148,5 +148,28 @@ namespace HotChocolate.Types.Spatial.Tests
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public void ParseLiteral_With_Input_Crs()
+        {
+            var schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
+                    .Resolver("ghi"))
+                .Create();
+
+            var type = schema.GetType<InputObjectType>("LineStringInput");
+
+            var node = new ObjectValueNode(
+                new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
+                new ObjectFieldNode("coordinates", linestring),
+                new ObjectFieldNode("crs", 26912));
+
+            object result = type.ParseLiteral(node);
+
+            Assert.Equal(26912, Assert.IsType<LineString>(result).SRID);
+        }
     }
 }
