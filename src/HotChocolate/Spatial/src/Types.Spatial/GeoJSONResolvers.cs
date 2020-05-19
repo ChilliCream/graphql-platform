@@ -20,18 +20,18 @@ namespace HotChocolate.Types.Spatial
             };
         }
 
-        public GeoJSONCoordinateReferenceSystem GetCrs([Parent] Geometry geometry)
-        {
-            return new GeoJSONCoordinateReferenceSystem
-            {
-                Type = CRSType.Name,
-                Properties = new CRSProperties {
-                    Name = "urn:ogc:def:crs:OGC::CRS84"
-                }
-            };
-        }
+        // public GeoJSONCoordinateReferenceSystem GetCrs([Parent] Geometry geometry)
+        // {
+        //     return new GeoJSONCoordinateReferenceSystem
+        //     {
+        //         Type = CRSType.Name,
+        //         Properties = new CRSProperties {
+        //             Name = "urn:ogc:def:crs:OGC::CRS84"
+        //         }
+        //     };
+        // }
 
-        public float GetSrid([Parent] Geometry geometry)
+        public int GetCrs([Parent] Geometry geometry)
         {
             if (geometry.SRID == 0) {
                 return 4326;

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types.Spatial.CRS;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -67,6 +68,27 @@ namespace HotChocolate.Types.Spatial.Tests
                    .Create();
 
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task LineString_Execution_With_CRS()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .BindClrType<Coordinate, GeoJSONPositionScalar>()
+                .AddType<GeoJSONLineStringTypeExtension>()
+                .AddType<GeoJSONLineStringType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Resolver(geom))
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ test { crs }}");
+
+            // assert
+            result.MatchSnapshot();
         }
     }
 }
