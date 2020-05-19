@@ -93,56 +93,6 @@ namespace HotChocolate.Types.Spatial
             GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
 
             return factory.CreateMultiPolygon(geometries);
-
-            /*
-            GeometryFactory? factory = null;
-
-            if (indices.crsIndex > -1)
-            {
-                var srid = (int)
-                _crsField.Type.ParseLiteral(obj.Fields[indices.crsIndex].Value);
-
-                factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
-            }
-
-            var polygonCount = parts.Count;
-            var geometries = new Polygon[polygonCount];
-
-            for (var i = 0; i < polygonCount; i++)
-            {
-                var pointCount = parts[i].Count;
-                var coordinates = new Coordinate[pointCount];
-
-                for (var j = 0; j < pointCount; j++)
-                {
-                    coordinates[j] = new Coordinate(parts[i][j]);
-                }
-
-                LinearRing? ring;
-                if (indices.crsIndex > -1 && !(factory is null))
-                {
-                    ring = factory.CreateLinearRing(coordinates);
-                }
-                else
-                {
-                    ring = new LinearRing(coordinates);
-                }
-
-                if (indices.crsIndex > -1 && !(factory is null))
-                {
-                    geometries[i] = factory.CreatePolygon(ring);
-                }
-
-                geometries[i] = new Polygon(ring);
-            }
-
-            if (indices.crsIndex > -1 && !(factory is null))
-            {
-                factory.CreateMultiPolygon(geometries);
-            }
-
-            return new MultiPolygon(geometries);
-            */
         }
 
         protected override void OnAfterCompleteType(
