@@ -7,7 +7,7 @@ using System;
 
 namespace HotChocolate.Execution
 {
-    internal class ExecutionContext : IExecutionContext
+    internal partial class ExecutionContext : IExecutionContext
     {
         private readonly TaskQueue _taskQueue;
         private readonly TaskStatistics _taskStatistics;
@@ -46,13 +46,6 @@ namespace HotChocolate.Execution
 
             cancellationToken.Register(() => waitForEngineTask.SetCanceled());
             return waitForEngineTask.Task;
-        }
-
-        public void Clear()
-        {
-            _taskQueue.Clear();
-            _taskStatistics.Clear();
-            ResetTaskSource();
         }
 
         private void SetEngineState()
