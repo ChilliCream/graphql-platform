@@ -3,53 +3,50 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public partial class BufferedObjectPoolTests
+    internal class TestPool<T> : DefaultObjectPool<ObjectBuffer<T>>
+        where T : class, new()
     {
-        private class TestPool : DefaultObjectPool<ObjectBuffer<PoolElement>>
+        public List<ObjectBuffer<T>> Rented =
+            new List<ObjectBuffer<T>>();
+
+        public List<ObjectBuffer<T>> Returned =
+            new List<ObjectBuffer<T>>();
+
+        public TestPool(int bufferSize, int size)
+            : base(new Policy(bufferSize), size)
         {
-            public List<ObjectBuffer<PoolElement>> Rented =
-                new List<ObjectBuffer<PoolElement>>();
+        }
 
-            public List<ObjectBuffer<PoolElement>> Returned =
-                new List<ObjectBuffer<PoolElement>>();
+        public override ObjectBuffer<T> Get()
+        {
+            ObjectBuffer<T> buffer = base.Get();
+            Rented.Add(buffer);
+            Returned.Remove(buffer);
+            return buffer;
+        }
+        public override void Return(ObjectBuffer<T> obj)
+        {
+            Returned.Add(obj);
+            Rented.Remove(obj);
+            base.Return(obj);
+        }
 
+        private class Policy : IPooledObjectPolicy<ObjectBuffer<T>>
+        {
+            private int _bufferSize;
 
-            public TestPool(int bufferSize, int size)
-                : base(new Policy(bufferSize), size)
+            public Policy(int bufferSize)
             {
+                _bufferSize = bufferSize;
             }
 
-            public override ObjectBuffer<PoolElement> Get()
+            public ObjectBuffer<T> Create() =>
+                new ObjectBuffer<T>(_bufferSize, x => { });
+
+            public bool Return(ObjectBuffer<T> obj)
             {
-                ObjectBuffer<PoolElement> buffer = base.Get();
-                Rented.Add(buffer);
-                Returned.Remove(buffer);
-                return buffer;
-            }
-            public override void Return(ObjectBuffer<PoolElement> obj)
-            {
-                Returned.Add(obj);
-                Rented.Remove(obj);
-                base.Return(obj);
-            }
-
-            private class Policy : IPooledObjectPolicy<ObjectBuffer<PoolElement>>
-            {
-                private int _bufferSize;
-
-                public Policy(int bufferSize)
-                {
-                    _bufferSize = bufferSize;
-                }
-
-                public ObjectBuffer<PoolElement> Create() =>
-                    new ObjectBuffer<PoolElement>(_bufferSize, x => { });
-
-                public bool Return(ObjectBuffer<PoolElement> obj)
-                {
-                    obj.Reset();
-                    return true;
-                }
+                obj.Reset();
+                return true;
             }
         }
     }

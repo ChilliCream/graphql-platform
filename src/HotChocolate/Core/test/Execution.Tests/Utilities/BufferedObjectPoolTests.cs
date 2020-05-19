@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Utilities
         public void PoolShouldCreateBuffer()
         {
             // arrange
-            var pool = new TestPool(2, 4);
+            var pool = new TestPool<PoolElement>(2, 4);
             var bufferedPool = new BufferedObjectPool<PoolElement>(pool);
 
             // act
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Utilities
         public void PoolShouldCreateBufferWhenUsedUp()
         {
             // arrange
-            var pool = new TestPool(2, 4);
+            var pool = new TestPool<PoolElement>(2, 4);
             var bufferedPool = new BufferedObjectPool<PoolElement>(pool);
 
             // act
@@ -41,7 +41,7 @@ namespace HotChocolate.Execution.Utilities
         public void PoolShouldReturnBufferWhenNotLongerUsed()
         {
             // arrange
-            var pool = new TestPool(2, 4);
+            var pool = new TestPool<PoolElement>(2, 4);
             var bufferedPool = new BufferedObjectPool<PoolElement>(pool);
 
             // act
