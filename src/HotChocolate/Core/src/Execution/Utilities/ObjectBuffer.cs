@@ -10,7 +10,6 @@ namespace HotChocolate.Execution.Utilities
         private readonly int _capacity;
         private readonly Action<T> _clean;
         private int _index;
-        private object _objLock = new object();
 
         public ObjectBuffer(int capacity, Action<T> clean)
         {
@@ -41,23 +40,6 @@ namespace HotChocolate.Execution.Utilities
             return false;
         }
 
-        public T PopSafe()
-        {
-            if (TryPopSafe(out T? obj))
-            {
-                return obj;
-            }
-            throw new InvalidOperationException(Resources.ObjectBuffer_IsEmpty);
-        }
-
-        public bool TryPopSafe([NotNullWhen(true)] out T? obj)
-        {
-            lock (_objLock)
-            {
-                return TryPop(out obj);
-            }
-        }
-
         public void Push(T obj)
         {
             if (!TryPush(obj))
@@ -75,22 +57,6 @@ namespace HotChocolate.Execution.Utilities
                 return true;
             }
             return false;
-        }
-
-        public void PushSafe(T obj)
-        {
-            if (!TryPushSafe(obj))
-            {
-                throw new InvalidOperationException(Resources.ObjectBuffer_IsUsedUp);
-            }
-        }
-
-        public bool TryPushSafe(T obj)
-        {
-            lock (_objLock)
-            {
-                return TryPush(obj);
-            }
         }
 
         public void Reset()
