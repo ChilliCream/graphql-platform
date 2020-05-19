@@ -6,6 +6,10 @@ Use this section as an introduction to explain what a reader can expect of this 
 
 # Headlines
 
+## Sub
+
+### Sub2
+
 Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
 
 # Use Diagrams

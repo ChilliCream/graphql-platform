@@ -40,7 +40,7 @@
       },
       {
         "path": "fetching-data",
-        "title": "Fetching data",
+        "title": "Fetching Data",
         "items": [
           {
             "path": "index",
@@ -69,6 +69,66 @@
           {
             "path": "sorting",
             "title": "Sorting"
+          }
+        ]
+      },
+      {
+        "path": "realtime-data",
+        "title": "Realtime Data",
+        "items": [
+          {
+            "path": "defer",
+            "title": "Defer"
+          },
+          {
+            "path": "stream",
+            "title": "Stream"
+          }
+        ]
+      },
+      {
+        "path": "stitching",
+        "title": "Stitching",
+        "items": [
+          {
+            "path": "index",
+            "title": "Overview"
+          }
+        ]
+      },
+      {
+        "path": "testing",
+        "title": "Testing",
+        "items": [
+          {
+            "path": "integration-testing",
+            "title": "Integration testing"
+          },
+          {
+            "path": "playground",
+            "title": "GraphQL Playground"
+          }
+        ]
+      },
+      {
+        "path": "security",
+        "title": "Security",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "authorization",
+            "title": "Authorization"
+          },
+          {
+            "path": "query-complexity",
+            "title": "Query Complexity"
+          },
+          {
+            "path": "protecting-playground",
+            "title": "Protecting Playground"
           }
         ]
       },
