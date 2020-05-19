@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Spatial
             var coordinates = (IList<Coordinate>)
                 _coordinatesField.Type.ParseLiteral(obj.Fields[indices.coordinateIndex].Value);
 
-            if (coordinates is null || coordinates.Count < 2)
+            if (coordinates.Count < 2)
             {
                 throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
             }
