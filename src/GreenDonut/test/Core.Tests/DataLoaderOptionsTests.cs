@@ -6,8 +6,6 @@ namespace GreenDonut
 {
     public class DataLoaderOptionsTests
     {
-        #region Constructor
-
         [Fact(DisplayName = "Constructor: Should not throw any exception")]
         public void ConstructorNoException()
         {
@@ -47,7 +45,5 @@ namespace GreenDonut
             // assert
             options.MatchSnapshot();
         }
-
-        #endregion
     }
 }

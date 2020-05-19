@@ -7,8 +7,6 @@ namespace GreenDonut
 {
     public class DataLoaderExtensionsTests
     {
-        #region Set
-
         [Fact(DisplayName = "Set: Should throw an argument null exception for dataLoader")]
         public void SetDataLoaderNull()
         {
@@ -98,10 +96,6 @@ namespace GreenDonut
             Assert.Equal(first, loadResult);
         }
 
-        #endregion
-
-        #region LoadAsync(string key)
-
         [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for dataLoader")]
         public void LoadSingleDataLoaderNull()
         {
@@ -133,10 +127,6 @@ namespace GreenDonut
             Assert.Null(Record.Exception(verify));
         }
 
-        #endregion
-
-        #region LoadAsync(params string[] keys)
-
         [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for dataLoader")]
         public void LoadParamsDataLoaderNull()
         {
@@ -166,10 +156,6 @@ namespace GreenDonut
             Assert.Null(Record.Exception(verify));
         }
 
-        #endregion
-
-        #region LoadAsync(IReadOnlyCollection<string> keys)
-
         [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for dataLoader")]
         public void LoadCollectionDataLoaderNull()
         {
@@ -198,10 +184,6 @@ namespace GreenDonut
             // assert
             Assert.Null(Record.Exception(verify));
         }
-
-        #endregion
-
-        #region IDataLoader.LoadAsync(string key)
 
         [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for dataLoader")]
         public void IDataLoaderLoadSingleDataLoaderNull()
@@ -234,10 +216,6 @@ namespace GreenDonut
             Assert.Null(Record.Exception(verify));
         }
 
-        #endregion
-
-        #region IDataLoader.LoadAsync(params string[] keys)
-
         [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for dataLoader")]
         public void IDataLoaderLoadParamsDataLoaderNull()
         {
@@ -267,10 +245,6 @@ namespace GreenDonut
             Assert.Null(Record.Exception(verify));
         }
 
-        #endregion
-
-        #region IDataLoader.LoadAsync(IReadOnlyCollection<string> keys)
-
         [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for dataLoader")]
         public void IDataLoaderLoadCollectionDataLoaderNull()
         {
@@ -299,10 +273,6 @@ namespace GreenDonut
             // assert
             Assert.Null(Record.Exception(verify));
         }
-
-        #endregion
-
-        #region IDataLoader.IDataLoader.Set
 
         [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for dataLoader")]
         public void IDataLoaderSetDataLoaderNull()
@@ -392,7 +362,5 @@ namespace GreenDonut
 
             Assert.Equal(first, loadResult);
         }
-
-        #endregion
     }
 }

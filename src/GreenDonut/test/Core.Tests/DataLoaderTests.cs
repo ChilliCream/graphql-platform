@@ -9,8 +9,6 @@ namespace GreenDonut
 {
     public class DataLoaderTests
     {
-        #region Clear
-
         [Fact(DisplayName = "Clear: Should not throw any exception")]
         public void ClearNoException()
         {
@@ -49,10 +47,6 @@ namespace GreenDonut
             Assert.Equal(0, cache.Usage);
         }
 
-        #endregion
-
-        #region Dispose
-
         [Fact(DisplayName = "Dispose: Should dispose and not throw any exception")]
         public void DisposeNoExceptionNobatchingAndCaching()
         {
@@ -67,10 +61,6 @@ namespace GreenDonut
             // assert
             Assert.Null(Record.Exception(verify));
         }
-
-        #endregion
-
-        #region LoadAsync(string key)
 
         [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for key")]
         public async Task LoadSingleKeyNull()
@@ -129,10 +119,6 @@ namespace GreenDonut
             await task;
         }
 
-        #endregion
-
-        #region LoadAsync(params string[] keys)
-
         [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for keys")]
         public async Task LoadParamsKeysNull()
         {
@@ -185,10 +171,6 @@ namespace GreenDonut
             batchScheduler.Dispatch();
             (await loadResult).MatchSnapshot();
         }
-
-        #endregion
-
-        #region LoadAsync(IReadOnlyCollection<string> keys)
 
         [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for keys")]
         public async Task LoadCollectionKeysNull()
@@ -351,10 +333,6 @@ namespace GreenDonut
             Assert.Equal(expectedException, actualException);
         }
 
-        #endregion
-
-        #region LoadTest
-
         [InlineData(5, 25, 25, 1, true, true)]
         [InlineData(5, 25, 25, 0, true, true)]
         [InlineData(5, 25, 25, 0, true, false)]
@@ -436,10 +414,6 @@ namespace GreenDonut
             }
         }
 
-        #endregion
-
-        #region Remove
-
         [Fact(DisplayName = "Remove: Should throw an argument null exception for key")]
         public void RemoveKeyNull()
         {
@@ -496,10 +470,6 @@ namespace GreenDonut
             // assert
             Assert.Equal(0, cache.Usage);
         }
-
-        #endregion
-
-        #region Set
 
         [Fact(DisplayName = "Set: Should throw an argument null exception for key")]
         public void SetKeyNull()
@@ -581,10 +551,6 @@ namespace GreenDonut
             Assert.Equal(1, cache.Usage);
         }
 
-        #endregion
-
-        #region IDataLoader.LoadAsync(object key)
-
         [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for key")]
         public async Task IDataLoaderLoadSingleKeyNull()
         {
@@ -642,10 +608,6 @@ namespace GreenDonut
             await task;
         }
 
-        #endregion
-
-        #region IDataLoader.LoadAsync(params string[] keys)
-
         [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
         public async Task IDataLoaderLoadParamsKeysNull()
         {
@@ -697,10 +659,6 @@ namespace GreenDonut
             (await loadResult).MatchSnapshot();
         }
 
-        #endregion
-
-        #region IDataLoader.LoadAsync(IReadOnlyCollection<string> keys)
-
         [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
         public async Task IDataLoaderLoadCollectionKeysNull()
         {
@@ -751,10 +709,6 @@ namespace GreenDonut
             batchScheduler.Dispatch();
             (await loadResult).MatchSnapshot();
         }
-
-        #endregion
-
-        #region IDataLoader.Remove
 
         [Fact(DisplayName = "IDataLoader.Remove: Should throw an argument null exception for key")]
         public void IDataLoaderRemoveKeyNull()
@@ -812,10 +766,6 @@ namespace GreenDonut
             // assert
             Assert.Equal(0, cache.Usage);
         }
-
-        #endregion
-
-        #region IDataLoader.Set*
 
         [Fact(DisplayName = "IDataLoader.Set: Should throw an argument null exception for key")]
         public void IDataLoaderSetKeyNull()
@@ -913,7 +863,5 @@ namespace GreenDonut
             // assert
             Assert.Equal(1, cache.Usage);
         }
-
-        #endregion
     }
 }

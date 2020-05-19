@@ -102,8 +102,6 @@ namespace GreenDonut.Benchmarks
             return cacheKey;
         }
 
-        #region CacheKeyType
-
         private enum CacheKeyType
             : byte
         {
@@ -111,7 +109,5 @@ namespace GreenDonut.Benchmarks
             StringKey = 1,
             IntegerKey = 2
         }
-
-        #endregion
     }
 }

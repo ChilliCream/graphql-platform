@@ -106,8 +106,6 @@ namespace GreenDonut.Benchmarks
             return new CacheKeyA<TKey>(BitConverter.GetBytes(key));
         }
 
-        #region CacheKeyType
-
         private enum CacheKeyType
             : byte
         {
@@ -115,7 +113,5 @@ namespace GreenDonut.Benchmarks
             ObjectKey = 1,
             PrimitiveKey = 2
         }
-
-        #endregion
     }
 }

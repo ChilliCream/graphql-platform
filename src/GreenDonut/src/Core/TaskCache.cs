@@ -132,8 +132,6 @@ namespace GreenDonut
             public object Value { get; }
         }
 
-        #region IDisposable
-
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -153,7 +151,5 @@ namespace GreenDonut
                 _disposed = true;
             }
         }
-
-        #endregion
     }
 }
