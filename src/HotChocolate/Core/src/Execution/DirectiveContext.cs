@@ -95,12 +95,8 @@ namespace HotChocolate.Execution
         public T CustomProperty<T>(string key) =>
             _middlewareContext.CustomProperty<T>(key);
         
-        [Obsolete]
         [return: MaybeNull]
         public T Parent<T>() => _middlewareContext.Parent<T>();
-
-        [return: MaybeNull]
-        public T Source<T>() => _middlewareContext.Source<T>();
 
         public void ReportError(string errorMessage) =>
             _middlewareContext.ReportError(errorMessage);

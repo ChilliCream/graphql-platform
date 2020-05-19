@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
+using HotChocolate.Execution.Utilities;
 using Xunit;
 
 namespace HotChocolate.Execution

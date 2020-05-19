@@ -157,10 +157,5 @@ namespace HotChocolate.Execution
         {
             throw new NotImplementedException();
         }
-
-        T IResolverContext.Source<T>()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
