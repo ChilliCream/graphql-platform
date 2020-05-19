@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Utilities
         /// <param name="error">The error that shall be added.</param>
         void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
 
-        void AddNonNullViolation(FieldNode selection, IPathSegment path, IResultMap parent);
+        void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent);
 
         IReadOnlyQueryResult BuildResult();
     }

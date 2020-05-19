@@ -8,7 +8,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class ResolverTask
+    internal sealed partial class ResolverTask
     {
         private readonly MiddlewareContext _context = new MiddlewareContext();
         private ValueTask _task;
@@ -169,36 +169,6 @@ namespace HotChocolate.Execution
                     completedValue,
                     _context.Field.Type.IsNullableType());
             }
-        }
-
-        public void Initialize(
-            IOperationContext operationContext,
-            IPreparedSelection selection,
-            ResultMap resultMap,
-            int responseIndex,
-            object? parent,
-            Path path,
-            IImmutableDictionary<string, object?> scopedContextData)
-        {
-            _task = default;
-            _operationContext = operationContext;
-            _selection = selection;
-            _context.Initialize(
-                operationContext,
-                selection,
-                resultMap,
-                responseIndex,
-                parent,
-                path,
-                scopedContextData);
-        }
-
-        public void Clear()
-        {
-            _task = default;
-            _operationContext = default!;
-            _selection = default!;
-            _context.Clear();
         }
     }
 }

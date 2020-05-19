@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
             Arguments = _selection.Arguments;
         }
 
-        public void Clear()
+        public void Reset()
         {
             _operationContext = default!;
             _selection = default!;

@@ -17,7 +17,6 @@ namespace HotChocolate.Execution.Utilities
         private Result _result;
         private IResultMap? _data;
 
-
         public ResultHelper(ResultPool resultPool)
         {
             _resultPool = resultPool;
@@ -118,7 +117,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        public void AddNonNullViolation(FieldNode selection, IPathSegment path, IResultMap parent)
+        public void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent)
         {
             _nonNullViolations.Add(new NonNullViolation(selection, path, parent));
         }
@@ -128,7 +127,7 @@ namespace HotChocolate.Execution.Utilities
             // TODO : add null errors
             while (_data != null && _nonNullViolations.TryPop(out NonNullViolation violation))
             {
-                IPathSegment? path = violation.Path;
+                Path? path = violation.Path;
                 IResultData? parent = violation.Parent;
 
                 while (parent != null)
@@ -222,7 +221,7 @@ namespace HotChocolate.Execution.Utilities
 
         private readonly struct NonNullViolation
         {
-            public NonNullViolation(FieldNode selection, IPathSegment path, IResultMap parent)
+            public NonNullViolation(FieldNode selection, Path path, IResultMap parent)
             {
                 Selection = selection;
                 Path = path;
@@ -230,7 +229,7 @@ namespace HotChocolate.Execution.Utilities
             }
 
             public FieldNode Selection { get; }
-            public IPathSegment Path { get; }
+            public Path Path { get; }
             public IResultMap Parent { get; }
         }
     }

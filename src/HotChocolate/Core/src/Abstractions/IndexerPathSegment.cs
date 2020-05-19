@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
-#nullable  enable
+#nullable enable
 
 namespace HotChocolate
 {
@@ -9,9 +8,9 @@ namespace HotChocolate
     /// An <see cref="IndexerPathSegment" /> represents a pointer to 
     /// an list element in the result structure.
     /// </summary>
-    public sealed class IndexerPathSegment : NewPath
+    public sealed class IndexerPathSegment : Path
     {
-        internal IndexerPathSegment(IPathSegment parent, int index)
+        internal IndexerPathSegment(Path parent, int index)
         {
             Parent = parent;
             Depth = parent.Depth + 1;
@@ -19,7 +18,7 @@ namespace HotChocolate
         }
 
         /// <inheritdoc />
-        public override IPathSegment Parent { get; }
+        public override Path Parent { get; }
 
         /// <inheritdoc />
         public override int Depth { get; }
@@ -35,76 +34,36 @@ namespace HotChocolate
         {
             return $"{Parent.Print()}[{Index}]";
         }
-    }
-
-    public abstract class NewPath : IPathSegment
-    {
-        internal NewPath() { }
 
         /// <inheritdoc />
-        public abstract IPathSegment? Parent { get; }
-
-        /// <inheritdoc />
-        public abstract int Depth { get; }
-
-        /// <inheritdoc />
-        public IPathSegment Append(int index)
+        public override bool Equals(Path? other)
         {
-            if (index < 0)
+            if (ReferenceEquals(other, null))
             {
-                // TODO : ThrowHelper
-                throw new ArgumentException();
+                return false;
             }
 
-            return new IndexerPathSegment(this, index);
-        }
-
-        /// <inheritdoc />
-        public IPathSegment Append(NameString name)
-        {
-            name.EnsureNotEmpty(nameof(name));
-            return new NamePathSegment(this, name);
-        }
-
-        /// <inheritdoc />
-        public abstract string Print();
-
-        /// <inheritdoc />
-        public IReadOnlyList<object> ToList()
-        {
-            var stack = new List<object>();
-            IPathSegment? current = this;
-
-            while (current != null)
+            if (other is IndexerPathSegment indexer &&
+                Depth.Equals(indexer.Depth) &&
+                Index.Equals(indexer.Index) &&
+                Parent.Equals(indexer.Parent))
             {
-                switch (current)
-                {
-                    case IndexerPathSegment indexer:
-                        stack.Insert(0, indexer.Index);
-                        break;
-
-                    case NamePathSegment name:
-                        stack.Insert(0, name.Name);
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
+                return true;
             }
 
-            return stack;
+            return false;
         }
 
-        /// <summary>
-        /// Creates a root segment.
-        /// </summary>
-        /// <param name="name">The name of the root segment.</param>
-        /// <returns>
-        /// Returns a new root segment.
-        /// </returns>
-        public static IPathSegment New(NameString name)
+        /// <inheritdoc />
+        public override int GetHashCode()
         {
-            return new NamePathSegment(null, name);
+            unchecked
+            {
+                var hash = Parent.GetHashCode() * 3;
+                hash ^= Depth.GetHashCode() * 7;
+                hash ^= Index.GetHashCode() * 11;
+                return hash;
+            }
         }
     }
 }

@@ -204,7 +204,7 @@ namespace HotChocolate
             error = error.WithPath(Path.New("foo"));
 
             // assert
-            Assert.Equal("foo", error.Path.Name);
+            Assert.Equal("/foo", error.Path.Print());
         }
     }
 }

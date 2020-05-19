@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Instrumentation
             Path rootPath = Path.New("root").Append("field");
             var rosolverStatisticsA = new ApolloTracingResolverRecord
             {
-                Path = rootPath.Append(0).Append("value").ToCollection(),
+                Path = rootPath.Append(0).Append("value").ToList(),
                 ParentType = "ParentTypeA",
                 FieldName = "FieldNameA",
                 ReturnType = "ReturnTypeA",
@@ -40,7 +40,7 @@ namespace HotChocolate.Execution.Instrumentation
             };
             var rosolverStatisticsB = new ApolloTracingResolverRecord
             {
-                Path = rootPath.Append(1).Append("value").ToCollection(),
+                Path = rootPath.Append(1).Append("value").ToList(),
                 ParentType = "ParentTypeB",
                 FieldName = "FieldNameB",
                 ReturnType = "ReturnTypeB",

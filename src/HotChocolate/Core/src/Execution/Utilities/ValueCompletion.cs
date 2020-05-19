@@ -171,7 +171,6 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -203,7 +202,6 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -236,7 +234,6 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -289,7 +286,6 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -321,7 +317,6 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
@@ -354,7 +349,6 @@ namespace HotChocolate.Execution.Utilities
                     }
                     else
                     {
-                        operationContext.Result.Return(completedResult);
                         completedResult = null;
                         return false;
                     }
