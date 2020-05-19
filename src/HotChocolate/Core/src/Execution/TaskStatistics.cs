@@ -7,18 +7,12 @@ namespace HotChocolate.Execution
     {
         private int _running;
         private int _enqueued;
+        
+        public event EventHandler<EventArgs>? StateChanged;
 
         public int Enqueued => _enqueued;
 
         public int Running => _running;
-
-        public event EventHandler<EventArgs>? StateChanged;
-
-        public void Clear()
-        {
-            _running = 0;
-            _enqueued = 0;
-        }
 
         public void TaskEnqueued()
         {
@@ -42,6 +36,12 @@ namespace HotChocolate.Execution
         {
             Interlocked.Decrement(ref _running);
             StateChanged?.Invoke(this, EventArgs.Empty);
+        }
+        
+        public void Clear()
+        {
+            _running = 0;
+            _enqueued = 0;
         }
     }
 }
