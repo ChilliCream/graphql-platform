@@ -1,14 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Types.Filters
 {
     public static class FilterTypeNameExtensions
     {
         public static IFilterInputTypeNameDependencyDescriptor<T> Name<T>(
-          this IFilterInputTypeDescriptor<T> descriptor,
-          Func<INamedType, NameString> createName)
+            this IFilterInputTypeDescriptor<T> descriptor,
+            Func<INamedType, NameString> createName)
         {
             if (descriptor == null)
             {

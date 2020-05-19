@@ -60,5 +60,14 @@ namespace HotChocolate.Types.Selections
                 throw new QueryException(argumentValue.Error);
             }
         }
+
+        public void ReportErrors(IList<IError> errors)
+        {
+            foreach (IError error in errors)
+            {
+                SelectionContext.Errors.Add(
+                    error.WithPath(_context.Path));
+            }
+        }
     }
 }

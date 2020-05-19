@@ -20,9 +20,13 @@ namespace HotChocolate.Types.Filters
 
             // act
             var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = true };
@@ -44,9 +48,13 @@ namespace HotChocolate.Types.Filters
 
             // act
             var filter = new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), TypeConversion.Default, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = false };
@@ -68,9 +76,13 @@ namespace HotChocolate.Types.Filters
 
             // act
             var filter = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = filter.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { Bar = true };
@@ -95,9 +107,13 @@ namespace HotChocolate.Types.Filters
 
             // act
             var filter = new QueryableFilterVisitorContext(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default, true);
+                fooNullableType,
+                typeof(FooNullable),
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                TypeConversion.Default,
+                true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            Func<FooNullable, bool> func = filter.CreateOrAssert<FooNullable>().Compile();
 
             // assert
             var a = new FooNullable { Bar = false };
