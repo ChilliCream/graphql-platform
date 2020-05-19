@@ -40,9 +40,7 @@ namespace HotChocolate.Types.Spatial
 
             if (!(literal is ObjectValueNode obj))
             {
-                ThrowHelper.InvalidInputObjectStructure(_geometryType);
-
-                return null;
+                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
             }
 
             (int typeIndex, int coordinateIndex, int crsIndex) indices =
@@ -54,9 +52,7 @@ namespace HotChocolate.Types.Spatial
 
             if (indices.typeIndex == -1)
             {
-                ThrowHelper.InvalidInputObjectStructure(_geometryType);
-
-                return null;
+                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
             }
 
             var type = (GeoJSONGeometryType)
@@ -64,19 +60,15 @@ namespace HotChocolate.Types.Spatial
 
             if (type != _geometryType || indices.coordinateIndex == -1)
             {
-                ThrowHelper.InvalidInputObjectStructure(_geometryType);
-
-                return null;
+                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
             }
 
             var parts = (List<List<Coordinate>>)
                 _coordinatesField.Type.ParseLiteral(obj.Fields[indices.coordinateIndex].Value);
 
-            if (parts is null || parts.Count < 1)
+            if (parts.Count < 1)
             {
-                ThrowHelper.InvalidInputObjectStructure(_geometryType);
-
-                return null;
+                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
             }
 
             var lineCount = parts.Count;

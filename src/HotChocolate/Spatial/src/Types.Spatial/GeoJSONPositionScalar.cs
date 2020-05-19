@@ -18,8 +18,7 @@ namespace HotChocolate.Types.Spatial
         {
             if (literal == null)
             {
-                ThrowHelper.NullPositionScalar();
-                return false;
+                throw ThrowHelper.NullPositionScalar();
             }
 
             if (literal is NullValueNode)
@@ -47,8 +46,7 @@ namespace HotChocolate.Types.Spatial
         {
             if (literal == null)
             {
-                ThrowHelper.NullPositionScalar();
-                return null;
+                throw ThrowHelper.NullPositionScalar();
             }
 
             if (literal is NullValueNode)
@@ -60,8 +58,7 @@ namespace HotChocolate.Types.Spatial
             {
                 if (list.Items.Count != 2 && list.Items.Count != 3)
                 {
-                    ThrowHelper.InvalidPositionScalar();
-                    return null;
+                    throw ThrowHelper.InvalidPositionScalar();
                 }
 
                 if (list.Items[0] is IFloatValueLiteral x &&
@@ -78,12 +75,10 @@ namespace HotChocolate.Types.Spatial
                     }
                 }
 
-                ThrowHelper.InvalidPositionScalar();
-                return null;
+                throw ThrowHelper.InvalidPositionScalar();
             }
 
-            ThrowHelper.InvalidPositionScalar();
-            return null;
+            throw ThrowHelper.InvalidPositionScalar();
         }
 
         /// input value from the client
