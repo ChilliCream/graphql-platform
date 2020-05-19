@@ -25,8 +25,6 @@ namespace HotChocolate
                 .AddType<GeoJSONPolygonType>()
                 .AddType<GeoJSONMultiPolygonType>()
 
-                .AddType<GeoJSONCoordinateReferenceSystemType>()
-
                 .BindClrType<Coordinate, GeoJSONPositionScalar>();
         }
     }
