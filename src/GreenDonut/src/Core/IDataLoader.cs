@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 namespace GreenDonut
 {
-    #region IDataLoader
-
     /// <summary>
     /// A <c>DataLoader</c> creates a public API for loading data from a
     /// particular data back-end with unique keys such as the `id` column of a
@@ -99,10 +97,6 @@ namespace GreenDonut
         void Set(object key, Task<object?> value);
     }
 
-    #endregion
-
-    #region IDataLoader<TKey, TValue>
-
     /// <summary>
     /// A <c>DataLoader</c> creates a public API for loading data from a
     /// particular data back-end with unique keys such as the `id` column of a
@@ -191,6 +185,4 @@ namespace GreenDonut
         /// </exception>
         void Set(TKey key, Task<TValue> value);
     }
-
-    #endregion
 }
