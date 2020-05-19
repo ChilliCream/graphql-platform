@@ -16,51 +16,51 @@ namespace HotChocolate.Execution.Utilities
     public class ExecutionContextTests
     {
         [Fact]
-        public void Initialize_TaskStats()
+        public void Initialize_TaskStats_ShouldBeSet()
         {
-            // arrange
+            // act
             ExecutionContext context = CreateExecutionContext();
 
-            // act && assert
+            // assert
             Assert.NotNull(context.TaskStats);
         }
 
         [Fact]
-        public void Initialize_Tasks()
+        public void Initialize_Tasks_ShouldBeSet()
         {
-            // arrange
+            // act
             ExecutionContext context = CreateExecutionContext();
 
-            // act && assert
+            // assert
             Assert.NotNull(context.Tasks);
         }
         [Fact]
-        public void Initialize_TaskPool()
+        public void Initialize_TaskPool_ShouldBeSet()
         {
-            // arrange
+            // act
             ExecutionContext context = CreateExecutionContext();
 
-            // act && assert
+            // assert
             Assert.NotNull(context.TaskPool);
         }
 
         [Fact]
-        public void Initialize_BatchDispatcher()
+        public void Initialize_BatchDispatcher_ShouldBeSet()
         {
-            // arrange
+            // act
             ExecutionContext context = CreateExecutionContext();
 
-            // act && assert
+            // assert
             Assert.NotNull(context.BatchDispatcher);
         }
 
         [Fact]
         public void IsCompleted_Should_BeCompleted_When_NoTasksAreRunningOrEnqueued()
         {
-            // arrange
+            // arrange 
             ExecutionContext context = CreateExecutionContext();
 
-            // act && assert
+            // assert
             Assert.Equal(0, context.TaskStats.Enqueued);
             Assert.Equal(0, context.TaskStats.Running);
             Assert.True(context.IsCompleted);
