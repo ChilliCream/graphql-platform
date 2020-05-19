@@ -5,6 +5,7 @@ using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 using Snapshooter.Xunit;
 using Xunit;
 

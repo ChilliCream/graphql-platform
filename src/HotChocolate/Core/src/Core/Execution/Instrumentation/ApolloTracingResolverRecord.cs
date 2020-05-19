@@ -10,13 +10,13 @@ namespace HotChocolate.Execution.Instrumentation
 
         public ApolloTracingResolverRecord(IResolverContext context)
         {
-            Path = context.Path.ToCollection();
+            Path = context.Path.ToList();
             ParentType = context.ObjectType.Name;
             FieldName = context.Field.Name;
             ReturnType = context.Field.Type.TypeName();
         }
 
-        public IReadOnlyCollection<object> Path { get; internal set; }
+        public IReadOnlyList<object> Path { get; internal set; }
 
         public string ParentType { get; internal set; }
 

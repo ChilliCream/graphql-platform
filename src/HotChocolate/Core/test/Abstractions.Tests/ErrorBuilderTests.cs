@@ -193,7 +193,7 @@ namespace HotChocolate
                 .Build();
 
             // assert
-            Assert.Equal("foo", error.Path.Name);
+            Assert.Equal("/foo", error.Path.Print());
         }
 
         [Fact]
@@ -207,7 +207,7 @@ namespace HotChocolate
                 .Build();
 
             // assert
-            Assert.Equal("foo", error.Path.Name);
+            Assert.Equal("/foo", error.Path.Print());
         }
 
         [Fact]

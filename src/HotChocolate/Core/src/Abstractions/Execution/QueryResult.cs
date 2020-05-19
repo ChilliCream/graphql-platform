@@ -5,14 +5,16 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public sealed class ReadOnlyQueryResult
-        : IReadOnlyQueryResult
+    public sealed class QueryResult : IReadOnlyQueryResult
     {
-        public ReadOnlyQueryResult(
+        private readonly IDisposable? _disposable;
+
+        public QueryResult(
             IReadOnlyDictionary<string, object?>? data,
             IReadOnlyList<IError>? errors,
-            IReadOnlyDictionary<string, object?>? extension,
-            IReadOnlyDictionary<string, object?>? contextData)
+            IReadOnlyDictionary<string, object?>? extension = null,
+            IReadOnlyDictionary<string, object?>? contextData = null,
+            IDisposable? disposable = null)
         {
             if (data is null && errors is null)
             {
@@ -25,6 +27,7 @@ namespace HotChocolate.Execution
             Errors = errors;
             Extensions = extension;
             ContextData = contextData;
+            _disposable = disposable;
         }
 
         public IReadOnlyDictionary<string, object?>? Data { get; }
@@ -45,6 +48,11 @@ namespace HotChocolate.Execution
             if (Data is IDisposable disposable)
             {
                 disposable.Dispose();
+            }
+
+            if (_disposable is { })
+            {
+                _disposable.Dispose();
             }
         }
     }
