@@ -6,7 +6,8 @@ namespace HotChocolate.Execution
     internal sealed class ResultListPool
         : DefaultObjectPool<ResultObjectBuffer<ResultList>>
     {
-        public ResultListPool(int maximumRetained) : base(new BufferPolicy(), maximumRetained)
+        public ResultListPool(int maximumRetained) 
+            : base(new BufferPolicy(), maximumRetained)
         {
         }
 

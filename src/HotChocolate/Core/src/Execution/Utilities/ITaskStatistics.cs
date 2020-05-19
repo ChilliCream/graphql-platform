@@ -1,7 +1,6 @@
 using System;
-using System.Threading;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Utilities
 {
     internal interface ITaskStatistics
     {

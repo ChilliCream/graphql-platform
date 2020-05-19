@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
-using HotChocolate.Execution.Utilities;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Utilities
 {
     internal sealed partial class ResolverTask
     {

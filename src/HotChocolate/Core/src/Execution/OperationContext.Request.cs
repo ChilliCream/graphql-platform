@@ -1,12 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
-using GreenDonut;
-using HotChocolate.Execution.Utilities;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution

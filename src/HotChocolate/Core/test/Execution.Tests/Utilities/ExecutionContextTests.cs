@@ -2,10 +2,8 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Fetching;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using Moq;
 using Xunit;
 
@@ -34,7 +32,7 @@ namespace HotChocolate.Execution.Utilities
             // assert
             Assert.NotNull(context.Tasks);
         }
-        
+
         [Fact]
         public void Initialize_TaskPool_ShouldBeSet()
         {
@@ -272,8 +270,14 @@ namespace HotChocolate.Execution.Utilities
         public void Clear_Should_Clear_TaskQueue()
         {
             // arrange 
+            IServiceProvider services = new ServiceCollection()
+                .TryAddResultPool()
+                .TryAddResolverTaskPool()
+                .TryAddOperationContext()
+                .BuildServiceProvider();
+
             ExecutionContext context = CreateExecutionContext();
-            var operationContext = new OperationContext();
+            var operationContext = services.GetRequiredService<OperationContext>();
             var selection = new Mock<IPreparedSelection>();
             var resultMap = new ResultMap();
             var path = Path.New("");
@@ -350,7 +354,9 @@ namespace HotChocolate.Execution.Utilities
             pool ??= new TestPool<ResolverTask>(3, 3);
             bufferedPool ??= new BufferedObjectPool<ResolverTask>(pool);
             dispatcher ??= new BatchScheduler();
-            return new ExecutionContext(bufferedPool, dispatcher);
+            var context = new ExecutionContext(bufferedPool);
+            context.Initialize(dispatcher);
+            return context;
         }
     }
 }

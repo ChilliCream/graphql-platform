@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Utilities
 {
     internal sealed partial class ResolverTask
     {

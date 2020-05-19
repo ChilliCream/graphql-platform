@@ -18,18 +18,18 @@ namespace HotChocolate.Execution
             _taskStatistics = new TaskStatistics();
             _taskQueue = new TaskQueue(_taskStatistics, resolverTaskPool);
             TaskPool = resolverTaskPool;
-
-            BatchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             TaskStats.StateChanged += TaskStatisticsEventHandler;
         }
 
         public void Initialize(IBatchDispatcher batchDispatcher)
         {
             BatchDispatcher = batchDispatcher;
+            BatchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
         }
 
         public void Reset()
         {
+            BatchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
             BatchDispatcher = default!;
             _taskQueue.Clear();
             _taskStatistics.Clear();
