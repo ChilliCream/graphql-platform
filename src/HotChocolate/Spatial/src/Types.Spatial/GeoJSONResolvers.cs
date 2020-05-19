@@ -29,23 +29,6 @@ namespace HotChocolate.Types.Spatial
             return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
         }
 
-        public GeoJSONCoordinateReferenceSystem GetNamedCrs([Parent] Geometry geometry)
-        {
-            if (geometry.SRID == 0 || geometry.SRID == 4326)
-            {
-                return new GeoJSONCoordinateReferenceSystem
-                {
-                    Type = CRSType.Name,
-                    Properties = new CRSProperties
-                    {
-                        Name = "urn:ogc:def:crs:OGC::CRS84"
-                    }
-                };
-            }
-
-            throw new NotImplementedException("other URN's have not been defined yet");
-        }
-
         public int GetCrs([Parent] Geometry geometry)
         {
             if (geometry.SRID == 0) {
