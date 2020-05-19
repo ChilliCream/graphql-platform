@@ -2,6 +2,32 @@
 title: "Schema basics"
 ---
 
+# GraphQL Introduction
+
+# Flavours
+
+## Pure Code First
+
+## Code First
+
+## Schema First
+
+# Supported types
+
+## Object type
+
+## Enum type
+
+## Interface type
+
+## Input object type
+
+# Documenting Schema
+
+# Naming Conventions
+
+# Designing mutations
+
 Use this section as an introduction to explain what a reader can expect of this document.
 
 # Headlines
