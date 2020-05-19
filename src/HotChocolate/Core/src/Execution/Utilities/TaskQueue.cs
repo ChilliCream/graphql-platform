@@ -9,18 +9,16 @@ namespace HotChocolate.Execution.Utilities
     internal class TaskQueue : ITaskQueue
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
-        private readonly IOperationContext _operationContext;
         private readonly ITaskStatistics _stats;
         private readonly ConcurrentQueue<ResolverTask> _queue =
             new ConcurrentQueue<ResolverTask>();
 
         internal TaskQueue(
-            IOperationContext operationContext,
+            ITaskStatistics stats,
             ObjectPool<ResolverTask> resolverTaskPool)
         {
-            _operationContext = operationContext;
             _resolverTaskPool = resolverTaskPool;
-            _stats = operationContext.Execution.TaskStats;
+            _stats = stats;
         }
 
         /// <inheritdoc/>
@@ -42,6 +40,7 @@ namespace HotChocolate.Execution.Utilities
 
         /// <inheritdoc/>
         public void Enqueue(
+            IOperationContext operationContext,
             IPreparedSelection selection,
             int responseIndex,
             ResultMap resultMap,
@@ -52,7 +51,7 @@ namespace HotChocolate.Execution.Utilities
             ResolverTask resolverTask = _resolverTaskPool.Get();
 
             resolverTask.Initialize(
-                _operationContext,
+                operationContext,
                 selection,
                 resultMap,
                 responseIndex,
