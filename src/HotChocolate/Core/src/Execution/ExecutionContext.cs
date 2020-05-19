@@ -48,6 +48,13 @@ namespace HotChocolate.Execution
             }
         }
 
+        public void Clear()
+        {
+            _taskQueue.Clear();
+            _taskStatistics.Clear();
+            ResetTaskSource();
+        }
+
         private void SetEngineState()
         {
             lock (_engineLock)
@@ -67,8 +74,7 @@ namespace HotChocolate.Execution
                     // in this case we have to complete the task and clear it
                     if (_waitForEngineTask != null)
                     {
-                        _waitForEngineTask.SetResult(true);
-                        _waitForEngineTask = null;
+                        ResetTaskSource();
                     }
                 }
             }
@@ -82,5 +88,11 @@ namespace HotChocolate.Execution
 
         private void TaskStatisticsEventHandler(object? source, EventArgs args)
             => SetEngineState();
+
+        private void ResetTaskSource()
+        {
+            _waitForEngineTask?.SetResult(true);
+            _waitForEngineTask = null;
+        }
     }
 }
