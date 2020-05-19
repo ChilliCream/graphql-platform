@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 #nullable enable
 
 namespace HotChocolate

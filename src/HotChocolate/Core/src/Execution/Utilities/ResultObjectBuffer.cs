@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Utilities
@@ -29,8 +30,8 @@ namespace HotChocolate.Execution.Utilities
 
         public bool TryPop([NotNullWhen(true)] out T? obj)
         {
-            var nextIndex = _index++;
-            if (nextIndex <= _capacity)
+            var nextIndex = Interlocked.Increment(ref _index) - 1;
+            if (nextIndex < _capacity)
             {
                 if (_buffer[nextIndex] is { } o)
                 {
@@ -52,6 +53,11 @@ namespace HotChocolate.Execution.Utilities
             if (_index == 0)
             {
                 return;
+            }
+
+            if (_index >= _capacity)
+            {
+                _index = _capacity;
             }
 
             for (int i = 0; i < _index; i++)
