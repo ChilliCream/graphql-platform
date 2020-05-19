@@ -24,6 +24,7 @@ namespace HotChocolate.Execution.Utilities
             Returned.Remove(buffer);
             return buffer;
         }
+            
         public override void Return(ObjectBuffer<T> obj)
         {
             Returned.Add(obj);
