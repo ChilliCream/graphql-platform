@@ -38,16 +38,14 @@ namespace HotChocolate.Execution
 
         public Task WaitForEngine(CancellationToken cancellationToken)
         {
-            lock (_engineLock)
+            TaskCompletionSource<bool>? waitForEngineTask = _waitForEngineTask;
+            if (waitForEngineTask == null)
             {
-                if (_waitForEngineTask == null)
-                {
-                    return Task.CompletedTask;
-                }
-
-                cancellationToken.Register(() => _waitForEngineTask.SetCanceled());
-                return _waitForEngineTask.Task;
+                return Task.CompletedTask;
             }
+
+            cancellationToken.Register(() => waitForEngineTask.SetCanceled());
+            return waitForEngineTask.Task;
         }
 
         public void Clear()
@@ -85,10 +83,10 @@ namespace HotChocolate.Execution
         private bool HasEngineFinished() =>
             TaskStats.Enqueued > 0 || BatchDispatcher.HasTasks || IsCompleted;
 
-        private void BatchDispatcherEventHandler(object? source, EventArgs args) => 
+        private void BatchDispatcherEventHandler(object? source, EventArgs args) =>
             SetEngineState();
 
-        private void TaskStatisticsEventHandler(object? source, EventArgs args) => 
+        private void TaskStatisticsEventHandler(object? source, EventArgs args) =>
             SetEngineState();
 
         private void ResetTaskSource()
