@@ -287,7 +287,7 @@ namespace HotChocolate.Execution.Utilities
 
             //assert 
             Assert.Equal(1, context.Tasks.Count);
-            context.Clear();
+            context.Reset();
             Assert.Equal(0, context.Tasks.Count);
         }
 
@@ -304,7 +304,7 @@ namespace HotChocolate.Execution.Utilities
             //assert
             Assert.Equal(1, context.TaskStats.Enqueued);
             Assert.Equal(1, context.TaskStats.Running);
-            context.Clear();
+            context.Reset();
             Assert.Equal(0, context.TaskStats.Enqueued);
             Assert.Equal(0, context.TaskStats.Running);
         }
@@ -322,7 +322,7 @@ namespace HotChocolate.Execution.Utilities
 
             //assert 
             Assert.False(task.IsCompleted);
-            context.Clear();
+            context.Reset();
             Assert.True(task.IsCompleted);
         }
 
@@ -336,7 +336,7 @@ namespace HotChocolate.Execution.Utilities
             context.TaskStats.TaskStarted();
             Task task = context.WaitForEngine(new CancellationToken());
             Assert.False(task.IsCompleted);
-            context.Clear();
+            context.Reset();
             task = context.WaitForEngine(new CancellationToken());
             Assert.Equal(Task.CompletedTask, task);
         }
