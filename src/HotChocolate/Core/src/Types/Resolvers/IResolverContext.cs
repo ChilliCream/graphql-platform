@@ -95,18 +95,6 @@ namespace HotChocolate.Resolvers
         CancellationToken RequestAborted { get; }
 
         /// <summary>
-        /// Gets the source value on which the resolver executes.
-        /// </summary>
-        /// <typeparam name="T">
-        /// The type to which the result shall be casted.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the source value on which the resolver executes.
-        /// </returns>
-        [return: MaybeNull]
-        T Source<T>();
-
-        /// <summary>
         /// Gets the previous (parent) resolver result.
         /// </summary>
         /// <typeparam name="T">
@@ -115,7 +103,6 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the previous (parent) resolver result.
         /// </returns>
-        [Obsolete("Use Source<T>().")]
         [return: MaybeNull]
         T Parent<T>();
 

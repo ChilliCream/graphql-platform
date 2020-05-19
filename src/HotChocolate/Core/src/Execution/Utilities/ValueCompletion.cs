@@ -425,7 +425,8 @@ namespace HotChocolate.Execution.Utilities
                 completedResult = selections.EnqueueResolverTasks(
                     operationContext,
                     responseName => middlewareContext.Path.Append(responseName),
-                    middlewareContext.ScopedContextData);
+                    middlewareContext.ScopedContextData,
+                    result);
                 return true;
             }
 

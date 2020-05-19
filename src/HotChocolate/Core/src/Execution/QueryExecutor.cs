@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
             var scopedContext = ImmutableDictionary<string, object?>.Empty;
             IPreparedSelectionList rootSelections = operationContext.Operation.GetRootSelections();
             ResultMap resultMap = rootSelections.EnqueueResolverTasks(
-                operationContext, n => Path.New(n), scopedContext);
+                operationContext, n => Path.New(n), scopedContext, operationContext.RootValue);
 
             await ResolverExecutionHelper.ExecuteResolversAsync(
                 operationContext.Execution,

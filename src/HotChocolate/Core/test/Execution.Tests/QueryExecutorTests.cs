@@ -20,11 +20,43 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Execute_SimpleIntrospectionQuery_SnapshotShouldMatch()
         {
+            // arrange
+            IOperationContext operationContext = CreateOperationContext("{ __typename }");
+
+            // act
+            var executor = new QueryExecutor();
+            IExecutionResult result = await executor.ExecuteAsync(
+                operationContext,
+                CancellationToken.None);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_ThreeLevelIntrospectionQuery_SnapshotShouldMatch()
+        {
+            // arrange
+            IOperationContext operationContext = CreateOperationContext(
+                "{ __schema { queryType { name } } }");
+
+            // act
+            var executor = new QueryExecutor();
+            IExecutionResult result = await executor.ExecuteAsync(
+                operationContext,
+                CancellationToken.None);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        private static IOperationContext CreateOperationContext(string query)
+        {
             ISchema schema = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse("{ __typename }");
+            DocumentNode document = Utf8GraphQLParser.Parse(query);
 
             OperationDefinitionNode operation =
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -59,14 +91,7 @@ namespace HotChocolate.Execution
                 new Query(new CharacterRepository()),
                 variables.Object);
 
-            // act
-            var executor = new QueryExecutor();
-            IExecutionResult result = await executor.ExecuteAsync(
-                operationContext, 
-                CancellationToken.None);
-
-            // assert
-            result.ToJson().MatchSnapshot();
+            return operationContext;
         }
     }
 }

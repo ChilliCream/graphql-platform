@@ -9,7 +9,8 @@ namespace HotChocolate.Execution.Utilities
             this IPreparedSelectionList selections,
             IOperationContext operationContext,
             Func<NameString, Path> createPath,
-            IImmutableDictionary<string, object?> scopedContext)
+            IImmutableDictionary<string, object?> scopedContext,
+            object? parent)
         {
             int responseIndex = 0;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
@@ -24,7 +25,7 @@ namespace HotChocolate.Execution.Utilities
                         selection,
                         responseIndex++,
                         resultMap,
-                        operationContext.RootValue,
+                        parent,
                         createPath(selection.ResponseName),
                         scopedContext);
                 }
