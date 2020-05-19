@@ -8,7 +8,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class ResolverTask
+    internal sealed partial class ResolverTask
     {
         private readonly MiddlewareContext _context = new MiddlewareContext();
         private ValueTask _task;
@@ -133,24 +133,20 @@ namespace HotChocolate.Execution
 
         private void CompleteValue(bool withErrors)
         {
+            object? completedValue = null;
+
             try
             {
-                _context.Result = withErrors
-                    ? null
-                    : ValueCompletion.Complete(
+                if (!withErrors)
+                {
+                    ValueCompletion.TryComplete(
                         _operationContext,
                         _context,
                         _context.Path,
                         _context.Field.Type,
-                        _context.Result);
-            }
-            catch (GraphQLException ex)
-            {
-                foreach (IError error in ex.Errors)
-                {
-                    _context.ReportError(error);
+                        _context.Result,
+                        out completedValue);
                 }
-                _context.Result = null;
             }
             catch (Exception ex)
             {
@@ -158,7 +154,7 @@ namespace HotChocolate.Execution
                 _context.Result = null;
             }
 
-            if (_context.Result is null && _context.Field.Type.IsNonNullType())
+            if (completedValue is null && _context.Field.Type.IsNonNullType())
             {
                 _operationContext.Result.AddNonNullViolation(
                     _context.FieldSelection,
@@ -170,39 +166,9 @@ namespace HotChocolate.Execution
                 _context.ResultMap.SetValue(
                     _context.ResponseIndex,
                     _context.ResponseName,
-                    _context.Result,
+                    completedValue,
                     _context.Field.Type.IsNullableType());
             }
-        }
-
-        public void Initialize(
-            IOperationContext operationContext,
-            IPreparedSelection selection,
-            ResultMap resultMap,
-            int responseIndex,
-            object? parent,
-            Path path,
-            IImmutableDictionary<string, object?> scopedContextData)
-        {
-            _task = default;
-            _operationContext = operationContext;
-            _selection = selection;
-            _context.Initialize(
-                operationContext,
-                selection,
-                resultMap,
-                responseIndex,
-                parent,
-                path,
-                scopedContextData);
-        }
-
-        public void Clear()
-        {
-            _task = default;
-            _operationContext = default!;
-            _selection = default!;
-            _context.Clear();
         }
     }
 }
