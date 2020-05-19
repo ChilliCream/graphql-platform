@@ -59,7 +59,7 @@ namespace HotChocolate.Execution
         {
             lock (_engineLock)
             {
-                if (HasEngineFinished())
+                if (TaskStats.Enqueued > 0 || BatchDispatcher.HasTasks || IsCompleted)
                 {
                     // in case there is a task someone might be already waiting, 
                     // in this case we have to complete the task and clear it
@@ -79,9 +79,6 @@ namespace HotChocolate.Execution
                 }
             }
         }
-
-        private bool HasEngineFinished() =>
-            TaskStats.Enqueued > 0 || BatchDispatcher.HasTasks || IsCompleted;
 
         private void BatchDispatcherEventHandler(object? source, EventArgs args) =>
             SetEngineState();
