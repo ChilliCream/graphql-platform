@@ -13,8 +13,6 @@ namespace HotChocolate.Execution
 {
     internal sealed partial class OperationContext : IOperationContext
     {
-        private IRequestContext _requestContext = default!;
-
         public ISchema Schema => _requestContext.Schema;
 
         public IServiceProvider Services => _requestContext.Services;

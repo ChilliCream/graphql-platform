@@ -1,31 +1,15 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Fetching;
-using HotChocolate.Execution.Utilities;
 using Microsoft.Extensions.ObjectPool;
-using System;
+using HotChocolate.Execution.Utilities;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution
 {
-    internal partial class ExecutionContext : IExecutionContext
+    internal partial class ExecutionContext 
+        : IExecutionContext
     {
-        private readonly TaskQueue _taskQueue;
-        private readonly TaskStatistics _taskStatistics;
-        private readonly object _engineLock = new object();
-        private TaskCompletionSource<bool>? _waitForEngineTask;
-
-        public ExecutionContext(
-            ObjectPool<ResolverTask> taskPool,
-            IBatchDispatcher batchDispatcher)
-        {
-            _taskStatistics = new TaskStatistics();
-            _taskQueue = new TaskQueue(_taskStatistics, taskPool);
-            TaskPool = taskPool;
-            BatchDispatcher = batchDispatcher;
-            BatchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-            TaskStats.StateChanged += TaskStatisticsEventHandler;
-        }
-
         public ITaskQueue Tasks => _taskQueue;
 
         public ITaskStatistics TaskStats => _taskStatistics;
@@ -34,7 +18,7 @@ namespace HotChocolate.Execution
 
         public ObjectPool<ResolverTask> TaskPool { get; }
 
-        public IBatchDispatcher BatchDispatcher { get; }
+        public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
         public Task WaitForEngine(CancellationToken cancellationToken)
         {

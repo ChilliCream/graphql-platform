@@ -7,6 +7,7 @@ namespace HotChocolate.Execution
 {
     internal sealed partial class OperationContext : IOperationContext
     {
+
         public IPreparedOperation Operation { get; private set; } = default!;
 
         public object? RootValue { get; private set; }
@@ -15,9 +16,9 @@ namespace HotChocolate.Execution
 
         public IActivator Activator => throw new NotImplementedException();
 
-        public IResultHelper Result => throw new NotImplementedException();
+        public IResultHelper Result => _resultHelper;
 
-        public IExecutionContext Execution => throw new NotImplementedException();
+        public IExecutionContext Execution => _executionContext;
 
         public IPreparedSelectionList CollectFields(
             SelectionSetNode selectionSet, 
@@ -27,26 +28,6 @@ namespace HotChocolate.Execution
         public IValueNode ReplaceVariables(IValueNode value, IType type)
         {
             throw new NotImplementedException();
-        }
-
-        public void Initialize(
-            IRequestContext requestContext,
-            IPreparedOperation operation,
-            object? rootValue,
-            IVariableValueCollection variables)
-        {
-            _requestContext = requestContext;
-            Operation = operation;
-            RootValue = rootValue;
-            Variables = variables;
-        }
-
-        public void Clear()
-        {
-            _requestContext = default!;
-            Operation = default!;
-            RootValue = null;
-            Variables = default!;
         }
     }
 }
