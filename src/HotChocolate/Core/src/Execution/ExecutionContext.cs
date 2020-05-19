@@ -61,16 +61,7 @@ namespace HotChocolate.Execution
         {
             lock (_engineLock)
             {
-                if (IsEngineRunning())
-                {
-                    // in case there is a task someone might be already waiting, 
-                    // if there is no task we have to create one
-                    if (_waitForEngineTask == null)
-                    {
-                        _waitForEngineTask = new TaskCompletionSource<bool>();
-                    }
-                }
-                else
+                if (HasEngineFinished())
                 {
                     // in case there is a task someone might be already waiting, 
                     // in this case we have to complete the task and clear it
@@ -79,10 +70,19 @@ namespace HotChocolate.Execution
                         ResetTaskSource();
                     }
                 }
+                else
+                {
+                    // in case there is a task someone might be already waiting, 
+                    // if there is no task we have to create one
+                    if (_waitForEngineTask == null)
+                    {
+                        _waitForEngineTask = new TaskCompletionSource<bool>();
+                    }
+                }
             }
         }
 
-        private bool IsEngineRunning() =>
+        private bool HasEngineFinished() =>
             TaskStats.Enqueued > 0 || BatchDispatcher.HasTasks || IsCompleted;
 
         private void BatchDispatcherEventHandler(object? source, EventArgs args)
