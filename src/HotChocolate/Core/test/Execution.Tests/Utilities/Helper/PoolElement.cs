@@ -4,7 +4,6 @@ namespace HotChocolate.Execution.Utilities
     {
         private class PoolElement
         {
-
         }
     }
 }
