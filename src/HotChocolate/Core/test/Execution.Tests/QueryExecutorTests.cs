@@ -12,6 +12,7 @@ using Moq;
 using Xunit;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
+using ChilliCream.Testing;
 
 namespace HotChocolate.Execution
 {
@@ -50,6 +51,23 @@ namespace HotChocolate.Execution
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Execute_FullIntrospectionQuery_SnapshotShouldMatch()
+        {
+            // arrange
+            IOperationContext operationContext = CreateOperationContext(
+                FileResource.Open("IntrospectionQuery.graphql"));
+
+            // act
+            var executor = new QueryExecutor();
+            IExecutionResult result = await executor.ExecuteAsync(
+                operationContext,
+                CancellationToken.None);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         private static IOperationContext CreateOperationContext(string query)
         {
             ISchema schema = SchemaBuilder.New()
@@ -75,7 +93,7 @@ namespace HotChocolate.Execution
             requestContext.SetupGet(t => t.Schema).Returns(schema);
 
             var batchDispatcher = new Mock<IBatchDispatcher>();
-            batchDispatcher.SetupGet(t => t.HasTasks).Returns(false);;
+            batchDispatcher.SetupGet(t => t.HasTasks).Returns(false); ;
 
             IServiceProvider service = new ServiceCollection()
                 .TryAddOperationContext()
