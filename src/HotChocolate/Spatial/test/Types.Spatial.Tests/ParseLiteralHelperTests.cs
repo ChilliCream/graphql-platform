@@ -63,6 +63,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var indices = ParseLiteralHelper.GetFieldIndices(new ObjectValueNode(
                 new ObjectFieldNode("type", 1),
                 new ObjectFieldNode("coordinates", 2),
+                new ObjectFieldNode("crs", 26912),
                 new ObjectFieldNode("ignored", 3)), _typeFieldName, _coordinatesFieldName, _crsFieldName);
 
             Assert.Equal(0, indices.typeIndex);

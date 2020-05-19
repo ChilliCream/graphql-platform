@@ -59,7 +59,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
+                    new ObjectFieldNode("type",
+                        new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
                     new ObjectFieldNode("coordinates", multiLinestring)));
 
             // assert
@@ -73,6 +74,34 @@ namespace HotChocolate.Types.Spatial.Tests
             Assert.Equal(20, Assert.IsType<MultiLineString>(result).Coordinates[1].Y);
             Assert.Equal(10, Assert.IsType<MultiLineString>(result).Coordinates[2].X);
             Assert.Equal(40, Assert.IsType<MultiLineString>(result).Coordinates[2].Y);
+        }
+
+        [Fact]
+        public void ParseLiteral_MultiLineString_With_Valid_Coordinates_And_CRS()
+        {
+            // arrange
+            InputObjectType type = CreateInputType();
+
+            // act
+            object result = type.ParseLiteral(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type",
+                        new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
+                    new ObjectFieldNode("coordinates", multiLinestring),
+                    new ObjectFieldNode("crs", 26912)));
+
+            // assert
+            Assert.Equal(2, Assert.IsType<MultiLineString>(result).NumGeometries);
+            Assert.Equal(3, Assert.IsType<MultiLineString>(result).Geometries[0].NumPoints);
+            Assert.Equal(4, Assert.IsType<MultiLineString>(result).Geometries[1].NumPoints);
+
+            Assert.Equal(10, Assert.IsType<MultiLineString>(result).Coordinates[0].X);
+            Assert.Equal(10, Assert.IsType<MultiLineString>(result).Coordinates[0].Y);
+            Assert.Equal(20, Assert.IsType<MultiLineString>(result).Coordinates[1].X);
+            Assert.Equal(20, Assert.IsType<MultiLineString>(result).Coordinates[1].Y);
+            Assert.Equal(10, Assert.IsType<MultiLineString>(result).Coordinates[2].X);
+            Assert.Equal(40, Assert.IsType<MultiLineString>(result).Coordinates[2].Y);
+            Assert.Equal(26912, Assert.IsType<MultiLineString>(result).SRID);
         }
 
         [Fact]
@@ -116,7 +145,8 @@ namespace HotChocolate.Types.Spatial.Tests
 
             Assert.Throws<InputObjectSerializationException>(() => type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
+                    new ObjectFieldNode("type",
+                        new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
                     new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 

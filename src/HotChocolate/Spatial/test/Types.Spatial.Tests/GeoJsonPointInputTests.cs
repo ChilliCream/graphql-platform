@@ -47,6 +47,25 @@ namespace HotChocolate.Types.Spatial.Tests
         }
 
         [Fact]
+        public void ParseLiteral_Point_With_Valid_Coordinates_With_CRS()
+        {
+            InputObjectType type = CreateInputType();
+
+            // act
+            object result = type.ParseLiteral(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
+                    new ObjectFieldNode("coordinates", point),
+                    new ObjectFieldNode("crs", 26912)));
+
+            // assert
+            Assert.Equal(30, Assert.IsType<Point>(result).X);
+            Assert.Equal(10, Assert.IsType<Point>(result).Y);
+            Assert.Equal(26912, Assert.IsType<Point>(result).SRID);
+
+        }
+
+        [Fact]
         public void ParseLiteral_Point_Is_Null()
         {
             InputObjectType type = CreateInputType();

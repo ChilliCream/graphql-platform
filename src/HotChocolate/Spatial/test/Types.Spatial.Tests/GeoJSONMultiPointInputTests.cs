@@ -67,6 +67,32 @@ namespace HotChocolate.Types.Spatial.Tests
         }
 
         [Fact]
+        public void ParseLiteral_MultiPoint_With_Valid_Coordinates_And_CRS()
+        {
+            InputObjectType type = CreateInputType();
+
+            // act
+            object result = type.ParseLiteral(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.MultiPoint)),
+                    new ObjectFieldNode("coordinates", multipoint),
+                    new ObjectFieldNode("crs", 26912)));
+
+            // assert
+            Assert.Equal(4, Assert.IsType<MultiPoint>(result).NumPoints);
+
+            Assert.Equal(10, Assert.IsType<MultiPoint>(result).Coordinates[0].X);
+            Assert.Equal(40, Assert.IsType<MultiPoint>(result).Coordinates[0].Y);
+            Assert.Equal(40, Assert.IsType<MultiPoint>(result).Coordinates[1].X);
+            Assert.Equal(30, Assert.IsType<MultiPoint>(result).Coordinates[1].Y);
+            Assert.Equal(20, Assert.IsType<MultiPoint>(result).Coordinates[2].X);
+            Assert.Equal(20, Assert.IsType<MultiPoint>(result).Coordinates[2].Y);
+            Assert.Equal(30, Assert.IsType<MultiPoint>(result).Coordinates[3].X);
+            Assert.Equal(10, Assert.IsType<MultiPoint>(result).Coordinates[3].Y);
+            Assert.Equal(26912, Assert.IsType<MultiPoint>(result).SRID);
+        }
+
+        [Fact]
         public void ParseLiteral_MultiPoint_Is_Null()
         {
             InputObjectType type = CreateInputType();

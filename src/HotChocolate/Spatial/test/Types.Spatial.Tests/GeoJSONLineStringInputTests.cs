@@ -59,6 +59,31 @@ namespace HotChocolate.Types.Spatial.Tests
         }
 
         [Fact]
+        public void ParseLiteral_LineString_With_Valid_Coordinates_And_CRS()
+        {
+            // arrange
+            InputObjectType type = CreateInputType();
+
+            // act
+            object result = type.ParseLiteral(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
+                    new ObjectFieldNode("coordinates", linestring),
+                    new ObjectFieldNode("crs", 26912)));
+
+            // assert
+            Assert.Equal(3, Assert.IsType<LineString>(result).NumPoints);
+
+            Assert.Equal(30, Assert.IsType<LineString>(result).Coordinates[0].X);
+            Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[0].Y);
+            Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[1].X);
+            Assert.Equal(30, Assert.IsType<LineString>(result).Coordinates[1].Y);
+            Assert.Equal(40, Assert.IsType<LineString>(result).Coordinates[2].X);
+            Assert.Equal(40, Assert.IsType<LineString>(result).Coordinates[2].Y);
+            Assert.Equal(26912, Assert.IsType<LineString>(result).SRID);
+        }
+
+        [Fact]
         public void ParseLiteral_LineString_Is_Null()
         {
             // arrange
@@ -132,7 +157,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: LINESTRING, coordinates: [ [30, 10], [10, 30], [40, 40] ] })}");
+                "{ test(arg: { type: LINESTRING, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
 
             // assert
             result.MatchSnapshot();

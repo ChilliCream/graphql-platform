@@ -66,6 +66,32 @@ namespace HotChocolate.Types.Spatial.Tests
         }
 
         [Fact]
+        public void ParseLiteral_Polygon_With_CRS()
+        {
+            InputObjectType type = CreateInputType();
+
+            // act
+            object result = type.ParseLiteral(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
+                    new ObjectFieldNode("coordinates", polygon),
+                    new ObjectFieldNode("crs", 26912)));
+
+            // assert
+            Assert.Equal(5, Assert.IsType<Polygon>(result).NumPoints);
+            Assert.Equal(1, Assert.IsType<Polygon>(result).NumGeometries);
+            Assert.Equal(30, Assert.IsType<Polygon>(result).Coordinates[0].X);
+            Assert.Equal(10, Assert.IsType<Polygon>(result).Coordinates[0].Y);
+            Assert.Equal(40, Assert.IsType<Polygon>(result).Coordinates[1].X);
+            Assert.Equal(40, Assert.IsType<Polygon>(result).Coordinates[1].Y);
+            Assert.Equal(20, Assert.IsType<Polygon>(result).Coordinates[2].X);
+            Assert.Equal(40, Assert.IsType<Polygon>(result).Coordinates[2].Y);
+            Assert.Equal(10, Assert.IsType<Polygon>(result).Coordinates[3].X);
+            Assert.Equal(20, Assert.IsType<Polygon>(result).Coordinates[3].Y);
+            Assert.Equal(26912, Assert.IsType<Polygon>(result).SRID);
+        }
+
+        [Fact]
         public void ParseLiteral_Polygon_Is_Null()
         {
             InputObjectType type = CreateInputType();

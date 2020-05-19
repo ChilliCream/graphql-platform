@@ -82,6 +82,35 @@ namespace HotChocolate.Types.Spatial.Tests
         }
 
         [Fact]
+        public void ParseLiteral_MultiPolygon_With_Single_Ring_And_CRS()
+        {
+            InputObjectType type = CreateInputType();
+
+            // act
+            object result = type.ParseLiteral(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.MultiPolygon)),
+                    new ObjectFieldNode("coordinates", multiPolygon),
+                    new ObjectFieldNode("crs", 26912)));
+
+            // assert
+            Assert.Equal(2, Assert.IsType<MultiPolygon>(result).NumGeometries);
+            Assert.Equal(4, Assert.IsType<MultiPolygon>(result).Geometries[0].NumPoints);
+            Assert.Equal(5, Assert.IsType<MultiPolygon>(result).Geometries[1].NumPoints);
+
+            Assert.Equal(30, Assert.IsType<MultiPolygon>(result).Coordinates[0].X);
+            Assert.Equal(20, Assert.IsType<MultiPolygon>(result).Coordinates[0].Y);
+            Assert.Equal(45, Assert.IsType<MultiPolygon>(result).Coordinates[1].X);
+            Assert.Equal(40, Assert.IsType<MultiPolygon>(result).Coordinates[1].Y);
+            Assert.Equal(10, Assert.IsType<MultiPolygon>(result).Coordinates[2].X);
+            Assert.Equal(40, Assert.IsType<MultiPolygon>(result).Coordinates[2].Y);
+            Assert.Equal(30, Assert.IsType<MultiPolygon>(result).Coordinates[3].X);
+            Assert.Equal(20, Assert.IsType<MultiPolygon>(result).Coordinates[3].Y);
+            Assert.Equal(26912, Assert.IsType<MultiPolygon>(result).SRID);
+
+        }
+
+        [Fact]
         public void ParseLiteral_MultiPolygon_Is_Null()
         {
             InputObjectType type = CreateInputType();
