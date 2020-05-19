@@ -1,20 +1,21 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class ResultObjectBuffer<T> where T : class, new()
+    internal sealed class ResultObjectBuffer<T> where T : class
     {
-        private readonly T?[] _buffer;
         private readonly int _capacity;
-        private readonly Action<T> _clean;
-        private int _index;
+        private readonly IPooledObjectPolicy<T> _policy;
+        private readonly T?[] _buffer;
+        private int _index = 0;
 
-        public ResultObjectBuffer(int capacity, Action<T> clean)
+        public ResultObjectBuffer(int capacity, IPooledObjectPolicy<T> policy)
         {
             _capacity = capacity;
+            _policy = policy;
             _buffer = new T[capacity];
-            _clean = clean;
         }
 
         public T Pop()
@@ -37,7 +38,7 @@ namespace HotChocolate.Execution.Utilities
                     return true;
                 }
 
-                obj = new T();
+                obj = _policy.Create();
                 _buffer[nextIndex] = obj;
                 return true;
             }
@@ -48,6 +49,18 @@ namespace HotChocolate.Execution.Utilities
 
         public void Reset()
         {
+            if (_index == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _index; i++)
+            {
+                if (!_policy.Return(_buffer[i]!))
+                {
+                    _buffer[i] = null;
+                }
+            }
             _index = 0;
         }
     }

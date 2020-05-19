@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Utilities
         private readonly List<NonNullViolation> _nonNullViolations = new List<NonNullViolation>();
         private readonly ResultPool _resultPool;
         private Result _result;
-        private IResultMap? _data;
+        private ResultMap? _data;
 
         public ResultHelper(ResultPool resultPool)
         {
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution.Utilities
             return list;
         }
 
-        public void SetData(IResultMap data)
+        public void SetData(ResultMap data)
         {
             _data = data;
         }
@@ -195,19 +195,12 @@ namespace HotChocolate.Execution.Utilities
                 throw new InvalidOperationException();
             }
 
-            var builder = new QueryResultBuilder();
-
-            if (_data is { })
-            {
-                builder.SetData(_result);
-            }
-
-            if (_errors.Count > 0)
-            {
-                builder.AddErrors(_errors);
-            }
-
-            return builder.Create();
+            return new QueryResult
+            (
+                data: _data,
+                errors: _errors.Count == 0 ? null : new List<IError>(_errors),
+                disposable: _data is null ? null : _result
+            );
         }
 
         private readonly struct NonNullViolation

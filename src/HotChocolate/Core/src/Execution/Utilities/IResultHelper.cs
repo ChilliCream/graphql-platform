@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Utilities
 
         ResultList RentResultList();
 
-        void SetData(IResultMap resultMap);
+        void SetData(ResultMap resultMap);
 
         /// <summary>
         /// Adds an error thread-safe to the result object.

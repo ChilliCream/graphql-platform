@@ -7,7 +7,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public sealed class ResultMap : IResultMap, IReadOnlyDictionary<string, object?>
+    public sealed class ResultMap 
+        : IResultMap
+        , IReadOnlyDictionary<string, object?>
     {
         private static readonly ResultValue[] _empty = new ResultValue[0];
         private ResultValue[] _buffer;
@@ -214,7 +216,7 @@ namespace HotChocolate.Execution
             _needsDefrag = false;
         }
 
-        public void Clear()
+        public void Reset()
         {
             for (var i = 0; i < _capacity; i++)
             {
