@@ -33,5 +33,15 @@ namespace HotChocolate.Types.Spatial
                     throw new NotImplementedException();
             }
         }
+
+        public static void InvalidPositionScalar() => throw new ScalarSerializationException(
+            "A valid position object must be a list of two or three int or float literals " +
+            "representing a position. e.g. [1,1] or [2,2,0]"
+        );
+
+        public static void NullPositionScalar() => throw new ArgumentNullException(
+            "A valid position object must be a list of two or three int or float literals " +
+            "representing a position. e.g. [1,1] or [2,2,0]"
+        );
     }
 }

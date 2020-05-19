@@ -18,7 +18,8 @@ namespace HotChocolate.Types.Spatial
         {
             if (literal == null)
             {
-                throw new ArgumentNullException(nameof(literal));
+                ThrowHelper.NullPositionScalar();
+                return false;
             }
 
             if (literal is NullValueNode)
@@ -46,8 +47,8 @@ namespace HotChocolate.Types.Spatial
         {
             if (literal == null)
             {
-                // TODO : move throwhelper
-                throw new ArgumentNullException(nameof(literal));
+                ThrowHelper.NullPositionScalar();
+                return null;
             }
 
             if (literal is NullValueNode)
@@ -59,9 +60,8 @@ namespace HotChocolate.Types.Spatial
             {
                 if (list.Items.Count != 2 && list.Items.Count != 3)
                 {
-                    // TODO : move throwhelper
-                    throw new ScalarSerializationException(
-                        "The position type has to have two or three elements [x,y] or [x,y,z]");
+                    ThrowHelper.InvalidPositionScalar();
+                    return null;
                 }
 
                 if (list.Items[0] is IFloatValueLiteral x &&
@@ -78,15 +78,12 @@ namespace HotChocolate.Types.Spatial
                     }
                 }
 
-                // TODO : move throwhelper
-                throw new ScalarSerializationException(
-                    "All elements of the scalar have to be int or float literals.");
+                ThrowHelper.InvalidPositionScalar();
+                return null;
             }
 
-            // TODO : move throwhelper
-            throw new ScalarSerializationException(
-                "A valid position has to be a list or two [x,y] or three [x,y,z] elements " +
-                "representing a position.");
+            ThrowHelper.InvalidPositionScalar();
+            return null;
         }
 
         /// input value from the client
