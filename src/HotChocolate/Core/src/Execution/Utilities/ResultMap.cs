@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
                     name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 7).Name))
                 {
                     index = i.ToInt32();
-                    return searchSpace;
+                    return _buffer[index];
                 }
 
                 i += 1;
@@ -126,7 +126,7 @@ namespace HotChocolate.Execution
                     name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 3).Name))
                 {
                     index = i.ToInt32();
-                    return searchSpace;
+                    return _buffer[index];
                 }
 
                 i += 4;
@@ -139,7 +139,7 @@ namespace HotChocolate.Execution
                 if (name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i).Name))
                 {
                     index = i.ToInt32();
-                    return searchSpace;
+                    return _buffer[index];
                 }
 
                 i += 1;

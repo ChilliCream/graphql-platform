@@ -41,6 +41,30 @@ namespace HotChocolate.Execution.Utilities
                 });
         }
 
+        [InlineData(9)]
+        [InlineData(8)]
+        [InlineData(7)]
+        [InlineData(5)]
+        [InlineData(4)]
+        [InlineData(3)]
+        [Theory]
+        public void GetValue_ValueIsFound(int capacity)
+        {
+            // arrange
+            var resultMap = new ResultMap();
+            resultMap.EnsureCapacity(capacity);
+            resultMap.SetValue(0, "abc", "def");
+            resultMap.SetValue(1, "def", "def");
+            resultMap.SetValue(2, "ghi", "def");
+
+            // act
+            ResultValue value = resultMap.GetValue("def", out int index);
+
+            // assert
+            Assert.Equal("def", value.Name);
+            Assert.Equal(1, index);
+        }
+
         [Fact]
         public void Complete()
         {

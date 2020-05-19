@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class ResultHelper : IResultHelper
+    internal sealed partial class ResultHelper : IResultHelper
     {
         private readonly object _syncMap = new object();
         private readonly object _syncMapList = new object();
@@ -21,15 +21,6 @@ namespace HotChocolate.Execution.Utilities
         {
             _resultPool = resultPool;
             _result = new Result(resultPool);
-        }
-
-        public void Clear()
-        {
-            _errors.Clear();
-            _fieldErrors.Clear();
-            _nonNullViolations.Clear();
-            _result = new Result(_resultPool);
-            _data = null;
         }
 
         public ResultMap RentResultMap(int capacity)
