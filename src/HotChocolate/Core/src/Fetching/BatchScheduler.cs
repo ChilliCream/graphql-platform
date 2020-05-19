@@ -19,7 +19,7 @@ namespace HotChocolate.Fetching
 
         public void Dispatch()
         {
-            while(_queue.TryDequeue(out Action? dispatch))
+            while (_queue.TryDequeue(out Action? dispatch))
             {
                 dispatch();
             }

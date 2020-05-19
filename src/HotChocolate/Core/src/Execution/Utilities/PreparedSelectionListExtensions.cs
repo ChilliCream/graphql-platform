@@ -20,6 +20,7 @@ namespace HotChocolate.Execution.Utilities
                 if (selection.IsVisible(operationContext.Variables))
                 {
                     operationContext.Execution.Tasks.Enqueue(
+                        operationContext,
                         selection,
                         responseIndex++,
                         resultMap,

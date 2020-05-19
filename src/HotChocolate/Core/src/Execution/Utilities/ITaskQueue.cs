@@ -33,6 +33,7 @@ namespace HotChocolate.Execution.Utilities
         /// Initializes a <see cref="ResolverTask"/> and enqueues it.
         /// </summary>
         void Enqueue(
+            IOperationContext operationContext,
             IPreparedSelection selection,
             int responseIndex,
             ResultMap resultMap,
