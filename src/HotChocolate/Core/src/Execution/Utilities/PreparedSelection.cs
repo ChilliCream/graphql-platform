@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Utilities
             ResponseIndex = responseIndex;
             ResponseName = responseName;
             ResolverPipeline = resolverPipeline;
-            Arguments = arguments;
+            Arguments = new PreparedArgumentMap(arguments);
             Selections = _emptySelections;
         }
 
@@ -59,21 +59,14 @@ namespace HotChocolate.Execution.Utilities
         public FieldDelegate ResolverPipeline { get; }
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; }
+        public IPreparedArgumentMap Arguments { get; }
 
         /// <inheritdoc />
         public bool IsFinal { get; private set; } = true;
 
-        IPreparedArgumentMap IPreparedSelection.Arguments => throw new NotImplementedException();
-
         /// <inheritdoc />
         public bool IsVisible(IVariableValueCollection variables)
         {
-            if (_isReadOnly)
-            {
-                throw new NotSupportedException();
-            }
-
             if (_visibilities is null)
             {
                 return true;
