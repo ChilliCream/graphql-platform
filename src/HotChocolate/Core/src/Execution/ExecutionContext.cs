@@ -44,6 +44,8 @@ namespace HotChocolate.Execution
                 {
                     return Task.CompletedTask;
                 }
+
+                cancellationToken.Register(() => _waitForEngineTask.SetCanceled());
                 return _waitForEngineTask.Task;
             }
         }
