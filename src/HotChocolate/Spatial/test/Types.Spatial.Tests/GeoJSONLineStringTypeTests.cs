@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test { type coordinates bbox }}");
+                "{ test { type coordinates bbox crs }}");
             // assert
             result.MatchSnapshot();
         }
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Spatial.Tests
             IQueryExecutor executor = schema.MakeExecutable();
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test { ... on LineString { type coordinates bbox }}}");
+                "{ test { ... on LineString { type coordinates bbox crs }}}");
             // assert
             result.MatchSnapshot();
         }
