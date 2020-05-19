@@ -2,10 +2,10 @@ using System;
 using HotChocolate.Execution.Properties;
 using Xunit;
 
-namespace HotChocolate.Execution.Utilities
-{
 #nullable enable
 
+namespace HotChocolate.Execution.Utilities
+{
     public class ObjectBufferTests
     {
         [Fact]

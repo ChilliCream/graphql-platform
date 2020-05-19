@@ -57,5 +57,9 @@ namespace HotChocolate.Execution.Utilities
             Assert.Single(pool.Rented);
             Assert.Single(pool.Returned);
         }
+
+        private class PoolElement
+        {
+        }
     }
 }
