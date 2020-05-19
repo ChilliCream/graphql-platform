@@ -34,6 +34,7 @@ namespace HotChocolate.Execution.Utilities
             // assert
             Assert.NotNull(context.Tasks);
         }
+        
         [Fact]
         public void Initialize_TaskPool_ShouldBeSet()
         {
