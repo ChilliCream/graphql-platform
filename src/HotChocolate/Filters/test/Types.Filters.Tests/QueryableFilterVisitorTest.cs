@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
 
@@ -43,25 +42,6 @@ namespace HotChocolate.Types.Filters
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 null,
-                true);
-            };
-
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void Create_Should_Throw_IfInputTypeIsNull()
-        {
-            // arrange 
-
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                null,
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
                 true);
             };
 

@@ -39,17 +39,16 @@ namespace HotChocolate.Types.Filters.Expressions
 
                     ctx.ClrTypes.Push(closureType);
 
-                    context.AddScope();
 
                     if (node.Value.IsNull())
                     {
-                        context.GetLevel().Enqueue(
-                            FilterExpressionBuilder.Equals(ctx.GetClosure().Parameter, null));
+                        ctx.AddIsNullClosure();
 
                         action = SyntaxVisitor.SkipAndLeave;
                     }
                     else
                     {
+                        context.AddScope();
                         action = SyntaxVisitor.Continue;
                     }
                     return true;
@@ -64,15 +63,17 @@ namespace HotChocolate.Types.Filters.Expressions
         public static void Leave(
             FilterOperationField field,
             ObjectFieldNode node,
-            IFilterVisitorContext<Expression> ctx)
+            IFilterVisitorContext<Expression> context)
         {
-            if (ctx is QueryableFilterVisitorContext context)
+            if (context is QueryableFilterVisitorContext ctx)
             {
                 if (field.Operation.Kind == FilterOperationKind.ArraySome
                     || field.Operation.Kind == FilterOperationKind.ArrayNone
                     || field.Operation.Kind == FilterOperationKind.ArrayAll)
                 {
-                    FilterScope<Expression> nestedScope = context.PopScope();
+                    FilterScope<Expression> nestedScope = ctx.PopScope();
+
+                    ctx.ClrTypes.Pop();
 
                     if (nestedScope is QueryableScope nestedClosure &&
                         nestedClosure.TryCreateLambda(out LambdaExpression? lambda))
@@ -85,7 +86,7 @@ namespace HotChocolate.Types.Filters.Expressions
                             case FilterOperationKind.ArraySome:
                                 expression = FilterExpressionBuilder.Any(
                                     closureType,
-                                    context.GetInstance(),
+                                    ctx.GetInstance(),
                                     lambda);
                                 break;
 
@@ -93,14 +94,14 @@ namespace HotChocolate.Types.Filters.Expressions
                                 expression = FilterExpressionBuilder.Not(
                                     FilterExpressionBuilder.Any(
                                         closureType,
-                                        context.GetInstance(),
+                                        ctx.GetInstance(),
                                         lambda));
                                 break;
 
                             case FilterOperationKind.ArrayAll:
                                 expression = FilterExpressionBuilder.All(
                                     closureType,
-                                    context.GetInstance(),
+                                    ctx.GetInstance(),
                                     lambda);
                                 break;
 
@@ -108,14 +109,14 @@ namespace HotChocolate.Types.Filters.Expressions
                                 throw new NotSupportedException();
                         }
 
-                        if (context.InMemory)
+                        if (ctx.InMemory)
                         {
                             expression = FilterExpressionBuilder.NotNullAndAlso(
-                                context.GetInstance(), expression);
+                                ctx.GetInstance(), expression);
                         }
-                        context.GetLevel().Enqueue(expression);
+                        ctx.GetLevel().Enqueue(expression);
                     }
-                    context.PopInstance();
+                    ctx.PopInstance();
                 }
             }
         }
