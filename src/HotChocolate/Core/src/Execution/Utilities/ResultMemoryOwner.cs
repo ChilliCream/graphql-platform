@@ -3,11 +3,11 @@ using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class Result : IResult
+    internal sealed class ResultMemoryOwner : IResultMemoryOwner
     {
         private readonly ResultPool _resultPool;
 
-        public Result(ResultPool resultPool)
+        public ResultMemoryOwner(ResultPool resultPool)
         {
             _resultPool = resultPool;
         }
