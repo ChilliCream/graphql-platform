@@ -6,14 +6,14 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Pipeline
 {
-    internal sealed class ParseQueryMiddleware
+    internal sealed class DocumentParserMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
 
-        public ParseQueryMiddleware(
+        public DocumentParserMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
             IDocumentCache documentCache,
@@ -31,20 +31,45 @@ namespace HotChocolate.Execution.Pipeline
 
         public async Task InvokeAsync(IRequestContext context)
         {
-            IReadOnlyQueryRequest request = context.Request;
-
-            if (request.Query is { })
+            if (context.Document is null && context.Request.Query is { })
             {
-                using (_diagnosticEvents.ParseDocument(context))
+                bool success = true;
+
+                try
                 {
-                    context.DocumentId = ComputeDocumentHash(
-                        request.QueryHash, request.Query);
-                    context.Document = _documentCache.GetOrParseDocument(
-                        context.DocumentId, request.Query, ParseDocument);
+                    using (_diagnosticEvents.ParseDocument(context))
+                    {
+                        context.DocumentId = ComputeDocumentHash(
+                            context.Request.QueryHash, context.Request.Query);
+                        context.Document = ParseDocument(context.Request.Query);
+                    }
+                }
+                catch (SyntaxException ex)
+                {
+                    success = false;
+
+                    IError error = context.ErrorHandler.Handle(
+                        ErrorBuilder.New()
+                            .SetMessage(ex.Message)
+                            .SetCode(ErrorCodes.Execution.SyntaxError)
+                            .AddLocation(ex.Line, ex.Column)
+                            .Build());
+
+                    context.Exception = ex;
+                    context.Result = QueryResultBuilder.CreateError(error);
+
+                    _diagnosticEvents.SyntaxError(context, error);
+                }
+
+                if (success)
+                {
+                    await _next(context).ConfigureAwait(false);
                 }
             }
-
-            await _next(context).ConfigureAwait(false);
+            else
+            {
+                await _next(context).ConfigureAwait(false);
+            }
         }
 
         private static DocumentNode ParseDocument(IQuery query)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -42,6 +43,9 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; set; }
 
+        /// <summary>
+        /// Gets a unique identifier for a query document.
+        /// </summary>
         string? DocumentId { get; set; }
 
         /// <summary>
@@ -53,6 +57,16 @@ namespace HotChocolate.Execution
         /// Gets or sets the document validation result.
         /// </summary>
         DocumentValidatorResult? ValidationResult { get; set; }
+
+        /// <summary>
+        /// Gets a unique identifier for a prepared operation.
+        /// </summary>
+        string? OperationId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the prepared operation.
+        /// </summary>
+        IPreparedOperation? Operation { get; set; }
 
         /// <summary>
         /// Gets or sets the execution result.

@@ -42,9 +42,9 @@ namespace HotChocolate.Execution
             MiddlewareResolver = middlewareResolver
                 ?? throw new ArgumentNullException(nameof(middlewareResolver));
 
-            ContextData = request.Properties == null
+            ContextData = request.ContextData == null
                 ? new ConcurrentDictionary<string, object>()
-                : new ConcurrentDictionary<string, object>(request.Properties);
+                : new ConcurrentDictionary<string, object>(request.ContextData);
         }
 
         public ISchema Schema { get; }
