@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 .Combinator(FilterCombinator.AND)
                         .Handler(FilterExpressionCombinator.CombineWithAnd).And()
                 .Combinator(FilterCombinator.OR)
-                        .Handler(FilterExpressionCombinator.CombineWithAnd).And()
+                        .Handler(FilterExpressionCombinator.CombineWithOr).And()
                 .Middleware<FilterExpressionVisitorMiddleware>();
 
             return descriptor;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Filters.Conventions;
@@ -95,12 +95,7 @@ namespace HotChocolate.Types.Filters
                 Definition.OperationCombinator.TryGetValue(
                     combinator, out FilterOperationCombinator<T>? combine))
             {
-                combined = operations.Dequeue();
-
-                while (operations.Count != 0)
-                {
-                    combined = combine(combined, operations.Dequeue());
-                }
+                combined = combine(operations);
 
                 return true;
             }

@@ -7,15 +7,15 @@ namespace HotChocolate.Types.Filters.Expressions
     public static class FilterExpressionCombinator
     {
         public static Expression CombineWithAnd(
-               IReadOnlyList<Expression> operations) =>
+               Queue<Expression> operations) =>
             CombineWithCombinator(operations, Expression.AndAlso);
 
         public static Expression CombineWithOr(
-               IReadOnlyList<Expression> operations) =>
+               Queue<Expression> operations) =>
             CombineWithCombinator(operations, Expression.OrElse);
 
         public static Expression CombineWithCombinator(
-            IReadOnlyList<Expression> operations,
+            Queue<Expression> operations,
             Func<Expression, Expression, Expression> combine)
         {
             if (operations.Count < 0)
@@ -23,11 +23,11 @@ namespace HotChocolate.Types.Filters.Expressions
                 throw new InvalidOperationException();
             }
 
-            Expression combined = operations[0];
+            Expression combined = operations.Dequeue();
 
-            for (var i = 1; i < operations.Count; i++)
+            while (operations.Count > 0)
             {
-                combined = combine(combined, operations[i]);
+                combined = combine(combined, operations.Dequeue());
             }
 
             return combined;
