@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters.Expressions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Conventions
 {

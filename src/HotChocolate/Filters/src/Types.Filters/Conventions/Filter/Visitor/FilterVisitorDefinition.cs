@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -59,14 +58,5 @@ namespace HotChocolate.Types.Filters.Conventions
             }
             return next(context);
         }
-    }
-
-    public abstract class FilterVisitorDefinitionBase
-    {
-        public abstract Task ApplyFilter<TSource>(
-            IFilterConvention convention,
-            FieldDelegate next,
-            ITypeConversion converter,
-            IMiddlewareContext context);
     }
 }

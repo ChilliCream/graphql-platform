@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Filters
             return true;
         }
 
-        private static Expression GetExpressionBodyWithNullCheck(this QueryableScope closure) => 
+        private static Expression GetExpressionBodyWithNullCheck(this QueryableScope closure) =>
             FilterExpressionBuilder.NotNullAndAlso(closure.Parameter, closure.Level.Peek().Peek());
     }
 }

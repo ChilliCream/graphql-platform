@@ -3,11 +3,6 @@ using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public abstract class FilterVisitorDescriptorBase
-    {
-        public abstract FilterVisitorDefinitionBase CreateDefinition();
-    }
-
     public class FilterVisitorDescriptor<T>
         : FilterVisitorDescriptorBase, IFilterVisitorDescriptor<T>
     {
@@ -55,7 +50,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
             foreach (FilterVisitorCombinatorDescriptor<T> combinatorDesc in _combinators.Values)
             {
-                FilterCombinatorDefinition<T> definition = combinatorDesc.CreateDefinition();
+                FilterVisitorCombinatorDefinition<T> definition = combinatorDesc.CreateDefinition();
                 if (definition.Handler != null)
                 {
                     combinator[definition.Combinator] = definition.Handler;
@@ -90,44 +85,5 @@ namespace HotChocolate.Types.Filters.Conventions
             Definition.FilterMiddleware = middleware;
             return this;
         }
-    }
-
-    public class FilterVisitorCombinatorDescriptor<T> : IFilterCombinatorDescriptor<T>
-    {
-        private readonly IFilterVisitorDescriptor<T> _descriptor;
-
-        public FilterVisitorCombinatorDescriptor(
-            IFilterVisitorDescriptor<T> descriptor,
-            FilterCombinator combinator)
-        {
-            _descriptor = descriptor;
-            Definition.Combinator = combinator;
-        }
-
-        protected FilterCombinatorDefinition<T> Definition { get; } =
-            new FilterCombinatorDefinition<T>();
-
-        public FilterCombinatorDefinition<T> CreateDefinition() => Definition;
-
-        public IFilterVisitorDescriptor<T> And() => _descriptor;
-
-        public IFilterCombinatorDescriptor<T> Handler(
-            FilterOperationCombinator<T> operationCombinator)
-        {
-            Definition.Handler = operationCombinator;
-            return this;
-        }
-
-        public static FilterVisitorCombinatorDescriptor<T> New(
-            IFilterVisitorDescriptor<T> descriptor,
-            FilterCombinator combinator) =>
-            new FilterVisitorCombinatorDescriptor<T>(descriptor, combinator);
-    }
-
-    public class FilterCombinatorDefinition<T>
-    {
-        public FilterCombinator Combinator { get; set; }
-
-        public FilterOperationCombinator<T>? Handler { get; set; }
     }
 }

@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterVisitorTypeDescriptor<T> Leave(FilterFieldLeave<T> handler);
 
         /// <summary>
-        /// Add additional configuration to <see cref="IFilterVisitorDescriptor"/>
+        /// Add additional configuration to <see cref="IFilterVisitorDescriptor<T>"/>
         /// </summary>
         IFilterVisitorDescriptor<T> And();
     }

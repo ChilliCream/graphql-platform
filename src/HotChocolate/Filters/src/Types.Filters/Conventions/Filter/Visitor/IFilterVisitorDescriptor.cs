@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         IFilterVisitorDescriptor<T> Middleware<TMiddleware>()
             where TMiddleware : class, IFilterMiddleware<T>, new();
+
         IFilterVisitorDescriptor<T> Middleware(IFilterMiddleware<T> middleware);
     }
 }
