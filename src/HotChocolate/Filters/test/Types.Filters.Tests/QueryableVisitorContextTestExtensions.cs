@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using HotChocolate.Types.Filters.Expressions;
 using Xunit;
 
 namespace HotChocolate.Types.Filters

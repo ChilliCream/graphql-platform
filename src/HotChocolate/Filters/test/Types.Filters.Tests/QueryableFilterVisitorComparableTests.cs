@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
@@ -382,7 +383,7 @@ namespace HotChocolate.Types.Filters
 
             // act
             var context = new QueryableFilterVisitorContext(
-                fooNullableType, 
+                fooNullableType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);

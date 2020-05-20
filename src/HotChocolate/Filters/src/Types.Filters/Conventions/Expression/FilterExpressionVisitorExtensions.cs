@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
-using HotChocolate.Types.Filters.Expressions;
+using HotChocolate.Types.Filters.Conventions;
 
-namespace HotChocolate.Types.Filters.Conventions
+namespace HotChocolate.Types.Filters.Expressions
 {
     public static class FilterVisitorExtensions
     {

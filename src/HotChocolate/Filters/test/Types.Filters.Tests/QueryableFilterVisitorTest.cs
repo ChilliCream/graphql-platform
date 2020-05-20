@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
 

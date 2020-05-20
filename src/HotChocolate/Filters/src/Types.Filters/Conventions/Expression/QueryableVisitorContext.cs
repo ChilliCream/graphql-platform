@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters.Expressions
 {
     public class QueryableFilterVisitorContext
         : FilterVisitorContext<Expression>

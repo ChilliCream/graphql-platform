@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate.Types.Filters.Expressions
 {
     public class QueryableScope
         : FilterScope<Expression>

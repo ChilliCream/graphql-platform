@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
