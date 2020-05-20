@@ -14,9 +14,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterInputTypeDescriptor<T>
+    public class FilterInputTypeDescriptor
         : DescriptorBase<FilterInputTypeDefinition>
-        , IFilterInputTypeDescriptor<T>
+        , IFilterInputTypeDescriptor
     {
         private readonly IFilterConvention _convention;
 
@@ -42,20 +42,20 @@ namespace HotChocolate.Types.Filters
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
 
-        public IFilterInputTypeDescriptor<T> Name(NameString value)
+        public IFilterInputTypeDescriptor Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Description(
+        public IFilterInputTypeDescriptor Description(
             string value)
         {
             Definition.Description = value;
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>(
+        public IFilterInputTypeDescriptor Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class
         {
@@ -63,20 +63,25 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>()
+        public IFilterInputTypeDescriptor Directive<TDirective>()
             where TDirective : class, new()
         {
             Definition.AddDirective(new TDirective());
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> Directive(
+        public IFilterInputTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
             Definition.AddDirective(name, arguments);
             return this;
         }
+        public TDesc AddFilter<TDesc>(
+            PropertyInfo property,
+            Func<IDescriptorContext, TDesc> factory)
+            where TDesc : FilterFieldDescriptorBase =>
+                Fields.GetOrAddDescriptor(property, () => factory(Context));
 
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
@@ -157,143 +162,23 @@ namespace HotChocolate.Types.Filters
             return definition != null;
         }
 
-        public IFilterInputTypeDescriptor<T> BindFields(
+        public IFilterInputTypeDescriptor BindFields(
             BindingBehavior bindingBehavior)
         {
             Definition.Fields.BindingBehavior = bindingBehavior;
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> BindFieldsExplicitly() =>
+        public IFilterInputTypeDescriptor BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public IFilterInputTypeDescriptor<T> BindFieldsImplicitly() =>
+        public IFilterInputTypeDescriptor BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
-        public IStringFilterFieldDescriptor Filter(
-            Expression<Func<T, string>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new StringFilterFieldDescriptor(Context, p, _convention));
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IBooleanFilterFieldDescriptor Filter(
-            Expression<Func<T, bool>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new BooleanFilterFieldDescriptor(Context, p, _convention));
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IComparableFilterFieldDescriptor Filter(
-            Expression<Func<T, IComparable>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new ComparableFilterFieldDescriptor(Context, p, _convention));
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IFilterInputTypeDescriptor<T> Ignore(
-            Expression<Func<T, object>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                Fields.GetOrAddDescriptor(p,
-                    () => new IgnoredFilterFieldDescriptor(Context, p, _convention));
-                return this;
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IObjectFilterFieldDescriptor<TObject> Object<TObject>(
-            Expression<Func<T, TObject>> property) where TObject : class
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new ObjectFilterFieldDescriptor<TObject>(Context, p, _convention));
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IArrayFilterFieldDescriptor<TObject> ListFilter<TObject, TListType>(
-            Expression<Func<T, TListType>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new ArrayFilterFieldDescriptor<TObject>(Context, p, _convention));
-            }
-
-            throw new ArgumentException(
-                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
-                nameof(property));
-        }
-
-        public IArrayFilterFieldDescriptor<TObject> List<TObject>(
-            Expression<Func<T, IEnumerable<TObject>>> property)
-            where TObject : class
-        {
-            return ListFilter<TObject, IEnumerable<TObject>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<string>> List(
-            Expression<Func<T, IEnumerable<string>>> property)
-        {
-            return ListFilter<ISingleFilter<string>, IEnumerable<string>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> List(
-            Expression<Func<T, IEnumerable<bool>>> property)
-        {
-            return ListFilter<ISingleFilter<bool>, IEnumerable<bool>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct>? ignore = null)
-            where TStruct : struct
-        {
-            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
-            Expression<Func<T, IEnumerable<TStruct?>>> property,
-            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct>? ignore = null)
-            where TStruct : struct
-        {
-            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
-        }
-
-        public static FilterInputTypeDescriptor<T> New(
+        public static FilterInputTypeDescriptor New(
             IDescriptorContext context,
             Type entityType,
             IFilterConvention convention) =>
-                new FilterInputTypeDescriptor<T>(context, entityType, convention);
+                new FilterInputTypeDescriptor(context, entityType, convention);
     }
 }

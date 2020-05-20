@@ -86,9 +86,9 @@ namespace HotChocolate.Types.Filters.Extensions
                 }
             }
 
-            T newDescirptor = valueFactory.Invoke();
-            fields.Add(newDescirptor);
-            return newDescirptor;
+            T newDescriptor = valueFactory.Invoke();
+            fields.Add(newDescriptor);
+            return newDescriptor;
         }
     }
 }

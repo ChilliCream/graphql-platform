@@ -1,13 +1,10 @@
 using System;
-using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IFilterInputTypeDescriptor
-        : IDescriptor<FilterInputTypeDefinition>
-        , IFluent
+    public interface IFilterInputTypeDescriptor<T>
+        : IFilterInputTypeDescriptor
     {
         /// <summary>
         /// Defines the name of the <see cref="FilterInputType{T}"/>.
@@ -17,7 +14,7 @@ namespace HotChocolate.Types.Filters
         /// <paramref name="value"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </exception>
-        IFilterInputTypeDescriptor Name(NameString value);
+        new IFilterInputTypeDescriptor<T> Name(NameString value);
 
         /// <summary>
         /// Adds explanatory text of the <see cref="FilterInputType{T}"/>
@@ -25,7 +22,7 @@ namespace HotChocolate.Types.Filters
         /// </summary>
         /// <param name="value">The filter type description.</param>
         ///
-        IFilterInputTypeDescriptor Description(string value);
+        new IFilterInputTypeDescriptor<T> Description(string value);
 
         /// <summary>
         /// Defines the filter binding behavior.
@@ -44,35 +41,30 @@ namespace HotChocolate.Types.Filters
         /// All filters have to be specified explicitly via one of the `Filter`
         /// methods.
         /// </param>
-        IFilterInputTypeDescriptor BindFields(
+        new IFilterInputTypeDescriptor<T> BindFields(
             BindingBehavior bindingBehavior);
 
         /// <summary>
         /// Defines that all filters have to be specified explicitly.
         /// </summary>
-        IFilterInputTypeDescriptor BindFieldsExplicitly();
+        new IFilterInputTypeDescriptor<T> BindFieldsExplicitly();
 
         /// <summary>
         /// The filter type will will add
         /// filters for all compatible fields.
         /// </summary>
-        IFilterInputTypeDescriptor BindFieldsImplicitly();
+        new IFilterInputTypeDescriptor<T> BindFieldsImplicitly();
 
 
-        IFilterInputTypeDescriptor Directive<TDirective>(
+        new IFilterInputTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;
 
-        IFilterInputTypeDescriptor Directive<TDirective>()
+        new IFilterInputTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new();
 
-        IFilterInputTypeDescriptor Directive(
+        new IFilterInputTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        TDesc AddFilter<TDesc>(
-            PropertyInfo property,
-            Func<IDescriptorContext, TDesc> factory)
-            where TDesc : FilterFieldDescriptorBase;
     }
 }
