@@ -88,5 +88,8 @@ namespace HotChocolate.Execution.Utilities
                 .AddLocation(selection)
                 .Build());
         }
+
+        public static NotSupportedException QueryTypeNotSupported() =>
+            new NotSupportedException("The specified query type is not supported.");
     }
 }

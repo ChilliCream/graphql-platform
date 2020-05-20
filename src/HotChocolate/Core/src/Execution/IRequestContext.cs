@@ -4,6 +4,8 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
     public interface IRequestContext : IHasContextData
@@ -40,10 +42,12 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; set; }
 
+        string? DocumentId { get; set; }
+
         /// <summary>
         /// Gets or sets the parsed query document.
         /// </summary>
-        DocumentNode Document { get; set; }
+        DocumentNode? Document { get; set; }
 
         /// <summary>
         /// Gets or sets the document validation result.
@@ -58,6 +62,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets or sets an unexpected execution exception.
         /// </summary>
-        Exception Exception { get; set; }
+        Exception? Exception { get; set; }
     }
 }

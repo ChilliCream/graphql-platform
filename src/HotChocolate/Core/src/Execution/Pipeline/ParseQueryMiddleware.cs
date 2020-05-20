@@ -1,7 +1,7 @@
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Pipeline
@@ -9,48 +9,45 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class ParseQueryMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly QueryExecutionDiagnostics _diagnosticEvents;
+        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IDocumentCache _documentCache;
+        private readonly IDocumentHashProvider _documentHashProvider;
 
         public ParseQueryMiddleware(
             RequestDelegate next,
-            QueryExecutionDiagnostics diagnosticEvents)
+            IDiagnosticEvents diagnosticEvents,
+            IDocumentCache documentCache,
+            IDocumentHashProvider documentHashProvider)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
+            _next = next ??
+                throw new ArgumentNullException(nameof(next));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
+            _documentCache = documentCache ??
+                throw new ArgumentNullException(nameof(documentCache));
+            _documentHashProvider = documentHashProvider ??
+                throw new ArgumentNullException(nameof(documentHashProvider));
         }
 
         public async Task InvokeAsync(IRequestContext context)
         {
-            if (IsContextIncomplete(context))
-            {
-                context.Result = QueryResultBuilder.CreateError(
-                    ErrorBuilder.New()
-                        .SetMessage("The parse query middleware expects a valid query request.")
-                        .SetCode(ErrorCodes.Execution.Incomplete)
-                        .Build());
-            }
-            else
-            {
-                Activity? activity = _diagnosticEvents.BeginParsing(context);
+            IReadOnlyQueryRequest request = context.Request;
 
-                try
+            if (request.Query is { })
+            {
+                using (_diagnosticEvents.ParseDocument(context))
                 {
-                    if (context.Document is null)
-                    {
-                        context.Document = ParseDocument(context.Request.Query);
-                    }
+                    context.DocumentId = ComputeDocumentHash(
+                        request.QueryHash, request.Query);
+                    context.Document = _documentCache.GetOrParseDocument(
+                        context.DocumentId, request.Query, ParseDocument);
                 }
-                finally
-                {
-                    _diagnosticEvents.EndParsing(activity, context);
-                }
-
-                await _next(context).ConfigureAwait(false);
             }
+
+            await _next(context).ConfigureAwait(false);
         }
 
-        private DocumentNode ParseDocument(IQuery query)
+        private static DocumentNode ParseDocument(IQuery query)
         {
             if (query is QueryDocument parsed)
             {
@@ -59,18 +56,15 @@ namespace HotChocolate.Execution.Pipeline
 
             if (query is QuerySourceText source)
             {
-                return Utf8GraphQLParser.Parse(source.ToSpan());
+                return Utf8GraphQLParser.Parse(source.AsSpan());
             }
 
-            throw new NotSupportedException(
-                "The specified query type is not supported.");
+            throw ThrowHelper.QueryTypeNotSupported();
         }
 
-        private static bool IsContextIncomplete(IRequestContext context)
+        private string ComputeDocumentHash(string? queryHash, IQuery query)
         {
-            return context.Request is null
-                || (context.Request.Query is null
-                    && context.Request.QueryName is null);
+            return queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
         }
     }
 }
