@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters
@@ -14,6 +13,7 @@ namespace HotChocolate.Types.Filters
         {
             Parameter = Expression.Parameter(type, parameterName);
             InMemory = inMemory;
+            Instance.Push(Parameter);
         }
 
         public ParameterExpression Parameter { get; }

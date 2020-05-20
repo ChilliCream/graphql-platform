@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Filters.Conventions;
@@ -29,7 +28,8 @@ namespace HotChocolate.Types.Filters
         protected FilterVisitorContext(
             IFilterInputType initialType,
             FilterVisitorDefinition<T> defintion,
-            ITypeConversion typeConverter)
+            ITypeConversion typeConverter,
+            FilterScope<T>? filterScope = null)
         {
             if (initialType is null)
             {
@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Filters
 
             Types.Push(initialType);
             Scopes = new Stack<FilterScope<T>>();
-            Scopes.Push(CreateScope());
+            Scopes.Push(filterScope ?? CreateScope());
         }
 
         protected FilterVisitorDefinition<T> Definition { get; }

@@ -36,6 +36,8 @@ namespace HotChocolate.Types.Filters.Conventions
                 new Dictionary<FilterKind, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)>();
             var operationHandler =
                 new Dictionary<(FilterKind, FilterOperationKind), FilterOperationHandler<T>>();
+            var combinator =
+                new Dictionary<FilterCombinator, FilterOperationCombinator<T>>();
 
             foreach (FilterVisitorTypeDescriptor<T> typeDescriptor in _types.Values)
             {
@@ -50,8 +52,18 @@ namespace HotChocolate.Types.Filters.Conventions
                     operationHandler[(definition.FilterKind, handlerPair.Key)] = handlerPair.Value;
                 }
             }
+
+            foreach (FilterVisitorCombinatorDescriptor<T> combinatorDesc in _combinators.Values)
+            {
+                FilterCombinatorDefinition<T> definition = combinatorDesc.CreateDefinition();
+                if (definition.Handler != null)
+                {
+                    combinator[definition.Combinator] = definition.Handler;
+                }
+            }
             Definition.FieldHandler = fieldHandler;
             Definition.OperationHandler = operationHandler;
+            Definition.OperationCombinator = combinator;
             return Definition;
         }
 

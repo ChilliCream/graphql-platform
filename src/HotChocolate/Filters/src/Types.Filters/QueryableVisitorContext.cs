@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Types.Filters.Conventions;
@@ -15,7 +14,10 @@ namespace HotChocolate.Types.Filters
             FilterVisitorDefinition<Expression> definition,
             ITypeConversion typeConverter,
             bool inMemory)
-            : base(initialType, definition, typeConverter)
+            : base(initialType,
+                  definition,
+                  typeConverter,
+                  new QueryableScope(initialType.EntityType, "_s0", inMemory))
         {
             InMemory = inMemory;
             ClrTypes = new Stack<Type>();
@@ -28,5 +30,6 @@ namespace HotChocolate.Types.Filters
 
         public override FilterScope<Expression> CreateScope() =>
              new QueryableScope(ClrTypes.Peek(), "_s" + Scopes.Count, InMemory);
+
     }
 }
