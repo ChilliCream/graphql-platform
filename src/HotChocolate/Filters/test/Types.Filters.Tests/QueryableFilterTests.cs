@@ -378,7 +378,7 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ foo(where: { foo_gte: \"2019-06-01\"}) { foo } }")
+                .SetQuery("{ foo(where: { foo_gte: \"2019-06-01\", foo_lte: \"2019-06-01\"}) { foo } }")
                 .Create();
 
             // act

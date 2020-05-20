@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters.Conventions
         ObjectFieldNode node,
         IFilterVisitorContext<T> context);
 
-    public delegate T FilterOperationCombinator<T>(T left, T right);
+    public delegate T FilterOperationCombinator<T>(IReadOnlyList<T> operations);
 
     public class FilterVisitorDefinition<T> :
         FilterVisitorDefinitionBase
