@@ -378,6 +378,7 @@ namespace HotChocolate.Execution.Utilities
         {
             try
             {
+                // TODO : Converter
                 completedResult = fieldType.Serialize(result);
                 return true;
             }

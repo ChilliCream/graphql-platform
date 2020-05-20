@@ -1,8 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
-using HotChocolate.Language;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution.Pipeline
@@ -28,7 +26,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async Task InvokeAsync(IRequestContext context)
         {
-            if (context.Document is null && context.ValidationResult is null)
+            if (context.Document is null)
             {
                 // TODO : ErrorHelper
                 context.Result = QueryResultBuilder.CreateError(
@@ -47,10 +45,10 @@ namespace HotChocolate.Execution.Pipeline
                     }
                 }
 
-                if (context.ValidationResult is { HasErrors: true })
+                if (context.ValidationResult is { HasErrors: true } validationResult)
                 {
-                    context.Result = QueryResultBuilder.CreateError(context.ValidationResult.Errors);
-                    _diagnosticEvents.ValidationErrors(context, context.ValidationResult.Errors);
+                    context.Result = QueryResultBuilder.CreateError(validationResult.Errors);
+                    _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
                 }
                 else
                 {

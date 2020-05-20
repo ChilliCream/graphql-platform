@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Pipeline
 
                 if (_operationCache.TryGetOperation(
                     operationId,
-                    out IPreparedOperation document))
+                    out IPreparedOperation operation))
                 {
                     context.ValidationResult = DocumentValidatorResult.Ok;
                     addToCache = false;

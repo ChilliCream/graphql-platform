@@ -33,6 +33,11 @@ namespace HotChocolate.Execution
         ITypeConversion Converter { get; }
 
         /// <summary>
+        /// Gets the activator helper class.
+        /// </summary>
+        IActivator Activator { get; }
+
+        /// <summary>
         /// Gets or sets the initial query request.
         /// </summary>
         IReadOnlyQueryRequest Request { get; }
@@ -67,6 +72,11 @@ namespace HotChocolate.Execution
         /// Gets or sets the prepared operation.
         /// </summary>
         IPreparedOperation? Operation { get; set; }
+
+        /// <summary>
+        /// Gets or sets the coerced variable values.
+        /// </summary>
+        IVariableValueCollection? Variables { get; set; }
 
         /// <summary>
         /// Gets or sets the execution result.

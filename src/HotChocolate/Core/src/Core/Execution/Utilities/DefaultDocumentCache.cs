@@ -20,6 +20,11 @@ namespace HotChocolate.Execution
             throw new NotImplementedException();
         }
 
+        public void TryAddDocument(string queryId, DocumentNode document)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool TryGetDocument(string key, out DocumentNode document)
         {
             if (_cache.TryGet(key, out ICachedQuery query))

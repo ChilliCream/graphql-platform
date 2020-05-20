@@ -39,11 +39,12 @@ namespace HotChocolate.Execution.Pipeline
                     PrepareSelectionSets(context.Schema, fragments, operation);
 
                 context.Operation = new PreparedOperation(
-                    context.DocumentId ?? Guid.NewGuid().ToString("N"),
+                    context.OperationId ?? Guid.NewGuid().ToString("N"),
                     context.Document,
                     operation,
                     rootType,
                     selectionSets);
+                context.OperationId = context.Operation.Id;
 
                 await _next(context).ConfigureAwait(false);
             }
