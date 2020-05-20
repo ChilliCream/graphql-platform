@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseField(next => context => 
                 {
                     return next(context);
-                })
+                });
         }
     }
 }
