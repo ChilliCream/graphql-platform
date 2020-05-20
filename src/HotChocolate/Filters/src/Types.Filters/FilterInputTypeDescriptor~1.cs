@@ -1,7 +1,9 @@
 using System;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Conventions;
+using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -62,6 +64,12 @@ namespace HotChocolate.Types.Filters
             base.BindFields(bindingBehavior);
             return this;
         }
+
+        public TDesc AddFilter<TDesc>(
+            PropertyInfo property,
+            Func<IDescriptorContext, TDesc> factory)
+            where TDesc : FilterFieldDescriptorBase =>
+                Fields.GetOrAddDescriptor(property, () => factory(Context));
 
         public new IFilterInputTypeDescriptor<T> BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);

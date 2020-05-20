@@ -48,6 +48,46 @@ namespace HotChocolate.Types.Filters.Extensions
             return newDescriptor;
         }
 
+        public static T GetOrAddDescriptor<T>(
+            this IList<FilterFieldDescriptorBase> fields,
+            string fieldName,
+            Func<T> valueFactory) where T : FilterFieldDescriptorBase
+        {
+            if (fields == null)
+            {
+                throw new ArgumentNullException(nameof(fields));
+            }
+
+            if (fieldName == null)
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+
+            if (valueFactory == null)
+            {
+                throw new ArgumentNullException(nameof(valueFactory));
+            }
+
+            FilterFieldDescriptorBase fieldDescriptor =
+                fields.FirstOrDefault(t => t.Definition.Name.Equals(fieldName));
+
+            if (fieldDescriptor is { })
+            {
+                if (fieldDescriptor is T descriptorOfT)
+                {
+                    return descriptorOfT;
+                }
+                else
+                {
+                    fields.Remove(fieldDescriptor);
+                }
+            }
+
+            T newDescriptor = valueFactory.Invoke();
+            fields.Add(newDescriptor);
+            return newDescriptor;
+        }
+
         public static T GetOrAddOperation<T>(
             this ICollection<FilterOperationDescriptorBase> fields,
             FilterOperationKind operationKind,

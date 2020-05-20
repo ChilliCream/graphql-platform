@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
@@ -66,5 +68,10 @@ namespace HotChocolate.Types.Filters
         new IFilterInputTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        TDesc AddFilter<TDesc>(
+            PropertyInfo property,
+            Func<IDescriptorContext, TDesc> factory)
+            where TDesc : FilterFieldDescriptorBase;
     }
 }

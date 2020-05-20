@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -71,7 +70,7 @@ namespace HotChocolate.Types.Filters
             params ArgumentNode[] arguments);
 
         TDesc AddFilter<TDesc>(
-            PropertyInfo property,
+            string name,
             Func<IDescriptorContext, TDesc> factory)
             where TDesc : FilterFieldDescriptorBase;
     }

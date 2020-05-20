@@ -2,15 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
-using HotChocolate.Types.Filters.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -77,11 +74,12 @@ namespace HotChocolate.Types.Filters
             Definition.AddDirective(name, arguments);
             return this;
         }
+
         public TDesc AddFilter<TDesc>(
-            PropertyInfo property,
+            string name,
             Func<IDescriptorContext, TDesc> factory)
             where TDesc : FilterFieldDescriptorBase =>
-                Fields.GetOrAddDescriptor(property, () => factory(Context));
+                Fields.GetOrAddDescriptor(name, () => factory(Context));
 
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
