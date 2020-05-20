@@ -5,11 +5,14 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class HotChocolateExecutionServiceCollectionExtensions
+    internal static class InternalServiceCollectionExtensions
     {
-        internal static IServiceCollection AddVariableCoercion(
-            this IServiceCollection services) =>
-            services.AddSingleton<VariableCoercionHelper>();
+        internal static IServiceCollection TryAddVariableCoercion(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<VariableCoercionHelper>();
+            return services;
+        }
 
         internal static IServiceCollection TryAddResultPool(
             this IServiceCollection services,

@@ -39,16 +39,17 @@ namespace HotChocolate.Execution.Pipeline
 
                 if (operationId is null)
                 {
-                    operationId = context.OperationId = context.Request.OperationName is null
+                    operationId = context.Request.OperationName is null
                         ? context.DocumentId
                         : $"{context.DocumentId}+{context.Request.OperationName}";
+                    context.OperationId = operationId;
                 }
 
                 if (_operationCache.TryGetOperation(
                     operationId,
                     out IPreparedOperation operation))
                 {
-                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.Operation = operation;
                     addToCache = false;
                     // _diagnosticEvents.RetrievedOperationFromCache(context);
                 }
