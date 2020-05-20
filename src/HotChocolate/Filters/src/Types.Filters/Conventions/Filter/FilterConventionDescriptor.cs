@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Filters.Conventions
     public class FilterConventionDescriptor
         : IFilterConventionDescriptor
     {
-        private IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase>? _visitorDescriptor;
+        private FilterVisitorDescriptorBase? _visitorDescriptor;
 
         private readonly List<TryCreateImplicitFilter> _implicitFilters =
             new List<TryCreateImplicitFilter>();
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
         public IFilterConventionDescriptor Visitor(
-            IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase> visitor)
+            FilterVisitorDescriptorBase visitor)
         {
             _visitorDescriptor = visitor;
             return this;
@@ -111,7 +111,7 @@ namespace HotChocolate.Types.Filters.Conventions
                     .Build());
             }
 
-            var allowedOperations = 
+            var allowedOperations =
                 new Dictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>();
             var typeDefinitions = new Dictionary<FilterKind, FilterConventionTypeDefinition>();
             var defaultOperationNames = new Dictionary<FilterOperationKind, CreateFieldName>();
@@ -147,7 +147,7 @@ namespace HotChocolate.Types.Filters.Conventions
                     }
                 }
             }
-            
+
             Definition.DefaultOperationDescriptions = defaultOperationDescriptions;
             Definition.DefaultOperationNames = defaultOperationNames;
             Definition.AllowedOperations = allowedOperations;

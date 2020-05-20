@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
@@ -21,11 +22,10 @@ namespace HotChocolate.Types.Filters
             // act
             var filter = new QueryableFilterVisitorContext(
                 fooType,
-                typeof(Foo),
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
+            FilterVisitor<Expression>.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
@@ -49,11 +49,10 @@ namespace HotChocolate.Types.Filters
             // act
             var filter = new QueryableFilterVisitorContext(
                 fooType,
-                typeof(Foo),
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
+            FilterVisitor<Expression>.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
 
             // assert
@@ -77,11 +76,10 @@ namespace HotChocolate.Types.Filters
             // act
             var filter = new QueryableFilterVisitorContext(
                 fooNullableType,
-                typeof(FooNullable),
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
+            FilterVisitor<Expression>.Default.Visit(value, filter);
             Func<FooNullable, bool> func = filter.CreateOrAssert<FooNullable>().Compile();
 
             // assert
@@ -108,11 +106,10 @@ namespace HotChocolate.Types.Filters
             // act
             var filter = new QueryableFilterVisitorContext(
                 fooNullableType,
-                typeof(FooNullable),
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
+            FilterVisitor<Expression>.Default.Visit(value, filter);
             Func<FooNullable, bool> func = filter.CreateOrAssert<FooNullable>().Compile();
 
             // assert

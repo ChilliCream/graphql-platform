@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -8,25 +7,19 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-using Enter = HotChocolate.Types.Filters.Conventions.FilterFieldEnter;
-using Leave = HotChocolate.Types.Filters.Conventions.FilterFieldLeave;
-using Handler = HotChocolate.Types.Filters.Conventions.FilterOperationHandler;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public class FilterExpressionVisitorDefinition : FilterVisitorDefinitionBase
+    public class FilterExpressionVisitorMiddleware : IFilterMiddleware<Expression>
     {
-        public IReadOnlyDictionary<FilterKind, (Enter? enter, Leave? leave)> FieldHandler
-        { get; set; } = ImmutableDictionary<FilterKind, (Enter? enter, Leave? leave)>.Empty;
-
-        public IReadOnlyDictionary<(FilterKind, FilterOperationKind), Handler> OperationHandler
-        { get; set; } = ImmutableDictionary<(FilterKind, FilterOperationKind), Handler>.Empty;
-
-        public override async Task ApplyFilter<T>(
-            IFilterConvention filterConvention,
+        public async Task ApplyFilter<T>(
+            FilterVisitorDefinition<Expression> definition,
+            IMiddlewareContext context,
             FieldDelegate next,
+            IFilterConvention filterConvention,
             ITypeConversion converter,
-            IMiddlewareContext context)
+            IFilterInputType fit,
+            InputObjectType iot)
         {
             await next(context).ConfigureAwait(false);
 
@@ -56,13 +49,11 @@ namespace HotChocolate.Types.Filters.Conventions
                 source = e.AsQueryable();
             }
 
-            if (source != null &&
-                context.Field.Arguments[argumentName].Type is InputObjectType iot &&
-                iot is IFilterInputType fit)
+            if (source != null)
             {
                 var visitorContext = new QueryableFilterVisitorContext(
-                    iot, fit.EntityType, this, converter, source is EnumerableQuery);
-                QueryableFilterVisitor.Default.Visit(filter, visitorContext);
+                    fit, definition, converter, source is EnumerableQuery);
+                FilterVisitor<Expression>.Default.Visit(filter, visitorContext);
 
                 if (visitorContext.TryCreateLambda<T>(out Expression<Func<T, bool>>? where))
                 {
@@ -85,5 +76,6 @@ namespace HotChocolate.Types.Filters.Conventions
                 }
             }
         }
+
     }
 }

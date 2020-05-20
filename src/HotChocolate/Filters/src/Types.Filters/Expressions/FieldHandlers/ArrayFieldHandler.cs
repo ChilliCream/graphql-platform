@@ -11,98 +11,112 @@ namespace HotChocolate.Types.Filters.Expressions
         public static bool Enter(
             FilterOperationField field,
             ObjectFieldNode node,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)]out ISyntaxVisitorAction? action)
+            IFilterVisitorContext<Expression> context,
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            if (field.Operation.Kind == FilterOperationKind.ArraySome
-                || field.Operation.Kind == FilterOperationKind.ArrayNone
-                || field.Operation.Kind == FilterOperationKind.ArrayAll)
+            if (context is QueryableFilterVisitorContext ctx)
             {
-                if (!field.Operation.IsNullable && node.Value.IsNull())
+                if (field.Operation.Kind == FilterOperationKind.ArraySome
+                          || field.Operation.Kind == FilterOperationKind.ArrayNone
+                          || field.Operation.Kind == FilterOperationKind.ArrayAll)
                 {
-                    context.ReportError(
-                        ErrorHelper.CreateNonNullError(field, node, context));
+                    if (!field.Operation.IsNullable && node.Value.IsNull())
+                    {
+                        context.ReportError(
+                            ErrorHelper.CreateNonNullError(field, node, context));
 
-                    action = SyntaxVisitor.Skip;
+                        action = SyntaxVisitor.Skip;
+                        return true;
+                    }
+
+                    MemberExpression nestedProperty = Expression.Property(
+                        context.GetInstance(),
+                        field.Operation.Property);
+
+                    context.PushInstance(nestedProperty);
+
+                    Type closureType = GetTypeFor(field.Operation);
+
+                    ctx.ClrTypes.Push(closureType);
+
+                    context.AddScope();
+
+                    if (node.Value.IsNull())
+                    {
+                        context.GetLevel().Enqueue(
+                            FilterExpressionBuilder.Equals(ctx.GetClosure().Parameter, null));
+
+                        action = SyntaxVisitor.SkipAndLeave;
+                    }
+                    else
+                    {
+                        action = SyntaxVisitor.Continue;
+                    }
                     return true;
                 }
-
-                MemberExpression nestedProperty = Expression.Property(
-                    context.GetInstance(),
-                    field.Operation.Property);
-
-                context.PushInstance(nestedProperty);
-
-                Type closureType = GetTypeFor(field.Operation);
-
-                if (node.Value.IsNull())
-                {
-                    context.AddIsNullClosure(closureType);
-                    action = SyntaxVisitor.SkipAndLeave;
-                }
-                else
-                {
-                    context.AddClosure(closureType);
-                    action = SyntaxVisitor.Continue;
-                }
-                return true;
+                action = null;
+                return false;
             }
-            action = null;
-            return false;
+
+            throw new InvalidOperationException();
         }
 
         public static void Leave(
             FilterOperationField field,
             ObjectFieldNode node,
-            IQueryableFilterVisitorContext context)
+            IFilterVisitorContext<Expression> ctx)
         {
-            if (field.Operation.Kind == FilterOperationKind.ArraySome
-                || field.Operation.Kind == FilterOperationKind.ArrayNone
-                || field.Operation.Kind == FilterOperationKind.ArrayAll)
+            if (ctx is QueryableFilterVisitorContext context)
             {
-                QueryableClosure nestedClosure = context.PopClosure();
-
-                if (nestedClosure.TryCreateLambda(out LambdaExpression? lambda))
+                if (field.Operation.Kind == FilterOperationKind.ArraySome
+                    || field.Operation.Kind == FilterOperationKind.ArrayNone
+                    || field.Operation.Kind == FilterOperationKind.ArrayAll)
                 {
-                    Type closureType = GetTypeFor(field.Operation);
+                    FilterScope<Expression> nestedScope = context.PopScope();
 
-                    Expression expression;
-                    switch (field.Operation.Kind)
+                    if (nestedScope is QueryableScope nestedClosure &&
+                        nestedClosure.TryCreateLambda(out LambdaExpression? lambda))
                     {
-                        case FilterOperationKind.ArraySome:
-                            expression = FilterExpressionBuilder.Any(
-                                closureType,
-                                context.GetInstance(),
-                                lambda);
-                            break;
+                        Type closureType = GetTypeFor(field.Operation);
 
-                        case FilterOperationKind.ArrayNone:
-                            expression = FilterExpressionBuilder.Not(
-                                FilterExpressionBuilder.Any(
+                        Expression expression;
+                        switch (field.Operation.Kind)
+                        {
+                            case FilterOperationKind.ArraySome:
+                                expression = FilterExpressionBuilder.Any(
                                     closureType,
                                     context.GetInstance(),
-                                    lambda));
-                            break;
+                                    lambda);
+                                break;
 
-                        case FilterOperationKind.ArrayAll:
-                            expression = FilterExpressionBuilder.All(
-                                closureType,
-                                context.GetInstance(),
-                                lambda);
-                            break;
+                            case FilterOperationKind.ArrayNone:
+                                expression = FilterExpressionBuilder.Not(
+                                    FilterExpressionBuilder.Any(
+                                        closureType,
+                                        context.GetInstance(),
+                                        lambda));
+                                break;
 
-                        default:
-                            throw new NotSupportedException();
+                            case FilterOperationKind.ArrayAll:
+                                expression = FilterExpressionBuilder.All(
+                                    closureType,
+                                    context.GetInstance(),
+                                    lambda);
+                                break;
+
+                            default:
+                                throw new NotSupportedException();
+                        }
+
+                        if (context.InMemory)
+                        {
+                            expression = FilterExpressionBuilder.NotNullAndAlso(
+                                context.GetInstance(), expression);
+                        }
+                        context.GetLevel().Enqueue(expression);
                     }
-
-                    if (context.InMemory)
-                    {
-                        expression = FilterExpressionBuilder.NotNullAndAlso(
-                            context.GetInstance(), expression);
-                    }
-                    context.GetLevel().Enqueue(expression);
+                    context.PopInstance();
                 }
-                context.PopInstance();
             }
         }
 

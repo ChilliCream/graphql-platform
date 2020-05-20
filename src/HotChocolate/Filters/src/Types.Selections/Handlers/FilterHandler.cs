@@ -20,16 +20,16 @@ namespace HotChocolate.Types.Selections.Handlers
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit &&
                 convention.TryGetVisitorDefinition(
-                    out FilterExpressionVisitorDefinition? defintion))
+                    out FilterVisitorDefinitionBase? defintion) &&
+                defintion is FilterVisitorDefinition<Expression> expressionDefinition)
             {
                 var visitorContext = new QueryableFilterVisitorContext(
-                    iot,
-                    fit.EntityType,
-                    defintion,
+                    fit,
+                    expressionDefinition,
                     context.Conversion,
                     false);
 
-                QueryableFilterVisitor.Default.Visit(filter, visitorContext);
+                FilterVisitor<Expression>.Default.Visit(filter, visitorContext);
 
                 if (visitorContext.TryCreateLambda(
                     out LambdaExpression? filterExpression))

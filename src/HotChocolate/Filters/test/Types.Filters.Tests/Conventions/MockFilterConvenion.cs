@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
@@ -20,10 +21,10 @@ namespace HotChocolate.Types.Filters
             return GetOrCreateConfiguration();
         }
 
-        public FilterExpressionVisitorDefinition GetExpressionDefinition()
+        public FilterVisitorDefinition<Expression> GetExpressionDefinition()
         {
             return GetOrCreateConfiguration().VisitorDefinition
-                as FilterExpressionVisitorDefinition;
+                as FilterVisitorDefinition<Expression>;
         }
 
         public new static MockFilterConvention Default { get; } =

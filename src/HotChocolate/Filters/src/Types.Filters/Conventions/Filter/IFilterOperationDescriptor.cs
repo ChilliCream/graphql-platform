@@ -1,16 +1,16 @@
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public interface IFilterExpressionOperationDescriptor : IFluent
+    public interface IFilterVisitorOperationDescriptor<T> : IFluent
     {
         /// <summary>
         /// Specifies the handler of the current operation.
         /// </summary>
         /// <param name="handler">A delegate of type <see cref="FilterOperationHandler"/></param>
-        IFilterExpressionOperationDescriptor Handler(FilterOperationHandler handler);
+        IFilterVisitorOperationDescriptor<T> Handler(FilterOperationHandler<T> handler);
 
         /// <summary>
-        /// Add additional configuration to <see cref="IFilterVisitorDescriptor"/>
+        /// Add additional configuration to <see cref="IFilterVisitorTypeDescriptor<T>"/>
         /// </summary>
-        IFilterExpressionTypeDescriptor And();
+        IFilterVisitorTypeDescriptor<T> And();
     }
 }

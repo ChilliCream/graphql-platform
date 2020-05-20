@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Filters.Expressions
         public static bool Enter(
             FilterOperationField field,
             ObjectFieldNode node,
-            IQueryableFilterVisitorContext context,
+            IFilterVisitorContext<Expression> context,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             if (node.Value.IsNull())
@@ -53,23 +54,30 @@ namespace HotChocolate.Types.Filters.Expressions
         public static void Leave(
             FilterOperationField field,
             ObjectFieldNode node,
-            IQueryableFilterVisitorContext context)
+            IFilterVisitorContext<Expression> context)
         {
-            if (field.Operation.Kind == FilterOperationKind.Object)
+            if (context is QueryableFilterVisitorContext queryableContext)
             {
-                // Deque last expression to prefix with nullcheck
-                Expression condition = context.GetLevel().Dequeue();
-                Expression property = context.GetInstance();
-
-                // wrap last expression only if  in memory
-                if (context.InMemory)
+                if (field.Operation.Kind == FilterOperationKind.Object)
                 {
-                    condition = FilterExpressionBuilder.NotNullAndAlso(
-                        property, condition);
-                }
+                    // Deque last expression to prefix with nullcheck
+                    Expression condition = context.GetLevel().Dequeue();
+                    Expression property = context.GetInstance();
 
-                context.GetLevel().Enqueue(condition);
-                context.PopInstance();
+                    // wrap last expression only if  in memory
+                    if (queryableContext.InMemory)
+                    {
+                        condition = FilterExpressionBuilder.NotNullAndAlso(
+                            property, condition);
+                    }
+
+                    context.GetLevel().Enqueue(condition);
+                    context.PopInstance();
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException();
             }
         }
     }

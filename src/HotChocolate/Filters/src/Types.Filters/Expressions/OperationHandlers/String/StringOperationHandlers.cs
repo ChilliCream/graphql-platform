@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Filters.Expressions
     {
         private static Expression GetProperty(
             FilterOperation operation,
-            IQueryableFilterVisitorContext context)
+            IFilterVisitorContext<Expression> context)
         {
             Expression property = context.GetInstance();
 

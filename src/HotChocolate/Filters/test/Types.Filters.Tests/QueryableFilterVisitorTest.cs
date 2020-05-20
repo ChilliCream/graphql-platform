@@ -19,7 +19,6 @@ namespace HotChocolate.Types.Filters
             {
                 new QueryableFilterVisitorContext(
                 fooType,
-                typeof(Foo),
                 null,
                 TypeConversion.Default,
                 true);
@@ -42,31 +41,8 @@ namespace HotChocolate.Types.Filters
             {
                 new QueryableFilterVisitorContext(
                 fooType,
-                typeof(Foo),
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 null,
-                true);
-            };
-
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void Create_Should_Throw_IfTypeIsNull()
-        {
-            // arrange
-
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                fooType,
-                null,
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
                 true);
             };
 
@@ -84,7 +60,6 @@ namespace HotChocolate.Types.Filters
             {
                 new QueryableFilterVisitorContext(
                 null,
-                typeof(Foo),
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default,
                 true);

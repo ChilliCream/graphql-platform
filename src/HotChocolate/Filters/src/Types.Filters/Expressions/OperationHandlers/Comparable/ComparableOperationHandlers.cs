@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Filters.Expressions
     {
         private static Expression GetProperty(
             FilterOperation operation,
-            IQueryableFilterVisitorContext context)
+            IFilterVisitorContext<Expression> context)
         {
             Expression property = context.GetInstance();
 
@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Filters.Expressions
             object parsedValue,
             FilterOperation operation,
             IInputType type,
-            IQueryableFilterVisitorContext context)
+            IFilterVisitorContext<Expression> context)
         {
             if (type.IsListType())
             {

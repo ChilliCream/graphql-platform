@@ -1,11 +1,15 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters.Expressions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
-    public static class FilterExpressionVisitorExtensions
+    public static class FilterVisitorExtensions
     {
-        public static IFilterExpressionVisitorDescriptor UseDefault(
-            this IFilterExpressionVisitorDescriptor descriptor)
+        public static IFilterVisitorDescriptor<Expression> UseDefault(
+            this IFilterVisitorDescriptor<Expression> descriptor)
         {
             descriptor
                 .Kind(FilterKind.Array)
@@ -70,7 +74,13 @@ namespace HotChocolate.Types.Filters.Conventions
                     .Operation(FilterOperationKind.In)
                         .Handler(StringOperationHandlers.In).And()
                     .Operation(FilterOperationKind.NotIn)
-                        .Handler(StringOperationHandlers.NotIn);
+                        .Handler(StringOperationHandlers.NotIn).And()
+                        .And()
+                .Combinator(FilterCombinator.AND)
+                        .Handler(Expression.AndAlso).And()
+                .Combinator(FilterCombinator.OR)
+                        .Handler(Expression.OrElse).And()
+                .Middleware<FilterExpressionVisitorMiddleware>();
 
             return descriptor;
         }

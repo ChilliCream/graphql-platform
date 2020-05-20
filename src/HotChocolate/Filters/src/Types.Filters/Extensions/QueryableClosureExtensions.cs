@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Filters
     public static class QueryableClosureExtensions
     {
         public static bool TryCreateLambda(
-            this QueryableClosure closure,
+            this QueryableScope closure,
             [NotNullWhen(true)]out LambdaExpression? expression)
         {
             expression = null;
@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public static bool TryCreateLambda<T>(
-            this QueryableClosure closure,
+            this QueryableScope closure,
             [NotNullWhen(true)]out Expression<T>? expression)
         {
             expression = null;
@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Filters
             return true;
         }
 
-        private static Expression GetExpressionBodyWithNullCheck(this QueryableClosure closure) => 
+        private static Expression GetExpressionBodyWithNullCheck(this QueryableScope closure) => 
             FilterExpressionBuilder.NotNullAndAlso(closure.Parameter, closure.Level.Peek().Peek());
     }
 }

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Linq.Expressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -8,14 +9,14 @@ namespace HotChocolate.Types.Filters.Expressions
         public static IError CreateNonNullError(
             FilterOperationField field,
             ObjectFieldNode node,
-            IQueryableFilterVisitorContext context) =>
+            IFilterVisitorContext<Expression> context) =>
                 CreateNonNullError(field.Operation, field.Type, node.Value, context);
 
         public static IError CreateNonNullError(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context)
+            IFilterVisitorContext<Expression> context)
         {
             IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
 

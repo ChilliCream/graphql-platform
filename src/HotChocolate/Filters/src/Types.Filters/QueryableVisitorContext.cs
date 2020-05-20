@@ -1,87 +1,32 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContext
-        : FilterVisitorContextBase
-        , IQueryableFilterVisitorContext
+        : FilterVisitorContext<Expression>
     {
         public QueryableFilterVisitorContext(
-            InputObjectType initialType,
-            Type source,
-            FilterExpressionVisitorDefinition defintion,
+            IFilterInputType initialType,
+            FilterVisitorDefinition<Expression> definition,
             ITypeConversion typeConverter,
             bool inMemory)
-            : base(initialType)
+            : base(initialType, definition, typeConverter)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-            Defintion = defintion ??
-                throw new ArgumentNullException(nameof(defintion));
-            TypeConverter = typeConverter ??
-                throw new ArgumentNullException(nameof(typeConverter));
             InMemory = inMemory;
-            Closures = new Stack<QueryableClosure>();
-            Closures.Push(new QueryableClosure(source, "r", inMemory));
+            ClrTypes = new Stack<Type>();
+            ClrTypes.Push(initialType.EntityType);
         }
-
-        protected FilterExpressionVisitorDefinition Defintion { get; }
-
-        public ITypeConversion TypeConverter { get; }
 
         public bool InMemory { get; }
 
-        public Stack<QueryableClosure> Closures { get; }
+        public Stack<Type> ClrTypes { get; }
 
-        public bool TryGetEnterHandler(
-            FilterKind kind,
-            [NotNullWhen(true)] out FilterFieldEnter? enter)
-        {
-            if (Defintion.FieldHandler.TryGetValue(
-                kind, out (FilterFieldEnter? enter, FilterFieldLeave? leave) val) &&
-                val.enter is FilterFieldEnter)
-            {
-                enter = val.enter;
-                return true;
-            }
-            enter = null;
-            return false;
-        }
-
-        public bool TryGetLeaveHandler(
-            FilterKind kind,
-            [NotNullWhen(true)] out FilterFieldLeave? leave)
-        {
-            if (Defintion.FieldHandler.TryGetValue(
-                kind, out (FilterFieldEnter? enter, FilterFieldLeave? leave) val) &&
-                val.leave is FilterFieldLeave)
-            {
-                leave = val.leave;
-                return true;
-            }
-            leave = null;
-            return false;
-        }
-
-        public bool TryGetOperation(
-            FilterKind kind,
-            FilterOperationKind operationKind,
-            [NotNullWhen(true)] out FilterOperationHandler? handler)
-        {
-            if (Defintion.OperationHandler.TryGetValue(
-                (kind, operationKind), out FilterOperationHandler? operationHandler))
-            {
-                handler = operationHandler;
-                return true;
-            }
-            handler = null;
-            return false;
-        }
+        public override FilterScope<Expression> CreateScope() =>
+             new QueryableScope(ClrTypes.Peek(), "_s" + Scopes.Count, InMemory);
     }
 }

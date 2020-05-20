@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
 using HotChocolate.Types.Filters.Conventions;
+using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -12,8 +13,8 @@ namespace HotChocolate.Types.Filters
         public void AssertEnterAndLeave<T>(
             ObjectValueNode value,
             FilterKind kind,
-            FilterFieldEnter enter,
-            FilterFieldLeave leave)
+            FilterFieldEnter<Expression> enter,
+            FilterFieldLeave<Expression> leave)
         {
             FilterInputType<T> fooType = CreateType(new FilterInputType<T>());
 
@@ -21,7 +22,7 @@ namespace HotChocolate.Types.Filters
                 ExpressionVisitorMock.Create(enter)
                     .Setup(leave);
 
-            FilterExpressionVisitorDefinition convention =
+            FilterVisitorDefinition<Expression> convention =
                 new MockFilterConvention(
                     x => x.UseDefault()
                         .UseExpressionVisitor()
@@ -34,11 +35,10 @@ namespace HotChocolate.Types.Filters
             // act
             var filter = new QueryableFilterVisitorContext(
                 fooType,
-                typeof(T),
                 convention,
                 TypeConversion.Default,
                 true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
+            FilterVisitor<Expression>.Default.Visit(value, filter);
             Func<T, bool> func = filter.CreateOrAssert<T>().Compile();
 
             // assert
@@ -50,13 +50,13 @@ namespace HotChocolate.Types.Filters
             ObjectValueNode value,
             FilterKind kind,
             FilterOperationKind operationKind,
-            FilterOperationHandler handler)
+            FilterOperationHandler<Expression> handler)
         {
             FilterInputType<T> fooType = CreateType(new FilterInputType<T>());
 
             var helper = ExpressionVisitorMock.Create(handler);
 
-            FilterExpressionVisitorDefinition convention =
+            FilterVisitorDefinition<Expression> convention =
                 new MockFilterConvention(
                     x => x.UseDefault()
                         .UseExpressionVisitor()
@@ -69,11 +69,10 @@ namespace HotChocolate.Types.Filters
             // act
             var filter = new QueryableFilterVisitorContext(
                 fooType,
-                typeof(T),
                 convention,
                 TypeConversion.Default,
                 true);
-            QueryableFilterVisitor.Default.Visit(value, filter);
+            FilterVisitor<Expression>.Default.Visit(value, filter);
             Func<T, bool> func = filter.CreateOrAssert<T>().Compile();
 
             // assert

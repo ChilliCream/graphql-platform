@@ -3,13 +3,13 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IQueryableFilterVisitorContext
+    public interface IFilterVisitorContext<T>
         : IFilterVisitorContextBase
     {
         ITypeConversion TypeConverter { get; }
 
-        bool InMemory { get; }
+        Stack<FilterScope<T>> Scopes { get; }
 
-        Stack<QueryableClosure> Closures { get; }
+        FilterScope<T> CreateScope();
     }
 }

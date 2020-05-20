@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context,
+            IFilterVisitorContext<Expression> context,
             [NotNullWhen(true)]out Expression? result)
         {
             object parsedValue = type.ParseLiteral(value);
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context,
+            IFilterVisitorContext<Expression> context,
             [NotNullWhen(true)]out Expression? result)
         {
             object parsedValue = type.ParseLiteral(value);

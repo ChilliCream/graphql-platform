@@ -84,8 +84,8 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <summary>
         /// Configures the visitor that is used to process the filters
         /// </summary>
-        /// <param name="visitor">The <see cref="IFilterVisitorDescriptorBase<T>"/></param>
+        /// <param name="visitor">The <see cref="FilterVisitorDescriptorBase"/></param>
         IFilterConventionDescriptor Visitor(
-            IFilterVisitorDescriptorBase<FilterVisitorDefinitionBase> visitor);
+            FilterVisitorDescriptorBase visitor);
     }
 }

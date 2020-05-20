@@ -11,8 +11,8 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IQueryableFilterVisitorContext context,
-            [NotNullWhen(true)]out Expression? result)
+            IFilterVisitorContext<Expression> context,
+            [NotNullWhen(true)] out Expression? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -27,7 +27,8 @@ namespace HotChocolate.Types.Filters.Expressions
 
             if (operation.Kind == FilterOperationKind.ArrayAny &&
                 type.IsInstanceOfType(value) &&
-                parsedValue is bool parsedBool)
+                parsedValue is bool parsedBool &&
+                context is QueryableFilterVisitorContext queryableContext)
             {
                 MemberExpression property =
                     Expression.Property(context.GetInstance(), operation.Property);
@@ -54,7 +55,7 @@ namespace HotChocolate.Types.Filters.Expressions
                             property));
                 }
 
-                if (context.InMemory)
+                if (queryableContext.InMemory)
                 {
                     expression =
                         FilterExpressionBuilder.NotNullAndAlso(property, expression);
