@@ -1,9 +1,10 @@
 using System;
+using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Filters.Conventions;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
-using HotChocolate.Types.Filters.Conventions;
-using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
