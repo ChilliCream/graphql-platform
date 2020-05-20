@@ -30,6 +30,7 @@ namespace HotChocolate.Execution.Pipeline
         {
             if (context.Document is null && context.ValidationResult is null)
             {
+                // TODO : ErrorHelper
                 context.Result = QueryResultBuilder.CreateError(
                     ErrorBuilder.New()
                         .SetMessage("Cannot Validate")
