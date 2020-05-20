@@ -2,6 +2,8 @@ namespace HotChocolate.Language
 {
     public interface IDocumentCache
     {
-        bool TryGetDocument(string key, out DocumentNode document);
+        bool TryGetDocument(string queryId, out DocumentNode document);
+
+        void TryAddDocument(string queryId, DocumentNode document);
     }
 }

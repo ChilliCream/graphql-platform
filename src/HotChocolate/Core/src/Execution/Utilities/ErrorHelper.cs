@@ -124,5 +124,12 @@ namespace HotChocolate.Execution.Utilities
                 .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
                 .Build();
         }
+
+        public static IReadOnlyQueryResult ParserExpectedQuery() => 
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage("The parse query middleware expects a valid query request.")
+                    .SetCode(ErrorCodes.Execution.Incomplete)
+                    .Build());
     }
 }

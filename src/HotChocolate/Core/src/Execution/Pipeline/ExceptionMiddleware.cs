@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -27,49 +25,11 @@ namespace HotChocolate.Execution.Pipeline
                 context.Exception = ex;
                 context.Result = QueryResultBuilder.CreateError(_errorHandler.Handle(ex.Errors));
             }
-            catch (SyntaxException ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetMessage(ex.Message)
-                    .AddLocation(ex.Line, ex.Column)
-                    .Build();
-
-                error = _errorHandler.Handle(error);
-
-                context.Exception = ex;
-                context.Result = QueryResultBuilder.CreateError(error);
-            }
-            catch (ScalarSerializationException ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetMessage(ex.Message)
-                    .Build();
-
-                error = _errorHandler.Handle(error);
-
-                context.Exception = ex;
-                context.Result = QueryResultBuilder.CreateError(error);
-            }
-            catch (InputObjectSerializationException ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetMessage(ex.Message)
-                    .Build();
-
-                error = _errorHandler.Handle(error);
-
-                context.Exception = ex;
-                context.Result = QueryResultBuilder.CreateError(error);
-            }
             catch (Exception ex)
             {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .Build();
-
-                error = _errorHandler.Handle(error);
-
+                IError error = _errorHandler.CreateUnexpectedError(ex).Build();
                 context.Exception = ex;
-                context.Result = QueryResultBuilder.CreateError(error);
+                context.Result = QueryResultBuilder.CreateError(_errorHandler.Handle(error));
             }
         }
     }
