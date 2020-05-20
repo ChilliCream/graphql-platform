@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
     /// </summary>
-    public static class SchemaRequestExecutorBuilderExtensions
+    public static partial class SchemaRequestExecutorBuilderExtensions
     {
         public static IRequestExecutorBuilder SetSchema(
             this IRequestExecutorBuilder builder,
@@ -116,28 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.Use(middleware));
         }
-
-        public static IRequestExecutorBuilder AddDocument(
-            this IRequestExecutorBuilder builder,
-            LoadDocumentAsync loadDocumentAsync)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (loadDocumentAsync is null)
-            {
-                throw new ArgumentNullException(nameof(loadDocumentAsync));
-            }
-
-            return builder.ConfigureSchemaAsync(async (sp, b, ct) =>
-            {
-                DocumentNode document = await loadDocumentAsync(sp, ct).ConfigureAwait(false);
-                b.AddDocument(document);
-            });
-        }
-
+       
         public static IRequestExecutorBuilder AddType(
             this IRequestExecutorBuilder builder,
             Type type)
