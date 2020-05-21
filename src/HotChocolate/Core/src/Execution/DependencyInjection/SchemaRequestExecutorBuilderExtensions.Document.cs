@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -81,9 +82,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentException(nameof(filePath));
             }
 
-            return builder.AddDocument(async (sp, ct) => 
+            return builder.AddDocument(async (sp, ct) =>
             {
-                byte[] buffer = await File.ReadAllBytesAsync(filePath, ct);
+                byte[] buffer = await Task.Run(() => File.ReadAllBytes(filePath), ct);
                 return Utf8GraphQLParser.Parse(buffer);
             });
         }

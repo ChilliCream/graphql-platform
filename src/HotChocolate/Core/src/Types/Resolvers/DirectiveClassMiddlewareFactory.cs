@@ -58,28 +58,19 @@ namespace HotChocolate.Resolvers
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IDirectiveContext> compiled =
-                MiddlewareActivator
-                    .CompileMiddleware<TMiddleware, IDirectiveContext>();
+                MiddlewareActivator.CompileMiddleware<TMiddleware, IDirectiveContext>();
 
             return context =>
             {
-                if (middleware == null)
+                if (middleware is null)
                 {
                     lock (sync)
                     {
-                        if (middleware == null)
-                        {
-                            middleware = factory(
-                                context.Service<IServiceProvider>(),
-                                next);
-                        }
+                        middleware = middleware ?? factory(context.Services, next);
                     }
                 }
 
-                return compiled(
-                    context,
-                    context.Service<IServiceProvider>(),
-                    middleware);
+                return compiled(context, context.Services, middleware);
             };
         }
     }

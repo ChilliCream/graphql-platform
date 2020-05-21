@@ -65,8 +65,7 @@ namespace HotChocolate.Resolvers
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
-                MiddlewareActivator
-                    .CompileMiddleware<TMiddleware, IMiddlewareContext>();
+                MiddlewareActivator.CompileMiddleware<TMiddleware, IMiddlewareContext>();
 
             return context =>
             {

@@ -12,7 +12,7 @@ namespace HotChocolate.Utilities
         IServiceProvider services,
         TRequestDelegate next);
 
-    internal delegate Task ClassQueryDelegate<T, TContext>(
+    internal delegate ValueTask ClassQueryDelegate<T, TContext>(
         TContext context,
         IServiceProvider services,
         T middleware);
