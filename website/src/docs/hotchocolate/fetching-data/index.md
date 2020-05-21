@@ -77,3 +77,13 @@ Then the `name()` resolver can just access the `Name` property of the parent val
 Nice, now that we know what resolvers are and how they work in a bigger picture, how can we actually start writing one. Let's jump to the next section and find out.
 
 # Defining a resolver
+
+# Resolver chains
+
+# Resolver Arguments
+
+# DI and stuff
+
+# Resolver Pipeline
+
+# Error Handling
