@@ -6,6 +6,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -35,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, object> resolver)
+            Func<IResolverContext, object?> resolver)
         {
             if (builder == null)
             {
@@ -54,7 +55,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, ValueTask<object>> resolver)
+            Func<IResolverContext, ValueTask<object?>> resolver)
         {
             if (builder == null)
             {
@@ -66,8 +67,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => resolver(ctx));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         public static IRequestExecutorBuilder AddResolver<TResult>(
@@ -86,15 +86,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(resolver(ctx)));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, Task<TResult>> resolver)
+            Func<IResolverContext, ValueTask<TResult>> resolver)
         {
             if (builder == null)
             {
@@ -106,16 +105,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                async ctx =>
-                {
-                    Task<TResult> resolverTask = resolver(ctx);
-                    if (resolverTask == null)
-                    {
-                        return default;
-                    }
-                    return await resolverTask.ConfigureAwait(false);
-                });
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         // Resolver()
@@ -124,7 +114,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<object> resolver)
+            Func<object?> resolver)
         {
             if (builder == null)
             {
@@ -136,15 +126,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult(resolver()));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         public static IRequestExecutorBuilder AddResolver(
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<Task<object>> resolver)
+            Func<ValueTask<object?>> resolver)
         {
             if (builder == null)
             {
@@ -156,8 +145,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => resolver());
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         public static IRequestExecutorBuilder AddResolver<TResult>(
@@ -176,8 +164,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(resolver()));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         public static IRequestExecutorBuilder AddResolver<TResult>(
@@ -196,18 +183,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            FieldResolverDelegate resolverDelegate = async ctx =>
-            {
-                Task<TResult> resolverTask = resolver();
-                if (resolverTask == null)
-                {
-                    return default;
-                }
-                return await resolverTask.ConfigureAwait(false);
-            };
-
-            return AddResolverInternal(
-                builder, typeName, fieldName, resolverDelegate);
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         // Resolver(IResolverContext, CancellationToken)
@@ -216,7 +192,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, CancellationToken, object> resolver)
+            Func<IResolverContext, CancellationToken, object?> resolver)
         {
             if (builder == null)
             {
@@ -228,8 +204,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult(resolver(ctx, ctx.RequestAborted)));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         public static IRequestExecutorBuilder AddResolver<TResult>(
@@ -248,9 +223,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(
-                    resolver(ctx, ctx.RequestAborted)));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         public static IRequestExecutorBuilder AddResolver<TResult>(
@@ -269,19 +242,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            FieldResolverDelegate resolverDelegate = async ctx =>
-            {
-                Task<TResult> resolverTask = resolver(
-                    ctx, ctx.RequestAborted);
-                if (resolverTask == null)
-                {
-                    return default;
-                }
-                return await resolverTask.ConfigureAwait(false);
-            };
-
-            return AddResolverInternal(
-                builder, typeName, fieldName, resolverDelegate);
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
         // Constant
@@ -290,30 +251,28 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            object constantResult)
+            object? constantValue)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult(constantResult));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantValue));
         }
 
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            TResult constantResult)
+            TResult constantValue)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(constantResult));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantValue));
         }
     }
 }

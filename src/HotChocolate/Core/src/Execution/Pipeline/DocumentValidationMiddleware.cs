@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(documentValidator));
         }
 
-        public async Task InvokeAsync(IRequestContext context)
+        public async ValueTask InvokeAsync(IRequestContext context)
         {
             if (context.Document is null)
             {

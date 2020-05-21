@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(operationCache));
         }
 
-        public async Task InvokeAsync(IRequestContext context)
+        public async ValueTask InvokeAsync(IRequestContext context)
         {
             if (context.DocumentId is null)
             {

@@ -67,7 +67,7 @@ namespace HotChocolate.Types
             var directiveType = new DirectiveType(t => t
                 .Name("Foo")
                 .Location(DirectiveLocation.Field)
-                .Use(next => context => Task.CompletedTask));
+                .Use(next => context => default(ValueTask)));
 
             // act
             directiveType = CreateDirective(directiveType);
@@ -149,7 +149,7 @@ namespace HotChocolate.Types
                     .Repeatable()
                     .Location(DirectiveLocation.Object)
                     .Location(DirectiveLocation.FieldDefinition)
-                    .Use(next => context => Task.CompletedTask)
+                    .Use(next => context => default(ValueTask))
                     .Argument("a").Type<StringType>());
 
 
@@ -230,7 +230,7 @@ namespace HotChocolate.Types
                 t => t.Name("foo")
                     .Location(DirectiveLocation.Object)
                     .Location(DirectiveLocation.FieldDefinition)
-                    .Use(next => context => Task.CompletedTask)
+                    .Use(next => context => default(ValueTask))
                     .Argument("a").Type<StringType>());
 
 
@@ -329,7 +329,7 @@ namespace HotChocolate.Types
                 .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
-                    .Use(next => context => Task.CompletedTask)))
+                    .Use(next => context => default(ValueTask))))
                 .Create();
 
             // assert
@@ -423,7 +423,7 @@ namespace HotChocolate.Types
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
-                    .Use(next => context => Task.CompletedTask)))
+                    .Use(next => context => default(ValueTask))))
                 .Create();
 
             // assert
@@ -533,7 +533,7 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Use(next => context => Task.CompletedTask);
+                descriptor.Use(next => context => default(ValueTask));
             }
         }
 
@@ -546,7 +546,7 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Use(next => context => Task.CompletedTask);
+                descriptor.Use(next => context => default(ValueTask));
                 descriptor.BindArgumentsImplicitly().BindArgumentsExplicitly();
             }
         }

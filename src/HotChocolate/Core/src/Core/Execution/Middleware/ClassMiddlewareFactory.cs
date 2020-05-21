@@ -48,7 +48,9 @@ namespace HotChocolate.Execution
                     }
                 }
 
-                return compiled(context, context.Services, middleware);
+                throw new NotImplementedException();
+
+                // return compiled(context, context.Services, middleware);
             };
         }
     }

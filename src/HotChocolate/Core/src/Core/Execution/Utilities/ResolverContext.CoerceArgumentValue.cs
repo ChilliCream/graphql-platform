@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -154,6 +155,11 @@ namespace HotChocolate.Execution
         }
 
         public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<T> IMiddlewareContext.ResolveAsync<T>()
         {
             throw new NotImplementedException();
         }

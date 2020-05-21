@@ -113,7 +113,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     ?? throw new ArgumentNullException(nameof(fieldDelegate));
             }
 
-            public Task InvokeAsync(IMiddlewareContext context)
+            public ValueTask InvokeAsync(IMiddlewareContext context)
             {
                 return IsField(context.ObjectType.Name, context.Field.Name)
                     ? _fieldDelegate(context)

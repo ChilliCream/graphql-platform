@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
                         a: String! = ""bar""
                     }
                 ")
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create();
 
             IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
                         a: String!
                     }
                 ")
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create();
 
             IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];

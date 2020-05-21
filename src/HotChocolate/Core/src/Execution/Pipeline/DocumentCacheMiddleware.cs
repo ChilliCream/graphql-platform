@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(documentCache));
         }
 
-        public async Task InvokeAsync(IRequestContext context)
+        public async ValueTask InvokeAsync(IRequestContext context)
         {
             IReadOnlyQueryRequest request = context.Request;
             bool addToCache = true;

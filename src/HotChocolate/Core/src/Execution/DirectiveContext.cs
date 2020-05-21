@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
         public object Service(Type service) =>
             _middlewareContext.Service(service);
 
-        public Task<T> ResolveAsync<T>() =>
+        public ValueTask<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
 
         public IReadOnlyList<IFieldSelection> CollectFields(

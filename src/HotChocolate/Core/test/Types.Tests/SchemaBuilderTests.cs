@@ -410,7 +410,7 @@ namespace HotChocolate
                 .Use(next => context =>
                 {
                     context.Result = "foo";
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 })
                 .Create();
 
@@ -444,7 +444,7 @@ namespace HotChocolate
                 .Use(next => context =>
                 {
                     context.Result = "foo";
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 })
                 .Create();
 
@@ -828,7 +828,7 @@ namespace HotChocolate
                 .Type<StringType>());
 
             FieldResolverDelegate resolverDelegate =
-                c => Task.FromResult<object>(null);
+                c => new ValueTask<object>(null);
             var resolverDescriptor =
                 new FieldResolver("TestMe", "foo", resolverDelegate);
 

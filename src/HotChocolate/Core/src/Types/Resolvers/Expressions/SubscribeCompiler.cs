@@ -52,7 +52,7 @@ namespace HotChocolate.Resolvers.Expressions
 
         public SubscribeResolverDelegate Compile(
             Type sourceType,
-            Type resolverType,
+            Type? resolverType,
             MemberInfo member)
         {
             MethodInfo resolverMethod = resolverType is null

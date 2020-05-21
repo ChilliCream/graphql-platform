@@ -164,7 +164,7 @@ namespace HotChocolate.Execution
                 {
                     if (HasErrors(context.Result))
                     {
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     }
 
                     return component.Invoke(

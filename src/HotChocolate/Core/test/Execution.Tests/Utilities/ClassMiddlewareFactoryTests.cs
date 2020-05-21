@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Utilities
             RequestMiddleware middleware =
                 ClassMiddlewareFactory.Create<CustomMiddlewareThatImplementsInterface>();
             var contextMock = new Mock<IRequestContext>();
-            middleware.Invoke(c => Task.CompletedTask).Invoke(contextMock.Object);
+            middleware.Invoke(c => default(ValueTask)).Invoke(contextMock.Object);
         }
 
         public class CustomMiddlewareThatImplementsInterface : IRequestMiddleware

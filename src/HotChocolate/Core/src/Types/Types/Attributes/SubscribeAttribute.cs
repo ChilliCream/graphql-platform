@@ -45,7 +45,7 @@ namespace HotChocolate.Types
 
                 d.SubscribeResolver = ResolverCompiler.Subscribe.Compile(
                     d.SourceType, d.ResolverType, member);
-                d.Resolver = ctx => Task.FromResult(
+                d.Resolver = ctx => new ValueTask<object?>(
                     ctx.CustomProperty<object>(WellKnownContextData.EventMessage));
                 d.Type = typeReference;
                 d.Member = null;

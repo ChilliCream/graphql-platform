@@ -486,7 +486,7 @@ namespace HotChocolate.Types
 
             // act
             var schema = Schema.Create(source,
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             Assert.Equal("A", schema.QueryType.Name.Value);
             Assert.Equal("B", schema.MutationType.Name.Value);
@@ -507,7 +507,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source,
                 c =>
                 {
-                    c.Use(next => context => Task.CompletedTask);
+                    c.Use(next => context => default(ValueTask));
                     c.Options.QueryTypeName = "A";
                     c.Options.MutationTypeName = "B";
                     c.Options.SubscriptionTypeName = "C";
@@ -528,7 +528,7 @@ namespace HotChocolate.Types
 
             // act
             Action action = () => Schema.Create(source,
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             Assert.Throws<SchemaException>(action).Errors.MatchSnapshot();
         }
@@ -1512,7 +1512,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(string)))
                 .Create();
 
@@ -1530,7 +1530,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(NativeType<List<int>>)))
                 .Create();
 
@@ -1548,7 +1548,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
 
@@ -1567,7 +1567,7 @@ namespace HotChocolate.Types
                     .Field("test")
                     .Type<StringType>()
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
 
@@ -1586,7 +1586,7 @@ namespace HotChocolate.Types
                     .Field("test")
                     .Type<StringType>()
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(int)))
                 .Create();
 
@@ -1605,7 +1605,7 @@ namespace HotChocolate.Types
                     .Field("test")
                     .Type<StringType>()
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         null))
                 .Create();
 
@@ -1632,7 +1632,7 @@ namespace HotChocolate.Types
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
                 .AddType<SomeTypeExtensionWithInterface>()
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1645,7 +1645,7 @@ namespace HotChocolate.Types
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
                 .AddDocumentFromString("extend type Some implements Node { id: ID! }")
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1657,7 +1657,7 @@ namespace HotChocolate.Types
         {
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: [[Some]] } type Some { foo: String }")
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create()
                 .ToString()
                 .MatchSnapshot();

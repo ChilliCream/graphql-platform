@@ -574,7 +574,7 @@ namespace HotChocolate.Execution
 
                 type Query { a: String }
                 ",
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
         }
     }
 }
