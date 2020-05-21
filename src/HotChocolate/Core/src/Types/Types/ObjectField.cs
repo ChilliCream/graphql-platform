@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         {
             Member = definition.Member;
             Middleware = _empty;
-            Resolver = definition.Resolver;
+            Resolver = definition.Resolver!;
             SubscribeResolver = definition.SubscribeResolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
@@ -107,7 +107,7 @@ namespace HotChocolate.Types
             bool isIntrospectionField = IsIntrospectionField
                 || DeclaringType.IsIntrospectionType();
 
-            Resolver = definition.Resolver;
+            Resolver = definition.Resolver!;
 
             if (!isIntrospectionField || Resolver == null)
             {
@@ -115,7 +115,7 @@ namespace HotChocolate.Types
                 // explicit resolver results or are provided through the
                 // resolver compiler.
                 FieldResolver resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver);
+                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver)!;
             }
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
             {
                 if (_executableDirectives.Any())
                 {
-                    Middleware = ctx => Task.CompletedTask;
+                    Middleware = ctx => default(ValueTask);
                 }
                 else
                 {
@@ -157,7 +157,7 @@ namespace HotChocolate.Types
         private static FieldResolverDelegate? GetMostSpecificResolver(
             NameString typeName,
             FieldResolverDelegate? currentResolver,
-            FieldResolver externalCompiledResolver)
+            FieldResolver? externalCompiledResolver)
         {
             // if there is no external compiled resolver then we will pick
             // the internal resolver delegate.
