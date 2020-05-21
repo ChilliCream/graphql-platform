@@ -50,8 +50,7 @@
 <url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/marshmellowpie</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/strawberryshake</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/api-reference/filtering</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/api-reference/overview</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/api-reference</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/defining-a-schema/directives</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/defining-a-schema</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/hotchocolate/docs/hotchocolate/defining-a-schema/scalars</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
