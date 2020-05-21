@@ -4,6 +4,7 @@ import {
   changeSearchQuery,
   closeAside,
   closeTOC,
+  expandNavigationGroup,
   hideCookieConsent,
   hideLegacyDocHeader,
   showCookieConsent,
@@ -32,6 +33,19 @@ export const commonReducer = createReducer<CommonState>(
     ...state,
     showTOC: false,
   })),
+
+  onAction(expandNavigationGroup, (state, { path }) => {
+    if (state.expandedPaths.indexOf(path) !== -1) {
+      return state;
+    }
+
+    const expandedPaths = [...state.expandedPaths, path];
+
+    return {
+      ...state,
+      expandedPaths,
+    };
+  }),
 
   onAction(hideCookieConsent, (state) => ({
     ...state,
@@ -69,7 +83,7 @@ export const commonReducer = createReducer<CommonState>(
     const expandedPaths = [...state.expandedPaths];
     const index = expandedPaths.indexOf(path);
 
-    if (expandedPaths.indexOf(path) !== -1) {
+    if (index !== -1) {
       expandedPaths.splice(index, 1);
     } else {
       expandedPaths.push(path);
