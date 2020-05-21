@@ -22,12 +22,25 @@ namespace HotChocolate.Types.Filters
         {
             FilterConvention = filterConventions;
             Definition.Kind = filterKind;
-            Definition.Property = property ?? throw new ArgumentNullException(nameof(property));
+            Definition.Property = property;
             Definition.Name = context.Naming.GetMemberName(
                 property, MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetInputReturnType(property);
+            Definition.Filters.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
+            AllowedOperations = FilterConvention.GetAllowedOperations(Definition);
+        }
+
+        protected FilterFieldDescriptorBase(
+            FilterKind filterKind,
+            IDescriptorContext context,
+            IFilterConvention filterConventions)
+            : base(context)
+        {
+            FilterConvention = filterConventions;
+            Definition.Kind = filterKind;
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
             AllowedOperations = FilterConvention.GetAllowedOperations(Definition);
@@ -179,7 +192,7 @@ namespace HotChocolate.Types.Filters
             Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
         }
 
-        protected ITypeReference RewriteTypeListType()
+        protected ITypeReference? RewriteTypeListType()
         {
             ITypeReference reference = Definition.Type;
 
@@ -207,16 +220,16 @@ namespace HotChocolate.Types.Filters
                 return syntaxRef.WithType(new ListTypeNode(syntaxRef.Type));
             }
 
-            throw new NotSupportedException();
+            return null;
         }
 
-        protected ITypeReference RewriteTypeToNullableType()
+        protected ITypeReference? RewriteTypeToNullableType()
         {
             ITypeReference reference = Definition.Type;
             return RewriteTypeToNullableType(reference);
         }
 
-        protected static ITypeReference RewriteTypeToNullableType(ITypeReference reference)
+        protected static ITypeReference? RewriteTypeToNullableType(ITypeReference reference)
         {
             if (reference is IClrTypeReference clrRef
                 && TypeInspector.Default.TryCreate(
@@ -270,19 +283,20 @@ namespace HotChocolate.Types.Filters
                     : syntaxRef;
             }
 
-            throw new NotSupportedException();
+            return null;
         }
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
-            if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
+            if (Definition.Property is { } &&
+                typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
             {
                 Definition.Name = FilterConvention.GetArrayFilterPropertyName();
             }
             return FilterConvention.CreateFieldName(Definition, kind);
         }
 
-        protected virtual ITypeReference RewriteType(
+        protected virtual ITypeReference? RewriteType(
             FilterOperationKind operationKind)
         {
             if (ListOperations.Contains(operationKind))

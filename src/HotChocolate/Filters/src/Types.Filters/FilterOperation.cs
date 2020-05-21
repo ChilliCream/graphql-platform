@@ -16,12 +16,13 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind kind,
             PropertyInfo property)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Type = type;
             FilterKind = filterKind;
             Kind = kind;
-            Property = property ?? throw new ArgumentNullException(nameof(property));
+            Property = property;
 
-            if (Property.DeclaringType != null)
+            if (Property is { } &&
+                Property.DeclaringType != null)
             {
                 IsNullable = new NullableHelper(
                     Property.DeclaringType).GetPropertyInfo(Property).IsNullable;

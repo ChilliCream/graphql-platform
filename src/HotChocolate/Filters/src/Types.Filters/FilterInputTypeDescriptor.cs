@@ -21,14 +21,21 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context,
             Type entityType,
             IFilterConvention convention)
+            : this(context, convention)
+        {
+            Definition.EntityType = entityType ??
+                throw new ArgumentNullException(nameof(entityType));
+            Definition.Name = _convention.GetTypeName(context, entityType);
+            Definition.Description = _convention.GetTypeDescription(context, entityType);
+        }
+
+        protected FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            IFilterConvention convention)
             : base(context)
         {
             _convention = convention;
-            Definition.EntityType = entityType ??
-                throw new ArgumentNullException(nameof(entityType));
             Definition.ClrType = typeof(object);
-            Definition.Name = _convention.GetTypeName(context, entityType);
-            Definition.Description = _convention.GetTypeDescription(context, entityType);
             Definition.Fields.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
         }
@@ -114,8 +121,9 @@ namespace HotChocolate.Types.Filters
             IDictionary<NameString, FilterOperationDefintion> fields,
             ISet<PropertyInfo> handledProperties)
         {
-            if (Definition.Fields.IsImplicitBinding()
-                && Definition.EntityType != typeof(object))
+            if (Definition.Fields.IsImplicitBinding() &&
+                Definition.EntityType is { } &&
+                Definition.EntityType != typeof(object))
             {
                 foreach (PropertyInfo property in Context.Inspector
                     .GetMembers(Definition.EntityType)
@@ -174,9 +182,7 @@ namespace HotChocolate.Types.Filters
             BindFields(BindingBehavior.Implicit);
 
         public static FilterInputTypeDescriptor New(
-            IDescriptorContext context,
-            Type entityType,
-            IFilterConvention convention) =>
-                new FilterInputTypeDescriptor(context, entityType, convention);
+            IDescriptorContext context, IFilterConvention convention) =>
+                new FilterInputTypeDescriptor(context, convention);
     }
 }

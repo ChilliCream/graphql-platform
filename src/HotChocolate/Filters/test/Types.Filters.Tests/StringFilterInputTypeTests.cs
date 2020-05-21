@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -36,6 +35,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void CreateNamed_Explicit_Filters()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .String("bar")
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Name("foo_eq")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Create_Explicit_Filters_All_Operations()
         {
             // arrange
@@ -59,6 +75,33 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public void CreateNamed_Explicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .String("foo")
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .And().AllowContains()
+                        .And().AllowEndsWith()
+                        .And().AllowEquals()
+                        .And().AllowIn()
+                        .And().AllowNotContains()
+                        .And().AllowNotEndsWith()
+                        .And().AllowNotEquals()
+                        .And().AllowNotIn()
+                        .And().AllowNotStartsWith()
+                        .And().AllowStartsWith()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         [Fact]
         public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
         {
@@ -124,6 +167,30 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+
+        [Fact]
+        public void Bind_NamedFilter_FilterDescirptor_Override()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .String("bar")
+                        .BindFiltersImplicitly();
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .String("bar")
+                        .BindFiltersExplicitly().AllowNotEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
 
         [Fact]
         public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()

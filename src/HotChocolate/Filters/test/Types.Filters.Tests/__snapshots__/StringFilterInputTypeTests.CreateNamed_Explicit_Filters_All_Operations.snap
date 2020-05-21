@@ -1,0 +1,24 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FilterTypeName {
+  AND: [FilterTypeName!]
+  foo: String
+  foo_contains: String
+  foo_ends_with: String
+  foo_in: [String]
+  foo_not: String
+  foo_not_contains: String
+  foo_not_ends_with: String
+  foo_not_starts_with: String
+  foo_starts_with: String
+  OR: [FilterTypeName!]
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

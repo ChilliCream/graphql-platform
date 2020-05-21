@@ -6,11 +6,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterInputType<T>
+    public class FilterInputType
         : InputObjectType
         , IFilterInputType
     {
-        private readonly Action<IFilterInputTypeDescriptor<T>> _configure;
+        private readonly Action<IFilterInputTypeDescriptor> _configure;
 
         public FilterInputType()
         {
@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public FilterInputType(
-            Action<IFilterInputTypeDescriptor<T>> configure)
+            Action<IFilterInputTypeDescriptor> configure)
         {
             _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
@@ -28,9 +28,8 @@ namespace HotChocolate.Types.Filters
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor = FilterInputTypeDescriptor<T>.New(
+            var descriptor = FilterInputTypeDescriptor.New(
                 context.DescriptorContext,
-                typeof(T),
                 context.DescriptorContext.GetFilterConvention());
             _configure(descriptor);
             return descriptor.CreateDefinition();
@@ -46,7 +45,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected virtual void Configure(
-            IFilterInputTypeDescriptor<T> descriptor)
+            IFilterInputTypeDescriptor descriptor)
         {
         }
 

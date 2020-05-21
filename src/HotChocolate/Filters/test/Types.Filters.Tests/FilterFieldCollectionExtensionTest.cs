@@ -54,7 +54,8 @@ namespace HotChocolate.Types.Filters
             //act
             //assert
             ArgumentNullException assertNullException =
-                Assert.Throws<ArgumentNullException>(() => list.GetOrAddDescriptor(null, factory));
+                Assert.Throws<ArgumentNullException>(
+                    () => list.GetOrAddDescriptor(default(PropertyInfo), factory));
             Assert.Equal("propertyInfo", assertNullException.ParamName);
         }
 

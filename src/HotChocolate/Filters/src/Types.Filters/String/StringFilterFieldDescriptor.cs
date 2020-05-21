@@ -9,12 +9,23 @@ namespace HotChocolate.Types.Filters
         : FilterFieldDescriptorBase
         , IStringFilterFieldDescriptor
     {
+        private static readonly IClrTypeReference _clrTypeReference =
+            new ClrTypeReference(typeof(string), TypeContext.Input).Compile();
+
         public StringFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property,
             IFilterConvention filterConventions)
             : base(FilterKind.String, context, property, filterConventions)
         {
+        }
+
+        public StringFilterFieldDescriptor(
+            IDescriptorContext context,
+            IFilterConvention filterConventions)
+            : base(FilterKind.String, context, filterConventions)
+        {
+            Definition.Type = _clrTypeReference;
         }
 
         /// <inheritdoc/>
@@ -164,6 +175,16 @@ namespace HotChocolate.Types.Filters
                 RewriteType(operationKind),
                 operation,
                 FilterConvention);
+        }
+
+        public static StringFilterFieldDescriptor New(
+            IDescriptorContext context,
+            IFilterConvention convention,
+            NameString name)
+        {
+            var descriptor = new StringFilterFieldDescriptor(context, convention);
+            descriptor.Name(name);
+            return descriptor;
         }
     }
 }

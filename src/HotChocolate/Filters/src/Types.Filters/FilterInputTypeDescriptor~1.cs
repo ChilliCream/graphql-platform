@@ -11,7 +11,6 @@ namespace HotChocolate.Types.Filters
         : FilterInputTypeDescriptor
         , IFilterInputTypeDescriptor<T>
     {
-        private readonly IFilterConvention _convention;
 
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
@@ -19,7 +18,6 @@ namespace HotChocolate.Types.Filters
             IFilterConvention convention)
             : base(context, entityType, convention)
         {
-            _convention = convention;
         }
 
         public new IFilterInputTypeDescriptor<T> Name(NameString value)

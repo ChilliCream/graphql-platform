@@ -10,14 +10,13 @@ namespace HotChocolate.Types.Filters
         protected FilterOperationDescriptorBase(
             IDescriptorContext context,
             NameString name,
-            ITypeReference type,
+            ITypeReference? type,
             FilterOperation operation,
             IFilterConvention filterConventions)
             : base(context)
         {
             Definition.Name = name.EnsureNotEmpty(nameof(name));
-            Definition.Type = type
-                ?? throw new ArgumentNullException(nameof(type));
+            Definition.Type = type;
             Definition.Operation = operation
                 ?? throw new ArgumentNullException(nameof(operation));
             Definition.Description =
