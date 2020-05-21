@@ -10,12 +10,23 @@ namespace HotChocolate.Types.Filters
         : FilterFieldDescriptorBase
         , IBooleanFilterFieldDescriptor
     {
+        private static readonly IClrTypeReference _clrTypeReference =
+            new ClrTypeReference(typeof(bool), TypeContext.Input).Compile();
+
         public BooleanFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property,
             IFilterConvention filterConventions)
             : base(FilterKind.Boolean, context, property, filterConventions)
         {
+        }
+
+        public BooleanFilterFieldDescriptor(
+            IDescriptorContext context,
+            IFilterConvention filterConventions)
+            : base(FilterKind.Boolean, context, filterConventions)
+        {
+            Definition.Type = _clrTypeReference;
         }
 
         /// <inheritdoc/>
@@ -93,6 +104,18 @@ namespace HotChocolate.Types.Filters
                 RewriteType(operationKind),
                 operation,
                 FilterConvention);
+        }
+
+        public static BooleanFilterFieldDescriptor New(
+            IDescriptorContext context,
+            IFilterConvention filterConventions,
+            NameString name)
+        {
+            var descriptor = new BooleanFilterFieldDescriptor(
+                context, filterConventions);
+
+            descriptor.Name(name);
+            return descriptor;
         }
     }
 }

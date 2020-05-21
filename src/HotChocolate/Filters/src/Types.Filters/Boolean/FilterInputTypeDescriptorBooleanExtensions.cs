@@ -30,5 +30,25 @@ namespace HotChocolate.Types.Filters
                 FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
+
+        /// <summary>
+        /// Define a boolean filter for the selected property.
+        /// </summary>
+        /// <param name="descriptor">The descriptor to extend</param>
+        /// <param name="name">The name of the named filter</param>
+        /// <returns></returns>
+        public static IBooleanFilterFieldDescriptor Boolean(
+            this IFilterInputTypeDescriptor descriptor,
+            NameString name)
+        {
+            if (name == default!)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return descriptor.AddFilter(name,
+                ctx => BooleanFilterFieldDescriptor.New(
+                    ctx, ctx.GetFilterConvention(), name));
+        }
     }
 }

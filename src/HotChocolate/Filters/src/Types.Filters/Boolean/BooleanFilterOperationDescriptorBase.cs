@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters
         protected BooleanFilterOperationDescriptorBase(
             IDescriptorContext context,
             NameString name,
-            ITypeReference type,
+            ITypeReference? type,
             FilterOperation operation,
             IFilterConvention filterConventions)
             : base(context, name, type, operation, filterConventions)

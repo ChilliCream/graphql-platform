@@ -102,6 +102,21 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        
+        [Fact]
+        public void CreateNamed_Implicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .String("foo")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         [Fact]
         public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
         {

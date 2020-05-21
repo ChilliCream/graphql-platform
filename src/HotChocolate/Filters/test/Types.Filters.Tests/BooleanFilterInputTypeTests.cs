@@ -68,6 +68,55 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void CreateNamed_Explicit_Filters()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Boolean("bar")
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Name("foo_eq")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateNamed_Explicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Boolean("foo")
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .And().AllowEquals()
+                        .And().AllowNotEquals()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateNamed_Implicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Boolean("foo")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Declare_Description_Explicitly()
         {
             // arrange
