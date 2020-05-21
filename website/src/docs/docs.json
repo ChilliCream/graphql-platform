@@ -79,10 +79,6 @@
           {
             "path": "index",
             "title": "Overview"
-          },
-          {
-            "path": "filtering",
-            "title": "Filtering"
           }
         ]
       }

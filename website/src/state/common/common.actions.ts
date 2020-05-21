@@ -8,6 +8,10 @@ export const closeAside = createAction("[Common] Close aside pane");
 
 export const closeTOC = createAction("[Common] Close table of contents pane");
 
+export const expandNavigationGroup = createAction<{ readonly path: string }>(
+  "[Common] Expand navigation group"
+);
+
 export const hideCookieConsent = createAction(
   "[Common] Hide cookie consent message"
 );
