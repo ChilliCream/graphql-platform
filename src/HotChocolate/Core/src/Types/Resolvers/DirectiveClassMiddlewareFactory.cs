@@ -26,7 +26,7 @@ namespace HotChocolate.Resolvers
             return next =>
             {
                 MiddlewareFactory<TMiddleware, FieldDelegate> factory =
-                    MiddlewareActivator
+                    MiddlewareCompiler
                         .CompileFactory<TMiddleware, FieldDelegate>();
 
                 return CreateDelegate(
@@ -58,7 +58,7 @@ namespace HotChocolate.Resolvers
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IDirectiveContext> compiled =
-                MiddlewareActivator.CompileMiddleware<TMiddleware, IDirectiveContext>();
+                MiddlewareCompiler.CompileMiddleware<TMiddleware, IDirectiveContext>();
 
             return context =>
             {

@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
 
                     context.Result = s;
 
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 }));
 
             IQueryExecutor executor = schema.MakeExecutable(

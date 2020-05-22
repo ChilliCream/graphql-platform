@@ -624,7 +624,7 @@ namespace HotChocolate.Execution
                     {
                         context.Result = context.Argument<DateTimeOffset>("a")
                             .ToUniversalTime();
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     });
                 }).MakeExecutable();
 
