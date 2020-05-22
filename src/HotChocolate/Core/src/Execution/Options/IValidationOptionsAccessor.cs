@@ -4,7 +4,7 @@
     /// Represents a dedicated options accessor to read the validation query
     /// configuration.
     /// </summary>
-    public interface IValidateQueryOptionsAccessor
+    public interface IValidationOptionsAccessor
     {
         /// <summary>
         /// Gets the maximum allowed depth of a query. The default value is

@@ -27,6 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // executor services
             services.TryAddOperationContext();
+            services.TryAddRequestExecutorFactory();
 
             return services;
         }

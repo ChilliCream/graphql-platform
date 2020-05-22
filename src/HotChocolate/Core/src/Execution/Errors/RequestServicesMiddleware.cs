@@ -6,8 +6,7 @@ namespace HotChocolate.Execution
     /// <summary>
     /// Defines request middleware that can be added to the GraphQL request pipeline.
     /// </summary>
-    public delegate RequestDelegate RequestServicesMiddleware(
+    public delegate IErrorFilter CreateErrorFilter(
         IServiceProvider services, 
-        IRequestExecutorOptionsAccessor options, 
-        RequestDelegate next);
+        IRequestExecutorOptionsAccessor options);
 }

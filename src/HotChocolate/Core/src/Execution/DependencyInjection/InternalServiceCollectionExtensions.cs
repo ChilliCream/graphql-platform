@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Utilities;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
@@ -44,6 +45,13 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddTransient<OperationContext>();
+            return services;
+        }
+
+        internal static IServiceCollection TryAddTypeConversion(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<ITypeConversion, TypeConversion>();
             return services;
         }
     }

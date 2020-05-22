@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using ChilliCream.Testing;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.StarWars.Data;
 using Moq;
-using Xunit;
-using System.Threading.Tasks;
 using Snapshooter.Xunit;
-using ChilliCream.Testing;
+using Xunit;
 
 namespace HotChocolate.Execution
 {

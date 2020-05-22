@@ -156,7 +156,7 @@ namespace HotChocolate.Execution
 
         public async ValueTask<T> ResolveAsync<T>()
         {
-            if (_resolverResult is null)
+            if (!_hasResolverResult)
             {
                 _resolverResult = Field.Resolver is null
                     ? null
@@ -167,7 +167,7 @@ namespace HotChocolate.Execution
             return _resolverResult is null ? default! : (T)_resolverResult;
         }
 
-        public T Resolver<T>() => _operationContext.Activator.GetOrCreateResolver<T>();
+        public T Resolver<T>() => _operationContext.Activator.GetOrCreate<T>();
 
         public T Service<T>()
         {

@@ -4,7 +4,7 @@
     /// Represents a dedicated options accessor to read the configured query
     /// cache size.
     /// </summary>
-    public interface IQueryCacheSizeOptionsAccessor
+    public interface IDocumentCacheSizeOptionsAccessor
     {
         /// <summary>
         /// Gets maximum amount of queries that can be cached. The default

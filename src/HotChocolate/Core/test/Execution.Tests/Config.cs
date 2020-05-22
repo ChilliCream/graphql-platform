@@ -22,7 +22,8 @@ namespace HotChocolate.Execution
         {
             services.AddGraphQL("foo")
                 .AddQueryType<Query>()
-                .ConfigureSchemaAsync((b, ct) => 
+                .SetExecutionOptions(new MyOptions())
+                .ConfigureSchemaAsync((b, ct) =>
                 {
                     return default;
                 });
@@ -31,10 +32,11 @@ namespace HotChocolate.Execution
             IRequestExecutor executor = await resolver.GetRequestExecutorAsync("foo");
             IExecutionResult result = await executor.ExecuteAsync(QueryRequestBuilder.New().SetQuery("{ __typename }").Create());
         }
-    }
 
-    public class Query
-    {
 
+        public class Query
+        {
+
+        }
     }
 }

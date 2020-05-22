@@ -107,7 +107,8 @@ namespace HotChocolate.Execution.Pipeline
                     !rootType.ClrType.IsAbstract &&
                     !rootType.ClrType.IsInterface)
                 {
-                    _cachedRootValue = rootValue = context.Activator.CreateInstance(rootType.ClrType);
+                    rootValue = context.Activator.CreateInstance(rootType.ClrType);
+                    _cachedRootValue = rootValue;
                 }
 
                 return rootValue;

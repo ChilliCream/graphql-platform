@@ -7,8 +7,8 @@ namespace HotChocolate.Execution.Options
     /// Represents the entirety of settings to configure the behavior of the
     /// query execution engine.
     /// </summary>
-    public class QueryExecutionOptions
-        : IQueryExecutionOptionsAccessor
+    public class RequestExecutorOptions
+        : IRequestExecutorOptionsAccessor
     {
         private const int _minMaxExecutionDepth = 1;
         private const int _minQueryCacheSize = 10;

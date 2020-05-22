@@ -4,6 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Errors;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Utilities;
+using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -13,18 +19,15 @@ namespace HotChocolate.Execution
         private readonly ConcurrentDictionary<string, IRequestExecutor> _executors =
             new ConcurrentDictionary<string, IRequestExecutor>();
         private readonly IOptionsMonitor<RequestExecutorFactoryOptions> _optionsMonitor;
-        private readonly CreateRequestExecutor _requestExecutorFactory;
         private readonly IServiceProvider _serviceProvider;
 
         public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
         public RequestExecutorResolver(
             IOptionsMonitor<RequestExecutorFactoryOptions> optionsMonitor,
-            CreateRequestExecutor requestExecutorFactory,
             IServiceProvider serviceProvider)
         {
             _optionsMonitor = optionsMonitor;
-            _requestExecutorFactory = requestExecutorFactory;
             _serviceProvider = serviceProvider;
             _optionsMonitor.OnChange((options, name) => EvictRequestExecutor(name));
         }
@@ -35,7 +38,38 @@ namespace HotChocolate.Execution
         {
             RequestExecutorFactoryOptions options = _optionsMonitor.Get(name ?? _defaultName);
 
-            SchemaBuilder schemaBuilder = options.SchemaBuilder ?? SchemaBuilder.New();
+            ISchema schema = await CreateSchemaAsync(options, cancellationToken);
+
+            RequestExecutorOptions executorOptions =
+                await CreateExecutorOptionsAsync(options, cancellationToken);
+            RequestDelegate pipeline = CreatePipeline(options, executorOptions);
+            IEnumerable<IErrorFilter> errorFilters = CreateErrorFilters(options, executorOptions);
+
+            return new RequestExecutor(
+                schema,
+                _serviceProvider,
+                new ErrorHandler(errorFilters, executorOptions),
+                _serviceProvider.GetRequiredService<ITypeConversion>(),
+                new DefaultActivator(_serviceProvider),
+                pipeline);
+        }
+
+        public void EvictRequestExecutor(string? name = null)
+        {
+            string n = name ?? _defaultName;
+            if (_executors.TryRemove(n, out IRequestExecutor? executor))
+            {
+                RequestExecutorEvicted?.Invoke(
+                    this,
+                    new RequestExecutorEvictedEventArgs(n, executor));
+            }
+        }
+
+        private async ValueTask<ISchema> CreateSchemaAsync(
+            RequestExecutorFactoryOptions options,
+            CancellationToken cancellationToken)
+        {
+            var schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
 
             foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
             {
@@ -50,6 +84,35 @@ namespace HotChocolate.Execution
                 }
             }
 
+            return schemaBuilder.Create();
+        }
+
+        private async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
+            RequestExecutorFactoryOptions options,
+            CancellationToken cancellationToken)
+        {
+            var executorOptions = options.RequestExecutorOptions ?? new RequestExecutorOptions();
+
+            foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
+            {
+                if (action.Action is { } configure)
+                {
+                    configure(executorOptions);
+                }
+
+                if (action.AsyncAction is { } configureAsync)
+                {
+                    await configureAsync(executorOptions, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return executorOptions;
+        }
+
+        private RequestDelegate CreatePipeline(
+            RequestExecutorFactoryOptions options,
+            RequestExecutorOptions executorOptions)
+        {
             RequestDelegate next = context =>
             {
                 return default;
@@ -57,21 +120,26 @@ namespace HotChocolate.Execution
 
             for (int i = options.Pipeline.Count; i >= 0; i--)
             {
-                next = options.Pipeline[i](_serviceProvider, next);
+                next = options.Pipeline[i](_serviceProvider, executorOptions, next);
             }
 
-            return _requestExecutorFactory(schemaBuilder.Create(), next);
+            return next;
         }
 
-        public void EvictRequestExecutor(string? name = null)
+        private IEnumerable<IErrorFilter> CreateErrorFilters(
+            RequestExecutorFactoryOptions options,
+            RequestExecutorOptions executorOptions)
         {
-            string n = name ?? _defaultName;
-            if (_executors.TryRemove(n, out IRequestExecutor? executor))
+            foreach (CreateErrorFilter factory in options.ErrorFilters)
             {
-                RequestExecutorEvicted?.Invoke(
-                    this,
-                    new RequestExecutorEvictedEventArgs(n, executor));
+                yield return factory(_serviceProvider, executorOptions);
+            }
+
+            foreach (IErrorFilter errorFilter in _serviceProvider.GetServices<IErrorFilter>())
+            {
+                yield return errorFilter;
             }
         }
+
     }
 }
