@@ -4,10 +4,12 @@ namespace HotChocolate.Execution.Configuration
 {
     public class RequestExecutorFactoryOptions
     {
+        public SchemaBuilder? SchemaBuilder { get; set; }
+
         public IList<SchemaBuilderAction> SchemaBuilderActions { get; } =
             new List<SchemaBuilderAction>();
 
-        public IList<RequestMiddleware> Pipeline { get; } =
-            new List<RequestMiddleware>();
+        public IList<RequestServicesMiddleware> Pipeline { get; } =
+            new List<RequestServicesMiddleware>();
     }
 }
