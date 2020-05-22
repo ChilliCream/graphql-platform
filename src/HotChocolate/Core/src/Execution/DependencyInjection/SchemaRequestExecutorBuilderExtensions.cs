@@ -1,12 +1,6 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Configuration.Bindings;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

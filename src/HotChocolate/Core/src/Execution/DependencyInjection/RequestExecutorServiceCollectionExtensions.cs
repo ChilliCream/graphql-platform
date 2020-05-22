@@ -34,21 +34,18 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds the <see cref="IHttpClientFactory"/> and related services to the <see cref="IServiceCollection"/> and configures
-        /// a named <see cref="HttpClient"/>.
+        /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the 
+        /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
-        /// <param name="name">The logical name of the <see cref="HttpClient"/> to configure.</param>
-        /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the client.</returns>
-        /// <remarks>
-        /// <para>
-        /// <see cref="HttpClient"/> instances that apply the provided configuration can be retrieved using 
-        /// <see cref="IHttpClientFactory.CreateClient(string)"/> and providing the matching name.
-        /// </para>
-        /// <para>
-        /// Use <see cref="Options.Options.DefaultName"/> as the name to configure the default client.
-        /// </para>
-        /// </remarks>
+        /// <param name="services">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <param name="name">
+        /// The logical name of the <see cref="IRequestExecutor"/> to configure.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
+        /// </returns>
         public static IRequestExecutorBuilder AddGraphQL(
             this IServiceCollection services,
             string? name = null)

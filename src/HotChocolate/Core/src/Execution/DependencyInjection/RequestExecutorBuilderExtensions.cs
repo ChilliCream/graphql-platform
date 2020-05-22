@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
     /// </summary>
-    public static class RequestExecutorBuilderExtensions
+    public static partial class RequestExecutorBuilderExtensions
     {
         /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
@@ -34,12 +34,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configureSchema));
             }
 
-            builder.Services.Configure<RequestExecutorFactoryOptions>(
-                builder.Name,
+            return Configure(
+                builder,
                 options => options.SchemaBuilderActions.Add(
                     new SchemaBuilderAction(configureSchema)));
-
-            return builder;
         }
 
         /// <summary>
@@ -62,12 +60,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configureSchema));
             }
 
-            builder.Services.Configure<RequestExecutorFactoryOptions>(
-                builder.Name,
+            return Configure(
+                builder,
                 options => options.SchemaBuilderActions.Add(
                     new SchemaBuilderAction(configureSchema)));
-
-            return builder;
         }
 
         /// <summary>
@@ -94,16 +90,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configureSchema));
             }
 
-            builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(services =>
-            {
-                return new ConfigureNamedOptions<RequestExecutorFactoryOptions>(builder.Name, (options) =>
-                {
-                    options.SchemaBuilderActions.Add(
-                        new SchemaBuilderAction(b => configureSchema(services, b)));
-                });
-            });
-
-            return builder;
+            return Configure(
+                builder,
+                (services, options) => options.SchemaBuilderActions.Add(
+                    new SchemaBuilderAction(b => configureSchema(services, b))));
         }
 
         /// <summary>
@@ -130,169 +120,189 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configureSchema));
             }
 
-            builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(services =>
-            {
-                return new ConfigureNamedOptions<RequestExecutorFactoryOptions>(builder.Name, (options) =>
-                {
-                    options.SchemaBuilderActions.Add(
-                        new SchemaBuilderAction((b, ct) => configureSchema(services, b, ct)));
-                });
-            });
-
-            return builder;
+            return Configure(
+                builder,
+                (services, options) => options.SchemaBuilderActions.Add(
+                    new SchemaBuilderAction((b, ct) => configureSchema(services, b, ct))));
         }
 
         /// <summary>
-        /// Adds a delegate that will be used to create a middleware for the execution pipeline.
+        /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="middleware">A delegate that is used to create a middleware for the execution pipeline.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
-        public static IRequestExecutorBuilder UseRequest(
-            this IRequestExecutorBuilder builder,
-            RequestServicesMiddleware middleware)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (middleware == null)
-            {
-                throw new ArgumentNullException(nameof(middleware));
-            }
-
-            builder.Services.Configure<RequestExecutorFactoryOptions>(
-                builder.Name,
-                options => options.Pipeline.Add(middleware));
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
-        /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
+        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
         /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
         public static IRequestExecutorBuilder ModifyRequestOptions(
             this IRequestExecutorBuilder builder,
-            Action<RequestExecutorOptions> configureSchema)
+            Action<RequestExecutorOptions> modify)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureSchema == null)
+            if (modify == null)
             {
-                throw new ArgumentNullException(nameof(configureSchema));
+                throw new ArgumentNullException(nameof(modify));
             }
 
-            builder.Services.Configure<RequestExecutorFactoryOptions>(
-                builder.Name,
+            return Configure(
+                builder,
                 options => options.RequestExecutorOptionsActions.Add(
-                    new RequestExecutorOptionsAction(configureSchema)));
-
-            return builder;
+                    new RequestExecutorOptionsAction(modify)));
         }
 
         /// <summary>
-        /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+        /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
+        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
         /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
-        public static IRequestExecutorBuilder ConfigureSchemaAsync(
+        public static IRequestExecutorBuilder ModifyRequestOptionsAsync(
             this IRequestExecutorBuilder builder,
-            Func<ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
+            Func<RequestExecutorOptions, CancellationToken, ValueTask> modify)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureSchema == null)
+            if (modify == null)
             {
-                throw new ArgumentNullException(nameof(configureSchema));
+                throw new ArgumentNullException(nameof(modify));
             }
 
+            return Configure(
+                builder,
+                options => options.RequestExecutorOptionsActions.Add(
+                    new RequestExecutorOptionsAction(modify)));
+        }
+
+        /// <summary>
+        /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
+        /// </summary>
+        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
+        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        public static IRequestExecutorBuilder ModifyRequestOptions(
+            this IRequestExecutorBuilder builder,
+            Action<IServiceProvider, RequestExecutorOptions> modify)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (modify == null)
+            {
+                throw new ArgumentNullException(nameof(modify));
+            }
+
+            return Configure(
+                builder,
+                (services, options) => options.RequestExecutorOptionsActions.Add(
+                    new RequestExecutorOptionsAction(o => modify(services, o))));
+
+        }
+
+        /// <summary>
+        /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
+        /// </summary>
+        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
+        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        public static IRequestExecutorBuilder ModifyRequestOptionsAsync(
+            this IRequestExecutorBuilder builder,
+            Func<IServiceProvider, RequestExecutorOptions, CancellationToken, ValueTask> modify)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (modify == null)
+            {
+                throw new ArgumentNullException(nameof(modify));
+            }
+
+            return Configure(
+                builder,
+                (services, options) => options.RequestExecutorOptionsActions.Add(
+                    new RequestExecutorOptionsAction((o, ct) => modify(services, o, ct))));
+        }
+
+        /// <summary>
+        /// Adds a delegate that will be used to create the <see cref="RequestExecutorOptions"/>.
+        /// </summary>
+        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+        /// <param name="factory">A delegate that is used to create the <see cref="RequestExecutorOptions"/>.</param>
+        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        public static IRequestExecutorBuilder SetRequestOptions(
+            this IRequestExecutorBuilder builder,
+            Func<RequestExecutorOptions> factory)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return Configure(
+                builder,
+                options => options.RequestExecutorOptions = factory());
+        }
+
+        /// <summary>
+        /// Adds a delegate that will be used to create the <see cref="RequestExecutorOptions"/>.
+        /// </summary>
+        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+        /// <param name="factory">A delegate that is used to create the <see cref="RequestExecutorOptions"/>.</param>
+        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        public static IRequestExecutorBuilder SetRequestOptions(
+            this IRequestExecutorBuilder builder,
+            Func<IServiceProvider, RequestExecutorOptions> factory)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return Configure(
+                builder,
+                (services, options) => options.RequestExecutorOptions = factory(services));
+        }
+
+        internal static IRequestExecutorBuilder Configure(
+            this IRequestExecutorBuilder builder,
+            Action<RequestExecutorFactoryOptions> configure)
+        {
             builder.Services.Configure<RequestExecutorFactoryOptions>(
                 builder.Name,
-                options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction(configureSchema)));
+                options => configure(options));
 
             return builder;
         }
 
-        /// <summary>
-        /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
-        /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
-        /// <remarks>
-        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/> will be the
-        /// same application's root service provider instance.
-        /// </remarks>
-        public static IRequestExecutorBuilder ConfigureSchema(
+        internal static IRequestExecutorBuilder Configure(
             this IRequestExecutorBuilder builder,
-            Action<IServiceProvider, ISchemaBuilder> configureSchema)
+            Action<IServiceProvider, RequestExecutorFactoryOptions> configure)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (configureSchema == null)
-            {
-                throw new ArgumentNullException(nameof(configureSchema));
-            }
-
-            builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(services =>
-            {
-                return new ConfigureNamedOptions<RequestExecutorFactoryOptions>(builder.Name, (options) =>
-                {
-                    options.SchemaBuilderActions.Add(
-                        new SchemaBuilderAction(b => configureSchema(services, b)));
-                });
-            });
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
-        /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
-        /// <remarks>
-        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/> will be the
-        /// same application's root service provider instance.
-        /// </remarks>
-        public static IRequestExecutorBuilder ConfigureSchemaAsync(
-            this IRequestExecutorBuilder builder,
-            Func<IServiceProvider, ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (configureSchema == null)
-            {
-                throw new ArgumentNullException(nameof(configureSchema));
-            }
-
-            builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(services =>
-            {
-                return new ConfigureNamedOptions<RequestExecutorFactoryOptions>(builder.Name, (options) =>
-                {
-                    options.SchemaBuilderActions.Add(
-                        new SchemaBuilderAction((b, ct) => configureSchema(services, b, ct)));
-                });
-            });
+            builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(
+                services => new ConfigureNamedOptions<RequestExecutorFactoryOptions>(
+                    builder.Name,
+                    options =>
+                    {
+                        configure(services, options);
+                    }));
 
             return builder;
         }

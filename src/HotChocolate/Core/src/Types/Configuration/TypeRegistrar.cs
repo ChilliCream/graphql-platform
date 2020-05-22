@@ -102,7 +102,7 @@ namespace HotChocolate.Configuration
         {
             try
             {
-                return (TypeSystemObjectBase)_serviceFactory.CreateInstance(namedSchemaType);
+                return (TypeSystemObjectBase)_serviceFactory.CreateInstance(namedSchemaType)!;
             }
             catch (Exception ex)
             {

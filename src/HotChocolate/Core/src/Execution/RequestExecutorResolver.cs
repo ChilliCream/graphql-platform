@@ -1,21 +1,20 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Errors;
-using System.Collections.Generic;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Utilities;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Utilities;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
     internal sealed class RequestExecutorResolver : IRequestExecutorResolver
     {
-        private readonly string _defaultName = "Schema_" + Guid.NewGuid().ToString("N");
         private readonly ConcurrentDictionary<string, IRequestExecutor> _executors =
             new ConcurrentDictionary<string, IRequestExecutor>();
         private readonly IOptionsMonitor<RequestExecutorFactoryOptions> _optionsMonitor;
@@ -36,7 +35,8 @@ namespace HotChocolate.Execution
             string? name = null,
             CancellationToken cancellationToken = default)
         {
-            RequestExecutorFactoryOptions options = _optionsMonitor.Get(name ?? _defaultName);
+            RequestExecutorFactoryOptions options = _optionsMonitor.Get(
+                name ?? Microsoft.Extensions.Options.Options.DefaultName);
 
             ISchema schema = await CreateSchemaAsync(options, cancellationToken);
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
 
         public void EvictRequestExecutor(string? name = null)
         {
-            string n = name ?? _defaultName;
+            string n = name ?? Microsoft.Extensions.Options.Options.DefaultName;
             if (_executors.TryRemove(n, out IRequestExecutor? executor))
             {
                 RequestExecutorEvicted?.Invoke(
@@ -113,12 +113,17 @@ namespace HotChocolate.Execution
             RequestExecutorFactoryOptions options,
             RequestExecutorOptions executorOptions)
         {
+            if (options.Pipeline.Count == 0)
+            {
+                options.Pipeline.AddDefaultPipeline();
+            }
+
             RequestDelegate next = context =>
             {
                 return default;
             };
 
-            for (int i = options.Pipeline.Count; i >= 0; i--)
+            for (int i = options.Pipeline.Count - 1; i >= 0; i--)
             {
                 next = options.Pipeline[i](_serviceProvider, executorOptions, next);
             }

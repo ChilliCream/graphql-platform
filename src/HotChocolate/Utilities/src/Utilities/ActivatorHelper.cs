@@ -70,17 +70,19 @@ namespace HotChocolate.Utilities
                         CultureInfo.InvariantCulture));
             }
 
-            ConstructorInfo[] constructors = type.GetConstructors().Where(t => t.IsPublic).ToArray();
+            ConstructorInfo[] constructors = type
+                .GetConstructors()
+                .Where(t => t.IsPublic)
+                .ToArray();
 
             if (constructors.Length == 1)
             {
                 return constructors[0];
             }
-            
-            throw new InvalidOperationException(
-                string.Format(
-                    UtilityResources.ActivatorHelper_MultipleConstructorsError,
-                    type.FullName));
+
+            return constructors
+                .OrderBy(c => c.GetParameters().Length)
+                .First();
         }
 
         private static IEnumerable<Expression> CreateParameters(

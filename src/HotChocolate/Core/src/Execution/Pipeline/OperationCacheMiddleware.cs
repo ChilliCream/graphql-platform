@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
-using HotChocolate.Validation;
 
 namespace HotChocolate.Execution.Pipeline
 {

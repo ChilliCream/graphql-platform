@@ -18,11 +18,13 @@ namespace HotChocolate.Execution
 {
     public class Foo
     {
-        public async void Something(IServiceCollection services)
+        [Fact]
+        public async void Something()
         {
+            var services = new ServiceCollection();
             services.AddGraphQL("foo")
                 .AddQueryType<Query>()
-                .SetExecutionOptions(new MyOptions())
+                .UseDefaultPipeline()
                 .ConfigureSchemaAsync((b, ct) =>
                 {
                     return default;
@@ -36,7 +38,7 @@ namespace HotChocolate.Execution
 
         public class Query
         {
-
+            public string Hello() => "World";
         }
     }
 }

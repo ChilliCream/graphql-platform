@@ -63,12 +63,6 @@ namespace HotChocolate.Utilities.Properties {
             }
         }
         
-        internal static string ActivatorHelper_MultipleConstructorsError {
-            get {
-                return ResourceManager.GetString("ActivatorHelper_MultipleConstructorsError", resourceCulture);
-            }
-        }
-        
         internal static string MiddlewareActivator_ParameterNotSupported {
             get {
                 return ResourceManager.GetString("MiddlewareActivator_ParameterNotSupported", resourceCulture);
