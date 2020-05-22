@@ -24,10 +24,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddVariableCoercion();
             services.TryAddResultPool();
             services.TryAddResolverTaskPool();
+            services.TryAddTypeConversion();
 
             // executor services
+            services.TryAddRequestExecutorResolver();
             services.TryAddOperationContext();
-            services.TryAddRequestExecutorFactory();
 
             return services;
         }

@@ -54,5 +54,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<ITypeConversion, TypeConversion>();
             return services;
         }
+
+        internal static IServiceCollection TryAddRequestExecutorResolver(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IRequestExecutorResolver, RequestExecutorResolver>();
+            return services;
+        }
     }
 }

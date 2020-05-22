@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Options;
@@ -45,7 +44,7 @@ namespace HotChocolate.Execution.Utilities
         {
             var list = new List<IParameterHandler>();
             AddOptions(list, options);
-            list.Add(new ServiceParameterHandler(Expression.Property(context, _services)))
+            list.Add(new ServiceParameterHandler(Expression.Property(context, _services)));
             return list;
         }
 

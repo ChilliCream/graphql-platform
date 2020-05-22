@@ -53,7 +53,7 @@ namespace HotChocolate.Execution.Errors
                 if (current == null)
                 {
                     throw new InvalidOperationException(
-                        CoreResources.ErrorHandler_ErrorIsNull);
+                        "Unexpected Execution Error");
                 }
             }
 
@@ -73,7 +73,7 @@ namespace HotChocolate.Execution.Errors
         private IErrorBuilder CreateErrorFromException(Exception exception)
         {
             IErrorBuilder builder = ErrorBuilder.New()
-                .SetMessage(CoreResources.ErrorHandler_UnexpectedError)
+                .SetMessage("Unexpected Execution Error")
                 .SetException(exception);
 
             if (_includeExceptionDetails)
