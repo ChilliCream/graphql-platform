@@ -63,7 +63,8 @@ namespace HotChocolate.Utilities
 
             if (method == null)
             {
-                throw new NotSupportedException(UtilityResources.MiddlewareActivator_NoInvokeMethod);
+                throw new NotSupportedException(
+                    UtilityResources.MiddlewareActivator_NoInvokeMethod);
             }
 
             ParameterExpression context = Expression.Parameter(typeof(TContext));

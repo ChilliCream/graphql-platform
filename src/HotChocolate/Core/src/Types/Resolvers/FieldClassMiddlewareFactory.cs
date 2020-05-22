@@ -13,40 +13,30 @@ namespace HotChocolate.Resolvers
             typeof(FieldClassMiddlewareFactory)
             .GetTypeInfo().DeclaredMethods.First(t =>
             {
-                if (t.Name.EqualsOrdinal(
-                    nameof(FieldClassMiddlewareFactory.Create))
-                    && t.GetGenericArguments().Length == 1)
-                {
-                    ParameterInfo[] parameter = t.GetParameters();
-                    return parameter.Length == 1 && parameter[0].Name == "customParameters";
-                }
-                return false;
+                return t.Name.EqualsOrdinal(nameof(FieldClassMiddlewareFactory.Create)) &&
+                    t.IsGenericMethod;
             });
 
-        public static FieldMiddleware Create<TMiddleware>(
-            params object[] customParameters
-            )
+        private static PropertyInfo _services =
+            typeof(IMiddlewareContext).GetProperty(nameof(IMiddlewareContext.Services));
+
+        public static FieldMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
             return next =>
             {
                 MiddlewareFactory<TMiddleware, FieldDelegate> factory =
-                    MiddlewareCompiler
-                        .CompileFactory<TMiddleware, FieldDelegate>(customParameters);
+                    MiddlewareCompiler<TMiddleware>.CompileFactory<FieldDelegate>();
 
-                return CreateDelegate(
-                    (s, n) => factory(s, n),
-                    next);
+                return CreateDelegate((s, n) => factory(s, n), next);
             };
         }
 
-        public static FieldMiddleware Create(
-            Type middlewareType,
-            params object[] customParameters)
+        public static FieldMiddleware Create(Type middlewareType)
         {
             return (FieldMiddleware)_createGeneric
                 .MakeGenericMethod(middlewareType)
-                .Invoke(null, new object[] { customParameters });
+                .Invoke(null, null);
         }
 
         public static FieldMiddleware Create<TMiddleware>(
@@ -65,27 +55,23 @@ namespace HotChocolate.Resolvers
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
-                MiddlewareCompiler.CompileMiddleware<TMiddleware, IMiddlewareContext>();
+                MiddlewareCompiler<TMiddleware>.CompileDelegate<IMiddlewareContext>(
+                    (context, middleware) => new List<IParameterHandler>
+                    {
+                        new ServiceParameterHandler(Expression.Property(context, _services))
+                    });
 
             return context =>
             {
-                if (middleware == null)
+                if (middleware is null)
                 {
                     lock (sync)
                     {
-                        if (middleware == null)
-                        {
-                            middleware = factory(
-                                context.Service<IServiceProvider>(),
-                                next);
-                        }
+                        middleware = middleware ?? factory(context.Services, next);
                     }
                 }
 
-                return compiled(
-                    context,
-                    context.Service<IServiceProvider>(),
-                    middleware);
+                return compiled(context, middleware);
             };
         }
     }

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
 
@@ -20,14 +22,16 @@ namespace HotChocolate.Resolvers
                 return false;
             });
 
+        private static PropertyInfo _services =
+            typeof(IMiddlewareContext).GetProperty(nameof(IDirectiveContext.Services));
+
         internal static DirectiveMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
             return next =>
             {
                 MiddlewareFactory<TMiddleware, FieldDelegate> factory =
-                    MiddlewareCompiler
-                        .CompileFactory<TMiddleware, FieldDelegate>();
+                    MiddlewareCompiler<TMiddleware>.CompileFactory<FieldDelegate>();
 
                 return CreateDelegate(
                     (s, n) => factory(s, n),
@@ -58,7 +62,11 @@ namespace HotChocolate.Resolvers
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IDirectiveContext> compiled =
-                MiddlewareCompiler.CompileMiddleware<TMiddleware, IDirectiveContext>();
+                MiddlewareCompiler<TMiddleware>.CompileDelegate<IDirectiveContext>(
+                    (context, middleware) => new List<IParameterHandler>
+                    {
+                        new ServiceParameterHandler(Expression.Property(context, _services))
+                    });
 
             return context =>
             {
@@ -70,7 +78,7 @@ namespace HotChocolate.Resolvers
                     }
                 }
 
-                return compiled(context, context.Services, middleware);
+                return compiled(context, middleware);
             };
         }
     }
