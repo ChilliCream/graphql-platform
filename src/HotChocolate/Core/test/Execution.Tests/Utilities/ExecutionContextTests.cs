@@ -273,7 +273,7 @@ namespace HotChocolate.Execution.Utilities
             IServiceProvider services = new ServiceCollection()
                 .TryAddResultPool()
                 .TryAddResolverTaskPool()
-                .TryAddOperationContext()
+                .TryAddOperationContextPool()
                 .BuildServiceProvider();
 
             ExecutionContext context = CreateExecutionContext();

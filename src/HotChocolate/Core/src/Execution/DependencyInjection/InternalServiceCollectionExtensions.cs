@@ -1,5 +1,8 @@
 using HotChocolate.Execution;
+using HotChocolate.Execution.Caching;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -41,10 +44,14 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        internal static IServiceCollection TryAddOperationContext(
-            this IServiceCollection services)
+        internal static IServiceCollection TryAddOperationContextPool(
+            this IServiceCollection services,
+            int maximumRetained = 16)
         {
             services.TryAddTransient<OperationContext>();
+            services.TryAddSingleton<ObjectPool<OperationContext>>(
+                sp => new OperationContextPool(() => sp.GetRequiredService<OperationContext>(),
+                maximumRetained));
             return services;
         }
 
@@ -59,6 +66,32 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<IRequestExecutorResolver, RequestExecutorResolver>();
+            return services;
+        }
+
+        internal static IServiceCollection TryAddOperationExecutors(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<QueryExecutor>();
+            services.TryAddSingleton<MutationExecutor>();
+            services.TryAddSingleton<SubscriptionExecutor>();
+            return services;
+        }
+
+        internal static IServiceCollection TryAddNoOpDiagnostics(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IDiagnosticEvents, NoOpDiagnosticEvents>();
+            return services;
+        }
+
+        internal static IServiceCollection TryAddDefaultCaches(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IDocumentCache>(
+                sp => new DefaultDocumentCache());
+            services.TryAddSingleton<IPreparedOperationCache>(
+                sp => new DefaultPreparedOperationCache());
             return services;
         }
     }

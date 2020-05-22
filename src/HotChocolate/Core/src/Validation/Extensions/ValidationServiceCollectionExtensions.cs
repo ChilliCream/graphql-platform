@@ -11,21 +11,16 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IValidationBuilder AddValidation(
             this IServiceCollection services,
-            string schemaName = WellKnownSchema.Default)
+            string? schemaName = null)
         {
-            if (string.IsNullOrEmpty(schemaName))
-            {
-                throw new ArgumentException(
-                    Resources.ServiceCollectionExtensions_Schema_Name_Is_Mandatory,
-                    nameof(schemaName));
-            }
-
             services.AddOptions();
             services.TryAddSingleton<IValidationConfiguration, ValidationConfiguration>();
             services.TryAddSingleton(sp => new DocumentValidatorContextPool(8));
             services.TryAddSingleton<IDocumentValidatorFactory, DefaultDocumentValidatorFactory>();
 
-            var builder = new DefaultValidationBuilder(schemaName, services);
+            var builder = new DefaultValidationBuilder(
+                schemaName ?? Options.Options.DefaultName, 
+                services);
 
             builder
                 .AddDocumentRules()

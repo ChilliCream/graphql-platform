@@ -1,5 +1,8 @@
 using System;
+using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -21,14 +24,19 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions();
 
             // core services
-            services.TryAddVariableCoercion();
+            services.TryAddTypeConversion();
+            services.TryAddNoOpDiagnostics();
+            services.TryAddDefaultCaches();
+
+            // pools
             services.TryAddResultPool();
             services.TryAddResolverTaskPool();
-            services.TryAddTypeConversion();
+            services.TryAddOperationContextPool();
 
             // executor services
+            services.TryAddVariableCoercion();
+            services.TryAddOperationExecutors();
             services.TryAddRequestExecutorResolver();
-            services.TryAddOperationContext();
 
             return services;
         }
@@ -61,8 +69,29 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             AddGraphQLCore(services);
+            services.AddValidation(name);
 
             return new DefaultRequestExecutorBuilder(services, name);
+        }
+
+        public static IServiceCollection AddDocumentCache(
+            this IServiceCollection services,
+            int capacity = 100)
+        {
+            services.RemoveAll<IDocumentCache>();
+            services.AddSingleton<IDocumentCache>(
+                sp => new DefaultDocumentCache(capacity));
+            return services;
+        }
+
+        public static IServiceCollection AddOperationCache(
+            this IServiceCollection services,
+            int capacity = 100)
+        {
+            services.RemoveAll<IPreparedOperationCache>();
+            services.AddSingleton<IPreparedOperationCache>(
+                sp => new DefaultPreparedOperationCache(capacity));
+            return services;
         }
     }
 }

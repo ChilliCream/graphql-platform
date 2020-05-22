@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
             batchDispatcher.SetupGet(t => t.HasTasks).Returns(false); ;
 
             IServiceProvider service = new ServiceCollection()
-                .TryAddOperationContext()
+                .TryAddOperationContextPool()
                 .TryAddResolverTaskPool()
                 .TryAddResultPool()
                 .BuildServiceProvider();

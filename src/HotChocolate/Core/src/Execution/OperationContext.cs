@@ -7,7 +7,6 @@ namespace HotChocolate.Execution
 {
     internal sealed partial class OperationContext : IOperationContext
     {
-
         public IPreparedOperation Operation { get; private set; } = default!;
 
         public object? RootValue { get; private set; }
@@ -21,7 +20,7 @@ namespace HotChocolate.Execution
         public IExecutionContext Execution => _executionContext;
 
         public IPreparedSelectionList CollectFields(
-            SelectionSetNode selectionSet, 
+            SelectionSetNode selectionSet,
             ObjectType objectType) =>
             Operation.GetSelections(selectionSet, objectType);
 
