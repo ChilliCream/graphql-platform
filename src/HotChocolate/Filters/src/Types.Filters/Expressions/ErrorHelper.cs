@@ -1,22 +1,21 @@
 using System.Linq;
-using System.Linq.Expressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
     public static class ErrorHelper
     {
-        public static IError CreateNonNullError(
+        public static IError CreateNonNullError<T>(
             FilterOperationField field,
             ObjectFieldNode node,
-            IFilterVisitorContext<Expression> context) =>
+            IFilterVisitorContext<T> context) =>
                 CreateNonNullError(field.Operation, field.Type, node.Value, context);
 
-        public static IError CreateNonNullError(
+        public static IError CreateNonNullError<T>(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<Expression> context)
+            IFilterVisitorContext<T> context)
         {
             IFilterInputType filterType = context.Types.OfType<IFilterInputType>().First();
 
