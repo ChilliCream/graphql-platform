@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Filters
                 FilterOperationField field,
                 ObjectFieldNode node,
                 IFilterVisitorContext<Expression> context,
-                out ISyntaxVisitorAction action)
+                out ISyntaxVisitorAction? action)
         {
             if (fieldEnterHandler == null)
             {

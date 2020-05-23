@@ -75,7 +75,7 @@ namespace HotChocolate.Types.Filters
         public new IFilterInputTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
-        public new static FilterInputTypeDescriptor<T> New(
+        public static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context,
             Type entityType,
             IFilterConvention convention) =>
