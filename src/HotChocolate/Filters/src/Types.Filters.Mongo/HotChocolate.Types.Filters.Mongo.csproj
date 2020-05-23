@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.Filters.Mongo</PackageId>
+    <AssemblyName>HotChocolate.Types.Filters.Mongo</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Filters.Mongo</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" /> 
+    <ProjectReference Include="..\..\..\Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj" /> 
+    <ProjectReference Include="..\Types.Filters\HotChocolate.Types.Filters.csproj" />
+  </ItemGroup>
+
+</Project>
