@@ -27,6 +27,26 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <summary>
+        /// Define a boolean filter for the selected property.
+        /// </summary>
+        /// <param name="descriptor">The descriptor to extend</param>
+        /// <param name="name">The name of the named filter</param>
+        /// <returns></returns>
+        public static IArrayFilterFieldDescriptor List(
+            this IFilterInputTypeDescriptor descriptor,
+            NameString name)
+        {
+            if (name == default!)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return descriptor.AddFilter(name,
+                ctx => ArrayFilterFieldDescriptor.New(
+                    ctx, ctx.GetFilterConvention(), name));
+        }
+
+        /// <summary>
         /// Define a filter for a IEnumerable of string
         /// </summary>
         /// <typeparam name="T">Type of the struct</typeparam> 

@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
@@ -63,5 +63,14 @@ namespace HotChocolate.Types.Filters
         /// </summary>
         IArrayBooleanFilterOperationDescriptor AllowAny();
 
+        IArrayFilterFieldDescriptor Type<TInputType>()
+            where TInputType : IInputType;
+
+        IArrayFilterFieldDescriptor Type<TInputType>(TInputType inputType)
+            where TInputType : class, IInputType;
+
+        IArrayFilterFieldDescriptor Type(ITypeNode typeNode);
+
+        IArrayFilterFieldDescriptor Type(Type type);
     }
 }

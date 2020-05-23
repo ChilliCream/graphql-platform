@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. Some returns true wehn one item matchs the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowSome<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowSome<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. None returns true when no item matchs the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. All returns true when all item match the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>
@@ -99,5 +99,16 @@ namespace HotChocolate.Types.Filters
         /// Allow array filter operations. Check if there are items or there are none
         /// </summary>
         IArrayBooleanFilterOperationDescriptor AllowAny();
+
+        IArrayFilterFieldDescriptor Type<TInputType>()
+            where TInputType : IInputType;
+
+        IArrayFilterFieldDescriptor Type<TInputType>(TInputType inputType)
+            where TInputType : class, IInputType;
+
+        IArrayFilterFieldDescriptor Type(ITypeNode typeNode);
+
+        IArrayFilterFieldDescriptor Type(Type type);
+
     }
 }

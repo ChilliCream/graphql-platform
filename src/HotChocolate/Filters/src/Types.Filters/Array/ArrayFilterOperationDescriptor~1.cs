@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context,
             ArrayFilterFieldDescriptor<TArray> descriptor,
             NameString name,
-            ITypeReference type,
+            ITypeReference? type,
             FilterOperation operation,
             IFilterConvention filterConventions)
             : base(context, descriptor, name, type, operation, filterConventions)
@@ -94,7 +94,7 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context,
             ArrayFilterFieldDescriptor<TArray> descriptor,
             NameString name,
-            ITypeReference type,
+            ITypeReference? type,
             FilterOperation operation,
             IFilterConvention filterConvention) =>
             new ArrayFilterOperationDescriptor<TArray>(

@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
@@ -125,6 +126,33 @@ namespace HotChocolate.Types.Filters
             return AllowAll<FilterInputType<TArray>>();
         }
 
+        public new IArrayFilterFieldDescriptor<TArray> Type<TInputType>()
+            where TInputType : IInputType
+        {
+            base.Type<TInputType>();
+            return this;
+        }
+
+        public new IArrayFilterFieldDescriptor<TArray> Type<TInputType>(
+            TInputType inputType)
+            where TInputType : class, IInputType
+        {
+            base.Type(inputType);
+            return this;
+        }
+
+        public new IArrayFilterFieldDescriptor<TArray> Type(ITypeNode typeNode)
+        {
+            base.Type(typeNode);
+            return this;
+        }
+
+        public new IArrayFilterFieldDescriptor<TArray> Type(Type type)
+        {
+            base.Type(type);
+            return this;
+        }
+
         private ArrayFilterOperationDescriptor<TArray> GetOrCreateOperation(
             FilterOperationKind operationKind)
         {
@@ -136,12 +164,11 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             FilterOperation? operation = GetFilterOperation(operationKind);
-            ClrTypeReference? typeReference = GetTypeReference();
             return ArrayFilterOperationDescriptor<TArray>.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                typeReference,
+                Definition.Type,
                 operation,
                 FilterConvention);
         }

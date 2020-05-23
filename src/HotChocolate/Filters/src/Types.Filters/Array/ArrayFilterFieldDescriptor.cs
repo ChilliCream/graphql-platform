@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Filters
         : FilterFieldDescriptorBase
         , IArrayFilterFieldDescriptor
     {
-        private readonly Type _type;
+        private readonly Type? _type;
 
         public ArrayFilterFieldDescriptor(
             IDescriptorContext context,
@@ -20,6 +21,14 @@ namespace HotChocolate.Types.Filters
             : base(FilterKind.Array, context, property, filtersConventions)
         {
             _type = type;
+            SetTypeReference(_type);
+        }
+
+        public ArrayFilterFieldDescriptor(
+            IDescriptorContext context,
+            IFilterConvention filtersConventions)
+            : base(FilterKind.Array, context, filtersConventions)
+        {
         }
 
         /// <inheritdoc/>
@@ -77,6 +86,34 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        public new IArrayFilterFieldDescriptor Type<TInputType>()
+            where TInputType : IInputType
+        {
+            base.Type<TInputType>();
+            return this;
+        }
+
+        public new IArrayFilterFieldDescriptor Type<TInputType>(
+            TInputType inputType)
+            where TInputType : class, IInputType
+        {
+            base.Type(inputType);
+            return this;
+        }
+
+        public new IArrayFilterFieldDescriptor Type(ITypeNode typeNode)
+        {
+            base.Type(typeNode);
+            return this;
+        }
+
+        public new IArrayFilterFieldDescriptor Type(Type type)
+        {
+            base.Type(type);
+            return this;
+        }
+
+
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind)
         {
@@ -95,13 +132,9 @@ namespace HotChocolate.Types.Filters
                 Definition.Property);
         }
 
-        protected ClrTypeReference GetTypeReference()
+        protected void SetTypeReference(Type type)
         {
-            return new ClrTypeReference(
-                typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    true,
-                    true);
+            Type(typeof(FilterInputType<>).MakeGenericType(type));
         }
 
         private ArrayFilterOperationDescriptor GetOrCreateOperation(
@@ -122,12 +155,11 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             FilterOperation? operation = GetFilterOperation(operationKind);
-            ClrTypeReference? typeReference = GetTypeReference();
             return ArrayFilterOperationDescriptor.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                typeReference,
+                Definition.Type,
                 operation,
                 FilterConvention);
         }
@@ -150,6 +182,18 @@ namespace HotChocolate.Types.Filters
                 typeReference,
                 operation,
                 FilterConvention);
+        }
+
+        public static ArrayFilterFieldDescriptor New(
+            IDescriptorContext context,
+            IFilterConvention filterConventions,
+            NameString name)
+        {
+            var descriptor = new ArrayFilterFieldDescriptor(
+                context, filterConventions);
+
+            descriptor.Name(name);
+            return descriptor;
         }
     }
 }

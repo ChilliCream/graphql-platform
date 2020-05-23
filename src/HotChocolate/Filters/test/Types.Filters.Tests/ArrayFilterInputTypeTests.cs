@@ -38,6 +38,60 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+
+        [Fact]
+        public void CreateNamed_Explicit_Filters()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .List("bar")
+                        .Type<FilterInputType<Bar>>()
+                        .BindExplicitly()
+                        .AllowAll()
+                        .Name("foo_all")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Explicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .List("bar")
+                        .Type<FilterInputType<Bar>>()
+                        .BindExplicitly()
+                        .AllowAll().And()
+                        .AllowAny().And()
+                        .AllowNone().And()
+                        .AllowSome().And()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateNamed_Implicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .List("foo")
+                    .Type<FilterInputType<Bar>>()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         [Fact]
         public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
         {
