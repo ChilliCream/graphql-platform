@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -17,6 +16,13 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             IFilterConvention filterConventions)
             : base(FilterKind.Comparable, context, property, filterConventions)
+        {
+        }
+
+        public ComparableFilterFieldDescriptor(
+            IDescriptorContext context,
+            IFilterConvention filterConventions)
+            : base(FilterKind.Comparable, context, filterConventions)
         {
         }
 
@@ -226,6 +232,18 @@ namespace HotChocolate.Types.Filters
                 RewriteType(operationKind),
                 operation,
                 FilterConvention);
+        }
+
+        public static ComparableFilterFieldDescriptor New(
+            IDescriptorContext context,
+            IFilterConvention filterConventions,
+            NameString name)
+        {
+            var descriptor = new ComparableFilterFieldDescriptor(
+                context, filterConventions);
+
+            descriptor.Name(name);
+            return descriptor;
         }
     }
 }

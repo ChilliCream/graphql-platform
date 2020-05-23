@@ -30,6 +30,67 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void CreateNamed_Explicit_Filters()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Comparable("bar")
+                        .Type<IntType>()
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Name("foo_eq")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Explicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Comparable("bar")
+                        .Type<IntType>()
+                        .BindFiltersExplicitly()
+                        .AllowEquals().And()
+                        .AllowNotEquals().And()
+                        .AllowIn().And()
+                        .AllowNotIn().And()
+                        .AllowGreaterThan().And()
+                        .AllowNotGreaterThan().And()
+                        .AllowGreaterThanOrEquals().And()
+                        .AllowNotGreaterThanOrEquals().And()
+                        .AllowLowerThan().And()
+                        .AllowNotLowerThan().And()
+                        .AllowLowerThanOrEquals().And()
+                        .AllowNotLowerThanOrEquals()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateNamed_Implicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Comparable("foo")
+                    .Type<IntType>()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
         {
             // arrange

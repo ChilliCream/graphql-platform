@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types.Filters.Properties;
@@ -22,6 +22,20 @@ namespace HotChocolate.Types.Filters
             throw new ArgumentException(
                 FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
+        }
+
+        public static IComparableFilterFieldDescriptor Comparable(
+            this IFilterInputTypeDescriptor descriptor,
+            NameString name)
+        {
+            if (name == default!)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return descriptor.AddFilter(name,
+                ctx => ComparableFilterFieldDescriptor.New(
+                    ctx, ctx.GetFilterConvention(), name));
         }
     }
 }
