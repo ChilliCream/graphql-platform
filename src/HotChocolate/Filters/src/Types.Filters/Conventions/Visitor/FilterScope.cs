@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Filters
             Level.Push(new Queue<T>());
         }
 
+        //TODO: why is this a stack?
         public Stack<Queue<T>> Level { get; }
 
         public Stack<T> Instance { get; }
