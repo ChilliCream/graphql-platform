@@ -26,12 +26,6 @@ namespace HotChocolate.Types.Filters
                 nameof(property));
         }
 
-        /// <summary>
-        /// Define a boolean filter for the selected property.
-        /// </summary>
-        /// <param name="descriptor">The descriptor to extend</param>
-        /// <param name="name">The name of the named filter</param>
-        /// <returns></returns>
         public static IArrayFilterFieldDescriptor List(
             this IFilterInputTypeDescriptor descriptor,
             NameString name)

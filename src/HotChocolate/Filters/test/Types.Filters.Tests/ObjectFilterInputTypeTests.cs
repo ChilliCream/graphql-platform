@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -37,6 +36,56 @@ namespace HotChocolate.Types.Filters
                         )
                     )
            );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateNamed_Explicit_Filters()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Object("bar")
+                        .Type<FilterInputType<Bar>>()
+                        .BindExplicitly()
+                        .AllowObject()
+                        .Name("foo")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Explicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Object("bar")
+                        .Type<FilterInputType<Bar>>()
+                        .BindExplicitly()
+                        .AllowObject().And()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateNamed_Implicit_Filters_All_Operations()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType(d => d
+                    .Name("FilterTypeName")
+                    .Object("foo")
+                    .Type<FilterInputType<Bar>>()));
 
             // assert
             schema.ToString().MatchSnapshot();

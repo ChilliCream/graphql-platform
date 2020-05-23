@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Filters
         : FilterFieldDescriptorBase
         , IObjectFilterFieldDescriptor
     {
-        private readonly Type _type;
+        private readonly Type _type = typeof(object);
 
         public ObjectFilterFieldDescriptor(
             IDescriptorContext context,
@@ -21,6 +21,14 @@ namespace HotChocolate.Types.Filters
             : base(FilterKind.Object, context, property, filterConventions)
         {
             _type = type;
+            SetTypeReference(_type);
+        }
+
+        public ObjectFilterFieldDescriptor(
+            IDescriptorContext context,
+            IFilterConvention filterConventions)
+            : base(FilterKind.Object, context, filterConventions)
+        {
         }
 
         /// <inheritdoc/>
@@ -46,10 +54,41 @@ namespace HotChocolate.Types.Filters
         public IObjectFilterFieldDescriptor BindImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
+        public new IObjectFilterFieldDescriptor Type<TInputType>()
+            where TInputType : FilterInputType
+        {
+            base.Type<TInputType>();
+            return this;
+        }
+
+        public new IObjectFilterFieldDescriptor Type<TInputType>(
+            TInputType inputType)
+            where TInputType : FilterInputType
+        {
+            base.Type(inputType);
+            return this;
+        }
+
+        public new IObjectFilterFieldDescriptor Type(ITypeNode typeNode)
+        {
+            base.Type(typeNode);
+            return this;
+        }
+
+        public new IObjectFilterFieldDescriptor Type(Type type)
+        {
+            base.Type(type);
+            return this;
+        }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
+
+        protected void SetTypeReference(Type type)
+        {
+            Type(typeof(FilterInputType<>).MakeGenericType(type));
+        }
 
         private ObjectFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
@@ -64,11 +103,7 @@ namespace HotChocolate.Types.Filters
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                new ClrTypeReference(
-                    typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    true,
-                    true),
+                Definition.Type,
                 operation,
                 FilterConvention);
         }
@@ -86,6 +121,18 @@ namespace HotChocolate.Types.Filters
                 GetOrCreateOperation(FilterOperationKind.Object);
             Filters.Add(field);
             return field;
+        }
+
+        public static ObjectFilterFieldDescriptor New(
+            IDescriptorContext context,
+            IFilterConvention filterConventions,
+            NameString name)
+        {
+            var descriptor = new ObjectFilterFieldDescriptor(
+                context, filterConventions);
+
+            descriptor.Name(name);
+            return descriptor;
         }
     }
 }

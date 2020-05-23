@@ -113,7 +113,6 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind)
         {

@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
@@ -80,6 +80,33 @@ namespace HotChocolate.Types.Filters
             var typeReference = new SchemaTypeReference(type);
             field.Type(typeReference);
             return field;
+        }
+
+        public new IObjectFilterFieldDescriptor<TObject> Type<TInputType>()
+            where TInputType : FilterInputType
+        {
+            base.Type<TInputType>();
+            return this;
+        }
+
+        public new IObjectFilterFieldDescriptor<TObject> Type<TInputType>(
+            TInputType inputType)
+            where TInputType : FilterInputType
+        {
+            base.Type(inputType);
+            return this;
+        }
+
+        public new IObjectFilterFieldDescriptor<TObject> Type(ITypeNode typeNode)
+        {
+            base.Type(typeNode);
+            return this;
+        }
+
+        public new IObjectFilterFieldDescriptor<TObject> Type(Type type)
+        {
+            base.Type(type);
+            return this;
         }
 
         public IObjectFilterOperationDescriptor<TObject> AllowObject<TFilter>()

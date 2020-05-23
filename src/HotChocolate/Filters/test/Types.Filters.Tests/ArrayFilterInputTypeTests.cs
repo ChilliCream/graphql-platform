@@ -38,7 +38,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void CreateNamed_Explicit_Filters()
         {

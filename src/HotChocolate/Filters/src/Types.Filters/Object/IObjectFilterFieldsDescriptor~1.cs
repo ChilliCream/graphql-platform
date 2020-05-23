@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
@@ -60,5 +61,15 @@ namespace HotChocolate.Types.Filters
         /// Allow object filter operations.
         /// </summary>
         IObjectFilterOperationDescriptor<TObject> AllowObject();
+
+        IObjectFilterFieldDescriptor<TObject> Type<TInputType>()
+            where TInputType : FilterInputType;
+
+        IObjectFilterFieldDescriptor<TObject> Type<TInputType>(TInputType inputType)
+            where TInputType : FilterInputType;
+
+        IObjectFilterFieldDescriptor<TObject> Type(ITypeNode typeNode);
+
+        IObjectFilterFieldDescriptor<TObject> Type(Type type);
     }
 }
