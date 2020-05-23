@@ -11,7 +11,6 @@ namespace HotChocolate.Types.Filters
         : FilterInputTypeDescriptor
         , IFilterInputTypeDescriptor<T>
     {
-
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType,

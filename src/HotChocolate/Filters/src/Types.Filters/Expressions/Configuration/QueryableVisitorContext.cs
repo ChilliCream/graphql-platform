@@ -29,6 +29,6 @@ namespace HotChocolate.Types.Filters.Expressions
         public Stack<Type> ClrTypes { get; }
 
         public override FilterScope<Expression> CreateScope() =>
-             new QueryableScope(ClrTypes.Peek(), "_s" + Scopes.Count, InMemory);
+            new QueryableScope(ClrTypes.Peek(), "_s" + Scopes.Count, InMemory);
     }
 }

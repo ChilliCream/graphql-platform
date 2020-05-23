@@ -19,7 +19,6 @@ namespace HotChocolate.Types.Filters.Mongo
             IFilterInputType fit,
             InputObjectType iot)
         {
-
             string argumentName = filterConvention!.GetArgumentName();
 
             IValueNode filter = context.Argument<IValueNode>(argumentName);

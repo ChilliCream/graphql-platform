@@ -11,11 +11,8 @@ namespace HotChocolate.Types.Filters.Mongo
             IFilterInputType initialType,
             FilterVisitorDefinition<IMongoQuery> definition,
             ITypeConversion typeConverter)
-            : base(initialType,
-                  definition,
-                  typeConverter)
+            : base(initialType, definition, typeConverter)
         {
-
         }
 
         public override FilterScope<IMongoQuery> CreateScope() =>
