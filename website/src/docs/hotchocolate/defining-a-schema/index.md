@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: "Schema basics"
 ---
 
 Use this section as an introduction to explain what a reader can expect of this document.

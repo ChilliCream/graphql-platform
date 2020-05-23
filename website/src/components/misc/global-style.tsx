@@ -347,7 +347,10 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   .mermaid {
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
+
   }
 
   /* Inline code style */
