@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Filters.Mongo.Extensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -21,20 +22,14 @@ namespace HotChocolate.Types.Filters.Mongo
                     || field.Operation.Kind == FilterOperationKind.ArrayNone
                     || field.Operation.Kind == FilterOperationKind.ArrayAll)
                 {
-                    string fieldName = field.Name;
-                    if (field.Operation?.Property is { } p)
-                    {
-                        fieldName = p.Name;
-                    }
-
-                    ctx.GetMongoFilterScope().Path.Push(fieldName);
+                    ctx.GetMongoFilterScope().Path.Push(field.GetName());
 
                     context.AddScope();
 
                     if (node.Value.IsNull())
                     {
                         // TODO fix this
-                        context.GetLevel().Enqueue(Query.Null);
+                        //context.GetLevel().Enqueue();
                         action = SyntaxVisitor.SkipAndLeave;
                     }
                     else

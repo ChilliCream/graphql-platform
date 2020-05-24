@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 return false;
             }
 
-            if (operation.Type == typeof(IComparable) &&
+            if (operation.Type == typeof(string) &&
                 type.IsInstanceOfType(value) &&
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 return false;
             }
 
-            if (operation.Type == typeof(IComparable) &&
+            if (operation.Type == typeof(string) &&
                 type.IsInstanceOfType(value) &&
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)

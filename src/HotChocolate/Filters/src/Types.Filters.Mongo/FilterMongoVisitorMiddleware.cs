@@ -34,12 +34,11 @@ namespace HotChocolate.Types.Filters.Mongo
 
             FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(filter, visitorContext);
 
-            if (visitorContext.TryCreateQuery(out FilterDefinition<T>? whereQuery))
+            if (visitorContext.TryCreateQuery(out BsonDocument? whereQuery))
             {
                 context.LocalContextData =
                     context.LocalContextData.SetItem(
-                        nameof(FilterDefinition<T>),
-                        );
+                        nameof(FilterDefinition<T>), whereQuery);
             }
 
             await next(context).ConfigureAwait(false);

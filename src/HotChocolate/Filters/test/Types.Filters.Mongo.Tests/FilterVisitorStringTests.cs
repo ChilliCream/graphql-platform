@@ -39,9 +39,9 @@ namespace HotChocolate.Types.Filters
                 TypeConversion.Default);
 
             FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
-            filterContext.TryCreateQuery(out FilterDefinition<Foo> query);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
-            // assert
+            // assert 
             collectionA.InsertOne(new Foo { Bar = "a" });
             Assert.True(collectionA.Find(query).Any());
 
