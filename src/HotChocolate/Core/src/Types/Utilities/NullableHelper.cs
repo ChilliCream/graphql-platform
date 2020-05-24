@@ -12,8 +12,10 @@ namespace HotChocolate.Utilities
 {
     internal readonly ref struct NullableHelper
     {
-        private const string _nullableContextAttributeName = "System.Runtime.CompilerServices.NullableContextAttribute";
-        private const string _nullableAttributeName = "System.Runtime.CompilerServices.NullableAttribute";
+        private const string _nullableContextAttributeName =
+            "System.Runtime.CompilerServices.NullableContextAttribute";
+        private const string _nullableAttributeName =
+            "System.Runtime.CompilerServices.NullableAttribute";
 
         private readonly Type _type;
         private readonly Nullable _context;
@@ -122,11 +124,11 @@ namespace HotChocolate.Utilities
                 {
                     if (flags.Length > position)
                     {
-                        state = (Nullable) flags[position++];
+                        state = (Nullable)flags[position++];
                     }
                     else if (flags.Length == 1)
                     {
-                        state = (Nullable) flags[0];
+                        state = (Nullable)flags[0];
                     }
                 }
 
@@ -235,7 +237,10 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                string.Equals(t.AttributeType.FullName, _nullableContextAttributeName, StringComparison.Ordinal));
+                string.Equals(
+                    t.AttributeType.FullName,
+                    _nullableContextAttributeName,
+                    StringComparison.Ordinal));
 
             if (data is { })
             {
@@ -251,7 +256,10 @@ namespace HotChocolate.Utilities
         {
             object[] attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
             object attribute = attributes.FirstOrDefault(t =>
-                string.Equals(t.GetType().FullName, _nullableAttributeName, StringComparison.Ordinal));
+                string.Equals(
+                    t.GetType().FullName,
+                    _nullableAttributeName,
+                    StringComparison.Ordinal));
 
             if (attribute is null)
             {
