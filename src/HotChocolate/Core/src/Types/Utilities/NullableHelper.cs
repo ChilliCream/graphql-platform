@@ -49,7 +49,7 @@ namespace HotChocolate.Utilities
         {
             IExtendedType returnType = CreateExtendedType(
                 GetContext(method),
-                GetFlags(method),
+                GetFlags(method), 
                 method.ReturnType);
 
             ParameterInfo[] parameters = method.GetParameters();
@@ -291,7 +291,10 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                string.Equals(t.AttributeType.FullName, _nullableAttributeName, StringComparison.Ordinal));
+                string.Equals(
+                    t.AttributeType.FullName,
+                    _nullableAttributeName,
+                    StringComparison.Ordinal));
 
             if (data is { })
             {
