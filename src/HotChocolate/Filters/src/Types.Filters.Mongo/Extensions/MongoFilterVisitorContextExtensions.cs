@@ -11,9 +11,18 @@ namespace HotChocolate.Types.Filters.Mongo
                 this MongoFilterVisitorContext context) =>
                     (MongoFilterScope)context.GetScope();
 
-        public static bool TryCreateQuery(
+        public static bool TryCreateQuery<T>(
            this MongoFilterVisitorContext context,
-           [NotNullWhen(true)] out FilterDefinition<BsonDocument>? expression) =>
-                context.GetMongoFilterScope().TryCreateQuery(out expression);
+           [NotNullWhen(true)] out FilterDefinition<T>? query)
+        {
+            if (context.GetMongoFilterScope().TryCreateQuery(
+                out FilterDefinition<BsonDocument>? bsonQuery))
+            {
+                query = bsonQuery.ToBsonDocument();
+                return true;
+            }
+            query = null;
+            return false;
+        }
     }
 }

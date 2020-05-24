@@ -1,6 +1,8 @@
 using System;
-using System.Linq.Expressions;
 using HotChocolate.Types.Filters.Conventions;
+using HotChocolate.Types.Filters.Mongo;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace HotChocolate.Types.Filters
 {
@@ -16,15 +18,20 @@ namespace HotChocolate.Types.Filters
         {
         }
 
+        protected override void Configure(IFilterConventionDescriptor descriptor)
+        {
+            descriptor.UseMongoVisitor().UseDefault();
+        }
+
         public FilterConventionDefinition GetConventionDefinition()
         {
             return GetOrCreateConfiguration();
         }
 
-        public FilterVisitorDefinition<Expression> GetExpressionDefinition()
+        public FilterVisitorDefinition<FilterDefinition<BsonDocument>> GetExpressionDefinition()
         {
             return GetOrCreateConfiguration().VisitorDefinition
-                as FilterVisitorDefinition<Expression>;
+                as FilterVisitorDefinition<FilterDefinition<BsonDocument>>;
         }
 
         public new static MockFilterConvention Default { get; } =

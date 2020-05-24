@@ -1,16 +1,23 @@
-using System;
-using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Types.Filters.Mongo;
 using HotChocolate.Utilities;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using Squadron;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
     public class FilterVisitorStringTests
-        : TypeTestBase
+        : TypeTestBase, IClassFixture<MongoResource>
     {
+        private readonly MongoResource _mongoResource;
+
+        public FilterVisitorStringTests(MongoResource mongoResource)
+        {
+            _mongoResource = mongoResource;
+        }
+
         [Fact]
         public void Create_StringEqual_Expression()
         {
@@ -21,22 +28,27 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
                 TypeConversion.Default);
-            FilterVisitor<IMongoQuery>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out FilterDefinition<Foo> query);
 
             // assert
-            var a = new Foo { Bar = "a" };
-            Assert.True(func(a));
+            collectionA.InsertOne(new Foo { Bar = "a" });
+            Assert.True(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "b" };
-            Assert.False(func(b));
+            collectionB.InsertOne(new Foo { Bar = "b" });
+            Assert.False(collectionB.Find(query).Any());
         }
-
+        /*
         [Fact]
         public void Create_StringNotEqual_Expression()
         {
@@ -314,6 +326,7 @@ namespace HotChocolate.Types.Filters
             var b = new Foo { Bar = "ba" };
             Assert.False(func(b));
         }
+        */
 
         public class Foo
         {

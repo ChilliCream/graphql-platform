@@ -43,9 +43,6 @@ namespace HotChocolate.Types.Filters
                 Bazs = new[] { new Baz { Quux = "c" }, new Baz { Quux = "d" } },
                 Quux = "abc"
             });
-            QueryBuilder
-            FilterDefinition<BsonDocument> filterDefinition = null;
-            collection.Find(filterDefinition);
 
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<QueryType>()
