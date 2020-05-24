@@ -95,7 +95,7 @@ namespace HotChocolate.Types.Filters
                 Definition.OperationCombinator.TryGetValue(
                     combinator, out FilterOperationCombinator<T>? combine))
             {
-                combined = combine(operations);
+                combined = combine(operations, this);
 
                 return true;
             }
