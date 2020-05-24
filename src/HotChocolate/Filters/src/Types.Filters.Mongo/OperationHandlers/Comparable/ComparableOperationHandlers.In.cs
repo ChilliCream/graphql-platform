@@ -13,6 +13,7 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
+            FilterOperationField field,
             IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
             [NotNullWhen(true)] out FilterDefinition<BsonDocument>? result)
         {
@@ -33,7 +34,7 @@ namespace HotChocolate.Types.Filters.Mongo
             {
                 parsedValue = ParseValue(parsedValue, operation, type, ctx);
                 result = ctx.Builder.In(
-                    ctx.GetMongoFilterScope().GetPath(),
+                    ctx.GetMongoFilterScope().GetPath(field),
                     BsonArray.Create(parsedValue));
 
                 return true;
@@ -48,6 +49,7 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
+            FilterOperationField field,
             IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
             [NotNullWhen(true)] out FilterDefinition<BsonDocument>? result)
         {
@@ -70,7 +72,7 @@ namespace HotChocolate.Types.Filters.Mongo
 
                 result = ctx.Builder.Not(
                     ctx.Builder.In(
-                        ctx.GetMongoFilterScope().GetPath(),
+                        ctx.GetMongoFilterScope().GetPath(field),
                         BsonArray.Create(parsedValue)));
 
                 return true;

@@ -13,6 +13,7 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
+            FilterOperationField field,
             IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
             [NotNullWhen(true)] out FilterDefinition<BsonDocument>? result)
         {
@@ -35,12 +36,12 @@ namespace HotChocolate.Types.Filters.Mongo
                 if (parsedBool)
                 {
                     result = ctx.Builder.SizeGt(
-                        ctx.GetMongoFilterScope().GetPath(), 0);
+                        ctx.GetMongoFilterScope().GetPath(field), 0);
                 }
                 else
                 {
                     result = ctx.Builder.Size(
-                        ctx.GetMongoFilterScope().GetPath(), 0);
+                        ctx.GetMongoFilterScope().GetPath(field), 0);
                 }
 
                 return true;

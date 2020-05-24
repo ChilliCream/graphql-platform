@@ -14,6 +14,7 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
+            FilterOperationField field,
             IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
             [NotNullWhen(true)]out FilterDefinition<BsonDocument>? result)
         {
@@ -34,7 +35,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 context is MongoFilterVisitorContext ctx)
             {
                 result = ctx.Builder.Regex(
-                    ctx.GetMongoFilterScope().GetPath(),
+                    ctx.GetMongoFilterScope().GetPath(field),
                     new BsonRegularExpression($"/{Regex.Escape(str)}/"));
 
                 return true;
@@ -49,6 +50,7 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
+            FilterOperationField field,
             IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
             [NotNullWhen(true)]out FilterDefinition<BsonDocument>? result)
         {
@@ -70,7 +72,7 @@ namespace HotChocolate.Types.Filters.Mongo
             {
                 result = ctx.Builder.Not(
                     ctx.Builder.Regex(
-                        ctx.GetMongoFilterScope().GetPath(),
+                        ctx.GetMongoFilterScope().GetPath(field),
                         new BsonRegularExpression($"/{Regex.Escape(str)}/")));
 
                 return true;
