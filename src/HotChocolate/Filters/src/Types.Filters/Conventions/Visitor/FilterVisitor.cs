@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters
                     field.Operation.Kind,
                     out FilterOperationHandler<T>? handler) &&
                     handler(field.Operation, field.Type,
-                        node.Value, context, out T expression))
+                        node.Value, field, context, out T expression))
                 {
                     context.GetLevel().Enqueue(expression);
                 }

@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters;
 using HotChocolate.Types.Filters.Conventions;
+using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Selections.Handlers
 {
