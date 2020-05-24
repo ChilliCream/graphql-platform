@@ -13,6 +13,7 @@ namespace HotChocolate.Types.Filters.Conventions
         FilterOperation operation,
         IInputType type,
         IValueNode value,
+        FilterOperationField field,
         IFilterVisitorContext<T> context,
         [MaybeNullWhen(true)] out T result);
 

@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             IInputType type,
             IValueNode value,
+            FilterOperationField _,
             IFilterVisitorContext<Expression> context,
             [NotNullWhen(true)]out Expression? result)
         {
@@ -49,6 +50,7 @@ namespace HotChocolate.Types.Filters.Expressions
             FilterOperation operation,
             IInputType type,
             IValueNode value,
+            FilterOperationField _,
             IFilterVisitorContext<Expression> context,
 
             [NotNullWhen(true)]out Expression? result)

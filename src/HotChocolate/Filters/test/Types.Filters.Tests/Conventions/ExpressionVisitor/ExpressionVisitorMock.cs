@@ -49,6 +49,7 @@ namespace HotChocolate.Types.Filters
                 FilterOperation operation,
                 IInputType type,
                 IValueNode value,
+                FilterOperationField field,
                 IFilterVisitorContext<Expression> context,
                 out Expression? result)
         {
@@ -58,7 +59,7 @@ namespace HotChocolate.Types.Filters
             }
 
             filterOperationCallCounter++;
-            return filterOperationHandler(operation, type, value, context, out result);
+            return filterOperationHandler(operation, type, value, field, context, out result);
         }
 
         public bool FilterFieldEnter(
