@@ -33,8 +33,6 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is bool valueOfT &&
                 context is MongoFilterVisitorContext ctx)
             {
-                FilterDefinition<BsonDocument> property = context.GetInstance();
-
                 if (!operation.IsSimpleArrayType())
                 {
                     //
@@ -76,7 +74,6 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is bool valueOfT &&
                 context is MongoFilterVisitorContext ctx)
             {
-                FilterDefinition<BsonDocument> property = context.GetInstance();
 
                 if (!operation.IsSimpleArrayType())
                 {
