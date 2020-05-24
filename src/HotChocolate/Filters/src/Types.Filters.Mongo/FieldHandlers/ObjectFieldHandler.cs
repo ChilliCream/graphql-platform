@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -34,7 +33,6 @@ namespace HotChocolate.Types.Filters.Mongo
                         context.ReportError(
                             ErrorHelper.CreateNonNullError(field, node, context));
                     }
-
                     action = SyntaxVisitor.Skip;
                     return true;
                 }
@@ -47,23 +45,6 @@ namespace HotChocolate.Types.Filters.Mongo
             }
             action = null;
             return false;
-        }
-
-        public static void Leave(
-            FilterOperationField field,
-            ObjectFieldNode node,
-            IFilterVisitorContext<FilterDefinition<BsonDocument>> context)
-        {
-            if (context is MongoFilterVisitorContext ctx)
-            {
-                if (field.Operation.Kind == FilterOperationKind.Object)
-                {
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
         }
     }
 }

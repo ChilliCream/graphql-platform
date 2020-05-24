@@ -18,7 +18,6 @@ namespace HotChocolate.Types.Filters.Mongo
                     .And()
                 .Kind(FilterKind.Object)
                     .Enter(ObjectFieldHandler.Enter)
-                    .Leave(ObjectFieldHandler.Leave)
                     .And()
                 .Kind(FilterKind.Boolean)
                     .Operation(FilterOperationKind.Equals)
