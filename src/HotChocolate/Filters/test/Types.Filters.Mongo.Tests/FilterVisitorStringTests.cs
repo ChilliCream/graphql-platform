@@ -76,8 +76,7 @@ namespace HotChocolate.Types.Filters
             collectionA.InsertOne(new Foo { Bar = "a" });
             Assert.False(collectionA.Find(query).Any());
 
-            collectionB.InsertOne(new Foo { Bar = "b" });
-
+            collectionB.InsertOne(new Foo { Bar = "b" }); 
             Assert.True(collectionB.Find(query).Any());
         }
 
