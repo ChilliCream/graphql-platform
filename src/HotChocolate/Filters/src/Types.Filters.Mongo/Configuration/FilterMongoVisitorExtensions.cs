@@ -1,12 +1,13 @@
 using HotChocolate.Types.Filters.Conventions;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
     public static class FilterMongoVisitorExtensions
     {
-        public static IFilterVisitorDescriptor<IMongoQuery> UseDefault(
-            this IFilterVisitorDescriptor<IMongoQuery> descriptor)
+        public static IFilterVisitorDescriptor<FilterDefinition<BsonDocument>> UseDefault(
+            this IFilterVisitorDescriptor<FilterDefinition<BsonDocument>> descriptor)
         {
             descriptor
                 .Kind(FilterKind.Array)

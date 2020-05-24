@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Types.Filters.Mongo
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Filters.Mongo
             object parsedValue,
             FilterOperation operation,
             IInputType type,
-            IFilterVisitorContext<IMongoQuery> context)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context)
         {
             if (type.IsListType())
             {

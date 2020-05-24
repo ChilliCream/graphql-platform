@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
@@ -13,7 +12,7 @@ namespace HotChocolate.Types.Filters.Mongo
         public static bool Enter(
             FilterOperationField field,
             ObjectFieldNode node,
-            IFilterVisitorContext<IMongoQuery> context,
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             if (context is MongoFilterVisitorContext ctx &&
@@ -32,7 +31,7 @@ namespace HotChocolate.Types.Filters.Mongo
                     if (operation.IsNullable == true)
                     {
                         context.GetLevel().Enqueue(
-                            Query.EQ(
+                            ctx.Builder.Eq(
                                 ctx.GetMongoFilterScope().GetPath(), BsonNull.Value));
                     }
                     else
@@ -60,16 +59,16 @@ namespace HotChocolate.Types.Filters.Mongo
         public static void Leave(
             FilterOperationField field,
             ObjectFieldNode node,
-            IFilterVisitorContext<IMongoQuery> context)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context)
         {
             if (context is MongoFilterVisitorContext ctx)
             {
                 if (field.Operation.Kind == FilterOperationKind.Object)
                 {
                     context.GetLevel().Enqueue(
-                        Query.EQ(
+                        ctx.Builder.Eq(
                             ctx.GetMongoFilterScope().GetPath(),
-                            Query.And(ctx.GetLevel().ToArray()).ToBson()));
+                            ctx.Builder.And(ctx.GetLevel().ToArray()).ToBson()));
                     context.PopInstance();
                 }
             }

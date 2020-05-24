@@ -4,14 +4,16 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Utilities;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
-    public class FilterMongoVisitorMiddleware : IFilterMiddleware<IMongoQuery>
+    public class FilterMongoVisitorMiddleware
+        : IFilterMiddleware<FilterDefinition<BsonDocument>>
     {
         public async Task ApplyFilter<T>(
-            FilterVisitorDefinition<IMongoQuery> definition,
+            FilterVisitorDefinition<FilterDefinition<BsonDocument>> definition,
             IMiddlewareContext context,
             FieldDelegate next,
             IFilterConvention filterConvention,
@@ -30,12 +32,14 @@ namespace HotChocolate.Types.Filters.Mongo
 
             var visitorContext = new MongoFilterVisitorContext(fit, definition, converter);
 
-            FilterVisitor<IMongoQuery>.Default.Visit(filter, visitorContext);
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(filter, visitorContext);
 
-            if (visitorContext.TryCreateQuery(out IMongoQuery? whereQuery))
+            if (visitorContext.TryCreateQuery(out FilterDefinition<BsonDocument>? whereQuery))
             {
                 context.LocalContextData =
-                    context.LocalContextData.SetItem("mongoQuery", whereQuery);
+                    context.LocalContextData.SetItem(
+                        "mongoQuery",
+                        (FilterDefinition<T>)(whereQuery.ToBsonDocument()));
             }
 
             await next(context).ConfigureAwait(false);

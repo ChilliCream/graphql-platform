@@ -2,8 +2,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types.Filters.Expressions;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
@@ -13,8 +13,8 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<IMongoQuery> context,
-            [NotNullWhen(true)] out IMongoQuery? result)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
+            [NotNullWhen(true)] out FilterDefinition<BsonDocument>? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -30,17 +30,17 @@ namespace HotChocolate.Types.Filters.Mongo
             if (operation.Kind == FilterOperationKind.ArrayAny &&
                 type.IsInstanceOfType(value) &&
                 parsedValue is bool parsedBool &&
-                context is MongoFilterVisitorContext monogContext)
+                context is MongoFilterVisitorContext ctx)
             {
                 if (parsedBool)
                 {
-                    result = Query.SizeGreaterThan(
-                        monogContext.GetMongoFilterScope().GetPath(), 0);
+                    result = ctx.Builder.SizeGt(
+                        ctx.GetMongoFilterScope().GetPath(), 0);
                 }
                 else
                 {
-                    result = Query.Size(
-                        monogContext.GetMongoFilterScope().GetPath(), 0);
+                    result = ctx.Builder.Size(
+                        ctx.GetMongoFilterScope().GetPath(), 0);
                 }
 
                 return true;

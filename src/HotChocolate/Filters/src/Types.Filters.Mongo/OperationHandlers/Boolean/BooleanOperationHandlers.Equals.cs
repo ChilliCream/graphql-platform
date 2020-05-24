@@ -2,8 +2,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types.Filters.Expressions;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
@@ -13,8 +13,8 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<IMongoQuery> context,
-            [NotNullWhen(true)]out IMongoQuery? result)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
+            [NotNullWhen(true)]out FilterDefinition<BsonDocument>? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -32,14 +32,14 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is bool valueOfT &&
                 context is MongoFilterVisitorContext ctx)
             {
-                IMongoQuery property = context.GetInstance();
+                FilterDefinition<BsonDocument> property = context.GetInstance();
 
                 if (!operation.IsSimpleArrayType())
                 {
                     //
                 }
 
-                result = Query.EQ(
+                result = ctx.Builder.Eq(
                     ctx.GetMongoFilterScope().GetPath(), valueOfT);
 
                 return true;
@@ -54,9 +54,9 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<IMongoQuery> context,
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
 
-            [NotNullWhen(true)]out IMongoQuery? result)
+            [NotNullWhen(true)]out FilterDefinition<BsonDocument>? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -74,14 +74,14 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is bool valueOfT &&
                 context is MongoFilterVisitorContext ctx)
             {
-                IMongoQuery property = context.GetInstance();
+                FilterDefinition<BsonDocument> property = context.GetInstance();
 
                 if (!operation.IsSimpleArrayType())
                 {
                     //
                 }
 
-                result = Query.NE(
+                result = ctx.Builder.Ne(
                     ctx.GetMongoFilterScope().GetPath(), valueOfT);
                 return true;
             }

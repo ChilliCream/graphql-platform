@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Filters.Expressions;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
@@ -14,8 +13,8 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<IMongoQuery> context,
-            [NotNullWhen(true)] out IMongoQuery? result)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
+            [NotNullWhen(true)] out FilterDefinition<BsonDocument>? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -33,8 +32,10 @@ namespace HotChocolate.Types.Filters.Mongo
                 context is MongoFilterVisitorContext ctx)
             {
                 parsedValue = ParseValue(parsedValue, operation, type, ctx);
-                result = Query.In(
-                    ctx.GetMongoFilterScope().GetPath(), BsonArray.Create(parsedValue));
+                result = ctx.Builder.In(
+                    ctx.GetMongoFilterScope().GetPath(),
+                    BsonArray.Create(parsedValue));
+
                 return true;
             }
             else
@@ -47,8 +48,8 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<IMongoQuery> context,
-            [NotNullWhen(true)] out IMongoQuery? result)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
+            [NotNullWhen(true)] out FilterDefinition<BsonDocument>? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -67,8 +68,11 @@ namespace HotChocolate.Types.Filters.Mongo
             {
                 parsedValue = ParseValue(parsedValue, operation, type, ctx);
 
-                result = Query.Not(Query.In(
-                    ctx.GetMongoFilterScope().GetPath(), BsonArray.Create(parsedValue)));
+                result = ctx.Builder.Not(
+                    ctx.Builder.In(
+                        ctx.GetMongoFilterScope().GetPath(),
+                        BsonArray.Create(parsedValue)));
+
                 return true;
             }
             else

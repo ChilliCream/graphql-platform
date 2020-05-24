@@ -2,8 +2,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types.Filters.Expressions;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
@@ -13,8 +13,8 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<IMongoQuery> context,
-            [NotNullWhen(true)]out IMongoQuery? result)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
+            [NotNullWhen(true)]out FilterDefinition<BsonDocument>? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)
             {
-                result = Query.EQ(
+                result = ctx.Builder.Eq(
                     ctx.GetMongoFilterScope().GetPath(), str);
 
                 return true;
@@ -47,8 +47,8 @@ namespace HotChocolate.Types.Filters.Mongo
             FilterOperation operation,
             IInputType type,
             IValueNode value,
-            IFilterVisitorContext<IMongoQuery> context,
-            [NotNullWhen(true)]out IMongoQuery? result)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
+            [NotNullWhen(true)]out FilterDefinition<BsonDocument>? result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -66,7 +66,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)
             {
-                result = Query.NE(
+                result = ctx.Builder.Ne(
                     ctx.GetMongoFilterScope().GetPath(), str);
 
                 return true;

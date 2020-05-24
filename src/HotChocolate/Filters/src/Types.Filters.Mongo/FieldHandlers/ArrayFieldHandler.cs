@@ -2,8 +2,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters.Mongo
         public static bool Enter(
             FilterOperationField field,
             ObjectFieldNode node,
-            IFilterVisitorContext<IMongoQuery> context,
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             if (context is MongoFilterVisitorContext ctx)
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Filters.Mongo
         public static void Leave(
             FilterOperationField field,
             ObjectFieldNode node,
-            IFilterVisitorContext<IMongoQuery> context)
+            IFilterVisitorContext<FilterDefinition<BsonDocument>> context)
         {
             if (context is MongoFilterVisitorContext ctx)
             {
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters.Mongo
                     || field.Operation.Kind == FilterOperationKind.ArrayNone
                     || field.Operation.Kind == FilterOperationKind.ArrayAll)
                 {
-                    FilterScope<IMongoQuery> nestedScope = ctx.PopScope();
+                    FilterScope<FilterDefinition<BsonDocument>> nestedScope = ctx.PopScope();
 
                     ctx.GetMongoFilterScope().Path.Pop();
 
@@ -69,18 +69,19 @@ namespace HotChocolate.Types.Filters.Mongo
                     {
                         var path = nestedClosure.GetPath();
 
-                        IMongoQuery mongoQuery =
-                            Query.And(nestedClosure.Level.Peek().ToArray());
+                        FilterDefinition<BsonDocument> mongoQuery =
+                            ctx.Builder.And(nestedClosure.Level.Peek().ToArray());
 
-                        IMongoQuery expression;
+                        FilterDefinition<BsonDocument> expression;
                         switch (field.Operation.Kind)
                         {
                             case FilterOperationKind.ArraySome:
-                                expression = Query.ElemMatch(path, mongoQuery);
+                                expression = ctx.Builder.ElemMatch(path, mongoQuery);
                                 break;
 
                             case FilterOperationKind.ArrayNone:
-                                expression = Query.Not(Query.ElemMatch(path, mongoQuery));
+                                expression = ctx.Builder.Not(
+                                    ctx.Builder.ElemMatch(path, mongoQuery));
                                 break;
 
                             case FilterOperationKind.ArrayAll:

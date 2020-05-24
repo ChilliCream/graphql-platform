@@ -1,18 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
     public static class MongoFilterScopeExtensions
     {
-        public static string GetPath(
-            this MongoFilterScope scope) =>
-                string.Join(".", scope.Path);
+        public static string GetPath(this MongoFilterScope scope) =>
+            string.Join(".", scope.Path);
 
         public static bool TryCreateQuery(
             this MongoFilterScope scope,
-            [NotNullWhen(true)]out IMongoQuery? query)
+            [NotNullWhen(true)]out FilterDefinition<BsonDocument>? query)
         {
             query = null;
 
@@ -21,7 +20,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 return false;
             }
 
-            query = Query.And(scope.Level.Peek().ToArray());
+            query = scope.Context.Builder.And(scope.Level.Peek().ToArray());
 
             return true;
         }

@@ -38,8 +38,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     Type closureType = GetTypeFor(field.Operation);
 
                     ctx.ClrTypes.Push(closureType);
-
-
+                     
                     if (node.Value.IsNull())
                     {
                         ctx.AddIsNullClosure();
