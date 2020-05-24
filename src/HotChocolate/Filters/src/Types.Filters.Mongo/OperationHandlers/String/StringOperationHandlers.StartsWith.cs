@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 result = ctx.Builder.Not(
                     ctx.Builder.Regex(
                         ctx.GetMongoFilterScope().GetPath(field),
-                        new BsonRegularExpression($"/^{Regex.Escape(str)}$/")));
+                        new BsonRegularExpression($"/^{Regex.Escape(str)}/")));
 
                 return true;
             }

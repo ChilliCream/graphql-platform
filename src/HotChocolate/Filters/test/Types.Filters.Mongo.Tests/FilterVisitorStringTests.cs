@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Filters
             collectionB.InsertOne(new Foo { Bar = "b" });
             Assert.False(collectionB.Find(query).Any());
         }
-        /*
+
         [Fact]
         public void Create_StringNotEqual_Expression()
         {
@@ -59,21 +59,26 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "a" };
-            Assert.False(func(a));
+            collectionA.InsertOne(new Foo { Bar = "a" });
+            Assert.False(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "b" };
-            Assert.True(func(b));
+            collectionB.InsertOne(new Foo { Bar = "b" });
+
+            Assert.True(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -90,21 +95,25 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "a" };
-            Assert.True(func(a));
+            collectionA.InsertOne(new Foo { Bar = "a" });
+            Assert.True(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "b" };
-            Assert.False(func(b));
+            collectionB.InsertOne(new Foo { Bar = "b" });
+            Assert.False(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -117,21 +126,25 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "a" };
-            Assert.True(func(a));
+            collectionA.InsertOne(new Foo { Bar = "a" });
+            Assert.True(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "b" };
-            Assert.False(func(b));
+            collectionB.InsertOne(new Foo { Bar = "b" });
+            Assert.False(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -148,21 +161,26 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "a" };
-            Assert.False(func(a));
+            collectionA.InsertOne(new Foo { Bar = "a" });
+            Assert.False(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "b" };
-            Assert.True(func(b));
+            collectionB.InsertOne(new Foo { Bar = "b" });
+
+            Assert.True(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -175,21 +193,25 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "testatest" };
-            Assert.True(func(a));
+            collectionA.InsertOne(new Foo { Bar = "testatest" });
+            Assert.True(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "testbtest" };
-            Assert.False(func(b));
+            collectionB.InsertOne(new Foo { Bar = "testbtest" });
+            Assert.False(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -202,21 +224,26 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "testatest" };
-            Assert.False(func(a));
+            collectionA.InsertOne(new Foo { Bar = "testatest" });
+            Assert.False(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "testbtest" };
-            Assert.True(func(b));
+            collectionB.InsertOne(new Foo { Bar = "testbtest" });
+
+            Assert.True(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -229,21 +256,25 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "ab" };
-            Assert.True(func(a));
+            collectionA.InsertOne(new Foo { Bar = "ab" });
+            Assert.True(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "ba" };
-            Assert.False(func(b));
+            collectionB.InsertOne(new Foo { Bar = "ba" });
+            Assert.False(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -256,21 +287,26 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "ab" };
-            Assert.False(func(a));
+            collectionA.InsertOne(new Foo { Bar = "ab" });
+            Assert.False(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "ba" };
-            Assert.True(func(b));
+            collectionB.InsertOne(new Foo { Bar = "ba" });
+
+            Assert.True(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -283,21 +319,26 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "ab" };
-            Assert.False(func(a));
+            collectionA.InsertOne(new Foo { Bar = "ab" });
+            Assert.False(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "ba" };
-            Assert.True(func(b));
+            collectionB.InsertOne(new Foo { Bar = "ba" });
+
+            Assert.True(collectionB.Find(query).Any());
         }
 
         [Fact]
@@ -310,26 +351,31 @@ namespace HotChocolate.Types.Filters
 
             FooFilterType fooType = CreateType(new FooFilterType());
 
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
+            IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
+
             // act
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
-            Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
 
             // assert
-            var a = new Foo { Bar = "ab" };
-            Assert.True(func(a));
+            collectionA.InsertOne(new Foo { Bar = "ab" });
+            Assert.True(collectionA.Find(query).Any());
 
-            var b = new Foo { Bar = "ba" };
-            Assert.False(func(b));
+            collectionB.InsertOne(new Foo { Bar = "ba" });
+            Assert.False(collectionB.Find(query).Any());
         }
-        */
 
         public class Foo
         {
+            public ObjectId Id { get; set; }
+
             public string Bar { get; set; }
         }
 
