@@ -1,4 +1,6 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HotChocolate.Types.Filters.Mongo.Extensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -8,14 +10,14 @@ namespace HotChocolate.Types.Filters.Mongo
     public static class MongoFilterScopeExtensions
     {
         public static string GetPath(this MongoFilterScope scope) =>
-            string.Join(".", scope.Path);
+            string.Join(".", scope.Path.Reverse());
 
         public static string GetPath(
             this MongoFilterScope scope,
             FilterOperationField field)
         {
             scope.Path.Push(field.GetName());
-            var result = string.Join(".", scope.Path);
+            var result = scope.GetPath();
             scope.Path.Pop();
             return result;
         }

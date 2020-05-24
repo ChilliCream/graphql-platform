@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Types.Filters.Mongo.Extensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -26,15 +27,12 @@ namespace HotChocolate.Types.Filters.Mongo
                     if (operation.IsNullable == true)
                     {
                         context.GetLevel().Enqueue(
-                            ctx.Builder.Eq(
-                                ctx.GetMongoFilterScope().GetPath(), BsonNull.Value));
+                            ctx.Builder.Eq(ctx.GetMongoFilterScope().GetPath(), BsonNull.Value));
                     }
                     else
                     {
-                        /*
                         context.ReportError(
                             ErrorHelper.CreateNonNullError(field, node, context));
-                            */
                     }
 
                     action = SyntaxVisitor.Skip;
@@ -60,11 +58,6 @@ namespace HotChocolate.Types.Filters.Mongo
             {
                 if (field.Operation.Kind == FilterOperationKind.Object)
                 {
-                    context.GetLevel().Enqueue(
-                        ctx.Builder.Eq(
-                            ctx.GetMongoFilterScope().GetPath(),
-                            ctx.Builder.And(ctx.GetLevel().ToArray()).ToBson()));
-                    context.PopInstance();
                 }
             }
             else
