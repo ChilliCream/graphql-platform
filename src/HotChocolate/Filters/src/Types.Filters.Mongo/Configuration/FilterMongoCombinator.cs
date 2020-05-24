@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
     public static class FilterMongoCombinator
     {
-        public static IMongoQuery CombineWithAnd(Queue<IMongoQuery> operations)
+        public static FilterDefinition<BsonDocument> CombineWithAnd(
+            Queue<FilterDefinition<BsonDocument>> operations)
         {
             if (operations.Count < 0)
             {
@@ -17,7 +18,8 @@ namespace HotChocolate.Types.Filters.Mongo
             return Query.And(operations.ToArray());
         }
 
-        public static IMongoQuery CombineWithOr(Queue<IMongoQuery> operations)
+        public static FilterDefinition<BsonDocument> CombineWithOr(
+            Queue<FilterDefinition<BsonDocument>> operations)
         {
             if (operations.Count < 0)
             {

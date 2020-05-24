@@ -1,13 +1,13 @@
 using System;
-using MongoDB.Bson;
-using Xunit;
-using Squadron;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Snapshooter.Xunit;
+using Squadron;
+using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
@@ -43,6 +43,9 @@ namespace HotChocolate.Types.Filters
                 Bazs = new[] { new Baz { Quux = "c" }, new Baz { Quux = "d" } },
                 Quux = "abc"
             });
+            QueryBuilder
+            FilterDefinition<BsonDocument> filterDefinition = null;
+            collection.Find(filterDefinition);
 
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<QueryType>()

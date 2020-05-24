@@ -7,11 +7,13 @@ namespace HotChocolate.Types.Filters.Expressions
     public static class FilterExpressionCombinator
     {
         public static Expression CombineWithAnd(
-               Queue<Expression> operations) =>
+            Queue<Expression> operations,
+            IFilterVisitorContext<Expression> _) =>
             CombineWithCombinator(operations, Expression.AndAlso);
 
         public static Expression CombineWithOr(
-               Queue<Expression> operations) =>
+            Queue<Expression> operations,
+            IFilterVisitorContext<Expression> _) =>
             CombineWithCombinator(operations, Expression.OrElse);
 
         public static Expression CombineWithCombinator(

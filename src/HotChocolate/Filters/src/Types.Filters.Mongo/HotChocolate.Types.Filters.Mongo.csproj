@@ -15,4 +15,10 @@
     <ProjectReference Include="..\Types.Filters\HotChocolate.Types.Filters.csproj" />
   </ItemGroup>
 
+  <ItemGroup> 
+    <PackageReference Include="MongoDB.Driver" Version="2.10.4" />
+    <PackageReference Include="MongoDB.Driver.Core" Version="2.10.4" />
+    <PackageReference Include="MongoDB.Bson" Version="2.10.4" />
+  </ItemGroup>
+
 </Project>

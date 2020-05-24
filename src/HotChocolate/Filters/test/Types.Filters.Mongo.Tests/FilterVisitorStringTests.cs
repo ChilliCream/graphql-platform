@@ -25,9 +25,8 @@ namespace HotChocolate.Types.Filters
             var filterContext = new MongoFilterVisitorContext(
                 fooType,
                 MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
-            FilterVisitor<Expression>.Default.Visit(value, filterContext);
+                TypeConversion.Default);
+            FilterVisitor<IMongoQuery>.Default.Visit(value, filterContext);
             Func<Foo, bool> func = filterContext.CreateOrAssert<Foo>().Compile();
 
             // assert
