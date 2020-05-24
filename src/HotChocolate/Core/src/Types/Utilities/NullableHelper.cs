@@ -49,7 +49,7 @@ namespace HotChocolate.Utilities
         {
             IExtendedType returnType = CreateExtendedType(
                 GetContext(method),
-                GetFlags(method), 
+                GetFlags(method),
                 method.ReturnType);
 
             ParameterInfo[] parameters = method.GetParameters();
