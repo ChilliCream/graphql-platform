@@ -27,7 +27,9 @@ namespace HotChocolate.Types.Filters.Conventions
         ObjectFieldNode node,
         IFilterVisitorContext<T> context);
 
-    public delegate T FilterOperationCombinator<T>(Queue<T> operations);
+    public delegate T FilterOperationCombinator<T>(
+        Queue<T> operations,
+        IFilterVisitorContext<T> context);
 
     public class FilterVisitorDefinition<T> :
         FilterVisitorDefinitionBase
