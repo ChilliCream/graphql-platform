@@ -9,12 +9,12 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorContextComparableTests
+    public class FilterVisitorContextComparableTests
         : TypeTestBase, IClassFixture<MongoResource>
     {
         private readonly MongoResource _mongoResource;
 
-        public QueryableFilterVisitorContextComparableTests(
+        public FilterVisitorContextComparableTests(
             MongoResource mongoResource)
         {
             _mongoResource = mongoResource;
