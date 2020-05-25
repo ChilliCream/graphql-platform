@@ -108,10 +108,10 @@ namespace HotChocolate.Types.Filters
             collectionA.InsertOne(new FooNullable { Bar = true });
             Assert.True(collectionA.Find(query).Any());
 
-            collectionA.InsertOne(new FooNullable { Bar = false });
+            collectionB.InsertOne(new FooNullable { Bar = false });
             Assert.False(collectionB.Find(query).Any());
 
-            collectionA.InsertOne(new FooNullable { Bar = null });
+            collectionC.InsertOne(new FooNullable { Bar = null });
             Assert.False(collectionC.Find(query).Any());
         }
 
@@ -143,10 +143,10 @@ namespace HotChocolate.Types.Filters
             collectionA.InsertOne(new FooNullable { Bar = false });
             Assert.True(collectionA.Find(query).Any());
 
-            collectionA.InsertOne(new FooNullable { Bar = true });
+            collectionB.InsertOne(new FooNullable { Bar = true });
             Assert.False(collectionB.Find(query).Any());
 
-            collectionA.InsertOne(new FooNullable { Bar = null });
+            collectionC.InsertOne(new FooNullable { Bar = null });
             Assert.False(collectionC.Find(query).Any());
         }
 
