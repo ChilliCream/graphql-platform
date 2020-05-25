@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "algoliasearch": "^4.2.0",
-    "gatsby": "^2.21.19",
+    "gatsby": "^2.22.9",
     "gatsby-image": "^2.4.0",
     "gatsby-plugin-disqus": "^1.1.4",
     "gatsby-plugin-google-analytics": "^2.3.1",
