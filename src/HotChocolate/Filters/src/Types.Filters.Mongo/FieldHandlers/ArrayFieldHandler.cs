@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Filters.Mongo
 
                     if (nestedScope is MongoFilterScope nestedClosure)
                     {
-                        var path = nestedClosure.GetPath();
+                        var path = nestedClosure.GetPath(field);
 
                         FilterDefinition<BsonDocument> mongoQuery =
                             ctx.Builder.And(nestedClosure.Level.Peek().ToArray());
@@ -88,7 +88,6 @@ namespace HotChocolate.Types.Filters.Mongo
 
                         ctx.GetLevel().Enqueue(expression);
                     }
-                    ctx.PopInstance();
                 }
             }
         }
