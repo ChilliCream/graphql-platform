@@ -29,15 +29,19 @@ namespace HotChocolate.Types.Filters.Mongo
                 return false;
             }
 
-            if (operation.Type == typeof(string) &&
-                type.IsInstanceOfType(value) &&
+            if (type.IsInstanceOfType(value) &&
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)
             {
-                result = ctx.Builder.Regex(
-                    ctx.GetMongoFilterScope().GetPath(field),
-                    new BsonRegularExpression($"/^{Regex.Escape(str)}/"));
+                var doc = new BsonDocument {
+                    { "$regex", new BsonRegularExpression($"/^{Regex.Escape(str)}/") }
+                };
 
+                if (!operation.IsSimpleArrayType())
+                {
+                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                }
+                result = doc;
                 return true;
             }
             else
@@ -65,15 +69,19 @@ namespace HotChocolate.Types.Filters.Mongo
                 return false;
             }
 
-            if (operation.Type == typeof(string) &&
-                type.IsInstanceOfType(value) &&
+            if (type.IsInstanceOfType(value) &&
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)
             {
-                result = ctx.Builder.Not(
-                    ctx.Builder.Regex(
-                        ctx.GetMongoFilterScope().GetPath(field),
-                        new BsonRegularExpression($"/^{Regex.Escape(str)}/")));
+                var doc = new BsonDocument {
+                    { "$not", new BsonDocument {
+                        { "$regex", new BsonRegularExpression($"/^{Regex.Escape(str)}/") }} } };
+
+                if (!operation.IsSimpleArrayType())
+                {
+                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                }
+                result = doc;
 
                 return true;
             }

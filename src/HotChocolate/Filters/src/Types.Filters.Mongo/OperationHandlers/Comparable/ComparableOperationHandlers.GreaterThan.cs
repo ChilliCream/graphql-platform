@@ -7,6 +7,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
+
     public static partial class ComparableOperationHandlers
     {
         public static bool GreaterThan(
@@ -32,11 +33,13 @@ namespace HotChocolate.Types.Filters.Mongo
                 type.IsInstanceOfType(value) &&
                 context is MongoFilterVisitorContext ctx)
             {
+                var doc = new BsonDocument { { "$gt", BsonValue.Create(parsedValue) } };
 
-                result = ctx.Builder.Gt(
-                    ctx.GetMongoFilterScope().GetPath(field),
-                    BsonValue.Create(parsedValue));
-
+                if (!operation.IsSimpleArrayType())
+                {
+                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                }
+                result = doc;
                 return true;
             }
             else
@@ -68,12 +71,15 @@ namespace HotChocolate.Types.Filters.Mongo
                 type.IsInstanceOfType(value) &&
                 context is MongoFilterVisitorContext ctx)
             {
+                var doc = new BsonDocument {
+                    { "$not", new BsonDocument {
+                        { "$gt", BsonValue.Create(parsedValue) } } } };
 
-                result = ctx.Builder.Not(
-                    ctx.Builder.Gt(
-                        ctx.GetMongoFilterScope().GetPath(field),
-                        BsonValue.Create(parsedValue)));
-
+                if (!operation.IsSimpleArrayType())
+                {
+                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                }
+                result = doc;
                 return true;
             }
             else
