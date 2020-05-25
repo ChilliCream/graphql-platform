@@ -91,7 +91,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
 export const ArticleSectionsGraphQLFragment = graphql`
   fragment ArticleSections on MarkdownRemark {
-    tableOfContents(maxDepth: 1)
+    tableOfContents(maxDepth: 2)
   }
 `;
 
@@ -109,29 +109,42 @@ const Title = styled.h6`
 `;
 
 const Content = styled.div`
-  > ul {
+  ul {
     display: flex;
     flex-direction: column;
     margin: 0;
     padding: 0 25px 10px;
     list-style-type: none;
 
-    > li {
+    li {
       flex: 0 0 auto;
       margin: 5px 0;
       padding: 0;
       line-height: initial;
 
-      &.active > a {
+      &.active > a,
+      & p.active > a {
         font-weight: bold;
       }
 
-      > a {
+      a {
         font-size: 0.833em;
         color: #666;
 
         :hover {
           color: #000;
+        }
+      }
+
+      p {
+        margin: 0;
+      }
+
+      > ul {
+        padding: 0 10px 0px;
+
+        > li {
+          margin: 2px 0;
         }
       }
     }
