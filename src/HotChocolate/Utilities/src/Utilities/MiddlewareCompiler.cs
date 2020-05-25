@@ -9,8 +9,8 @@ using HotChocolate.Utilities.Properties;
 
 namespace HotChocolate.Utilities
 {
-    internal delegate TMiddleware MiddlewareFactory<out TMiddleware, in TNext>(
-        IServiceProvider services,
+    internal delegate TMiddleware MiddlewareFactory<out TMiddleware, in TContext, in TNext>(
+        TContext context,
         TNext next);
 
     internal delegate ValueTask ClassQueryDelegate<in TMiddleware, in TContext>(
@@ -18,7 +18,7 @@ namespace HotChocolate.Utilities
         TMiddleware middleware);
 
     internal delegate IEnumerable<IParameterHandler> CreateFactoryHandlers(
-        ParameterExpression services,
+        ParameterExpression context,
         ParameterExpression next);
 
     internal delegate IEnumerable<IParameterHandler> CreateDelegateHandlers(
@@ -33,25 +33,25 @@ namespace HotChocolate.Utilities
         private static readonly MethodInfo _awaitHelper =
             typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
 
-        internal static MiddlewareFactory<TMiddleware, TNext> CompileFactory<TNext>(
+        internal static MiddlewareFactory<TMiddleware, TContext, TNext> CompileFactory<TContext, TNext>(
             CreateFactoryHandlers? createParameters = null)
         {
             Type type = typeof(TMiddleware);
-            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression context = Expression.Parameter(typeof(TContext));
             ParameterExpression next = Expression.Parameter(typeof(TNext));
 
             var handlers = new List<IParameterHandler>();
             handlers.Add(new TypeParameterHandler(typeof(TNext), next));
             if (createParameters is { })
             {
-                handlers.AddRange(createParameters(services, next));
+                handlers.AddRange(createParameters(context, next));
             }
-            handlers.Add(new ServiceParameterHandler(services));
 
             NewExpression createInstance = CreateMiddleware(type, handlers);
 
             return Expression
-                .Lambda<MiddlewareFactory<TMiddleware, TNext>>(createInstance, services, next)
+                .Lambda<MiddlewareFactory<TMiddleware, TContext, TNext>>(
+                    createInstance, context, next)
                 .Compile();
         }
 
@@ -119,7 +119,7 @@ namespace HotChocolate.Utilities
 
         private static ConstructorInfo CreateConstructor(Type middleware)
         {
-            ConstructorInfo? constructor = 
+            ConstructorInfo? constructor =
                 middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
 
             if (constructor is null)

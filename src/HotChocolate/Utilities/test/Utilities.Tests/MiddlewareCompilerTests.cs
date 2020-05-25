@@ -13,13 +13,15 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            MiddlewareFactory<CustomClassMiddleware, CustomDelegate> factory =  
-                MiddlewareCompiler<CustomClassMiddleware>.CompileFactory<CustomDelegate>(
-                    (services, next) =>
-                    new List<IParameterHandler>
-                    {
-                        new TypeParameterHandler(typeof(string), Expression.Constant("abc"))
-                    });
+            MiddlewareFactory<CustomClassMiddleware, IServiceProvider, CustomDelegate> factory =
+                MiddlewareCompiler<CustomClassMiddleware>
+                    .CompileFactory<IServiceProvider, CustomDelegate>(
+                        (services, next) =>
+                        new List<IParameterHandler>
+                        {
+                            new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
+                            new ServiceParameterHandler(services)
+                        });
             
             // assert
             CustomClassMiddleware middleware = 
@@ -31,13 +33,15 @@ namespace HotChocolate.Utilities
         public void CompileDelegate()
         {
             // arrange
-            MiddlewareFactory<CustomClassMiddleware, CustomDelegate> factory =  
-                MiddlewareCompiler<CustomClassMiddleware>.CompileFactory<CustomDelegate>(
-                    (services, next) =>
-                    new List<IParameterHandler>
-                    {
-                        new TypeParameterHandler(typeof(string), Expression.Constant("abc"))
-                    });
+            MiddlewareFactory<CustomClassMiddleware, IServiceProvider, CustomDelegate> factory =
+                MiddlewareCompiler<CustomClassMiddleware>
+                    .CompileFactory<IServiceProvider, CustomDelegate>(
+                        (services, next) =>
+                        new List<IParameterHandler>
+                        {
+                            new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
+                            new ServiceParameterHandler(services)
+                        });
 
             CustomClassMiddleware middleware = 
                 factory.Invoke(new EmptyServiceProvider(), c => default);

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal sealed class NoOpDiagnosticEvents
+    internal sealed class NoopDiagnosticEvents
         : IDiagnosticEvents
         , IActivityScope
     {

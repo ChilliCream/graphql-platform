@@ -25,6 +25,7 @@ namespace HotChocolate.Execution
             services.AddGraphQL("foo")
                 .AddQueryType<Query>()
                 .UseDefaultPipeline()
+                .UseDocumentParser()
                 .ConfigureSchemaAsync((b, ct) =>
                 {
                     return default;

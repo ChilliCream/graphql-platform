@@ -1,9 +1,7 @@
 using System;
-using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using System.Threading.Tasks;
 using System.Threading;

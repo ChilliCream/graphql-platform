@@ -124,7 +124,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 options => options.Pipeline.AddDefaultPipeline());
         }
 
-        internal static void AddDefaultPipeline(this IList<RequestServicesMiddleware> pipeline)
+        internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
         {
             pipeline.Add(RequestClassMiddlewareFactory.Create<ExceptionMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentCacheMiddleware>());

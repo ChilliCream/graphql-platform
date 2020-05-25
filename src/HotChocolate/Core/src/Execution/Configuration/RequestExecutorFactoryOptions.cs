@@ -16,8 +16,8 @@ namespace HotChocolate.Execution.Configuration
         public IList<RequestExecutorOptionsAction> RequestExecutorOptionsActions { get; } =
             new List<RequestExecutorOptionsAction>();
 
-        public IList<RequestServicesMiddleware> Pipeline { get; } =
-            new List<RequestServicesMiddleware>();
+        public IList<RequestCoreMiddleware> Pipeline { get; } =
+            new List<RequestCoreMiddleware>();
 
         public IList<CreateErrorFilter> ErrorFilters { get; } =
             new List<CreateErrorFilter>();

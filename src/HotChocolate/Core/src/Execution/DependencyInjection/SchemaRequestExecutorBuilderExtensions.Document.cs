@@ -1,10 +1,10 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
