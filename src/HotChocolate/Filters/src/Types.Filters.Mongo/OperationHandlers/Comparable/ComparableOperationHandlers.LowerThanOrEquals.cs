@@ -32,8 +32,6 @@ namespace HotChocolate.Types.Filters.Mongo
                 type.IsInstanceOfType(value) &&
                 context is MongoFilterVisitorContext ctx)
             {
-                parsedValue = ParseValue(parsedValue, operation, type, ctx);
-
                 result = ctx.Builder.Lte(
                     ctx.GetMongoFilterScope().GetPath(field),
                     BsonValue.Create(parsedValue));
@@ -69,8 +67,6 @@ namespace HotChocolate.Types.Filters.Mongo
                 type.IsInstanceOfType(value) &&
                 context is MongoFilterVisitorContext ctx)
             {
-                parsedValue = ParseValue(parsedValue, operation, type, ctx);
-
                 result = ctx.Builder.Not(
                     ctx.Builder.Lte(
                         ctx.GetMongoFilterScope().GetPath(field),
