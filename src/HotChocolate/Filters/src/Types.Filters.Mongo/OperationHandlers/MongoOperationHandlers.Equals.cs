@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Filters.Mongo
                 {
                     doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
                 }
-                result = doc; 
+                result = doc;
                 return true;
             }
             else

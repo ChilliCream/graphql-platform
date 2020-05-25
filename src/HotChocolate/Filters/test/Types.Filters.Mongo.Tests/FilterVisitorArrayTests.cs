@@ -61,9 +61,7 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_any",
-                            new BooleanValueNode(true)
-                        )
-            );
+                            new BooleanValueNode(true)));
 
             FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
             IMongoDatabase database = _mongoResource.CreateDatabase();
@@ -99,11 +97,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("bar_some",
                     new ObjectValueNode(
                         new ObjectFieldNode("element",
-                            new StringValueNode("a")
-                        )
-                    )
-                )
-            );
+                            new StringValueNode("a")))));
 
             FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
             IMongoDatabase database = _mongoResource.CreateDatabase();
@@ -404,7 +398,6 @@ namespace HotChocolate.Types.Filters
             IMongoCollection<Foo> collectionA = database.GetCollection<Foo>("a");
             IMongoCollection<Foo> collectionB = database.GetCollection<Foo>("b");
             IMongoCollection<Foo> collectionC = database.GetCollection<Foo>("c");
-            IMongoCollection<Foo> collectionD = database.GetCollection<Foo>("d");
 
             // act
             var filterContext = new MongoFilterVisitorContext(
@@ -432,8 +425,6 @@ namespace HotChocolate.Types.Filters
             Assert.False(collectionB.Find(query).Any());
             collectionC.InsertOne(new Foo { FooNested = null });
             Assert.False(collectionC.Find(query).Any());
-            collectionD.InsertOne(new Foo { FooNested = new FooNested[] { null } });
-            Assert.True(collectionD.Find(query).Any());
         }
 
         [Fact]
@@ -573,6 +564,44 @@ namespace HotChocolate.Types.Filters
             collectionB.InsertOne(new FooSimple { Bar = new[] { "c", "d", "b" } });
             Assert.False(collectionB.Find(query).Any());
 
+        }
+
+
+        [Fact]
+        public void Create_ArrayAllStringEqual_Single()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_all",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("element",
+                            new StringValueNode("a")))));
+
+            FooSimpleFilterType fooType = CreateType(new FooSimpleFilterType());
+            IMongoDatabase database = _mongoResource.CreateDatabase();
+            IMongoCollection<FooSimple> collectionA = database.GetCollection<FooSimple>("a");
+            IMongoCollection<FooSimple> collectionB = database.GetCollection<FooSimple>("b");
+            IMongoCollection<FooSimple> collectionC = database.GetCollection<FooSimple>("c");
+
+
+            // act
+            var filterContext = new MongoFilterVisitorContext(
+                fooType,
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                TypeConversion.Default);
+
+            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(value, filterContext);
+            filterContext.TryCreateQuery(out BsonDocument query);
+
+            // assert
+            collectionA.InsertOne(new FooSimple { Bar = new string[] { null, null, null } });
+            Assert.False(collectionA.Find(query).Any());
+
+            collectionB.InsertOne(new FooSimple { Bar = new[] { "c", "d", "b" } });
+            Assert.False(collectionB.Find(query).Any());
+
+            collectionC.InsertOne(new FooSimple { Bar = new[] { "a", "a", "a" } });
+            Assert.True(collectionC.Find(query).Any());
         }
 
         public class Foo

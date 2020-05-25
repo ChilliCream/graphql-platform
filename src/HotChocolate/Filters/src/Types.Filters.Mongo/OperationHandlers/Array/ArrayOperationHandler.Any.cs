@@ -33,16 +33,23 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is bool parsedBool &&
                 context is MongoFilterVisitorContext ctx)
             {
-                BsonValue doc = 0;
+
+
                 if (parsedBool)
                 {
-                    doc = new BsonDocument { { "$gt", 0 } };
+                    result = new BsonDocument {
+                        { ctx.GetMongoFilterScope().GetPath(field), new BsonDocument {
+                            {"$exists", true },
+                            { "$nin", new BsonArray(){ new BsonArray() , BsonNull.Value } } }  }};
                 }
-
-                result = new BsonDocument {
-                    { ctx.GetMongoFilterScope().GetPath(field), new BsonDocument {
-                        {"size", doc } } } };
-
+                else
+                {
+                    result = new BsonDocument {
+                        { ctx.GetMongoFilterScope().GetPath(field), new BsonDocument {
+                            {"$exists", true},
+                            {"$ne", BsonNull.Value},
+                            { "$eq", new BsonArray() } }  }};
+                }
                 return true;
             }
             else

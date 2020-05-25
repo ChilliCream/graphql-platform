@@ -7,7 +7,6 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Types.Filters.Mongo
 {
-
     public static partial class ComparableOperationHandlers
     {
         public static bool GreaterThan(
