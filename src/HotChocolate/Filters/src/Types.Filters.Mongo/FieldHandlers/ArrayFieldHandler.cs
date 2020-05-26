@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Filters.Expressions;
@@ -38,7 +37,7 @@ namespace HotChocolate.Types.Filters.Mongo
 
                     if (node.Value.IsNull())
                     {
-                        context.GetLevel().Enqueue(new BsonDocument { { "$eq", BsonNull.Value } });
+                        context.GetLevel().Enqueue(new BsonDocument("$eq", BsonNull.Value));
                         action = SyntaxVisitor.SkipAndLeave;
                     }
                     else
@@ -67,62 +66,65 @@ namespace HotChocolate.Types.Filters.Mongo
                 {
                     FilterScope<FilterDefinition<BsonDocument>> nestedScope = ctx.PopScope();
 
-                    if (nestedScope is MongoFilterScope nestedMongoScope)
+                    if (nestedScope is MongoFilterScope scope)
                     {
-                        var path = nestedMongoScope.GetPath(field);
+                        var path = scope.GetPath(field);
 
                         FilterDefinition<BsonDocument> expression;
                         switch (field.Operation.Kind)
                         {
                             case FilterOperationKind.ArraySome:
-                                expression = ctx.Builder.ElemMatch(
-                                    path,
-                                    GetFilters(ctx, nestedMongoScope));
+                                expression = ctx.Builder.ElemMatch(path, GetFilters(ctx, scope));
                                 break;
-
                             case FilterOperationKind.ArrayNone:
-                                expression = new BsonDocument {
-                                    {path, new BsonDocument {
-                                        { "$not", new BsonDocument {
-                                            { "$elemMatch",
-                                                GetFilters(ctx, nestedMongoScope).DefaultRender()}
-                                        } } } } };
+                                expression = new BsonDocument(path,
+                                    new BsonDocument("$not",
+                                        new BsonDocument("$elemMatch",
+                                            GetFilters(ctx, scope).DefaultRender())));
                                 break;
-
                             case FilterOperationKind.ArrayAll:
-                                if (field.Operation.IsSimpleArrayType())
-                                {
-                                    var negatedChilds = BsonArray.Create(
-                                        nestedMongoScope.Level.Peek().Select(
-                                            x => new BsonDocument {
-                                                {path, new BsonDocument { {
-                                                        "$not", x.DefaultRender() } } } }));
-
-                                    var match = new BsonDocument("$nor", negatedChilds);
-                                    expression = match;
-                                }
-                                else
-                                {
-                                    var negatedChilds = BsonArray.Create(
-                                        nestedMongoScope.Level.Peek().Select(
-                                            x => x.DefaultRender()));
-
-                                    var match = new BsonDocument("$nor", negatedChilds);
-                                    expression = new BsonDocument {
-                                    {path, new BsonDocument {
-                                        {"$not",  new BsonDocument {
-                                            { "$elemMatch", match}} } } } };
-                                }
+                                expression = field.Operation.IsSimpleArrayType()
+                                    ? CreateArrayAllScalar(scope, path)
+                                    : CreateArrayAll(scope, path);
                                 break;
-
                             default:
                                 throw new NotSupportedException();
                         }
-
                         ctx.GetLevel().Enqueue(expression);
                     }
                 }
             }
+        }
+
+        private static BsonDocument CreateArrayAll(
+            MongoFilterScope scope,
+            string path)
+        {
+            var negatedChilds = new BsonArray();
+            while (scope.Level.Peek().Count > 0)
+            {
+                negatedChilds.Add(scope.Level.Peek().Dequeue().DefaultRender());
+            }
+
+            return new BsonDocument(path,
+                new BsonDocument("$not",
+                    new BsonDocument("$elemMatch",
+                        new BsonDocument("$nor", negatedChilds))));
+        }
+
+        private static BsonDocument CreateArrayAllScalar(
+             MongoFilterScope scope,
+             string path)
+        {
+            var negatedChilds = new BsonArray();
+            while (scope.Level.Peek().Count > 0)
+            {
+                negatedChilds.Add(
+                    new BsonDocument(path,
+                        new BsonDocument("$not", scope.Level.Peek().Dequeue().DefaultRender())));
+            }
+
+            return new BsonDocument("$nor", negatedChilds);
         }
 
         private static FilterDefinition<BsonDocument> GetFilters(
