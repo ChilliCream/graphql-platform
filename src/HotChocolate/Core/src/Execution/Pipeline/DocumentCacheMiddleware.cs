@@ -11,11 +11,13 @@ namespace HotChocolate.Execution.Pipeline
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly IDocumentCache _documentCache;
+        private readonly IDocumentHashProvider _documentHashProvider;
 
         public DocumentCacheMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
-            IDocumentCache documentCache)
+            IDocumentCache documentCache,
+            IDocumentHashProvider documentHashProvider)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -23,6 +25,8 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(diagnosticEvents));
             _documentCache = documentCache ??
                 throw new ArgumentNullException(nameof(documentCache));
+            _documentHashProvider = documentHashProvider ??
+                throw new ArgumentNullException(nameof(documentHashProvider));
         }
 
         public async ValueTask InvokeAsync(IRequestContext context)
