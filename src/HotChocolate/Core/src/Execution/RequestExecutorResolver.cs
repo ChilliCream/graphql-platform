@@ -35,22 +35,25 @@ namespace HotChocolate.Execution
             string? name = null,
             CancellationToken cancellationToken = default)
         {
-            RequestExecutorFactoryOptions options = _optionsMonitor.Get(
-                name ?? Microsoft.Extensions.Options.Options.DefaultName);
+            name = name ?? Microsoft.Extensions.Options.Options.DefaultName;
+            RequestExecutorFactoryOptions options = _optionsMonitor.Get(name);
 
             ISchema schema = await CreateSchemaAsync(options, cancellationToken);
 
             RequestExecutorOptions executorOptions =
                 await CreateExecutorOptionsAsync(options, cancellationToken);
-            RequestDelegate pipeline = CreatePipeline(options, executorOptions);
             IEnumerable<IErrorFilter> errorFilters = CreateErrorFilters(options, executorOptions);
+            IErrorHandler errorHandler = new ErrorHandler(errorFilters, executorOptions);
+            IActivator activator = new DefaultActivator(_serviceProvider);
+            RequestDelegate pipeline = 
+                CreatePipeline(name, options.Pipeline, activator, errorHandler, executorOptions);
 
             return new RequestExecutor(
                 schema,
                 _serviceProvider,
-                new ErrorHandler(errorFilters, executorOptions),
+                errorHandler,
                 _serviceProvider.GetRequiredService<ITypeConversion>(),
-                new DefaultActivator(_serviceProvider),
+                activator,
                 pipeline);
         }
 
@@ -110,22 +113,28 @@ namespace HotChocolate.Execution
         }
 
         private RequestDelegate CreatePipeline(
-            RequestExecutorFactoryOptions options,
+            string name,
+            IList<RequestCoreMiddleware> pipeline,
+            IActivator activator,
+            IErrorHandler errorHandler,
             RequestExecutorOptions executorOptions)
         {
-            if (options.Pipeline.Count == 0)
+            if (pipeline.Count == 0)
             {
-                options.Pipeline.AddDefaultPipeline();
+                pipeline.AddDefaultPipeline();
             }
 
+            var factoryContext = new RequestCoreMiddlewareContext(
+                name, _serviceProvider, activator, errorHandler, executorOptions);
+                
             RequestDelegate next = context =>
             {
                 return default;
             };
 
-            for (int i = options.Pipeline.Count - 1; i >= 0; i--)
+            for (int i = pipeline.Count - 1; i >= 0; i--)
             {
-                next = options.Pipeline[i](_serviceProvider, executorOptions, next);
+                next = pipeline[i](factoryContext, next);
             }
 
             return next;
@@ -145,6 +154,5 @@ namespace HotChocolate.Execution
                 yield return errorFilter;
             }
         }
-
     }
 }

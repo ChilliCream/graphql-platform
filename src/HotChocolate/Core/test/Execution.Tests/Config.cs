@@ -34,6 +34,8 @@ namespace HotChocolate.Execution
             IRequestExecutorResolver resolver = services.BuildServiceProvider().GetRequiredService<IRequestExecutorResolver>();
             IRequestExecutor executor = await resolver.GetRequestExecutorAsync("foo");
             IExecutionResult result = await executor.ExecuteAsync(QueryRequestBuilder.New().SetQuery("{ __typename }").Create());
+
+            result.ToJson().MatchSnapshot();
         }
 
 

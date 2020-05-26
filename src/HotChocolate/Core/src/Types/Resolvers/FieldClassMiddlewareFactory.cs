@@ -25,8 +25,11 @@ namespace HotChocolate.Resolvers
         {
             return next =>
             {
-                MiddlewareFactory<TMiddleware, FieldDelegate> factory =
-                    MiddlewareCompiler<TMiddleware>.CompileFactory<FieldDelegate>();
+                MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
+                    MiddlewareCompiler<TMiddleware>
+                        .CompileFactory<IServiceProvider, FieldDelegate>(
+                            (services, next) =>
+                            new IParameterHandler[] { new ServiceParameterHandler(services) });
 
                 return CreateDelegate((s, n) => factory(s, n), next);
             };

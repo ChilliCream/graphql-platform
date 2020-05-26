@@ -27,6 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddTypeConversion();
             services.TryAddNoOpDiagnostics();
             services.TryAddDefaultCaches();
+            services.TryAddDefaultDocumentHashProvider();
 
             // pools
             services.TryAddResultPool();
@@ -91,6 +92,30 @@ namespace Microsoft.Extensions.DependencyInjection
             services.RemoveAll<IPreparedOperationCache>();
             services.AddSingleton<IPreparedOperationCache>(
                 sp => new DefaultPreparedOperationCache(capacity));
+            return services;
+        }
+
+        public static IServiceCollection AddMD5DocumentHashProvider(
+            this IServiceCollection services)
+        {
+            services.RemoveAll<IDocumentHashProvider>();
+            services.AddSingleton<IDocumentHashProvider, MD5DocumentHashProvider>();
+            return services;
+        }
+
+        public static IServiceCollection AddSha1DocumentHashProvider(
+            this IServiceCollection services)
+        {
+            services.RemoveAll<IDocumentHashProvider>();
+            services.AddSingleton<IDocumentHashProvider, Sha1DocumentHashProvider>();
+            return services;
+        }
+
+        public static IServiceCollection AddSha256DocumentHashProvider(
+            this IServiceCollection services)
+        {
+            services.RemoveAll<IDocumentHashProvider>();
+            services.AddSingleton<IDocumentHashProvider, Sha256DocumentHashProvider>();
             return services;
         }
     }

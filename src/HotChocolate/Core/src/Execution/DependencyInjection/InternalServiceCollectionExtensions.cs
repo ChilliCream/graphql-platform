@@ -94,5 +94,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => new DefaultPreparedOperationCache());
             return services;
         }
+
+        internal static IServiceCollection TryAddDefaultDocumentHashProvider(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IDocumentHashProvider>(
+                sp => new MD5DocumentHashProvider());
+            return services;
+        }
     }
 }

@@ -20,14 +20,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
         public static IRequestExecutorBuilder UseRequest(
             this IRequestExecutorBuilder builder,
-            RequestServicesMiddleware middleware)
+            RequestCoreMiddleware middleware)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
@@ -47,19 +47,19 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             RequestMiddleware middleware)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
 
             return Configure(
                 builder,
-                options => options.Pipeline.Add((s, o, n) => middleware(n)));
+                options => options.Pipeline.Add((context, next) => middleware(next)));
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where TMiddleware : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -114,7 +114,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder UseDefaultPipeline(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
