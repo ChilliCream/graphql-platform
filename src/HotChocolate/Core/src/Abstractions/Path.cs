@@ -81,6 +81,8 @@ namespace HotChocolate
                     default:
                         throw new NotSupportedException();
                 }
+
+                current = current.Parent;
             }
 
             return stack;

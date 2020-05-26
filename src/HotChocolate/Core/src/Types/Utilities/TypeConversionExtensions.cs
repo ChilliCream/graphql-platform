@@ -4,6 +4,13 @@ namespace HotChocolate.Utilities
 {
     public static class TypeConversionExtensions
     {
+        public static bool TryConvert(
+            this ITypeConversion typeConversion,
+            Type to,
+            object source, 
+            out object converted) =>
+            typeConversion.TryConvert(typeof(object), to, source, out converted);
+
         public static bool TryConvert<TFrom, TTo>(
             this ITypeConversion typeConversion,
             TFrom source, out TTo converted)
