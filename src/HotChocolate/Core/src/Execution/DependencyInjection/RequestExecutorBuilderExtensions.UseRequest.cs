@@ -111,6 +111,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<OperationResolverMiddleware>();
 
+        public static IRequestExecutorBuilder UseOperationVariableCoercion(
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<OperationVariableCoercionMiddleware>();
+
         public static IRequestExecutorBuilder UseDefaultPipeline(
             this IRequestExecutorBuilder builder)
         {
@@ -132,6 +136,7 @@ namespace Microsoft.Extensions.DependencyInjection
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentValidationMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationCacheMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
+            pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationExecutionMiddleware>());
         }
     }

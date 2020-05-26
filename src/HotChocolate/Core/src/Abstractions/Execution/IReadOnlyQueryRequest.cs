@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
 
         IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
-        object? InitialValue { get; }        
+        object? InitialValue { get; }
 
         IReadOnlyDictionary<string, object?>? ContextData { get; }
 

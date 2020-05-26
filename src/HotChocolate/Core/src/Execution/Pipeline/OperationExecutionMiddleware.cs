@@ -36,7 +36,9 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(mutationExecutor));
         }
 
-        public async ValueTask InvokeAsync(IRequestContext context, IBatchDispatcher batchDispatcher)
+        public async ValueTask InvokeAsync(
+            IRequestContext context, 
+            IBatchDispatcher batchDispatcher)
         {
             if (context.Operation is { } && context.Variables is { })
             {

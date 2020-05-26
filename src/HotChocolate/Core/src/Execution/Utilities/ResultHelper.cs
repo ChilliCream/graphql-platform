@@ -48,7 +48,8 @@ namespace HotChocolate.Execution.Utilities
 
             lock (_syncMap)
             {
-                if (!_resultOwner.ResultMapLists.TryPeek(out ResultObjectBuffer<ResultMapList> buffer) ||
+                if (!_resultOwner.ResultMapLists.TryPeek(
+                    out ResultObjectBuffer<ResultMapList> buffer) ||
                     !buffer.TryPop(out mapList))
                 {
                     buffer = _resultPool.GetResultMapList();
