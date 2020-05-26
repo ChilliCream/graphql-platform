@@ -31,12 +31,13 @@ namespace HotChocolate.Types.Filters.Mongo
             if (type.IsInstanceOfType(value) &&
                 context is MongoFilterVisitorContext ctx)
             {
-                var doc = new BsonDocument { { "$lte", BsonValue.Create(parsedValue) } };
+                var doc = new BsonDocument("$lte", BsonValue.Create(parsedValue));
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                    doc = new BsonDocument(ctx.GetMongoFilterScope().GetPath(field), doc);
                 }
+
                 result = doc;
                 return true;
             }
@@ -69,14 +70,14 @@ namespace HotChocolate.Types.Filters.Mongo
                 type.IsInstanceOfType(value) &&
                 context is MongoFilterVisitorContext ctx)
             {
-                var doc = new BsonDocument {
-                    { "$not", new BsonDocument {
-                        { "$lte", BsonValue.Create(parsedValue) } } } };
+                var doc = new BsonDocument("$not",
+                    new BsonDocument("$lte", BsonValue.Create(parsedValue)));
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                    doc = new BsonDocument(ctx.GetMongoFilterScope().GetPath(field), doc);
                 }
+
                 result = doc;
                 return true;
             }

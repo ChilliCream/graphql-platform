@@ -34,14 +34,14 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)
             {
-                var doc = new BsonDocument {
-                    { "$regex", new BsonRegularExpression($"/{Regex.Escape(str)}$/") }
-                };
+                var doc = new BsonDocument("$regex",
+                    new BsonRegularExpression($"/{Regex.Escape(str)}$/"));
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                    doc = new BsonDocument(ctx.GetMongoFilterScope().GetPath(field), doc);
                 }
+
                 result = doc;
                 return true;
             }
@@ -75,16 +75,16 @@ namespace HotChocolate.Types.Filters.Mongo
                 parsedValue is string str &&
                 context is MongoFilterVisitorContext ctx)
             {
-                var doc = new BsonDocument {
-                    { "$not", new BsonDocument {
-                        { "$regex", new BsonRegularExpression($"/{Regex.Escape(str)}$/") }} } };
+                var doc = new BsonDocument("$not",
+                    new BsonDocument("$regex",
+                        new BsonRegularExpression($"/{Regex.Escape(str)}$/")));
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    doc = new BsonDocument { { ctx.GetMongoFilterScope().GetPath(field), doc } };
+                    doc = new BsonDocument(ctx.GetMongoFilterScope().GetPath(field), doc);
                 }
-                result = doc;
 
+                result = doc;
                 return true;
             }
             else
