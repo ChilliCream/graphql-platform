@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -44,6 +43,7 @@ namespace HotChocolate.Execution.Utilities
             finally
             {
                 _operationContext.Execution.TaskStats.TaskCompleted();
+                _operationContext.Execution.TaskPool.Return(this);
             }
         }
 
