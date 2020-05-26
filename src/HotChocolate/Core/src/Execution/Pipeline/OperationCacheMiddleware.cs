@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Pipeline
 
                 if (_operationCache.TryGetOperation(
                     operationId,
-                    out IPreparedOperation operation))
+                    out IPreparedOperation? operation))
                 {
                     context.Operation = operation;
                     addToCache = false;
