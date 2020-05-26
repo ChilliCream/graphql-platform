@@ -1,6 +1,8 @@
 using System;
+using GreenDonut;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -28,6 +30,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddNoOpDiagnostics();
             services.TryAddDefaultCaches();
             services.TryAddDefaultDocumentHashProvider();
+            services.TryAddDefaultBatchDispatcher();
 
             // pools
             services.TryAddResultPool();
@@ -116,6 +119,24 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.RemoveAll<IDocumentHashProvider>();
             services.AddSingleton<IDocumentHashProvider, Sha256DocumentHashProvider>();
+            return services;
+        }
+
+        public static IServiceCollection AddBatchDispatcher<T>(
+            this IServiceCollection services)
+            where T : class, IBatchDispatcher
+        {
+            services.RemoveAll<IBatchDispatcher>();
+            services.AddScoped<IBatchDispatcher, T>();
+            return services;
+        }
+
+        public static IServiceCollection AddBatchScheduler<T>(
+            this IServiceCollection services)
+            where T : class, IBatchScheduler
+        {
+            services.RemoveAll<IBatchScheduler>();
+            services.AddScoped<IBatchScheduler, T>();
             return services;
         }
     }

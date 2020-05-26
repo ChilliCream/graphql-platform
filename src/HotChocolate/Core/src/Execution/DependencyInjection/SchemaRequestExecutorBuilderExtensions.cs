@@ -9,8 +9,6 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public static partial class SchemaRequestExecutorBuilderExtensions
     {
-        
-
         public static IRequestExecutorBuilder SetOptions(
             this IRequestExecutorBuilder builder,
             IReadOnlySchemaOptions options)
