@@ -38,11 +38,8 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             int maximumRetained = 16)
         {
-            services.TryAddSingleton<ObjectPool<ObjectBuffer<ResolverTask>>>(
-                sp => new DefaultObjectPool<ObjectBuffer<ResolverTask>>(
-                    new ObjectBufferPolicy<ResolverTask>(16, task => task.Reset()),
-                    maximumRetained));
-            services.TryAddSingleton<ObjectPool<ResolverTask>, BufferedObjectPool<ResolverTask>>();
+            services.TryAddSingleton<ObjectPool<ResolverTask>>(
+                sp => new BufferedObjectPool<ResolverTask>(t => t.Reset()));
             return services;
         }
 

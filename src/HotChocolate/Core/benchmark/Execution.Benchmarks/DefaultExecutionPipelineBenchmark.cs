@@ -48,5 +48,25 @@ namespace HotChocolate.Execution.Benchmarks
             IExecutionResult result = await _executor.ExecuteAsync(_request);
             ((IDisposable)result).Dispose();
         }
+
+        [Benchmark]
+        public async Task SchemaIntrospectionMultiple()
+        {
+            Task<IExecutionResult> task1 = _executor.ExecuteAsync(_request);
+            Task<IExecutionResult> task2 = _executor.ExecuteAsync(_request);
+            Task<IExecutionResult> task3 = _executor.ExecuteAsync(_request);
+            Task<IExecutionResult> task4 = _executor.ExecuteAsync(_request);
+            Task<IExecutionResult> task5 = _executor.ExecuteAsync(_request);
+            
+            ((IDisposable)(await task1)).Dispose();
+            ((IDisposable)(await task2)).Dispose();
+            task1 = _executor.ExecuteAsync(_request);
+            ((IDisposable)(await task3)).Dispose();
+            task2 = _executor.ExecuteAsync(_request);
+            ((IDisposable)(await task4)).Dispose();
+            ((IDisposable)(await task5)).Dispose();
+            ((IDisposable)(await task1)).Dispose();
+            ((IDisposable)(await task2)).Dispose();
+        }
     }
 }
