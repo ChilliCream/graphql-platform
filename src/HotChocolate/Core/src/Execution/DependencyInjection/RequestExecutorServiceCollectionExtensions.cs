@@ -67,10 +67,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (name is null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            name = name ?? Options.Options.DefaultName;
 
             AddGraphQLCore(services);
             services.AddValidation(name);

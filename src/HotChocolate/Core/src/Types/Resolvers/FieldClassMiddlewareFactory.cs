@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers
 {
     public static class FieldClassMiddlewareFactory
     {
-        private static MethodInfo _createGeneric =
+        private static readonly MethodInfo _createGeneric =
             typeof(FieldClassMiddlewareFactory)
             .GetTypeInfo().DeclaredMethods.First(t =>
             {
@@ -17,8 +17,8 @@ namespace HotChocolate.Resolvers
                     t.IsGenericMethod;
             });
 
-        private static PropertyInfo _services =
-            typeof(IMiddlewareContext).GetProperty(nameof(IMiddlewareContext.Services));
+        private static readonly PropertyInfo _services =
+            typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
 
         public static FieldMiddleware Create<TMiddleware>()
             where TMiddleware : class
