@@ -237,7 +237,7 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                t.AttributeType.FullName.Name.EqualsOrdinal(_nullableContextAttributeName));
+                t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
 
             if (data is { })
             {
