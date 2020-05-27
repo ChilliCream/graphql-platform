@@ -236,7 +236,7 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                    t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
+                t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
 
             if (data is { })
             {
@@ -252,7 +252,7 @@ namespace HotChocolate.Utilities
         {
             object[] attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
             object attribute = attributes.FirstOrDefault(t =>
-                    t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
+                t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
 
             if (attribute is null)
             {
@@ -284,7 +284,7 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                    t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
+                t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
 
             if (data is { })
             {
