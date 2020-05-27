@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Utilities;
+using static HotChocolate.Execution.Utilities.ResolverExecutionHelper;
 
 namespace HotChocolate.Execution
 {
@@ -12,14 +13,25 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             var scopedContext = ImmutableDictionary<string, object?>.Empty;
-            IPreparedSelectionList rootSelections = operationContext.Operation.GetRootSelections();
+            
+            IPreparedSelectionList rootSelections = 
+                operationContext.Operation.GetRootSelections();
+            
             ResultMap resultMap = rootSelections.EnqueueResolverTasks(
-                operationContext, n => Path.New(n), scopedContext, operationContext.RootValue);
+                operationContext, n => Path.New(n), scopedContext, 
+                operationContext.RootValue);
 
-            await ResolverExecutionHelper.ExecuteResolversAsync(
-                operationContext.Execution,
-                cancellationToken)
-                .ConfigureAwait(false);
+            int proposedTaskCount = operationContext.Operation.ProposedTaskCount;
+            var tasks = new Task[proposedTaskCount];
+
+            for (int i = 0; i < proposedTaskCount; i++)
+            {
+                tasks[i] = StartExecutionTaskAsync(
+                    operationContext.Execution,
+                    operationContext.RequestAborted);
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             operationContext.Result.SetData(resultMap);
             return operationContext.Result.BuildResult();

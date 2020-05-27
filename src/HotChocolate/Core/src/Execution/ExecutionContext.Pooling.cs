@@ -1,17 +1,14 @@
-using System.Threading.Tasks;
+using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
-    internal partial class ExecutionContext 
+    internal partial class ExecutionContext
         : IExecutionContext
     {
         private readonly TaskQueue _taskQueue;
         private readonly TaskStatistics _taskStatistics;
-        private readonly object _engineLock = new object();
-        private TaskCompletionSource<bool>? _waitForEngineTask;
 
         public ExecutionContext(ObjectPool<ResolverTask> resolverTaskPool)
         {
@@ -33,7 +30,6 @@ namespace HotChocolate.Execution
             BatchDispatcher = default!;
             _taskQueue.Clear();
             _taskStatistics.Clear();
-            ResetTaskSource();
         }
     }
 }

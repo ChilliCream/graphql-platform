@@ -10,8 +10,8 @@ namespace HotChocolate.Execution.Utilities
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ITaskStatistics _stats;
-        private readonly ConcurrentQueue<ResolverTask> _queue =
-            new ConcurrentQueue<ResolverTask>();
+        private readonly ConcurrentBag<ResolverTask> _queue =
+            new ConcurrentBag<ResolverTask>();
 
         internal TaskQueue(
             ITaskStatistics stats,
@@ -28,15 +28,8 @@ namespace HotChocolate.Execution.Utilities
         public bool IsEmpty => _queue.IsEmpty;
 
         /// <inheritdoc/>
-        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task)
-        {
-            if (_queue.TryDequeue(out task))
-            {
-                _stats.TaskDequeued();
-                return true;
-            }
-            return false;
-        }
+        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task) =>
+            _queue.TryTake(out task);
 
         /// <inheritdoc/>
         public void Enqueue(
@@ -59,9 +52,9 @@ namespace HotChocolate.Execution.Utilities
                 path,
                 scopedContextData);
 
-            _queue.Enqueue(resolverTask);
+            _queue.Add(resolverTask);
 
-            _stats.TaskEnqueued();
+            _stats.TaskCreated();
         }
 
         public void Clear()

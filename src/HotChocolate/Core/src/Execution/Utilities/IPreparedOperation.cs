@@ -16,6 +16,8 @@ namespace HotChocolate.Execution.Utilities
         /// </summary>
         string Id { get; }
 
+        int ProposedTaskCount { get; }
+
         /// <summary>
         /// Gets the prepared root selections for this operation.
         /// </summary>

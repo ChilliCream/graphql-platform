@@ -46,6 +46,8 @@ namespace HotChocolate.Execution.Benchmarks
         public async Task SchemaIntrospection()
         {
             IExecutionResult result = await _executor.ExecuteAsync(_request);
+            // var jsonWriter = new HotChocolate.Execution.Serialization.JsonQueryResultSerializer(true);
+            // Console.WriteLine(jsonWriter.Serialize((IReadOnlyQueryResult)result));
             ((IDisposable)result).Dispose();
         }
 

@@ -18,10 +18,10 @@ namespace HotChocolate.Execution.Utilities
         public void BeginExecute()
         {
             _operationContext.Execution.TaskStats.TaskStarted();
-            _task = ExecuteAsync();
+            _task = ExecuteInternalAsync();
         }
 
-        private async ValueTask ExecuteAsync()
+        private async ValueTask ExecuteInternalAsync()
         {
             try
             {

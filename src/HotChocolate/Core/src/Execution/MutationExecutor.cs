@@ -31,10 +31,12 @@ namespace HotChocolate.Execution
                         Path.New(selection.ResponseName),
                         scopedContext);
 
+                /*
                     await ResolverExecutionHelper.ExecuteResolversAsync(
                         operationContext.Execution,
                         cancellationToken)
                         .ConfigureAwait(false);
+                        */
                 }
             }
 

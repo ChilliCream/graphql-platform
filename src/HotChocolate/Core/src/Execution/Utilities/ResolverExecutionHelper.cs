@@ -1,11 +1,20 @@
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal static class ResolverExecutionHelper 
+    internal static class ResolverExecutionHelper
     {
-        public static async Task ExecuteResolversAsync(
+        public static Task StartExecutionTaskAsync(
+            IExecutionContext executionContext,
+            CancellationToken cancellationToken) =>
+            Task.Factory.StartNew(
+                async () => await ExecuteResolvers(executionContext, cancellationToken),
+                cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+
+        public static async Task ExecuteResolvers(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
@@ -18,15 +27,7 @@ namespace HotChocolate.Execution.Utilities
                     task.BeginExecute();
                 }
 
-                await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
-
-                while (!cancellationToken.IsCancellationRequested &&
-                    executionContext.Tasks.IsEmpty &&
-                    executionContext.BatchDispatcher.HasTasks)
-                {
-                    executionContext.BatchDispatcher.Dispatch();
-                    await executionContext.WaitForEngine(cancellationToken).ConfigureAwait(false);
-                }
+                await executionContext.WaitAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

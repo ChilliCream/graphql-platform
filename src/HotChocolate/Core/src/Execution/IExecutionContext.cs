@@ -1,8 +1,8 @@
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Fetching;
-using HotChocolate.Execution.Utilities;
 using Microsoft.Extensions.ObjectPool;
+using HotChocolate.Execution.Utilities;
+using HotChocolate.Fetching;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace HotChocolate.Execution
 {
@@ -21,18 +21,12 @@ namespace HotChocolate.Execution
 
         ITaskStatistics TaskStats { get; }
 
+        Task WaitAsync(CancellationToken cancellationToken);
+
         /// <summary>
         /// Gets the batch dispatcher.
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
-
-        /// <summary>
-        /// wait for => TaskStats.Enqueued > 0
-        /// || executionContext.BatchDispatcher.HasTasks
-        /// || IsCompleted
-        /// || cancellationToken.IsCancellationRequested
-        /// </summary>
-        Task WaitForEngine(CancellationToken cancellationToken);
 
         /// <summary>
         /// operationContext.TaskStats.Enqueued == 0

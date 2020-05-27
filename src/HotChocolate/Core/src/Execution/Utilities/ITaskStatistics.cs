@@ -6,13 +6,17 @@ namespace HotChocolate.Execution.Utilities
     {
         event EventHandler<EventArgs> StateChanged;
 
-        int Enqueued { get; }
+        int NewTasks { get; }
 
-        int Running { get; }
+        int RunningTasks { get; }
 
-        void TaskEnqueued();
+        int AllTasks { get; }
 
-        void TaskDequeued();
+        int CompletedTasks { get; }
+
+        bool IsCompleted { get; }
+
+        void TaskCreated();
 
         void TaskStarted();
 

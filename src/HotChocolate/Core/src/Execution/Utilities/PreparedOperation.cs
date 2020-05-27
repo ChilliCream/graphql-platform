@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using PSS = HotChocolate.Execution.Utilities.PreparedSelectionSet;
@@ -8,7 +9,7 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class PreparedOperation : IPreparedOperation
     {
-        private static IPreparedSelectionList _empty = 
+        private static IPreparedSelectionList _empty =
             new PreparedSelectionList(new IPreparedSelection[0], true);
         private readonly IReadOnlyDictionary<SelectionSetNode, PSS> _selectionSets;
 
@@ -27,6 +28,7 @@ namespace HotChocolate.Execution.Utilities
             RootType = rootType;
             Type = definition.Operation;
             _selectionSets = selectionSets;
+            ProposedTaskCount = 3;
         }
 
         public string Id { get; }
@@ -43,9 +45,11 @@ namespace HotChocolate.Execution.Utilities
 
         public OperationType Type { get; }
 
-        public IPreparedSelectionList GetRootSelections() => 
+        public int ProposedTaskCount { get; }
+
+        public IPreparedSelectionList GetRootSelections() =>
             RootSelectionSet.GetSelections(RootType);
-            
+
         public IPreparedSelectionList GetSelections(
             SelectionSetNode selectionSet,
             ObjectType typeContext)

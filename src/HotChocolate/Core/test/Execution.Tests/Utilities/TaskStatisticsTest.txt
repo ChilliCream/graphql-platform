@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
             var statistics = new TaskStatistics();
 
             // act && assert  
-            Assert.Equal(0, statistics.Enqueued);
+            Assert.Equal(0, statistics.NewTasks);
         }
 
         [Fact]
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
             var statistics = new TaskStatistics();
 
             // act && assert  
-            Assert.Equal(0, statistics.Running);
+            Assert.Equal(0, statistics.RunningTasks);
         }
 
         [Fact]
@@ -33,10 +33,10 @@ namespace HotChocolate.Execution
             var statistics = new TaskStatistics();
 
             // act && assert
-            statistics.TaskEnqueued();
-            Assert.Equal(1, statistics.Enqueued);
-            statistics.TaskEnqueued();
-            Assert.Equal(2, statistics.Enqueued);
+            statistics.TaskCreated();
+            Assert.Equal(1, statistics.NewTasks);
+            statistics.TaskCreated();
+            Assert.Equal(2, statistics.NewTasks);
         }
 
         [Fact]
@@ -46,14 +46,14 @@ namespace HotChocolate.Execution
             var statistics = new TaskStatistics();
 
             // act 
-            statistics.TaskEnqueued();
-            statistics.TaskEnqueued();
+            statistics.TaskCreated();
+            statistics.TaskCreated();
 
             // assert
             statistics.TaskDequeued();
-            Assert.Equal(1, statistics.Enqueued);
+            Assert.Equal(1, statistics.NewTasks);
             statistics.TaskDequeued();
-            Assert.Equal(0, statistics.Enqueued);
+            Assert.Equal(0, statistics.NewTasks);
         }
 
         [Fact]
@@ -64,9 +64,9 @@ namespace HotChocolate.Execution
 
             // act && assert
             statistics.TaskStarted();
-            Assert.Equal(1, statistics.Running);
+            Assert.Equal(1, statistics.RunningTasks);
             statistics.TaskStarted();
-            Assert.Equal(2, statistics.Running);
+            Assert.Equal(2, statistics.RunningTasks);
         }
 
         [Fact]
@@ -81,9 +81,9 @@ namespace HotChocolate.Execution
 
             // assert
             statistics.TaskCompleted();
-            Assert.Equal(1, statistics.Running);
+            Assert.Equal(1, statistics.RunningTasks);
             statistics.TaskCompleted();
-            Assert.Equal(0, statistics.Running);
+            Assert.Equal(0, statistics.RunningTasks);
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace HotChocolate.Execution
 
             // act 
             statistics.StateChanged += (object sender, EventArgs args) => hasBeenCalled = true;
-            statistics.TaskEnqueued();
+            statistics.TaskCreated();
 
             //assert
             Assert.True(hasBeenCalled, "The event for TaskStatistics TaskEnqueued was not called");
@@ -157,9 +157,9 @@ namespace HotChocolate.Execution
             statistics.TaskStarted();
 
             // assert
-            Assert.Equal(2, statistics.Running);
+            Assert.Equal(2, statistics.RunningTasks);
             statistics.Clear();
-            Assert.Equal(0, statistics.Running);
+            Assert.Equal(0, statistics.RunningTasks);
         }
 
         [Fact]
@@ -169,13 +169,13 @@ namespace HotChocolate.Execution
             var statistics = new TaskStatistics();
 
             // act 
-            statistics.TaskEnqueued();
-            statistics.TaskEnqueued();
+            statistics.TaskCreated();
+            statistics.TaskCreated();
 
             // assert
-            Assert.Equal(2, statistics.Enqueued);
+            Assert.Equal(2, statistics.NewTasks);
             statistics.Clear();
-            Assert.Equal(0, statistics.Enqueued);
+            Assert.Equal(0, statistics.NewTasks);
         }
     }
 }
