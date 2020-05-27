@@ -1,7 +1,6 @@
-using System.Collections.ObjectModel;
-using System.Net.NetworkInformation;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Utilities.CompilerServices;
@@ -124,11 +123,11 @@ namespace HotChocolate.Utilities
                 {
                     if (flags.Length > position)
                     {
-                        state = (Nullable) flags[position++];
+                        state = (Nullable)flags[position++];
                     }
                     else if (flags.Length == 1)
                     {
-                        state = (Nullable) flags[0];
+                        state = (Nullable)flags[0];
                     }
                 }
 
@@ -237,10 +236,7 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                string.Equals(
-                    t.AttributeType.FullName,
-                    _nullableContextAttributeName,
-                    StringComparison.Ordinal));
+                    t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
 
             if (data is { })
             {
@@ -256,10 +252,7 @@ namespace HotChocolate.Utilities
         {
             object[] attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
             object attribute = attributes.FirstOrDefault(t =>
-                string.Equals(
-                    t.GetType().FullName,
-                    _nullableAttributeName,
-                    StringComparison.Ordinal));
+                    t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
 
             if (attribute is null)
             {
