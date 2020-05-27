@@ -79,6 +79,10 @@
           {
             "path": "index",
             "title": "Overview"
+          },
+          {
+            "path": "visitors",
+            "title": "Visitors"
           }
         ]
       }
