@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using HotChocolate.Types.Spatial.Properties;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -6,29 +8,29 @@ namespace HotChocolate.Types.Spatial
     {
         public static Exception InvalidInputObjectStructure(GeoJSONGeometryType geometryType)
         {
-            var errorMessageTemplate = $"Failed to parse {geometryType}. `coordinates` and `type`" +
-            " fields are required. `coordinates should be ";
+            var errorMessageTemplate =  string.Format(Resources.ThrowHelper_InvalidInputObjectStructure_Base,
+                geometryType, CultureInfo.InvariantCulture);
 
             switch (geometryType)
             {
                 case GeoJSONGeometryType.Point:
                     return new InputObjectSerializationException(errorMessageTemplate +
-                    "a single position. e.g. `[1,1]`");
+                        Resources.ThrowHelper_InvalidInputObjectStructure_Point);
                 case GeoJSONGeometryType.MultiPoint:
                     return new InputObjectSerializationException(errorMessageTemplate +
-                    "an array of positions. e.g. `[[1,1], [2,2]]`");
+                        Resources.ThrowHelper_InvalidInputObjectStructure_MultiPoint);
                 case GeoJSONGeometryType.LineString:
                     return new InputObjectSerializationException(errorMessageTemplate +
-                    "an array of two or more positions. e.g. `[[1,1], [2,2]]`");
+                        Resources.ThrowHelper_InvalidInputObjectStructure_LineString);
                 case GeoJSONGeometryType.MultiLineString:
                     return new InputObjectSerializationException(errorMessageTemplate +
-                    "an array of LineStrings. e.g. `[[[1,1], [2,2]], [[0,0], [3,3]]]");
+                        Resources.ThrowHelper_InvalidInputObjectStructure_MultiLineString);
                 case GeoJSONGeometryType.Polygon:
                     return new InputObjectSerializationException(errorMessageTemplate +
-                    "an closed array of four or more positions.");
+                        Resources.ThrowHelper_InvalidInputObjectStructure_Polygon);
                 case GeoJSONGeometryType.MultiPolygon:
                     return new InputObjectSerializationException(errorMessageTemplate +
-                    "an array of Polygons.");
+                        Resources.ThrowHelper_InvalidInputObjectStructure_MultiPolygon);
                 case GeoJSONGeometryType.GeometryCollection:
                     return new NotImplementedException();
                 default:
@@ -37,14 +39,10 @@ namespace HotChocolate.Types.Spatial
 
         }
 
-        public static ScalarSerializationException InvalidPositionScalar() => new ScalarSerializationException(
-            "A valid position object must be a list of two or three int or float literals " +
-            "representing a position. e.g. [1,1] or [2,2,0]"
-        );
+        public static ScalarSerializationException InvalidPositionScalar() =>
+                new ScalarSerializationException(Resources.ThrowHelper_InvalidPositionScalar);
 
-        public static ArgumentNullException NullPositionScalar() => new ArgumentNullException(
-            "A valid position object must be a list of two or three int or float literals " +
-            "representing a position. e.g. [1,1] or [2,2,0]"
-        );
+        public static ArgumentNullException NullPositionScalar() =>
+                new ArgumentNullException(Resources.ThrowHelper_InvalidPositionScalar);
     }
 }

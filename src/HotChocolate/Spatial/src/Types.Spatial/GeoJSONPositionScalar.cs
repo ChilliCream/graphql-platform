@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Spatial
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw ThrowHelper.NullPositionScalar();
             }
@@ -28,15 +28,24 @@ namespace HotChocolate.Types.Spatial
 
             if (literal is ListValueNode listValueNode)
             {
-                for (var i = 0; i < listValueNode.Items.Count; i++)
+                if (listValueNode.Items.Count != 2 && listValueNode.Items.Count != 3)
                 {
-                    if (listValueNode.Items[i].Value is ListValueNode || listValueNode.Items[i].Value is IList)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
-                return true;
+                if (listValueNode.Items[0] is IFloatValueLiteral &&
+                    listValueNode.Items[1] is IFloatValueLiteral)
+                {
+                    if (listValueNode.Items.Count == 2)
+                    {
+                        return true;
+                    }
+                    else if (listValueNode.Items.Count == 3 &&
+                        listValueNode.Items[2] is IFloatValueLiteral)
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;
@@ -69,7 +78,7 @@ namespace HotChocolate.Types.Spatial
                         return new Coordinate(x.ToDouble(), y.ToDouble());
                     }
                     else if (list.Items.Count == 3 &&
-                        list.Items[1] is IFloatValueLiteral z)
+                        list.Items[2] is IFloatValueLiteral z)
                     {
                         return new CoordinateZ(x.ToDouble(), y.ToDouble(), z.ToDouble());
                     }
@@ -82,30 +91,34 @@ namespace HotChocolate.Types.Spatial
         }
 
         /// input value from the client
-        public override IValueNode ParseValue(object value)
+        public override IValueNode ParseValue(object? value)
         {
             // parse Coordinate into literal
-            if (value == null) return new NullValueNode(null);
-
-            if (value is Coordinate coordinate)
+            if (value is null)
             {
-                var xNode = new FloatValueNode(coordinate.X);
-                var yNode = new FloatValueNode(coordinate.Y);
-
-                // third optional element (z/elevation)
-                if (!double.IsNaN(coordinate.Z))
-                {
-                    var zNode = new FloatValueNode(coordinate.Z);
-                    return new ListValueNode(xNode, yNode, zNode);
-                }
-
-                return new ListValueNode(xNode, yNode);
+                return new NullValueNode(null);
             }
 
-            throw new ArgumentException("The specified value has to be a Coordinate Type");
+            if (!(value is Coordinate coordinate))
+            {
+                // TODO : ThrowHelper
+                throw new ArgumentException("The specified value has to be a Coordinate Type");
+            }
+
+            var xNode = new FloatValueNode(coordinate.X);
+            var yNode = new FloatValueNode(coordinate.Y);
+
+            // third optional element (z/elevation)
+            if (!double.IsNaN(coordinate.Z))
+            {
+                var zNode = new FloatValueNode(coordinate.Z);
+                return new ListValueNode(xNode, yNode, zNode);
+            }
+
+            return new ListValueNode(xNode, yNode);
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? serialized, out object? value)
         {
             // Deserialize from graphql variable
             // List<object> (long) = List<long>
@@ -124,9 +137,8 @@ namespace HotChocolate.Types.Spatial
 
             if (list.Count < 2)
             {
-                throw new ArgumentException(
-                    "The Position type has to at least contain two values (x,y)",
-                    nameof(serialized));
+                value = null;
+                return false;
             }
 
             double x;
@@ -138,8 +150,8 @@ namespace HotChocolate.Types.Spatial
             }
             catch (OverflowException)
             {
-                throw new ArgumentException(
-                    "Members of the Position array have to be of type double");
+                value = null;
+                return false;
             }
 
             var coordinate = new Coordinate(x, y);
@@ -151,8 +163,8 @@ namespace HotChocolate.Types.Spatial
                 }
                 catch (OverflowException)
                 {
-                    throw new ArgumentException(
-                        "Members of the Position array have to be of type double");
+                    value = null;
+                    return false;
                 }
             }
 
@@ -160,23 +172,21 @@ namespace HotChocolate.Types.Spatial
             return true;
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override bool TrySerialize(object? value, out object? serialized)
         {
             if (!(value is Coordinate coordinate))
             {
-                throw new ArgumentException(
-                    "The specified value cannot be serialized as a Coordinate.");
+                serialized = null;
+                return false;
             }
 
             if (!double.IsNaN(coordinate.Z))
             {
                 serialized = new double[] { coordinate.X, coordinate.Y, coordinate.Z };
-
                 return true;
             }
 
             serialized = new double[] { coordinate.X, coordinate.Y };
-
             return true;
         }
     }

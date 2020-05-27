@@ -6,7 +6,8 @@ namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONResolvers
     {
-        public GeoJSONGeometryType GetType([Parent] Geometry geometry) {
+        public GeoJSONGeometryType GetType([Parent] Geometry geometry)
+        {
             return geometry.OgcGeometryType switch
             {
                 OgcGeometryType.Point => GeoJSONGeometryType.Point,
@@ -15,9 +16,10 @@ namespace HotChocolate.Types.Spatial
                 OgcGeometryType.MultiPoint => GeoJSONGeometryType.MultiPoint,
                 OgcGeometryType.MultiLineString => GeoJSONGeometryType.MultiLineString,
                 OgcGeometryType.MultiPolygon => GeoJSONGeometryType.MultiPolygon,
-                OgcGeometryType.GeometryCollection => throw new NotImplementedException(
-                    "Geometry Collection is not supported yet"),
-                _ => throw new ArgumentException("Geometry type is not supported"),
+                OgcGeometryType.GeometryCollection =>
+                    throw new NotImplementedException(
+                        "Geometry Collection is not supported yet"),
+                _ => throw new ArgumentException("Geometry type is not supported") // TODO : ThrowHelper
             };
         }
 
@@ -31,7 +33,8 @@ namespace HotChocolate.Types.Spatial
 
         public int GetCrs([Parent] Geometry geometry)
         {
-            if (geometry.SRID == 0) {
+            if (geometry.SRID == 0)
+            {
                 return 4326;
             }
 

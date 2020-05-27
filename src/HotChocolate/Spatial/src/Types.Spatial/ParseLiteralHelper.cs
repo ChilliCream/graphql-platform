@@ -5,7 +5,8 @@ namespace HotChocolate.Types.Spatial
 {
     public static class ParseLiteralHelper
     {
-        public static (int typeIndex, int coordinateIndex, int crsIndex) GetFieldIndices(ObjectValueNode obj,
+        public static (int typeIndex, int coordinateIndex, int crsIndex) GetFieldIndices(
+            ObjectValueNode obj,
             string _typeFieldName,
             string _coordinatesFieldName,
             string _crsFieldName)

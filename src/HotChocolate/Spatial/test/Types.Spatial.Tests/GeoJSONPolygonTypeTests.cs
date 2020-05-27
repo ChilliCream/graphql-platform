@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Spatial.Tests
     public class GeoJSONPolygonTypeTests
     {
         private readonly Polygon geom = new Polygon(
-            new LinearRing(new [] {
+            new LinearRing(new[] {
                 new Coordinate(30, 10),
                 new Coordinate(40, 40),
                 new Coordinate(20, 40),

@@ -120,4 +120,28 @@
   <data name="GeoJSONPositionScalar_Description" xml:space="preserve">
     <value>A position is an array of numbers. There MUST be two or more elements.</value>
   </data>
+  <data name="ThrowHelper_InvalidInputObjectStructure_Base" xml:space="preserve">
+    <value>Failed to parse {0}. `coordinates` and `type` fields are required. `coordinates should be </value>
+  </data>
+  <data name="ThrowHelper_InvalidInputObjectStructure_Point" xml:space="preserve">
+    <value>a single position. e.g. `[1,1]`</value>
+  </data>
+  <data name="ThrowHelper_InvalidInputObjectStructure_MultiPoint" xml:space="preserve">
+    <value>an array of positions. e.g. `[[1,1], [2,2]]`</value>
+  </data>
+  <data name="ThrowHelper_InvalidInputObjectStructure_LineString" xml:space="preserve">
+    <value>an array of two or more positions. e.g. `[[1,1], [2,2]]`</value>
+  </data>
+  <data name="ThrowHelper_InvalidInputObjectStructure_MultiLineString" xml:space="preserve">
+    <value>an array of LineStrings. e.g. `[[[1,1], [2,2]], [[0,0], [3,3]]]</value>
+  </data>
+  <data name="ThrowHelper_InvalidInputObjectStructure_Polygon" xml:space="preserve">
+    <value>an closed array of four or more positions.</value>
+  </data>
+  <data name="ThrowHelper_InvalidInputObjectStructure_MultiPolygon" xml:space="preserve">
+    <value>an array of Polygons.</value>
+  </data>
+  <data name="ThrowHelper_InvalidPositionScalar" xml:space="preserve">
+    <value>A valid position object must be a list of two or three int or float literals representing a position. e.g. [1,1] or [2,2,0]</value>
+  </data>
 </root>

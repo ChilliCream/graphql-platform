@@ -14,6 +14,7 @@ namespace HotChocolate.Types.Spatial
         private const string _crsFieldName = "crs";
         private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.MultiPolygon;
         private IInputField _typeField = default!;
+        private GeoJSONGeometryType _typeFieldType = default!;
         private IInputField _coordinatesField = default!;
         private IInputField _crsField = default!;
 
@@ -21,9 +22,12 @@ namespace HotChocolate.Types.Spatial
         {
             descriptor.BindFieldsExplicitly();
 
-            descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
-            descriptor.Field(_coordinatesFieldName).Type<ListType<ListType<GeoJSONPositionScalar>>>();
-            descriptor.Field(_crsFieldName).Type<IntType>();
+            descriptor.Field(_typeFieldName)
+                .Type<EnumType<GeoJSONGeometryType>>();
+            descriptor.Field(_coordinatesFieldName)
+                .Type<ListType<ListType<GeoJSONPositionScalar>>>();
+            descriptor.Field(_crsFieldName)
+                .Type<IntType>();
         }
 
         public override object? ParseLiteral(IValueNode literal)
@@ -38,10 +42,11 @@ namespace HotChocolate.Types.Spatial
                 throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
             }
 
-            (int typeIndex, int coordinateIndex, int crsIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
-                _typeFieldName,
-                _coordinatesFieldName,
-                _crsFieldName);
+            (int typeIndex, int coordinateIndex, int crsIndex) indices = 
+                ParseLiteralHelper.GetFieldIndices(obj,
+                    _typeFieldName,
+                    _coordinatesFieldName,
+                    _crsFieldName);
 
             if (indices.typeIndex == -1)
             {

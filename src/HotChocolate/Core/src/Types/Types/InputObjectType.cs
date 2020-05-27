@@ -27,8 +27,7 @@ namespace HotChocolate.Types
             _configure = Configure;
         }
 
-        public InputObjectType(
-            Action<IInputObjectTypeDescriptor> configure)
+        public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
@@ -40,9 +39,7 @@ namespace HotChocolate.Types
 
         public FieldCollection<InputField> Fields { get; private set; }
 
-        #region IInputType
-
-        public bool IsInstanceOfType(IValueNode literal)
+        public virtual bool IsInstanceOfType(IValueNode literal)
         {
             if (literal == null)
             {
@@ -74,7 +71,7 @@ namespace HotChocolate.Types
                 TypeResources.InputObjectType_CannotParseLiteral);
         }
 
-        public bool IsInstanceOfType(object value)
+        public virtual bool IsInstanceOfType(object value)
         {
             if (value is null)
             {
@@ -84,7 +81,7 @@ namespace HotChocolate.Types
             return ClrType.IsInstanceOfType(value);
         }
 
-        public IValueNode ParseValue(object value)
+        public virtual IValueNode ParseValue(object value)
         {
             if (value is null)
             {
@@ -174,10 +171,6 @@ namespace HotChocolate.Types
             }
         }
 
-        #endregion
-
-        #region Initialization
-
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
@@ -252,7 +245,5 @@ namespace HotChocolate.Types
                 fields.Add(new InputField(fieldDefinition));
             }
         }
-
-        #endregion
     }
 }

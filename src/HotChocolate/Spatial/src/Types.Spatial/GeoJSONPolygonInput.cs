@@ -38,10 +38,11 @@ namespace HotChocolate.Types.Spatial
                 throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
             }
 
-            (int typeIndex, int coordinateIndex, int crsIndex) indices = ParseLiteralHelper.GetFieldIndices(obj,
-                _typeFieldName,
-                _coordinatesFieldName,
-                _crsFieldName);
+            (int typeIndex, int coordinateIndex, int crsIndex) indices = 
+                ParseLiteralHelper.GetFieldIndices(obj,
+                    _typeFieldName,
+                    _coordinatesFieldName,
+                    _crsFieldName);
 
             if (indices.typeIndex == -1)
             {
