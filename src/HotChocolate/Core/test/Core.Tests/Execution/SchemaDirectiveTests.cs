@@ -169,7 +169,7 @@ namespace HotChocolate.Execution
                         .ToObject<CDirective>()
                         .Append;
                     context.Result = context.Result + s;
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 });
             }
         }

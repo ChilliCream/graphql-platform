@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
             IReadOnlyList<IError>? errors,
             IReadOnlyDictionary<string, object?>? extension = null,
             IReadOnlyDictionary<string, object?>? contextData = null,
-            IDisposable? disposable = null)
+            IDisposable? resultMemoryOwner = null)
         {
             if (data is null && errors is null)
             {
@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
             Errors = errors;
             Extensions = extension;
             ContextData = contextData;
-            _disposable = disposable;
+            _disposable = resultMemoryOwner;
         }
 
         public IReadOnlyDictionary<string, object?>? Data { get; }

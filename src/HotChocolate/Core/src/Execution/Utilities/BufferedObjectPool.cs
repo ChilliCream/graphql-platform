@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using HotChocolate.Language;
+using System;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Utilities
@@ -11,12 +10,15 @@ namespace HotChocolate.Execution.Utilities
     internal sealed class BufferedObjectPool<T> : ObjectPool<T> where T : class, new()
     {
         private readonly object _lockObject = new object();
-        private readonly List<ObjectBuffer<T>> _rentedBuffers = new List<ObjectBuffer<T>>();
-        private readonly ObjectPool<ObjectBuffer<T>> _objectPool;
+        private readonly Action<T> _reset;
+        private readonly T?[] _buffer = new T?[256];
+        private readonly int _capacity;
+        private int _index = -1;
 
-        public BufferedObjectPool(ObjectPool<ObjectBuffer<T>> objectPool)
+        public BufferedObjectPool(Action<T> reset)
         {
-            _objectPool = objectPool;
+            _reset = reset;
+            _capacity = _buffer.Length - 1;
         }
 
         /// <summary>
@@ -26,18 +28,22 @@ namespace HotChocolate.Execution.Utilities
         /// <returns>A T.</returns>
         public override T Get()
         {
+            T? item = default!;
+
             lock (_lockObject)
             {
-                // We first try to pop the next resolver task safely from the pool queue
-                if (!_rentedBuffers.TryPeek(out ObjectBuffer<T> buffer) ||
-                    !buffer.TryPop(out T? obj))
+                if (_index < _capacity)
                 {
-                    buffer = _objectPool.Get();
-                    _rentedBuffers.Push(buffer);
-                    obj = buffer.Pop();
+                    item = _buffer[++_index];
                 }
-                return obj;
             }
+
+            if (item is null)
+            {
+                item = new T();
+            }
+
+            return item;
         }
 
         /// <summary>
@@ -46,21 +52,14 @@ namespace HotChocolate.Execution.Utilities
         /// </summary> 
         public override void Return(T obj)
         {
+            _reset(obj);
+
             lock (_lockObject)
             {
-                // if there is no buffer we let the object leak
-                if (_rentedBuffers.TryPeek(out ObjectBuffer<T> buffer) && !buffer.TryPush(obj))
+                if (_index > -1)
                 {
-                    _objectPool.Return(_rentedBuffers.Pop());
+                    _buffer[_index--] = obj;
                 }
-            }
-        }
-
-        public void Clear()
-        {
-            while (_rentedBuffers.TryPop(out ObjectBuffer<T>? buffer))
-            {
-                _objectPool.Return(buffer);
             }
         }
     }

@@ -29,7 +29,7 @@ namespace HotChocolate
 
         IErrorBuilder RemoveException();
 
-        IErrorBuilder SetExtension(string key, object value);
+        IErrorBuilder SetExtension(string key, object? value);
 
         IErrorBuilder RemoveExtension(string key);
 

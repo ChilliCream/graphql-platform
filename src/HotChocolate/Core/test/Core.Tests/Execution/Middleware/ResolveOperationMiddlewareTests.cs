@@ -352,7 +352,7 @@ namespace HotChocolate.Execution
                 schema { " + rootType + @": Foo }
                 " + queryType, c =>
             {
-                c.Use(n => ctx => Task.CompletedTask);
+                c.Use(n => ctx => default(ValueTask));
             });
 
             var sourceText = "query a { a }";

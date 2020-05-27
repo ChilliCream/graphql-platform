@@ -219,18 +219,16 @@ namespace HotChocolate.DataLoader
             string key)
             where T : class, IDataLoader
         {
-            Func<IServiceProvider, T> createInstance =
-                ActivatorHelper.CompileFactory<T>();
-            return registry.Register(key, createInstance);
+            CreateServiceDelegate<T> createInstance = ActivatorHelper.CompileFactory<T>();
+            return registry.Register(key, s => createInstance(s));
         }
 
         public static bool Register<T>(
             this IDataLoaderRegistry registry)
             where T : class, IDataLoader
         {
-            Func<IServiceProvider, T> createInstance =
-                ActivatorHelper.CompileFactory<T>();
-            return registry.Register(typeof(T).FullName, createInstance);
+            CreateServiceDelegate<T> createInstance = ActivatorHelper.CompileFactory<T>();
+            return registry.Register(typeof(T).FullName, s => createInstance(s));
         }
     }
 }

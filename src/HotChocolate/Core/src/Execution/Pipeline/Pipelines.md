@@ -1,15 +1,21 @@
+# Pipelines
+
+This document shows the various pre-configured pipelines.
+
+## Default Pipeline
+
 ```mermaid
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
     Cache Document->>Parse Document: Document?
-    Parse Document->>Validation: Document
-    Validation->>Cache Operation: Validation Result
+    Parse Document->>Validation: Document?
+    Validation->>Cache Operation: Document! and IsValid
     Cache Operation->>Resolve Operation: IPreparedOperation?
     Resolve Operation->>Coerce Variables: IPreparedOperation
-    Coerce Variables->>Execute Document: IVariableCollection
+    Coerce Variables->>Execute Operation: IVariableCollection
 
-    Execute Document-->>Coerce Variables: IExecutionResult
+    Execute Operation-->>Coerce Variables: IExecutionResult
     Coerce Variables-->>Resolve Operation: IExecutionResult
     Resolve Operation-->>Cache Operation: IExecutionResult
     Cache Operation-->>Cache Operation: Cache Operation

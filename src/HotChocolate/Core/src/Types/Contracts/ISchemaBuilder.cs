@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
@@ -7,7 +8,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
-{
+{   
     public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
 
     public delegate IConvention CreateConvention(IServiceProvider services);
@@ -26,7 +27,7 @@ namespace HotChocolate
 
         ISchemaBuilder Use(FieldMiddleware middleware);
 
-        ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument);
+        ISchemaBuilder AddDocument(LoadSchemaDocument loadDocument);
 
         ISchemaBuilder AddType(Type type);
 

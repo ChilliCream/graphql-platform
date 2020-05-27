@@ -14,13 +14,13 @@ namespace HotChocolate.Execution.Utilities
         private readonly HashSet<FieldNode> _fieldErrors = new HashSet<FieldNode>();
         private readonly List<NonNullViolation> _nonNullViolations = new List<NonNullViolation>();
         private readonly ResultPool _resultPool;
-        private Result _result;
+        private ResultMemoryOwner _resultOwner;
         private ResultMap? _data;
 
         public ResultHelper(ResultPool resultPool)
         {
             _resultPool = resultPool;
-            _result = new Result(resultPool);
+            _resultOwner = new ResultMemoryOwner(resultPool);
         }
 
         public ResultMap RentResultMap(int capacity)
@@ -29,12 +29,12 @@ namespace HotChocolate.Execution.Utilities
 
             lock (_syncMap)
             {
-                if (!_result.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap> buffer) ||
+                if (!_resultOwner.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap> buffer) ||
                     !buffer.TryPop(out map))
                 {
                     buffer = _resultPool.GetResultMap();
                     map = buffer.Pop();
-                    _result.ResultMaps.Push(buffer);
+                    _resultOwner.ResultMaps.Push(buffer);
                 }
             }
 
@@ -48,12 +48,13 @@ namespace HotChocolate.Execution.Utilities
 
             lock (_syncMap)
             {
-                if (!_result.ResultMapLists.TryPeek(out ResultObjectBuffer<ResultMapList> buffer) ||
+                if (!_resultOwner.ResultMapLists.TryPeek(
+                    out ResultObjectBuffer<ResultMapList> buffer) ||
                     !buffer.TryPop(out mapList))
                 {
                     buffer = _resultPool.GetResultMapList();
                     mapList = buffer.Pop();
-                    _result.ResultMapLists.Push(buffer);
+                    _resultOwner.ResultMapLists.Push(buffer);
                 }
             }
 
@@ -66,12 +67,12 @@ namespace HotChocolate.Execution.Utilities
 
             lock (_syncMap)
             {
-                if (!_result.ResultLists.TryPeek(out ResultObjectBuffer<ResultList> buffer) ||
+                if (!_resultOwner.ResultLists.TryPeek(out ResultObjectBuffer<ResultList> buffer) ||
                     !buffer.TryPop(out list))
                 {
                     buffer = _resultPool.GetResultList();
                     list = buffer.Pop();
-                    _result.ResultLists.Push(buffer);
+                    _resultOwner.ResultLists.Push(buffer);
                 }
             }
 
@@ -147,7 +148,7 @@ namespace HotChocolate.Execution.Utilities
                             if (parent is null)
                             {
                                 _data = null;
-                                _result.Dispose();
+                                _resultOwner.Dispose();
                                 break;
                             }
                         }
@@ -199,7 +200,7 @@ namespace HotChocolate.Execution.Utilities
             (
                 data: _data,
                 errors: _errors.Count == 0 ? null : new List<IError>(_errors),
-                disposable: _data is null ? null : _result
+                resultMemoryOwner: _data is null ? null : _resultOwner
             );
         }
 

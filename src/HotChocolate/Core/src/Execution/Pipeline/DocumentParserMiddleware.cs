@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(documentHashProvider));
         }
 
-        public async Task InvokeAsync(IRequestContext context)
+        public async ValueTask InvokeAsync(IRequestContext context)
         {
             if (context.Document is null && context.Request.Query is { })
             {

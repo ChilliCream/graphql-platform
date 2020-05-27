@@ -957,7 +957,8 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ContextData).Returns(contextData);
-            await Assert.ThrowsAsync<ArgumentException>(() => resolver.Resolver(context.Object));
+            await Assert.ThrowsAsync<ArgumentException>(
+                async () => await resolver.Resolver(context.Object));
         }
 
         [Fact]
@@ -1127,7 +1128,8 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.SetupProperty(t => t.ScopedContextData, contextData);
-            await Assert.ThrowsAsync<ArgumentException>(() => resolver.Resolver(context.Object));
+            await Assert.ThrowsAsync<ArgumentException>(
+                async () => await resolver.Resolver(context.Object));
         }
 
         [Fact]
@@ -1301,7 +1303,8 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.SetupProperty(t => t.LocalContextData, contextData);
-            await Assert.ThrowsAsync<ArgumentException>(() => resolver.Resolver(context.Object));
+            await Assert.ThrowsAsync<ArgumentException>(
+                async () => await resolver.Resolver(context.Object));
         }
 
         [Fact]

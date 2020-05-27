@@ -50,9 +50,9 @@ namespace HotChocolate.Resolvers
                         string name = ctx.Argument<string>("name");
                         if (name == null)
                         {
-                            return null;
+                            return new ValueTask<object>(null);
                         }
-                        return Task.FromResult<object>(name);
+                        return new ValueTask<object>(name);
                     }));
 
                 descriptor.Field("case4")

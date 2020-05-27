@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Instrumentation
 {
@@ -10,8 +9,7 @@ namespace HotChocolate.Execution.Instrumentation
         IActivityScope ValidateDocument(IRequestContext context);
 
         void SyntaxError(IRequestContext context, IError error);
-        
+
         void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors);
     }
-
 }

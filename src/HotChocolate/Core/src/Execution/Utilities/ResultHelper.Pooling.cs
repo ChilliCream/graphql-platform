@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Utilities
             _errors.Clear();
             _fieldErrors.Clear();
             _nonNullViolations.Clear();
-            _result = new Result(_resultPool);
+            _resultOwner = new ResultMemoryOwner(_resultPool);
             _data = null;
         }     
     }

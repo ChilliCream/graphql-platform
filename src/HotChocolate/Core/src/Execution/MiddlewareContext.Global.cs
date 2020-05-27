@@ -15,7 +15,8 @@ namespace HotChocolate.Execution
     internal partial class MiddlewareContext : IMiddlewareContext
     {
         private IOperationContext _operationContext = default!;
-        private Task<object?>? _resolverResult;
+        private object? _resolverResult;
+        private bool _hasResolverResult;
 
         public IServiceProvider Services => _operationContext.Services;
 
@@ -148,35 +149,25 @@ namespace HotChocolate.Execution
             }
 
             _operationContext.Result.AddError(
-                _operationContext.ErrorHandler.Handle(error), 
+                _operationContext.ErrorHandler.Handle(error),
                 FieldSelection);
             HasErrors = true;
         }
 
-        public async Task<T> ResolveAsync<T>()
+        public async ValueTask<T> ResolveAsync<T>()
         {
-            if (_resolverResult is null)
+            if (!_hasResolverResult)
             {
                 _resolverResult = Field.Resolver is null
-                    ? Task.FromResult<object?>(null)
-                    : Field.Resolver.Invoke(this);
+                    ? null
+                    : await Field.Resolver(this);
+                _hasResolverResult = true;
             }
 
-            object? result;
-
-            if (_resolverResult.IsCompleted && _resolverResult.Exception is null)
-            {
-                result = _resolverResult.Result;
-            }
-            else
-            {
-                result = await _resolverResult.ConfigureAwait(false);
-            }
-
-            return result is null ? default! : (T)result;
+            return _resolverResult is null ? default! : (T)_resolverResult;
         }
 
-        public T Resolver<T>() => _operationContext.Activator.GetOrCreateResolver<T>();
+        public T Resolver<T>() => _operationContext.Activator.GetOrCreate<T>();
 
         public T Service<T>()
         {

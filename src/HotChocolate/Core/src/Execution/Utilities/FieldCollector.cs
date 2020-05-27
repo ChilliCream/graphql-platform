@@ -521,7 +521,7 @@ namespace HotChocolate.Execution.Utilities
                 {
                     if (HasErrors(context.Result))
                     {
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     }
 
                     return component.Invoke(new DirectiveContext(context, directive));

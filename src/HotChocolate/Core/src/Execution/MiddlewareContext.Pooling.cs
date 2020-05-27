@@ -34,6 +34,7 @@ namespace HotChocolate.Execution
             _selection = default!;
             _parent = default;
             _resolverResult = default;
+            _hasResolverResult = false;
             _result = default;
 
             Path = default!;

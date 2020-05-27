@@ -1,47 +1,53 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Utilities
 {
     internal class TaskStatistics : ITaskStatistics
     {
-        private int _running;
-        private int _enqueued;
-        
+        private int _allTasks;
+        private int _newTasks;
+        private int _runningTasks;
+        private int _completedTasks;
+
         public event EventHandler<EventArgs>? StateChanged;
 
-        public int Enqueued => _enqueued;
+        public int AllTasks => _allTasks;
 
-        public int Running => _running;
+        public int NewTasks => _newTasks;
 
-        public void TaskEnqueued()
+        public int RunningTasks => _runningTasks;
+
+        public int CompletedTasks => _completedTasks;
+
+        public bool IsCompleted => _allTasks == _completedTasks;
+
+        public void TaskCreated()
         {
-            Interlocked.Increment(ref _enqueued);
-            StateChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        public void TaskDequeued()
-        {
-            Interlocked.Decrement(ref _enqueued);
+            Interlocked.Increment(ref _allTasks);
+            Interlocked.Increment(ref _newTasks);
             StateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void TaskStarted()
         {
-            Interlocked.Increment(ref _running);
+            Interlocked.Increment(ref _runningTasks);
+            Interlocked.Decrement(ref _newTasks);
             StateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void TaskCompleted()
         {
-            Interlocked.Decrement(ref _running);
+            Interlocked.Increment(ref _completedTasks);
+            Interlocked.Decrement(ref _runningTasks);
             StateChanged?.Invoke(this, EventArgs.Empty);
         }
-        
+
         public void Clear()
         {
-            _running = 0;
-            _enqueued = 0;
+            _newTasks = 0;
+            _runningTasks = 0;
         }
     }
 }

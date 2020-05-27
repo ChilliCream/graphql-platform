@@ -113,9 +113,6 @@ namespace HotChocolate.Execution
         public object Service(Type service) =>
             _middlewareContext.Service(service);
 
-        public Task<T> ResolveAsync<T>() =>
-            _middlewareContext.ResolveAsync<T>();
-
         public IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext) =>
             _middlewareContext.CollectFields(typeContext);
@@ -145,6 +142,11 @@ namespace HotChocolate.Execution
         }
 
         public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<T> IMiddlewareContext.ResolveAsync<T>()
         {
             throw new NotImplementedException();
         }

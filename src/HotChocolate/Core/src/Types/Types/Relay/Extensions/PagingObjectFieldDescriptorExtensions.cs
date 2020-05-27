@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Relay
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : class, IOutputType
         {
-            FieldMiddleware placeholder = next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default(ValueTask);
             Type middlewareDefinition = typeof(QueryableConnectionMiddleware<>);
 
             descriptor

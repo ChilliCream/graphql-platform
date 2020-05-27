@@ -248,7 +248,7 @@ namespace HotChocolate.Types
                 _next = next ?? throw new ArgumentNullException(nameof(next));
             }
 
-            public Task InvokeAsync(IMiddlewareContext context)
+            public ValueTask InvokeAsync(IMiddlewareContext context)
             {
                 context.Result = context.Field.Name + "_456";
                 return _next(context);
@@ -264,7 +264,7 @@ namespace HotChocolate.Types
                 _next = next ?? throw new ArgumentNullException(nameof(next));
             }
 
-            public Task InvokeAsync(IMiddlewareContext context)
+            public ValueTask InvokeAsync(IMiddlewareContext context)
             {
                 context.Result = context.Field.Name + "_789";
                 return _next(context);

@@ -87,7 +87,7 @@ namespace HotChocolate.Execution
                             CollectSelections(context, selection, list);
                         }
                     }
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 })
                 .Create();
 

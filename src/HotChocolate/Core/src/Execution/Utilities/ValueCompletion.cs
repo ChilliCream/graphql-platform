@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -378,6 +379,11 @@ namespace HotChocolate.Execution.Utilities
         {
             try
             {
+                if (!fieldType.ClrType.IsInstanceOfType(result) &&
+                    operationContext.Converter.TryConvert(fieldType.ClrType, result, out object c))
+                {
+                    result = c;
+                }
                 completedResult = fieldType.Serialize(result);
                 return true;
             }
