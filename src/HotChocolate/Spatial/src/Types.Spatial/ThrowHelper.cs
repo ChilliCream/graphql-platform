@@ -40,9 +40,13 @@ namespace HotChocolate.Types.Spatial
         }
 
         public static ScalarSerializationException InvalidPositionScalar() =>
-                new ScalarSerializationException(Resources.ThrowHelper_InvalidPositionScalar);
+            new ScalarSerializationException(Resources.ThrowHelper_InvalidPositionScalar);
 
         public static ArgumentNullException NullPositionScalar() =>
-                new ArgumentNullException(Resources.ThrowHelper_InvalidPositionScalar);
+            new ArgumentNullException(Resources.ThrowHelper_InvalidPositionScalar);
+
+        // TODO : move to resource
+        public static ArgumentException InvalidType() =>
+            new ArgumentException("The specified value has to be a Coordinate Type");
     }
 }

@@ -16,11 +16,6 @@ namespace HotChocolate.Types.Spatial
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal is null)
-            {
-                throw ThrowHelper.NullPositionScalar();
-            }
-
             if (literal is NullValueNode)
             {
                 return true;
@@ -28,7 +23,9 @@ namespace HotChocolate.Types.Spatial
 
             if (literal is ListValueNode listValueNode)
             {
-                if (listValueNode.Items.Count != 2 && listValueNode.Items.Count != 3)
+                int numberOfItems = listValueNode.Items.Count;
+
+                if (numberOfItems != 2 && numberOfItems != 3)
                 {
                     return false;
                 }
@@ -36,11 +33,11 @@ namespace HotChocolate.Types.Spatial
                 if (listValueNode.Items[0] is IFloatValueLiteral &&
                     listValueNode.Items[1] is IFloatValueLiteral)
                 {
-                    if (listValueNode.Items.Count == 2)
+                    if (numberOfItems == 2)
                     {
                         return true;
                     }
-                    else if (listValueNode.Items.Count == 3 &&
+                    else if (numberOfItems == 3 &&
                         listValueNode.Items[2] is IFloatValueLiteral)
                     {
                         return true;
@@ -101,8 +98,7 @@ namespace HotChocolate.Types.Spatial
 
             if (!(value is Coordinate coordinate))
             {
-                // TODO : ThrowHelper
-                throw new ArgumentException("The specified value has to be a Coordinate Type");
+                throw ThrowHelper.InvalidType();
             }
 
             var xNode = new FloatValueNode(coordinate.X);
@@ -135,7 +131,7 @@ namespace HotChocolate.Types.Spatial
                 return false;
             }
 
-            if (list.Count < 2)
+            if (list.Count < 2 || list.Count > 3)
             {
                 value = null;
                 return false;
@@ -148,28 +144,45 @@ namespace HotChocolate.Types.Spatial
                 x = Convert.ToDouble(list[0]);
                 y = Convert.ToDouble(list[1]);
             }
-            catch (OverflowException)
+            catch (Exception ex) when (ex is FormatException ||
+                ex is InvalidCastException ||
+                ex is OverflowException)
             {
                 value = null;
                 return false;
             }
 
-            var coordinate = new Coordinate(x, y);
-            if (list.Count > 2)
+            if (double.IsInfinity(x) || double.IsInfinity(y))
             {
-                try
-                {
-                    coordinate = new CoordinateZ(x, y, Convert.ToDouble(list[2]));
-                }
-                catch (OverflowException)
+                value = null;
+                return false;
+            }
+
+            if (list.Count == 2)
+            {
+                value = new Coordinate(x, y);
+                return true;
+            }
+
+            try
+            {
+                double z = Convert.ToDouble(list[2]);
+                if (double.IsInfinity(z))
                 {
                     value = null;
                     return false;
                 }
-            }
 
-            value = coordinate;
-            return true;
+                value = new CoordinateZ(x, y, z);
+                return true;
+            }
+            catch (Exception ex) when (ex is FormatException ||
+                ex is InvalidCastException ||
+                ex is OverflowException)
+            {
+                value = null;
+                return false;
+            }
         }
 
         public override bool TrySerialize(object? value, out object? serialized)
