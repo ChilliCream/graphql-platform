@@ -284,10 +284,7 @@ namespace HotChocolate.Utilities
             IList<CustomAttributeData> attributes)
         {
             CustomAttributeData data = attributes.FirstOrDefault(t =>
-                string.Equals(
-                    t.AttributeType.FullName,
-                    _nullableAttributeName,
-                    StringComparison.Ordinal));
+                    t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
 
             if (data is { })
             {
