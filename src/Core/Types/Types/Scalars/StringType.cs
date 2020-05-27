@@ -12,7 +12,7 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-String
     /// </summary>
     [SpecScalar]
-    public sealed class StringType
+    public class StringType
         : ScalarType
     {
         /// <summary>
@@ -20,6 +20,15 @@ namespace HotChocolate.Types
         /// </summary>
         public StringType()
             : base("String")
+        {
+            Description = TypeResources.StringType_Description;
+        }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StringType"/> class.
+        /// </summary>
+        public StringType(string name)
+            : base(name)
         {
             Description = TypeResources.StringType_Description;
         }
