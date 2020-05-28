@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
+using System.Threading.Channels;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -8,12 +7,9 @@ namespace HotChocolate.Execution.Utilities
     {
         event EventHandler<EventArgs> StateChanged;
 
-        ConcurrentBag<ResolverTask> Work { get; }
-        bool IsDone { get; }
+        Channel<ResolverTask> Work { get; }
 
         void DoWork(ResolverTask task);
-
-        void DoProcessing(ValueTask task);
 
         int NewTasks { get; }
 

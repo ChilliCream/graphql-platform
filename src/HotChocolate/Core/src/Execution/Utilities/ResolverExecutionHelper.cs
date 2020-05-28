@@ -12,23 +12,15 @@ namespace HotChocolate.Execution.Utilities
                 async () => await ExecuteResolvers(executionContext, cancellationToken),
                 cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 
-        public static Task ExecuteResolvers(
+        public static async Task ExecuteResolvers(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            var wait = new SpinWait();
-
-            while (!executionContext.TaskStats.IsDone &&
-                !cancellationToken.IsCancellationRequested)
+            await foreach (ResolverTask task in executionContext.TaskStats.Work.Reader
+                .ReadAllAsync(cancellationToken))
             {
-                while (executionContext.TaskStats.Work.TryTake(out ResolverTask? task) &&
-                    !cancellationToken.IsCancellationRequested)
-                {
-                    task.BeginExecute();
-                }
-                wait.SpinOnce();
+                task.BeginExecute();
             }
-            return Task.CompletedTask;
             /*
             while (!cancellationToken.IsCancellationRequested &&
                 !executionContext.IsCompleted)

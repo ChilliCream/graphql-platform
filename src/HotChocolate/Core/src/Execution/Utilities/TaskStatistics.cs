@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Channels;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -24,42 +23,18 @@ namespace HotChocolate.Execution.Utilities
 
         public bool IsCompleted => _allTasks == _completedTasks;
 
-        public ConcurrentBag<ResolverTask> Work { get; private set; } =
-            new ConcurrentBag<ResolverTask>();
-
-        public ConcurrentBag<ValueTask> Processing { get; private set; } =
-            new ConcurrentBag<ValueTask>();
-
-        public bool IsDone { get; private set; } = false;
-
-        private Task? _processingTask = null;
+        public Channel<ResolverTask> Work { get; private set; } =
+            Channel.CreateUnbounded<ResolverTask>();
 
         public void DoWork(ResolverTask task)
         {
-            Work.Add(task);
-        }
-
-        public void DoProcessing(ValueTask task)
-        {
-            Processing.Add(task);
-            if (_processingTask == null)
-            {
-                _processingTask = Task.Run(async () =>
-                {
-                    while (Processing.TryTake(out ValueTask read))
-                    {
-                        await read;
-                    }
-                    IsDone = true;
-                });
-            }
+            Interlocked.Increment(ref _allTasks);
+            Work.Writer.TryWrite(task);
         }
 
         public void TaskCreated()
         {
             Interlocked.Increment(ref _allTasks);
-            Interlocked.Increment(ref _newTasks);
-            StateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void TaskStarted()
@@ -72,18 +47,17 @@ namespace HotChocolate.Execution.Utilities
         public void TaskCompleted()
         {
             Interlocked.Increment(ref _completedTasks);
-            Interlocked.Decrement(ref _runningTasks);
-            StateChanged?.Invoke(this, EventArgs.Empty);
+            if (IsCompleted)
+            {
+                Work.Writer.TryComplete();
+            }
         }
 
         public void Clear()
         {
             _newTasks = 0;
             _runningTasks = 0;
-            _processingTask = null;
-            Work.Clear();
-            Processing.Clear();
-            IsDone = false;
+            Work = Channel.CreateUnbounded<ResolverTask>();
         }
     }
 }
