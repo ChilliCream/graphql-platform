@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,10 +12,24 @@ namespace HotChocolate.Execution.Utilities
                 async () => await ExecuteResolvers(executionContext, cancellationToken),
                 cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 
-        public static async Task ExecuteResolvers(
+        public static Task ExecuteResolvers(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
+            var wait = new SpinWait();
+
+            while (!executionContext.TaskStats.IsDone &&
+                !cancellationToken.IsCancellationRequested)
+            {
+                while (executionContext.TaskStats.Work.TryTake(out ResolverTask? task) &&
+                    !cancellationToken.IsCancellationRequested)
+                {
+                    task.BeginExecute();
+                }
+                wait.SpinOnce();
+            }
+            return Task.CompletedTask;
+            /*
             while (!cancellationToken.IsCancellationRequested &&
                 !executionContext.IsCompleted)
             {
@@ -28,7 +40,7 @@ namespace HotChocolate.Execution.Utilities
                 }
 
                 await executionContext.WaitAsync(cancellationToken).ConfigureAwait(false);
-            }
+            }*/
         }
     }
 }

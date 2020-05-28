@@ -52,9 +52,7 @@ namespace HotChocolate.Execution.Utilities
                 path,
                 scopedContextData);
 
-            _queue.Add(resolverTask);
-
-            _stats.TaskCreated();
+            _stats.DoWork(resolverTask);
         }
 
         public void Clear()

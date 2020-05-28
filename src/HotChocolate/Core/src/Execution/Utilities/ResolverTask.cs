@@ -17,8 +17,7 @@ namespace HotChocolate.Execution.Utilities
 
         public void BeginExecute()
         {
-            _operationContext.Execution.TaskStats.TaskStarted();
-            _task = ExecuteInternalAsync();
+            _operationContext.Execution.TaskStats.DoProcessing(ExecuteInternalAsync());
         }
 
         private async ValueTask ExecuteInternalAsync()
@@ -42,7 +41,6 @@ namespace HotChocolate.Execution.Utilities
             }
             finally
             {
-                _operationContext.Execution.TaskStats.TaskCompleted();
                 _operationContext.Execution.TaskPool.Return(this);
             }
         }
