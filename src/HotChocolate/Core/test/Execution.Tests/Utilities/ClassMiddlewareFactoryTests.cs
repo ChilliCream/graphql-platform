@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Execution.Utilities
 {
