@@ -13,8 +13,6 @@ namespace HotChocolate.Execution
 
         public IVariableValueCollection Variables { get; private set; } = default!;
 
-        public IActivator Activator => throw new NotImplementedException();
-
         public IResultHelper Result => _resultHelper;
 
         public IExecutionContext Execution => _executionContext;

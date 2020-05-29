@@ -11,6 +11,7 @@ namespace HotChocolate.Execution.Pipeline
         [Fact]
         public async Task RetrieveItemFromCache_DocumentFoundOnCache()
         {
+            // arrange
             var cache = new Caching.DefaultDocumentCache();
             var hashProvider = new MD5DocumentHashProvider();
 
@@ -34,8 +35,10 @@ namespace HotChocolate.Execution.Pipeline
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
+            // act
             await middleware.InvokeAsync(requestContext.Object);
 
+            // assert
             Assert.Equal(document, requestContext.Object.Document);
             Assert.Equal("a", requestContext.Object.DocumentId);
         }
@@ -43,6 +46,7 @@ namespace HotChocolate.Execution.Pipeline
         [Fact]
         public async Task RetrieveItemFromCacheByHash_DocumentFoundOnCache()
         {
+            // arrange
             var cache = new Caching.DefaultDocumentCache();
             var hashProvider = new MD5DocumentHashProvider();
 
@@ -66,8 +70,10 @@ namespace HotChocolate.Execution.Pipeline
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
+            // act
             await middleware.InvokeAsync(requestContext.Object);
 
+            // assert
             Assert.Equal(document, requestContext.Object.Document);
             Assert.Equal("a", requestContext.Object.DocumentId);
         }
@@ -75,6 +81,7 @@ namespace HotChocolate.Execution.Pipeline
         [Fact]
         public async Task RetrieveItemFromCache_DocumentNotFoundOnCache()
         {
+            // arrange
             var cache = new Caching.DefaultDocumentCache();
             var hashProvider = new MD5DocumentHashProvider();
 
@@ -98,8 +105,10 @@ namespace HotChocolate.Execution.Pipeline
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
+            // act
             await middleware.InvokeAsync(requestContext.Object);
 
+            // assert
             Assert.Null(requestContext.Object.Document);
             Assert.Null(requestContext.Object.DocumentId);
         }
@@ -107,6 +116,7 @@ namespace HotChocolate.Execution.Pipeline
         [Fact]
         public async Task AddItemToCache()
         {
+            // arrange
             var cache = new Caching.DefaultDocumentCache();
             var hashProvider = new MD5DocumentHashProvider();
 
@@ -133,8 +143,10 @@ namespace HotChocolate.Execution.Pipeline
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
+            // act
             await middleware.InvokeAsync(requestContext.Object);
 
+            // assert
             Assert.Equal(document, requestContext.Object.Document);
             Assert.Equal("a", requestContext.Object.DocumentId);
         }

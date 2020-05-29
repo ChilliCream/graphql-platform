@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -26,6 +27,11 @@ namespace HotChocolate.Execution
         IErrorHandler ErrorHandler { get; }
 
         /// <summary>
+        /// Gets the diagnostic events.
+        /// </summary>
+        IDiagnosticEvents DiagnosticEvents { get; }
+
+        /// <summary>
         /// Gets the operation that is being executed.
         /// </summary>
         /// <value></value>
@@ -46,7 +52,7 @@ namespace HotChocolate.Execution
         /// Gets a cancellation token is used to signal
         /// if the request has be aborted.
         /// </summary>
-        CancellationToken RequestAborted { get; }        
+        CancellationToken RequestAborted { get; }
 
         // TODO : documentation -> remember this are the raw collected fields without visibility
         IPreparedSelectionList CollectFields(SelectionSetNode selectionSet, ObjectType objectType);
@@ -55,12 +61,6 @@ namespace HotChocolate.Execution
         /// Gets the activator helper class.
         /// </summary>
         IActivator Activator { get; }
-
-        // TODO : introduce new diagnostic abstraction
-        /// <summary>
-        /// Gets the diagnostics writer for query execution.
-        /// </summary>
-        // QueryExecutionDiagnostics Diagnostics { get; }
 
         /// <summary>
         /// Gets the type conversion service.

@@ -5,7 +5,7 @@ using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution.Errors
 {
-    public class ErrorHandler : IErrorHandler
+    internal sealed class DefaultErrorHandler : IErrorHandler
     {
         private const string _messageProperty = "message";
         private const string _stackTraceProperty = "stackTrace";
@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Errors
         private readonly IErrorFilter[] _filters;
         private readonly bool _includeExceptionDetails;
 
-        public ErrorHandler(
+        public DefaultErrorHandler(
             IEnumerable<IErrorFilter> errorFilters,
             IErrorHandlerOptionsAccessor options)
         {
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Errors
             _includeExceptionDetails = options.IncludeExceptionDetails;
         }
 
-        private ErrorHandler()
+        private DefaultErrorHandler()
         {
             _filters = Array.Empty<IErrorFilter>();
             _includeExceptionDetails = false;
@@ -86,7 +86,7 @@ namespace HotChocolate.Execution.Errors
             return builder;
         }
 
-        public static ErrorHandler Default { get; } =
-            new ErrorHandler();
+        public static DefaultErrorHandler Default { get; } =
+            new DefaultErrorHandler();
     }
 }

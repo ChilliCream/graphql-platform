@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -17,6 +18,7 @@ namespace HotChocolate.Execution
             IErrorHandler errorHandler,
             ITypeConversion converter,
             IActivator activator,
+            IDiagnosticEvents diagnosticEvents,
             IReadOnlyQueryRequest request)
         {
             Schema = schema;
@@ -24,6 +26,7 @@ namespace HotChocolate.Execution
             ErrorHandler = errorHandler;
             Converter = converter;
             Activator = activator;
+            DiagnosticEvents = diagnosticEvents;
             Request = request;
             ContextData = request.ContextData is null
                 ? new ConcurrentDictionary<string, object?>()
@@ -39,6 +42,8 @@ namespace HotChocolate.Execution
         public ITypeConversion Converter { get; }
 
         public IActivator Activator { get; }
+
+        public IDiagnosticEvents DiagnosticEvents { get; }
 
         public IReadOnlyQueryRequest Request { get; }
 

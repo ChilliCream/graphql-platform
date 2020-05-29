@@ -41,7 +41,7 @@ namespace HotChocolate.Execution.Pipeline
                 context.Document = document;
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 addToCache = false;
-                // _diagnosticEvents.RetrievedDocumentFromCache(context);
+                _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
             else if (request.QueryHash is { } queryHash &&
                 _documentCache.TryGetDocument(queryHash, out document))
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution.Pipeline
                 context.Document = document;
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 addToCache = false;
-                // _diagnosticEvents.RetrievedDocumentFromCache(context);
+                _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
 
             await _next(context).ConfigureAwait(false);
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution.Pipeline
                 context.ValidationResult is { HasErrors: false })
             {
                 _documentCache.TryAddDocument(context.DocumentId, context.Document);
-                // _diagnosticEvents.AddedDocumentToCache(context);
+                _diagnosticEvents.AddedDocumentToCache(context);
             }
         }
     }

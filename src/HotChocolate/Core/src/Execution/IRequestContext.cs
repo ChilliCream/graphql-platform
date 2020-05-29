@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -36,6 +37,11 @@ namespace HotChocolate.Execution
         /// Gets the activator helper class.
         /// </summary>
         IActivator Activator { get; }
+
+        /// <summary>
+        /// Gets the diagnostic events logger.
+        /// </summary>
+        IDiagnosticEvents DiagnosticEvents { get; }
 
         /// <summary>
         /// Gets or sets the initial query request.
