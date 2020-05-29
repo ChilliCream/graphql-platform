@@ -10,6 +10,7 @@ namespace HotChocolate.Language
         private const byte _t = (byte)'t';
         private const byte _i = (byte)'i';
         private const byte _p = (byte)'p';
+        private const byte _d = (byte)'d';
 
         private static readonly byte[] _operationName = new[]
         {
@@ -88,6 +89,16 @@ namespace HotChocolate.Language
 
         private static readonly byte[] _id = new[]
         {
+            (byte)'i',
+            (byte)'d'
+        };
+
+        private static readonly byte[] _docId = new[]
+        {
+            (byte)'d',
+            (byte)'o',
+            (byte)'c',
+            (byte)'_',
             (byte)'i',
             (byte)'d'
         };
