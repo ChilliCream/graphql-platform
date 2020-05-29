@@ -55,14 +55,24 @@ namespace HotChocolate.Execution
         CancellationToken RequestAborted { get; set; }
 
         /// <summary>
-        /// Gets a unique identifier for a query document.
+        /// Gets or sets a unique identifier for a query document.
         /// </summary>
         string? DocumentId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the document hash.
+        /// </summary>
+        string? DocumentHash { get; set; }
 
         /// <summary>
         /// Gets or sets the parsed query document.
         /// </summary>
         DocumentNode? Document { get; set; }
+
+        /// <summary>
+        /// Defines that the document was retrieved from cache.
+        /// </summary>
+        bool IsCachedDocument { get; set; }
 
         /// <summary>
         /// Gets or sets the document validation result.

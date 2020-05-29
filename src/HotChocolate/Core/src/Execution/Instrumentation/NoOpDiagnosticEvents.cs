@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 
@@ -7,6 +8,14 @@ namespace HotChocolate.Execution.Instrumentation
         : IDiagnosticEvents
         , IActivityScope
     {
+        public IActivityScope ExecuteRequest(
+            IRequestContext context) => this;
+
+        public void RequestError(
+            IRequestContext context, 
+            Exception exception) 
+        { }
+
         public IActivityScope ParseDocument(
             IRequestContext context) => this;
 

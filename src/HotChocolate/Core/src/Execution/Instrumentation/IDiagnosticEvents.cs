@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 
@@ -5,6 +6,10 @@ namespace HotChocolate.Execution.Instrumentation
 {
     public interface IDiagnosticEvents
     {
+        IActivityScope ExecuteRequest(IRequestContext context);
+
+        void RequestError(IRequestContext context, Exception exception);
+
         IActivityScope ParseDocument(IRequestContext context);
 
         void SyntaxError(IRequestContext context, IError error);
@@ -20,6 +25,8 @@ namespace HotChocolate.Execution.Instrumentation
         void AddedDocumentToCache(IRequestContext context);
 
         void RetrievedDocumentFromCache(IRequestContext context);
+
+        void RetrievedDocumentFromStorage(IRequestContext context);
 
         void BatchDispatched(IRequestContext context);
 

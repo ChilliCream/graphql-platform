@@ -40,7 +40,9 @@ namespace HotChocolate.Execution.Pipeline
                     using (_diagnosticEvents.ParseDocument(context))
                     {
                         context.DocumentId = ComputeDocumentHash(
-                            context.Request.QueryHash, context.Request.Query);
+                            context.DocumentHash, 
+                            context.Request.QueryHash, 
+                            context.Request.Query);
                         context.Document = ParseDocument(context.Request.Query);
                     }
                 }
@@ -87,9 +89,9 @@ namespace HotChocolate.Execution.Pipeline
             throw ThrowHelper.QueryTypeNotSupported();
         }
 
-        private string ComputeDocumentHash(string? queryHash, IQuery query)
+        private string ComputeDocumentHash(string? documentHash, string? queryHash, IQuery query)
         {
-            return queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
+            return documentHash ?? queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
         }
     }
 }
