@@ -5,13 +5,13 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Execution.Pipeline
 {
-    internal sealed class PersistedQueryMiddleware
+    internal sealed class ReadPersistedQueryMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
         private IReadStoredQueries _persistedQueryStore;
 
-        public PersistedQueryMiddleware(
+        public ReadPersistedQueryMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
             IReadStoredQueries persistedQueryStore)

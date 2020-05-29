@@ -99,6 +99,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<ExceptionMiddleware>();
 
+        public static IRequestExecutorBuilder UseInstrumentations(
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<InstrumentationMiddleware>();
+
         public static IRequestExecutorBuilder UseOperationCache(
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<OperationCacheMiddleware>();
@@ -115,6 +119,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<OperationVariableCoercionMiddleware>();
 
+        public static IRequestExecutorBuilder UseReadPersistedQuery(
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<ReadPersistedQueryMiddleware>();
+
         public static IRequestExecutorBuilder UseDefaultPipeline(
             this IRequestExecutorBuilder builder)
         {
@@ -128,8 +136,30 @@ namespace Microsoft.Extensions.DependencyInjection
                 options => options.Pipeline.AddDefaultPipeline());
         }
 
+        public static IRequestExecutorBuilder UsePersistedQueryPipeline(
+            this IRequestExecutorBuilder builder)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder
+                .UseInstrumentations()
+                .UseExceptions()
+                .UseDocumentCache()
+                .UseReadPersistedQuery()
+                .UseDocumentParser()
+                .UseDocumentValidation()
+                .UseOperationCache()
+                .UseOperationResolver()
+                .UseOperationVariableCoercion()
+                .UseOperationExecution();
+        }
+
         internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
         {
+            pipeline.Add(RequestClassMiddlewareFactory.Create<InstrumentationMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<ExceptionMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentCacheMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentParserMiddleware>());
