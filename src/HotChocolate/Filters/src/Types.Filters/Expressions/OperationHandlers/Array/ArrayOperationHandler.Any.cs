@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 return false;
             }
 
-            if (operation.Kind == FilterOperationKind.ArrayAny &&
+            if (FilterOperationKind.ArrayAny.Equals(operation.Kind) &&
                 type.IsInstanceOfType(value) &&
                 parsedValue is bool parsedBool &&
                 context is QueryableFilterVisitorContext queryableContext)

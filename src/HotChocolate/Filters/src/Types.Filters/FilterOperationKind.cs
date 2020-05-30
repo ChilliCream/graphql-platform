@@ -1,44 +1,42 @@
 namespace HotChocolate.Types.Filters
 {
-    public enum FilterOperationKind
-        : byte
+    public static class FilterOperationKind
     {
-        Equals = 0x0000,
-        NotEquals = 0x0001,
+        public new const string Equals = "Equals";
+        public const string NotEquals = "NotEquals";
 
-        Contains = 0x0002,
-        NotContains = 0x0003,
+        public const string Contains = "Contains";
+        public const string NotContains = "NotContains";
 
-        In = 0x0004,
-        NotIn = 0x0005,
+        public const string In = "In";
+        public const string NotIn = "NotIn";
 
-        StartsWith = 0x0006,
-        NotStartsWith = 0x0007,
+        public const string StartsWith = "StartsWith";
+        public const string NotStartsWith = "NotStartsWith";
 
-        EndsWith = 0x0008,
-        NotEndsWith = 0x0009,
+        public const string EndsWith = "EndsWith";
+        public const string NotEndsWith = "NotEndsWith";
 
-        GreaterThan = 0x0016,
-        NotGreaterThan = 0x0017,
+        public const string GreaterThan = "GreaterThan";
+        public const string NotGreaterThan = "NotGreaterThan";
 
-        GreaterThanOrEquals = 0x0018,
-        NotGreaterThanOrEquals = 0x0019,
+        public const string GreaterThanOrEquals = "GreaterThanOrEquals";
+        public const string NotGreaterThanOrEquals = "NotGreaterThanOrEquals";
 
-        LowerThan = 0x0020,
-        NotLowerThan = 0x0021,
+        public const string LowerThan = "LowerThan";
+        public const string NotLowerThan = "NotLowerThan";
 
-        LowerThanOrEquals = 0x0022,
-        NotLowerThanOrEquals = 0x0023,
+        public const string LowerThanOrEquals = "LowerThanOrEquals";
+        public const string NotLowerThanOrEquals = "NotLowerThanOrEquals";
 
-        Object = 0x0024,
+        public const string Object = "Object";
 
-        ArraySome = 0x0026,
+        public const string ArraySome = "ArraySome";
 
-        ArrayNone = 0x0028,
+        public const string ArrayNone = "ArrayNone";
 
-        ArrayAll = 0x0030,
+        public const string ArrayAll = "ArrayAll";
 
-        ArrayAny = 0x0032,
-
+        public const string ArrayAny = "ArrayAny";
     }
 }

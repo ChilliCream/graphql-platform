@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             throw new NotSupportedException();
         }

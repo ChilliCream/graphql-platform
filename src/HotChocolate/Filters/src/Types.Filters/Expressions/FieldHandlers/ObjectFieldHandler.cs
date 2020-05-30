@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 return true;
             }
 
-            if (field.Operation.Kind == FilterOperationKind.Object)
+            if (FilterOperationKind.Object.Equals(field.Operation.Kind))
             {
                 MemberExpression nestedProperty = Expression.Property(
                     context.GetInstance(),
@@ -53,12 +53,12 @@ namespace HotChocolate.Types.Filters.Expressions
 
         public static void Leave(
             FilterOperationField field,
-            ObjectFieldNode node,
+            ObjectFieldNode _,
             IFilterVisitorContext<Expression> context)
         {
             if (context is QueryableFilterVisitorContext queryableContext)
             {
-                if (field.Operation.Kind == FilterOperationKind.Object)
+                if (FilterOperationKind.Object.Equals(field.Operation.Kind))
                 {
                     // Deque last expression to prefix with nullcheck
                     Expression condition = context.GetLevel().Dequeue();

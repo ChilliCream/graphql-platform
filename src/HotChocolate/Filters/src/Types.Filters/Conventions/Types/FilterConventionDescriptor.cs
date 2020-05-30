@@ -19,14 +19,14 @@ namespace HotChocolate.Types.Filters.Conventions
         internal protected FilterConventionDefinition Definition { get; private set; } =
             new FilterConventionDefinition();
 
-        private readonly ConcurrentDictionary<FilterOperationKind,
+        private readonly ConcurrentDictionary<object,
             FilterConventionDefaultOperationDescriptor> _defaultOperations =
-                new ConcurrentDictionary<FilterOperationKind,
+                new ConcurrentDictionary<object,
                     FilterConventionDefaultOperationDescriptor>();
 
-        private readonly ConcurrentDictionary<FilterKind,
+        private readonly ConcurrentDictionary<object,
             FilterConventionTypeDescriptor> _configurations =
-                new ConcurrentDictionary<FilterKind, FilterConventionTypeDescriptor>();
+                new ConcurrentDictionary<object, FilterConventionTypeDescriptor>();
 
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
@@ -62,26 +62,26 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind)
+        public IFilterConventionDefaultOperationDescriptor Operation(object kind)
         {
             return _defaultOperations.GetOrAdd(
                 kind,
-                (FilterOperationKind kind) =>
+                (object kind) =>
                 FilterConventionDefaultOperationDescriptor.New(this, kind));
         }
 
-        public IFilterConventionTypeDescriptor Type(FilterKind kind)
+        public IFilterConventionTypeDescriptor Type(object kind)
         {
             return _configurations.GetOrAdd(
                 kind,
-                (FilterKind kind) => FilterConventionTypeDescriptor.New(this, kind));
+                (object kind) => FilterConventionTypeDescriptor.New(this, kind));
         }
 
-        public IFilterConventionDescriptor Ignore(FilterKind kind, bool ignore = true)
+        public IFilterConventionDescriptor Ignore(object kind, bool ignore = true)
         {
             _configurations.GetOrAdd(
                 kind,
-                (FilterKind kind) => FilterConventionTypeDescriptor.New(this, kind))
+                (object kind) => FilterConventionTypeDescriptor.New(this, kind))
                 .Ignore(ignore);
             return this;
         }
@@ -112,10 +112,10 @@ namespace HotChocolate.Types.Filters.Conventions
             }
 
             var allowedOperations =
-                new Dictionary<FilterKind, IReadOnlyCollection<FilterOperationKind>>();
-            var typeDefinitions = new Dictionary<FilterKind, FilterConventionTypeDefinition>();
-            var defaultOperationNames = new Dictionary<FilterOperationKind, CreateFieldName>();
-            var defaultOperationDescriptions = new Dictionary<FilterOperationKind, string>();
+                new Dictionary<object, IReadOnlyCollection<object>>();
+            var typeDefinitions = new Dictionary<object, FilterConventionTypeDefinition>();
+            var defaultOperationNames = new Dictionary<object, CreateFieldName>();
+            var defaultOperationDescriptions = new Dictionary<object, string>();
 
             foreach (FilterConventionTypeDescriptor descriptor in _configurations.Values)
             {

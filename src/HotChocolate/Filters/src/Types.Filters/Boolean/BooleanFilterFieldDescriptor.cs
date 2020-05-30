@@ -78,18 +78,18 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind) =>
+            object operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
         private BooleanFilterOperationDescriptor GetOrCreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
                     () => CreateOperation(operationKind));
         }
 
         private BooleanFilterOperationDescriptor CreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             var operation = new FilterOperation(
                 typeof(bool),

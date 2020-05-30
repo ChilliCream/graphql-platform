@@ -43,11 +43,11 @@ namespace HotChocolate.Types.Filters
             BindFilters(BindingBehavior.Implicit);
 
         protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind) =>
+            object operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
         private ObjectFilterOperationDescriptor<TObject> CreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             var operation = new FilterOperation(
                 typeof(TObject),
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Filters
         }
 
         private ObjectFilterOperationDescriptor<TObject> GetOrCreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
                 () => CreateOperation(operationKind));

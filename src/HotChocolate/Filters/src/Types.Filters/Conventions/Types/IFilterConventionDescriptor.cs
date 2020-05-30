@@ -44,11 +44,11 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterConventionDescriptor Description(GetFilterTypeDescription factory);
 
         /// <summary>
-        /// Specifies the configuration of a <see cref="FilterKind"/> with a
+        /// Specifies the configuration of a filter kind with a
         /// <see cref="FilterConventionTypeDescriptor"/>
         /// </summary>
-        /// <param name="kind">The <see cref="FilterKind"/> to configure</param>
-        IFilterConventionTypeDescriptor Type(FilterKind kind);
+        /// <param name="kind">The filter kind to configure</param>
+        IFilterConventionTypeDescriptor Type(object kind);
 
         /// <summary>
         /// Removes all configuration (including default configuration!)
@@ -57,17 +57,17 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterConventionDescriptor Reset();
 
         /// <summary>
-        /// Ignores a <see cref="FilterKind"/>
+        /// Ignores a filter kind
         /// </summary>
-        /// <param name="kind">The <see cref="FilterKind"/> to ignore</param>
+        /// <param name="kind">The filter kind to ignore</param>
         /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
-        IFilterConventionDescriptor Ignore(FilterKind kind, bool ignore = true);
+        IFilterConventionDescriptor Ignore(object kind, bool ignore = true);
 
         /// <summary>
-        /// Configures the default behavior of an <see cref="FilterOperationKind"/> 
+        /// Configures the default behavior of an operation kind 
         /// </summary>
-        /// <param name="kind">The <see cref="FilterOperationKind"/> to configure</param> 
-        IFilterConventionDefaultOperationDescriptor Operation(FilterOperationKind kind);
+        /// <param name="kind">The operation kind to configure</param> 
+        IFilterConventionDefaultOperationDescriptor Operation(object kind);
 
         /// <summary>
         /// Specifies a delegate of type <see cref="TryCreateImplicitFilter"/>. This delegate is

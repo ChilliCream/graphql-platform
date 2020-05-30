@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         protected FilterConventionTypeDescriptor(
             FilterConventionDescriptor descriptor,
-            FilterKind kind)
+            object kind)
         {
             _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             Definition.FilterKind = kind;
@@ -19,9 +19,9 @@ namespace HotChocolate.Types.Filters.Conventions
         internal protected FilterConventionTypeDefinition Definition { get; } =
             new FilterConventionTypeDefinition();
 
-        private readonly ConcurrentDictionary<FilterOperationKind, 
-            FilterConventionOperationDescriptor> _operations =
-            new ConcurrentDictionary<FilterOperationKind, FilterConventionOperationDescriptor>();
+        private readonly ConcurrentDictionary<object, FilterConventionOperationDescriptor>
+            _operations =
+                new ConcurrentDictionary<object, FilterConventionOperationDescriptor>();
 
         public IFilterConventionDescriptor And()
         {
@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
         public IFilterConventionTypeDescriptor Ignore(
-            FilterOperationKind kind,
+            object kind,
             bool ignore = true)
         {
             _operations.GetOrAdd(kind, kind => FilterConventionOperationDescriptor.New(this, kind))
@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public IFilterConventionOperationDescriptor Operation(FilterOperationKind kind)
+        public IFilterConventionOperationDescriptor Operation(object kind)
         {
             return _operations.GetOrAdd(
                 kind,
@@ -53,9 +53,9 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public FilterConventionTypeDefinition CreateDefinition()
         {
-            var operationDescriptions = new Dictionary<FilterOperationKind, string>();
-            var operationsNames = new Dictionary<FilterOperationKind, CreateFieldName>();
-            var allowedOperations = new HashSet<FilterOperationKind>();
+            var operationDescriptions = new Dictionary<object, string>();
+            var operationsNames = new Dictionary<object, CreateFieldName>();
+            var allowedOperations = new HashSet<object>();
 
             foreach (FilterConventionOperationDescriptor descriptor in _operations.Values)
             {
@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
         public static FilterConventionTypeDescriptor New(
-            FilterConventionDescriptor descriptor, FilterKind kind) =>
+            FilterConventionDescriptor descriptor, object kind) =>
             new FilterConventionTypeDescriptor(descriptor, kind);
     }
 }

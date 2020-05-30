@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterFieldDefintion>
     {
         protected FilterFieldDescriptorBase(
-            FilterKind filterKind,
+            object filterKind,
             IDescriptorContext context,
             PropertyInfo property,
             IFilterConvention filterConventions)
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected FilterFieldDescriptorBase(
-            FilterKind filterKind,
+            object filterKind,
             IDescriptorContext context,
             IFilterConvention filterConventions)
             : base(context)
@@ -54,10 +54,10 @@ namespace HotChocolate.Types.Filters
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
 
-        protected IReadOnlyCollection<FilterOperationKind> AllowedOperations { get; }
+        protected IReadOnlyCollection<object> AllowedOperations { get; }
 
-        protected virtual ISet<FilterOperationKind> ListOperations { get; } =
-            new HashSet<FilterOperationKind>
+        protected virtual ISet<object> ListOperations { get; } =
+            new HashSet<object>
             {
                 FilterOperationKind.In,
                 FilterOperationKind.NotIn
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Filters
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
-            var handledOperations = new HashSet<FilterOperationKind>();
+            var handledOperations = new HashSet<object>();
 
             AddExplicitFilters(fields, handledOperations);
             OnCompleteFilters(fields, handledOperations);
@@ -89,7 +89,7 @@ namespace HotChocolate.Types.Filters
 
         private void AddExplicitFilters(
             IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<FilterOperationKind> handledFilterKinds)
+            ISet<object> handledFilterKinds)
         {
             foreach (FilterOperationDefintion filterDefinition in
                 Filters.Select(t => t.CreateDefinition()).Where(x => x.Operation is { }))
@@ -105,11 +105,11 @@ namespace HotChocolate.Types.Filters
 
         protected virtual void OnCompleteFilters(
             IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<FilterOperationKind> handledFilterKinds)
+            ISet<object> handledFilterKinds)
         {
             if (Definition.Filters.IsImplicitBinding())
             {
-                foreach (FilterOperationKind operationKind in AllowedOperations)
+                foreach (object operationKind in AllowedOperations)
                 {
                     AddImplicitOperation(
                         fields,
@@ -121,8 +121,8 @@ namespace HotChocolate.Types.Filters
 
         protected virtual void AddImplicitOperation(
             IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<FilterOperationKind> handledFilterKinds,
-            FilterOperationKind operationKind)
+            ISet<object> handledFilterKinds,
+            object operationKind)
         {
             if (handledFilterKinds.Add(operationKind))
             {
@@ -286,7 +286,7 @@ namespace HotChocolate.Types.Filters
             return null;
         }
 
-        protected NameString CreateFieldName(FilterOperationKind kind)
+        protected NameString CreateFieldName(object kind)
         {
             if (Definition.Property is { } &&
                 typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
@@ -296,8 +296,7 @@ namespace HotChocolate.Types.Filters
             return FilterConvention.CreateFieldName(Definition, kind);
         }
 
-        protected virtual ITypeReference? RewriteType(
-            FilterOperationKind operationKind)
+        protected virtual ITypeReference? RewriteType(object operationKind)
         {
             if (ListOperations.Contains(operationKind))
             {
@@ -307,6 +306,6 @@ namespace HotChocolate.Types.Filters
         }
 
         protected abstract FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind);
+            object operationKind);
     }
 }
