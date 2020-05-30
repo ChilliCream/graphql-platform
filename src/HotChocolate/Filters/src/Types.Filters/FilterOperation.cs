@@ -12,8 +12,8 @@ namespace HotChocolate.Types.Filters
 
         public FilterOperation(
             Type type,
-            FilterKind filterKind,
-            FilterOperationKind kind,
+            object filterKind,
+            object kind,
             PropertyInfo property)
         {
             Type = type;
@@ -31,9 +31,9 @@ namespace HotChocolate.Types.Filters
 
         public Type Type { get; }
 
-        public FilterKind FilterKind { get; }
+        public object FilterKind { get; }
 
-        public FilterOperationKind Kind { get; }
+        public object Kind { get; }
 
         public PropertyInfo Property { get; }
 

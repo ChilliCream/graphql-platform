@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind) =>
+            object operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
         protected void SetTypeReference(Type type)
@@ -91,7 +91,7 @@ namespace HotChocolate.Types.Filters
         }
 
         private ObjectFilterOperationDescriptor CreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             var operation = new FilterOperation(
                 _type,
@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Filters
         }
 
         private ObjectFilterOperationDescriptor GetOrCreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
                 () => CreateOperation(operationKind));

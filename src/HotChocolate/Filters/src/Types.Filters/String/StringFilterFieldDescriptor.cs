@@ -149,18 +149,18 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind) =>
+            object operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
         private StringFilterOperationDescriptor GetOrCreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
                     () => CreateOperation(operationKind));
         }
 
         private StringFilterOperationDescriptor CreateOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             var operation = new FilterOperation(
                 typeof(string),

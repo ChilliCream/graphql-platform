@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         /// <summary>
         /// Specifies a delegate that return the name of a field for a specific 
-        /// <see cref="FilterOperationKind"/>
+        /// operation kind
         /// </summary> 
         /// <param name="factory">The delegate to name the field</param>
         /// <exception cref="ArgumentNullException">
@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters.Conventions
         IFilterConventionOperationDescriptorBase Name(CreateFieldName factory);
 
         /// <summary>
-        /// Specify the graphql description of a <see cref="FilterOperationKind"/>
+        /// Specify the graphql description of a operation kind
         /// </summary> 
         /// <param name="description">The description to name the field</param> 
         IFilterConventionOperationDescriptorBase Description(string description);

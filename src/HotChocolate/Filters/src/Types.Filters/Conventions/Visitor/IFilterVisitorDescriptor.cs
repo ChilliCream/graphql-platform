@@ -4,7 +4,7 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         IFilterConventionDescriptor And();
 
-        IFilterVisitorTypeDescriptor<T> Kind(FilterKind kind);
+        IFilterVisitorTypeDescriptor<T> Kind(object kind);
 
         IFilterCombinatorDescriptor<T> Combinator(FilterCombinator combinator);
 

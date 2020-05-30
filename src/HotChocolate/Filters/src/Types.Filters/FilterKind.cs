@@ -1,35 +1,35 @@
 namespace HotChocolate.Types.Filters
 {
-    public enum FilterKind : byte
+    public static class FilterKind
     {
         /// <summary>
         /// Ignored Filters
         /// </summary>
-        Ignored = 0x0,
+        public const string Ignored = "Ignored";
 
         /// <summary>
         /// All String Filters
         /// </summary>
-        String = 0x1,
+        public const string String = "String";
 
         /// <summary>
         /// All Comparable Filters
         /// </summary>
-        Comparable = 0x2,
+        public const string Comparable = "Comparable";
 
         /// <summary>
         /// All Boolean Filters
         /// </summary>
-        Boolean = 0x4,
+        public const string Boolean = "Boolean";
 
         /// <summary>
         /// All Array Filters
         /// </summary>
-        Array = 0x8,
+        public const string Array = "Array";
 
         /// <summary>
         /// All Object Filters
         /// </summary>
-        Object = 0x10
+        public const string Object = "Object";
     }
 }

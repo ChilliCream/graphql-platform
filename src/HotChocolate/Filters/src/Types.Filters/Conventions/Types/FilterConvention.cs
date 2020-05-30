@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
     public delegate NameString CreateFieldName(
         FilterFieldDefintion definition,
-        FilterOperationKind kind);
+        object kind);
 
     public delegate NameString GetFilterTypeName(
         IDescriptorContext context,
@@ -75,7 +75,7 @@ namespace HotChocolate.Types.Filters.Conventions
             }
         }
 
-        public IReadOnlyCollection<FilterOperationKind> GetAllowedOperations(
+        public IReadOnlyCollection<object> GetAllowedOperations(
             FilterFieldDefintion definition)
         {
             if (GetOrCreateConfiguration().TypeDefinitions.TryGetValue(
@@ -83,11 +83,11 @@ namespace HotChocolate.Types.Filters.Conventions
             {
                 return typeDefinition.AllowedOperations;
             }
-            return Array.Empty<FilterOperationKind>();
+            return Array.Empty<object>();
         }
 
         public NameString CreateFieldName(
-            FilterFieldDefintion definition, FilterOperationKind kind)
+            FilterFieldDefintion definition, object kind)
         {
             FilterConventionDefinition configuration = GetOrCreateConfiguration();
 

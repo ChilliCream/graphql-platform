@@ -90,7 +90,7 @@ namespace HotChocolate.Types.Filters.Extensions
 
         public static T GetOrAddOperation<T>(
             this ICollection<FilterOperationDescriptorBase> fields,
-            FilterOperationKind operationKind,
+            object operationKind,
             Func<T> valueFactory) where T : FilterOperationDescriptorBase
         {
             if (fields == null)

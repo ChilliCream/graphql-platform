@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Filters.Conventions
         new IFilterConventionOperationDescriptor Description(string value);
 
         /// <summary>
-        /// Ignores a <see cref="FilterOperationKind"/>
+        /// Ignores a operation kind
         /// </summary>
         /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
         IFilterConventionOperationDescriptor Ignore(bool ignore = true);

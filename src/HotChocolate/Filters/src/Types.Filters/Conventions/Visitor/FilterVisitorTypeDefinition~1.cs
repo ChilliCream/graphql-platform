@@ -5,13 +5,13 @@ namespace HotChocolate.Types.Filters.Conventions
 {
     public class FilterVisitorTypeDefinition<T>
     {
-        public FilterKind FilterKind { get; set; }
+        public object FilterKind { get; set; } = default!;
 
         public FilterFieldEnter<T>? Enter { get; set; }
 
         public FilterFieldLeave<T>? Leave { get; set; }
 
-        public IReadOnlyDictionary<FilterOperationKind, FilterOperationHandler<T>> OperationHandlers
-        { get; set; } = ImmutableDictionary<FilterOperationKind, FilterOperationHandler<T>>.Empty;
+        public IReadOnlyDictionary<object, FilterOperationHandler<T>> OperationHandlers
+        { get; set; } = ImmutableDictionary<object, FilterOperationHandler<T>>.Empty;
     }
 }

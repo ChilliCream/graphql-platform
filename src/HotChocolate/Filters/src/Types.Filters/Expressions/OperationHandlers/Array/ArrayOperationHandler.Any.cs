@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             FilterOperationField _,
             IFilterVisitorContext<Expression> context,
-            [NotNullWhen(true)] out Expression? result)
+            [NotNullWhen(true)] out Expression result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -22,11 +22,11 @@ namespace HotChocolate.Types.Filters.Expressions
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(operation, type, value, context));
 
-                result = null;
+                result = null!;
                 return false;
             }
 
-            if (operation.Kind == FilterOperationKind.ArrayAny &&
+            if (FilterOperationKind.ArrayAny.Equals(operation.Kind) &&
                 type.IsInstanceOfType(value) &&
                 parsedValue is bool parsedBool &&
                 context is QueryableFilterVisitorContext queryableContext)

@@ -3,11 +3,11 @@ namespace HotChocolate.Types.Filters.Conventions
     public interface IFilterVisitorTypeDescriptor<T> : IFluent
     {
         /// <summary>
-        /// Specifies the configuration of a <see cref="FilterOperationKind"/> for current
-        /// <see cref="FilterKind"/>
+        /// Specifies the configuration of a operation kind for current
+        /// filter kind
         /// </summary> 
-        /// <param name="kind">The <see cref="FilterOperationKind"/> to configure</param>
-        IFilterVisitorOperationDescriptor<T> Operation(FilterOperationKind kind);
+        /// <param name="kind">The operation kind to configure</param>
+        IFilterVisitorOperationDescriptor<T> Operation(object kind);
 
         /// <summary>
         /// Specifies the enter behavior of the current field. The default action is <c>SkipAndLeave</c>

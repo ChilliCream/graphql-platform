@@ -16,9 +16,9 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             if (context is QueryableFilterVisitorContext ctx)
             {
-                if (field.Operation.Kind == FilterOperationKind.ArraySome
-                          || field.Operation.Kind == FilterOperationKind.ArrayNone
-                          || field.Operation.Kind == FilterOperationKind.ArrayAll)
+                if (FilterOperationKind.ArraySome.Equals(field.Operation.Kind)
+                    || FilterOperationKind.ArrayNone.Equals(field.Operation.Kind)
+                    || FilterOperationKind.ArrayAll.Equals(field.Operation.Kind))
                 {
                     if (!field.Operation.IsNullable && node.Value.IsNull())
                     {
@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     Type closureType = GetTypeFor(field.Operation);
 
                     ctx.ClrTypes.Push(closureType);
-                     
+
                     if (node.Value.IsNull())
                     {
                         ctx.AddIsNullClosure();
@@ -66,9 +66,9 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             if (context is QueryableFilterVisitorContext ctx)
             {
-                if (field.Operation.Kind == FilterOperationKind.ArraySome
-                    || field.Operation.Kind == FilterOperationKind.ArrayNone
-                    || field.Operation.Kind == FilterOperationKind.ArrayAll)
+                if (FilterOperationKind.ArraySome.Equals(field.Operation.Kind)
+                    || FilterOperationKind.ArrayNone.Equals(field.Operation.Kind)
+                    || FilterOperationKind.ArrayAll.Equals(field.Operation.Kind))
                 {
                     FilterScope<Expression> nestedScope = ctx.PopScope();
 

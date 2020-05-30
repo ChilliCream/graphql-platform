@@ -3,24 +3,24 @@ namespace HotChocolate.Types.Filters.Conventions
     public interface IFilterConventionTypeDescriptor : IFluent
     {
         /// <summary>
-        /// Ignores the current <see cref="FilterKind"/>
+        /// Ignores the current filter kind
         /// </summary> 
         /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
         IFilterConventionTypeDescriptor Ignore(bool ignore = true);
 
         /// <summary>
-        /// Ignores a <see cref="FilterOperationKind"/> on current <see cref="FilterKind"/>
+        /// Ignores a operation kind on current filter kind
         /// </summary>
-        /// <param name="kind">The <see cref="FilterOperationKind"/> to ignore</param>
+        /// <param name="kind">The operation kind to ignore</param>
         /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
-        IFilterConventionTypeDescriptor Ignore(FilterOperationKind kind, bool ignore = true);
+        IFilterConventionTypeDescriptor Ignore(object kind, bool ignore = true);
 
         /// <summary>
-        /// Specifies the configuration of a <see cref="FilterOperationKind"/> for current
-        /// <see cref="FilterKind"/>
+        /// Specifies the configuration of a operation kind for current
+        /// filter kind
         /// </summary> 
-        /// <param name="kind">The <see cref="FilterOperationKind"/> to configure</param>
-        IFilterConventionOperationDescriptor Operation(FilterOperationKind kind);
+        /// <param name="kind">The operation kind to configure</param>
+        IFilterConventionOperationDescriptor Operation(object kind);
 
         /// <summary>
         /// Add additional configuration to <see cref="IFilterConventionDescriptor"/>

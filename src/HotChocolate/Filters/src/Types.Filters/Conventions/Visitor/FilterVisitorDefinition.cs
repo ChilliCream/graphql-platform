@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters.Conventions
         IValueNode value,
         FilterOperationField field,
         IFilterVisitorContext<T> context,
-        [MaybeNullWhen(true)] out T result);
+        [NotNullWhen(true)] out T result);
 
     public delegate bool FilterFieldEnter<T>(
         FilterOperationField field,
@@ -35,11 +35,11 @@ namespace HotChocolate.Types.Filters.Conventions
     public class FilterVisitorDefinition<T> :
         FilterVisitorDefinitionBase
     {
-        public IReadOnlyDictionary<FilterKind, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)> FieldHandler
-        { get; set; } = ImmutableDictionary<FilterKind, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)>.Empty;
+        public IReadOnlyDictionary<object, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)> FieldHandler
+        { get; set; } = ImmutableDictionary<object, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)>.Empty;
 
-        public IReadOnlyDictionary<(FilterKind, FilterOperationKind), FilterOperationHandler<T>> OperationHandler
-        { get; set; } = ImmutableDictionary<(FilterKind, FilterOperationKind), FilterOperationHandler<T>>.Empty;
+        public IReadOnlyDictionary<(object, object), FilterOperationHandler<T>> OperationHandler
+        { get; set; } = ImmutableDictionary<(object, object), FilterOperationHandler<T>>.Empty;
 
         public IReadOnlyDictionary<FilterCombinator, FilterOperationCombinator<T>> OperationCombinator
         { get; set; } = ImmutableDictionary<FilterCombinator, FilterOperationCombinator<T>>.Empty;

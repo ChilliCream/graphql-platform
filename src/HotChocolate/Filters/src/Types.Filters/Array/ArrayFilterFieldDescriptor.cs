@@ -39,8 +39,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public new IArrayFilterFieldDescriptor BindFilters(
-            BindingBehavior bindingBehavior)
+        public new IArrayFilterFieldDescriptor BindFilters(BindingBehavior bindingBehavior)
         {
             base.BindFilters(bindingBehavior);
             return this;
@@ -93,8 +92,7 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public new IArrayFilterFieldDescriptor Type<TInputType>(
-            TInputType inputType)
+        public new IArrayFilterFieldDescriptor Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
             base.Type(inputType);
@@ -113,16 +111,14 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind)
+        protected override FilterOperationDefintion CreateOperationDefinition(object operationKind)
         {
-            return FilterOperationKind.ArrayAny == operationKind
+            return FilterOperationKind.ArrayAny.Equals(operationKind)
                 ? CreateBooleanOperation(operationKind).CreateDefinition()
                 : CreateOperation(operationKind).CreateDefinition();
         }
 
-        protected FilterOperation GetFilterOperation(
-            FilterOperationKind operationKind)
+        protected FilterOperation GetFilterOperation(object operationKind)
         {
             return new FilterOperation(
                 _type,
@@ -136,22 +132,19 @@ namespace HotChocolate.Types.Filters
             Type(typeof(FilterInputType<>).MakeGenericType(type));
         }
 
-        private ArrayFilterOperationDescriptor GetOrCreateOperation(
-            FilterOperationKind operationKind)
+        private ArrayFilterOperationDescriptor GetOrCreateOperation(object operationKind)
         {
-            return Filters.GetOrAddOperation(operationKind,
-                    () => CreateOperation(operationKind));
+            return Filters.GetOrAddOperation(operationKind, () => CreateOperation(operationKind));
         }
 
         private ArrayBooleanFilterOperationDescriptor GetOrCreateBooleanOperation(
-            FilterOperationKind operationKind)
+            object operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
                     () => CreateBooleanOperation(operationKind));
         }
 
-        private ArrayFilterOperationDescriptor CreateOperation(
-            FilterOperationKind operationKind)
+        private ArrayFilterOperationDescriptor CreateOperation(object operationKind)
         {
             FilterOperation? operation = GetFilterOperation(operationKind);
             return ArrayFilterOperationDescriptor.New(
@@ -163,8 +156,7 @@ namespace HotChocolate.Types.Filters
                 FilterConvention);
         }
 
-        private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(
-          FilterOperationKind operationKind)
+        private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(object operationKind)
         {
             FilterOperation? operation = GetFilterOperation(operationKind);
 

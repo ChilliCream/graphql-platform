@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using OperationKind = HotChocolate.Types.Filters.FilterOperationKind;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -9,17 +8,17 @@ namespace HotChocolate.Types.Filters.Conventions
         public IReadOnlyList<TryCreateImplicitFilter> ImplicitFilters { get; set; } =
             new List<TryCreateImplicitFilter>();
 
-        public IReadOnlyDictionary<FilterKind, IReadOnlyCollection<OperationKind>> AllowedOperations
-        { get; set; } = ImmutableDictionary<FilterKind, IReadOnlyCollection<OperationKind>>.Empty;
+        public IReadOnlyDictionary<object, IReadOnlyCollection<object>> AllowedOperations
+        { get; set; } = ImmutableDictionary<object, IReadOnlyCollection<object>>.Empty;
 
-        public IReadOnlyDictionary<FilterKind, FilterConventionTypeDefinition> TypeDefinitions
-        { get; set; } = ImmutableDictionary<FilterKind, FilterConventionTypeDefinition>.Empty;
+        public IReadOnlyDictionary<object, FilterConventionTypeDefinition> TypeDefinitions
+        { get; set; } = ImmutableDictionary<object, FilterConventionTypeDefinition>.Empty;
 
-        public IReadOnlyDictionary<FilterOperationKind, CreateFieldName> DefaultOperationNames
-        { get; set; } = ImmutableDictionary<FilterOperationKind, CreateFieldName>.Empty;
+        public IReadOnlyDictionary<object, CreateFieldName> DefaultOperationNames
+        { get; set; } = ImmutableDictionary<object, CreateFieldName>.Empty;
 
-        public IReadOnlyDictionary<FilterOperationKind, string> DefaultOperationDescriptions
-        { get; set; } = ImmutableDictionary<FilterOperationKind, string>.Empty;
+        public IReadOnlyDictionary<object, string> DefaultOperationDescriptions
+        { get; set; } = ImmutableDictionary<object, string>.Empty;
 
         public NameString ArgumentName { get; set; }
 
