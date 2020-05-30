@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(operation, type, value, context));
 
-                result = null;
+                result = null!;
                 return false;
             }
 
@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(operation, type, value, context));
 
-                result = null;
+                result = null!;
                 return false;
             }
 

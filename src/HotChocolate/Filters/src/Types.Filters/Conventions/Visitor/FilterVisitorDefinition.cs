@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters.Conventions
         IValueNode value,
         FilterOperationField field,
         IFilterVisitorContext<T> context,
-        [MaybeNullWhen(true)] out T result);
+        [NotNullWhen(true)] out T result);
 
     public delegate bool FilterFieldEnter<T>(
         FilterOperationField field,
