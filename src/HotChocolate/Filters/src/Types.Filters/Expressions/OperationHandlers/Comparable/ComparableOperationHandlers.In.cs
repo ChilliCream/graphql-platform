@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             FilterOperationField _,
             IFilterVisitorContext<Expression> context,
-            [NotNullWhen(true)] out Expression? result)
+            [NotNullWhen(true)] out Expression result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Filters.Expressions
             IValueNode value,
             FilterOperationField _,
             IFilterVisitorContext<Expression> context,
-            [NotNullWhen(true)] out Expression? result)
+            [NotNullWhen(true)] out Expression result)
         {
             object parsedValue = type.ParseLiteral(value);
 
