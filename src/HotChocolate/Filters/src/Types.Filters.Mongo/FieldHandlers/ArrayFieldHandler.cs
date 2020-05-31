@@ -19,9 +19,9 @@ namespace HotChocolate.Types.Filters.Mongo
         {
             if (context is MongoFilterVisitorContext ctx)
             {
-                if (field.Operation.Kind == FilterOperationKind.ArraySome
-                    || field.Operation.Kind == FilterOperationKind.ArrayNone
-                    || field.Operation.Kind == FilterOperationKind.ArrayAll)
+                if (FilterOperationKind.ArraySome.Equals(field.Operation.Kind) ||
+                    FilterOperationKind.ArrayNone.Equals(field.Operation.Kind) ||
+                    FilterOperationKind.ArrayAll.Equals(field.Operation.Kind))
                 {
                     if (!field.Operation.IsNullable && node.Value.IsNull())
                     {
@@ -60,9 +60,9 @@ namespace HotChocolate.Types.Filters.Mongo
         {
             if (context is MongoFilterVisitorContext ctx)
             {
-                if (field.Operation.Kind == FilterOperationKind.ArraySome
-                    || field.Operation.Kind == FilterOperationKind.ArrayNone
-                    || field.Operation.Kind == FilterOperationKind.ArrayAll)
+                if (FilterOperationKind.ArraySome.Equals(field.Operation.Kind) ||
+                    FilterOperationKind.ArrayNone.Equals(field.Operation.Kind) ||
+                    FilterOperationKind.ArrayAll.Equals(field.Operation.Kind))
                 {
                     FilterScope<FilterDefinition<BsonDocument>> nestedScope = ctx.PopScope();
 

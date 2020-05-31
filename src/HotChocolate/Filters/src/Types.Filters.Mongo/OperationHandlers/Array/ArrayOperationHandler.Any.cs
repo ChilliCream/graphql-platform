@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters.Mongo
             IValueNode value,
             FilterOperationField field,
             IFilterVisitorContext<FilterDefinition<BsonDocument>> context,
-            [NotNullWhen(true)] out FilterDefinition<BsonDocument>? result)
+            [NotNullWhen(true)] out FilterDefinition<BsonDocument> result)
         {
             object parsedValue = type.ParseLiteral(value);
 
@@ -24,11 +24,11 @@ namespace HotChocolate.Types.Filters.Mongo
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(operation, type, value, context));
 
-                result = null;
+                result = null!;
                 return false;
             }
 
-            if (operation.Kind == FilterOperationKind.ArrayAny &&
+            if (FilterOperationKind.ArrayAny.Equals(operation.Kind) &&
                 type.IsInstanceOfType(value) &&
                 parsedValue is bool parsedBool &&
                 context is MongoFilterVisitorContext ctx)

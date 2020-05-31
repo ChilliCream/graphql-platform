@@ -6,18 +6,54 @@ using HotChocolate.Execution;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Mongo;
 using Snapshooter.Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using Squadron;
 using Xunit;
+using HotChocolate.Resolvers;
+using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace HotChocolate.Types.Filters
 {
     public class FilterTests
+        : IClassFixture<MongoResource>
     {
+        private readonly ServiceProvider _sp;
+
+        public FilterTests(MongoResource mongoResource)
+        {
+            IMongoCollection<Foo> collection = mongoResource.CreateCollection<Foo>("a");
+            collection.InsertMany(new Foo[]
+            {
+                new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+                new Foo { Bar = "ba", Baz = 1 },
+                new Foo { Bar = "ca", Baz = 2 },
+                new Foo { Bar = "ab", Baz = 2 },
+                new Foo { Bar = "ac", Baz = 2 },
+                new Foo { Bar = "ad", Baz = 2 },
+                new Foo { Bar = null, Baz = 0 }
+            });
+            IMongoCollection<FooObject> collectionObject =
+                mongoResource.CreateCollection<FooObject>("b");
+            collectionObject.InsertMany(new FooObject[]
+            {
+                new FooObject { FooNested = new FooNested { Bar = "a" }},
+                new FooObject { FooNested = new FooNested { Bar = "b" }},
+            });
+
+            _sp = new ServiceCollection()
+                .AddSingleton(collection)
+                .AddSingleton(collectionObject)
+                .BuildServiceProvider();
+        }
+
         [Fact]
         public void Create_Schema_With_FilterType()
         {
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddQueryType<QueryType>()
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
@@ -33,8 +69,9 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddQueryType<Query>(d =>
-                    d.Field(m => m.Foos)
+                    d.Field(m => m.GetFoos(default!, default!))
                         .UseFiltering<Foo>(f =>
                             f.BindFieldsExplicitly()
                                 .Filter(m => m.Bar)
@@ -51,6 +88,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddQueryType<QueryType>()
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
@@ -71,6 +109,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddQueryType<QueryType>()
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
@@ -100,6 +139,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddQueryType<QueryType>()
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
@@ -132,6 +172,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddQueryType<QueryType>()
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
@@ -148,21 +189,29 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Execute_ObjectStringEqualWithNull_Expression_Array()
+        public async Task Execute_ObjectStringEqualWith()
         {
             // arrange
 
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
                 .AddQueryType(x =>
                    x.Field("list")
                    .Type<ListType<ObjectType<FooObject>>>()
                    .Resolver(
-                       x => new FooObject[] {
-                           null,
-                           new FooObject { FooNested = new FooNested { Bar = "a" }
-                           }
+                        context =>
+                        {
+                            if (context.LocalContextData.TryGetValue(
+                                    nameof(FilterDefinition<BsonDocument>), out object val) &&
+                                val is BsonDocument filterDefinition)
+                            {
+                                return context.Service<IMongoCollection<FooObject>>()
+                                    .Find(filterDefinition)
+                                    .ToListAsync().ConfigureAwait(false);
+                            }
+                            throw new NotSupportedException();
                         }
                     )
                    .UseFiltering()
@@ -176,41 +225,7 @@ namespace HotChocolate.Types.Filters
                 .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Execute_ObjectStringEqualWithNull_Expression_InMemoryQueryable()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddConvention<IFilterConvention>(
-                    new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType(
-                    x => x.Field("list")
-                    .Type<ListType<ObjectType<FooObject>>>()
-                    .Resolver(x =>
-                        new FooObject[] {
-                            null,
-                            new FooObject { FooNested = new FooNested { Bar = "a" } }
-                            }
-                            .AsQueryable()
-                        )
-                   .UseFiltering()
-                    )
-                .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ list(where: { fooNested: {bar: \"a\"} }) { fooNested { bar } } }")
-                .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request).ConfigureAwait(false);
 
             // assert
             result.MatchSnapshot();
@@ -221,9 +236,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -241,9 +258,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -261,9 +280,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -281,9 +302,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -301,9 +324,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -321,9 +346,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -341,9 +368,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -361,9 +390,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -382,9 +413,11 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.GetFoos(default!, default!)).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -403,6 +436,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
                 .AddQueryType<QueryFooDateTime>(d => d
@@ -418,7 +452,7 @@ namespace HotChocolate.Types.Filters
                 .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request).ConfigureAwait(false);
 
             // assert
             result.MatchSnapshot();
@@ -429,6 +463,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
+                .AddServices(_sp)
                 .AddConvention<IFilterConvention>(
                     new FilterConvention(x => x.UseMongoVisitor().UseDefault()))
                 .AddQueryType<QueryFooDateTime>(d => d
@@ -450,7 +485,7 @@ namespace HotChocolate.Types.Filters
                 .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request).ConfigureAwait(false);
 
             // assert
             result.MatchSnapshot();
@@ -485,26 +520,31 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
             {
-                descriptor.Field(t => t.Foos).UseFiltering<Foo>();
+                descriptor.Field(t => t.GetFoos(default!, default!)).UseFiltering<Foo>();
             }
         }
 
         public class Query
         {
-            public IEnumerable<Foo> Foos { get; } = new[]
+            public async Task<List<Foo>> GetFoos(
+                IResolverContext context,
+                [Service] IMongoCollection<Foo> collection)
             {
-                new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-                new Foo { Bar = "ba", Baz = 1 },
-                new Foo { Bar = "ca", Baz = 2 },
-                new Foo { Bar = "ab", Baz = 2 },
-                new Foo { Bar = "ac", Baz = 2 },
-                new Foo { Bar = "ad", Baz = 2 },
-                new Foo { Bar = null, Baz = 0 }
-            };
+                if (context.LocalContextData.TryGetValue(
+                        nameof(FilterDefinition<BsonDocument>), out object val) &&
+                    val is BsonDocument filterDefinition)
+                {
+                    return await collection.Find(filterDefinition)
+                        .ToListAsync().ConfigureAwait(false);
+                }
+                return await collection.Find(x => true).ToListAsync().ConfigureAwait(false);
+            }
         }
 
         public class Foo
         {
+            public Guid Id { get; set; }
+
             public string Bar { get; set; }
 
             [GraphQLType(typeof(NonNullType<IntType>))]

@@ -21,29 +21,27 @@ namespace HotChocolate.Types.Filters.Mongo
             IFilterInputType fit,
             InputObjectType iot)
         {
+            MongoFilterVisitorContext? visitorContext = null;
             string argumentName = filterConvention!.GetArgumentName();
-
             IValueNode filter = context.Argument<IValueNode>(argumentName);
 
-            if (filter is null || filter is NullValueNode)
+            if (!(filter is null || filter is NullValueNode))
             {
-                return;
-            }
+                visitorContext = new MongoFilterVisitorContext(fit, definition, converter);
 
-            var visitorContext = new MongoFilterVisitorContext(fit, definition, converter);
+                FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(filter, visitorContext);
 
-            FilterVisitor<FilterDefinition<BsonDocument>>.Default.Visit(filter, visitorContext);
-
-            if (visitorContext.TryCreateQuery(out BsonDocument? whereQuery))
-            {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
-                        nameof(FilterDefinition<T>), whereQuery);
+                if (visitorContext.TryCreateQuery(out BsonDocument? whereQuery))
+                {
+                    context.LocalContextData =
+                        context.LocalContextData.SetItem(
+                            nameof(FilterDefinition<T>), whereQuery);
+                }
             }
 
             await next(context).ConfigureAwait(false);
 
-            if (visitorContext.Errors.Count > 0)
+            if (visitorContext is { } && visitorContext.Errors.Count > 0)
             {
                 context.Result = Array.Empty<T>();
                 foreach (IError error in visitorContext.Errors)

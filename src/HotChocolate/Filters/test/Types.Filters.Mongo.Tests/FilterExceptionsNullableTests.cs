@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Mongo;
+using MongoDB.Driver;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -1254,7 +1256,7 @@ namespace HotChocolate.Types.Filters
         public class Query
         {
             [UseFiltering]
-            public IEnumerable<Foo> GetFoos() => new Foo[1];
+            public IEnumerable<Foo> GetFoos() => new Foo[0];
         }
 
 #nullable enable

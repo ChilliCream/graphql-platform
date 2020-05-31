@@ -672,7 +672,7 @@ namespace HotChocolate.Types.Filters
         public class Query
         {
             [UseFiltering]
-            public IEnumerable<Foo> GetFoos() => new Foo[1];
+            public IEnumerable<Foo> GetFoos() => new Foo[0];
 
         }
 

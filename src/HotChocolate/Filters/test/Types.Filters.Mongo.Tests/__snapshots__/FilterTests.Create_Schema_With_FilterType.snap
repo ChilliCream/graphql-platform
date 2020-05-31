@@ -5,6 +5,7 @@
 type Foo {
   bar: String
   baz: Int!
+  id: Uuid!
   qux: Int
 }
 
@@ -36,6 +37,18 @@ input FooFilter {
   baz_not_in: [Int!]
   baz_not_lt: Int
   baz_not_lte: Int
+  id: Uuid
+  id_gt: Uuid
+  id_gte: Uuid
+  id_in: [Uuid!]
+  id_lt: Uuid
+  id_lte: Uuid
+  id_not: Uuid
+  id_not_gt: Uuid
+  id_not_gte: Uuid
+  id_not_in: [Uuid!]
+  id_not_lt: Uuid
+  id_not_lte: Uuid
   OR: [FooFilter!]
   qux: Int
   qux_gt: Int
@@ -56,3 +69,5 @@ scalar Int
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
 scalar String
+
+scalar Uuid
