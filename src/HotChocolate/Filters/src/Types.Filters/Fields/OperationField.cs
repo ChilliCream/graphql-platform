@@ -9,8 +9,7 @@ namespace HotChocolate.Types.Filters
         internal FilterOperationField(FilterOperationDefintion definition)
             : base(definition)
         {
-            Operation = definition.Operation ??
-                throw new ArgumentNullException(nameof(definition.Operation));
+            Operation = definition.Operation;
         }
 
         public FilterOperation Operation { get; }

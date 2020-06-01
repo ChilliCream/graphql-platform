@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Filters
                     fields[filterDefinition.Name] = filterDefinition;
                 }
 
-                handledFilterKinds.Add(filterDefinition.Operation!.Kind);
+                handledFilterKinds.Add(filterDefinition.Operation.Kind);
             }
         }
 

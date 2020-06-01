@@ -104,7 +104,7 @@ namespace HotChocolate.Types.Filters.Extensions
 
             FilterOperationDescriptorBase operationDescriptor =
                 fields.FirstOrDefault(
-                    t => t.Definition.Operation?.Kind.Equals(operationKind) == true);
+                    t => t.Definition.Operation.Kind.Equals(operationKind));
 
             if (operationDescriptor is { })
             {

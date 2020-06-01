@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Filters
         public bool IsNullable { get; }
 
         public bool TryGetSimpleFilterBaseType(
-            [NotNullWhen(true)]out Type? baseType)
+            [NotNullWhen(true)] out Type? baseType)
         {
             if (!_singleFilterInitialized)
             {
@@ -61,5 +61,17 @@ namespace HotChocolate.Types.Filters
         }
 
         public bool IsSimpleArrayType() => TryGetSimpleFilterBaseType(out _);
+
+        public FilterOperation WithOperationKind(object kind) =>
+            new FilterOperation(Type, FilterKind, kind, Property);
+
+        public FilterOperation WithFilterKind(object filterKind) =>
+            new FilterOperation(Type, filterKind, Kind, Property);
+
+        public FilterOperation WithType(Type type) =>
+            new FilterOperation(type, FilterKind, Kind, Property);
+
+        public FilterOperation WithProperty(PropertyInfo property) =>
+            new FilterOperation(Type, FilterKind, Kind, property);
     }
 }

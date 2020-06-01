@@ -31,5 +31,9 @@ namespace HotChocolate.Types.Filters
         /// All Object Filters
         /// </summary>
         public const string Object = "Object";
+
+        public const string Custom = "Custom";
+
+        public const string Skip = "Skip";
     }
 }
