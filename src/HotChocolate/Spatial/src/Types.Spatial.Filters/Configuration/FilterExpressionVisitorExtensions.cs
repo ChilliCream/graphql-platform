@@ -1,0 +1,57 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters;
+using HotChocolate.Types.Filters.Conventions;
+using NetTopologySuite.Geometries;
+
+namespace HotChocolate.Spatial.Types.Filters.Expressions
+{
+    public static class FilterVisitorExtensions
+    {
+        public static IFilterVisitorDescriptor<Expression> UseDefault(
+            this IFilterVisitorDescriptor<Expression> descriptor)
+        {
+            descriptor
+
+            return descriptor;
+        }
+
+        public static IFilterConventionDescriptor SpatialFilterImplicitly(
+            this IFilterConventionDescriptor descriptor) =>
+                descriptor.AddImplicitFilter(TryCreateGeometryFiler)
+                    .Type(SpatialFilterKind.Geometry)
+                    .Operation(SpatialFilterOperation.Distance)
+                        .Name((def, _) => def.Name + "_distance")
+                        .Description("")
+                        .And()
+                    .And();
+
+        public static IFilterConventionDescriptor SpatialFilterExpression(
+            this IFilterConventionDescriptor descriptor) =>
+                descriptor.UseExpressionVisitor()
+                    .Kind(SpatialFilterKind.Geometry)
+                        .Operation(SpatialFilterOperation.Distance); 
+
+        private static bool TryCreateGeometryFiler(
+            IDescriptorContext context,
+            Type type,
+            PropertyInfo property,
+            IFilterConvention filterConventions,
+            [NotNullWhen(true)] out FilterFieldDefintion? definition)
+        {
+            if (typeof(Geometry).IsAssignableFrom(type))
+            {
+                var field = new GeometryFilterFieldDescriptor(
+                    context, property, filterConventions);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
+            definition = null;
+            return false;
+        }
+    }
+}
