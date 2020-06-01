@@ -38,5 +38,9 @@ namespace HotChocolate.Types.Filters
         public const string ArrayAll = "ArrayAll";
 
         public const string ArrayAny = "ArrayAny";
+
+        public const string Custom = "Custom";
+
+        public const string Skip = "Skip";
     }
 }

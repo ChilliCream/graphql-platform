@@ -103,7 +103,7 @@ namespace HotChocolate.Types.Filters
 
             FieldDescriptorUtilities.AddExplicitFields(
                 explicitFields.Where(t => !t.Ignore).SelectMany(t => t.Filters),
-                f => f.Operation?.Property,
+                f => f.Operation.Property,
                 fields,
                 handledProperties);
 
