@@ -86,7 +86,14 @@ module.exports = {
         plugins: [
           `gatsby-remark-autolink-headers`,
           `gatsby-remark-reading-time`,
-          `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-mermaid`,
+            options: {
+              mermaidOptions: {
+                fontFamily: "sans-serif",
+              },
+            },
+          },
           {
             resolve: `gatsby-remark-code-buttons`,
             options: {
