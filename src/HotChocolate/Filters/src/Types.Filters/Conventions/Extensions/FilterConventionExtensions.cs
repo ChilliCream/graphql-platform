@@ -71,6 +71,9 @@ namespace HotChocolate.Types.Filters.Conventions
         public static IFilterConventionDescriptor UseSnakeCase(
             this IFilterConventionDescriptor descriptor) =>
                 descriptor
+                    .Operation(FilterOperationKind.Custom)
+                        .Name((d, _) => d.Name)
+                        .And()
                     .Operation(FilterOperationKind.Equals)
                         .Name((d, _) => d.Name)
                         .And()
@@ -144,6 +147,9 @@ namespace HotChocolate.Types.Filters.Conventions
         public static IFilterConventionDescriptor UsePascalCase(
             this IFilterConventionDescriptor descriptor)
                 => descriptor.ArgumentName("Where")
+                    .Operation(FilterOperationKind.Custom)
+                        .Name((d, _) => d.Name)
+                        .And()
                     .Operation(FilterOperationKind.Equals)
                         .Name((d, _) => GetNameForDefintion(d))
                         .And()
