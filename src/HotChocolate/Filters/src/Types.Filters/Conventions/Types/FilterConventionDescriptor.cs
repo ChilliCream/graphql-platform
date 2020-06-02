@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types.Filters.Conventions
 {
@@ -167,5 +168,17 @@ namespace HotChocolate.Types.Filters.Conventions
         }
 
         public static FilterConventionDescriptor New() => new FilterConventionDescriptor();
+
+        public bool TryGetVisitor(
+            [NotNullWhen(true)] out FilterVisitorDescriptorBase? visitor)
+        {
+            if (_visitorDescriptor != null)
+            {
+                visitor = _visitorDescriptor;
+                return true;
+            }
+            visitor = null;
+            return false;
+        }
     }
 }
