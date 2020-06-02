@@ -10,6 +10,8 @@ namespace HotChocolate.Execution
     internal partial class ExecutionContext
         : IExecutionContext
     {
+        private readonly ManualResetEventSlim _mutex = new ManualResetEventSlim(true);
+
         public ITaskQueue Tasks => _taskQueue;
 
         public ITaskStatistics TaskStats => _taskStatistics;
@@ -20,13 +22,22 @@ namespace HotChocolate.Execution
 
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
-        public Task WaitAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task WaitAsync(CancellationToken cancellationToken) =>
+            _mutex.WaitHandle.FromWaitHandle(cancellationToken);
 
         private void SetEngineState()
         {
-            if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
+            if (TaskStats.NewTasks == 0 && !BatchDispatcher.HasTasks && !TaskStats.IsCompleted)
+            {
+                _mutex.Reset();
+            }
+            else if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
             {
                 BatchDispatcher.Dispatch();
+            }
+            else
+            {
+                _mutex.Set();
             }
         }
 
