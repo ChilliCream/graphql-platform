@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate.Types.Filters.Conventions
 {
     public interface IFilterConventionDescriptor : IFluent
@@ -87,5 +89,12 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <param name="visitor">The <see cref="FilterVisitorDescriptorBase"/></param>
         IFilterConventionDescriptor Visitor(
             FilterVisitorDescriptorBase visitor);
+
+        /// <summary>
+        /// Configures the visitor that is used to process the filters
+        /// </summary>
+        /// <param name="visitor">The <see cref="FilterVisitorDescriptorBase"/></param>
+        bool TryGetVisitor(
+            [NotNullWhen(true)] out FilterVisitorDescriptorBase? visitor);
     }
 }
