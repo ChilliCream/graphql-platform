@@ -1,0 +1,141 @@
+﻿schema {
+  query: Query
+}
+
+interface GeoJSONInterface {
+  "The minimum bounding box around the geometry object"
+  bbox: [Float]
+  "The coordinate reference system integer identifier"
+  crs: Int
+  "The geometry type of the GeoJSON object"
+  type: GeoJSONGeometryType!
+}
+
+type Foo {
+  bar: Point
+}
+
+type LineString implements GeoJSONInterface {
+  bbox: [Float!]!
+  coordinates: [Position]
+  crs: Int!
+  type: GeoJSONGeometryType!
+}
+
+type MultiLineString implements GeoJSONInterface {
+  bbox: [Float!]!
+  coordinates: [Position]
+  crs: Int!
+  type: GeoJSONGeometryType!
+}
+
+type MultiPoint implements GeoJSONInterface {
+  bbox: [Float!]!
+  coordinates: [Position]
+  crs: Int!
+  type: GeoJSONGeometryType!
+}
+
+type MultiPolygon implements GeoJSONInterface {
+  bbox: [Float!]!
+  coordinates: [Position]
+  crs: Int!
+  type: GeoJSONGeometryType!
+}
+
+type Point implements GeoJSONInterface {
+  bbox: [Float!]!
+  coordinates: [Position]
+  crs: Int!
+  type: GeoJSONGeometryType!
+}
+
+type Polygon implements GeoJSONInterface {
+  bbox: [Float!]!
+  coordinates: [Position]
+  crs: Int!
+  type: GeoJSONGeometryType!
+}
+
+type Query {
+  foos(where: FooFilter): [Foo]
+}
+
+input FilterDistanceFilter {
+  AND: [FilterDistanceFilter!]
+  from: PointInput
+  is: Float
+  is_gt: Float
+  is_gte: Float
+  is_in: [Float!]
+  is_lt: Float
+  is_lte: Float
+  is_not: Float
+  is_not_gt: Float
+  is_not_gte: Float
+  is_not_in: [Float!]
+  is_not_lt: Float
+  is_not_lte: Float
+  OR: [FilterDistanceFilter!]
+}
+
+input FooFilter {
+  AND: [FooFilter!]
+  bar_distance: FilterDistanceFilter
+  OR: [FooFilter!]
+}
+
+input LineStringInput {
+  coordinates: [Position]
+  crs: Int
+  type: GeoJSONGeometryType
+}
+
+input MultiLineStringInput {
+  coordinates: [[Position]]
+  crs: Int
+  type: GeoJSONGeometryType
+}
+
+input MultiPointInput {
+  coordinates: [Position]
+  crs: Int
+  type: GeoJSONGeometryType
+}
+
+input MultiPolygonInput {
+  coordinates: [[Position]]
+  crs: Int
+  type: GeoJSONGeometryType
+}
+
+input PointInput {
+  coordinates: Position
+  crs: Int
+  type: GeoJSONGeometryType
+}
+
+input PolygonInput {
+  coordinates: [Position]
+  crs: Int
+  type: GeoJSONGeometryType
+}
+
+enum GeoJSONGeometryType {
+  POINT
+  MULTIPOINT
+  LINESTRING
+  MULTILINESTRING
+  POLYGON
+  MULTIPOLYGON
+  GEOMETRYCOLLECTION
+}
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"A position is an array of numbers. There MUST be two or more elements."
+scalar Position

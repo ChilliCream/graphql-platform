@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Spatial.Filters.Expressions
 
         public static IFilterConventionDescriptor SpatialFilterImplicitly(
             this IFilterConventionDescriptor descriptor) =>
-            descriptor.AddImplicitFilter(TryCreateGeometryFiler)
+            descriptor.AddImplicitFilter(TryCreateGeometryFiler, 0)
                 .Type(SpatialFilterKind.Geometry)
                 .Operation(SpatialFilterOperation.Distance)
                     .Name((def, _) => def.Name + "_distance")

@@ -58,22 +58,7 @@ namespace HotChocolate.Types.Spatial.Filters
         public IGeometryFilterOperationDescriptor AllowDistance() =>
             Filters.GetOrAddOperation(
                 SpatialFilterOperation.Distance,
-                () =>
-                {
-                    var operation = new FilterOperation(
-                              typeof(Geometry),
-                              Definition.Kind,
-                              SpatialFilterOperation.Distance,
-                              Definition.Property);
-
-                    return GeometryFilterOperationDescriptor.New(
-                        Context,
-                        this,
-                        CreateFieldName(SpatialFilterOperation.Distance),
-                        _distanceTypeReference,
-                        operation,
-                        FilterConvention);
-                });
+                CreateDistance);
 
         /// <inheritdoc/>
         public IGeometryFilterFieldDescriptor Ignore(bool ignore = true)
@@ -82,9 +67,31 @@ namespace HotChocolate.Types.Spatial.Filters
             return this;
         }
 
+        private GeometryFilterOperationDescriptor CreateDistance()
+        {
+            var operation = new FilterOperation(
+                            typeof(Geometry),
+                            Definition.Kind,
+                            SpatialFilterOperation.Distance,
+                            Definition.Property);
+
+            return GeometryFilterOperationDescriptor.New(
+                Context,
+                this,
+                CreateFieldName(SpatialFilterOperation.Distance),
+                _distanceTypeReference,
+                operation,
+                FilterConvention);
+        }
+
         private GeometryFilterOperationDescriptor CreateOperation(
             object operationKind)
         {
+            if (SpatialFilterOperation.Distance.Equals(operationKind))
+            {
+                return CreateDistance();
+            }
+
             var operation = new FilterOperation(
                 typeof(Geometry),
                 Definition.Kind,
