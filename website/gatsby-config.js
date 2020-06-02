@@ -1,6 +1,6 @@
 module.exports = {
   siteMetadata: {
-    title: `ChilliCream GraphQL`,
+    title: `ChilliCream GraphQL Platform`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
     siteUrl: `https://chillicream.com`,
@@ -13,6 +13,10 @@ module.exports = {
       {
         name: `Docs`,
         link: `/docs/hotchocolate`,
+      },
+      {
+        name: `Support`,
+        link: `/support`,
       },
       {
         name: `Blog`,
@@ -82,12 +86,34 @@ module.exports = {
         plugins: [
           `gatsby-remark-autolink-headers`,
           `gatsby-remark-reading-time`,
-          `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-mermaid`,
+            options: {
+              mermaidOptions: {
+                fontFamily: "sans-serif",
+              },
+            },
+          },
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
           {
             resolve: `gatsby-remark-prismjs`,
             options: {
               showLineNumbers: false,
               inlineCodeMarker: `±`,
+              languageExtensions: [
+                {
+                  language: "sdl",
+                  extend: "graphql",
+                  definition: {},
+                  insertBefore: {},
+                },
+              ],
             },
           },
           {

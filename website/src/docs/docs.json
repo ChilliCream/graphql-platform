@@ -13,16 +13,72 @@
         "title": "Getting Started"
       },
       {
-        "path": "api-reference",
-        "title": "API Reference",
+        "path": "defining-a-schema",
+        "title": "Defining a schema",
         "items": [
+          {
+            "path": "index",
+            "title": "Schema basics"
+          },
+          {
+            "path": "versioning",
+            "title": "Versioning"
+          },
+          {
+            "path": "unions-and-interfaces",
+            "title": "Unions and Interfaces"
+          },
+          {
+            "path": "scalars",
+            "title": "Scalars"
+          },
+          {
+            "path": "directives",
+            "title": "Directives"
+          }
+        ]
+      },
+      {
+        "path": "fetching-data",
+        "title": "Fetching data",
+        "items": [
+          {
+            "path": "index",
+            "title": "Resolver"
+          },
+          {
+            "path": "fetching-from-databases",
+            "title": "Fetching from Databases"
+          },
+          {
+            "path": "fetching-from-rest",
+            "title": "Fetching from REST"
+          },
+          {
+            "path": "dataloader",
+            "title": "DataLoader"
+          },
+          {
+            "path": "pagination",
+            "title": "Pagination"
+          },
           {
             "path": "filtering",
             "title": "Filtering"
           },
           {
+            "path": "sorting",
+            "title": "Sorting"
+          }
+        ]
+      },
+      {
+        "path": "api-reference",
+        "title": "API Reference",
+        "items": [
+          {
             "path": "index",
-            "title": "Whatever"
+            "title": "Overview"
           }
         ]
       }

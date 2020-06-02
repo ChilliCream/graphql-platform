@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Language;
@@ -19,7 +20,7 @@ namespace HotChocolate.Validation
             IDocumentValidator queryValidator = CreateValidator();
 
             // act
-            Action a = () => queryValidator.Validate(schema, null);
+            Action a = () => queryValidator.Validate(schema, null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -34,7 +35,7 @@ namespace HotChocolate.Validation
 
             // act
             // act
-            Action a = () => queryValidator.Validate(null,
+            Action a = () => queryValidator.Validate(null!,
                 new DocumentNode(null, new List<IDefinitionNode>()));
 
             // assert
@@ -620,6 +621,47 @@ namespace HotChocolate.Validation
                 SchemaBuilder.New().AddStarWarsTypes().Create(),
                 null,
                 FileResource.Open("StarWars_Request.graphql"));
+        }
+
+        [Fact]
+        public void DuplicatesWillBeIgnoredOnFieldMerging()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("InvalidIntrospectionQuery.graphql"));
+
+            var originalOperation = ((OperationDefinitionNode)document.Definitions[0]);
+            OperationDefinitionNode operationWithDuplicates = originalOperation.WithSelectionSet(
+                originalOperation.SelectionSet.WithSelections(
+                    new List<ISelectionNode>
+                    {
+                        originalOperation.SelectionSet.Selections[0],
+                        originalOperation.SelectionSet.Selections[0]
+                    }));
+
+            document = document.WithDefinitions(
+                new List<IDefinitionNode>(document.Definitions.Skip(1))
+                {
+                    operationWithDuplicates
+                });
+
+            ServiceProvider services = new ServiceCollection()
+                .AddValidation()
+                .Services
+                .BuildServiceProvider();
+
+            IDocumentValidatorFactory factory = services.GetRequiredService<IDocumentValidatorFactory>();
+            IDocumentValidator validator = factory.CreateValidator();
+
+            // act
+            DocumentValidatorResult result = validator.Validate(schema, document);
+
+            // assert
+            Assert.False(result.HasErrors);
         }
 
         private void ExpectValid(string sourceText) => ExpectValid(null, null, sourceText);
