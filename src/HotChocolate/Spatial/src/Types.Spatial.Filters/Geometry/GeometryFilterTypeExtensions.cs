@@ -5,7 +5,7 @@ using HotChocolate.Types.Filters;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Spatial.Types.Filters
+namespace HotChocolate.Types.Spatial.Filters
 {
     public static class GeometryFilterTypeExtensions
     {

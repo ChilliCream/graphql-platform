@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters;
 using HotChocolate.Types.Filters.Conventions;
 
-namespace HotChocolate.Spatial.Types.Filters
+namespace HotChocolate.Types.Spatial.Filters
 {
     public class GeometryFilterOperationDescriptor
         : FilterOperationDescriptorBase
@@ -16,7 +16,7 @@ namespace HotChocolate.Spatial.Types.Filters
             IDescriptorContext context,
             IGeometryFilterFieldDescriptor descriptor,
             NameString name,
-            ITypeReference type,
+            ITypeReference? type,
             FilterOperation operation,
             IFilterConvention filterConventions)
             : base(context, name, type, operation, filterConventions)
@@ -95,7 +95,7 @@ namespace HotChocolate.Spatial.Types.Filters
             IDescriptorContext context,
             IGeometryFilterFieldDescriptor descriptor,
             NameString name,
-            ITypeReference type,
+            ITypeReference? type,
             FilterOperation operation,
             IFilterConvention filterConventions) =>
             new GeometryFilterOperationDescriptor(

@@ -2,7 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Filters;
 
-namespace HotChocolate.Spatial.Types.Filters
+namespace HotChocolate.Types.Spatial.Filters
 {
     public interface IGeometryFilterOperationDescriptor
            : IDescriptor<FilterOperationDefintion>

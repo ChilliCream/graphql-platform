@@ -1,6 +1,7 @@
 using HotChocolate.Types.Filters;
+using HotChocolate.Types.Spatial;
 
-namespace HotChocolate.Spatial.Types.Filters
+namespace HotChocolate.Types.Spatial.Filters
 {
     public class DistanceFilterType
         : FilterInputType<FilterDistance>
@@ -8,7 +9,7 @@ namespace HotChocolate.Spatial.Types.Filters
         protected override void Configure(
             IFilterInputTypeDescriptor<FilterDistance> descriptor)
         {
-            descriptor.Input(x => x.From);
+            descriptor.Skip(x => x.From).Type<GeoJSONPointInput>();
             descriptor.Filter(x => x.Is);
         }
     }

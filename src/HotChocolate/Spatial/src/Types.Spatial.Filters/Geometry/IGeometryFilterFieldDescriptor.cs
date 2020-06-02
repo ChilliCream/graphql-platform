@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Spatial.Types.Filters
+namespace HotChocolate.Types.Spatial.Filters
 {
     public interface IGeometryFilterFieldDescriptor
     {

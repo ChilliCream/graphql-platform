@@ -7,18 +7,10 @@ using HotChocolate.Types.Filters;
 using HotChocolate.Types.Filters.Conventions;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Spatial.Types.Filters.Expressions
+namespace HotChocolate.Types.Spatial.Filters.Expressions
 {
     public static class FilterVisitorExtensions
     {
-        public static IFilterVisitorDescriptor<Expression> UseDefault(
-            this IFilterVisitorDescriptor<Expression> descriptor)
-        {
-            descriptor
-
-            return descriptor;
-        }
-
         public static IFilterConventionDescriptor SpatialFilterImplicitly(
             this IFilterConventionDescriptor descriptor) =>
                 descriptor.AddImplicitFilter(TryCreateGeometryFiler)
@@ -33,7 +25,7 @@ namespace HotChocolate.Spatial.Types.Filters.Expressions
             this IFilterConventionDescriptor descriptor) =>
                 descriptor.UseExpressionVisitor()
                     .Kind(SpatialFilterKind.Geometry)
-                        .Operation(SpatialFilterOperation.Distance); 
+                        .Operation(SpatialFilterOperation.Distance);
 
         private static bool TryCreateGeometryFiler(
             IDescriptorContext context,

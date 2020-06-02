@@ -1,14 +1,16 @@
-namespace HotChocolate.Spatial.Types.Filters
+using NetTopologySuite.Geometries;
+
+namespace HotChocolate.Types.Spatial.Filters
 {
     public class FilterDistance
     {
         public FilterDistance(
-            FilterPointData from)
+            Point from)
         {
             From = from;
         }
 
-        public FilterPointData From { get; }
+        public Point From { get; }
 
         public double Is { get; set; }
     }

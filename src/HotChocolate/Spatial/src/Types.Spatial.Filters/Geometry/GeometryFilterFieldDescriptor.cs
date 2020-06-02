@@ -9,7 +9,7 @@ using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Spatial.Types.Filters
+namespace HotChocolate.Types.Spatial.Filters
 {
     public class GeometryFilterFieldDescriptor
         : FilterFieldDescriptorBase,

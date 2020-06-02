@@ -6,6 +6,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Filters\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Types.Spatial\Types.Spatial.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="2.0.0" />
