@@ -6,6 +6,8 @@ namespace HotChocolate.Execution.Utilities
 {
     internal class TaskStatistics : ITaskStatistics
     {
+        public object SyncRoot = new object();
+
         private int _allTasks;
         private int _newTasks;
         private int _runningTasks;
@@ -25,29 +27,40 @@ namespace HotChocolate.Execution.Utilities
 
         public void TaskCreated()
         {
-            Interlocked.Increment(ref _allTasks);
-            Interlocked.Increment(ref _newTasks);
-            StateChanged?.Invoke(this, EventArgs.Empty);
+            lock (SyncRoot)
+            {
+                _allTasks++;
+                _newTasks++;
+                StateChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public void TaskStarted()
         {
-            Interlocked.Increment(ref _runningTasks);
-            Interlocked.Decrement(ref _newTasks);
-            StateChanged?.Invoke(this, EventArgs.Empty);
+            lock (SyncRoot)
+            {
+                _runningTasks++;
+                _newTasks--;
+                StateChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public void TaskCompleted()
         {
-            Interlocked.Increment(ref _completedTasks);
-            Interlocked.Decrement(ref _runningTasks);
-            StateChanged?.Invoke(this, EventArgs.Empty);
+            lock (SyncRoot)
+            {
+                _completedTasks++;
+                _runningTasks--;
+                StateChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public void Clear()
         {
             _newTasks = 0;
+            _allTasks = 0;
             _runningTasks = 0;
+            _completedTasks = 0;
         }
     }
 }

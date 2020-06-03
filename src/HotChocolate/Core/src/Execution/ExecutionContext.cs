@@ -10,8 +10,6 @@ namespace HotChocolate.Execution
     internal partial class ExecutionContext
         : IExecutionContext
     {
-        private readonly ManualResetEvent _waitHandle = new ManualResetEvent(true);
-
         public ITaskQueue Tasks => _taskQueue;
 
         public ITaskStatistics TaskStats => _taskStatistics;
@@ -22,28 +20,30 @@ namespace HotChocolate.Execution
 
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
-        public Task WaitAsync(CancellationToken cancellationToken) =>
-            _waitHandle.FromWaitHandle(cancellationToken);
+        public ValueTask<bool> WaitAsync(CancellationToken cancellationToken) =>
+            _channel.Reader.WaitToReadAsync();
 
         private void SetEngineState()
         {
-            if (TaskStats.NewTasks == 0 && !BatchDispatcher.HasTasks && !TaskStats.IsCompleted)
-            {
-                _waitHandle.Reset();
-            }
-            else if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
+            if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
             {
                 BatchDispatcher.Dispatch();
             }
-            else
+
+            if (TaskStats.IsCompleted)
             {
-                _waitHandle.Set();
+                _channel.Writer.TryComplete();
             }
         }
 
         private void BatchDispatcherEventHandler(
-            object? source, EventArgs args) =>
-            SetEngineState();
+            object? source, EventArgs args)
+        {
+            lock (_taskStatistics.SyncRoot)
+            {
+                SetEngineState();
+            }
+        }
 
         private void TaskStatisticsEventHandler(
             object? source, EventArgs args) =>

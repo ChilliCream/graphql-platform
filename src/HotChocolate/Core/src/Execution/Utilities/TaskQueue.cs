@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Channels;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Utilities
@@ -10,8 +11,7 @@ namespace HotChocolate.Execution.Utilities
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ITaskStatistics _stats;
-        private readonly ConcurrentBag<ResolverTask> _queue =
-            new ConcurrentBag<ResolverTask>();
+        private Channel<ResolverTask> _channel = default!;
 
         internal TaskQueue(
             ITaskStatistics stats,
@@ -22,14 +22,8 @@ namespace HotChocolate.Execution.Utilities
         }
 
         /// <inheritdoc/>
-        public int Count => _queue.Count;
-
-        /// <inheritdoc/>
-        public bool IsEmpty => _queue.IsEmpty;
-
-        /// <inheritdoc/>
         public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task) =>
-            _queue.TryTake(out task);
+            _channel.Reader.TryRead(out task);
 
         /// <inheritdoc/>
         public void Enqueue(
@@ -52,20 +46,19 @@ namespace HotChocolate.Execution.Utilities
                 path,
                 scopedContextData);
 
-            _queue.Add(resolverTask);
-
             _stats.TaskCreated();
+            
+            _channel.Writer.TryWrite(resolverTask);
+        }
+
+        public void Initialize(Channel<ResolverTask> channel)
+        {
+            _channel = channel;
         }
 
         public void Clear()
         {
-#if NETSTANDARD2_0
-            while (_queue.TryDequeue(out _))
-            {
-            }
-#else
-            _queue.Clear();
-#endif
+            _channel = default!;
         }
     }
 }

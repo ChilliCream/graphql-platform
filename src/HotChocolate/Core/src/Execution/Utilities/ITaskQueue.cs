@@ -8,18 +8,7 @@ namespace HotChocolate.Execution.Utilities
     ///  The task queue stores <see cref="ResolverTask"/> in a queue. 
     /// </summary>
     internal interface ITaskQueue
-    {
-        /// <summary>
-        /// The number of <see cref="ResolverTask"/> in the queue
-        /// </summary>
-        int Count { get; }
-
-        /// <summary>
-        /// Checks if elements are in the queue. Returns <c>true</c> when the queue has no
-        /// elements.
-        /// </summary>
-        bool IsEmpty { get; }
-
+    {        
         /// <summary>
         /// Try to dequeue a element from the queue
         /// </summary>
