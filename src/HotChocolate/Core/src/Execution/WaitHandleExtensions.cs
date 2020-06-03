@@ -60,7 +60,7 @@ namespace HotChocolate.Execution
 
             using (new ThreadPoolRegistration(handle, timeout, completionSource))
             using (token.Register(
-                state => ((TaskCompletionSource<bool>)state).TrySetCanceled(),
+                state => ((TaskCompletionSource<bool>)state!).TrySetCanceled(),
                 completionSource,
                 false))
             {
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
                 _registeredWaitHandle = ThreadPool.RegisterWaitForSingleObject(
                     handle,
                     (state, timedOut) =>
-                        ((TaskCompletionSource<bool>)state).TrySetResult(!timedOut),
+                        ((TaskCompletionSource<bool>)state!).TrySetResult(!timedOut),
                     tcs,
                     timeout,
                     true);

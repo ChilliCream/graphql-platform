@@ -1,12 +1,13 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace HotChocolate.Execution
-{    internal partial class ExecutionContext
+{
+    internal partial class ExecutionContext
         : IExecutionContext
     {
         private readonly ManualResetEvent _waitHandle = new ManualResetEvent(true);
