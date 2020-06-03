@@ -6,9 +6,10 @@ namespace HotChocolate.Execution
 {
     public static class WaitHandleExtensions
     {
-        private static Task<bool> Canceled = Task.FromCanceled<bool>(new CancellationToken(true));
-        private static Task<bool> False = Task.FromResult(false);
-        private static Task<bool> True = Task.FromResult(true);
+        private static readonly Task<bool> Canceled = Task
+            .FromCanceled<bool>(new CancellationToken(true));
+        private static readonly Task<bool> False = Task.FromResult(false);
+        private static readonly Task<bool> True = Task.FromResult(true);
 
         public static Task FromWaitHandle(this WaitHandle handle)
         {
@@ -79,7 +80,8 @@ namespace HotChocolate.Execution
             {
                 _registeredWaitHandle = ThreadPool.RegisterWaitForSingleObject(
                     handle,
-                    (state, timedOut) => ((TaskCompletionSource<bool>)state).TrySetResult(!timedOut),
+                    (state, timedOut) =>
+                        ((TaskCompletionSource<bool>)state).TrySetResult(!timedOut),
                     tcs,
                     timeout,
                     true);
