@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using System.Threading;
 
 namespace HotChocolate.Execution
-{
-    internal partial class ExecutionContext
+{    internal partial class ExecutionContext
         : IExecutionContext
     {
-        private readonly ManualResetEventSlim _mutex = new ManualResetEventSlim(true);
+        private readonly ManualResetEvent _waitHandle = new ManualResetEvent(true);
 
         public ITaskQueue Tasks => _taskQueue;
 
@@ -23,13 +22,13 @@ namespace HotChocolate.Execution
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
         public Task WaitAsync(CancellationToken cancellationToken) =>
-            _mutex.WaitHandle.FromWaitHandle(cancellationToken);
+            _waitHandle.FromWaitHandle(cancellationToken);
 
         private void SetEngineState()
         {
             if (TaskStats.NewTasks == 0 && !BatchDispatcher.HasTasks && !TaskStats.IsCompleted)
             {
-                _mutex.Reset();
+                _waitHandle.Reset();
             }
             else if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
             {
@@ -37,7 +36,7 @@ namespace HotChocolate.Execution
             }
             else
             {
-                _mutex.Set();
+                _waitHandle.Set();
             }
         }
 
