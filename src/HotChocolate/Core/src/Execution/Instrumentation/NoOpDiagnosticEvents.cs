@@ -12,8 +12,8 @@ namespace HotChocolate.Execution.Instrumentation
             IRequestContext context) => this;
 
         public void RequestError(
-            IRequestContext context, 
-            Exception exception) 
+            IRequestContext context,
+            Exception exception)
         { }
 
         public IActivityScope ParseDocument(
@@ -46,6 +46,9 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void RetrievedDocumentFromCache(
             IRequestContext context)
+        { }
+
+        public void RetrievedDocumentFromStorage(IRequestContext context)
         { }
 
         public void BatchDispatched(IRequestContext context)

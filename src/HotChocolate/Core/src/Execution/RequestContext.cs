@@ -52,6 +52,10 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted { get; set; }
 
         public string? DocumentId { get; set; }
+        
+        public string? DocumentHash { get; set; }
+
+        public bool IsCachedDocument { get; set; }
 
         public DocumentNode? Document { get; set; }
 

@@ -24,9 +24,19 @@ namespace HotChocolate.Execution
 
         private void SetEngineState()
         {
-            if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
+            if (TaskStats.NewTasks == 0 &&
+                BatchDispatcher.HasTasks == false &&
+                TaskStats.IsCompleted == false)
+            {
+                // door closed:
+            }
+            else if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
             {
                 BatchDispatcher.Dispatch();
+            }
+            else
+            {
+                // open door
             }
         }
 
