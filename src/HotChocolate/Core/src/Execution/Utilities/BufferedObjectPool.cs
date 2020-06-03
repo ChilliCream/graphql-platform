@@ -9,13 +9,13 @@ namespace HotChocolate.Execution.Utilities
     /// <typeparam name="T"> The type of objects to pool.</typeparam>
     internal sealed class BufferedObjectPool<T> : ObjectPool<T> where T : class, new()
     {
-        private readonly object _lockObject = new object();
-        private readonly Action<T> _reset;
+        private readonly object _sync = new object();
+        private readonly Func<T, bool> _reset;
         private readonly T?[] _buffer = new T?[256];
         private readonly int _capacity;
         private int _index = -1;
 
-        public BufferedObjectPool(Action<T> reset)
+        public BufferedObjectPool(Func<T, bool> reset)
         {
             _reset = reset;
             _capacity = _buffer.Length - 1;
@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Utilities
         {
             T? item = default!;
 
-            lock (_lockObject)
+            lock (_sync)
             {
                 if (_index < _capacity)
                 {
@@ -52,13 +52,14 @@ namespace HotChocolate.Execution.Utilities
         /// </summary> 
         public override void Return(T obj)
         {
-            _reset(obj);
-
-            lock (_lockObject)
+            if (_reset(obj))
             {
-                if (_index > -1)
+                lock (_sync)
                 {
-                    _buffer[_index--] = obj;
+                    if (_index > -1)
+                    {
+                        _buffer[_index--] = obj;
+                    }
                 }
             }
         }

@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
 
         ITaskStatistics TaskStats { get; }
 
-        Task WaitAsync(CancellationToken cancellationToken);
+        ValueTask<bool> WaitAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the batch dispatcher.

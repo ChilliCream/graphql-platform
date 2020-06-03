@@ -1,6 +1,11 @@
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
+using System.Threading;
+using System.Threading.Tasks;
+using System;
+using System.Threading.Channels;
+using HotChocolate.Execution.Channels;
 
 namespace HotChocolate.Execution
 {
@@ -9,6 +14,7 @@ namespace HotChocolate.Execution
     {
         private readonly TaskQueue _taskQueue;
         private readonly TaskStatistics _taskStatistics;
+        private Channel<ResolverTask> _channel = default!;
 
         public ExecutionContext(ObjectPool<ResolverTask> resolverTaskPool)
         {
@@ -22,6 +28,8 @@ namespace HotChocolate.Execution
         {
             BatchDispatcher = batchDispatcher;
             BatchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
+            _channel = new UnsortedChannel<ResolverTask>(true);
+            _taskQueue.Initialize(_channel);
         }
 
         public void Reset()
@@ -30,6 +38,7 @@ namespace HotChocolate.Execution
             BatchDispatcher = default!;
             _taskQueue.Clear();
             _taskStatistics.Clear();
+            _channel = default!;
         }
     }
 }

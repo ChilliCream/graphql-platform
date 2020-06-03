@@ -26,12 +26,16 @@ namespace HotChocolate.Execution.Utilities
                 scopedContextData);
         }
 
-        public void Reset()
+        public bool Reset()
         {
-            _task = default;
+            bool reuse = _task.IsCompleted;
+
+            _task = default!;
             _operationContext = default!;
             _selection = default!;
             _context.Reset();
+
+            return reuse;
         }
     }
 }

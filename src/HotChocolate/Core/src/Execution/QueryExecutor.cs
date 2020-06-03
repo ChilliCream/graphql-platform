@@ -13,12 +13,12 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             var scopedContext = ImmutableDictionary<string, object?>.Empty;
-            
-            IPreparedSelectionList rootSelections = 
+
+            IPreparedSelectionList rootSelections =
                 operationContext.Operation.GetRootSelections();
-            
+
             ResultMap resultMap = rootSelections.EnqueueResolverTasks(
-                operationContext, n => Path.New(n), scopedContext, 
+                operationContext, n => Path.New(n), scopedContext,
                 operationContext.RootValue);
 
             int proposedTaskCount = operationContext.Operation.ProposedTaskCount;

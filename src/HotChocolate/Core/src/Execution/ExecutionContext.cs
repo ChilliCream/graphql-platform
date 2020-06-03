@@ -1,9 +1,9 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace HotChocolate.Execution
 {
@@ -20,7 +20,8 @@ namespace HotChocolate.Execution
 
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
-        public Task WaitAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public ValueTask<bool> WaitAsync(CancellationToken cancellationToken) =>
+            _channel.Reader.WaitToReadAsync();
 
         private void SetEngineState()
         {
@@ -34,15 +35,27 @@ namespace HotChocolate.Execution
             {
                 BatchDispatcher.Dispatch();
             }
+<<<<<<< HEAD
             else
             {
                 // open door
+=======
+
+            if (TaskStats.IsCompleted)
+            {
+                _channel.Writer.TryComplete();
+>>>>>>> exec-eng-dataloader
             }
         }
 
         private void BatchDispatcherEventHandler(
-            object? source, EventArgs args) =>
-            SetEngineState();
+            object? source, EventArgs args)
+        {
+            lock (_taskStatistics.SyncRoot)
+            {
+                SetEngineState();
+            }
+        }
 
         private void TaskStatisticsEventHandler(
             object? source, EventArgs args) =>

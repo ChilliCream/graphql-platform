@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Utilities
@@ -10,9 +11,7 @@ namespace HotChocolate.Execution.Utilities
         public static Task StartExecutionTaskAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken) =>
-            Task.Factory.StartNew(
-                async () => await ExecuteResolvers(executionContext, cancellationToken),
-                cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+            Task.Run(() => ExecuteResolvers(executionContext, cancellationToken));
 
         public static async Task ExecuteResolvers(
             IExecutionContext executionContext,
@@ -28,6 +27,24 @@ namespace HotChocolate.Execution.Utilities
                 }
 
                 await executionContext.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public static async Task ExecuteResolvers2(
+            Channel<ResolverTask> channel,
+            IExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested &&
+                !channel.Reader.Completion.IsCompleted)
+            {
+                while (!cancellationToken.IsCancellationRequested &&
+                    channel.Reader.TryRead(out ResolverTask? task))
+                {
+                    task.BeginExecute();
+                }
+
+                await channel.Reader.WaitToReadAsync(cancellationToken);
             }
         }
     }
