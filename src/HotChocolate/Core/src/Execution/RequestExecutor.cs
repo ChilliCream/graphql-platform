@@ -47,6 +47,11 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request,
             CancellationToken cancellationToken = default)
         {
+            if (request is null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             var context = new RequestContext(
                 Schema,
                 request.Services ?? _services,

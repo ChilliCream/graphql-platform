@@ -2,12 +2,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class QueryExecutorTests
+    public class RequestExecutorTests
     {
         [Fact]
         public async Task Request_Is_Null_ArgumentNullException()
@@ -19,7 +20,7 @@ namespace HotChocolate.Types
                     .Resolver("bar"))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             Func<Task> action = () => executor.ExecuteAsync(null, default);
@@ -41,7 +42,7 @@ namespace HotChocolate.Types
                 .Create();
 
             // act
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // assert
             Assert.Equal(schema, executor.Schema);
@@ -80,7 +81,7 @@ namespace HotChocolate.Types
                     }))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ foo }")
@@ -91,8 +92,8 @@ namespace HotChocolate.Types
 
             // assert
             // match snapshot ... in case of a cancellation the whole result is canceled
-            // and we return ther error result without any data.
-            result.MatchSnapshot(o => o.IgnoreField("Errors[0].Exception"));
+            // and we return there error result without any data.
+            result.MatchSnapshot();
 
             // the cancellation token was correctly passed to the resolver.
             Assert.True(tokenWasCorrectlyPassedToResolver);
