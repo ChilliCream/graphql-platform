@@ -1,13 +1,15 @@
+using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.StarWars
 {
     public static class SchemaBuilderExtensions
     {
         public static ISchemaBuilder AddStarWarsTypes(
-            this ISchemaBuilder schemaBuilder)
+            this ISchemaBuilder builder)
         {
-            return schemaBuilder
+            return builder
                 .AddQueryType<QueryType>()
                 .AddMutationType<MutationType>()
                 .AddSubscriptionType<SubscriptionType>()
@@ -15,5 +17,9 @@ namespace HotChocolate.StarWars
                 .AddType<DroidType>()
                 .AddType<EpisodeType>();
         }
+
+        public static IRequestExecutorBuilder AddStarWarsTypes(
+            this IRequestExecutorBuilder builder) =>
+            builder.ConfigureSchema(b => b.AddStarWarsTypes());
     }
 }

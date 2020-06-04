@@ -48,7 +48,7 @@ namespace HotChocolate.Tests
             string query)
         {
             // arrange
-            IQueryExecutor executor = CreateExecutor(configuration);
+            IRequestExecutor executor = CreateExecutor(configuration);
             IReadOnlyQueryRequest request = CreateRequest(configuration, query);
 
             // act
@@ -94,7 +94,7 @@ namespace HotChocolate.Tests
             params Action<IError>[] elementInspectors)
         {
             // arrange
-            IQueryExecutor executor = CreateExecutor(configuration);
+            IRequestExecutor executor = CreateExecutor(configuration);
             IReadOnlyQueryRequest request = CreateRequest(configuration, query);
 
             // act
@@ -111,7 +111,7 @@ namespace HotChocolate.Tests
             result.MatchSnapshot();
         }
 
-        private static IQueryExecutor CreateExecutor(TestConfiguration? configuration)
+        private static IRequestExecutor CreateExecutor(TestConfiguration? configuration)
         {
             configuration ??= new TestConfiguration();
             configuration.CreateSchema ??= b => b.AddStarWarsTypes();

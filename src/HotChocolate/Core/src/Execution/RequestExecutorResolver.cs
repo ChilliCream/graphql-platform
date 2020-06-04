@@ -116,6 +116,11 @@ namespace HotChocolate.Execution
             RequestExecutorFactoryOptions options,
             CancellationToken cancellationToken)
         {
+            if(options.Schema is { }) 
+            {
+                return options.Schema;
+            }
+
             var schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
 
             foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
