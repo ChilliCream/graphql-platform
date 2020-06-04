@@ -5,8 +5,8 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <NoWarn>CS0649;CS0169</NoWarn>
-    <NukeRootDirectory>..</NukeRootDirectory>
-    <NukeScriptDirectory>..\src\HotChocolate</NukeScriptDirectory>
+    <NukeRootDirectory>.</NukeRootDirectory>
+    <NukeScriptDirectory>.</NukeScriptDirectory>
   </PropertyGroup>
 
   <ItemGroup>
