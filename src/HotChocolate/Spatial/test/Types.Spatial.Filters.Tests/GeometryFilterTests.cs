@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters
     public class GeometryFilterTests
     {
         [Fact]
-        public void Create_Schema_With_FilteType()
+        public void Create_Schema_With_FilterType()
         {
             // arrange
             // act
