@@ -5,6 +5,6 @@ namespace HotChocolate.Types.Spatial.Filters
 {
     public static class SpatialFilterKind
     {
-        public const string Geometry = "Geometry";
+        public const int Geometry = 101;
     }
 }

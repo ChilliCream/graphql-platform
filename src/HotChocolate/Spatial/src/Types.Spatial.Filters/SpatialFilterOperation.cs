@@ -5,6 +5,6 @@ namespace HotChocolate.Types.Spatial.Filters
 {
     public static class SpatialFilterOperation
     {
-        public const string Distance = "Distance";
+        public const int Distance = 101;
     }
 }
