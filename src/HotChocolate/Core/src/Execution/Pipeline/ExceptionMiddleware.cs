@@ -27,8 +27,8 @@ namespace HotChocolate.Execution.Pipeline
             }
             catch (Exception ex)
             {
-                IError error = _errorHandler.CreateUnexpectedError(ex).Build();
                 context.Exception = ex;
+                IError error = _errorHandler.CreateUnexpectedError(ex).Build();
                 context.Result = QueryResultBuilder.CreateError(_errorHandler.Handle(error));
             }
         }

@@ -42,19 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.ModifyOptions(configure));
         }
-       
         
-
-        
-
-        
-
-        
-
-        
-
-        
-
         public static IRequestExecutorBuilder SetContextData(
             this IRequestExecutorBuilder builder,
             string key,

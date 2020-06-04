@@ -34,23 +34,42 @@ namespace HotChocolate.Execution.Pipeline
             IReadOnlyQueryRequest request = context.Request;
             bool addToCache = true;
 
-            if (request.QueryId is { } queryId &&
-                _documentCache.TryGetDocument(queryId, out DocumentNode document))
+            if (context.Document is null)
             {
-                context.DocumentId = queryId;
-                context.Document = document;
-                context.ValidationResult = DocumentValidatorResult.Ok;
-                addToCache = false;
-                // _diagnosticEvents.RetrievedDocumentFromCache(context);
-            }
-            else if (request.QueryHash is { } queryHash &&
-                _documentCache.TryGetDocument(queryHash, out document))
-            {
-                context.DocumentId = queryHash;
-                context.Document = document;
-                context.ValidationResult = DocumentValidatorResult.Ok;
-                addToCache = false;
-                // _diagnosticEvents.RetrievedDocumentFromCache(context);
+                if (request.QueryId is { } queryId &&
+                    _documentCache.TryGetDocument(queryId, out DocumentNode document))
+                {
+                    context.DocumentId = queryId;
+                    context.Document = document;
+                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.IsCachedDocument = true;
+                    addToCache = false;
+                    _diagnosticEvents.RetrievedDocumentFromCache(context);
+                }
+                else if (request.QueryHash is { } queryHash &&
+                    _documentCache.TryGetDocument(queryHash, out document))
+                {
+                    context.DocumentId = queryHash;
+                    context.Document = document;
+                    context.ValidationResult = DocumentValidatorResult.Ok;
+                    context.IsCachedDocument = true;
+                    addToCache = false;
+                    _diagnosticEvents.RetrievedDocumentFromCache(context);
+                }
+                else if (request.QueryHash is null &&
+                    request.Query is { } query)
+                {
+                    context.DocumentHash = _documentHashProvider.ComputeHash(query.AsSpan());
+                    if (_documentCache.TryGetDocument(context.DocumentHash, out document))
+                    {
+                        context.DocumentId = context.DocumentHash;
+                        context.Document = document;
+                        context.ValidationResult = DocumentValidatorResult.Ok;
+                        context.IsCachedDocument = true;
+                        addToCache = false;
+                        _diagnosticEvents.RetrievedDocumentFromCache(context);
+                    }
+                }
             }
 
             await _next(context).ConfigureAwait(false);
@@ -61,7 +80,7 @@ namespace HotChocolate.Execution.Pipeline
                 context.ValidationResult is { HasErrors: false })
             {
                 _documentCache.TryAddDocument(context.DocumentId, context.Document);
-                // _diagnosticEvents.AddedDocumentToCache(context);
+                _diagnosticEvents.AddedDocumentToCache(context);
             }
         }
     }

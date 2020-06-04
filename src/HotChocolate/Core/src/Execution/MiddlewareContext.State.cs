@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -49,6 +50,11 @@ namespace HotChocolate.Execution
             }
 
             if (_parent is T casted)
+            {
+                return casted;
+            }
+
+            if (_operationContext.Converter.TryConvert<object, T>(_parent, out casted))
             {
                 return casted;
             }

@@ -6,6 +6,8 @@ namespace HotChocolate.Execution.Configuration
 {
     public class RequestExecutorFactoryOptions
     {
+        public ISchema? Schema { get; set; }
+
         public SchemaBuilder? SchemaBuilder { get; set; }
 
         public RequestExecutorOptions? RequestExecutorOptions { get; set; }

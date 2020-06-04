@@ -6,6 +6,10 @@ namespace HotChocolate.Execution.Utilities
     {
         event EventHandler<EventArgs> StateChanged;
 
+        /// <summary>
+        /// Gets the amount of new tasks that are ready to be processed.
+        /// </summary>
+        /// <value></value>
         int NewTasks { get; }
 
         int RunningTasks { get; }
