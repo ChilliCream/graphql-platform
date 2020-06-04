@@ -18,8 +18,8 @@
       "Exception": null,
       "Extensions": {
         "expectedType": "String!",
-        "filterKind": "String",
-        "operationKind": "NotEquals",
+        "filterKind": 2,
+        "operationKind": 2,
         "filterType": "FooFilter"
       }
     }

@@ -137,20 +137,20 @@ namespace HotChocolate.Types.Filters
             _fieldDefinition.Type(inputType);
             return this;
         }
-        public ICustomFilterFieldDescriptor OperationKind(object kind)
+        public ICustomFilterFieldDescriptor OperationKind(int kind)
         {
             _fieldDefinition.WithOperationKind(kind);
             return this;
         }
 
-        public ICustomFilterFieldDescriptor Kind(object kind)
+        public ICustomFilterFieldDescriptor Kind(int kind)
         {
             _fieldDefinition.WithFilterKind(kind);
             return this;
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
-            object operationKind)
+            int operationKind)
         {
             throw new NotSupportedException();
         }

@@ -32,11 +32,11 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <c>FilterConventionDescriptor.Operation(FilterOperationKind)</c>
         /// </summary>
         /// <param name="definition">The <see cref="FilterFieldDefintion"/> of the filter</param>
-        /// <param name="kind">The <see cref="object"/> for which the field name
+        /// <param name="kind">The filter kind for which the field name
         /// should be created</param>
         NameString CreateFieldName(
             FilterFieldDefintion definition,
-            object kind);
+            int kind);
 
         /// <summary>
         /// Gets the description of a field for a filter operation.
@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <see cref="IFilterConventionTypeDescriptor.Operation(FilterOperationKind)"/>
         /// </summary>
         /// <param name="definition"></param>
-        IReadOnlyCollection<object> GetAllowedOperations(FilterFieldDefintion definition);
+        IReadOnlyCollection<int> GetAllowedOperations(FilterFieldDefintion definition);
 
         /// <summary>
         /// Get a <see cref="NameString">GraphQL Name</see> for a <see cref="FilterInputType{T}"/>

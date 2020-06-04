@@ -8,6 +8,6 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public bool Ignore { get; set; }
 
-        public object OperationKind { get; set; } = default!;
+        public int OperationKind { get; set; }
     }
 }

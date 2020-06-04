@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters
     {
         public void AssertEnterAndLeave<T>(
             ObjectValueNode value,
-            object kind,
+            int kind,
             FilterFieldEnter<Expression> enter,
             FilterFieldLeave<Expression> leave)
         {
@@ -49,8 +49,8 @@ namespace HotChocolate.Types.Filters
 
         public void AssertOperation<T>(
             ObjectValueNode value,
-            object kind,
-            object operationKind,
+            int kind,
+            int operationKind,
             FilterOperationHandler<Expression> handler)
         {
             FilterInputType<T> fooType = CreateType(new FilterInputType<T>());

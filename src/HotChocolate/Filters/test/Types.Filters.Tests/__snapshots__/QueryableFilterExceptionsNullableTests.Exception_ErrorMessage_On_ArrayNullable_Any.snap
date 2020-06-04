@@ -18,8 +18,8 @@
       "Exception": null,
       "Extensions": {
         "expectedType": "Boolean!",
-        "filterKind": "Array",
-        "operationKind": "ArrayAny",
+        "filterKind": 21,
+        "operationKind": 23,
         "filterType": "FooFilter"
       }
     }

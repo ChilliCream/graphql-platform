@@ -11,15 +11,15 @@ namespace HotChocolate.Types.Filters.Conventions
 
         protected FilterVisitorTypeDescriptor(
             FilterVisitorDescriptor<T> descriptor,
-            object kind)
+            int kind)
         {
             _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             Definition.FilterKind = kind;
         }
 
-        private readonly ConcurrentDictionary<object,
+        private readonly ConcurrentDictionary<int,
             FilterVisitorOperationDescriptor<T>> _operations =
-            new ConcurrentDictionary<object, FilterVisitorOperationDescriptor<T>>();
+            new ConcurrentDictionary<int, FilterVisitorOperationDescriptor<T>>();
 
         protected FilterVisitorTypeDefinition<T> Definition { get; } =
             new FilterVisitorTypeDefinition<T>();
@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return this;
         }
 
-        public IFilterVisitorOperationDescriptor<T> Operation(object kind) =>
+        public IFilterVisitorOperationDescriptor<T> Operation(int kind) =>
             _operations.GetOrAdd(kind, _ => FilterVisitorOperationDescriptor<T>.New(this, kind));
 
         public FilterVisitorTypeDefinition<T> CreateDefinition()
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public static FilterVisitorTypeDescriptor<T> New(
             FilterVisitorDescriptor<T> descriptor,
-            object kind) =>
+            int kind) =>
             new FilterVisitorTypeDescriptor<T>(descriptor, kind);
     }
 }

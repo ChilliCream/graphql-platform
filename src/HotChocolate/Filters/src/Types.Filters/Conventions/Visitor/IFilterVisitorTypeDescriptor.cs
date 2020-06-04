@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// filter kind
         /// </summary> 
         /// <param name="kind">The operation kind to configure</param>
-        IFilterVisitorOperationDescriptor<T> Operation(object kind);
+        IFilterVisitorOperationDescriptor<T> Operation(int kind);
 
         /// <summary>
         /// Specifies the enter behavior of the current field. The default action is <c>SkipAndLeave</c>

@@ -18,8 +18,8 @@
       "Exception": null,
       "Extensions": {
         "expectedType": "ISingleFilterOfStringFilter!",
-        "filterKind": "Array",
-        "operationKind": "ArrayNone",
+        "filterKind": 21,
+        "operationKind": 21,
         "filterType": "ISingleFilterOfStringFilter"
       }
     }

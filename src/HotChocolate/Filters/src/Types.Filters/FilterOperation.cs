@@ -12,8 +12,8 @@ namespace HotChocolate.Types.Filters
 
         public FilterOperation(
             Type type,
-            object filterKind,
-            object kind,
+            int filterKind,
+            int kind,
             PropertyInfo property)
         {
             Type = type;
@@ -31,9 +31,9 @@ namespace HotChocolate.Types.Filters
 
         public Type Type { get; }
 
-        public object FilterKind { get; }
+        public int FilterKind { get; }
 
-        public object Kind { get; }
+        public int Kind { get; }
 
         public PropertyInfo Property { get; }
 
@@ -62,10 +62,10 @@ namespace HotChocolate.Types.Filters
 
         public bool IsSimpleArrayType() => TryGetSimpleFilterBaseType(out _);
 
-        public FilterOperation WithOperationKind(object kind) =>
+        public FilterOperation WithOperationKind(int kind) =>
             new FilterOperation(Type, FilterKind, kind, Property);
 
-        public FilterOperation WithFilterKind(object filterKind) =>
+        public FilterOperation WithFilterKind(int filterKind) =>
             new FilterOperation(Type, filterKind, Kind, Property);
 
         public FilterOperation WithType(Type type) =>

@@ -29,9 +29,9 @@ namespace HotChocolate.Types.Filters
 
         ICustomFilterFieldDescriptor DefaultValue(object value);
 
-        ICustomFilterFieldDescriptor OperationKind(object kind);
+        ICustomFilterFieldDescriptor OperationKind(int kind);
 
-        ICustomFilterFieldDescriptor Kind(object kind);
+        ICustomFilterFieldDescriptor Kind(int kind);
 
         ICustomFilterFieldDescriptor Directive<T>(T directiveInstance)
             where T : class;

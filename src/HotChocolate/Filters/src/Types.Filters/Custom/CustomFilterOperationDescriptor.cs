@@ -18,13 +18,13 @@ namespace HotChocolate.Types.Filters
         {
         }
 
-        public CustomFilterOperationDescriptor WithOperationKind(object value)
+        public CustomFilterOperationDescriptor WithOperationKind(int value)
         {
             Definition.Operation = Definition.Operation.WithOperationKind(value);
             return this;
         }
 
-        public CustomFilterOperationDescriptor WithFilterKind(object value)
+        public CustomFilterOperationDescriptor WithFilterKind(int value)
         {
             Definition.Operation = Definition.Operation.WithFilterKind(value);
             return this;

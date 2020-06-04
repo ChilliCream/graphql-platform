@@ -35,11 +35,11 @@ namespace HotChocolate.Types.Filters.Conventions
     public class FilterVisitorDefinition<T> :
         FilterVisitorDefinitionBase
     {
-        public IReadOnlyDictionary<object, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)> FieldHandler
-        { get; set; } = ImmutableDictionary<object, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)>.Empty;
+        public IReadOnlyDictionary<int, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)> FieldHandler
+        { get; set; } = ImmutableDictionary<int, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)>.Empty;
 
-        public IReadOnlyDictionary<(object, object), FilterOperationHandler<T>> OperationHandler
-        { get; set; } = ImmutableDictionary<(object, object), FilterOperationHandler<T>>.Empty;
+        public IReadOnlyDictionary<(int, int), FilterOperationHandler<T>> OperationHandler
+        { get; set; } = ImmutableDictionary<(int, int), FilterOperationHandler<T>>.Empty;
 
         public IReadOnlyDictionary<FilterCombinator, FilterOperationCombinator<T>> OperationCombinator
         { get; set; } = ImmutableDictionary<FilterCombinator, FilterOperationCombinator<T>>.Empty;

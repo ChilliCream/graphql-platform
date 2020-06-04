@@ -2,45 +2,45 @@ namespace HotChocolate.Types.Filters
 {
     public static class FilterOperationKind
     {
-        public new const string Equals = "Equals";
-        public const string NotEquals = "NotEquals";
+        public new const int Equals = 1;
+        public const int NotEquals = 2;
 
-        public const string Contains = "Contains";
-        public const string NotContains = "NotContains";
+        public const int Contains = 3;
+        public const int NotContains = 4;
 
-        public const string In = "In";
-        public const string NotIn = "NotIn";
+        public const int In = 5;
+        public const int NotIn = 6;
 
-        public const string StartsWith = "StartsWith";
-        public const string NotStartsWith = "NotStartsWith";
+        public const int StartsWith = 7;
+        public const int NotStartsWith = 8;
 
-        public const string EndsWith = "EndsWith";
-        public const string NotEndsWith = "NotEndsWith";
+        public const int EndsWith = 9;
+        public const int NotEndsWith = 10;
 
-        public const string GreaterThan = "GreaterThan";
-        public const string NotGreaterThan = "NotGreaterThan";
+        public const int GreaterThan = 11;
+        public const int NotGreaterThan = 12;
 
-        public const string GreaterThanOrEquals = "GreaterThanOrEquals";
-        public const string NotGreaterThanOrEquals = "NotGreaterThanOrEquals";
+        public const int GreaterThanOrEquals = 13;
+        public const int NotGreaterThanOrEquals = 14;
 
-        public const string LowerThan = "LowerThan";
-        public const string NotLowerThan = "NotLowerThan";
+        public const int LowerThan = 15;
+        public const int NotLowerThan = 16;
 
-        public const string LowerThanOrEquals = "LowerThanOrEquals";
-        public const string NotLowerThanOrEquals = "NotLowerThanOrEquals";
+        public const int LowerThanOrEquals = 17;
+        public const int NotLowerThanOrEquals = 18;
 
-        public const string Object = "Object";
+        public const int Object = 19;
 
-        public const string ArraySome = "ArraySome";
+        public const int ArraySome = 20;
 
-        public const string ArrayNone = "ArrayNone";
+        public const int ArrayNone = 21;
 
-        public const string ArrayAll = "ArrayAll";
+        public const int ArrayAll = 22;
 
-        public const string ArrayAny = "ArrayAny";
+        public const int ArrayAny = 23;
 
-        public const string Custom = "Custom";
+        public const int Custom = 24;
 
-        public const string Skip = "Skip";
+        public const int Skip = 25;
     }
 }
