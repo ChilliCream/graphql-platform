@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.ApolloFederation</PackageId>
+    <AssemblyName>HotChocolate.ApolloFederation</AssemblyName>
+    <RootNamespace>HotChocolate.ApolloFederation</RootNamespace>
+    <Description></Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+</Project>
