@@ -102,6 +102,7 @@ namespace HotChocolate.Execution.Pipeline
             var requestContext = new Mock<IRequestContext>();
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupProperty(t => t.DocumentId);
+            requestContext.SetupProperty(t => t.DocumentHash);
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
@@ -111,10 +112,11 @@ namespace HotChocolate.Execution.Pipeline
             // assert
             Assert.Null(requestContext.Object.Document);
             Assert.Null(requestContext.Object.DocumentId);
+            Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
         }
 
         [Fact]
-        public async Task AddItemToCache()
+        public async Task AddItemToCacheWithDocumentId()
         {
             // arrange
             var cache = new Caching.DefaultDocumentCache();
@@ -140,6 +142,7 @@ namespace HotChocolate.Execution.Pipeline
             var requestContext = new Mock<IRequestContext>();
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupProperty(t => t.DocumentId);
+            requestContext.SetupProperty(t => t.DocumentHash);
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
@@ -149,6 +152,51 @@ namespace HotChocolate.Execution.Pipeline
             // assert
             Assert.Equal(document, requestContext.Object.Document);
             Assert.Equal("a", requestContext.Object.DocumentId);
+            Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+        }
+
+        [Fact]
+        public async Task AddItemToCacheWithDocumentHash()
+        {
+            // arrange
+            var cache = new Caching.DefaultDocumentCache();
+            var hashProvider = new MD5DocumentHashProvider();
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery("{ a }")
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+
+            var parserMiddleware = new DocumentParserMiddleware(
+                context => default,
+                new NoopDiagnosticEvents(),
+                cache,
+                hashProvider);
+
+            var middleware = new DocumentCacheMiddleware(
+                context =>
+                {
+                    return parserMiddleware.InvokeAsync(context);
+                },
+                new NoopDiagnosticEvents(),
+                cache,
+                hashProvider);
+
+            var requestContext = new Mock<IRequestContext>();
+            requestContext.SetupGet(t => t.Request).Returns(request);
+            requestContext.SetupProperty(t => t.DocumentId);
+            requestContext.SetupProperty(t => t.DocumentHash);
+            requestContext.SetupProperty(t => t.Document);
+            requestContext.SetupProperty(t => t.ValidationResult);
+
+            // act
+            await middleware.InvokeAsync(requestContext.Object);
+
+            // assert
+            Assert.NotNull(requestContext.Object.Document);
+            Assert.Equal(requestContext.Object.DocumentHash, requestContext.Object.DocumentId);
+            Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
         }
     }
 }
