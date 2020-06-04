@@ -1,6 +1,6 @@
-﻿#nullable enable
+﻿using System.Diagnostics.CodeAnalysis;
 
-using System.Diagnostics.CodeAnalysis;
+#nullable enable
 
 namespace HotChocolate.Execution
 {

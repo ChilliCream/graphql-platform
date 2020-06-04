@@ -123,6 +123,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<ReadPersistedQueryMiddleware>();
 
+        public static IRequestExecutorBuilder UseWritePersistedQuery(
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<WritePersistedQueryMiddleware>();
+
         public static IRequestExecutorBuilder UseDefaultPipeline(
             this IRequestExecutorBuilder builder)
         {
@@ -149,6 +153,28 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseExceptions()
                 .UseDocumentCache()
                 .UseReadPersistedQuery()
+                .UseDocumentParser()
+                .UseDocumentValidation()
+                .UseOperationCache()
+                .UseOperationResolver()
+                .UseOperationVariableCoercion()
+                .UseOperationExecution();
+        }
+
+        public static IRequestExecutorBuilder UseActivePersistedQueryPipeline(
+            this IRequestExecutorBuilder builder)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder
+                .UseInstrumentations()
+                .UseExceptions()
+                .UseDocumentCache()
+                .UseReadPersistedQuery()
+                .UseWritePersistedQuery()
                 .UseDocumentParser()
                 .UseDocumentValidation()
                 .UseOperationCache()
