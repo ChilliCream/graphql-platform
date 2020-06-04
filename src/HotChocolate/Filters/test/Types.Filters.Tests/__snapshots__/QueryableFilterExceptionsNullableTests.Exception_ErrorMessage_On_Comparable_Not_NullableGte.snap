@@ -18,8 +18,8 @@
       "Exception": null,
       "Extensions": {
         "expectedType": "Int!",
-        "filterKind": "Comparable",
-        "operationKind": "NotGreaterThanOrEquals",
+        "filterKind": 3,
+        "operationKind": 14,
         "filterType": "FooFilter"
       }
     }

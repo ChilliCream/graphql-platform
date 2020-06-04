@@ -18,8 +18,8 @@
       "Exception": null,
       "Extensions": {
         "expectedType": "FooNestedFilter!",
-        "filterKind": "Object",
-        "operationKind": "Object",
+        "filterKind": 6,
+        "operationKind": 19,
         "filterType": "FooNestedFilter"
       }
     }
