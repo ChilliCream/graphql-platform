@@ -47,15 +47,11 @@ namespace HotChocolate.Execution
                     return default(ValueTask);
                 }));
 
-            IQueryExecutor executor = schema.MakeExecutable(
-                b => b.UseDefaultPipeline()
-                   );
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { a { foo } b { foo } } }")
-                    .Create());
+                "{ root { a { foo } b { foo } } }");
 
             // assert
             result.MatchSnapshot();

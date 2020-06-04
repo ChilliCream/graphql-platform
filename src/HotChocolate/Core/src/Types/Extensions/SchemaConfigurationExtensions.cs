@@ -20,7 +20,7 @@ namespace HotChocolate
             }
 
             return schemaConfiguration.BindResolver(
-                ctx => Task.FromResult(resolver(ctx)));
+                ctx => new ValueTask<object>(resolver(ctx)));
         }
 
         public static IBindResolverDelegate BindResolver(
@@ -38,7 +38,7 @@ namespace HotChocolate
             }
 
             return schemaConfiguration.BindResolver(
-                ctx => Task.FromResult(resolver()));
+                ctx => new ValueTask<object>(resolver()));
         }
 
         public static IBindResolverDelegate BindResolver(

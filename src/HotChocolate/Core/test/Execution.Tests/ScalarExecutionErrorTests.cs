@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -38,15 +39,14 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ stringToFoo(name: \"  \") }");
 
             // assert
-            result.MatchSnapshot(options =>
-                options.IgnoreField("Errors[0].Exception"));
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -58,14 +58,14 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ nameToString(name: \"  \") }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(

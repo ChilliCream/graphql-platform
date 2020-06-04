@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Utilities
             CancellationToken cancellationToken) =>
             Task.Run(() => ExecuteResolvers(executionContext, cancellationToken));
 
-        public static async Task ExecuteResolvers(
+        private static async Task ExecuteResolvers(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        public static async Task ExecuteResolvers2(
+        private static async Task ExecuteResolvers2(
             Channel<ResolverTask> channel,
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
