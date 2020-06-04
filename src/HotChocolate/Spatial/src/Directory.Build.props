@@ -6,14 +6,13 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
-    <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference-->
+    </PackageReference>
   </ItemGroup>
 
 </Project>
