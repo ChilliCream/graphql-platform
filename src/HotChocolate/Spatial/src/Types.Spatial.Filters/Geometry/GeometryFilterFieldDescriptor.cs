@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Spatial.Filters
 
         // We override this method for implicity binding
         protected override FilterOperationDefintion CreateOperationDefinition(
-            object operationKind) =>
+            int operationKind) =>
                 CreateOperation(operationKind).CreateDefinition();
 
         // The following to methods are for adding the filters explicitly
@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Spatial.Filters
         }
 
         private GeometryFilterOperationDescriptor CreateOperation(
-            object operationKind)
+            int operationKind)
         {
             if (SpatialFilterOperation.Distance.Equals(operationKind))
             {
