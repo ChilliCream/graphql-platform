@@ -519,7 +519,7 @@ namespace HotChocolate.Execution
             builder
                 .RemoveService<IErrorHandler>();
             builder.Services
-                .AddSingleton<IErrorHandler, ErrorHandler>();
+                .AddSingleton<IErrorHandler, ErrorHandler2>();
 
             return builder;
         }
