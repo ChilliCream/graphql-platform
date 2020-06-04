@@ -1215,7 +1215,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>So, let's say our customer schema looks something like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="93797152872391980000"
+              data-toaster-id="56127499608186220000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1234,7 +1234,7 @@ type Customer {
 type Consultant {
   id: ID!
   name: String!
-}`, `93797152872391980000`)"
+}`, `56127499608186220000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1262,7 +1262,7 @@ type Consultant {
 <p>And our second schema dealing with the insurance contracts looks like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73358375817245800000"
+              data-toaster-id="4913539216698970000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1284,7 +1284,7 @@ type LifeInsuranceContract implements Contract {
 type SomeOtherContract implements Contract {
   id: ID!
   expiryDate: DateTime
-}`, `73358375817245800000`)"
+}`, `4913539216698970000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1314,7 +1314,7 @@ type SomeOtherContract implements Contract {
 <p>Imagine we have two servers serving up those schemas. The schema that we actually want for our UI team should look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="33582068894382730000"
+              data-toaster-id="99931400870422950000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1347,7 +1347,7 @@ type LifeInsuranceContract implements Contract {
 type SomeOtherContract implements Contract {
   id: ID!
   expiryDate: DateTime
-}`, `33582068894382730000`)"
+}`, `99931400870422950000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1390,7 +1390,7 @@ type SomeOtherContract implements Contract {
 <p>Let's name the customer schema <code class="language-text">customers</code> and the contract schema <code class="language-text">contracts</code>. With that let's decorate our desired schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="35529180837407236000"
+              data-toaster-id="83991684218126910000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1425,7 +1425,7 @@ type LifeInsuranceContract implements Contract {
 type SomeOtherContract implements Contract {
   id: ID!
   expiryDate: DateTime
-}`, `35529180837407236000`)"
+}`, `83991684218126910000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1472,7 +1472,7 @@ type SomeOtherContract implements Contract {
 <p>Let us assume you have a deeper field from which you want to fetch data like the following.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="11403406515716252000"
+              data-toaster-id="86449360363013030000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1483,7 +1483,7 @@ type SomeOtherContract implements Contract {
       qux
     }
   }
-}`, `11403406515716252000`)"
+}`, `86449360363013030000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1507,12 +1507,12 @@ type SomeOtherContract implements Contract {
 <p>Install the server template to your dotnet CLI:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74488174610726320000"
+              data-toaster-id="83029960038629030000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet new -i HotChocolate.Templates.Server`, `74488174610726320000`)"
+              onClick="copyToClipboard(`dotnet new -i HotChocolate.Templates.Server`, `83029960038629030000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1525,13 +1525,13 @@ type SomeOtherContract implements Contract {
 <p>Now let's create our server:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26326225739593646000"
+              data-toaster-id="10761428731604371000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`mkdir stitching
-dotnet new graphql-server`, `26326225739593646000`)"
+dotnet new graphql-server`, `10761428731604371000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1546,7 +1546,7 @@ dotnet new graphql-server</code></pre></div>
 <p>Go to the Startup.cs and add the HTTP clients that shall access the remote schema endpoints like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="59317283800899715000"
+              data-toaster-id="5652210185192241000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1559,7 +1559,7 @@ dotnet new graphql-server</code></pre></div>
 services.AddHttpClient(&quot;contract&quot;, client =>
 {
     client.BaseAddress = new Uri(&quot;http://127.0.0.1:5051&quot;);
-});`, `59317283800899715000`)"
+});`, `5652210185192241000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1584,14 +1584,14 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>So let us start with the customer schema, the customer schema does only use scalars defined in the spec. This means we do not have to declare any extra scalars to our stitching layer.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="68255108316369895000"
+              data-toaster-id="41882079782132290000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`serviceCollection.AddRemoteQueryExecutor(b => b
     .SetSchemaName(&quot;customer&quot;)
-    .SetSchema(File.ReadAllText(&quot;Customer.graphql&quot;)));`, `68255108316369895000`)"
+    .SetSchema(File.ReadAllText(&quot;Customer.graphql&quot;)));`, `41882079782132290000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1607,7 +1607,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>Next, let's setup our contracts schema. The contracts schema uses a <code class="language-text">DateTime</code> scalar, this one is not specified in the spec so we have to tell our schema to use this one. Since <em>Hot Chocolate</em> specified a bunch of extended scalars we can import one of those. If we do not have a scalar matching the one of the remote schema we would need to implement this one by extending the class <code class="language-text">ScalarType</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="40005771771339480000"
+              data-toaster-id="74509702433978800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1615,7 +1615,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
               onClick="copyToClipboard(`serviceCollection.AddRemoteQueryExecutor(b => b
     .SetSchemaName(&quot;contract&quot;)
     .SetSchema(FileResource.Open(&quot;Contract.graphql&quot;))
-    .AddScalarType<DateTimeType>());`, `40005771771339480000`)"
+    .AddScalarType<DateTimeType>());`, `74509702433978800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1631,14 +1631,14 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>Now that we have setup our remote schema let's stitch everything together by providing our prepared stitched schema file:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62296036988064825000"
+              data-toaster-id="11698756016986200000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`serviceCollection.AddStitchedSchema(
     FileResource.Open(&quot;Stitching.graphql&quot;),
-    c => c.RegisterType<DateTimeType>());`, `62296036988064825000`)"
+    c => c.RegisterType<DateTimeType>());`, `11698756016986200000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1660,7 +1660,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>Query A:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="46756190742989380000"
+              data-toaster-id="84320276443073820000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1669,7 +1669,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
   a {
     b
   }
-}`, `46756190742989380000`)"
+}`, `84320276443073820000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1686,7 +1686,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>Query B:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="84704425191722270000"
+              data-toaster-id="3240963928213491700"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1695,7 +1695,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
   c {
     d
   }
-}`, `84704425191722270000`)"
+}`, `3240963928213491700`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1712,7 +1712,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>The batching layer will rewrite those queries into one and send just one request to your remote endpoint:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="63051319776560090000"
+              data-toaster-id="66248338951698060000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1725,7 +1725,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
   __2: c {
     d
   }
-}`, `63051319776560090000`)"
+}`, `66248338951698060000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1754,7 +1754,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>This transalates basically to:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="99133151977991570000"
+              data-toaster-id="96007124524492590000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1767,7 +1767,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
       }
     }
   }
-}`, `99133151977991570000`)"
+}`, `96007124524492590000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1795,7 +1795,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>The following query might be a good starting point since it will expose the ids of our objects.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73295723230248690000"
+              data-toaster-id="66246819020322590000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1807,7 +1807,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
       id
     }
   }
-}`, `73295723230248690000`)"
+}`, `66246819020322590000`)"
             >
               <div
                 class="gatsby-code-button"
