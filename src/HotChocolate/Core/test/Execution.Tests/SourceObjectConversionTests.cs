@@ -22,26 +22,18 @@ namespace HotChocolate.Execution
                 return new Baz { Qux = source.Bar };
             });
 
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<ITypeConversion>(conversion);
-            IServiceProvider services =
-                serviceCollection.BuildServiceProvider();
-
-            ISchema schema =
-                SchemaBuilder.New()
-                    .AddQueryType<QueryType>()
-                    .AddServices(services)
-                    .Create();
+            var executor = new ServiceCollection()
+                .AddSingleton<ITypeConversion>(conversion)
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync()
+                .Result;
 
             // act
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo { qux } }")
-                    .SetServices(services)
-                    .Create();
-
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync("{ foo { qux } }");
 
             // assert
             Assert.True(conversionTriggered);
