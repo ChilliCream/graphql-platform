@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Spatial.Filters.Expressions
             descriptor.UseExpressionVisitor()
                 .Kind(SpatialFilterKind.Geometry)
                     .Operation(SpatialFilterOperation.Distance)
-                        .Handler(GemetryOperationHandlers.Distance).And()
+                        .Handler(GeometryOperationHandlers.Distance).And()
                         .And()
                     .And();
 

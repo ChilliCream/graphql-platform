@@ -8,7 +8,7 @@ using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public static partial class GemetryOperationHandlers
+    public static partial class GeometryOperationHandlers
     {
         private static readonly MethodInfo _distance =
             typeof(Geometry).GetMethods().Single(m =>
