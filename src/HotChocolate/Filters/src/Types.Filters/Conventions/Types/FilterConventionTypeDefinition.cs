@@ -8,15 +8,15 @@ namespace HotChocolate.Types.Filters.Conventions
     {
         public bool Ignore { get; set; }
 
-        public object FilterKind { get; set; } = default!;
+        public int FilterKind { get; set; } = default!;
 
-        public IReadOnlyCollection<object> AllowedOperations { get; set; } =
-            Array.Empty<object>();
+        public IReadOnlyCollection<int> AllowedOperations { get; set; } =
+            Array.Empty<int>();
 
-        public IReadOnlyDictionary<object, CreateFieldName> OperationNames { get; set; } =
-            ImmutableDictionary<object, CreateFieldName>.Empty;
+        public IReadOnlyDictionary<int, CreateFieldName> OperationNames { get; set; } =
+            ImmutableDictionary<int, CreateFieldName>.Empty;
 
-        public IReadOnlyDictionary<object, string> OperationDescriptions { get; set; } =
-            ImmutableDictionary<object, string>.Empty;
+        public IReadOnlyDictionary<int, string> OperationDescriptions { get; set; } =
+            ImmutableDictionary<int, string>.Empty;
     }
 }

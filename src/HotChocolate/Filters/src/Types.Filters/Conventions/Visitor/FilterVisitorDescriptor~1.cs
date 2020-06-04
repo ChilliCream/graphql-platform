@@ -6,8 +6,8 @@ namespace HotChocolate.Types.Filters.Conventions
     public class FilterVisitorDescriptor<T>
         : FilterVisitorDescriptorBase, IFilterVisitorDescriptor<T>
     {
-        private readonly Dictionary<object, FilterVisitorTypeDescriptor<T>> _types =
-            new Dictionary<object, FilterVisitorTypeDescriptor<T>>();
+        private readonly Dictionary<int, FilterVisitorTypeDescriptor<T>> _types =
+            new Dictionary<int, FilterVisitorTypeDescriptor<T>>();
 
         private readonly Dictionary<FilterCombinator, FilterVisitorCombinatorDescriptor<T>> _combinators =
             new Dictionary<FilterCombinator, FilterVisitorCombinatorDescriptor<T>>();
@@ -28,9 +28,9 @@ namespace HotChocolate.Types.Filters.Conventions
         public override FilterVisitorDefinitionBase CreateDefinition()
         {
             var fieldHandler =
-                new Dictionary<object, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)>();
+                new Dictionary<int, (FilterFieldEnter<T>? enter, FilterFieldLeave<T>? leave)>();
             var operationHandler =
-                new Dictionary<(object, object), FilterOperationHandler<T>>();
+                new Dictionary<(int, int), FilterOperationHandler<T>>();
             var combinator =
                 new Dictionary<FilterCombinator, FilterOperationCombinator<T>>();
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Filters.Conventions
                 {
                     fieldHandler[definition.FilterKind] = (definition.Enter, definition.Leave);
                 }
-                foreach (KeyValuePair<object, FilterOperationHandler<T>> handlerPair in
+                foreach (KeyValuePair<int, FilterOperationHandler<T>> handlerPair in
                     definition.OperationHandlers)
                 {
                     operationHandler[(definition.FilterKind, handlerPair.Key)] = handlerPair.Value;
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Filters.Conventions
             return Definition;
         }
 
-        public IFilterVisitorTypeDescriptor<T> Kind(object kind) =>
+        public IFilterVisitorTypeDescriptor<T> Kind(int kind) =>
             _types.GetOrAdd(kind, _ => FilterVisitorTypeDescriptor<T>.New(this, kind));
 
         public static FilterVisitorDescriptor<T> New(

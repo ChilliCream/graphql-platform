@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <summary>
         /// Defines the base name of the element in array filters.
         /// </summary> 
-        /// <param name="name">The object type name.</param>
+        /// <param name="name">The int type name.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="name"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Filters.Conventions
         /// <see cref="FilterConventionTypeDescriptor"/>
         /// </summary>
         /// <param name="kind">The filter kind to configure</param>
-        IFilterConventionTypeDescriptor Type(object kind);
+        IFilterConventionTypeDescriptor Type(int kind);
 
         /// <summary>
         /// Removes all configuration (including default configuration!)
@@ -63,13 +63,13 @@ namespace HotChocolate.Types.Filters.Conventions
         /// </summary>
         /// <param name="kind">The filter kind to ignore</param>
         /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
-        IFilterConventionDescriptor Ignore(object kind, bool ignore = true);
+        IFilterConventionDescriptor Ignore(int kind, bool ignore = true);
 
         /// <summary>
         /// Configures the default behavior of an operation kind 
         /// </summary>
         /// <param name="kind">The operation kind to configure</param> 
-        IFilterConventionDefaultOperationDescriptor Operation(object kind);
+        IFilterConventionDefaultOperationDescriptor Operation(int kind);
 
         /// <summary>
         /// Specifies a delegate of type <see cref="TryCreateImplicitFilter"/>. This delegate is

@@ -246,7 +246,7 @@ namespace HotChocolate.Types.Filters
         }
 
         private BooleanFilterOperationDescriptor CreateOperation(
-           object operationKind)
+           int operationKind)
         {
             var descirptor = new BooleanFilterFieldDescriptor(
                 _descriptorContext, _propertyInfo, _filterConvention);
@@ -276,7 +276,7 @@ namespace HotChocolate.Types.Filters
         }
 
         private ComparableFilterOperationDescriptor CreateComparableOperation(
-           object operationKind)
+           int operationKind)
         {
             var descirptor = new ComparableFilterFieldDescriptor(
                 _descriptorContext, _propertyInfo, _filterConvention);

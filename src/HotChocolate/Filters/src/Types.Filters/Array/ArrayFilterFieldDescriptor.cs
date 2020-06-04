@@ -111,14 +111,14 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        protected override FilterOperationDefintion CreateOperationDefinition(object operationKind)
+        protected override FilterOperationDefintion CreateOperationDefinition(int operationKind)
         {
             return FilterOperationKind.ArrayAny.Equals(operationKind)
                 ? CreateBooleanOperation(operationKind).CreateDefinition()
                 : CreateOperation(operationKind).CreateDefinition();
         }
 
-        protected FilterOperation GetFilterOperation(object operationKind)
+        protected FilterOperation GetFilterOperation(int operationKind)
         {
             return new FilterOperation(
                 _type,
@@ -132,19 +132,19 @@ namespace HotChocolate.Types.Filters
             Type(typeof(FilterInputType<>).MakeGenericType(type));
         }
 
-        private ArrayFilterOperationDescriptor GetOrCreateOperation(object operationKind)
+        private ArrayFilterOperationDescriptor GetOrCreateOperation(int operationKind)
         {
             return Filters.GetOrAddOperation(operationKind, () => CreateOperation(operationKind));
         }
 
         private ArrayBooleanFilterOperationDescriptor GetOrCreateBooleanOperation(
-            object operationKind)
+            int operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
                     () => CreateBooleanOperation(operationKind));
         }
 
-        private ArrayFilterOperationDescriptor CreateOperation(object operationKind)
+        private ArrayFilterOperationDescriptor CreateOperation(int operationKind)
         {
             FilterOperation? operation = GetFilterOperation(operationKind);
             return ArrayFilterOperationDescriptor.New(
@@ -156,7 +156,7 @@ namespace HotChocolate.Types.Filters
                 FilterConvention);
         }
 
-        private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(object operationKind)
+        private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(int operationKind)
         {
             FilterOperation? operation = GetFilterOperation(operationKind);
 

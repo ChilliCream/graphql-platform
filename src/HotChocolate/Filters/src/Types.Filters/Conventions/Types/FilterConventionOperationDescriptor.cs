@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         protected FilterConventionOperationDescriptor(
             FilterConventionTypeDescriptor descriptor,
-            object kind) : base(kind)
+            int kind) : base(kind)
         {
             _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             Definition.OperationKind = kind;
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public static FilterConventionOperationDescriptor New(
             FilterConventionTypeDescriptor descriptor,
-            object kind) =>
+            int kind) =>
             new FilterConventionOperationDescriptor(descriptor, kind);
     }
 }

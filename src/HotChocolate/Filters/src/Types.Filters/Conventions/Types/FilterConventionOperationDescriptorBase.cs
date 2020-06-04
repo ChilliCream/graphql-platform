@@ -4,7 +4,7 @@ namespace HotChocolate.Types.Filters.Conventions
         : IFilterConventionOperationDescriptorBase
     {
         protected FilterConventionOperationDescriptorBase(
-            object kind)
+            int kind)
         {
             Definition.OperationKind = kind;
         }

@@ -154,13 +154,13 @@ namespace HotChocolate.Types.Filters
         }
 
         private ArrayFilterOperationDescriptor<TArray> GetOrCreateOperation(
-            object operationKind)
+            int operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
                     () => CreateOperation(operationKind));
         }
 
-        private ArrayFilterOperationDescriptor<TArray> CreateOperation(object operationKind)
+        private ArrayFilterOperationDescriptor<TArray> CreateOperation(int operationKind)
         {
             FilterOperation? operation = GetFilterOperation(operationKind);
             return ArrayFilterOperationDescriptor<TArray>.New(

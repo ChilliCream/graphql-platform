@@ -5,35 +5,35 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Ignored Filters
         /// </summary>
-        public const string Ignored = "Ignored";
+        public const int Ignored = 1;
 
         /// <summary>
         /// All String Filters
         /// </summary>
-        public const string String = "String";
+        public const int String = 2;
 
         /// <summary>
         /// All Comparable Filters
         /// </summary>
-        public const string Comparable = "Comparable";
+        public const int Comparable = 3;
 
         /// <summary>
         /// All Boolean Filters
         /// </summary>
-        public const string Boolean = "Boolean";
+        public const int Boolean = 4;
 
         /// <summary>
         /// All Array Filters
         /// </summary>
-        public const string Array = "Array";
+        public const int Array = 21;
 
         /// <summary>
         /// All Object Filters
         /// </summary>
-        public const string Object = "Object";
+        public const int Object = 6;
 
-        public const string Custom = "Custom";
+        public const int Custom = 24;
 
-        public const string Skip = "Skip";
+        public const int Skip = 25;
     }
 }

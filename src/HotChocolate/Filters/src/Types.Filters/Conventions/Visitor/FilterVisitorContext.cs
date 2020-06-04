@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Filters
         public IList<IError> Errors { get; } = new List<IError>();
 
         public bool TryGetEnterHandler(
-            object kind,
+            int kind,
             [NotNullWhen(true)] out FilterFieldEnter<T>? enter)
         {
             if (Definition.FieldHandler.TryGetValue(
@@ -57,7 +57,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public bool TryGetLeaveHandler(
-            object kind,
+            int kind,
             [NotNullWhen(true)] out FilterFieldLeave<T>? leave)
         {
             if (Definition.FieldHandler.TryGetValue(
@@ -72,8 +72,8 @@ namespace HotChocolate.Types.Filters
         }
 
         public bool TryGetOperation(
-            object kind,
-            object operationKind,
+            int kind,
+            int operationKind,
             [NotNullWhen(true)] out FilterOperationHandler<T>? handler)
         {
             if (Definition.OperationHandler.TryGetValue(
@@ -96,7 +96,6 @@ namespace HotChocolate.Types.Filters
                     combinator, out FilterOperationCombinator<T>? combine))
             {
                 combined = combine(operations, this);
-
                 return true;
             }
 

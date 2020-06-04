@@ -8,17 +8,17 @@ namespace HotChocolate.Types.Filters.Conventions
         public IReadOnlyList<TryCreateImplicitFilter> ImplicitFilters { get; set; } =
             new List<TryCreateImplicitFilter>();
 
-        public IReadOnlyDictionary<object, IReadOnlyCollection<object>> AllowedOperations
-        { get; set; } = ImmutableDictionary<object, IReadOnlyCollection<object>>.Empty;
+        public IReadOnlyDictionary<int, IReadOnlyCollection<int>> AllowedOperations
+        { get; set; } = ImmutableDictionary<int, IReadOnlyCollection<int>>.Empty;
 
-        public IReadOnlyDictionary<object, FilterConventionTypeDefinition> TypeDefinitions
-        { get; set; } = ImmutableDictionary<object, FilterConventionTypeDefinition>.Empty;
+        public IReadOnlyDictionary<int, FilterConventionTypeDefinition> TypeDefinitions
+        { get; set; } = ImmutableDictionary<int, FilterConventionTypeDefinition>.Empty;
 
-        public IReadOnlyDictionary<object, CreateFieldName> DefaultOperationNames
-        { get; set; } = ImmutableDictionary<object, CreateFieldName>.Empty;
+        public IReadOnlyDictionary<int, CreateFieldName> DefaultOperationNames
+        { get; set; } = ImmutableDictionary<int, CreateFieldName>.Empty;
 
-        public IReadOnlyDictionary<object, string> DefaultOperationDescriptions
-        { get; set; } = ImmutableDictionary<object, string>.Empty;
+        public IReadOnlyDictionary<int, string> DefaultOperationDescriptions
+        { get; set; } = ImmutableDictionary<int, string>.Empty;
 
         public NameString ArgumentName { get; set; }
 

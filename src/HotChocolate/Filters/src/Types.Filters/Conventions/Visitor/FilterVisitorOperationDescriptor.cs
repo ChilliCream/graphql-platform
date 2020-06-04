@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         protected FilterVisitorOperationDescriptor(
             FilterVisitorTypeDescriptor<T> descriptor,
-            object kind)
+            int kind)
         {
             _descriptor = descriptor ?? throw new ArgumentNullException(nameof(descriptor));
             Definition.OperationKind = kind;
@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Filters.Conventions
 
         public static FilterVisitorOperationDescriptor<T> New(
             FilterVisitorTypeDescriptor<T> descriptor,
-            object kind) =>
+            int kind) =>
             new FilterVisitorOperationDescriptor<T>(descriptor, kind);
     }
 }

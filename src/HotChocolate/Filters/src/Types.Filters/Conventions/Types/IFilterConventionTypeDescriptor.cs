@@ -13,14 +13,14 @@ namespace HotChocolate.Types.Filters.Conventions
         /// </summary>
         /// <param name="kind">The operation kind to ignore</param>
         /// <param name="ignore"><c>true</c> to ignore or <c>false</c> to unignore</param>
-        IFilterConventionTypeDescriptor Ignore(object kind, bool ignore = true);
+        IFilterConventionTypeDescriptor Ignore(int kind, bool ignore = true);
 
         /// <summary>
         /// Specifies the configuration of a operation kind for current
         /// filter kind
         /// </summary> 
         /// <param name="kind">The operation kind to configure</param>
-        IFilterConventionOperationDescriptor Operation(object kind);
+        IFilterConventionOperationDescriptor Operation(int kind);
 
         /// <summary>
         /// Add additional configuration to <see cref="IFilterConventionDescriptor"/>
