@@ -67,7 +67,8 @@ namespace HotChocolate.Execution.Utilities
             return new GraphQLException(errorBuilder.Build());
         }
 
-        public static GraphQLException MissingIfArgument(DirectiveNode directive)
+        public static GraphQLException MissingIfArgument(
+            DirectiveNode directive)
         {
             return new GraphQLException(
                 ErrorBuilder.New()
@@ -78,7 +79,8 @@ namespace HotChocolate.Execution.Utilities
                     .Build());
         }
 
-        public static GraphQLException FieldDoesNotExistOnType(FieldNode selection, string typeName)
+        public static GraphQLException FieldDoesNotExistOnType(
+            FieldNode selection, string typeName)
         {
             return new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
@@ -91,5 +93,23 @@ namespace HotChocolate.Execution.Utilities
 
         public static NotSupportedException QueryTypeNotSupported() =>
             new NotSupportedException("The specified query type is not supported.");
+
+        public static GraphQLException VariableNotFound(
+            NameString variableName) => 
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The variable with the name `{0}` does not exist.", 
+                    variableName)
+                .Build());
+
+        public static GraphQLException VariableNotOfType(
+            NameString variableName,
+            Type type) => 
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The variable with the name `{0}` is not of the requested type `{1}`.",
+                    variableName,
+                    type.FullName ?? string.Empty)
+                .Build());
     }
 }

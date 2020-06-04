@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
@@ -68,55 +67,5 @@ namespace HotChocolate.Execution.Pipeline
                 OperationType.Subscription => schema.SubscriptionType,
                 _ => throw new GraphQLException("THROWHELPER")
             };
-    }
-
-    internal class VariableValueCollection : IVariableValueCollection
-    {
-        private readonly Dictionary<string, VariableValue> _coercedValues;
-
-        public VariableValueCollection(Dictionary<string, VariableValue> coercedValues)
-        {
-            _coercedValues = coercedValues;
-        }
-
-        public T GetVariable<T>(NameString name)
-        {
-            if (TryGetVariable(name, out T value))
-            {
-                return value;
-            }
-
-            // TODO : implement error handling.
-            throw new NotImplementedException("We need proper error here!");
-        }
-
-        public bool TryGetVariable<T>(NameString name, [NotNullWhen(true)] out T value)
-        {
-            if (_coercedValues.TryGetValue(name.Value, out VariableValue variableValue))
-            {
-                if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
-                {
-                    if (variableValue.ValueLiteral is T casted)
-                    {
-                        value = casted;
-                        return true;
-                    }
-                }
-                else
-                {
-                    if (variableValue.Value is T casted)
-                    {
-                        value = casted;
-                        return true;
-                    }
-                }
-            }
-
-            value = default!;
-            return false;
-        }
-
-        public static VariableValueCollection Empty { get; } =
-            new VariableValueCollection(new Dictionary<string, VariableValue>());
     }
 }

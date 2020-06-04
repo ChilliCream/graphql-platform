@@ -1,14 +1,15 @@
-using System.Threading.Tasks;
-using Xunit;
-using Snapshooter.Xunit;
-using HotChocolate.Resolvers;
 using System.Collections.Generic;
-using HotChocolate.Types;
 using System.Linq;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
+using HotChocolate.Tests;
+using HotChocolate.Types;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Execution
 {
-    public class ResolverContextTests
+    public class MiddlewareContextTests
     {
         [Fact]
         public async Task AccessVariables()
@@ -35,7 +36,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public async Task AccessVariables_Failes_When_Variable_Not_Exists()
+        public async Task AccessVariables_Fails_When_Variable_Not_Exists()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
