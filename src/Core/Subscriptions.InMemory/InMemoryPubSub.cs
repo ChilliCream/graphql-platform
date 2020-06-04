@@ -33,7 +33,7 @@ namespace HotChocolate.Subscriptions.InMemory
         public async ValueTask CompleteAsync<TTopic>(TTopic topic)
             where TTopic : notnull
         {
-            if (_topics.TryGetValue(topic, out IEventTopic? eventTopic))
+            if (_topics.TryRemove(topic, out IEventTopic? eventTopic))
             {
                 await eventTopic.CompleteAsync();
             }
