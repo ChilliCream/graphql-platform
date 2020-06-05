@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Types;
+using Xunit;
 
 namespace HotChocolate.ApolloFederation
 {
@@ -17,6 +18,18 @@ namespace HotChocolate.ApolloFederation
             configure(builder);
 
             return builder.Create();
+        }
+
+        protected void AssertDirectiveHasFieldsArgument(DirectiveType directive)
+        {
+            Assert.Collection(directive.Arguments,
+                t =>
+                {
+                    Assert.Equal("fields", t.Name);
+                    Assert.IsType<FieldSetType>(
+                        Assert.IsType<NonNullType>(t.Type).Type);
+                }
+            );
         }
     }
 }

@@ -123,6 +123,9 @@
   <data name="FieldsetType_Description" xml:space="preserve">
     <value>Scalar representing a set of fields.</value>
   </data>
+  <data name="ProvidesDirective_Description" xml:space="preserve">
+    <value>Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway.</value>
+  </data>
   <data name="RequiresDirective_Description" xml:space="preserve">
     <value>Used to annotate the required input fieldset from a base type for a resolver.</value>
   </data>

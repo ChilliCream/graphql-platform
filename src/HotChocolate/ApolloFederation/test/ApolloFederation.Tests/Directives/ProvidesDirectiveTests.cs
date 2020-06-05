@@ -4,27 +4,27 @@ using Xunit;
 
 namespace HotChocolate.ApolloFederation
 {
-    public class RequiresDirectiveTests
+    public class ProvidesDirectiveTests
         : FederationTypesTestBase
     {
         [Fact]
-        public void AddRequiresDirective_EnsureAvailableInSchema()
+        public void AddProvidesDirective_EnsureAvailableInSchema()
         {
             // arrange
             ISchema schema = this.CreateSchema(b =>
             {
-                b.AddDirectiveType<RequiresDirectiveType>();
+                b.AddDirectiveType<ProvidesDirectiveType>();
             });
 
             // act
             DirectiveType directive =
                 schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals("requires"));
+                    t => t.Name.Equals("provides"));
 
             // assert
             Assert.NotNull(directive);
-            Assert.IsType<RequiresDirectiveType>(directive);
-            Assert.Equal("requires", directive.Name);
+            Assert.IsType<ProvidesDirectiveType>(directive);
+            Assert.Equal("provides", directive.Name);
             Assert.Equal(1, directive.Arguments.Count());
             this.AssertDirectiveHasFieldsArgument(directive);
             Assert.Collection(directive.Locations,

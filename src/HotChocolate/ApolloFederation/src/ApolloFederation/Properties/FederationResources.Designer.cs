@@ -79,6 +79,15 @@ namespace HotChocolate.ApolloFederation.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway..
+        /// </summary>
+        internal static string ProvidesDirective_Description {
+            get {
+                return ResourceManager.GetString("ProvidesDirective_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Used to annotate the required input fieldset from a base type for a resolver..
         /// </summary>
         internal static string RequiresDirective_Description {
