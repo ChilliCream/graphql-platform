@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;
-using static HotChocolate.Execution.ArgumentNonNullValidator;
 
 namespace HotChocolate.Execution
 {
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
             IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
 
             // act
-            Report report = ArgumentNonNullValidator.Validate(
+            var report = ArgumentNonNullValidator.Validate(
                 field,
                 new ObjectValueNode(), Path.New("root"));
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
             IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
 
             // act
-            Report report = ArgumentNonNullValidator.Validate(
+            var report = ArgumentNonNullValidator.Validate(
                 field,
                 new ObjectValueNode(), Path.New("root"));
 
