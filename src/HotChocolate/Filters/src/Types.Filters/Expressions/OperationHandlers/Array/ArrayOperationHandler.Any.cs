@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 Type propertType = operation.Type;
 
-                if (operation.TryGetSimpleFilterBaseType(out Type? baseType))
+                if (operation.TryGetElementType(out Type? baseType))
                 {
                     propertType = baseType;
                 }

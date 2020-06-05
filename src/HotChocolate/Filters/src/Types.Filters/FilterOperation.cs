@@ -7,8 +7,7 @@ namespace HotChocolate.Types.Filters
 {
     public class FilterOperation
     {
-        private bool _singleFilterInitialized;
-        private Type? _arrayBaseType;
+        private readonly bool _isMetaField;
 
         public FilterOperation(
             Type type,
@@ -20,6 +19,7 @@ namespace HotChocolate.Types.Filters
             FilterKind = filterKind;
             Kind = kind;
             Property = property;
+            _isMetaField = Property?.GetCustomAttribute(typeof(FilterMetaFieldAttribute)) is { };
 
             if (Property is { } &&
                 Property.DeclaringType != null)
@@ -29,7 +29,20 @@ namespace HotChocolate.Types.Filters
             }
         }
 
+        public FilterOperation(
+            Type type,
+            int filterKind,
+            int kind,
+            PropertyInfo property,
+            Type? elementType)
+            : this(type, filterKind, kind, property)
+        {
+            ElementType = elementType;
+        }
+
         public Type Type { get; }
+
+        public Type? ElementType { get; }
 
         public int FilterKind { get; }
 
@@ -39,28 +52,14 @@ namespace HotChocolate.Types.Filters
 
         public bool IsNullable { get; }
 
-        public bool TryGetSimpleFilterBaseType(
+        public bool TryGetElementType(
             [NotNullWhen(true)] out Type? baseType)
         {
-            if (!_singleFilterInitialized)
-            {
-                if (typeof(ISingleFilter).IsAssignableFrom(Type))
-                {
-                    _arrayBaseType = Type.GetGenericArguments()[0];
-                }
-                if (typeof(ISingleFilter).IsAssignableFrom(Property.DeclaringType) &&
-                    Property.DeclaringType is { })
-                {
-                    _arrayBaseType = Property.DeclaringType.GetGenericArguments()[0];
-                }
-                _singleFilterInitialized = true;
-            }
-
-            baseType = _arrayBaseType;
+            baseType = ElementType;
             return baseType != null;
         }
 
-        public bool IsSimpleArrayType() => TryGetSimpleFilterBaseType(out _);
+        public bool IsMetaField() => _isMetaField || TryGetElementType(out _);
 
         public FilterOperation WithOperationKind(int kind) =>
             new FilterOperation(Type, FilterKind, kind, Property);
