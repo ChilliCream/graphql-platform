@@ -6,12 +6,13 @@ using Xunit;
 namespace HotChocolate.ApolloFederation
 {
     public class ExternalDirectiveTests
+        : FederationTypesTestBase
     {
         [Fact]
         public void AddExternalDirective_EnsureAvailableInSchema()
         {
             // arrange
-            ISchema schema = CreateSchema(b =>
+            ISchema schema = this.CreateSchema(b =>
             {
                 b.AddDirectiveType<ExternalDirectiveType>();
             });
@@ -28,20 +29,6 @@ namespace HotChocolate.ApolloFederation
             Assert.Equal(0, directive.Arguments.Count());
             Assert.Collection(directive.Locations,
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
-        }
-
-        private ISchema CreateSchema(Action<ISchemaBuilder> configure)
-        {
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("bar"));
-
-            configure(builder);
-
-            return builder.Create();
-        }
+        }        
     }
 }

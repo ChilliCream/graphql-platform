@@ -1,3 +1,4 @@
+using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation
@@ -9,9 +10,7 @@ namespace HotChocolate.ApolloFederation
         {
             descriptor.Name(FederationDirectives.External);
 
-            descriptor.Description(
-                "Directive to indicate that a field is owned " + 
-                "by another service, for example via Apollo federation.");
+            descriptor.Description(FederationResources.ExternalDirective_Description);
 
             descriptor
                 .Location(DirectiveLocation.FieldDefinition);
