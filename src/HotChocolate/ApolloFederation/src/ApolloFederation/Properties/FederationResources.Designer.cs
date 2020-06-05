@@ -79,6 +79,15 @@ namespace HotChocolate.ApolloFederation.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface..
+        /// </summary>
+        internal static string KeyDirective_Description {
+            get {
+                return ResourceManager.GetString("KeyDirective_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway..
         /// </summary>
         internal static string ProvidesDirective_Description {

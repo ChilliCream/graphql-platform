@@ -123,6 +123,9 @@
   <data name="FieldsetType_Description" xml:space="preserve">
     <value>Scalar representing a set of fields.</value>
   </data>
+  <data name="KeyDirective_Description" xml:space="preserve">
+    <value>Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface.</value>
+  </data>
   <data name="ProvidesDirective_Description" xml:space="preserve">
     <value>Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway.</value>
   </data>
