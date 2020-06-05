@@ -262,7 +262,14 @@ namespace HotChocolate.Execution.Serialization
 
             for (int i = 0; i < list.Count; i++)
             {
-                WriteResultMap(writer, list[i]);
+                if (list[i] is { } m)
+                {
+                    WriteResultMap(writer, m);
+                }
+                else
+                {
+                    WriteFieldValue(writer, null);
+                }
             }
 
             writer.WriteEndArray();

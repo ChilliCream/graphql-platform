@@ -1,33 +1,29 @@
 ﻿{
-  "Data": {
-    "foo": {
-      "nullable_list_nullable_element": [
-        null
-      ]
-    }
-  },
-  "Errors": [
+  "errors": [
     {
-      "Message": "Cannot return null for non-nullable field.",
-      "Code": "EXEC_NON_NULL_VIOLATION",
-      "Path": [
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 42
+        }
+      ],
+      "path": [
         "foo",
         "nullable_list_nullable_element",
         0,
         "b"
       ],
-      "Locations": [
-        {
-          "Line": 1,
-          "Column": 42
-        }
-      ],
-      "Exception": null,
-      "Extensions": {
+      "extensions": {
         "code": "EXEC_NON_NULL_VIOLATION"
       }
     }
   ],
-  "Extensions": null,
-  "ContextData": null
+  "data": {
+    "foo": {
+      "nullable_list_nullable_element": [
+        null
+      ]
+    }
+  }
 }
