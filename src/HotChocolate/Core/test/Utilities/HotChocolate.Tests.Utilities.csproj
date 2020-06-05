@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Tests.Utilities</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 

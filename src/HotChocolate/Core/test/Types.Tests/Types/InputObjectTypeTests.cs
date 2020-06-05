@@ -6,8 +6,10 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types
 {
@@ -1089,6 +1091,29 @@ namespace HotChocolate.Types
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void DefaultValues_Are_Not_Propagated()
+        {
+            ExpectValid(
+                b => b
+                    .AddDocumentFromString(@"
+                    type Query {
+                        foo(input: SomeInput) : String
+                    }
+
+                    input SomeInput {
+                        foo: String
+                        bar: SomeInput = { foo: ""test"" }
+                        baz: String! = ""test""
+                    }")
+                    .Use(next => context => 
+                    {
+                        object foo = context.Argument<object>("input");
+                        return Task.CompletedTask;
+                    }),
+                @"{ foo(input: { }) }");
         }
 
         public class SimpleInput
