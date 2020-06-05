@@ -120,11 +120,26 @@ namespace HotChocolate.Types.Filters
 
         protected FilterOperation GetFilterOperation(int operationKind)
         {
+            Type? elementType = default;
+            if (_type is { })
+            {
+                if (typeof(ISingleFilter).IsAssignableFrom(_type))
+                {
+                    elementType = _type.GetGenericArguments()[0];
+                }
+                if (Definition.Property is { } &&
+                    typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType) &&
+                    Definition.Property.DeclaringType is { })
+                {
+                    elementType = Definition.Property.DeclaringType.GetGenericArguments()[0];
+                }
+            }
             return new FilterOperation(
                 _type,
                 Definition.Kind,
                 operationKind,
-                Definition.Property);
+                Definition.Property,
+                elementType);
         }
 
         protected void SetTypeReference(Type type)

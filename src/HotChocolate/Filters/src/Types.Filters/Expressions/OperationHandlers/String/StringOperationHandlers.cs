@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             Expression property = context.GetInstance();
 
-            if (!operation.IsSimpleArrayType())
+            if (!operation.IsMetaField())
             {
                 property = Expression.Property(context.GetInstance(), operation.Property);
             }
