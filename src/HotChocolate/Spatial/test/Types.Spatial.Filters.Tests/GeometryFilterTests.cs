@@ -41,11 +41,11 @@ namespace HotChocolate.Types.Filters
             public IEnumerable<Foo> Foos { get; } = new[]
             {
                 new Foo { Bar = new Point(new Coordinate(1,1)) },
-                new Foo { Bar =  new Point(new Coordinate(10,10)) },
-                new Foo { Bar =  new Point(new Coordinate(100,100)) },
-                new Foo { Bar =  new Point(new Coordinate(1000,1000)) },
-                new Foo { Bar =  new Point(new Coordinate(10000,10000)) },
-                new Foo { Bar =  new Point(new Coordinate(100000,100000)) },
+                new Foo { Bar = new Point(new Coordinate(10,10)) },
+                new Foo { Bar = new Point(new Coordinate(100,100)) },
+                new Foo { Bar = new Point(new Coordinate(1000,1000)) },
+                new Foo { Bar = new Point(new Coordinate(10000,10000)) },
+                new Foo { Bar = new Point(new Coordinate(100000,100000)) },
             };
         }
 

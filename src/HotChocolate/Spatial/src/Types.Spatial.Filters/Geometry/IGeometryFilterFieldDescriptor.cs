@@ -12,7 +12,17 @@ namespace HotChocolate.Types.Spatial.Filters
 
         IGeometryFilterFieldDescriptor BindFiltersImplicitly();
 
+        IGeometryFilterOperationDescriptor AllowArea();
+
+        IGeometryFilterOperationDescriptor AllowCrosses();
+
         IGeometryFilterOperationDescriptor AllowDistance();
+
+        IGeometryFilterOperationDescriptor AllowIntersects();
+
+        IGeometryFilterOperationDescriptor AllowLength();
+
+        IGeometryFilterOperationDescriptor AllowWithin();
 
         IGeometryFilterFieldDescriptor Ignore(bool ignore = true);
     }

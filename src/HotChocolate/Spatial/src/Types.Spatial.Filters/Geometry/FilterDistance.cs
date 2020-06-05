@@ -4,13 +4,12 @@ namespace HotChocolate.Types.Spatial.Filters
 {
     public class FilterDistance
     {
-        public FilterDistance(
-            Point from)
+        public FilterDistance(Point shape)
         {
-            From = from;
+            Shape = shape;
         }
 
-        public Point From { get; }
+        public Point Shape { get; }
 
         public double Is { get; set; }
     }

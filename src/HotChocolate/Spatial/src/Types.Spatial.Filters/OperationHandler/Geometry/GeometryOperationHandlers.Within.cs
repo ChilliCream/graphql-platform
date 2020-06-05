@@ -10,13 +10,13 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public static partial class GeometryOperationHandlers
     {
-        private static readonly MethodInfo _distance =
+        private static readonly MethodInfo _within =
             typeof(Geometry).GetMethods().Single(m =>
-                m.Name.Equals(nameof(Geometry.Distance))
+                m.Name.Equals(nameof(Geometry.Within))
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(Geometry));
 
-        public static bool Distance(
+        public static bool Within(
             FilterOperation operation,
             IInputType type,
             IValueNode value,
@@ -35,26 +35,9 @@ namespace HotChocolate.Types.Filters.Expressions
                 return false;
             }
 
-            // if (type.IsInstanceOfType(value) &&
-            //     parsedValue is bool)
-            // {
-                Expression property = context.GetInstance();
+            result = Expression.Empty();
 
-                if (!operation.IsSimpleArrayType())
-                {
-                    property = Expression.Property(context.GetInstance(), operation.Property);
-                }
-
-                result = Expression.AndAlso(
-                    Expression.NotEqual(property, Expression.Constant(null)),
-                    Expression.Call(property, _distance, Expression.Constant(value)));
-
-                return true;
-            // }
-            // else
-            // {
-                throw new InvalidOperationException();
-            // }
+            return true;
         }
     }
 }
