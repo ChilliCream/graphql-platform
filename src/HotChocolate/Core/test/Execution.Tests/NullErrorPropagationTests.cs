@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Tests;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -99,7 +98,7 @@ namespace HotChocolate.Execution
                 request, CancellationToken.None);
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+            result.MatchSnapshot(fieldType);
         }
 
         [InlineData("nonnull_prop")]
@@ -121,7 +120,7 @@ namespace HotChocolate.Execution
                 request, CancellationToken.None);
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+            result.MatchSnapshot(fieldType);
         }
 
         [InlineData("nonnull_prop")]
@@ -143,7 +142,7 @@ namespace HotChocolate.Execution
                 request, CancellationToken.None);
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+            result.MatchSnapshot(fieldType);
         }
 
         private IRequestExecutor CreateExecutor()

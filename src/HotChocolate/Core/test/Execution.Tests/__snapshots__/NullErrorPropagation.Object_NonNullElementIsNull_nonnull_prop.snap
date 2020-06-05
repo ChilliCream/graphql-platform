@@ -1,28 +1,24 @@
 ﻿{
-  "Data": {
-    "foo": null
-  },
-  "Errors": [
+  "errors": [
     {
-      "Message": "Cannot return null for non-nullable field.",
-      "Code": "EXEC_NON_NULL_VIOLATION",
-      "Path": [
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 24
+        }
+      ],
+      "path": [
         "foo",
         "nonnull_prop",
         "b"
       ],
-      "Locations": [
-        {
-          "Line": 1,
-          "Column": 24
-        }
-      ],
-      "Exception": null,
-      "Extensions": {
+      "extensions": {
         "code": "EXEC_NON_NULL_VIOLATION"
       }
     }
   ],
-  "Extensions": null,
-  "ContextData": null
+  "data": {
+    "foo": null
+  }
 }

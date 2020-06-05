@@ -1,19 +1,12 @@
 ﻿{
-  "Data": {
+  "errors": [
+    {
+      "message": "ERROR"
+    }
+  ],
+  "data": {
     "foo": {
       "nullable_list_nonnull_element": null
     }
-  },
-  "Errors": [
-    {
-      "Message": "ERROR",
-      "Code": null,
-      "Path": null,
-      "Locations": [],
-      "Exception": null,
-      "Extensions": {}
-    }
-  ],
-  "Extensions": null,
-  "ContextData": null
+  }
 }

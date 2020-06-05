@@ -1,17 +1,10 @@
 ﻿{
-  "Data": {
-    "foo": null
-  },
-  "Errors": [
+  "errors": [
     {
-      "Message": "ERROR",
-      "Code": null,
-      "Path": null,
-      "Locations": [],
-      "Exception": null,
-      "Extensions": {}
+      "message": "ERROR"
     }
   ],
-  "Extensions": null,
-  "ContextData": null
+  "data": {
+    "foo": null
+  }
 }
