@@ -235,13 +235,11 @@ namespace HotChocolate.Stitching.Utilities
                         break;
 
                     case IntValueNode i:
-                        jsonWriter.Flush();
-                        WriteNumberValue(writer, i.Value);
+                        jsonWriter.WriteNumberValue(Convert.ToInt32(i.Value));
                         break;
 
                     case FloatValueNode f:
-                        jsonWriter.Flush();
-                        WriteNumberValue(writer, f.Value);
+                        jsonWriter.WriteNumberValue(Convert.ToDouble(f.Value));
                         break;
 
                     case BooleanValueNode b:
@@ -253,18 +251,6 @@ namespace HotChocolate.Stitching.Utilities
                             "Unknown variable value kind.");
                 }
             }
-        }
-
-        private static void WriteNumberValue(IBufferWriter<byte> writer, string value)
-        {
-            Span<byte> span = writer.GetSpan(value.Length);
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                span[i] = (byte)value[i];
-            }
-
-            writer.Advance(value.Length);
         }
     }
 }
