@@ -35,15 +35,6 @@ namespace HotChocolate.Types.Filters
 
             IQueryable<T> source = null;
 
-            if (context.Result is PageableData<T> p)
-            {
-                source = p.Source;
-            }
-            else
-            {
-                p = null;
-            }
-
             if (context.Result is IQueryable<T> q)
             {
                 source = q;
@@ -64,9 +55,7 @@ namespace HotChocolate.Types.Filters
                 filter.Accept(visitor);
 
                 source = source.Where(visitor.CreateFilter<T>());
-                context.Result = p is null
-                    ? (object)source
-                    : new PageableData<T>(source, p.Properties);
+                context.Result = source;
             }
         }
     }

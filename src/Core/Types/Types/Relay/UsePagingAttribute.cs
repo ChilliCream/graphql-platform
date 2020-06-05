@@ -54,13 +54,19 @@ namespace HotChocolate.Types.Relay
             IDescriptorContext context,
             MemberInfo member)
         {
-            Type? type = SchemaType;
-            ITypeReference returnType = context.Inspector.GetReturnType(
-                member, TypeContext.Output);
+            ITypeReference returnType = context.Inspector.GetReturnType(member, TypeContext.Output);
+            return GetSchemaType(context, returnType);
+        }
 
-            if (type is null
-                && returnType is IClrTypeReference clr
-                && TypeInspector.Default.TryCreate(clr.Type, out var typeInfo))
+        private Type GetSchemaType(
+            IDescriptorContext context,
+            ITypeReference returnType)
+        {
+            Type? type = SchemaType;
+
+            if (type is null &&
+                returnType is IClrTypeReference clr &&
+                TypeInspector.Default.TryCreate(clr.Type, out Utilities.TypeInfo typeInfo))
             {
                 if (BaseTypes.IsSchemaType(typeInfo.ClrType))
                 {
@@ -76,6 +82,7 @@ namespace HotChocolate.Types.Relay
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))
             {
+                // TODO : ThrowHelper
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage("The UsePaging attribute needs a valid node schema type.")
@@ -85,7 +92,5 @@ namespace HotChocolate.Types.Relay
 
             return type;
         }
-
-
     }
 }

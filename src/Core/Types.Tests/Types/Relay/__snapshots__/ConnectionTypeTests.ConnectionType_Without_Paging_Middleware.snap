@@ -1,20 +1,16 @@
 ﻿{
   "Data": {
-    "s": {
+    "connectionOfString": {
       "edges": [
         {
-          "cursor": "NQ==",
-          "node": "f"
-        },
-        {
-          "cursor": "Ng==",
-          "node": "g"
+          "cursor": "foo",
+          "node": "abc"
         }
       ],
       "pageInfo": {
         "hasNextPage": false
       },
-      "totalCount": 7
+      "totalCount": 1
     }
   },
   "Extensions": {},

@@ -4,121 +4,133 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay
 {
     public class QueryableConnectionResolver<T>
-        : IConnectionResolver
+        : IConnectionResolver<IQueryable<T>>
     {
-        private const string _totalCount = "__totalCount";
-        private const string _position = "__position";
-
-        private readonly IQueryable<T> _source;
-        private readonly IDictionary<string, object> _properties;
-        private readonly QueryablePagingDetails _pageDetails;
-
-        public QueryableConnectionResolver(
+        public async ValueTask<IConnection> ResolveAsync(
+            IMiddlewareContext context,
             IQueryable<T> source,
-            PagingDetails pagingDetails)
+            ConnectionArguments arguments = default,
+            bool withTotalCount = false,
+            CancellationToken cancellationToken = default)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
+            int? count = withTotalCount
+                ? (int?)await Task.Run(() => source.Count(), cancellationToken)
+                    .ConfigureAwait(false)
+                : null;
 
-            if (pagingDetails == null)
-            {
-                throw new ArgumentNullException(nameof(pagingDetails));
-            }
+            int? after = arguments.After is { } a
+                ? (int?)IndexEdge<T>.DeserializeCursor(a)
+                : null;
 
-            _source = source;
-            _pageDetails = DeserializePagingDetails(pagingDetails);
+            int? before = arguments.Before is { } b
+                ? (int?)IndexEdge<T>.DeserializeCursor(b)
+                : null;
 
-            _properties = pagingDetails.Properties
-                ?? new Dictionary<string, object>();
-        }
+            List<IndexEdge<T>> selectedEdges =
+                await GetSelectedEdgesAsync(
+                    source, arguments.First, arguments.Last, after, before, cancellationToken)
+                    .ConfigureAwait(false);
 
-        public Task<Connection<T>> ResolveAsync(
-            CancellationToken cancellationToken)
-        {
-            return Task.Run(() => Create(), cancellationToken);
-        }
-
-        private Connection<T> Create()
-        {
-            if (!_pageDetails.TotalCount.HasValue)
-            {
-                _pageDetails.TotalCount = _source.Count();
-            }
-
-            _properties[_totalCount] = _pageDetails.TotalCount.Value;
-
-            IReadOnlyCollection<QueryableEdge> selectedEdges =
-                GetSelectedEdges();
-            QueryableEdge firstEdge = selectedEdges.FirstOrDefault();
-            QueryableEdge lastEdge = selectedEdges.LastOrDefault();
+            IndexEdge<T> firstEdge = selectedEdges[0];
+            IndexEdge<T> lastEdge = selectedEdges[selectedEdges.Count - 1];
 
             var pageInfo = new PageInfo(
-                lastEdge?.Index < (_pageDetails.TotalCount.Value - 1),
+                lastEdge?.Index < (count.Value - 1),
                 firstEdge?.Index > 0,
-                selectedEdges.FirstOrDefault()?.Cursor,
-                selectedEdges.LastOrDefault()?.Cursor,
-                _pageDetails.TotalCount);
+                firstEdge?.Cursor,
+                lastEdge?.Cursor,
+                count);
 
             return new Connection<T>(pageInfo, selectedEdges);
         }
 
-        Task<IConnection> IConnectionResolver.ResolveAsync(
+        ValueTask<IConnection> IConnectionResolver.ResolveAsync(
+            IMiddlewareContext context,
+            object source,
+            ConnectionArguments arguments,
+            bool withTotalCount,
             CancellationToken cancellationToken) =>
-                Task.Run<IConnection>(() => Create(), cancellationToken);
+            ResolveAsync(
+                context,
+                (IQueryable<T>)source,
+                arguments,
+                withTotalCount,
+                cancellationToken);
 
-        private IReadOnlyCollection<QueryableEdge> GetSelectedEdges()
+        private async ValueTask<List<IndexEdge<T>>> GetSelectedEdgesAsync(
+            IQueryable<T> allEdges,
+            int? first,
+            int? last,
+            int? after,
+            int? before,
+            CancellationToken cancellationToken)
         {
-            var list = new List<QueryableEdge>();
-            List<T> edges = GetEdgesToReturn(
-                _source, _pageDetails, out int offset);
+            IQueryable<T> edges = GetEdgesToReturn(
+                allEdges, first, last, after, before,
+                out int offset);
 
-            for (int i = 0; i < edges.Count; i++)
+            var list = new List<IndexEdge<T>>();
+
+            if (edges is IAsyncEnumerable<T> enumerable)
             {
-                int index = offset + i;
-                _properties[_position] = index;
-                string cursor = Base64Serializer.Serialize(_properties);
-                list.Add(new QueryableEdge(cursor, edges[i], index));
+                int index = offset;
+                await foreach (T item in enumerable.WithCancellation(cancellationToken)
+                    .ConfigureAwait(false))
+                {
+                    list.Add(IndexEdge<T>.Create(item, index++));
+                }
+            }
+            else
+            {
+                await Task.Run(() =>
+                {
+                    int index = offset;
+                    foreach (T item in edges)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        list.Add(IndexEdge<T>.Create(item, index++));
+                    }
+                }).ConfigureAwait(false);
             }
 
             return list;
         }
 
-        private List<T> GetEdgesToReturn(
+        private IQueryable<T> GetEdgesToReturn(
             IQueryable<T> allEdges,
-            QueryablePagingDetails pagingDetails,
+            int? first,
+            int? last,
+            int? after,
+            int? before,
             out int offset)
         {
-            IQueryable<T> edges = ApplyCursorToEdges(
-                allEdges, pagingDetails.Before, pagingDetails.After);
+            IQueryable<T> edges = ApplyCursorToEdges(allEdges, after, before);
 
             offset = 0;
-            if (pagingDetails.After.HasValue)
+            if (after.HasValue)
             {
-                offset = pagingDetails.After.Value + 1;
+                offset = after.Value + 1;
             }
 
-            if (pagingDetails.First.HasValue)
+            if (first.HasValue)
             {
-                edges = GetFirstEdges(
-                    edges, pagingDetails.First.Value,
-                    ref offset);
+                edges = GetFirstEdges(edges, first.Value, ref offset);
             }
 
-            if (pagingDetails.Last.HasValue)
+            if (last.HasValue)
             {
-                edges = GetLastEdges(
-                    edges, pagingDetails.Last.Value,
-                    ref offset);
+                edges = GetLastEdges(edges, last.Value, ref offset);
             }
 
-            return edges.ToList();
+            return edges;
         }
 
         protected virtual IQueryable<T> GetFirstEdges(
@@ -133,7 +145,8 @@ namespace HotChocolate.Types.Relay
         }
 
         protected virtual IQueryable<T> GetLastEdges(
-            IQueryable<T> edges, int last,
+            IQueryable<T> edges,
+            int last,
             ref int offset)
         {
             if (last < 0)
@@ -157,7 +170,9 @@ namespace HotChocolate.Types.Relay
         }
 
         protected virtual IQueryable<T> ApplyCursorToEdges(
-            IQueryable<T> allEdges, int? before, int? after)
+            IQueryable<T> allEdges,
+            int? after,
+            int? before)
         {
             IQueryable<T> edges = allEdges;
 
@@ -172,82 +187,6 @@ namespace HotChocolate.Types.Relay
             }
 
             return edges;
-        }
-
-        private static QueryablePagingDetails DeserializePagingDetails(
-            PagingDetails pagingDetails)
-        {
-            Dictionary<string, object> afterProperties =
-                TryDeserializeCursor(pagingDetails.After);
-            Dictionary<string, object> beforeProperties =
-                TryDeserializeCursor(pagingDetails.Before);
-
-            return new QueryablePagingDetails
-            {
-                After = GetPositionFromCurser(afterProperties),
-                Before = GetPositionFromCurser(beforeProperties),
-                TotalCount = GetTotalCountFromCursor(afterProperties)
-                    ?? GetTotalCountFromCursor(beforeProperties),
-                First = pagingDetails.First,
-                Last = pagingDetails.Last
-            };
-        }
-
-        private static int? GetPositionFromCurser(
-            IDictionary<string, object> properties)
-        {
-            if (properties == null)
-            {
-                return null;
-            }
-
-            return Convert.ToInt32(properties[_position]);
-        }
-
-        private static int? GetTotalCountFromCursor(
-            IDictionary<string, object> properties)
-        {
-            if (properties == null)
-            {
-                return null;
-            }
-
-            return Convert.ToInt32(properties[_totalCount]);
-        }
-
-        private static Dictionary<string, object> TryDeserializeCursor(
-            string cursor)
-        {
-            if (cursor == null)
-            {
-                return null;
-            }
-
-            Dictionary<string, object> properties = Base64Serializer
-                .Deserialize<Dictionary<string, object>>(cursor);
-
-            return properties;
-        }
-
-        protected class QueryablePagingDetails
-        {
-            public long? TotalCount { get; set; }
-            public int? Before { get; set; }
-            public int? After { get; set; }
-            public int? First { get; set; }
-            public int? Last { get; set; }
-        }
-
-        protected class QueryableEdge
-            : Edge<T>
-        {
-            public QueryableEdge(string cursor, T node, int index)
-                : base(cursor, node)
-            {
-                Index = index;
-            }
-
-            public int Index { get; set; }
         }
     }
 }

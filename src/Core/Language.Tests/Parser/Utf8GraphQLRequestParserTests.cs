@@ -40,7 +40,8 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer
+                        .Serialize(r.Query, true)
                         .MatchSnapshot();
                 });
         }
@@ -542,6 +543,22 @@ namespace HotChocolate.Language
 
             // assert
             obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Parse_Doc_Id()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                "{ \"doc_id\": \"foo\", \"query\": \"{ bar }\" }"
+                .NormalizeLineBreaks());
+
+            // act
+            IReadOnlyList<GraphQLRequest> request = Utf8GraphQLRequestParser.Parse(source);
+
+            // assert
+            Assert.Equal("foo", request[0].QueryName);
+            request[0].Query.MatchSnapshot();
         }
 
         private class GraphQLRequestDto

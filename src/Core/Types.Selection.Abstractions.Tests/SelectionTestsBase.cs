@@ -117,6 +117,52 @@ namespace HotChocolate.Types.Selections
         }
 
         [Fact]
+        public virtual void Execute_Selection_SingleScalarAndTypeName()
+        {
+            // arrange
+            IServiceCollection services;
+            Func<IResolverContext, IEnumerable<Foo>> resolver;
+            (services, resolver) = _provider.CreateResolver(SAMPLE);
+
+            IQueryable<Foo> resultCtx = null;
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType<Query>(
+                    d => d.Field(t => t.Foos)
+                        .Resolver(resolver)
+                        .Use(next => async ctx =>
+                        {
+                            await next(ctx).ConfigureAwait(false);
+                            resultCtx = ctx.Result as IQueryable<Foo>;
+                        })
+                        .UseSelection())
+                .Create();
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            executor.Execute(
+                "{ foos { bar __typename } }");
+
+            // assert
+            Assert.NotNull(resultCtx);
+            Assert.Collection(resultCtx.ToArray(),
+                x =>
+                {
+                    Assert.Equal("aa", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                },
+                x =>
+                {
+                    Assert.Equal("bb", x.Bar);
+                    Assert.Equal(0, x.Baz);
+                    Assert.Null(x.Nested);
+                    Assert.Null(x.ObjectArray);
+                });
+        }
+
+        [Fact]
         public virtual void Execute_Selection_MultipleScalar()
         {
             // arrange
@@ -1094,7 +1140,7 @@ namespace HotChocolate.Types.Selections
 
             // act
             var result = executor.Execute("{ foos { totalCount pageInfo {startCursor}}}")
-                    as IReadOnlyQueryResult;
+                as IReadOnlyQueryResult;
 
             // assert
             Assert.NotNull(result);
@@ -1106,7 +1152,7 @@ namespace HotChocolate.Types.Selections
 
             var pageInfoResult = foosResult["pageInfo"] as IDictionary<string, object>;
             Assert.NotNull(pageInfoResult);
-            Assert.Equal("eyJfX3RvdGFsQ291bnQiOjIsIl9fcG9zaXRpb24iOjB9",
+            Assert.Equal("MA==",
                 pageInfoResult["startCursor"]);
 
             Assert.NotNull(resultCtx);
@@ -1522,7 +1568,7 @@ namespace HotChocolate.Types.Selections
 
             public string GetComputedField() => Bar + Baz;
 
-            public string GetComputedFieldParent([Parent]Foo foo) => foo.Bar + foo.Baz;
+            public string GetComputedFieldParent([Parent] Foo foo) => foo.Bar + foo.Baz;
 
             public static Foo Create(string bar, int baz)
             {

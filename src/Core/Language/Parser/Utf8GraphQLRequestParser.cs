@@ -211,6 +211,21 @@ namespace HotChocolate.Language
                     }
                     break;
 
+                case _d:
+                    if (fieldName.SequenceEqual(_docId))
+                    {
+                        if (request.QueryName is null)
+                        {
+                            request.QueryName = ParseStringOrNull();
+                        }
+                        else
+                        {
+                            SkipValue();
+                        }
+                        return;
+                    }
+                    break;
+
                 case _q:
                     if (fieldName.SequenceEqual(_query))
                     {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Utilities
 {
@@ -41,7 +42,7 @@ namespace HotChocolate.Utilities
 
         public static Type UnwrapNonNull(Type type)
         {
-            if(IsNonNullType(type))
+            if (IsNonNullType(type))
             {
                 return GetInnerType(type);
             }
@@ -347,11 +348,11 @@ namespace HotChocolate.Utilities
                 current = GetInnerType(current);
             }
 
-            if (IsOptional(type))
+            if (IsOptional(current))
             {
                 current = GetInnerType(current);
             }
-
+            
             return current;
         }
 
@@ -392,7 +393,7 @@ namespace HotChocolate.Utilities
                 || IsResolverResultType(type)
                 || IsOptional(type))
             {
-                return type.GetGenericArguments().First();
+                return type.GetGenericArguments()[0];
             }
 
             if (ImplementsListInterface(type))

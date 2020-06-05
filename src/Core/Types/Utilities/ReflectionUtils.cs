@@ -187,7 +187,7 @@ namespace HotChocolate.Utilities
             return null;
         }
 
-        public static Type GetReturnType(this MemberInfo member)
+        public static Type GetReturnType(this MemberInfo member, bool ignoreAttributes = false)
         {
             if (member.IsDefined(typeof(GraphQLTypeAttribute)))
             {

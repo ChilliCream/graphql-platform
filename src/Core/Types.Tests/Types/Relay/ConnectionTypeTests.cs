@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -163,6 +167,189 @@ namespace HotChocolate.Types.Relay
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void InferSchemaWithAttributesCorrectly()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task UsePagingAttribute_InMemory_Collection()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                collection {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task UsePagingAttribute_InMemory_Queryable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                queryable {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task UsePagingAttribute_InMemory_Enumerable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                enumerable {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ConnectionType_Without_Paging_Middleware()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                connectionOfString {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task UsePagingAttribute_With_Injected_ConnectionResolver()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithPagingAttribute>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                enumerable {
+                    edges {
+                        cursor
+                        node
+                    }
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }";
+
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IConnectionResolver<IEnumerable<string>>, ConnectionOfString>()
+                .BuildServiceProvider();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(query)
+                .SetServices(services)
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType
         {
@@ -217,7 +404,7 @@ namespace HotChocolate.Types.Relay
                 IObjectTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Interface<FooInterfaceType>();
-                descriptor.Field(t => t.Bar).UsePaging<StringType>();
+                descriptor.Field<ICollection<string>>(t => t.Bar).UsePaging<StringType>();
             }
         }
 
@@ -237,6 +424,59 @@ namespace HotChocolate.Types.Relay
         {
             public ICollection<string> Bar { get; } =
                 new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+        }
+
+        public class QueryWithPagingAttribute
+        {
+            [UsePaging]
+            public ICollection<string> Collection { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+
+            [UsePaging]
+            public IQueryable<string> Queryable { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable();
+
+            [UsePaging]
+            public IEnumerable<string> Enumerable { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable();
+
+            [GraphQLType(typeof(ConnectionWithCountType<StringType>))]
+            public Connection<string> ConnectionOfString(
+                int? first = null, 
+                int? last = null, 
+                string? after = null, 
+                string? before = null) =>
+                new Connection<string>(
+                    new PageInfo(false, false, "foo", "foo", 1),
+                    new List<Edge<string>> { new Edge<string>("abc", "foo") });
+        }
+
+        public class ConnectionOfString : IConnectionResolver<IEnumerable<string>>
+        {
+            public ValueTask<IConnection> ResolveAsync(
+                IMiddlewareContext context,
+                IEnumerable<string> source,
+                ConnectionArguments arguments = default,
+                bool withTotalCount = false,
+                CancellationToken cancellationToken = default)
+            {
+                return new ValueTask<IConnection>(new Connection<string>(
+                    new PageInfo(false, false, "foo", "foo", 1),
+                    new List<Edge<string>> { new Edge<string>("abc", "foo") }));
+            }
+
+            public ValueTask<IConnection> ResolveAsync(
+                IMiddlewareContext context,
+                object source,
+                ConnectionArguments arguments = default,
+                bool withTotalCount = false,
+                CancellationToken cancellationToken = default) =>
+                ResolveAsync(
+                    context, 
+                    (IEnumerable<string>)source, 
+                    arguments, 
+                    withTotalCount, 
+                    cancellationToken);
         }
     }
 }

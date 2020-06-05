@@ -6,6 +6,6 @@ namespace HotChocolate.Types.Relay
     {
         IPageInfo PageInfo { get; }
 
-        IReadOnlyCollection<IEdge> Edges { get; }
+        IReadOnlyList<IEdge> Edges { get; }
     }
 }

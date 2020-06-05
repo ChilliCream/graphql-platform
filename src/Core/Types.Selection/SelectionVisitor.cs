@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Selections.Handlers;
 using HotChocolate.Utilities;
 
@@ -38,6 +39,15 @@ namespace HotChocolate.Types.Selections
         public Expression<Func<T, T>> Project<T>()
         {
             return (Expression<Func<T, T>>)Closures.Peek().CreateMemberInitLambda();
+        }
+
+        protected override bool EnterLeaf(IFieldSelection selection)
+        {
+            if (IntrospectionFields.TypeName.Equals(selection.Field.Name))
+            {
+                return false;
+            }
+            return base.EnterLeaf(selection);
         }
 
         protected override void LeaveLeaf(IFieldSelection selection)

@@ -49,6 +49,10 @@ namespace HotChocolate.Configuration
                     .MakeGenericType(unresolvedType.Type),
                     unresolvedType.Context);
             }
+            else if (Scalars.TryGetScalar(unresolvedType.Type, out schemaType))
+            {
+                return true;
+            }
             else
             {
                 schemaType = null;
