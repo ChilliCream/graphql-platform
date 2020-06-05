@@ -1,0 +1,33 @@
+﻿{
+  "Data": {
+    "foo": {
+      "nullable_list_nullable_element": [
+        {
+          "a": null,
+          "b": "not_null"
+        }
+      ],
+      "nonnull_list_nullable_element": [
+        {
+          "a": null,
+          "b": "not_null"
+        }
+      ],
+      "nullable_list_nonnull_element": [
+        {
+          "a": null,
+          "b": "not_null"
+        }
+      ],
+      "nonnull_list_nonnull_element": [
+        {
+          "a": null,
+          "b": "not_null"
+        }
+      ]
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

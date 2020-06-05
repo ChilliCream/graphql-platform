@@ -164,6 +164,7 @@ namespace HotChocolate.Execution.Utilities
                         out object? completedElement) &&
                         completedElement is ResultMap m)
                     {
+                        m.Parent = completedResult;
                         completedResult.Add(m);
                     }
                     else if (completedResult.IsNullable)
@@ -195,6 +196,7 @@ namespace HotChocolate.Execution.Utilities
                         out object? completedElement) &&
                         completedElement is ResultMap m)
                     {
+                        m.Parent = completedResult;
                         completedResult.Add(m);
                     }
                     else if (completedResult.IsNullable)
@@ -227,6 +229,7 @@ namespace HotChocolate.Execution.Utilities
                         out object? completedElement) &&
                         completedElement is ResultMap m)
                     {
+                        m.Parent = completedResult;
                         completedResult.Add(m);
                     }
                     else if (completedResult.IsNullable)
@@ -263,6 +266,8 @@ namespace HotChocolate.Execution.Utilities
            object result,
            out ResultList? completedResult)
         {
+            bool isElementList = elementType.IsListType();
+
             if (result is Array array)
             {
                 completedResult = operationContext.Result.RentResultList();
@@ -280,6 +285,10 @@ namespace HotChocolate.Execution.Utilities
                         completedElement is { } m)
                     {
                         completedResult.Add(m);
+                        if (isElementList)
+                        {
+                            SetParent(m, completedResult);
+                        }
                     }
                     else if (completedResult.IsNullable)
                     {
@@ -311,6 +320,10 @@ namespace HotChocolate.Execution.Utilities
                         completedElement is { } m)
                     {
                         completedResult.Add(m);
+                        if (isElementList)
+                        {
+                            SetParent(m, completedResult);
+                        }
                     }
                     else if (completedResult.IsNullable)
                     {
@@ -343,6 +356,10 @@ namespace HotChocolate.Execution.Utilities
                         completedElement is { } m)
                     {
                         completedResult.Add(m);
+                        if (isElementList)
+                        {
+                            SetParent(m, completedResult);
+                        }
                     }
                     else if (completedResult.IsNullable)
                     {
@@ -366,6 +383,14 @@ namespace HotChocolate.Execution.Utilities
                         path));
                 completedResult = null;
                 return false;
+            }
+        }
+
+        private static void SetParent(object value, IResultData parentList)
+        {
+            if (value is IHasResultDataParent result)
+            {
+                result.Parent = parentList;
             }
         }
 
@@ -430,7 +455,7 @@ namespace HotChocolate.Execution.Utilities
 
                 completedResult = selections.EnqueueResolverTasks(
                     operationContext,
-                    responseName => middlewareContext.Path.Append(responseName),
+                    responseName => path.Append(responseName),
                     middlewareContext.ScopedContextData,
                     result);
                 return true;
