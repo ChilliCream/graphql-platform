@@ -1,0 +1,19 @@
+﻿{
+  "Data": {
+    "foos": [
+      {
+        "bar": {
+          "coordinates": [
+            [
+              10.0,
+              10.0
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

@@ -1,4 +1,5 @@
 using NetTopologySuite.Geometries;
+using HotChocolate.Types.Filters;
 
 namespace HotChocolate.Types.Spatial.Filters
 {
@@ -12,6 +13,7 @@ namespace HotChocolate.Types.Spatial.Filters
 
         public Point From { get; }
 
+        [FilterMetaField]
         public double Is { get; set; }
     }
 }

@@ -26,6 +26,31 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Execute_Spatial_Distance()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention<IFilterConvention>(
+                    new FilterConvention(x => x.UseSpatialFilters()))
+                .AddSpatialTypes()
+                .AddQueryType<QueryType>().Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                @"{ foos(where: { bar_distance: {from: {coordinates:[9,10], type:POINT}, is:1} }) {
+                        bar {
+                            coordinates
+                        } 
+                    } 
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType<Query>
         {

@@ -30,10 +30,14 @@ namespace HotChocolate.Types.Spatial.Filters.Expressions
             this IFilterConventionDescriptor descriptor) =>
             descriptor.UseExpressionVisitor()
                 .Kind(SpatialFilterKind.Geometry)
-                    .Operation(SpatialFilterOperation.Distance)
-                        .Handler(GemetryOperationHandlers.Distance).And()
-                        .And()
-                    .And();
+                    .Enter(ObjectFieldHandler.Enter)
+                    .Leave(ObjectFieldHandler.Leave)
+                    .And() 
+                .Kind(SpatialFilterOperation.Distance)
+                    .Enter(GemetryHandlers.Enter)
+                    .Leave(GemetryHandlers.Leave)
+                    .And()
+                .And();
 
         private static bool TryCreateGeometryFiler(
             IDescriptorContext context,

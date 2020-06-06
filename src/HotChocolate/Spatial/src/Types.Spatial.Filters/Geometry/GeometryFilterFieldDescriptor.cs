@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Spatial.Filters
         {
             var operation = new FilterOperation(
                             typeof(Geometry),
-                            Definition.Kind,
+                            SpatialFilterOperation.Distance,
                             SpatialFilterOperation.Distance,
                             Definition.Property);
 
