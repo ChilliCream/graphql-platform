@@ -1,6 +1,8 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types.Filters.Conventions;
+using HotChocolate.Types.Spatial.Filters.Expressions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,11 +18,11 @@ namespace HotChocolate.Types.Spatial.Playground
         {
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
-                .AddQueryType(d => d.Name("Query"))
-                .AddMutationType(d => d.Name("Mutation"))
-                .AddType<GeoQueries>()
-                .AddType<GeoMutations>()
+                .AddConvention<IFilterConvention>(
+                    new FilterConvention(x => x.UseSpatialFilters())
+                )
                 .AddSpatialTypes()
+                .AddQueryType<GeoFilterType>()
                 .Create(),
                 new QueryExecutionOptions
                 {

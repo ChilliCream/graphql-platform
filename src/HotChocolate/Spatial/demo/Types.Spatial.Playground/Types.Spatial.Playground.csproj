@@ -9,6 +9,7 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Voyager\HotChocolate.AspNetCore.Voyager.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Types.Spatial\Types.Spatial.csproj" />
+    <ProjectReference Include="..\..\src\Types.Spatial.Filters\Types.Spatial.Filters.csproj" />
   </ItemGroup>
 
 </Project>
