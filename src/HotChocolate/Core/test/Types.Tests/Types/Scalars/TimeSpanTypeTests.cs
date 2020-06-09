@@ -7,8 +7,8 @@ namespace HotChocolate.Types
     public class TimeSpanTypeTests
     {
         [Theory]
-        [InlineData(TimeSpanFormat.ISO_8601, "PT5M")]
-        [InlineData(TimeSpanFormat.DOT_NET, "00:05:00")]
+        [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
+        [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
         public void Serialize_TimeSpan(TimeSpanFormat format, string expectedValue)
         {
             // arrange
@@ -23,8 +23,8 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData(TimeSpanFormat.ISO_8601, "P10675199DT2H48M5.4775807S")]
-        [InlineData(TimeSpanFormat.DOT_NET, "10675199.02:48:05.4775807")]
+        [InlineData(TimeSpanFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
+        [InlineData(TimeSpanFormat.DotNet, "10675199.02:48:05.4775807")]
         public void Serialize_TimeSpan_Max(TimeSpanFormat format, string expectedValue)
         {
             // arrange
@@ -39,8 +39,8 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData(TimeSpanFormat.ISO_8601, "-P10675199DT2H48M5.4775808S")]
-        [InlineData(TimeSpanFormat.DOT_NET, "-10675199.02:48:05.4775808")]
+        [InlineData(TimeSpanFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
+        [InlineData(TimeSpanFormat.DotNet, "-10675199.02:48:05.4775808")]
         public void Serialize_TimeSpan_Min(TimeSpanFormat format, string expectedValue)
         {
             // arrange
@@ -96,8 +96,8 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData(TimeSpanFormat.ISO_8601, "PT5M")]
-        [InlineData(TimeSpanFormat.DOT_NET, "00:05:00")]
+        [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
+        [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
         public void ParseLiteral_StringValueNode(TimeSpanFormat format, string literalValue)
         {
             // arrange
@@ -114,8 +114,8 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData(TimeSpanFormat.ISO_8601, "PT5M")]
-        [InlineData(TimeSpanFormat.DOT_NET, "00:05:00")]
+        [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
+        [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
         public void Deserialize_TimeSpan(TimeSpanFormat format, string actualValue)
         {
             // arrange
@@ -160,8 +160,8 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData(TimeSpanFormat.ISO_8601, "P10675199DT2H48M5.4775807S")]
-        [InlineData(TimeSpanFormat.DOT_NET, "10675199.02:48:05.4775807")]
+        [InlineData(TimeSpanFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
+        [InlineData(TimeSpanFormat.DotNet, "10675199.02:48:05.4775807")]
         public void Deserialize_TimeSpan_Max(TimeSpanFormat format, string actualValue)
         {
             // arrange
@@ -177,8 +177,8 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData(TimeSpanFormat.ISO_8601, "-P10675199DT2H48M5.4775808S")]
-        [InlineData(TimeSpanFormat.DOT_NET, "-10675199.02:48:05.4775808")]
+        [InlineData(TimeSpanFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
+        [InlineData(TimeSpanFormat.DotNet, "-10675199.02:48:05.4775808")]
         public void Deserialize_TimeSpan_Min(TimeSpanFormat format, string actualValue)
         {
             // arrange

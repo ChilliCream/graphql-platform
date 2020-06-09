@@ -10,7 +10,7 @@ namespace HotChocolate.Types
 {
     /// <summary>
     /// The TimeSpan scalar type represented in two formats:
-    /// <see cref="TimeSpanFormat.ISO_8601"/> and <see cref="TimeSpanFormat.DOT_NET"/>
+    /// <see cref="TimeSpanFormat.Iso8601"/> and <see cref="TimeSpanFormat.DotNet"/>
     /// </summary>
     public sealed class TimeSpanType
         : ScalarType<TimeSpan, StringValueNode>
@@ -18,14 +18,14 @@ namespace HotChocolate.Types
         private static readonly Dictionary<TimeSpanFormat, Func<TimeSpan, string>> _timeSpanToString =
             new Dictionary<TimeSpanFormat, Func<TimeSpan, string>>
             {
-                {TimeSpanFormat.ISO_8601, timeSpan => XmlConvert.ToString(timeSpan)},
-                {TimeSpanFormat.DOT_NET, timeSpan => timeSpan.ToString("c")}
+                {TimeSpanFormat.Iso8601, timeSpan => XmlConvert.ToString(timeSpan)},
+                {TimeSpanFormat.DotNet, timeSpan => timeSpan.ToString("c")}
             };
 
         private readonly TimeSpanFormat _format;
 
         public TimeSpanType()
-            : this(TimeSpanFormat.ISO_8601)
+            : this(TimeSpanFormat.Iso8601)
         {
         }
 
@@ -113,17 +113,17 @@ namespace HotChocolate.Types
             TimeSpanFormat format,
             out TimeSpan? value)
         {
-            if (format == TimeSpanFormat.ISO_8601)
+            if (format == TimeSpanFormat.Iso8601)
             {
-                return TryDeserialize_ISO_8601(serialized, out value);
+                return TryDeserializeIso8601(serialized, out value);
             }
             else
             {
-                return TryDeserialize_DOT_NET(serialized, out value);
+                return TryDeserializeDotNet(serialized, out value);
             }
         }
 
-        private static bool TryDeserialize_ISO_8601(string serialized, out TimeSpan? value)
+        private static bool TryDeserializeIso8601(string serialized, out TimeSpan? value)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace HotChocolate.Types
             }
         }
 
-        private static bool TryDeserialize_DOT_NET(string serialized, out TimeSpan? value)
+        private static bool TryDeserializeDotNet(string serialized, out TimeSpan? value)
         {
             if (TimeSpan.TryParse(serialized, out TimeSpan timeSpan))
             {
