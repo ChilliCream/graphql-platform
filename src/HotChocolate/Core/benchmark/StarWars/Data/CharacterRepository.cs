@@ -41,6 +41,23 @@ namespace HotChocolate.StarWars.Data
             return null;
         }
 
+        public async Task<IReadOnlyList<ICharacter>> GetCharacters(IReadOnlyList<string> ids)
+        {
+            await Task.Delay(2);
+
+            var list = new List<ICharacter>();
+
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (_characters.TryGetValue(ids[i], out ICharacter c))
+                {
+                    list.Add(c);
+                }
+            }
+
+            return list;
+        }
+
         public async Task<Human> GetHuman(string id)
         {
             await Task.Delay(2);

@@ -18,7 +18,7 @@ namespace HotChocolate.StarWars.Types
             descriptor.Field(t => t.AppearsIn)
                 .Type<ListType<EpisodeType>>();
 
-            descriptor.Field<SharedResolvers>(r => r.GetCharacter(default, default))
+            descriptor.Field<SharedResolvers>(r => r.GetCharacterAsync(default, default))
                 .UsePaging<CharacterType>()
                 .Name("friends");
 

@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
@@ -13,8 +13,8 @@ namespace HotChocolate.StarWars
 
         public Query(CharacterRepository repository)
         {
-            _repository = repository
-                ?? throw new ArgumentNullException(nameof(repository));
+            _repository = repository ?? 
+                throw new ArgumentNullException(nameof(repository));
         }
 
         /// <summary>
@@ -47,28 +47,10 @@ namespace HotChocolate.StarWars
             return _repository.GetDroid(id);
         }
 
-        public async Task<IEnumerable<ICharacter>> GetCharacter(string[] characterIds, IResolverContext context)
+        public Task<IReadOnlyList<ICharacter>> GetCharacter(
+            string[] characterIds, IResolverContext context)
         {
-            var characters = new ICharacter[characterIds.Length];
-
-            for (var i = 0; i < characterIds.Length; i++)
-            {
-                string characterId = characterIds[i];
-                ICharacter character = await _repository.GetCharacter(characterId);
-
-                if (character == null)
-                {
-                    context.ReportError(
-                        "Could not resolve a charachter for the " +
-                        $"character-id {characterId}.");
-                }
-                else
-                {
-                    characters[i] = character;
-                }
-            }
-
-            return characters;
+            return _repository.GetCharacters(characterIds);
         }
 
         public Task<IEnumerable<object>> Search(string text)

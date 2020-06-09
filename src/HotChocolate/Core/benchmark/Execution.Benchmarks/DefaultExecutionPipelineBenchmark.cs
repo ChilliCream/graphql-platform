@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Benchmarks
         private readonly IRequestExecutor _executor;
         private readonly IReadOnlyQueryRequest _getHeroRequest;
         private readonly IReadOnlyQueryRequest _getHeroWithFriendsRequest;
+        private readonly IReadOnlyQueryRequest _getTwoHerosWithFriendsRequest;
         private readonly IReadOnlyQueryRequest _introspectionRequest;
 
         public DefaultExecutionPipelineBenchmark()
@@ -33,6 +34,7 @@ namespace HotChocolate.Execution.Benchmarks
                 .Result;
             _getHeroRequest = CreateRequest(md5, resources, "GetHeroQuery.graphql");
             _getHeroWithFriendsRequest = CreateRequest(md5, resources, "GetHeroWithFriendsQuery.graphql");
+            _getTwoHerosWithFriendsRequest = CreateRequest(md5, resources, "GetTwoHerosWithFriendsQuery.graphql");
             _introspectionRequest = CreateRequest(md5, resources, "IntrospectionQuery.graphql");
         }
 
@@ -52,6 +54,7 @@ namespace HotChocolate.Execution.Benchmarks
                 .Create();
         }
 
+        // note : all sync
         [Benchmark]
         public Task SchemaIntrospection()
         {
@@ -64,6 +67,7 @@ namespace HotChocolate.Execution.Benchmarks
             return FiveRequestsInParallel(_executor, _introspectionRequest);
         }
 
+        // note : 1 data fetch
         [Benchmark]
         public Task GetHero()
         {
@@ -76,6 +80,7 @@ namespace HotChocolate.Execution.Benchmarks
             return FiveRequestsInParallel(_executor, _getHeroRequest);
         }
 
+        // note : 2 cascading data fetches
         [Benchmark]
         public Task GetHeroWithFriends()
         {
@@ -86,6 +91,19 @@ namespace HotChocolate.Execution.Benchmarks
         public Task GetHeroWithFriendsFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getHeroWithFriendsRequest);
+        }
+
+        // note : 4 data fetches (2 parallel 2 cascading)
+        [Benchmark]
+        public Task GetTwoHerosWithFriends()
+        {
+            return OneRequest(_executor, _getTwoHerosWithFriendsRequest);
+        }
+
+        [Benchmark]
+        public Task GetTwoHerosWithFriendsFiveParallelRequests()
+        {
+            return FiveRequestsInParallel(_executor, _getTwoHerosWithFriendsRequest);
         }
 
         private static async Task OneRequest(
@@ -102,16 +120,25 @@ namespace HotChocolate.Execution.Benchmarks
             IRequestExecutor executer,
             IReadOnlyQueryRequest request)
         {
-            Task<IExecutionResult> task1 = executer.ExecuteAsync(request);
-            Task<IExecutionResult> task2 = executer.ExecuteAsync(request);
-            Task<IExecutionResult> task3 = executer.ExecuteAsync(request);
-            Task<IExecutionResult> task4 = executer.ExecuteAsync(request);
-            Task<IExecutionResult> task5 = executer.ExecuteAsync(request);
-            ((IDisposable)(await task1)).Dispose();
-            ((IDisposable)(await task2)).Dispose();
-            ((IDisposable)(await task3)).Dispose();
-            ((IDisposable)(await task4)).Dispose();
-            ((IDisposable)(await task5)).Dispose();
+            Task task1 = OneRequest(executer, request);
+            Task task2 = OneRequest(executer, request);
+            Task task3 = OneRequest(executer, request);
+            Task task4 = OneRequest(executer, request);
+            Task task5 = OneRequest(executer, request);
+            
+            await WaitForTask(task1);
+            await WaitForTask(task2);
+            await WaitForTask(task3);
+            await WaitForTask(task4);
+            await WaitForTask(task5);
+        }
+
+        private static async Task WaitForTask(Task task)
+        {
+            if (!task.IsCompleted)
+            {
+                await task;
+            }
         }
     }
 }
