@@ -19,7 +19,7 @@ namespace HotChocolate.Execution.Channels
         /// <summary>Task that indicates the channel has completed.</summary>
         private readonly TaskCompletionSource<bool> _completion;
         /// <summary>The items in the channel.</summary>
-        private readonly BlockingStack<T> _items = new BlockingStack<T>();
+        private readonly ConcurrentStack<T> _items = new ConcurrentStack<T>();
         /// <summary>Readers blocked reading from the channel.</summary>
         private readonly Deque<AsyncOperation<T>> _blockedReaders = new Deque<AsyncOperation<T>>();
         /// <summary>Whether to force continuations to be executed asynchronously from producer writes.</summary>
