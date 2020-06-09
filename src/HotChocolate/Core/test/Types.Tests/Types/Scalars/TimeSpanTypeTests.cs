@@ -130,6 +130,35 @@ namespace HotChocolate.Types
             Assert.Equal(timeSpan, deserializedValue);
         }
 
+        [Fact]
+        public void Deserialize_TimeSpan_Weeks()
+        {
+            // arrange
+            var timeSpanType = new TimeSpanType();
+            var timeSpan = TimeSpan.FromDays(79);
+
+            // act
+            var deserializedValue = (TimeSpan)timeSpanType
+                .Deserialize("P2M2W5D");
+
+            // assert
+            Assert.Equal(timeSpan, deserializedValue);
+        }
+
+        [Fact]
+        public void Deserialize_TimeSpan_CannotEndWithDigits()
+        {
+            // arrange
+            var timeSpanType = new TimeSpanType();
+
+            // act
+            bool success = timeSpanType
+                .TryDeserialize("PT5", out var deserialized);
+
+            // assert
+            Assert.False(success);
+        }
+
         [Theory]
         [InlineData(TimeSpanFormat.ISO_8601, "P10675199DT2H48M5.4775807S")]
         [InlineData(TimeSpanFormat.DOT_NET, "10675199.02:48:05.4775807")]

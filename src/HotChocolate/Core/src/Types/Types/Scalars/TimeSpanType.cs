@@ -127,8 +127,7 @@ namespace HotChocolate.Types
         {
             try
             {
-                value = XmlConvert.ToTimeSpan(serialized);
-                return true;
+                return Iso8601Duration.TryParse(serialized, out value);
             }
             catch (FormatException)
             {
