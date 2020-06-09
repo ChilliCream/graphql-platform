@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HotChocolate" Version="10.4.3" />
+    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\*.graphql" />
+    <EmbeddedResource Include="Resources\*.graphql" />
+  </ItemGroup>
+
+</Project>
