@@ -19,7 +19,7 @@ namespace HotChocolate.Execution.Channels
         /// <summary>Task that indicates the channel has completed.</summary>
         private readonly TaskCompletionSource<bool> _completion;
         /// <summary>The items in the channel.</summary>
-        private readonly ConcurrentStack<T> _items = new ConcurrentStack<T>();
+        private readonly BlockingStack<T> _items = new BlockingStack<T>();
         /// <summary>Readers blocked reading from the channel.</summary>
         private readonly Deque<AsyncOperation<T>> _blockedReaders = new Deque<AsyncOperation<T>>();
         /// <summary>Whether to force continuations to be executed asynchronously from producer writes.</summary>
@@ -35,8 +35,8 @@ namespace HotChocolate.Execution.Channels
         {
             _runContinuationsAsynchronously = runContinuationsAsynchronously;
             _completion = new TaskCompletionSource<bool>(
-                runContinuationsAsynchronously 
-                    ? TaskCreationOptions.RunContinuationsAsynchronously 
+                runContinuationsAsynchronously
+                    ? TaskCreationOptions.RunContinuationsAsynchronously
                     : TaskCreationOptions.None);
             Reader = new UnsortedChannelReader(this);
             Writer = new UnsortedChannelWriter(this);
@@ -303,7 +303,7 @@ namespace HotChocolate.Execution.Channels
                 new ValueTask(Task.FromException(ChannelUtilities.CreateInvalidCompletionException(_parent._doneWriting)));
 
             /// <summary>Gets the number of items in the channel. This should only be used by the debugger.</summary>
-            private int ItemsCountForDebugger => _parent._items.Count;            
+            private int ItemsCountForDebugger => _parent._items.Count;
         }
 
         /// <summary>Gets the object used to synchronize access to all state on this instance.</summary>
@@ -343,22 +343,34 @@ namespace HotChocolate.Execution.Channels
 
     public class BlockingStack<T>
     {
-        private readonly object _sync = new object();
         private readonly Stack<T> _list = new Stack<T>();
+        private SpinLock _lock = new SpinLock(Debugger.IsAttached);
 
         public bool TryPop(out T item)
         {
-            lock(_sync)
+            bool lockTaken = false;
+            try
             {
+                _lock.Enter(ref lockTaken);
                 return _list.TryPop(out item);
+            }
+            finally
+            {
+                if (lockTaken) _lock.Exit(false);
             }
         }
 
         public void Push(T item)
         {
-            lock(_sync)
+            bool lockTaken = false;
+            try
             {
+                _lock.Enter(ref lockTaken);
                 _list.Push(item);
+            }
+            finally
+            {
+                if (lockTaken) _lock.Exit(false);
             }
         }
 
