@@ -8,12 +8,10 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public enum TimeSpanFormat
-    {
-        ISO_8601,
-        DOT_NET
-    }
-
+    /// <summary>
+    /// The TimeSpan scalar type represented in two formats:
+    /// <see cref="TimeSpanFormat.ISO_8601"/> and <see cref="TimeSpanFormat.DOT_NET"/>
+    /// </summary>
     public sealed class TimeSpanType
         : ScalarType<TimeSpan, StringValueNode>
     {
@@ -21,7 +19,7 @@ namespace HotChocolate.Types
             new Dictionary<TimeSpanFormat, Func<TimeSpan, string>>
             {
                 {TimeSpanFormat.ISO_8601, timeSpan => XmlConvert.ToString(timeSpan)},
-                {TimeSpanFormat.DOT_NET, timeSpan => timeSpan.ToString()}
+                {TimeSpanFormat.DOT_NET, timeSpan => timeSpan.ToString("c")}
             };
 
         private readonly TimeSpanFormat _format;
