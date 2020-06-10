@@ -28,14 +28,11 @@ namespace HotChocolate.Execution.Utilities
 
         public bool Reset()
         {
-            bool reuse = _task.IsCompleted;
-
             _task = default!;
             _operationContext = default!;
             _selection = default!;
             _context.Reset();
-
-            return reuse;
+            return true;
         }
     }
 }

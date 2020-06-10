@@ -1,9 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace HotChocolate.Execution.Channels
         /// <summary>Task that indicates the channel has completed.</summary>
         private readonly TaskCompletionSource<bool> _completion;
         /// <summary>The items in the channel.</summary>
-        private readonly ConcurrentBag<T> _items = new ConcurrentBag<T>();
+        private readonly BlockingStack<T> _items = new BlockingStack<T>();
         /// <summary>Readers blocked reading from the channel.</summary>
         private readonly Deque<AsyncOperation<T>> _blockedReaders = new Deque<AsyncOperation<T>>();
         /// <summary>Whether to force continuations to be executed asynchronously from producer writes.</summary>
@@ -34,8 +35,8 @@ namespace HotChocolate.Execution.Channels
         {
             _runContinuationsAsynchronously = runContinuationsAsynchronously;
             _completion = new TaskCompletionSource<bool>(
-                runContinuationsAsynchronously 
-                    ? TaskCreationOptions.RunContinuationsAsynchronously 
+                runContinuationsAsynchronously
+                    ? TaskCreationOptions.RunContinuationsAsynchronously
                     : TaskCreationOptions.None);
             Reader = new UnsortedChannelReader(this);
             Writer = new UnsortedChannelWriter(this);
@@ -65,7 +66,7 @@ namespace HotChocolate.Execution.Channels
 
                 // Dequeue an item if we can.
                 UnsortedChannel<T> parent = _parent;
-                if (parent._items.TryTake(out T item))
+                if (parent._items.TryPop(out T item))
                 {
                     CompleteIfDone(parent);
                     return new ValueTask<T>(item);
@@ -76,7 +77,7 @@ namespace HotChocolate.Execution.Channels
                     parent.AssertInvariants();
 
                     // Try to dequeue again, now that we hold the lock.
-                    if (parent._items.TryTake(out item))
+                    if (parent._items.TryPop(out item))
                     {
                         CompleteIfDone(parent);
                         return new ValueTask<T>(item);
@@ -111,7 +112,7 @@ namespace HotChocolate.Execution.Channels
                 UnsortedChannel<T> parent = _parent;
 
                 // Dequeue an item if we can
-                if (parent._items.TryTake(out item))
+                if (parent._items.TryPop(out item))
                 {
                     CompleteIfDone(parent);
                     return true;
@@ -250,7 +251,7 @@ namespace HotChocolate.Execution.Channels
                         // need to do so outside of the lock.
                         if (parent._blockedReaders.IsEmpty)
                         {
-                            parent._items.Add(item);
+                            parent._items.Push(item);
                             waitingReadersTail = parent._waitingReadersTail;
                             if (waitingReadersTail == null)
                             {
@@ -302,7 +303,7 @@ namespace HotChocolate.Execution.Channels
                 new ValueTask(Task.FromException(ChannelUtilities.CreateInvalidCompletionException(_parent._doneWriting)));
 
             /// <summary>Gets the number of items in the channel. This should only be used by the debugger.</summary>
-            private int ItemsCountForDebugger => _parent._items.Count;            
+            private int ItemsCountForDebugger => _parent._items.Count;
         }
 
         /// <summary>Gets the object used to synchronize access to all state on this instance.</summary>
@@ -339,4 +340,43 @@ namespace HotChocolate.Execution.Channels
         /// <summary>Report if the channel is closed or not. This should only be used by the debugger.</summary>
         private bool ChannelIsClosedForDebugger => _doneWriting != null;
     }
+
+    public class BlockingStack<T>
+    {
+        private readonly Stack<T> _list = new Stack<T>();
+        private SpinLock _lock = new SpinLock(Debugger.IsAttached);
+
+        public bool TryPop(out T item)
+        {
+            bool lockTaken = false;
+            try
+            {
+                _lock.Enter(ref lockTaken);
+                return _list.TryPop(out item);
+            }
+            finally
+            {
+                if (lockTaken) _lock.Exit(false);
+            }
+        }
+
+        public void Push(T item)
+        {
+            bool lockTaken = false;
+            try
+            {
+                _lock.Enter(ref lockTaken);
+                _list.Push(item);
+            }
+            finally
+            {
+                if (lockTaken) _lock.Exit(false);
+            }
+        }
+
+        public bool IsEmpty => _list.Count == 0;
+
+        public int Count => _list.Count;
+    }
+
 }

@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Benchmarks
     [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
     public class DefaultExecutionPipelineBenchmark
     {
-        private readonly IRequestExecutor _executor;
+        private readonly IQueryExecutor _executor;
         private readonly IReadOnlyQueryRequest _getHeroRequest;
         private readonly IReadOnlyQueryRequest _getHeroWithFriendsRequest;
         private readonly IReadOnlyQueryRequest _getTwoHerosWithFriendsRequest;
@@ -23,15 +23,14 @@ namespace HotChocolate.Execution.Benchmarks
             var resources = new ResourceHelper();
             var services = new ServiceCollection()
                 .AddStarWarsRepositories()
-                .AddGraphQL()
-                .AddStarWarsTypes()
-                .Services
                 .BuildServiceProvider();
 
-            _executor = services
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .Result;
+            _executor = SchemaBuilder.New()
+                .AddServices(services)
+                .AddStarWarsTypes()
+                .Create()
+                .MakeExecutable();
+
             _getHeroRequest = CreateRequest(md5, resources, "GetHeroQuery.graphql");
             _getHeroWithFriendsRequest = CreateRequest(md5, resources, "GetHeroWithFriendsQuery.graphql");
             _getTwoHerosWithFriendsRequest = CreateRequest(md5, resources, "GetTwoHerosWithFriendsQuery.graphql");
@@ -106,39 +105,37 @@ namespace HotChocolate.Execution.Benchmarks
             return FiveRequestsInParallel(_executor, _getTwoHerosWithFriendsRequest);
         }
 
-        private static async Task OneRequest(
-            IRequestExecutor executer,
+        private static async Task<IExecutionResult> OneRequest(
+            IQueryExecutor executer,
             IReadOnlyQueryRequest request)
         {
-            IExecutionResult result = await executer.ExecuteAsync(request);
-            // var jsonWriter = new HotChocolate.Execution.Serialization.JsonQueryResultSerializer(true);
-            // Console.WriteLine(jsonWriter.Serialize((IReadOnlyQueryResult)result));
-            ((IDisposable)result).Dispose();
+            return await executer.ExecuteAsync(request);
         }
 
-        private static async Task FiveRequestsInParallel(
-            IRequestExecutor executer,
+        private static async Task<IExecutionResult> FiveRequestsInParallel(
+            IQueryExecutor executer,
             IReadOnlyQueryRequest request)
         {
-            Task task1 = OneRequest(executer, request);
-            Task task2 = OneRequest(executer, request);
-            Task task3 = OneRequest(executer, request);
-            Task task4 = OneRequest(executer, request);
-            Task task5 = OneRequest(executer, request);
-            
+            Task<IExecutionResult> task1 = OneRequest(executer, request);
+            Task<IExecutionResult> task2 = OneRequest(executer, request);
+            Task<IExecutionResult> task3 = OneRequest(executer, request);
+            Task<IExecutionResult> task4 = OneRequest(executer, request);
+            Task<IExecutionResult> task5 = OneRequest(executer, request);
+
             await WaitForTask(task1);
             await WaitForTask(task2);
             await WaitForTask(task3);
             await WaitForTask(task4);
-            await WaitForTask(task5);
+            return await WaitForTask(task5);
         }
 
-        private static async Task WaitForTask(Task task)
+        private static async Task<IExecutionResult> WaitForTask(Task<IExecutionResult> task)
         {
             if (!task.IsCompleted)
             {
-                await task;
+                return await task;
             }
+            return task.Result;
         }
     }
 }
