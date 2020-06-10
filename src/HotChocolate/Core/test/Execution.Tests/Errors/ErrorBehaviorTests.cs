@@ -163,8 +163,7 @@ namespace HotChocolate.Execution
                         .BuildServiceProvider()
                         .GetRequiredService<IRequestExecutorResolver>()
                         .GetRequestExecutorAsync()
-                        .Result,
-                    CreateSchema = b => b.AddQueryType<QueryType>()
+                        .Result
                 },
                 query);
 
