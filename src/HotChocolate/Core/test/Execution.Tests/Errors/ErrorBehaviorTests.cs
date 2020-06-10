@@ -107,7 +107,7 @@ namespace HotChocolate.Execution
         public Task Property_Return_UnexpectedErrorWithPath()
         {
             Snapshot.FullName();
-            return ExpectError("{ error13 }");
+            return ExpectError("{ error13 }", 0);
         }
 
         [Fact]

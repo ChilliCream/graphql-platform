@@ -31,7 +31,13 @@ namespace HotChocolate.Execution.Pipeline
                 OperationDefinitionNode operation =
                     context.Document.GetOperation(context.Request.OperationName);
 
-                ObjectType rootType = ResolveRootType(operation.Operation, context.Schema);
+                ObjectType? rootType = ResolveRootType(operation.Operation, context.Schema);
+
+                if (rootType is null)
+                {
+                    context.Result = ErrorHelper.RootTypeNotFound(operation.Operation);
+                    return;
+                }
 
                 var fragments = new FragmentCollection(context.Schema, context.Document);
 
@@ -50,19 +56,18 @@ namespace HotChocolate.Execution.Pipeline
             }
             else
             {
-                // TODO : ERRORHELPER
-                context.Result = QueryResultBuilder.CreateError((IError)null);
+                context.Result = ErrorHelper.StateInvalidForOperationResolver();
             }
         }
 
-        private static ObjectType ResolveRootType(
+        private static ObjectType? ResolveRootType(
             OperationType operationType, ISchema schema) =>
             operationType switch
             {
                 OperationType.Query => schema.QueryType,
                 OperationType.Mutation => schema.MutationType,
                 OperationType.Subscription => schema.SubscriptionType,
-                _ => throw new GraphQLException("THROWHELPER")
+                _ => throw ThrowHelper.RootTypeNotSupported(operationType)
             };
     }
 }

@@ -95,21 +95,28 @@ namespace HotChocolate.Execution.Utilities
             new NotSupportedException("The specified query type is not supported.");
 
         public static GraphQLException VariableNotFound(
-            NameString variableName) => 
+            NameString variableName) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    "The variable with the name `{0}` does not exist.", 
+                    "The variable with the name `{0}` does not exist.",
                     variableName)
                 .Build());
 
         public static GraphQLException VariableNotOfType(
             NameString variableName,
-            Type type) => 
+            Type type) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
                     "The variable with the name `{0}` is not of the requested type `{1}`.",
                     variableName,
                     type.FullName ?? string.Empty)
                 .Build());
+
+        public static GraphQLException RootTypeNotSupported(
+            OperationType operationType) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("The root type `{0}` is not supported.", operationType)
+                .Build());
+
     }
 }

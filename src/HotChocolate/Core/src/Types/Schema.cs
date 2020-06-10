@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using HotChocolate.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate
 {
@@ -36,13 +36,13 @@ namespace HotChocolate
         /// If this server supports mutation, the type that
         /// mutation operations will be rooted at.
         /// </summary>
-        public ObjectType MutationType => _types.MutationType;
+        public ObjectType? MutationType => _types.MutationType;
 
         /// <summary>
         /// If this server support subscription, the type that
         /// subscription operations will be rooted at.
         /// </summary>
-        public ObjectType SubscriptionType => _types.SubscriptionType;
+        public ObjectType? SubscriptionType => _types.SubscriptionType;
 
         /// <summary>
         /// Gets all the schema types.
@@ -50,7 +50,7 @@ namespace HotChocolate
         public IReadOnlyCollection<INamedType> Types => _types.GetTypes();
 
         /// <summary>
-        /// Gets all the direcives that are supported by this schema.
+        /// Gets all the directives that are supported by this schema.
         /// </summary>
         public IReadOnlyCollection<DirectiveType> DirectiveTypes
         {
@@ -68,11 +68,10 @@ namespace HotChocolate
         /// The specified type does not exist or
         /// is not of the specified type kind.
         /// </exception>
+        [return: NotNull]
         public T GetType<T>(NameString typeName)
-            where T : INamedType
-        {
-            return _types.GetType<T>(typeName.EnsureNotEmpty(nameof(typeName)));
-        }
+            where T : INamedType =>
+            _types.GetType<T>(typeName.EnsureNotEmpty(nameof(typeName)));
 
         /// <summary>
         /// Tries to get a type by its name and kind.
@@ -84,13 +83,9 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetType<T>(NameString typeName, out T type)
-            where T : INamedType
-        {
-            return _types.TryGetType(
-                typeName.EnsureNotEmpty(nameof(typeName)),
-                out type);
-        }
+        public bool TryGetType<T>(NameString typeName, [NotNullWhen(true)]out T type)
+            where T : INamedType =>
+            _types.TryGetType(typeName.EnsureNotEmpty(nameof(typeName)), out type);
 
         /// <summary>
         /// Tries to get the .net type representation of a schema.
@@ -101,12 +96,8 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetClrType(NameString typeName, out Type clrType)
-        {
-            return _types.TryGetClrType(
-                typeName.EnsureNotEmpty(nameof(typeName)),
-                out clrType);
-        }
+        public bool TryGetClrType(NameString typeName, [NotNullWhen(true)] out Type? clrType) =>
+            _types.TryGetClrType(typeName.EnsureNotEmpty(nameof(typeName)), out clrType);
 
         /// <summary>
         /// Gets the possible object types to
@@ -142,12 +133,22 @@ namespace HotChocolate
         /// Returns directive type that was resolved by the given name
         /// or <c>null</c> if there is no directive with the specified name.
         /// </returns>
+        /// <exception cref="ArgumentException">
+        /// The specified directive type does not exist.
+        /// </exception>
         public DirectiveType GetDirectiveType(NameString directiveName)
         {
-            _directiveTypes.TryGetValue(
+            if (_directiveTypes.TryGetValue(
                 directiveName.EnsureNotEmpty(nameof(directiveName)),
-                out DirectiveType type);
-            return type;
+                out DirectiveType? type))
+            {
+                return type;
+            }
+
+            // TODO : resource
+            throw new ArgumentException(
+                $"The specified type `{directiveName}` does not exist.",
+                nameof(directiveName));
         }
 
         /// <summary>
@@ -166,16 +167,14 @@ namespace HotChocolate
         /// </returns>
         public bool TryGetDirectiveType(
             NameString directiveName,
-            out DirectiveType directiveType)
-        {
-            return _directiveTypes.TryGetValue(
+            [NotNullWhen(true)]out DirectiveType? directiveType) =>
+            _directiveTypes.TryGetValue(
                 directiveName.EnsureNotEmpty(nameof(directiveName)),
                 out directiveType);
-        }
 
-        public override string ToString()
-        {
-            return SchemaSerializer.Serialize(this);
-        }
+        /// <summary>
+        /// Returns the schema SDL representation.
+        /// </summary>
+        public override string ToString() => SchemaSerializer.Serialize(this);
     }
 }

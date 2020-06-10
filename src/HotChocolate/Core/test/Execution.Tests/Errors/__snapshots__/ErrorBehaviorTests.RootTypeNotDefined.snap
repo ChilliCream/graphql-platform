@@ -1,15 +1,7 @@
 ﻿{
-  "Data": null,
-  "Errors": [
+  "errors": [
     {
-      "Message": "The specified root type `Mutation` does not exist.",
-      "Code": null,
-      "Path": null,
-      "Locations": null,
-      "Extensions": null,
-      "Exception": null
+      "message": "The specified root type \u0060Mutation\u0060 is not supported by this server."
     }
-  ],
-  "Extensions": null,
-  "ContextData": null
+  ]
 }
