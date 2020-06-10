@@ -21,13 +21,14 @@ namespace HotChocolate.Execution.Utilities
                 if (selection.IsVisible(operationContext.Variables))
                 {
                     operationContext.Execution.Tasks.Register(
-                        operationContext,
-                        selection,
-                        responseIndex++,
-                        resultMap,
-                        parent,
-                        createPath(selection.ResponseName),
-                        scopedContext);
+                        new ResolverTaskDefinition(
+                            operationContext,
+                            selection,
+                            responseIndex++,
+                            resultMap,
+                            parent,
+                            createPath(selection.ResponseName),
+                            scopedContext));
                 }
             }
 

@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        public void Clear()
+        public void Reset()
         {
             _newTasks = 0;
             _allTasks = 0;

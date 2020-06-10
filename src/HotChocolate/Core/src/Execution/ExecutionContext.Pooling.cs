@@ -12,14 +12,13 @@ namespace HotChocolate.Execution
     internal partial class ExecutionContext
         : IExecutionContext
     {
-        private readonly TaskQueue _taskQueue;
+        private readonly TaskBacklog _taskBacklog;
         private readonly TaskStatistics _taskStatistics;
-        private Channel<ResolverTask> _channel = default!;
 
         public ExecutionContext(ObjectPool<ResolverTask> resolverTaskPool)
         {
             _taskStatistics = new TaskStatistics();
-            _taskQueue = new TaskQueue(_taskStatistics, resolverTaskPool);
+            _taskBacklog = new TaskBacklog(_taskStatistics, resolverTaskPool);
             TaskPool = resolverTaskPool;
             TaskStats.StateChanged += TaskStatisticsEventHandler;
         }
@@ -28,17 +27,14 @@ namespace HotChocolate.Execution
         {
             BatchDispatcher = batchDispatcher;
             BatchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-            _channel = new UnsortedChannel<ResolverTask>(true);
-            _taskQueue.Initialize(_channel);
         }
 
         public void Reset()
         {
             BatchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
             BatchDispatcher = default!;
-            _taskQueue.Clear();
-            _taskStatistics.Clear();
-            _channel = default!;
+            _taskBacklog.Reset();
+            _taskStatistics.Reset();
         }
     }
 }
