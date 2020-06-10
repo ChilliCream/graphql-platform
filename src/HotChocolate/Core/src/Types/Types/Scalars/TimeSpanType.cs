@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Xml;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -15,33 +14,21 @@ namespace HotChocolate.Types
     public sealed class TimeSpanType
         : ScalarType<TimeSpan, StringValueNode>
     {
-        private static readonly Dictionary<TimeSpanFormat, Func<TimeSpan, string>> _timeSpanToString =
-            new Dictionary<TimeSpanFormat, Func<TimeSpan, string>>
-            {
-                {TimeSpanFormat.Iso8601, timeSpan => XmlConvert.ToString(timeSpan)},
-                {TimeSpanFormat.DotNet, timeSpan => timeSpan.ToString("c")}
-            };
-
         private readonly TimeSpanFormat _format;
 
-        public TimeSpanType()
-            : this(TimeSpanFormat.Iso8601)
+        public TimeSpanType(
+            TimeSpanFormat format = TimeSpanFormat.Iso8601,
+            BindingBehavior behavior = BindingBehavior.Implicit)
+            : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description, format, behavior)
         {
         }
 
-        public TimeSpanType(TimeSpanFormat format)
-            : this(ScalarNames.TimeSpan, format)
-        {
-            Description = TypeResources.TimeSpanType_Description;
-        }
-
-        public TimeSpanType(NameString name, TimeSpanFormat format)
-            : this(name, null, format)
-        {
-        }
-
-        public TimeSpanType(NameString name, string? description, TimeSpanFormat format)
-            : base(name, BindingBehavior.Implicit)
+        public TimeSpanType(
+            NameString name,
+            string? description = default,
+            TimeSpanFormat format = TimeSpanFormat.Iso8601,
+            BindingBehavior behavior = BindingBehavior.Implicit)
+            : base(name, behavior)
         {
             _format = format;
             Description = description;
@@ -62,7 +49,12 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(TimeSpan value)
         {
-            return new StringValueNode(_timeSpanToString[_format](value));
+            if (_format == TimeSpanFormat.Iso8601)
+            {
+                return new StringValueNode(XmlConvert.ToString(value));
+            }
+
+            return new StringValueNode(value.ToString("c"));
         }
 
         public override bool TrySerialize(object value, out object? serialized)
@@ -75,7 +67,13 @@ namespace HotChocolate.Types
 
             if (value is TimeSpan timeSpan)
             {
-                serialized = _timeSpanToString[_format](timeSpan);
+                if (_format == TimeSpanFormat.Iso8601)
+                {
+                    serialized = XmlConvert.ToString(timeSpan);
+                    return true;
+                }
+
+                serialized = timeSpan.ToString("c");
                 return true;
             }
 
@@ -117,10 +115,8 @@ namespace HotChocolate.Types
             {
                 return TryDeserializeIso8601(serialized, out value);
             }
-            else
-            {
-                return TryDeserializeDotNet(serialized, out value);
-            }
+
+            return TryDeserializeDotNet(serialized, out value);
         }
 
         private static bool TryDeserializeIso8601(string serialized, out TimeSpan? value)
