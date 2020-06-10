@@ -8,8 +8,10 @@ namespace HotChocolate.Types.Spatial
     {
         public static Exception InvalidInputObjectStructure(GeoJSONGeometryType geometryType)
         {
-            var errorMessageTemplate =  string.Format(Resources.ThrowHelper_InvalidInputObjectStructure_Base,
-                geometryType, CultureInfo.InvariantCulture);
+            var errorMessageTemplate =  string.Format(
+                CultureInfo.InvariantCulture,
+                Resources.ThrowHelper_InvalidInputObjectStructure_Base,
+                geometryType);
 
             switch (geometryType)
             {
