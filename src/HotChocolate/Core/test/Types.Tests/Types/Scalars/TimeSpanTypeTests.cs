@@ -1,6 +1,11 @@
 using System;
 using HotChocolate.Language;
 using Xunit;
+using Snapshooter.Xunit;
+using HotChocolate.Execution;
+using Snapshooter;
+using HotChocolate.Types.Descriptors;
+using System.Reflection;
 
 namespace HotChocolate.Types
 {
@@ -247,6 +252,76 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<NullValueNode>(literal);
+        }
+
+        [Fact]
+        public void PureCodeFirst_AutomaticallyBinds_TimeSpan()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [InlineData(TimeSpanFormat.Iso8601)]
+        [InlineData(TimeSpanFormat.DotNet)]
+        [Theory]
+        public void PureCodeFirst_AutomaticallyBinds_TimeSpan_With_Format(
+            TimeSpanFormat format)
+        {
+            SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType(new TimeSpanType(format: format))
+                .Create()
+                .MakeExecutable()
+                .Execute("{ duration }")
+                .ToJson()
+                .MatchSnapshot(new SnapshotNameExtension(format));
+        }
+
+        [Fact]
+        public void PureCodeFirst_Different_TimeSpan_Formats_In_Same_Type()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithTwoDurations>()
+                .AddType(new TimeSpanType(format: TimeSpanFormat.DotNet))
+                .AddType(new TimeSpanType(
+                    "IsoTimeSpan", 
+                    format: TimeSpanFormat.Iso8601, 
+                    bind: BindingBehavior.Explicit))
+                .Create()
+                .MakeExecutable()
+                .Execute("{ duration1 duration2 }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
+        public class Query
+        {
+            public TimeSpan Duration() => TimeSpan.FromDays(1);
+        }
+
+        public class QueryWithTwoDurations
+        {
+            public TimeSpan Duration1() => TimeSpan.FromDays(1);
+
+            [IsoTimeSpan]
+            public TimeSpan Duration2() => TimeSpan.FromDays(1);
+        }
+
+        private class IsoTimeSpanAttribute : ObjectFieldDescriptorAttribute
+        {
+            public override void OnConfigure(
+                IDescriptorContext context, 
+                IObjectFieldDescriptor descriptor, 
+                MemberInfo member)
+            {
+                descriptor.Extend().OnBeforeCreate(
+                    d => d.Type = new SyntaxTypeReference(
+                        new NamedTypeNode("IsoTimeSpan"), 
+                        TypeContext.Output));
+            }
         }
     }
 }

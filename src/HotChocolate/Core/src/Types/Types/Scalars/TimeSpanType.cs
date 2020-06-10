@@ -16,10 +16,15 @@ namespace HotChocolate.Types
     {
         private readonly TimeSpanFormat _format;
 
+        public TimeSpanType()
+            : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description)
+        {
+        }
+
         public TimeSpanType(
             TimeSpanFormat format = TimeSpanFormat.Iso8601,
-            BindingBehavior behavior = BindingBehavior.Implicit)
-            : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description, format, behavior)
+            BindingBehavior bind = BindingBehavior.Implicit)
+            : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description, format, bind)
         {
         }
 
@@ -27,8 +32,8 @@ namespace HotChocolate.Types
             NameString name,
             string? description = default,
             TimeSpanFormat format = TimeSpanFormat.Iso8601,
-            BindingBehavior behavior = BindingBehavior.Implicit)
-            : base(name, behavior)
+            BindingBehavior bind = BindingBehavior.Implicit)
+            : base(name, bind)
         {
             _format = format;
             Description = description;
