@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -211,6 +212,35 @@ namespace HotChocolate.Execution.Utilities
                         selectionSet.GetSelections(schema.QueryType),
                         selection => Assert.Equal("foo", selection.ResponseName));
                 });
+        }
+
+        [Fact]
+        public void Field_Does_Not_Exist()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo bar }");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            Action action = () =>
+                FieldCollector.PrepareSelectionSets(schema, fragments, operation);
+
+            // assert
+            Assert.Equal(
+                "Field `bar` does not exist on type `Query`.", 
+                Assert.Throws<GraphQLException>(action).Message);
         }
     }
 }

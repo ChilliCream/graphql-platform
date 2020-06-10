@@ -138,13 +138,18 @@ namespace HotChocolate.Execution.Utilities
             {
                 if (!withErrors)
                 {
-                    ValueCompletion.TryComplete(
+                    if (ValueCompletion.TryComplete(
                         _operationContext,
                         _context,
                         _context.Path,
                         _context.Field.Type,
                         _context.Result,
-                        out completedValue);
+                        out completedValue) &&
+                        !_context.Field.Type.IsLeafType() &&
+                        completedValue is IHasResultDataParent result)
+                    {
+                        result.Parent = _context.ResultMap;
+                    }
                 }
             }
             catch (Exception ex)

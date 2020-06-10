@@ -125,11 +125,27 @@ namespace HotChocolate.Execution.Utilities
                 .Build();
         }
 
-        public static IReadOnlyQueryResult ParserExpectedQuery() => 
+        public static IReadOnlyQueryResult ParserExpectedQuery() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage("The parse query middleware expects a valid query request.")
                     .SetCode(ErrorCodes.Execution.Incomplete)
+                    .Build());
+
+        public static IReadOnlyQueryResult RootTypeNotFound(OperationType operationType) =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The specified root type `{0}` is not supported by this server.",
+                        operationType)
+                    .Build());
+
+        public static IReadOnlyQueryResult StateInvalidForOperationResolver() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "Either no query document exists or the document " + 
+                        "validation result is invalid.")
                     .Build());
     }
 }

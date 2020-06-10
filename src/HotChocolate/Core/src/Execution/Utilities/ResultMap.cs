@@ -7,9 +7,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public sealed class ResultMap 
+    public sealed class ResultMap
         : IResultMap
         , IReadOnlyDictionary<string, object?>
+        , IHasResultDataParent
     {
         private static readonly ResultValue[] _empty = new ResultValue[0];
         private ResultValue[] _buffer;
@@ -22,6 +23,8 @@ namespace HotChocolate.Execution
         }
 
         public IResultData? Parent { get; set; }
+
+        IResultData? IHasResultDataParent.Parent { get => Parent; set => Parent = value; }
 
         public ResultValue this[int index] { get => _buffer[index]; }
 
@@ -285,5 +288,10 @@ namespace HotChocolate.Execution
                 }
             }
         }
+    }
+
+    internal interface IHasResultDataParent
+    {
+        IResultData? Parent { get; set; }
     }
 }

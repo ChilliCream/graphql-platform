@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Execution;
+using Snapshooter;
 
 namespace HotChocolate.Tests
 {

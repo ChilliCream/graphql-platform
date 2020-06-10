@@ -122,17 +122,22 @@ namespace HotChocolate.Execution.Utilities
                 Path? path = violation.Path;
                 IResultData? parent = violation.Parent;
 
+                if (!_fieldErrors.Contains(violation.Selection))
+                {
+                    _errors.Add(ErrorBuilder.New()
+                        .SetMessage("Cannot return null for non-nullable field.")
+                        .SetCode("EXEC_NON_NULL_VIOLATION")
+                        .SetPath(path)
+                        .AddLocation(violation.Selection)
+                        .Build());
+                }
+
                 while (parent != null)
                 {
                     if (parent is ResultMap map &&
                         path is NamePathSegment nameSegment)
                     {
                         ResultValue value = map.GetValue(nameSegment.Name.Value, out int index);
-
-                        if (index == -1)
-                        {
-                            break;
-                        }
 
                         if (value.IsNullable)
                         {
@@ -141,7 +146,10 @@ namespace HotChocolate.Execution.Utilities
                         }
                         else
                         {
-                            map.RemoveValue(index);
+                            if (index != -1)
+                            {
+                                map.RemoveValue(index);
+                            }
                             path = path.Parent;
                             parent = parent.Parent;
 

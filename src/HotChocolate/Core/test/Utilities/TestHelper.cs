@@ -78,6 +78,12 @@ namespace HotChocolate.Tests
         }
 
         public static Task ExpectError(
+            string sdl,
+            string query,
+            params Action<IError>[] elementInspectors) =>
+            ExpectError(b => b.AddDocumentFromString(sdl).UseNothing(), query, elementInspectors);
+
+        public static Task ExpectError(
             Action<ISchemaBuilder> createSchema,
             string query,
             params Action<IError>[] elementInspectors)
@@ -127,6 +133,7 @@ namespace HotChocolate.Tests
         {
             configuration ??= new TestConfiguration();
             configuration.Service ??= new ServiceCollection()
+                .AddGraphQLCore()
                 .AddStarWarsRepositories()
                 .AddInMemorySubscriptionProvider()
                 .BuildServiceProvider();

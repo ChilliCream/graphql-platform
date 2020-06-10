@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Snapshooter;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -8,12 +8,11 @@ namespace HotChocolate.Execution
 {
     public class NullErrorPropagation
     {
-
         [Fact]
         public async Task Lists_NullableElementIsNull()
         {
             // arrange
-            IQueryExecutor executor = CreateExecutor();
+            IRequestExecutor executor = CreateExecutor();
 
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
@@ -62,7 +61,7 @@ namespace HotChocolate.Execution
         public async Task List_NonNullElementIsNull(string fieldType)
         {
             // arrange
-            IQueryExecutor executor = CreateExecutor();
+            IRequestExecutor executor = CreateExecutor();
 
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
@@ -75,7 +74,7 @@ namespace HotChocolate.Execution
                 request, CancellationToken.None);
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+            result.MatchSnapshot(fieldType);
         }
 
         [InlineData("nullable_list_nullable_element")]
@@ -86,7 +85,7 @@ namespace HotChocolate.Execution
         public async Task List_NonNullElementHasError(string fieldType)
         {
             // arrange
-            IQueryExecutor executor = CreateExecutor();
+            IRequestExecutor executor = CreateExecutor();
 
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
@@ -99,7 +98,7 @@ namespace HotChocolate.Execution
                 request, CancellationToken.None);
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+            result.MatchSnapshot(fieldType);
         }
 
         [InlineData("nonnull_prop")]
@@ -108,7 +107,7 @@ namespace HotChocolate.Execution
         public async Task Object_NonNullElementIsNull(string fieldType)
         {
             // arrange
-            IQueryExecutor executor = CreateExecutor();
+            IRequestExecutor executor = CreateExecutor();
 
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
@@ -121,7 +120,7 @@ namespace HotChocolate.Execution
                 request, CancellationToken.None);
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+            result.MatchSnapshot(fieldType);
         }
 
         [InlineData("nonnull_prop")]
@@ -130,7 +129,7 @@ namespace HotChocolate.Execution
         public async Task Object_NonNullElementHasError(string fieldType)
         {
             // arrange
-            IQueryExecutor executor = CreateExecutor();
+            IRequestExecutor executor = CreateExecutor();
 
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
@@ -143,10 +142,10 @@ namespace HotChocolate.Execution
                 request, CancellationToken.None);
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+            result.MatchSnapshot(fieldType);
         }
 
-        private IQueryExecutor CreateExecutor()
+        private IRequestExecutor CreateExecutor()
         {
             string schema = @"
                 type Query {
@@ -194,9 +193,5 @@ namespace HotChocolate.Execution
                     .To("Bar", "c");
             }).MakeExecutable();
         }
-
-
     }
-
-
 }

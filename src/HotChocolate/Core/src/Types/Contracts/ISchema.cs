@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate
 {
     /// <summary>
@@ -19,7 +21,7 @@ namespace HotChocolate
         /// <summary>
         /// Gets the global schema services.
         /// </summary>
-        IServiceProvider Services { get; }
+        IServiceProvider? Services { get; }
 
         /// <summary>
         /// The type that query operations will be rooted at.
@@ -30,13 +32,13 @@ namespace HotChocolate
         /// If this server supports mutation, the type that
         /// mutation operations will be rooted at.
         /// </summary>
-        ObjectType MutationType { get; }
+        ObjectType? MutationType { get; }
 
         /// <summary>
         /// If this server support subscription, the type that
         /// subscription operations will be rooted at.
         /// </summary>
-        ObjectType SubscriptionType { get; }
+        ObjectType? SubscriptionType { get; }
 
         /// <summary>
         /// Gets all the schema types.
@@ -58,6 +60,7 @@ namespace HotChocolate
         /// The specified type does not exist or is not of the
         /// specified type kind.
         /// </exception>
+        [return: NotNull]
         T GetType<T>(NameString typeName)
             where T : INamedType;
 
@@ -83,7 +86,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetClrType(NameString typeName, [NotNullWhen(true)]out Type clrType);
+        bool TryGetClrType(NameString typeName, [NotNullWhen(true)]out Type? clrType);
 
         /// <summary>
         /// Gets the possible object types to
@@ -106,6 +109,9 @@ namespace HotChocolate
         /// Returns directive type that was resolved by the given name
         /// or <c>null</c> if there is no directive with the specified name.
         /// </returns>
+        /// <exception cref="ArgumentException">
+        /// The specified directive type does not exist.
+        /// </exception>
         DirectiveType GetDirectiveType(NameString directiveName);
 
         /// <summary>
@@ -124,6 +130,11 @@ namespace HotChocolate
         /// </returns>
         bool TryGetDirectiveType(
             NameString directiveName,
-            [NotNullWhen(true)]out DirectiveType directiveType);
+            [NotNullWhen(true)]out DirectiveType? directiveType);
+
+        /// <summary>
+        /// Returns the schema SDL representation.
+        /// </summary>
+        string ToString();
     }
 }

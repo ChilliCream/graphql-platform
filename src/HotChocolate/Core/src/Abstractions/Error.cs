@@ -71,7 +71,7 @@ namespace HotChocolate
             }
 
             var extensions = Extensions is null
-                ? new OrderedDictionary<string, object?>()
+                ? new OrderedDictionary<string, object?>() {[_codePropertyName] = code}
                 : new OrderedDictionary<string, object?>(Extensions) {[_codePropertyName] = code};
             return new Error(Message, code, Path, Locations, extensions, Exception);
         }
