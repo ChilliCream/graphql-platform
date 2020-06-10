@@ -7,7 +7,7 @@ using Microsoft.Extensions.ObjectPool;
 namespace HotChocolate.Execution.Utilities
 {
     /// <inheritdoc/>
-    internal class TaskQueue : ITaskQueue
+    internal class TaskQueue : ITaskBacklog
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ITaskStatistics _stats;
@@ -22,11 +22,11 @@ namespace HotChocolate.Execution.Utilities
         }
 
         /// <inheritdoc/>
-        public bool TryDequeue([NotNullWhen(true)] out ResolverTask? task) =>
+        public bool TryTake([NotNullWhen(true)] out ResolverTask? task) =>
             _channel.Reader.TryRead(out task);
 
         /// <inheritdoc/>
-        public void Enqueue(
+        public void Register(
             IOperationContext operationContext,
             IPreparedSelection selection,
             int responseIndex,

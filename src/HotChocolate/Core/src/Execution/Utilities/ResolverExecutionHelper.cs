@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Utilities
                 !executionContext.IsCompleted)
             {
                 while (!cancellationToken.IsCancellationRequested &&
-                    executionContext.Tasks.TryDequeue(out ResolverTask? task))
+                    executionContext.Tasks.TryTake(out ResolverTask? task))
                 {
                     task.BeginExecute();
                 }

@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed partial class ResolverTask
+    internal sealed partial class ResolverTask : ITask
     {
         private readonly MiddlewareContext _context = new MiddlewareContext();
         private ValueTask _task;

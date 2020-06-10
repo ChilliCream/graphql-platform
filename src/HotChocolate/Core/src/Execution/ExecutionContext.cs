@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
     internal partial class ExecutionContext
         : IExecutionContext
     {
-        public ITaskQueue Tasks => _taskQueue;
+        public ITaskBacklog Tasks => _taskQueue;
 
         public ITaskStatistics TaskStats => _taskStatistics;
 
@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
         public ValueTask<bool> WaitAsync(CancellationToken cancellationToken) =>
-            _channel.Reader.WaitToReadAsync();
+            _channel.Reader.WaitToReadAsync(cancellationToken);
 
         private void SetEngineState()
         {

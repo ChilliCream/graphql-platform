@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Utilities
                 IPreparedSelection selection = selections[i];
                 if (selection.IsVisible(operationContext.Variables))
                 {
-                    operationContext.Execution.Tasks.Enqueue(
+                    operationContext.Execution.Tasks.Register(
                         operationContext,
                         selection,
                         responseIndex++,

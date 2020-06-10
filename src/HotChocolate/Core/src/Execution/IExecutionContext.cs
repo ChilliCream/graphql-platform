@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the task queue.
         /// </summary>
-        ITaskQueue Tasks { get; }
+        ITaskBacklog Tasks { get; }
 
         ObjectPool<ResolverTask> TaskPool { get; }
 
