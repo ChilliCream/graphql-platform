@@ -26,7 +26,7 @@ namespace HotChocolate.Execution
             IVariableValueCollection variables)
         {
             _requestContext = requestContext;
-            _executionContext.Initialize(batchDispatcher);
+            _executionContext.Initialize(batchDispatcher, requestContext.RequestAborted);
             Operation = operation;
             RootValue = rootValue;
             Variables = variables;

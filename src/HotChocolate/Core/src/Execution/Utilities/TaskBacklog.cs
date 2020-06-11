@@ -29,6 +29,11 @@ namespace HotChocolate.Execution.Utilities
         /// <inheritdoc/>
         public async ValueTask<bool> WaitForTaskAsync(CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return false;
+            }
+
             try
             {
                 return await _channel.Reader.WaitToReadAsync(cancellationToken);

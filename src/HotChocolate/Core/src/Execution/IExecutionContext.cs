@@ -15,18 +15,18 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the task queue.
         /// </summary>
-        ITaskBacklog Tasks { get; }
+        ITaskBacklog TaskBacklog { get; }
 
         ObjectPool<ResolverTask> TaskPool { get; }
 
         ITaskStatistics TaskStats { get; }
 
-        ValueTask<bool> WaitAsync(CancellationToken cancellationToken);
-
         /// <summary>
         /// Gets the batch dispatcher.
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
+
+        CancellationToken Completed { get; }
 
         /// <summary>
         /// operationContext.TaskStats.Enqueued == 0

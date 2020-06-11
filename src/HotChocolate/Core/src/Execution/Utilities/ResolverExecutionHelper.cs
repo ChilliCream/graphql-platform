@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -21,30 +19,12 @@ namespace HotChocolate.Execution.Utilities
                 !executionContext.IsCompleted)
             {
                 while (!cancellationToken.IsCancellationRequested &&
-                    executionContext.Tasks.TryTake(out ResolverTask? task))
+                    executionContext.TaskBacklog.TryTake(out ITask? task))
                 {
                     task.BeginExecute();
                 }
 
-                await executionContext.WaitAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async Task ExecuteResolvers2(
-            Channel<ResolverTask> channel,
-            IExecutionContext executionContext,
-            CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested &&
-                !channel.Reader.Completion.IsCompleted)
-            {
-                while (!cancellationToken.IsCancellationRequested &&
-                    channel.Reader.TryRead(out ResolverTask? task))
-                {
-                    task.BeginExecute();
-                }
-
-                await channel.Reader.WaitToReadAsync(cancellationToken);
+                await executionContext.TaskBacklog.WaitForTaskAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

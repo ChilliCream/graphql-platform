@@ -20,6 +20,8 @@ namespace HotChocolate.Execution
 
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
+        public CancellationToken Completed => _completed.Token;
+
         private void SetEngineState()
         {
             if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
@@ -29,7 +31,7 @@ namespace HotChocolate.Execution
 
             if (TaskStats.IsCompleted)
             {
-                _channel.Writer.TryComplete();
+                _completed.Cancel();
             }
         }
 

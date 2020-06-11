@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
             {
                 tasks[i] = StartExecutionTaskAsync(
                     operationContext.Execution,
-                    operationContext.RequestAborted);
+                    operationContext.Execution.Completed);
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
