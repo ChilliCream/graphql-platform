@@ -1,8 +1,6 @@
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace HotChocolate.Execution
 {
@@ -26,10 +24,6 @@ namespace HotChocolate.Execution
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
 
-        /// <summary>
-        /// operationContext.TaskStats.Enqueued == 0
-        /// && operationContext.TaskStats.Running == 0
-        /// </summary>
         bool IsCompleted { get; }
     }
 }

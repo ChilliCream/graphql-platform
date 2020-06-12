@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
 
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
-        private void SetEngineState()
+        private void TryDispatchBatches()
         {
             if (TaskBacklog.IsEmpty && BatchDispatcher.HasTasks)
             {
@@ -30,11 +30,11 @@ namespace HotChocolate.Execution
 
         private void BatchDispatcherEventHandler(
             object? source, EventArgs args) =>
-            SetEngineState();
+            TryDispatchBatches();
 
         private void TaskStatisticsEventHandler(
             object? source, EventArgs args) =>
-            SetEngineState();
+            TryDispatchBatches();
 
         private void OnCompleted(
             object? source, 

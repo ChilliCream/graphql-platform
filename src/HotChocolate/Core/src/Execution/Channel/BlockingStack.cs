@@ -52,5 +52,4 @@ namespace HotChocolate.Execution.Channels
 
         public int Count => _list.Count;
     }
-
 }
