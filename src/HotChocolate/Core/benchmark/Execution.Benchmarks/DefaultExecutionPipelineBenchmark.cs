@@ -18,6 +18,7 @@ namespace HotChocolate.Execution.Benchmarks
         private readonly IReadOnlyQueryRequest _getHeroRequest;
         private readonly IReadOnlyQueryRequest _getHeroWithFriendsRequest;
         private readonly IReadOnlyQueryRequest _getTwoHerosWithFriendsRequest;
+        private readonly IReadOnlyQueryRequest _largeQuery;
         private readonly IReadOnlyQueryRequest _introspectionRequest;
 
         public DefaultExecutionPipelineBenchmark()
@@ -38,6 +39,7 @@ namespace HotChocolate.Execution.Benchmarks
             _getHeroRequest = CreateRequest(md5, resources, "GetHeroQuery.graphql");
             _getHeroWithFriendsRequest = CreateRequest(md5, resources, "GetHeroWithFriendsQuery.graphql");
             _getTwoHerosWithFriendsRequest = CreateRequest(md5, resources, "GetTwoHerosWithFriendsQuery.graphql");
+            _largeQuery = CreateRequest(md5, resources, "LargeQuery.graphql");
             _introspectionRequest = CreateRequest(md5, resources, "IntrospectionQuery.graphql");
         }
 
@@ -107,6 +109,19 @@ namespace HotChocolate.Execution.Benchmarks
         public Task GetTwoHerosWithFriendsFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _getTwoHerosWithFriendsRequest);
+        }
+
+        // note : large query
+        [Benchmark]
+        public Task LargeQuery()
+        {
+            return OneRequest(_executor, _largeQuery);
+        }
+
+        [Benchmark]
+        public Task LargeQueryFiveParallelRequests()
+        {
+            return FiveRequestsInParallel(_executor, _largeQuery);
         }
 
         private static async Task OneRequest(
