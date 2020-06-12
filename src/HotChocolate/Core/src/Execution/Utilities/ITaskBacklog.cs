@@ -11,6 +11,11 @@ namespace HotChocolate.Execution.Utilities
     internal interface ITaskBacklog
     {
         /// <summary>
+        /// Defines if the backlog is empty and has no more tasks.
+        /// </summary>
+        bool IsEmpty { get; }
+
+        /// <summary>
         /// Try to take a task from the backlog.
         /// </summary>
         /// <param name="task">
@@ -34,10 +39,5 @@ namespace HotChocolate.Execution.Utilities
         /// Registers work with the task backlog.
         /// </summary>
         void Register(ResolverTaskDefinition taskDefinition);
-
-        /// <summary>
-        /// Clears the queue and returns all the <see cref="ResolverTask"/> instances to the pool.
-        /// </summary>
-        void Reset();
     }
 }

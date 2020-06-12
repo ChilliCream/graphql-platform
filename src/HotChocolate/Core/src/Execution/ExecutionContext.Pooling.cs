@@ -18,6 +18,7 @@ namespace HotChocolate.Execution
             _taskBacklog = new TaskBacklog(_taskStatistics, resolverTaskPool);
             TaskPool = resolverTaskPool;
             TaskStats.StateChanged += TaskStatisticsEventHandler;
+            TaskStats.AllTasksCompleted += OnCompleted;
         }
 
         public void Initialize(IBatchDispatcher batchDispatcher, CancellationToken requestAborted)

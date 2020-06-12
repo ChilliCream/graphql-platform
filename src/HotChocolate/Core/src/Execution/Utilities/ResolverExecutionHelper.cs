@@ -1,5 +1,4 @@
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Utilities
@@ -24,7 +23,9 @@ namespace HotChocolate.Execution.Utilities
                     task.BeginExecute();
                 }
 
-                await executionContext.TaskBacklog.WaitForTaskAsync(cancellationToken).ConfigureAwait(false);
+                await executionContext.TaskBacklog
+                    .WaitForTaskAsync(cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
     }

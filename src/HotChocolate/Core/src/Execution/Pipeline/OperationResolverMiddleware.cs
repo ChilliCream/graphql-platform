@@ -26,7 +26,11 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Document is { } && context.ValidationResult is { HasErrors: false })
+            if (context.Operation is { })
+            {
+                await _next(context).ConfigureAwait(false);
+            }
+            else if (context.Document is { } && context.ValidationResult is { HasErrors: false })
             {
                 OperationDefinitionNode operation =
                     context.Document.GetOperation(context.Request.OperationName);

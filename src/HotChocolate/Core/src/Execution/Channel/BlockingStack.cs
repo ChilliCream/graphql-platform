@@ -19,7 +19,13 @@ namespace HotChocolate.Execution.Channels
             try
             {
                 _lock.Enter(ref lockTaken);
-                return _list.TryPop(out item);
+                if (_list.TryPop(out item))
+                {
+                    IsEmpty = _list.Count == 0;
+                    return true;
+                }
+
+                return false;
             }
             finally
             {
@@ -34,6 +40,7 @@ namespace HotChocolate.Execution.Channels
             {
                 _lock.Enter(ref lockTaken);
                 _list.Push(item);
+                IsEmpty = false;
             }
             finally
             {
@@ -41,7 +48,7 @@ namespace HotChocolate.Execution.Channels
             }
         }
 
-        public bool IsEmpty => _list.Count == 0;
+        public bool IsEmpty { get; private set; } = true;
 
         public int Count => _list.Count;
     }

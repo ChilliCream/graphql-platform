@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Utilities
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ITaskStatistics _stats;
-        private readonly UnsortedChannel<ITask> _channel =
+        private UnsortedChannel<ITask> _channel =
             new UnsortedChannel<ITask>(true);
 
         internal TaskBacklog(
@@ -23,26 +23,15 @@ namespace HotChocolate.Execution.Utilities
         }
 
         /// <inheritdoc/>
+        public bool IsEmpty => _channel.IsEmpty;
+
+        /// <inheritdoc/>
         public bool TryTake([NotNullWhen(true)] out ITask? task) =>
             _channel.Reader.TryRead(out task);
 
         /// <inheritdoc/>
-        public async ValueTask<bool> WaitForTaskAsync(CancellationToken cancellationToken)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return false;
-            }
-
-            try
-            {
-                return await _channel.Reader.WaitToReadAsync(cancellationToken);
-            }
-            catch (TaskCanceledException)
-            {
-                return false;
-            }
-        }
+        public ValueTask<bool> WaitForTaskAsync(CancellationToken cancellationToken) =>
+            _channel.Reader.WaitToReadAsync(cancellationToken);
 
         /// <inheritdoc/>
         public void Register(ResolverTaskDefinition taskDefinition)
@@ -62,6 +51,11 @@ namespace HotChocolate.Execution.Utilities
             _channel.Writer.TryWrite(resolverTask);
         }
 
-        public void Reset() => _channel.Reset();
+        public void Complete() => _channel.Writer.Complete();
+
+        public void Reset()
+        {
+            _channel = new UnsortedChannel<ITask>(true);
+        }
     }
 }

@@ -26,8 +26,6 @@ namespace HotChocolate.Execution
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
 
-        CancellationToken Completed { get; }
-
         /// <summary>
         /// operationContext.TaskStats.Enqueued == 0
         /// && operationContext.TaskStats.Running == 0

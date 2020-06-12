@@ -35,14 +35,10 @@ namespace HotChocolate.Execution.Channels
             Writer = new UnsortedChannelWriter(this);
         }
 
-        public void Reset()
-        {
-
-
-        }
-
         /// <summary>Gets the object used to synchronize access to all state on this instance.</summary>
         private object SyncObj => _items;
+
+        public bool IsEmpty => _items.IsEmpty;
 
         [Conditional("DEBUG")]
         private void AssertInvariants()
