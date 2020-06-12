@@ -22,15 +22,15 @@ namespace HotChocolate.Execution
                 IPreparedSelection selection = rootSelections[i];
                 if (selection.IsVisible(operationContext.Variables))
                 {
-                    operationContext.Execution.Tasks.Enqueue(
-                        operationContext,
-                        selection,
-                        responseIndex++,
-                        resultMap,
-                        operationContext.RootValue,
-                        Path.New(selection.ResponseName),
-                        scopedContext);
-
+                    operationContext.Execution.TaskBacklog.Register(
+                        new ResolverTaskDefinition(
+                            operationContext,
+                            selection,
+                            responseIndex++,
+                            resultMap,
+                            operationContext.RootValue,
+                            Path.New(selection.ResponseName),
+                            scopedContext));
 
                     await ResolverExecutionHelper.StartExecutionTaskAsync(
                         operationContext.Execution,

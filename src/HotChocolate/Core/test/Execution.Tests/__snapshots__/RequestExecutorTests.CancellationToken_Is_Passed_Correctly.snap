@@ -1,8 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "CancellationRaised"
+      "message": "Unexpected Execution Error"
     }
-  ],
-  "data": {}
+  ]
 }

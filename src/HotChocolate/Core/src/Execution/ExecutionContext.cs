@@ -1,6 +1,4 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
@@ -10,7 +8,9 @@ namespace HotChocolate.Execution
     internal partial class ExecutionContext
         : IExecutionContext
     {
-        public ITaskQueue Tasks => _taskQueue;
+        private readonly object _sync = new object();
+
+        public ITaskBacklog TaskBacklog => _taskBacklog;
 
         public ITaskStatistics TaskStats => _taskStatistics;
 
@@ -20,33 +20,25 @@ namespace HotChocolate.Execution
 
         public IBatchDispatcher BatchDispatcher { get; private set; } = default!;
 
-        public ValueTask<bool> WaitAsync(CancellationToken cancellationToken) =>
-            _channel.Reader.WaitToReadAsync();
-
-        private void SetEngineState()
+        private void TryDispatchBatches()
         {
-            if (TaskStats.NewTasks == 0 && BatchDispatcher.HasTasks)
+            if (TaskBacklog.IsEmpty && BatchDispatcher.HasTasks)
             {
                 BatchDispatcher.Dispatch();
-            }
-
-            if (TaskStats.IsCompleted)
-            {
-                _channel.Writer.TryComplete();
             }
         }
 
         private void BatchDispatcherEventHandler(
-            object? source, EventArgs args)
-        {
-            lock (_taskStatistics.SyncRoot)
-            {
-                SetEngineState();
-            }
-        }
+            object? source, EventArgs args) =>
+            TryDispatchBatches();
 
         private void TaskStatisticsEventHandler(
             object? source, EventArgs args) =>
-            SetEngineState();
+            TryDispatchBatches();
+
+        private void OnCompleted(
+            object? source, 
+            EventArgs args) =>
+            _taskBacklog.Complete();
     }
 }

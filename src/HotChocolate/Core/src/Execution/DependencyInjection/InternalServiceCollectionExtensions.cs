@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IServiceCollection TryAddResultPool(
             this IServiceCollection services,
-            int maximumRetained = 16)
+            int maximumRetained = 512)
         {
             services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMap>>>(
                 sp => new ResultMapPool(maximumRetained));

@@ -20,14 +20,15 @@ namespace HotChocolate.Execution.Utilities
                 IPreparedSelection selection = selections[i];
                 if (selection.IsVisible(operationContext.Variables))
                 {
-                    operationContext.Execution.Tasks.Enqueue(
-                        operationContext,
-                        selection,
-                        responseIndex++,
-                        resultMap,
-                        parent,
-                        createPath(selection.ResponseName),
-                        scopedContext);
+                    operationContext.Execution.TaskBacklog.Register(
+                        new ResolverTaskDefinition(
+                            operationContext,
+                            selection,
+                            responseIndex++,
+                            resultMap,
+                            parent,
+                            createPath(selection.ResponseName),
+                            scopedContext));
                 }
             }
 

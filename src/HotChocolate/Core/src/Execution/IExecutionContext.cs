@@ -1,8 +1,6 @@
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace HotChocolate.Execution
 {
@@ -15,23 +13,17 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the task queue.
         /// </summary>
-        ITaskQueue Tasks { get; }
+        ITaskBacklog TaskBacklog { get; }
 
         ObjectPool<ResolverTask> TaskPool { get; }
 
         ITaskStatistics TaskStats { get; }
-
-        ValueTask<bool> WaitAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the batch dispatcher.
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
 
-        /// <summary>
-        /// operationContext.TaskStats.Enqueued == 0
-        /// && operationContext.TaskStats.Running == 0
-        /// </summary>
         bool IsCompleted { get; }
     }
 }
