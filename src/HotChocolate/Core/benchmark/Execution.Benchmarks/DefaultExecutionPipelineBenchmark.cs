@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Benchmarks
 {
@@ -125,7 +128,7 @@ namespace HotChocolate.Execution.Benchmarks
             Task task3 = OneRequest(executer, request);
             Task task4 = OneRequest(executer, request);
             Task task5 = OneRequest(executer, request);
-            
+
             await WaitForTask(task1);
             await WaitForTask(task2);
             await WaitForTask(task3);
