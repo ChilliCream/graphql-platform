@@ -250,9 +250,6 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             .MatchSnapshotAsync();
         }
 
-
-
-
         [Fact]
         public async Task GraphQLOrgDirectiveSkipExample1WithPlainClrVarTypes()
         {

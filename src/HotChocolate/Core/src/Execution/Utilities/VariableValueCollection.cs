@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Utilities
             {
                 throw ThrowHelper.VariableNotOfType(name, typeof(T));
             }
-            
+
             throw ThrowHelper.VariableNotFound(name);
         }
 
@@ -39,6 +39,16 @@ namespace HotChocolate.Execution.Utilities
                         value = casted;
                         return true;
                     }
+
+                    if (variableValue.ValueLiteral is null)
+                    {
+                        IValueNode literal = variableValue.Type.ParseValue(variableValue.Value);
+                        if (literal is T casted2)
+                        {
+                            value = casted2;
+                            return true;
+                        }
+                    }
                 }
                 else
                 {
@@ -46,6 +56,16 @@ namespace HotChocolate.Execution.Utilities
                     {
                         value = casted;
                         return true;
+                    }
+
+                    if (variableValue.ValueLiteral is { })
+                    {
+                        object temp  = variableValue.Type.ParseLiteral(variableValue.ValueLiteral);
+                        if (temp is T casted2)
+                        {
+                            value = casted2;
+                            return true;
+                        }
                     }
                 }
             }

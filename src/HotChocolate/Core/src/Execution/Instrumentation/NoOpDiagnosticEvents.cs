@@ -51,6 +51,12 @@ namespace HotChocolate.Execution.Instrumentation
         public void RetrievedDocumentFromStorage(IRequestContext context)
         { }
 
+        public void AddedOperationToCache(IRequestContext context)
+        { }
+
+        public void RetrievedOperationFromCache(IRequestContext context)
+        { }
+
         public void BatchDispatched(IRequestContext context)
         { }
 

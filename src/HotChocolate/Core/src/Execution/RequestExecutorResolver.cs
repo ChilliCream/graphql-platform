@@ -79,7 +79,7 @@ namespace HotChocolate.Execution
             name = name ?? Microsoft.Extensions.Options.Options.DefaultName;
             if (_executors.TryRemove(name, out IRequestExecutor? executor))
             {
-                _diagnosticEvents.ExecutorCreated(name, executor);
+                _diagnosticEvents.ExecutorEvicted(name, executor);
                 RequestExecutorEvicted?.Invoke(
                     this,
                     new RequestExecutorEvictedEventArgs(name, executor));

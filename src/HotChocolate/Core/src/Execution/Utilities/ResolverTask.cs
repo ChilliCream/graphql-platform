@@ -23,27 +23,30 @@ namespace HotChocolate.Execution.Utilities
 
         private async ValueTask ExecuteInternalAsync()
         {
-            try
+            using (_operationContext.DiagnosticEvents.ResolveFieldValue(_context))
             {
-                bool errors = true;
-
-                if (TryCoerceArguments())
+                try
                 {
-                    await ExecuteResolverPipelineAsync().ConfigureAwait(false);
-                    errors = false;
-                }
+                    bool errors = true;
 
-                if (_context.RequestAborted.IsCancellationRequested)
+                    if (TryCoerceArguments())
+                    {
+                        await ExecuteResolverPipelineAsync().ConfigureAwait(false);
+                        errors = false;
+                    }
+
+                    if (_context.RequestAborted.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    CompleteValue(withErrors: errors);
+                }
+                finally
                 {
-                    return;
+                    _operationContext.Execution.TaskStats.TaskCompleted();
+                    _operationContext.Execution.TaskPool.Return(this);
                 }
-
-                CompleteValue(withErrors: errors);
-            }
-            finally
-            {
-                _operationContext.Execution.TaskStats.TaskCompleted();
-                _operationContext.Execution.TaskPool.Return(this);
             }
         }
 
